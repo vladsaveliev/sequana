@@ -31,7 +31,6 @@ def main(args=None):
     if len(args) == 1:
         user_options.parse_args(["prog", "--help"])
     elif len(args) == 2:
-        print args
         class SimpleOpt():
             pass
         options = SimpleOpt()
@@ -40,8 +39,8 @@ def main(args=None):
         options = user_options.parse_args(args[1:])
 
     f = FASTQ(options.input_filename)
-    print("Number of reads: %s" % f.count_lines())
-    print("Number of lines %s " % f.count_reads())
+    print("Number of reads: %s" % f.count_reads())
+    print("Number of lines %s " % f.count_lines())
 
 
 
