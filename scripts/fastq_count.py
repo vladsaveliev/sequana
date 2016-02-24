@@ -6,7 +6,7 @@ import argparse
 
 
 class Options(argparse.ArgumentParser):
-    def  __init__(self, version="1.0", prog="fastq_extract"):
+    def  __init__(self, prog="fastq_extract"):
         usage = """%s input N output \n""" % prog
         usage += """usage2: %s fastq_filename""" % prog
         usage += """Examples:
@@ -19,7 +19,7 @@ class Options(argparse.ArgumentParser):
             fastq_extract --input input.fastq.gz --N 10000 --ouput output.fastq.gz
 
         """
-        super(Options, self).__init__(usage=usage, version=version, prog=prog)
+        super(Options, self).__init__(usage=usage, prog=prog)
         self.add_argument("--input", dest='input_filename', type=str,
                             required=True, help="input fastq gzipped or not")
  
