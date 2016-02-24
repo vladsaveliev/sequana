@@ -1,0 +1,53 @@
+from sequoia.fastq import FASTQ
+
+import sys
+from optparse import OptionParser
+import argparse
+
+
+class Options(argparse.ArgumentParser):
+    def  __init__(self, version="1.0", prog="fastq_extract"):
+        usage = """%s input N output \n""" % prog
+        usage += """usage2: %s fastq_filename""" % prog
+        usage += """Examples:
+
+            fastq_extract input.fastq.gz
+            fastq_extract input.fastq.gz 10000 output.fastq
+
+        you can also use named arguments::
+
+            fastq_extract --input input.fastq.gz --N 10000 --ouput output.fastq.gz
+
+        """
+        super(Options, self).__init__(usage=usage, version=version, prog=prog)
+        self.add_argument("--input", dest='input_filename', type=str,
+                            required=True, help="input fastq gzipped or not")
+ 
+def main(args=None):
+    if args is None:
+        args = sys.argv[:]
+
+    user_options = Options(prog="fastq_count")
+    if len(args) == 1:
+        user_options.parse_args(["prog", "--help"])
+    elif len(args) == 2:
+        print args
+        class SimpleOpt():
+            pass
+        options = SimpleOpt()
+        options.input_filename = args[1]
+    else:
+        options = user_options.parse_args(args[1:])
+
+    f = FASTQ(options.input_filename)
+    print("Number of reads: %s" % f.count_lines())
+    print("Number of lines %s " % f.count_reads())
+
+
+
+
+
+if __name__ == "__main__":
+   import sys
+   main(sys.argv)
+   
