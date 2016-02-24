@@ -1,0 +1,52 @@
+configfile: "config.json"
+
+
+
+DATA = ["test_R1_cutadapt", "test_R2_cutadapt"]
+
+
+"""
+Comment should be using python triple quotes
+
+
+snakemake all --forceall --cores 4
+
+"""
+
+
+
+rule all:
+    input: 
+        expand("fastqc_results/{dataset2}_fastqc/", dataset2=DATA),
+        "report.html"
+
+
+rule cutadapt:
+    input: 
+
+
+
+rule fastqc:
+    input: "fastq_raw/{dataset}.fastq"
+    output: "fastqc_results/{dataset}_fastqc/"
+    params: dir="fastqc_results"
+    log: "fastqc_raw.log"
+    threads: 1
+    shell: "fastqc -t {threads} --outdir {params.dir} {input} > {params.dir}/{log}"
+
+
+rule report:
+    output: "report.html"
+    shell: """
+        touch {output}
+        snakemake --dag | dot -Tsvg -o dag.svg
+    """
+
+
+
+
+rule clean:
+    shell: "rm -rf snakemake_data/*"
+
+
+
