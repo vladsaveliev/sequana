@@ -4,3 +4,7 @@ try:
     version = pkg_resources.require("sequoia")[0].version
 except:
     version = __version__
+
+
+
+from .snakemake import rules
