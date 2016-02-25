@@ -1,52 +1,98 @@
 configfile: "config.json"
 
 
-
-DATA = ["test_R1_cutadapt", "test_R2_cutadapt"]
-
-
-"""
-Comment should be using python triple quotes
+include: "Snakefile.report"
 
 
-snakemake all --forceall --cores 4
+import config as config_user
 
-"""
 
+DATA = [config_user.R1, config_user.R2]
+
+
+print("/* Sequoia pipeline biomics */")
+
+tags = {}
+
+
+
+if config['sample'] in [-1, '-1', False]:
+    config['sample'] = False
+
+if config['sample'] is False:
+    tags['sample'] = ""
+else:
+    tags['sample'] = ".sample"
 
 
 rule all:
-    input: 
-        expand("fastqc_results/{dataset2}_fastqc/", dataset2=DATA),
+    input:
+        # select a subset of the reads
+        expand("fastq_clean/{dataset}%(sample)s.fastq.gz" % tags, 
+            dataset=DATA),
+
+        # remove adapters
+        expand("fastq_cutadapt/{dataset}.cutadapt%(sample)s.fastq.gz" % tags, 
+            dataset=DATA),
+
+        # perform a quality control after adapter removal
+        expand("fastqc_results/{dataset}.cutadapt%(sample)s_fastqc.zip" % tags, 
+            dataset=DATA),
+
+        # a report
         "report.html"
 
 
-rule cutadapt:
-    input: 
+rule fastq_head:
+    message: "Extracting only a subset of the raw data"
+    input:  "fastq_raw/{dataset}.fastq.gz"
+    output: "fastq_clean/{dataset}%(sample)s.fastq.gz" % tags
+    params:
+        sample = config['sample']
+    run:
+        if config['sample'] is False:
+            # symbolic link use force to avoid error if it exists already
+            shell("ln -f -s ../{input} {output}")
+        else:
+            shell("fastq_head {input} {params.sample} {output}")
 
+
+rule cutadapt:
+    message: "Filtering reads for adapters and bad quality"
+    input: expand("fastq_clean/{dataset}%(sample)s.fastq.gz" % tags, dataset=DATA)
+    output:
+        R1 = "fastq_cutadapt/" + DATA[0] + ".cutadapt%(sample)s.fastq.gz" % tags,
+        R2 = "fastq_cutadapt/" + DATA[1] + ".cutadapt%(sample)s.fastq.gz" % tags
+    params: config_user.cutadapt.get_extra_params()
+    shell : "cutadapt -o {output.R1} -p {output.R2} {input} {params}"
 
 
 rule fastqc:
-    input: "fastq_raw/{dataset}.fastq"
-    output: "fastqc_results/{dataset}_fastqc/"
+    input: "fastq_cutadapt/{dataset}.cutadapt%(sample)s.fastq.gz" % tags
+    output: "fastqc_results/{dataset}.cutadapt%(sample)s_fastqc.zip" % tags
     params: dir="fastqc_results"
-    log: "fastqc_raw.log"
+    log: "fastqc_{dataset}.log"
     threads: 1
-    shell: "fastqc -t {threads} --outdir {params.dir} {input} > {params.dir}/{log}"
-
-
-rule report:
-    output: "report.html"
-    shell: """
-        touch {output}
-        snakemake --dag | dot -Tsvg -o dag.svg
-    """
-
-
+    shell:  "fastqc -t {threads} --outdir {params.dir} {input} > {params.dir}/{log}"
 
 
 rule clean:
-    shell: "rm -rf snakemake_data/*"
+    shell: 
+        """
+        rm -rf fastqc_results
+        rm -rf fastq_sample
+        rm -rf fastq_clean
+        rm -rf fastq_cutadapt
+        rm -f dag.svg dat.dot
+        """
 
 
+"""
+onsuccess:
+    print("Workflow finished without errors")
+    shell("mail -s \"Snakemake finished\" thomas.cokelaer@pasteur.fr < {log}")
 
+onerror:
+    print("An error occured")
+    shell("mail -s \"an error occured\" thomas.cokelaer@pasteur.fr < {log}")
+"""

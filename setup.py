@@ -35,7 +35,7 @@ metainfo = {
     }
 
 # files in share/data
-datadir = os.path.join('share','data')
+datadir = os.path.join('pipelines')
 datafiles = [(datadir, [f for f in glob.glob(os.path.join(datadir, '*'))])]
 
 
@@ -56,12 +56,17 @@ setup(
     classifiers      = metainfo['classifiers'],
 
     # package installation
-    packages = find_packages(),
+    packages = find_packages(exclude=["test"]),
+
+    include_package_data=True,
 
     install_requires = [],
 
     # uncomment if you have share/data files
-    #data_files = datafiles,
+    # package_data = {
+    #     '': ['Snakefile*']
+    # },
+
     zip_safe=False,
     #use_2to3 = True, # causes issue with nosetests
     entry_points = {

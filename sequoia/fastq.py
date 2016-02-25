@@ -157,7 +157,7 @@ class FASTQ(object):
         self.filename = filename
         self.verbose = verbose
         # open the file in reqd mode
-        self._input = open(self.filename, "r")
+        self._input = open(self.filename, "rb")
         self._infer_content()
         #self.count_reads()
 
@@ -177,7 +177,7 @@ class FASTQ(object):
         count = 0
         while buf:
             outstr = d.decompress(buf)
-            count += outstr.count("\n")
+            count += outstr.count(b"\n")
             buf = f.read(CHUNKSIZE)
         f.close()
         return count
@@ -187,6 +187,7 @@ class FASTQ(object):
 
 
         This is 40 times faster than using SeqIO from
+        50% slower than gunzip -c file | wc -l
         """
         if self.filename.endswith("gz"):
             count = self.count_reads_gz()
@@ -213,7 +214,7 @@ class FASTQ(object):
         # 0.12 seconds to read 3.4M lines
         # surprinsingly much faster than unix command wc
         # on 2M reads, takes 0.1 seconds whereas wc takes 1.2 seconds
-        f = open(self.filename, 'r')
+        f = open(self.filename, 'rb')
         lines = 0
         read_f = f.read
         buf = read_f(block)
@@ -278,13 +279,13 @@ class FASTQ(object):
 
         while buf:
             outstr = d.decompress(buf)
-            count += outstr.count("\n")
+            count += outstr.count(b"\n")
             if count > N:
                 # there will be too many lines, we need to select a subset
                 missing = count - N
-                outstr = outstr.strip().split("\n")
+                outstr = outstr.strip().split(b"\n")
                 NN = len(outstr)
-                outstr = "\n".join(outstr[0:NN-missing-1]) + "\n"
+                outstr = b"\n".join(outstr[0:NN-missing-1]) + b"\n"
                 if zip_output:
                     fout.write(outstr)
                 else:
@@ -316,7 +317,7 @@ class FASTQ(object):
         """
         # a completely random fastq
         from .phred import quality
-        with open(output_filename, "w") as fh:
+        with open(output_filename, "wb") as fh:
             count = 1
             template = "@Insilico\n"
             template += "%(sequence)\n"
@@ -342,15 +343,15 @@ class FASTQ(object):
     def __iter__(self):
         N = self.count_reads()
         for i in xrange(0, N):
-            yield self.next()
+            yield next(self)
 
     def next(self):
         # reads 4 lines
         data = islice(self._input, 4)
-        identifier = data.next()
-        sequence = data.next()
-        skip = data.next()
-        quality = data.next()
+        identifier = next(data)
+        sequence = next(data)
+        skip = next(data)
+        quality = next(data)
         return {'identifier':identifier,
                 'sequence': sequence,
                 'quality': quality}
