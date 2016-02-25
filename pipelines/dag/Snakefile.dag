@@ -1,0 +1,15 @@
+"""
+
+Author: TC
+Summary: a rule to create the DAG image from the Snakemake
+"""
+
+
+rule dag:
+    output: "dag.svg"
+    log: "dag.log"
+    shell: "snakemake --dag | dot -Tsvg -o dag.svg"
+
+
+
+
