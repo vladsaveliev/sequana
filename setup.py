@@ -60,7 +60,7 @@ setup(
 
     include_package_data=True,
 
-    install_requires = [],
+    install_requires = ["easydev>=0.9.12"],
 
     # uncomment if you have share/data files
     # package_data = {

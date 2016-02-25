@@ -22,6 +22,12 @@ class Rules(RuleBase):
         self.names = [this for this in os.listdir(self.basedir)
             if isdir(self.basedir + os.sep + this)]
 
+        for this in ["__pycache__"]:
+            try:self.name.remove(this)
+            except:pass
+
+
+
     def isvalid(self, name):
         if name in self.names:
             return True
@@ -67,7 +73,7 @@ class Rule(RuleBase):
         elif os.path.exists(self.location + os.sep + "Snakefile." + self.name):
             self.location = self.location + os.sep + "Snakefile." + self.name
         else:
-            print("not found")
+            print("Snakefile for %s not found" % self.name)
 
 
         self.description = None
