@@ -14,6 +14,12 @@ Contributions
 
 Please join https://github.com/biokit/sequoia
 
+.. toctree::
+    :numbered:
+    :maxdepth: 1
+
+    references.rst
+
 
 Indices and tables
 ==================
