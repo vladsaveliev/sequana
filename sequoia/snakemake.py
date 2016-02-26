@@ -8,9 +8,6 @@ from os.path import isdir
 from easydev import get_package_location as gpl
 
 
-
-
-
 class RuleBase(object):
     def __init__(self):
         self.basedir = gpl("sequoia") + os.sep + "pipelines"
@@ -23,7 +20,7 @@ class Rules(RuleBase):
             if isdir(self.basedir + os.sep + this)]
 
         for this in ["__pycache__"]:
-            try:self.name.remove(this)
+            try:self.names.remove(this)
             except:pass
 
 
@@ -88,7 +85,16 @@ class Rule(RuleBase):
         return txt
 
 
-
+#: define a dictionary to be used in Snakefile to include sequoia's snakefiles
 rules = {}
 for name in Rules().names:
-    rules[name] = Rule(name).location 
+    rules[name] = Rule(name).location
+
+
+class ValidateConfig(object):
+    def __init__(self, filename): 
+        """Could be a json or a yaml"""
+        pass
+
+
+
