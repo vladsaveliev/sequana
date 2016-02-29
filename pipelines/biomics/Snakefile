@@ -1,54 +1,71 @@
+"""
+Author:
+Affiliation:
+Aim:
+Data:
+Run: snakemake -s Snakefile
+Changelog:
+"""
+from sequoia import snakemake as sm
+
+# Change parameters inside config.json
 configfile: "config.json"
 
 
-include: "Snakefile.report"
+workdir: "."
+sm.message("Sequoia pipeline biomics")
+sm.message("The current working directory is " )
+
+############# NOTHING to change here below
+
+include: sm.rules['dag']
+
+vc = sm.ValidateConfig(config)
+config = vc()
 
 
-import config as config_user
+get_prefixes = lambda filename: filename.split(".")[0]
+
+if "cutadapt_params" in config.keys():
+    config['cutadapt_params'] = " ".join([x + " " + y
+        for x,y in config.cutadapt_params.items()])
+
+DATA = [get_prefixes(config.R1), get_prefixes(config.R2)]
 
 
-DATA = [config_user.R1, config_user.R2]
 
-
-print("/* Sequoia pipeline biomics */")
-
-tags = {}
-
-
+tags = {'sample':""}
 
 if config['sample'] in [-1, '-1', False]:
     config['sample'] = False
 
-if config['sample'] is False:
-    tags['sample'] = ""
-else:
+if config['sample'] is not False:
     tags['sample'] = ".sample"
 
 
 rule all:
     input:
         # select a subset of the reads
-        expand("fastq_clean/{dataset}%(sample)s.fastq.gz" % tags, 
+        expand("fastq_clean/{dataset}%(sample)s.fastq.gz" % tags,
             dataset=DATA),
 
         # remove adapters
-        expand("fastq_cutadapt/{dataset}.cutadapt%(sample)s.fastq.gz" % tags, 
-            dataset=DATA),
+        #expand("fastq_cutadapt/{dataset}.cutadapt%(sample)s.fastq.gz" % tags,
+        #    dataset=DATA),
 
         # perform a quality control after adapter removal
-        expand("fastqc_results/{dataset}.cutadapt%(sample)s_fastqc.zip" % tags, 
+        expand("fastqc_results/{dataset}.cutadapt%(sample)s_fastqc.zip" % tags,
             dataset=DATA),
 
         # a report
-        "report.html"
+        "dag.svg"
 
 
 rule fastq_head:
     message: "Extracting only a subset of the raw data"
     input:  "fastq_raw/{dataset}.fastq.gz"
     output: "fastq_clean/{dataset}%(sample)s.fastq.gz" % tags
-    params:
-        sample = config['sample']
+    params: sample = config['sample']
     run:
         if config['sample'] is False:
             # symbolic link use force to avoid error if it exists already
@@ -63,7 +80,7 @@ rule cutadapt:
     output:
         R1 = "fastq_cutadapt/" + DATA[0] + ".cutadapt%(sample)s.fastq.gz" % tags,
         R2 = "fastq_cutadapt/" + DATA[1] + ".cutadapt%(sample)s.fastq.gz" % tags
-    params: config_user.cutadapt.get_extra_params()
+    params: config.cutadapt_params
     shell : "cutadapt -o {output.R1} -p {output.R2} {input} {params}"
 
 
@@ -72,12 +89,29 @@ rule fastqc:
     output: "fastqc_results/{dataset}.cutadapt%(sample)s_fastqc.zip" % tags
     params: dir="fastqc_results"
     log: "fastqc_{dataset}.log"
-    threads: 1
+    threads: 2
     shell:  "fastqc -t {threads} --outdir {params.dir} {input} > {params.dir}/{log}"
 
 
+rule bwa_index_contaminant:
+    input: config.contaminant
+    output: touch("bwa_index_contaminant")
+    threads: 8
+    shell: "bwa index {input}"
+
+
+"""rule contaminant:
+    input: config.contaminant
+    output
+
+  "(bwa mem {snakemake.params} -t {snakemake.threads} "
+    "{snakemake.input.ref} {snakemake.input.sample} "
+    "| samtools view -Sbh -o {snakemake.output[0]} -) 2> {snakemake.log}")
+"""
+
+
 rule clean:
-    shell: 
+    shell:
         """
         rm -rf fastqc_results
         rm -rf fastq_sample
@@ -85,7 +119,6 @@ rule clean:
         rm -rf fastq_cutadapt
         rm -f dag.svg dat.dot
         """
-
 
 """
 onsuccess:

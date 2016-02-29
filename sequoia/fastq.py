@@ -1,5 +1,3 @@
-
-
 """
 IDEA
 
@@ -18,11 +16,26 @@ http://www.genomearchitecture.com/2014/01/how-to-gunzip-on-the-fly-with-python
 import time
 import zlib
 from itertools import islice
-from easydev import do_profile
 import gzip
+import subprocess
+
+import numpy as np
+import pandas as pd
+from easydev import do_profile
+import pylab
+
+
+class Read(object):
+    def __init__(self, data):
+        pass
+        # input could be a dictionary
+        self.identifier = 1
+        self.quality = 1
+        self.sequence = 1
 
 
 class Identifier(object):
+
     def __init__(self, identifier, version=None):
         self.identifier = identifier
         if version is None:
@@ -103,7 +116,7 @@ http://support.illumina.com/help/SequencingAnalysisWorkflow/Content/Vault/Inform
         res['index_sequence'] = items[10]
         return res
 
-    def _interpret_identifier_1_4(self):
+    def _interpret_illumina_1_4(self):
         # skip @ character
         identifier = self.identifier[1:]
         identifier = identifier.replace('#', ':')
@@ -122,13 +135,18 @@ http://support.illumina.com/help/SequencingAnalysisWorkflow/Content/Vault/Inform
         res['self._index'] = '#' + items[5]
         res['self._member_pair'] = '/' + items[6]
 
+    def __str__(self):
+        txt = ""
+        for key in sorted(self.info.keys()):
+            txt += '%s: %s\n' % (key, self.info[key])
+        return txt
 
     def __repr__(self):
         return "Identifier (%s)" % self.version
 
 
 
-class FASTQ(object):
+class FastQ(object):
     """
 
     extract first 100k lines
@@ -152,80 +170,97 @@ class FASTQ(object):
 
 
 
+    Features to implement::
+        - filter out short / long reads
+        - filter out reads with NNN
+        - filter out low quality end reads
+        - cut poly A/T tails
+
+        - dereplicate seauences
+        - split multiplex
+        - remove contaminants
+        - compact fastq
+        - convert to/from sff
+        - convert to fasta
     """
     def __init__(self, filename, verbose=False):
+
         self.filename = filename
         self.verbose = verbose
-        # open the file in reqd mode
-        self._input = open(self.filename, "rb")
-        self._infer_content()
-        #self.count_reads()
+        self._count_reads = None
+        self._count_lines = None
+        self.__enter__()
 
-    def _infer_content(self):
-        record = self.next()
-        return record
+    def _get_count_reads(self):
+        if self._count_reads is None:
+            self._count_reads = self.count_reads()
+        return self._count_reads
+    n_reads = property(_get_count_reads, doc="return number of reads")
+
+    def _get_count_lines(self):
+        if self._count_lines is None:
+            self._count_lines = self.count_lines()
+        return self._count_lines
+    n_lines = property(_get_count_lines,
+        doc="return number of lines (should be 4 times number of reads)")
+
+    def __len__(self):
+        return self.n_reads
+
+    def rewind(self):
+        self._count_reads = None
 
     def count_reads_gz(self, CHUNKSIZE=65536):
         # this is fast. On a 63M reads, takes 21 seconds as
         # compared to 46 s (real) and 1.13 (user) with zcat | wc
         # wc seems slow (same effects with uncompressde file).
         # Using gzip.open and reading lines is slower by a factor 10
-        # recipe found http://wiki.glitchdata.com/index.php?title=Python:_File_Compression_and_Decompression
+        # hints from http://wiki.glitchdata.com/index.php?title=Python:_File_Compression_and_Decompression
+
+        # cannot be re-used so must be written here and wherever decompression is
+        # required
         d = zlib.decompressobj(16 + zlib.MAX_WBITS)
-        f = open(self.filename, 'rb')
-        buf = f.read(CHUNKSIZE)
-        count = 0
-        while buf:
-            outstr = d.decompress(buf)
-            count += outstr.count(b"\n")
+        with open(self.filename, 'rb') as f:
             buf = f.read(CHUNKSIZE)
-        f.close()
+            count = 0
+            while buf:
+                outstr = d.decompress(buf)
+                count += outstr.count(b"\n")
+                buf = f.read(CHUNKSIZE)
         return count
 
     def count_lines(self):
         """Return number of lines
 
-
-        This is 40 times faster than using SeqIO from
-        50% slower than gunzip -c file | wc -l
+        This is 40 times faster than wc on uncompressed file and
+        3-4 times faster on zipped file (using gunzip -c file | wc -l)
         """
         if self.filename.endswith("gz"):
             count = self.count_reads_gz()
-            return count
         else:
             count = self._count_reads_buf()
-            return count
+        return count
 
     def count_reads(self):
-        #TODO assert multiple de 4
-        return self.count_lines() / 4
+        nlines = self.count_lines()
+        if divmod(nlines, 4)[1] != 0:
+            print("WARNING. number of lines not multiple of 4.")
+        return nlines / 4
 
-    """
-    #slower than cound_reads_buf
-    def count_read_simple(self):
-        with open(self.filename, 'r') as f:
-            for i, l in enumerate(f):
-                pass
-        i += 1
-        return i
-    """
     def _count_reads_buf(self, block=1024*1024):
-        # 2x faster than count_reads_simple
-        # 0.12 seconds to read 3.4M lines
-        # surprinsingly much faster than unix command wc
+        # 0.12 seconds to read 3.4M lines, faster than wc command
         # on 2M reads, takes 0.1 seconds whereas wc takes 1.2 seconds
-        f = open(self.filename, 'rb')
         lines = 0
-        read_f = f.read
-        buf = read_f(block)
-        while buf:
-            # todo : use EOF universal ?
-            lines += buf.count('\n')
-            buf = read_f(block)
-        f.close()
+        with open(self.filename, 'rb') as f:
+            buf = f.read(block)
+            while buf:
+                lines += buf.count(b'\n')
+                buf = f.read(block)
         return lines
 
     def extract_head(self, N, output_filename):
+        # extract N lines
+
         # equivalent to
         # zcat input.fasta | head -400000 > out.fasta
         # 3 times slower than cat file | head -1000000 > test.fastq
@@ -240,14 +275,24 @@ class FASTQ(object):
         with open(self.filename, 'r') as fin:
             if output_filename.endswith("gz"):
                 output_filename_nogz = output_filename.replace(".gz", "")
+
                 with open(output_filename_nogz, 'w') as fout:
                     fout.writelines(islice(fin, N))
-                print("zipping the file with gz in a shell")
-                import subprocess
-                s = subprocess.Popen(["gzip", output_filename_nogz, "-f"])
+
+                # compress the file
+                self._gzip(output_filename_nogz)
+
             else:
                 with open(output_filename, 'w') as fout:
                     fout.writelines(islice(fin, N))
+
+    def _gzip(self, filename):
+        try:
+            s = subprocess.Popen(["pigz", "-f", filename])
+            s.wait()
+        except:
+            s = subprocess.Popen(["gzip", filename, "-f"])
+            s.wait()
 
     def _extract_head_gz(self, N, output_filename="test.fastq.gz", level=6, CHUNKSIZE=65536):
         """
@@ -262,52 +307,206 @@ class FASTQ(object):
         """
         # make sure N is integer
         N = int(N)
+
         # as fast as zcat file.fastq.gz | head -200000 > out.fasta
-        d = zlib.decompressobj(16 + zlib.MAX_WBITS) # this is to supress the header
-        f = open(self.filename, 'rb')
-        buf = f.read(CHUNKSIZE)
-        count = 0
 
-        if output_filename.endswith(".gz"):
-            zip_output = True
-            fout = gzip.open(output_filename, "wb", compresslevel=level)
-        else:
-            fout = open(output_filename, "wb")
-            zip_output = False
+        # this is to supress the header
+        d = zlib.decompressobj(16 + zlib.MAX_WBITS)
 
-        dd = zlib.compressobj(level) # second qrg is deflated, third is zlib.MAX_WBITS
+        # will we gzip the output file ?
+        output_filename, tozip = self._istozip(output_filename)
 
-        while buf:
-            outstr = d.decompress(buf)
-            count += outstr.count(b"\n")
-            if count > N:
-                # there will be too many lines, we need to select a subset
-                missing = count - N
-                outstr = outstr.strip().split(b"\n")
-                NN = len(outstr)
-                outstr = b"\n".join(outstr[0:NN-missing-1]) + b"\n"
-                if zip_output:
+        with open(self.filename, 'rb') as fin:
+            buf = fin.read(CHUNKSIZE)
+            count = 0
+
+            with open(output_filename, "wb") as fout:
+                while buf:
+                    outstr = d.decompress(buf)
+                    count += outstr.count(b"\n")
+                    if count > N:
+                        # there will be too many lines, we need to select a subset
+                        missing = count - N
+                        outstr = outstr.strip().split(b"\n")
+                        NN = len(outstr)
+                        outstr = b"\n".join(outstr[0:NN-missing-1]) + b"\n"
+                        fout.write(outstr)
+                        break
                     fout.write(outstr)
-                else:
-                    fout.write(outstr)
-                break
-            if zip_output:
-                fout.write(outstr)
-            else:
-                fout.write(outstr)
-            buf = f.read(CHUNKSIZE)
+                    buf = fin.read(CHUNKSIZE)
 
-        f.close()
-        fout.close()
+        if tozip is True: self._gzip(output_filename)
         return count
 
-    def extract(self, N, output_filename):
-        if self.filename.endswith('gz'):
-            raise NotImplementedError
+    def _istozip(self, filename):
+        if filename.endswith('.gz'):
+            tozip = True
+            filename = filename.split(".gz",1)[0]
         else:
-            self.extract_head(N, output_filename)
+            tozip = False
+        return filename, tozip
 
-    def select_random(self, N, output_filename):
+    def select_random_reads(self, N, output_filename):
+        if output_filename.endswith(".gz"):
+            self._select_random_reads()
+        else:
+            self._select_random_reads_gz()
+
+    def _select_random_reads(self, N, output_filename):
+        pass
+
+    def _select_random_reads_gz(self, N, output_filename):
+        raise NotImplementedError
+        n_reads = self.count_reads()
+        if n_reads > self.count_reads():
+            # nothing to do except a copy
+            pass
+        else:
+            import random
+            for i in random.sample(xrange(N)):
+                pass
+
+    def split_lines(self, N=100000, gzip=True):
+        if self.filename.endswith(".gz"):
+            outputs = self._split_lines_gz(N, gzip=gzip)
+        else:
+            outputs = self._split_lines(N, gzip=gzip)
+        return outputs
+
+    def _split_lines_gz(self, N, gzip=True, CHUNKSIZE=65536):
+        # split input in N files
+        # There is a split function under Unix but (1) not under windows
+        # and (2) split a gzip into N chunks or n lines will split the
+        # reads in the middle. So, we want to unzip, select N lines (or chunks)
+        # and zip each chunk.
+        self._check_multiple(N)
+        N_chunk, remainder = divmod(self.n_lines, N)
+        if remainder > 0:
+            N_chunk += 1
+
+        # let prepare some data first. Let us build the filenames once for all
+        outputs = []
+        for i in range(0, N_chunk):
+            lb = (i ) * N + 1
+            ub = (i + 1) * N
+            if ub > self.n_lines:
+                ub = self.n_lines
+
+            if self.filename.endswith(".gz"):
+                input_filename = self.filename.split(".gz")[0]
+                output_filename = input_filename
+            else:
+                input_filename = self.filename
+                output_filename = self.filename
+            output_filename.split(".", -1)
+            left, right = input_filename.rsplit(".", 1)
+            output_filename = left + "_%s_%s." % (lb, ub) + right
+            outputs.append(output_filename)
+
+        d = zlib.decompressobj(16 + zlib.MAX_WBITS)
+        with open(self.filename, 'rb') as fin:
+            # init buffer
+            buf = fin.read(CHUNKSIZE)
+            count = 0
+
+            # open an output file handler
+            current_file_counter = 0
+            fout = open(outputs[0], "w")
+
+            while buf:
+                outstr = d.decompress(buf)
+                count += outstr.count(b"\n")
+                if count > N:
+                    # if too many lines were read, fill the current file
+                    # and keep remaining data (skip the reading of new
+                    # data for now)
+                    missing = count - N
+                    outstr = outstr.strip().split(b"\n")
+                    NN = len(outstr)
+                    # we need to split the buffer into the part to save
+                    # in this file and the part to save in the next file later
+                    # on (remaining)
+                    # Note that there is no '\n' added here because we do not
+                    # read lines that we may end up in the middle of a line
+                    remaining  = b"\n".join(outstr[NN-missing-1:])
+                    # whereas here, we are at the end of a line
+                    outstr = b"\n".join(outstr[0:NN-missing-1]) + b"\n"
+                    # write and close that file
+                    fout.write(outstr)
+                    fout.close()
+                    # and open the next one where we can already save the end of
+                    # the buffer
+                    current_file_counter += 1
+                    fout = open(outputs[current_file_counter], "w")
+                    fout.write(remaining)
+                    # we need to keep track of what has be written
+                    count = remaining.count(b'\n')
+                    # and finally we can now read a new chunk of data
+                    buf = fin.read(CHUNKSIZE)
+                else:
+                    fout.write(outstr)
+                    buf = fin.read(CHUNKSIZE)
+
+        if gzip is True:
+            for output in outputs:
+                self._gzip(output)
+            outputs = [x + ".gz" for x in outputs]
+        return outputs
+
+    def split_chunks(self, N=10):
+        # split per chunks of size N
+        pass
+
+    def _check_multiple(self, N, multiple=4):
+        if divmod(N, multiple)[1] != 0:
+            msg = "split_lines method expects a multiple of %s." %multiple
+            raise ValueError(msg)
+
+    # This could be part of easydev or other software
+    def _split_lines(self, N, gzip=True):
+        # split input in N files
+        # We will name them with reads number that is
+        # filename.fastq gives for example:
+        # --> filename_1_100000.fastq
+        # --> filename_100001_151234.fastq
+        self._check_multiple(N)
+
+        assert type(N) == int
+        if N >= self.n_lines:
+            print("Nothing to do. Choose a lower N value")
+            return
+
+        outputs = []
+        N_chunk, remainder = divmod(self.n_lines, N)
+
+        with open(self.filename) as fin:
+            for i in range(0, N_chunk):
+                lb = (i ) * N + 1
+                ub = (i + 1) * N
+                output_filename = self.filename
+                output_filename.split(".", -1)
+                left, right = self.filename.rsplit(".", 1)
+                output_filename = left + "_%s_%s." % (lb, ub) + right
+                outputs.append(output_filename)
+                with open(output_filename, 'w') as fout:
+                    fout.writelines(islice(fin, N))
+            # last chunk is dealt with outside the loop
+            lb = ub + 1
+            ub = self.n_lines
+            output_filename = left + "_%s_%s." % (lb, ub) + right
+            if remainder !=0:
+                outputs.append(output_filename)
+                with open(output_filename, 'w') as fout:
+                    fout.writelines(islice(fin, remainder))
+
+        if gzip is True:
+            for output in outputs:
+                self._gzip(output)
+            outputs = [x + ".gz" for x in outputs]
+        return outputs
+
+    def split_chunks(self, N=10):
+        # split per chunks of size N
         pass
 
     def random(self, N=10000, output_filename="test.fastq",
@@ -326,11 +525,7 @@ class FASTQ(object):
             fh.writelines(template % {
                 'sequence': "".join(["ACGT"[random.randint(0,3)] for this in xrange(bp)]),
                 'quality': "".join()})
-
         # quality could be q function for a distribution
-
-    def splitting(self, N):
-        pass
 
     def joining(self, pattern, output_filename):
         """
@@ -338,20 +533,53 @@ class FASTQ(object):
         zcat Block*.fastq.gz | gzip > combined.fastq.gz
 
         """
-        pass
+        raise NotImplementedError
+
+
 
     def __iter__(self):
-        N = self.count_reads()
-        for i in xrange(0, N):
-            yield next(self)
+       return self
+
+    def __exit__(self, type, value, traceback):
+        try:
+            self._fileobj.close()
+        except AttributeError:
+            pass
+        finally:
+            self._fileobj.close()
+
+    def __enter__(self):
+        fh = open(self.filename, "rb")
+        if self.filename.endswith('.gz'):
+            self._fileobj = gzip.GzipFile(fileobj=fh)
+        else:
+            self._fileobj = fh
+        return self
+
+    def __next__(self): # py3
+        pass
 
     def next(self):
         # reads 4 lines
-        data = islice(self._input, 4)
-        identifier = next(data)
-        sequence = next(data)
-        skip = next(data)
-        quality = next(data)
+        try:
+            data = islice(self._fileobj, 4)
+            identifier = next(data).strip()
+            sequence = next(data).strip()
+            skip = next(data)
+            quality = next(data).strip()
+            #identifier = next(self._fileobj).strip()
+            #sequence = next(self._fileobj).strip()
+            #dummy = next(self._fileobj).strip()
+            #quality = next(self._fileobj).strip()
+            # reopen the input file for next iteration
+        except KeyboardInterrupt:
+            self._fileobj.close()
+            self.__enter__()
+        except:
+            self._fileobj.close()
+            self.__enter__()
+            raise StopIteration
+
         return {'identifier':identifier,
                 'sequence': sequence,
                 'quality': quality}
@@ -360,21 +588,139 @@ class FASTQ(object):
 
 
 
+class FastQMerger(object):
+    def __init__(self, filenames):
+        self.filenames = filenames
+
+    def save(self):
+        pass
+
+
+def run_info(f):
+    def wrapper(*args):
+        #args[0] is the self of the method
+        try:
+            args[0].gc_content
+        except:
+            args[0].get_info()
+        return f(*args)
+    return wrapper
 
 class FastQC(object):
-    def __init__(self, filename):
-        self.fastq = FASTQ(filename)
+    def __init__(self, filename, sample=500000):
+        self.fastq = FastQ(filename)
+        self.sample = sample
+        self.summary = {}
+        self.fontsize = 16
 
-    def plot_quality(self):
-        import pandas as pd
-        import phred
+    def get_info(self):
+        from . import phred
         N = self.fastq.count_reads()
-        data = []
+        qualities = []
+        mean_qualities = []
+        sequences = []
+        minimum = 1e6
+        maximum = 0
+        lengths = []
+        self.gc_list = []
+        self.nucleotides = 0
+        self.N_list = []
+
+        self.identifiers = []
+        from easydev import Progress
+        pb = Progress(min(N, self.sample))
+
+        # could use multiprocessing
         for i, record in enumerate(self.fastq):
-            data.append(phred.Quality(record['identifier']).quality)
-        return data
+            # keep track of min/max sequence length
+            N = len(record['sequence'])
+            if N < minimum:
+                minimum = N
+            if N > maximum:
+                maximum = N
+            self.nucleotides += N
 
+            quality = phred.Quality(record['quality']).quality
+            qualities.append(quality)
+            mean_qualities.append(pylab.mean(quality))
+            if i > self.sample:
+                break
 
+            identifier = Identifier(record['identifier'])
+            self.identifiers.append(identifier.info)
 
+            sequence = record['sequence']
+            sequences.append(sequence)
+
+            GC = sequence.count('G') + sequence.count('C')
+            self.gc_list.append(GC)
+            self.N_list.append(sequence.count('N'))
+
+            pb.animate(i+1)
+
+        self.tiles = {}
+        self.tiles['x'] = [float(this['x_coordinate']) for this in self.identifiers]
+        self.tiles['y'] = [float(this['y_coordinate']) for this in self.identifiers]
+        self.tiles['tiles'] = [this['tile_number'] for this in self.identifiers]
+
+        self.gc_content = sum(self.gc_list) / float(self.nucleotides)
+        self.qualities = qualities
+        self.mean_qualities = mean_qualities
+        self.minimum = minimum
+        self.maximum = maximum
+        self.sequences = sequences
+
+        print('\nCreating tiles data')
+        import collections
+        d = collections.defaultdict(list)
+        for tile, seq in zip(self.tiles['tiles'], self.qualities):
+            d[tile].append(seq)
+        self.data_imqual = [pd.DataFrame(d[key]).mean().values for key in sorted(d.keys())]
+
+    @run_info
+    def imshow_qualities(self):
+        from biokit.viz import Imshow
+        im = Imshow(self.data_imqual)
+        im.plot(xticks_on=False, yticks_on=False, origin='lower')
+        pylab.title("Quality per tile", fontsize=self.fontsize)
+        pylab.xlabel("Position in read (bp)")
+        pylab.ylabel("tile number")
+
+    @run_info
+    def boxplot_quality(self):
+        df = pd.DataFrame(self.qualities)
+        from biokit.viz.boxplot import Boxplot
+        bx = Boxplot(df)
+        bx.plot()
+
+    @run_info
+    def histogram_sequence_coordinates(self):
+        # Distribution of the reads in x-y plane
+        # less reads on the borders ?
+        from biokit.viz.hist2d import Hist2D
+        Hist2D(self.tiles['x'], self.tiles['y']).plot()
+
+    @run_info
+    def histogram_sequence_lengths(self):
+        data = [len(x) for x in self.sequences]
+        bins = self._get_xbins()
+        pylab.hist(data, bins=bins)
+        pylab.grid()
+        pylab.xlabel("position bp", fontsize=self.fontsize)
+
+    @run_info
+    def _get_xbins(self):
+        if self.maximum<40:
+            bins = range(1,41)
+        else:
+            bins = range(1,10) + range(10,self.maximum + 1, 5)
+        return bins
+
+    @run_info
+    def histogram_gc_content(self):
+        pylab.hist(self.gc_list, bins=range(0, self.maximum))
+        pylab.grid()
+        pylab.title("GC content distribution over all sequences")
+        pylab.xlabel("Mean GC content (\%)", fontsize=self.fontsize)
 
 

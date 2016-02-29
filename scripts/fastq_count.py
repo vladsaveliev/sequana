@@ -1,4 +1,4 @@
-from sequoia.fastq import FASTQ
+from sequoia.fastq import FastQ
 
 import sys
 from optparse import OptionParser
@@ -38,7 +38,8 @@ def main(args=None):
     else:
         options = user_options.parse_args(args[1:])
 
-    f = FASTQ(options.input_filename)
+    f = FastQ(options.input_filename)
+    # could be simplified calling count_reads only once
     print("Number of reads: %s" % f.count_reads())
     print("Number of lines %s " % f.count_lines())
 

@@ -4,6 +4,9 @@
 
 """
 import os
+import sys
+import json
+
 from os.path import isdir
 from easydev import get_package_location as gpl
 
@@ -92,9 +95,42 @@ for name in Rules().names:
 
 
 class ValidateConfig(object):
+    """
+
+    Converts json or yaml into a dictionary with keys accessible as attributes
+    With config.json file content as::
+
+        {'e':1}
+
+    type::
+
+        >>> vc = ValidateConfig(config)
+        >>> config = vc()
+        >>> config.e == 1
+        True
+
+    """
     def __init__(self, filename): 
         """Could be a json or a yaml"""
-        pass
+        self.filename = filename
+
+        if isinstance(filename, str):
+            if filename.endswith('json'):
+                self.config = json.load(open(self.filename, 'r'))
+            else:
+                raise NotImplementedError
+        else:
+            self.config = filename 
+
+    def __call__(self):
+        from easydev import AttrDict
+        config = AttrDict(**self.config)
+        return config
+
+
+def message(mes):
+    from easydev.console import purple
+    print("// -- " + purple(mes))
 
 
 

@@ -16,9 +16,9 @@ illumina1.3+: 64  range 0 to 62
 ::
 
     p = linspace(0,1,1000)
-    plot(p, [phred.phred_quality_score_sanger(this) 
+    plot(p, [phred.phred_quality_score_sanger(this)
         for this in p], color='red' )
-    plot(p, [phred.phred_score_solexa(this) 
+    plot(p, [phred.phred_score_solexa(this)
         for this in p], color='black' )
 
 
@@ -43,7 +43,7 @@ a high probability of error (0.99) gives Q=0
 q low proba of errors (0.05) gives Q = 13
 q low proba of errors (0.01) gives Q = 20
 
-    """ 
+    """
     if pe > 1:
         pe = 1
     if pe < 1e-90:
@@ -113,12 +113,12 @@ class Quality(object):
     def __init__(self, seq, offset=33):
         self.seq = seq
         self.offset = offset
-    
+
     def _get_quality(self):
         return [ord(x) - self.offset for x in self.seq]
     quality = property(_get_quality)
 
-    
+
 
 # this should qlso be correct for Illumina 1.8+
 class QualitySanger(Quality):
@@ -132,7 +132,7 @@ class QualitySolexa(Quality):
 
 
 
-    
+
 
 
 

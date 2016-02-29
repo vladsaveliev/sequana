@@ -8,3 +8,4 @@ except:
 
 
 from .snakemake import rules
+from .snakemake import ValidateConfig

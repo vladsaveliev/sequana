@@ -8,10 +8,15 @@ References
 
 
 
+FASTQ module
+---------------
 
 .. automodule:: sequoia.fastq
     :members:
     :undoc-members:
+
+Snakemake module
+-----------------
 
 .. automodule:: sequoia.snakemake
     :members:

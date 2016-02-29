@@ -1,4 +1,4 @@
-from sequoia.fastq import FASTQ
+from sequoia.fastq import FastQ
 
 from optparse import OptionParser
 import argparse
@@ -47,7 +47,7 @@ def main(args=None):
     else:
         options = user_options.parse_args(args[1:])
 
-    f = FASTQ(options.input_filename)
+    f = FastQ(options.input_filename)
     f.extract_head(N=options.N,
                    output_filename=options.output_filename)
 
