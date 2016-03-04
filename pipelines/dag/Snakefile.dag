@@ -8,16 +8,21 @@ Run: snakemake -s Snakefile
 Changelog:
 
 """
-
+from sequoia import version
 
 rule dag:
     output: "dag.svg"
     log: "dag.log"
+    version: version
     message: """
     -- Creating DAG in a dot file 
     -- Output saved in dag.svg
     """
-    shell: "snakemake --dag | dot -Tsvg -o dag.svg"
+    run:
+        
+        shell("snakemake --dag | dot -Tsvg -o dag.svg")
+        if 'showdag' in config.keys() and config['showdag'] in [True, "True"]:
+            shell("eog dag.svg")
 
 
 

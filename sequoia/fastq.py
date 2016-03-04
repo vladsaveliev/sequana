@@ -13,6 +13,7 @@ Interesting as well for creating a generic zipfile opener
 http://www.genomearchitecture.com/2014/01/how-to-gunzip-on-the-fly-with-python
 
 """
+import io
 import time
 import zlib
 from itertools import islice
@@ -21,8 +22,19 @@ import subprocess
 
 import numpy as np
 import pandas as pd
-from easydev import do_profile
+from easydev import do_profile, Progress
 import pylab
+
+try:
+    from itertools import izip_longest
+except:
+    from itertools import zip_longest as izip_longest
+
+# for filter fastq files. see below
+def grouper(iterable):
+    args = [iter(iterable)] * 4
+    return izip_longest(*args)
+
 
 
 class Read(object):
@@ -168,8 +180,6 @@ class FastQ(object):
 
         f.count_reads()
 
-
-
     Features to implement::
         - filter out short / long reads
         - filter out reads with NNN
@@ -189,7 +199,16 @@ class FastQ(object):
         self.verbose = verbose
         self._count_reads = None
         self._count_lines = None
+        
+        # opens the file in read mode
         self.__enter__()
+        # Can we identify the type of data ?
+        try:
+            self.identifier = Identifier(self.next()["identifier"])
+            self.rewind()
+            self.data_format = self.identifier.version
+        except:
+            self.data_format = "unknown"
 
     def _get_count_reads(self):
         if self._count_reads is None:
@@ -208,7 +227,10 @@ class FastQ(object):
         return self.n_reads
 
     def rewind(self):
-        self._count_reads = None
+        nreads = self._count_reads
+        self._fileobj.close()
+        self.__enter__()
+        self._count_reads = nreads
 
     def count_reads_gz(self, CHUNKSIZE=65536):
         # this is fast. On a 63M reads, takes 21 seconds as
@@ -536,7 +558,6 @@ class FastQ(object):
         raise NotImplementedError
 
 
-
     def __iter__(self):
        return self
 
@@ -556,36 +577,85 @@ class FastQ(object):
             self._fileobj = fh
         return self
 
-    def __next__(self): # py3
-        pass
+    def __next__(self): # python 3
+        return self.next()
 
-    def next(self):
+    def next(self): # python 2
         # reads 4 lines
+        d = {}
         try:
-            data = islice(self._fileobj, 4)
-            identifier = next(data).strip()
-            sequence = next(data).strip()
+            """data = islice(self._fileobj, 4)
+            d['identifier'] = next(data).strip()
+            d['sequence'] = next(data).strip()
             skip = next(data)
-            quality = next(data).strip()
-            #identifier = next(self._fileobj).strip()
-            #sequence = next(self._fileobj).strip()
-            #dummy = next(self._fileobj).strip()
-            #quality = next(self._fileobj).strip()
-            # reopen the input file for next iteration
+            d['quality'] = next(data).strip()
+            """
+
+            # 15% faster than islice + next
+            d['identifier'] = self._fileobj.readline().strip()
+            d['sequence'] = self._fileobj.readline().strip()
+            temp = self._fileobj.readline()
+            d['quality'] = self._fileobj.readline().strip()
+
+            # can be faster but slower on average
+            """d['identifier'] = self._fileobj.readlines(1)[0].strip()
+            d['sequence'] = self._fileobj.readlines(1)[0].strip()
+            self._fileobj.readlines(1)
+            d['quality'] = self._fileobj.readlines(1)[0].strip()
+            """
+            # Somehow the readlines still return "" even if the end of file is
+            # reached
+            if temp == "":
+                raise StopIteration
         except KeyboardInterrupt:
             self._fileobj.close()
             self.__enter__()
         except:
-            self._fileobj.close()
-            self.__enter__()
+            self.rewind()
             raise StopIteration
 
-        return {'identifier':identifier,
-                'sequence': sequence,
-                'quality': quality}
+        return d
 
+    def __getitem__(self, index):
+        return 1
 
+    def filter(self, identifiers_list=[], min_bp=None, max_bp=None,
+        progressbar=True, output_filename='filtered.fastq', remove=True):
+        #7 seconds without identifiers to scan the file
+        # on a 750000 reads
 
+        if min_bp is None:
+            min_bp = 1e9
+
+        if max_bp is None:
+            max_bp = -1
+
+        # make sure we are at the beginning
+        self.rewind()
+
+        output_filename, tozip = self._istozip(output_filename)
+
+        with open(output_filename, "w") as fout:
+            pb = Progress(self.n_reads)
+            buf = ""
+            filtered = 0
+
+            for count, lines in enumerate(grouper(self._fileobj)):
+                identifier = lines[0].split()[0]
+                if lines[0].split()[0] in identifiers_list:
+                    filtered += 1 
+                else:
+                    buf += "%s%s+\n%s" % (lines[0], lines[1], lines[3])
+                    if count % 100000 == 0:
+                        fout.write(buf)
+                        buf = ""
+                pb.animate(count+1)
+            fout.write(buf)
+            print(filtered)
+            if filtered < len(identifiers_list):
+                print("\nWARNING: not all identifiers were found in the fastq file to " +
+                      "be filtered.")
+        if tozip is True: self._gzip(output_filename)
 
 
 class FastQMerger(object):
@@ -595,7 +665,8 @@ class FastQMerger(object):
     def save(self):
         pass
 
-
+# a simple decorator to check whether the data was computed or not.
+# If not, compute it
 def run_info(f):
     def wrapper(*args):
         #args[0] is the self of the method
@@ -609,7 +680,13 @@ def run_info(f):
 class FastQC(object):
     def __init__(self, filename, sample=500000):
         self.fastq = FastQ(filename)
-        self.sample = sample
+
+        N = self.fastq.count_reads()
+        if N < sample:
+            self.sample = N
+        else:
+            self.sample = sample
+
         self.summary = {}
         self.fontsize = 16
 
@@ -627,8 +704,7 @@ class FastQC(object):
         self.N_list = []
 
         self.identifiers = []
-        from easydev import Progress
-        pb = Progress(min(N, self.sample))
+        pb = Progress(self.sample)
 
         # could use multiprocessing
         for i, record in enumerate(self.fastq):

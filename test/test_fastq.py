@@ -9,7 +9,7 @@ def test_fastq_unzipped():
 
     # isntanciation 
     f = fastq.FastQ(pathdata + os.sep + "reads.fastq")
-
+    assert f.data_format == "Illumina_1.8+"
     # count lines
     # rune it twice because we want to make sure re-running count_lines
     # (decompression with zlib) works when run again.
