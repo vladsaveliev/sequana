@@ -12,7 +12,6 @@ https://gitlab.univ-nantes.fr/a-slide/ContaVect/blob/9a411abfa720064c205c5f6c811
 pysamtools
 """
 
-from collections import deque
 import pandas as pd
 import pylab
 import pysam
@@ -29,7 +28,11 @@ class BAM(pysam.AlignmentFile):
 
     """
     def __init__(self, filename, mode="rb", *args):
-        super(BAM, self).__init__(filename, mode, *args)
+        # works for py27 but not py35 probably a missing __init__  or __new__ in
+        # AlignmentFile class. See e.g., stackoverflow/questions/
+        # 26653401/typeerror-object-takes-no-parameters-but-only-in-python-3
+        #super(BAM, self).__init__(filename, mode, *args)
+        pysam.AlignmentFile.__init__(filename, mode, *args)
 
     def get_read_names(self):
         self.reset()
@@ -96,7 +99,11 @@ class SAM(pysam.AlignmentFile):
 
     """
     def __init__(self, filename, *args):
-        super(SAM, self).__init__(filename, *args)
+        # works for py27 but not py35 probably a missing __init__  or __new__ in
+        # AlignmentFile class. See e.g., stackoverflow/questions/
+        # 26653401/typeerror-object-takes-no-parameters-but-only-in-python-3
+        #super(SAM, self).__init__(filename, mode, *args)
+        pysam.AlignmentFile.__init__(filename, *args)
         self.skiprows = self._guess_header_length()
 
     def _guess_header_length(self):
