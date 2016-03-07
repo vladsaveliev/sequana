@@ -84,15 +84,15 @@ class Identifier(object):
 http://support.illumina.com/help/SequencingAnalysisWorkflow/Content/Vault/Informatics/Sequencing_Analysis/CASAVA/swSEQ_mCA_FASTQFiles.htm
 
         """
-        if self.identifier.count(':') == 4:
-            left, right = self.identifier.rsplit(":", 1)
-            if right.count("#") == 1 and right.count("\\") == 1:
+        if self.identifier.count(b':') == 4:
+            left, right = self.identifier.rsplit(b":", 1)
+            if right.count(b"#") == 1 and right.count(b"\\") == 1:
                 return "Illumina_1.4+"
 
 
-        if self.identifier.count(" ") == 1:
-            left, right = self.identifier.split(" ")
-            if left.count(':') == 6 and right.count(':') == 3:
+        if self.identifier.count(b" ") == 1:
+            left, right = self.identifier.split(b" ")
+            if left.count(b':') == 6 and right.count(b':') == 3:
                 return "Illumina_1.8+"
 
         return "Custom or Unknown identifier"
@@ -104,13 +104,13 @@ http://support.illumina.com/help/SequencingAnalysisWorkflow/Content/Vault/Inform
 
         Note the space and : separators
         """
-        assert self.identifier[0] == "@"
+        assert self.identifier.startswith(b"@")
         # skip @ character
         identifier = self.identifier[1:]
         # replace spaces by : character
-        identifier = ' '.join(identifier.split())
-        identifier = identifier.replace(' ', ':')
-        items = identifier.split(':')
+        identifier = b' '.join(identifier.split())
+        identifier = identifier.replace(b' ', b':')
+        items = identifier.split(b':')
         if len(items) != 11:
             raise ValueError('Niumber of items in the identifier should be 11')
         res = {}
@@ -728,9 +728,9 @@ class FastQC(object):
             sequence = record['sequence']
             sequences.append(sequence)
 
-            GC = sequence.count('G') + sequence.count('C')
+            GC = sequence.count(b'G') + sequence.count(b'C')
             self.gc_list.append(GC)
-            self.N_list.append(sequence.count('N'))
+            self.N_list.append(sequence.count(b'N'))
 
             pb.animate(i+1)
 
