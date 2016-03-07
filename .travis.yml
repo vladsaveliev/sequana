@@ -31,7 +31,7 @@ install:
   # https://miail.python.org/pipermail/cython-devel/2014-November/004263.html
   #- pip install --install-option="--no-cython-compile" cython --upgrade
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy matplotlib nose pandas coverage numexpr xlrd cython
-  - conda install biokit 
+  - conda install --yes biokit 
   - pip install easydev>=0.9.12 --upgrade
   - pip install coveralls
   - pip install tabulate
