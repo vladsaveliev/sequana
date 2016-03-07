@@ -1,0 +1,192 @@
+{
+    "total_runtime": 189.4597795009613,
+    "files": {
+        "bwa_contaminant/contaminant.sam": {
+            "priority": 0,
+            "resources": {
+                "_nodes": 1,
+                "_cores": 1
+            },
+            "start-time": "Sun Mar  6 21:41:35 2016",
+            "duration": 71.50004696846008,
+            "stop-time": "Sun Mar  6 21:42:47 2016"
+        },
+        "dag.svg": {
+            "priority": 0,
+            "resources": {
+                "_nodes": 1,
+                "_cores": 1
+            },
+            "start-time": "Sun Mar  6 21:41:34 2016",
+            "duration": 0.6758315563201904,
+            "stop-time": "Sun Mar  6 21:41:35 2016"
+        },
+        "report/index.html": {
+            "priority": 0,
+            "resources": {
+                "_nodes": 1,
+                "_cores": 1
+            },
+            "start-time": "Sun Mar  6 21:43:02 2016",
+            "duration": 0.17020773887634277,
+            "stop-time": "Sun Mar  6 21:43:02 2016"
+        },
+        "bwa_contaminant/R1.mapped.fastq": {
+            "priority": 0,
+            "resources": {
+                "_nodes": 1,
+                "_cores": 1
+            },
+            "start-time": "Sun Mar  6 21:41:35 2016",
+            "duration": 71.50004696846008,
+            "stop-time": "Sun Mar  6 21:42:47 2016"
+        },
+        "bwa_contaminant/contaminant.mapped.sam": {
+            "priority": 0,
+            "resources": {
+                "_nodes": 1,
+                "_cores": 1
+            },
+            "start-time": "Sun Mar  6 21:41:35 2016",
+            "duration": 71.50004696846008,
+            "stop-time": "Sun Mar  6 21:42:47 2016"
+        },
+        "bwa_contaminant/contaminant.bam": {
+            "priority": 0,
+            "resources": {
+                "_nodes": 1,
+                "_cores": 1
+            },
+            "start-time": "Sun Mar  6 21:41:35 2016",
+            "duration": 71.50004696846008,
+            "stop-time": "Sun Mar  6 21:42:47 2016"
+        },
+        "input/Hm2_GTGAAA_L005_R1_001.sample.fastq.gz": {
+            "priority": 0,
+            "resources": {
+                "_nodes": 1,
+                "_cores": 1
+            },
+            "start-time": "Sun Mar  6 21:39:53 2016",
+            "duration": 0.05326533317565918,
+            "stop-time": "Sun Mar  6 21:39:53 2016"
+        },
+        "bwa_contaminant/contaminant.unmapped.sam": {
+            "priority": 0,
+            "resources": {
+                "_nodes": 1,
+                "_cores": 1
+            },
+            "start-time": "Sun Mar  6 21:41:35 2016",
+            "duration": 71.50004696846008,
+            "stop-time": "Sun Mar  6 21:42:47 2016"
+        },
+        "bwa_contaminant/R2.mapped.fastq": {
+            "priority": 0,
+            "resources": {
+                "_nodes": 1,
+                "_cores": 1
+            },
+            "start-time": "Sun Mar  6 21:41:35 2016",
+            "duration": 71.50004696846008,
+            "stop-time": "Sun Mar  6 21:42:47 2016"
+        },
+        "fastq_cutadapt/cutadapt.log": {
+            "priority": 0,
+            "resources": {
+                "_nodes": 1,
+                "_cores": 1
+            },
+            "start-time": "Sun Mar  6 21:39:53 2016",
+            "duration": 101.6849627494812,
+            "stop-time": "Sun Mar  6 21:41:34 2016"
+        },
+        "fastq_cutadapt/Hm2_GTGAAA_L005_R2_001.cutadapt.sample.fastq.gz": {
+            "priority": 0,
+            "resources": {
+                "_nodes": 1,
+                "_cores": 1
+            },
+            "start-time": "Sun Mar  6 21:39:53 2016",
+            "duration": 101.6849627494812,
+            "stop-time": "Sun Mar  6 21:41:34 2016"
+        },
+        "fastq_cutadapt/Hm2_GTGAAA_L005_R1_001.cutadapt.sample.fastq.gz": {
+            "priority": 0,
+            "resources": {
+                "_nodes": 1,
+                "_cores": 1
+            },
+            "start-time": "Sun Mar  6 21:39:53 2016",
+            "duration": 101.6849627494812,
+            "stop-time": "Sun Mar  6 21:41:34 2016"
+        },
+        "fastqc_results/Hm2_GTGAAA_L005_R1_001.cutadapt.sample_fastqc.zip": {
+            "priority": 0,
+            "resources": {
+                "_nodes": 1,
+                "_cores": 1
+            },
+            "start-time": "Sun Mar  6 21:42:55 2016",
+            "duration": 7.146645545959473,
+            "stop-time": "Sun Mar  6 21:43:02 2016"
+        },
+        "fastqc_results/Hm2_GTGAAA_L005_R2_001.cutadapt.sample_fastqc.zip": {
+            "priority": 0,
+            "resources": {
+                "_nodes": 1,
+                "_cores": 1
+            },
+            "start-time": "Sun Mar  6 21:42:47 2016",
+            "duration": 8.139450311660767,
+            "stop-time": "Sun Mar  6 21:42:55 2016"
+        },
+        "input/Hm2_GTGAAA_L005_R2_001.sample.fastq.gz": {
+            "priority": 0,
+            "resources": {
+                "_nodes": 1,
+                "_cores": 1
+            },
+            "start-time": "Sun Mar  6 21:39:53 2016",
+            "duration": 0.05965852737426758,
+            "stop-time": "Sun Mar  6 21:39:53 2016"
+        }
+    },
+    "rules": {
+        "all": {
+            "max-runtime": 0.0012145042419433594,
+            "mean-runtime": 0.0012145042419433594,
+            "min-runtime": 0.0012145042419433594
+        },
+        "bwa_contaminant": {
+            "max-runtime": 71.50004696846008,
+            "mean-runtime": 71.50004696846008,
+            "min-runtime": 71.50004696846008
+        },
+        "report": {
+            "max-runtime": 0.17020773887634277,
+            "mean-runtime": 0.17020773887634277,
+            "min-runtime": 0.17020773887634277
+        },
+        "dag": {
+            "max-runtime": 0.6758315563201904,
+            "mean-runtime": 0.6758315563201904,
+            "min-runtime": 0.6758315563201904
+        },
+        "cutadapt": {
+            "max-runtime": 101.6849627494812,
+            "mean-runtime": 101.6849627494812,
+            "min-runtime": 101.6849627494812
+        },
+        "fastqc": {
+            "max-runtime": 8.139450311660767,
+            "mean-runtime": 7.64304792881012,
+            "min-runtime": 7.146645545959473
+        },
+        "sampling": {
+            "max-runtime": 0.05965852737426758,
+            "mean-runtime": 0.05646193027496338,
+            "min-runtime": 0.05326533317565918
+        }
+    }
+}

@@ -1,17 +1,37 @@
+import easydev
+import os
 
 
+from reports import HTMLTable
+from .report_adapter_removal import AdapterRemovalReport
 
-class CutAdaptParser(object):
 
-    def __init__(self, filename):
-        self.filename = filename
-        with open(self.filename) as fin:
-            data = fin.read()
-            if "Total read pairs processed" in data:
+class CutAdaptReport(AdapterRemovalReport):
+
+    def __init__(self, input_filename, 
+        output_filename="cutadapt.html", directory="report", **kargs):
+        """.. rubric:: Constructor
+
+        :param input_filename: the input data with results of a cutadapt run
+        :param output_filename: name of the HTML file that will be created
+        :param report: name of the directory where will be saved the HTML files
+
+        """
+        super(CutAdaptReport, self).__init__(output_filename=output_filename, 
+            directory=directory, **kargs)
+
+        self.jinja['title'] = "CutAdapt Report Summary"
+
+        self.input_filename = input_filename
+        with open(input_filename, "r") as fin:
+            self._rawdata = fin.read()
+
+            if "Total read pairs processed" in self._rawdata:
+                self.jinja['mode'] = "Paired-end"
                 self.mode = "pe"
             else:
-                self.mode = 'se'
-        print("Mode: %s" % self.mode)
+                self.jinja['mode'] = "Single-end"
+                self.mode = "se"
 
     def _get_data_tobefound(self):
         tobefound = []
@@ -33,11 +53,11 @@ class CutAdaptParser(object):
     def parse(self):
         d = {}
 
+        # output
         tobefound = self._get_data_tobefound()
-
         adapters = []
 
-        with open(self.filename, 'r') as fin:
+        with open(self.input_filename, 'r') as fin:
             # not tool large so let us read everything
             data = fin.readlines()
 
@@ -48,13 +68,23 @@ class CutAdaptParser(object):
                 if len(found) == 0:
                     print("%s not found)" % pattern)
                 elif len(found) == 1:
-                    d[key] = found[0].split(":", 1)[1].strip()
+                    text = found[0].split(":", 1)[1].strip()
+                    try:
+                        this, percent = text.split(" ")
+                        self.jinja[key] = this
+                        self.jinja[key+'_percent'] = percent
+                    except:
+                        self.jinja[key] = text
+                        self.jinja[key+'_percent'] = "?"
 
-            adapters = []
             dd = {}
             for this in data:
-                if this.startswith("=== Adapter"):
-                    name = this.split("=== Adapter")[1].split(" ===")[0].strip()
+                if this.startswith("Command line parameters: "):
+                    cmd = this.split("Command line parameters: ")[1]
+                    self.jinja['command'] = "cutadapt " + cmd
+                
+                if this.startswith("=== ") and "Adapter" in this:
+                    name = this.split("=== ")[1].split(" ===")[0].strip()
                     dd['name'] = name
                     continue
                 if this.startswith('Sequence:'):
@@ -66,10 +96,7 @@ class CutAdaptParser(object):
                         'Length': info[2].split(':',1)[1].strip(),
                         'Trimmed': info[3].split(':',1)[1].strip()
                     }
-                    
                     adapters.append(dd.copy())
 
-        return d, adapters
+        self.data['adapters'] = adapters
 
-    def table(self):
-        pass

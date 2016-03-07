@@ -96,7 +96,7 @@ class SAM(pysam.AlignmentFile):
 
     """
     def __init__(self, filename, *args):
-        super(SAM, self).__init__(filename, "r", *args)
+        super(SAM, self).__init__(filename, *args)
         self.skiprows = self._guess_header_length()
 
     def _guess_header_length(self):

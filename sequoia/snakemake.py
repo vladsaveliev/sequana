@@ -10,6 +10,34 @@ import json
 from os.path import isdir
 from easydev import get_package_location as gpl
 
+import pandas as pd
+import pylab
+
+class SnakeMakeProfile(object):
+    def __init__(self, filename):
+        self.filename = filename
+        
+    def parse(self):
+        data = json.loads(self.filename)
+
+class SnakeMakeStats(object):
+    def __init__(self, filename):
+        self.filename = filename
+        
+    def parse_data(self):
+        with open(self.filename, 'r') as fin:
+            data = json.load(fin)
+        return data
+
+    def plot(self, fontsize=16):
+        df = pd.DataFrame(self.parse_data()['rules'])
+        ts = df.ix['mean-runtime']
+        ts.plot.barh(fontsize=fontsize)
+        pylab.grid(True)
+        pylab.xlabel("Seconds (s)", fontsize=fontsize)
+        try:pylab.tight_layout()
+        except:pass
+        
 
 class RuleBase(object):
     def __init__(self):

@@ -15,11 +15,11 @@ rule dag:
     log: "dag.log"
     version: version
     message: """
-    -- Creating DAG in a dot file 
+    -- Creating DAG in a dot file
     -- Output saved in dag.svg
     """
     run:
-        
+
         shell("snakemake --dag | dot -Tsvg -o dag.svg")
         if 'showdag' in config.keys() and config['showdag'] in [True, "True"]:
             shell("eog dag.svg")
