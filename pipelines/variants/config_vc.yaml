@@ -1,0 +1,5 @@
+reference: reference.fa
+sample: test_file.bam
+markduplicate: true
+freebayes:
+    --ploidy: 1

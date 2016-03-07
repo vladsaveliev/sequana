@@ -1,0 +1,53 @@
+# Import Yaml or Json config file ----------------------------------------------
+configfile: "config_vc.yaml"
+
+# Some trick -------------------------------------------------------------------
+
+get_prefixes = lambda filename: filename.split(".")[0]
+
+DATA = get_prefixes(config["sample"])
+MARKJOB = config["markduplicate"]
+MARKTAG = ""
+if MARKJOB:
+    MARKTAG = "_undup"
+
+
+# Snakemake --------------------------------------------------------------------
+
+rule all:
+    input:
+        expand("{sample}.vcf", sample=DATA)
+
+rule markDuplicate:
+    input:
+        bam = "{sample}.bam"
+    output:
+        a = "{sample}%s.bam" % MARKTAG,
+        b = temp("{sample}.metrics")
+    run:
+        if MARKJOB:
+            shell("./MarkDuplicates I={input.bam} O={output.a} M={output.b}")
+        else:
+            shell("touch {output.b}")
+
+rule samtools_index:
+    input: 
+        bam = "{sample}%s.bam" % MARKTAG
+    output:
+        "{sample}%s.bam.bai" % MARKTAG
+    shell:
+        "samtools index {input.bam}"
+
+rule freebayes:
+    input:
+        bam = "{sample}%s.bam" % MARKTAG,
+        bai = "{sample}%s.bam.bai" % MARKTAG,
+        ref = config["reference"]
+    output:
+        vcf = "{sample}.vcf"
+    params:
+        " ".join(['%s %s' % (key, value) for (key, value) in \
+            config["freebayes"].items()])
+    shell:
+        "freebayes {params} -f {input.ref} -b {input.bam} -v {output.vcf}"
+
