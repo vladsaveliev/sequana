@@ -6,6 +6,7 @@ Data:
 Run: snakemake -s Snakefile
 Changelog:
 """
+import sequoia
 from sequoia import snakemake as sm
 
 # Change parameters inside config.json
@@ -23,7 +24,6 @@ include: sm.rules['dag']
 vc = sm.ValidateConfig(config)
 config = vc()
 
-
 get_prefixes = lambda filename: filename.split(".")[0]
 
 if "cutadapt_params" in config.keys():
@@ -32,56 +32,58 @@ if "cutadapt_params" in config.keys():
 
 DATA = [get_prefixes(config.R1), get_prefixes(config.R2)]
 
-
+sm.message("Using %s" % DATA)
 
 tags = {'sample':""}
-
-if config['sample'] in [-1, '-1', False]:
-    config['sample'] = False
-
 if config['sample'] is not False:
     tags['sample'] = ".sample"
 
 
 rule all:
-    input:
-        # select a subset of the reads
-        expand("fastq_clean/{dataset}%(sample)s.fastq.gz" % tags,
-            dataset=DATA),
+    """
 
+    """
+    input: 
+        # copy a subset of the raw data in input/
+        #expand("input/{dataset}%(sample)s.fastq.gz" % tags, dataset=DATA),
         # remove adapters
         #expand("fastq_cutadapt/{dataset}.cutadapt%(sample)s.fastq.gz" % tags,
         #    dataset=DATA),
-
         # perform a quality control after adapter removal
         expand("fastqc_results/{dataset}.cutadapt%(sample)s_fastqc.zip" % tags,
             dataset=DATA),
-
         # a report
-        "dag.svg"
+        "bwa_contaminant/contaminant.sam",
+        "dag.svg",
+        "report/index.html"
+    version:sequoia. version
 
 
-rule fastq_head:
-    message: "Extracting only a subset of the raw data"
+rule sampling:
     input:  "fastq_raw/{dataset}.fastq.gz"
-    output: "fastq_clean/{dataset}%(sample)s.fastq.gz" % tags
-    params: sample = config['sample']
+    output: "input/{dataset}%(sample)s.fastq.gz" % tags
+    message: """
+    -- Extracting only a subset of the raw data (%s reads)
+    """ % config.sample
     run:
-        if config['sample'] is False:
+        if config['sample'] == -1:
             # symbolic link use force to avoid error if it exists already
-            shell("ln -f -s ../{input} {output}")
+            #shell("ln -f -s ../{input} {output}")
+            shell("cp -f {input} {output}")
+            shell("chmod 660 {output}")
         else:
-            shell("fastq_head {input} {params.sample} {output}")
+            shell("fastq_head {input} {config.sample} {output}")
 
 
 rule cutadapt:
     message: "Filtering reads for adapters and bad quality"
-    input: expand("fastq_clean/{dataset}%(sample)s.fastq.gz" % tags, dataset=DATA)
+    input: expand("input/{dataset}%(sample)s.fastq.gz" % tags, dataset=DATA)
     output:
         R1 = "fastq_cutadapt/" + DATA[0] + ".cutadapt%(sample)s.fastq.gz" % tags,
-        R2 = "fastq_cutadapt/" + DATA[1] + ".cutadapt%(sample)s.fastq.gz" % tags
+        R2 = "fastq_cutadapt/" + DATA[1] + ".cutadapt%(sample)s.fastq.gz" % tags,
+        summary = "fastq_cutadapt/cutadapt.log" 
     params: config.cutadapt_params
-    shell : "cutadapt -o {output.R1} -p {output.R2} {input} {params}"
+    shell: "cutadapt -o {output.R1} -p {output.R2} {input} {params} > {output.summary}"
 
 
 rule fastqc:
@@ -90,24 +92,112 @@ rule fastqc:
     params: dir="fastqc_results"
     log: "fastqc_{dataset}.log"
     threads: 2
-    shell:  "fastqc -t {threads} --outdir {params.dir} {input} > {params.dir}/{log}"
+    shell:  "fastqc -t {threads} --outdir {params.dir} -f fastq {input} > {params.dir}/{log}"
 
 
-rule bwa_index_contaminant:
-    input: config.contaminant
-    output: touch("bwa_index_contaminant")
-    threads: 8
-    shell: "bwa index {input}"
+rule bwa_contaminant:
+    message: """
+    -- Running bwa index and bwa mem
+    -- information saved in {log}
+    """
+    input:
+        contaminant = config.contaminant,
+        R1 = "fastq_cutadapt/" + DATA[0] + ".cutadapt%(sample)s.fastq.gz" % tags,
+        R2 = "fastq_cutadapt/" + DATA[1] + ".cutadapt%(sample)s.fastq.gz" % tags
+    params:
+        wkdir = "bwa_contaminant",
+    output:
+        sam = "bwa_contaminant/contaminant.sam",
+        bam = "bwa_contaminant/contaminant.bam",
+        mapped = "bwa_contaminant/contaminant.mapped.sam",
+        unmapped = "bwa_contaminant/contaminant.unmapped.sam",
+        fastqR1 = "bwa_contaminant/R1.mapped.fastq",
+        fastqR2 = "bwa_contaminant/R2.mapped.fastq"
+
+    log: "logs/bwa_contaminant.log"
+    threads: 1
+    shell: """
+
+        # a local copy of contaminant from input to bwa_contaminant
+        cp {config.contaminant} {params.wkdir}
+
+        # Create index
+        bwa index {params.wkdir}/{config.contaminant}
+
+        # Run bwa
+        bwa mem -t {threads} -M {params.wkdir}/{input.contaminant} {input.R1} {input.R2} > {output.sam}
+
+        # Run samtools
+        # -b output BAM
+        # -T reference
+        samtools view -bT {params.wkdir}/{input.contaminant} {output.sam} \
+            -o {output.bam}
+
+        # tiotal alignments ; print on stdout number of reads
+        samtools view -c {output.sam}
+
+        # mapped alignments (4 is the flag for segment unmapped and -F is do not include
+        # those fragments)
+        samtools view -F 4 {output.bam} -o {output.mapped} -h
+
+        # mapped alignments and its mate mapped
+        # -F 12 : 12=8+4=fragments unmapped and the next fragment (mate)
+        # -f 1: include fragments that have multiple segments
+        #samtools view -c -f 1 -F 12 output/2016_2016_test_R.sam
+
+        # unmapped alignments
+        samtools view -f 4 {output.bam} -o {output.unmapped} -h
+
+        # With the mapped.sam and unmapped.sam, we now analyse them with
+        # analywe_sam_file tool, which creates a list of the reads
+        # mapped/unmapped. This is then used inside dante to create
+        # the filtered fastq files. 
+
+        # We actually do not need that complexity. Instead, we can use
+        # pysam to scan the content of the BAM file to extract
+        # the reads of the mapped/unmapped reads' names.
+
+        # create a file called pair_mapping_countds.csv
+        # with this format:
+        # prefix, 'total_reads_in_bam', 'mapped', 'unmapped', mapped_percentage'
+        # can be just using wc of the mapped/unmapped files
+        # and using samtools view -c on the bam file
+
+        # screen_fastq -l fastq_cutadapt/Hm2_GTGAAA_L005_R2_001.cutadapt.sample.fastq -r fastq_cutadapt/Hm2_GTGAAA_L005_R1_001.cutadapt.sample.fastq --output output -p myproject --time_stamp 2016 
+
+        awk '{{print $1}}' {output.unmapped} | uniq  > {params.wkdir}/unmapped.bed
+        awk '{{print $1}}' {output.mapped} | uniq > {params.wkdir}/mapped.bed
+
+        # create the fastq files based on the fastq and bed files
+
+        seqtk subseq {input.R1} {params.wkdir}/unmapped.bed > {params.wkdir}/R1.unmapped.fastq
+        seqtk subseq {input.R1} {params.wkdir}/mapped.bed > {params.wkdir}/R1.mapped.fastq
+        seqtk subseq {input.R2} {params.wkdir}/unmapped.bed > {params.wkdir}/R2.unmapped.fastq
+        seqtk subseq {input.R2} {params.wkdir}/mapped.bed > {params.wkdir}/R2.mapped.fastq
+
+    """
 
 
-"""rule contaminant:
-    input: config.contaminant
-    output
 
-  "(bwa mem {snakemake.params} -t {snakemake.threads} "
-    "{snakemake.input.ref} {snakemake.input.sample} "
-    "| samtools view -Sbh -o {snakemake.output[0]} -) 2> {snakemake.log}")
-"""
+rule report:
+    input:
+        cutadapt1 = "fastq_cutadapt/cutadapt.log",
+        dag = "dag.svg"
+    output: "report/index.html"
+    run:
+        from sequoia import report_cutadapt
+        from sequoia import report_main
+
+        s = report_main.SequoiaReport()
+        s.create_report()
+
+        s = report_cutadapt.CutAdaptReport("fastq_cutadapt/cutadapt.log")
+        s.create_report()
+        shell("cp Snakefile report/")
+        shell("cp dag.svg report/")
+
+
+#  "| samtools view -Sbh -o {snakemake.output[0]} -) 2> {snakemake.log}")
 
 
 rule clean:
@@ -115,16 +205,18 @@ rule clean:
         """
         rm -rf fastqc_results
         rm -rf fastq_sample
-        rm -rf fastq_clean
         rm -rf fastq_cutadapt
+        rm -rf input/*fastq*
+        rm -rf bwa_contaminant
         rm -f dag.svg dat.dot
         """
 
-"""
-onsuccess:
-    print("Workflow finished without errors")
-    shell("mail -s \"Snakemake finished\" thomas.cokelaer@pasteur.fr < {log}")
 
+onsuccess:
+    print("Workflow finished.")
+    #shell("mail -s \"Snakemake finished\" thomas.cokelaer@pasteur.fr < {log}")
+
+"""
 onerror:
     print("An error occured")
     shell("mail -s \"an error occured\" thomas.cokelaer@pasteur.fr < {log}")
