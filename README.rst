@@ -1,6 +1,28 @@
 SEQUANA
 ############
 
+.. image:: https://badge.fury.io/py/sequana.svg
+          :target: https://pypi.python.org/pypi/sequana
+
+.. image:: https://travis-ci.org/sequana/sequana.svg?branch=master
+
+
+.. image::
+   https://coveralls.io/repos/github/sequana/sequana/badge.svg?branch=master
+    :target: https://coveralls.io/github/sequana/sequana?branch=master 
+
+.. image:: http://readthedocs.org/projects/sequana/badge/?version=latest
+       :target: http://sequana.readthedocs.org/en/latest/?badge=latest
+    :alt: Documentation Status
+
+:Python version: Python 2.7, 3.4 and 3.5
+:Online documentation: `On readthedocs <http://sequana.readthedocs.org/>`_
+:Issues and bug reports: `On github
+<https://github.com/sequana/sequana/issues>`_
+
+
+
+
 
 >>>>>>>>>> WIP <<<<<<<<<<<<<<
 
