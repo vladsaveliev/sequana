@@ -17,14 +17,11 @@ SEQUANA
 
 :Python version: Python 2.7, 3.4 and 3.5
 :Online documentation: `On readthedocs <http://sequana.readthedocs.org/>`_
-:Issues and bug reports: `On github
-<https://github.com/sequana/sequana/issues>`_
+:Issues and bug reports: `On github <https://github.com/sequana/sequana/issues>`_
 
 
 
 
-
->>>>>>>>>> WIP <<<<<<<<<<<<<<
 
 
 **Sequana** includes a set of pipelines related to NGS (new generation sequencing). 

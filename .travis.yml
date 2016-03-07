@@ -35,7 +35,7 @@ install:
   - pip install easydev>=0.9.12 --upgrade
   - pip install coveralls
   - pip install tabulate
-  - conda install cutadapt pysam
+  - conda install cutadapt pysam --yes
 
 # # command to run tests, e.g. python setup.py test
 script:
