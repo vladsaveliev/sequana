@@ -2,7 +2,7 @@ import os
 import easydev
 
 from reports import Report
-from sequoia import version
+from sequana import version
 
 
 def _get_template_path(name):
@@ -10,13 +10,13 @@ def _get_template_path(name):
     if os.path.exists(name):
         return name
     else:
-        template_path = easydev.get_shared_directory_path("sequoia")
+        template_path = easydev.get_shared_directory_path("sequana")
         template_path += os.sep + "templates"  + os.sep + name
         return template_path
 
 
 class BaseReport(Report):
-    """A Parent child for all reports created in Sequoia
+    """A Parent child for all reports created in Sequana
 
 
 
@@ -26,7 +26,7 @@ class BaseReport(Report):
         """.. rubric:: Constructor
 
         :param jinja_template: name of a directory (either local) or
-            from sequoia/share/templates where JINJA files are available. A file
+            from sequana/share/templates where JINJA files are available. A file
             named index.html is required but may be renamed (with
             **output_filename** parameter).
         :param output_filename: name of the final HTML file.
@@ -36,7 +36,7 @@ class BaseReport(Report):
 
         """
         # finds automatically the local directory or a directory to be found in
-        # sequoia distribution
+        # sequana distribution
         template_path = _get_template_path(jinja_template)
         super(BaseReport, self).__init__(template_path=template_path,
             directory=directory, **kargs)
@@ -53,7 +53,7 @@ class BaseReport(Report):
 
         # Here, we defined default values from what is expected from the Jinja
         # template in share/templates/adapter_removal
-        self.data['sequoia_version'] = version
+        self.data['sequana_version'] = version
 
         # Common information to be filled (possibly)
         self.data['command'] = "unset"
@@ -74,14 +74,14 @@ class BaseReport(Report):
         super(BaseReport, self).create_report(onweb=onweb)
 
 
-class SequoiaReport(BaseReport):
+class SequanaReport(BaseReport):
     def __init__(self, jinja_template="main", output_filename="index.html", 
         directory="report", **kargs):
 
-        super(SequoiaReport, self).__init__(jinja_template, output_filename,
+        super(SequanaReport, self).__init__(jinja_template, output_filename,
             directory, **kargs)
 
-        self.title = "Sequoia Report"
+        self.title = "Sequana Report"
 
         #self.data['snakefile'] = "undefined"
 

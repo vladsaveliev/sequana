@@ -1,4 +1,4 @@
-from sequoia import snakemake
+from sequana import snakemake
 import os
 from . import data
 pathdata = data.__path__[0]

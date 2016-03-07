@@ -25,7 +25,7 @@ class AdapterRemovalReport(BaseReport):
         """
 
         :param jinja_template: name of a directory (either local) or
-            from sequoia/share/templates where JINJA files are available. A file
+            from sequana/share/templates where JINJA files are available. A file
             named index.html is required but may be renamed (with
             **output_filename** parameter).
         :param output_filename: name of the final HTML file.

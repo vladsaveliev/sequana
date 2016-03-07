@@ -41,7 +41,7 @@ class SnakeMakeStats(object):
 
 class RuleBase(object):
     def __init__(self):
-        self.basedir = gpl("sequoia") + os.sep + "pipelines"
+        self.basedir = gpl("sequana") + os.sep + "pipelines"
 
 
 class Rules(RuleBase):
@@ -67,13 +67,13 @@ class Rule(RuleBase):
     """
 
     Rules provides a simple way to retrieve the path of a Snakefile
-    for a given rule. Snakefiles are stored in sequoia/pipelines.
+    for a given rule. Snakefiles are stored in sequana/pipelines.
     For instance, in the following example, we wish to known the path
-    of the Snakefile to ne found in sequoia/pipelines/dag
+    of the Snakefile to ne found in sequana/pipelines/dag
 
     ::
 
-        from sequoia import Rules
+        from sequana import Rules
         filename = Rules('dag').filename
 
     this returns the full path of the Snakefile.
@@ -89,7 +89,7 @@ class Rule(RuleBase):
         self._rules = Rules()
 
         if self._rules.isvalid(name) is False:
-            msg = "The rule %s is not part of the sequoia workflows"
+            msg = "The rule %s is not part of the sequana workflows"
             raise ValueError(msg  % name)
 
         self.name = name
@@ -116,7 +116,7 @@ class Rule(RuleBase):
         return txt
 
 
-#: define a dictionary to be used in Snakefile to include sequoia's snakefiles
+#: define a dictionary to be used in Snakefile to include sequana's snakefiles
 rules = {}
 for name in Rules().names:
     rules[name] = Rule(name).location

@@ -6,8 +6,8 @@ Data:
 Run: snakemake -s Snakefile
 Changelog:
 """
-import sequoia
-from sequoia import snakemake as sm
+import sequana
+from sequana import snakemake as sm
 
 # Change parameters inside config.json
 configfile: "config.json"
@@ -56,7 +56,7 @@ rule all:
         "bwa_contaminant/contaminant.sam",
         "dag.svg",
         "report/index.html"
-    version:sequoia. version
+    version:sequana. version
 
 
 rule sampling:
@@ -185,8 +185,8 @@ rule report:
         dag = "dag.svg"
     output: "report/index.html"
     run:
-        from sequoia import report_cutadapt
-        from sequoia import report_main
+        from sequana import report_cutadapt
+        from sequana import report_main
 
         s = report_main.SequoiaReport()
         s.create_report()

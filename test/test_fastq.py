@@ -1,4 +1,4 @@
-from sequoia import fastq
+from sequana import fastq
 from . import data
 pathdata = data.__path__[0]
 from easydev import TempFile

@@ -11,13 +11,13 @@ References
 FASTQ module
 ---------------
 
-.. automodule:: sequoia.fastq
+.. automodule:: sequana.fastq
     :members:
     :undoc-members:
 
 Snakemake module
 -----------------
 
-.. automodule:: sequoia.snakemake
+.. automodule:: sequana.snakemake
     :members:
     :undoc-members:

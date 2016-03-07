@@ -7,12 +7,12 @@ Sequoia documentation
 Issues
 ===========
 
-Please fill bug report in https://github.com/biokit/sequoia
+Please fill bug report in https://github.com/sequana/sequana
 
 Contributions
 ================
 
-Please join https://github.com/biokit/sequoia
+Please join https://github.com/sequana/sequana
 
 .. toctree::
     :numbered:

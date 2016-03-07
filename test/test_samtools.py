@@ -1,4 +1,4 @@
-from sequoia.samtools import SAM, BAM
+from sequana.samtools import SAM, BAM
 
 import os
 from . import data

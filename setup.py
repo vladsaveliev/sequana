@@ -15,8 +15,8 @@ metainfo = {
     'authors': {"main": ("yourname", "email@whatever.org")},
     'version': version,
     'license' : 'GPL',
-    'download_url' : ['http://pypi.python.org/pypi/sequoia'],
-    'url' : ["http://pythonhosted.org/sequoia/"],
+    'download_url' : ['http://pypi.python.org/pypi/sequana'],
+    'url' : ["http://github.com/sequana/"],
     'description': "Put a short description here" ,
     'platforms' : ['Linux', 'Unix', 'MacOsX', 'Windows'],
     'keywords' : [''],
@@ -40,7 +40,7 @@ datafiles = [(datadir, [f for f in glob.glob(os.path.join(datadir, '*'))])]
 
 
 setup(
-    name             = "sequoia",
+    name             = "sequana",
     version          = version,
     maintainer       = metainfo['authors']['main'][0],
     maintainer_email = metainfo['authors']['main'][1],

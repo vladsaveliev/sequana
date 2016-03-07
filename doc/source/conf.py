@@ -17,7 +17,7 @@ import sys, os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-pkg_name = "sequoia"
+pkg_name = "sequana"
 
 # This is for ReadTheDoc
 import matplotlib
@@ -29,9 +29,9 @@ import pkg_resources
 version = pkg_resources.require(pkg_name)[0].version
 release = version
 author = "Thomas Cokelaer"
-title = "Sequoia"
+title = "Sequana"
 copyright = author + ", 2015"
-project = 'Sequoia'
+project = 'Sequana'
 
 import easydev
 from easydev import get_path_sphinx_themes
@@ -129,7 +129,7 @@ show_authors = True
 pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
-modindex_common_prefix = ["sequoia."]
+modindex_common_prefix = ["sequana."]
 
 # -- Options for HTML output ---------------------------------------------------
 
@@ -158,7 +158,7 @@ if not on_rtd:
 #html_title = None
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-html_short_title = "sequoia"
+html_short_title = "sequana"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.

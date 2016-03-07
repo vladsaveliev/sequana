@@ -1,4 +1,4 @@
-from sequoia.fastq import FastQ
+from sequana.fastq import FastQ
 
 from optparse import OptionParser
 import argparse
