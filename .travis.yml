@@ -16,6 +16,7 @@ before_install:
     - export PATH=$HOME/miniconda2/bin:$PATH
     - hash -r
     - conda update --yes conda
+    - conda config --add channels bioconda
     # are not specific to using mini
     # - sudo rm -rf /dev/shm
     # - sudo ln -s /run/shm /dev/shm
@@ -30,7 +31,7 @@ install:
   # https://miail.python.org/pipermail/cython-devel/2014-November/004263.html
   #- pip install --install-option="--no-cython-compile" cython --upgrade
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy matplotlib nose pandas coverage numexpr xlrd cython
-  - conda install biokit
+  - conda install biokit -r c
   - pip install easydev>=0.9.12 --upgrade
   - pip install coveralls
   - pip install tabulate
