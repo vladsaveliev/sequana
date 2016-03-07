@@ -10,7 +10,6 @@ MARKJOB = config["markduplicate"]
 MARKTAG = ""
 if MARKJOB:
     MARKTAG = "_undup"
-    print(MARKJOB)
 
 
 # Snakemake --------------------------------------------------------------------
