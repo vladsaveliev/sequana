@@ -115,7 +115,9 @@ class Quality(object):
         self.offset = offset
 
     def _get_quality(self):
-        return [ord(x) - self.offset for x in self.seq]
+        # bytearray conversion is required since ord() function
+        # does not handle bytes from py3
+        return [x - self.offset for x in bytearray(self.seq)]
     quality = property(_get_quality)
 
 

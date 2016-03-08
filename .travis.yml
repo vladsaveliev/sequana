@@ -1,0 +1,45 @@
+language: python
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+matrix:
+  include:
+    - python: 2.7
+    - python: 3.5
+
+before_install:
+    - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+    - chmod +x miniconda.sh
+    - ./miniconda.sh -b
+    - export PATH=$HOME/miniconda/bin:$PATH
+    - export PATH=$HOME/miniconda2/bin:$PATH
+    - hash -r
+    - conda update --yes conda
+    - conda config --add channels bioconda
+    # are not specific to using mini
+    # - sudo rm -rf /dev/shm
+    # - sudo ln -s /run/shm /dev/shm
+    # This help testing code with pylab
+    - "export DISPLAY=:99.0"
+    - "sh -e /etc/init.d/xvfb start"
+
+
+install:
+  # sometimes cython compilation of the cython files takes forever
+  # here we install cython with specific options
+  # https://miail.python.org/pipermail/cython-devel/2014-November/004263.html
+  #- pip install --install-option="--no-cython-compile" cython --upgrade
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy matplotlib nose pandas coverage numexpr xlrd cython
+  - conda install --yes biokit 
+  - pip install easydev>=0.9.12 --upgrade
+  - pip install coveralls
+  - pip install tabulate
+  - conda install cutadapt pysam --yes
+
+# # command to run tests, e.g. python setup.py test
+script:
+  - python setup.py nosetests --with-coverage --cover-package sequana
+
+after_success:
+  coveralls
