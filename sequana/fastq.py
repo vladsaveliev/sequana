@@ -433,7 +433,7 @@ class FastQ(object):
 
             # open an output file handler
             current_file_counter = 0
-            fout = open(outputs[0], "w")
+            fout = open(outputs[0], "wb")
 
             while buf:
                 outstr = d.decompress(buf)
@@ -459,7 +459,7 @@ class FastQ(object):
                     # and open the next one where we can already save the end of
                     # the buffer
                     current_file_counter += 1
-                    fout = open(outputs[current_file_counter], "w")
+                    fout = open(outputs[current_file_counter], "wb")
                     fout.write(remaining)
                     # we need to keep track of what has be written
                     count = remaining.count(b'\n')
