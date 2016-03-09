@@ -605,7 +605,7 @@ class FastQ(object):
             """
             # Somehow the readlines still return "" even if the end of file is
             # reached
-            if temp == "":
+            if temp == b"":
                 raise StopIteration
         except KeyboardInterrupt:
             self._fileobj.close()
@@ -721,7 +721,6 @@ class FastQC(object):
             mean_qualities.append(pylab.mean(quality))
             if i > self.sample:
                 break
-
             identifier = Identifier(record['identifier'])
             self.identifiers.append(identifier.info)
 
@@ -787,9 +786,9 @@ class FastQC(object):
     @run_info
     def _get_xbins(self):
         if self.maximum<40:
-            bins = range(1,41)
+            bins = list(range(1,41))
         else:
-            bins = range(1,10) + range(10,self.maximum + 1, 5)
+            bins = list(range(1,10)) + list(range(10,self.maximum + 1, 5))
         return bins
 
     @run_info
