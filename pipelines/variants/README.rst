@@ -9,8 +9,4 @@ TODO:
 -------
 - Mapping rule ?
 
-- Refine freebayes params
-
-- VCF filter.
-
 - SNPeff
