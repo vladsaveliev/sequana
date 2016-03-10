@@ -21,3 +21,10 @@ Snakemake module
 .. automodule:: sequana.snakemake
     :members:
     :undoc-members:
+
+VCF module
+------------
+
+.. automodule:: sequana.vcf_filter
+    :members:
+    :undoc-members:
