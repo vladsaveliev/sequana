@@ -18,17 +18,15 @@ class VCF(vcf.Reader):
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
 
     def _calcul_freq(self, vcf_line):
-        alt_freq = []
-        for count in vcf_line.INFO["AO"]:
-            alt_freq.append(count/vcf_line.INFO["DP"])
+        alt_freq = [count/vcf_line.INFO["DP"] for count in vcf_line.INFO["AO"]]
         return alt_freq
 
-    def _filter_info_field(self, info_value, treshold):
-        if(treshold.startswith("<")):
-            if(info_value < int(treshold[1:])):
+    def _filter_info_field(self, info_value, threshold):
+        if(threshold.startswith("<")):
+            if(info_value < int(threshold[1:])):
                 return False
         else:
-            if(info_value > int(treshold[1:])):
+            if(info_value > int(threshold[1:])):
                 return False
         return True
 
