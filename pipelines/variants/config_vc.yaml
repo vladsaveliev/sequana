@@ -1,5 +1,12 @@
 reference: reference.fa
-sample: test_file.bam
+sample: 
+    - test_file.bam
+    - test_file_2.bam
 markduplicate: true
 freebayes:
     --ploidy: 1
+vcf_filter:
+    QUAL: 1000
+    FREQ: 0.9
+    INFO:
+        DP: 10
