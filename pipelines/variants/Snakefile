@@ -1,11 +1,12 @@
 # Import Yaml or Json config file ----------------------------------------------
+
 configfile: "config_vc.yaml"
 
 # Some trick -------------------------------------------------------------------
 
 get_prefixes = lambda filename: filename.split(".")[0]
+DATA = [get_prefixes(flname) for flname in config["sample"]] 
 
-DATA = get_prefixes(config["sample"])
 MARKJOB = config["markduplicate"]
 MARKTAG = ""
 if MARKJOB:
@@ -16,7 +17,7 @@ if MARKJOB:
 
 rule all:
     input:
-        expand("{sample}.vcf", sample=DATA)
+        expand("{sample}_filter.vcf", sample=DATA)
 
 rule markDuplicate:
     input:
@@ -51,3 +52,12 @@ rule freebayes:
     shell:
         "freebayes {params} -f {input.ref} -b {input.bam} -v {output.vcf}"
 
+rule vcf_filter:
+    input:
+        vcf = "{sample}.vcf"
+    output:
+        vcf = "{sample}_filter.vcf"
+    run:
+        from vcf_filter import VCF
+        vcf_record = VCF(input["vcf"])
+        vcf_record.filter_vcf(config["vcf_filter"], output["vcf"])
