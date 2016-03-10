@@ -1,9 +1,0 @@
-name: py35
-dependencies:
-- matplotlib=1.5.1
-- numpy=1.10.4
-- pandas=0.17.1
-- pyqt=4.11.4
-- scipy=0.17.0
-- pip:
-  - sequana
