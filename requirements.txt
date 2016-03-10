@@ -1,7 +1,9 @@
 cython
 easydev >=0.9.11
+numpy
+matplotlib
 pandas
+scipy
 bioservices >=1.4.5
 biokit
 colormap
-scipy
