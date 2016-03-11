@@ -20,3 +20,4 @@ def test_vcf_filter():
                     flag = False
                     break
     assert flag == True
+    ft.delete()
