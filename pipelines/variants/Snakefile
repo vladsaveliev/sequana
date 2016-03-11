@@ -58,6 +58,6 @@ rule vcf_filter:
     output:
         vcf = "{sample}_filter.vcf"
     run:
-        from vcf_filter import VCF
-        vcf_record = VCF(input["vcf"])
+        from sequana import vcf_filter
+        vcf_record = vcf_filter.VCF(input["vcf"])
         vcf_record.filter_vcf(config["vcf_filter"], output["vcf"])
