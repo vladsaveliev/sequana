@@ -14,5 +14,6 @@ def test_vcf_filter():
                                                         "AO": ">200",
                                                         "SRP": "<100"}}
     vcf_record.filter_vcf(filter_dict, ft.name)
-    assert filecmp.cmp(ft.name, vcf_output_expected) == True
+    compare_file = filecmp.cmp(ft.name, vcf_output_expected)
+    assert compare_file == True
     ft.delete()
