@@ -18,7 +18,8 @@ class VCF(vcf.Reader):
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
 
     def _calcul_freq(self, vcf_line):
-        alt_freq = [count/vcf_line.INFO["DP"] for count in vcf_line.INFO["AO"]]
+        alt_freq = [float(count)/vcf_line.INFO["DP"] for count in \
+                vcf_line.INFO["AO"]]
         return alt_freq
 
     def _filter_info_field(self, info_value, threshold):
