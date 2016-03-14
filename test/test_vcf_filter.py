@@ -9,7 +9,9 @@ def test_vcf_filter():
     ft = TempFile()
     vcf_output_expected = pathdata + os.sep + "vcf_filter_output.vcf"
     vcf_record = vcf_filter.VCF(pathdata + os.sep + "vcf_filter_input.vcf")
-    filter_dict = {"QUAL": 1000, "FREQ": 90, "INFO": {"DP": ">10"}}
+    filter_dict = {"QUAL": 1000, "FREQ": 90, "INFO": {"DP": ">10",
+                                                      "AO": ">200",
+                                                      "SRP": "<100"}}
     vcf_record.filter_vcf(filter_dict, ft.name)
     flag = True
     with open(ft.name, 'r') as fl1:
