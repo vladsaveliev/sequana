@@ -11,5 +11,5 @@ except:
 
 from .snakemake import rules
 from .snakemake import ValidateConfig
-
+from .phred import Quality
 from .samtools import BAM, SAM
