@@ -25,12 +25,16 @@ illumina1.3+: 64  range 0 to 62
 
 """
 import numpy as np
+import pylab
 
 quality = """!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOP"""
 quality += """QRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~"""
 
 
 from math import log10
+
+
+__all__ = ['Quality']
 
 
 def proba_to_quality_sanger(pe):
@@ -110,6 +114,20 @@ def quality_to_ascii(quality, phred=33):
 
 
 class Quality(object):
+    """
+
+
+    .. plot::
+
+        >>> from sequana.phread import Quality
+        >>> q = Quality('BCCFFFFFHHHHHIIJJJJJJIIJJJJJJJJFH')
+        >>> q.plot()
+        >>> q.mean_quality()
+        35
+        
+
+
+    """
     def __init__(self, seq, offset=33):
         self.seq = seq
         self.offset = offset
@@ -119,6 +137,16 @@ class Quality(object):
         # does not handle bytes from py3
         return [x - self.offset for x in bytearray(self.seq)]
     quality = property(_get_quality)
+
+    def _get_mean_quality(self):
+        return np.mean(self.quality)
+    mean_quality = property(_get_mean_quality)
+
+    def plot(self):
+        pylab.plot(self.quality)
+        pylab.xlabel('base position')
+        pylab.ylabel('Quality per base')
+        pylab.grid()
 
 
 
