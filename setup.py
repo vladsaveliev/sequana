@@ -61,7 +61,7 @@ setup(
     include_package_data=True,
 
     install_requires = ["easydev>=0.9.12", "reports", "matplotlib", "pandas",
-        "cutadapt==1.9.1", "pysam", "biokit>=0.2.0", "pyvcf"],
+        "cutadapt==1.9.1", "pysam", "biokit>=0.2.0", "pyVCF"],
 
     # uncomment if you have share/data files
     # package_data = {
