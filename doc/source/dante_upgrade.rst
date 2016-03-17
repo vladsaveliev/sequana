@@ -11,4 +11,4 @@ summarized here below.
 
 
 
-
+* bug in bam to fastq tools in original code. Fixed in sequana
