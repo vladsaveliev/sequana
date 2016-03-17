@@ -1,0 +1,19 @@
+name: sequana
+dependencies:
+- gevent
+- greenlet
+- grequests
+- numpy
+- pandas
+- matplotlib
+- pysam
+- pysamstats
+- scipy
+- snakemake=3.5.5
+- suds-jurko=0.6
+- pip:
+  - bioservices
+  - biokit
+  - cutadapt
+  - mpld3
+  - reports
