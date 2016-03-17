@@ -10,6 +10,13 @@ http://biofinysics.blogspot.fr/2014/05/how-does-bowtie2-assign-mapq-scores.html
 https://gitlab.univ-nantes.fr/a-slide/ContaVect/blob/9a411abfa720064c205c5f6c811afdfea206ed12/pyDNA/pySamTools/Bam.py
 
 pysamtools
+
+
+
+Interesting commands::
+
+    samtools flagstat contaminant.bam
+    samtools stats contaminant.bam
 """
 
 import pandas as pd
@@ -59,6 +66,23 @@ class BAM(pysam.AlignmentFile):
         return N
 
     def get_stats(self):
+        #See samtools stats
+
+        """1526795 + 0 in total (QC-passed reads + QC-failed reads)
+        13 + 0 secondary
+        0 + 0 supplementary
+        0 + 0 duplicates
+        3010 + 0 mapped (0.20% : N/A)
+        1526782 + 0 paired in sequencing
+        763391 + 0 read1
+        763391 + 0 read2
+        2700 + 0 properly paired (0.18% : N/A)
+        2976 + 0 with itself and mate mapped
+        21 + 0 singletons (0.00% : N/A)
+        0 + 0 with mate mapped to a different chr
+        0 + 0 with mate mapped to a different chr (mapQ>=5)
+        """
+
         d = {}
         d['total_reads'] = len(list(self.iter_unmapped_reads()))
         d['mapped_reads'] = len(list(self.iter_mapped_reads()))
@@ -66,6 +90,30 @@ class BAM(pysam.AlignmentFile):
         d['contamination [%]'] = float(d['mapped_reads']) /float(d['unmapped_reads']) 
         d['contamination [%]'] *= 100
         return d
+
+    def get_flags(self):
+        self.reset()
+        flags = [s.flag for s in self]
+        self.reset()
+        return flags
+
+    def get_flags_as_df(self):
+        """
+
+            b = BAM(filename)
+            df = b.get_flags_as_df()
+            df.sum()
+
+        """
+        flags = self.get_flags()
+        data = [(this, [flag&this for flag in flags]) 
+            for this in [1,2,4,8,16,32,64,128,256,512,1024,2048]]
+        import pandas as pd
+        df = pd.DataFrame(dict(data))
+        df = df > 0
+        return df
+
+
 
 class SAMFlags(object):
 
