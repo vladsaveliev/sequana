@@ -67,6 +67,38 @@ class BAM(pysam.AlignmentFile):
         d['contamination [%]'] *= 100
         return d
 
+class SAMFlags(object):
+
+    def __init__(self, value):
+        self.value = value
+        self._flags = {
+            1: "template having multiple segments in sequencing",
+            2: "each segment properly aligned according to the aligner",
+            4: "segment unmapped",
+            8: "next segment in the template unmapped",
+            16: "SEQ being reverse complemented",
+            32: "SEQ of the next segment in the template being reverse complemented", 
+            64: "the first segment in the template",
+            128: "the last segment in the template",
+            256: "secondary alignment",
+            512: "not passing filters, such as platform/vendor quality controls",
+            1024: "PCR or optical duplicate",
+            2048: "supplementary alignme"}
+
+    def get_flags(self):
+        flags = []
+        for this in sorted(self._flags.keys()):
+            if self.value & this:
+                flags.append(this)
+        return flags
+
+    def __str__(self):
+        txt = ""
+        for this in sorted(self._flags.keys()):
+            if self.value & this:
+                txt += "%s: %s\n" % (this, self._flags[this])
+        return txt
+
 
 class SAM(pysam.AlignmentFile):
     """
@@ -149,6 +181,11 @@ class SAM(pysam.AlignmentFile):
         pylab.ylabel('Fraction of reads')
 
 
+    def __len__(self):
+        self.reset()
+        N = len([x for x in self])
+        self.reset()
+        return N
 
 
 
