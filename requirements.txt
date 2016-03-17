@@ -1,9 +1,7 @@
-cython
-easydev >=0.9.11
-numpy
+easydev>=0.9.11
+colormap
 matplotlib
 pandas
 scipy
-bioservices >=1.4.5
+bioservices>=1.4.5
 biokit
-colormap
