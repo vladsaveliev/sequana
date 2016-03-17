@@ -13,12 +13,14 @@ from easydev import get_package_location as gpl
 import pandas as pd
 import pylab
 
+
 class SnakeMakeProfile(object):
     def __init__(self, filename):
         self.filename = filename
         
     def parse(self):
         data = json.loads(self.filename)
+
 
 class SnakeMakeStats(object):
     def __init__(self, filename):
@@ -159,6 +161,35 @@ class ValidateConfig(object):
 def message(mes):
     from easydev.console import purple
     print("// -- " + purple(mes))
+
+
+
+class DOTParser(object):
+    def __init__(self, filename):
+        self.filename = filename
+
+    def add_urls(self):
+        with open(self.filename, "r") as fh:
+            data = fh.read()
+
+        with open(self.filename.replace(".dot", ".ann.dot"), "w") as fout:
+            for line in data.split("\n"):
+                if "[label =" not in line:
+                    fout.write(line + "\n")
+                else:
+                    separator = "color ="
+                    lhs, rhs = line.split(separator)
+                    name = lhs.split("label =")[1]
+                    name = name.replace(",","")
+                    name = name.replace('"',"")
+                    name = name.strip()
+                    line = lhs + ' URL="%s.html" target="_blank", ' % name 
+                    line += separator + rhs
+                    fout.write(line + "\n")
+
+    #  label="cutadapt.html", URL="cutadapt.html", target="_blank",
+
+
 
 
 

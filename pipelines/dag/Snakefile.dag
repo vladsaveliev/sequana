@@ -19,10 +19,20 @@ rule dag:
     -- Output saved in dag.svg
     """
     run:
+        # Create the dot file (graphviz) using snakemake
+        shell("snakemake --dag > dag.dot")
 
-        shell("snakemake --dag | dot -Tsvg -o dag.svg")
-        if 'showdag' in config.keys() and config['showdag'] in [True, "True"]:
-            shell("eog dag.svg")
+        # Annotate the dag with URLs 
+        from sequana.snakemake import DOTParser
+        d = DOTParser("dag.dot")
+        d.add_urls()
+
+        # Now, create the SVG
+        shell("dot -Tsvg dag.ann.dot -o dag.svg")
+
+        # cleanup intermediate files
+        #shell("rm -f dag.dot")
+        #shell("rm -f dag.ann.dot")
 
 
 

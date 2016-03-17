@@ -1,1 +1,5 @@
 include pipelines/*/Snake*
+recursive-include share *
+recursive-include test *
+recursive-exclude * __pycache__
+recursive-exclude * *pyc

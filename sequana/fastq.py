@@ -1,16 +1,4 @@
-"""
-IDEA
-
-zcat test.fastq.gz | python filter ^ACGT | gzip > fitlered.fastq.gz
-
-import re
-query=re.compile("^ACGT")
-if query.search(sequence):
-    write(sequence)
-
-Interesting as well for creating a generic zipfile opener
-
-http://www.genomearchitecture.com/2014/01/how-to-gunzip-on-the-fly-with-python
+"""Utilities to manipulate FASTQ and Reads
 
 """
 import io
@@ -36,6 +24,7 @@ def grouper(iterable):
     return izip_longest(*args)
 
 
+__all__ = ["Identifier", "FastQ", "FastQC"]
 
 class Read(object):
     def __init__(self, data):
@@ -47,7 +36,21 @@ class Read(object):
 
 
 class Identifier(object):
+    """Class to interpret Read's identifier
 
+
+    Should work for Illumina 1.8+ 
+
+    .. warning::  Not tested for other cases
+
+    ::
+
+        >> ident = Identifier('@EAS139:136:FC706VJ:2:2104:15343:197393 1:Y:18:ATCACG')
+        >>> ident.info['x_coordinate']
+        '15343',
+
+
+    """
     def __init__(self, identifier, version=None):
         self.identifier = identifier
         if version is None:
@@ -159,34 +162,35 @@ http://support.illumina.com/help/SequencingAnalysisWorkflow/Content/Vault/Inform
 
 
 class FastQ(object):
-    """
-
-    extract first 100k lines
-
-    f = FastQ("")
-    f.extract_head(100000, output='test.fastq')
-    f.extract_head(100000, output='test.fastq.gz')
-
-    equivalent to
-
-    zcat myreads.fastq.gz | head -100000 | gzip > test100k.fastq.gz
+    """Class to handle FastQ files
 
 
-    Counts the number of lines ::
+    Nothing fancy but should be efficient. For example, extract the first 100k lines::
+
+        f = FastQ("")
+        f.extract_head(100000, output='test.fastq')
+        f.extract_head(100000, output='test.fastq.gz')
+
+    equivalent to::
+
+        zcat myreads.fastq.gz | head -100000 | gzip > test100k.fastq.gz
+
+    Counts the number of lines::
 
         f.count_lines()
 
     or reads (assuming 4 lines per read)::
 
         f.count_reads()
-
+    """
+    """
     Features to implement::
         - filter out short / long reads
         - filter out reads with NNN
         - filter out low quality end reads
         - cut poly A/T tails
 
-        - dereplicate seauences
+        - dereplicate sequences
         - split multiplex
         - remove contaminants
         - compact fastq
@@ -678,7 +682,23 @@ def run_info(f):
     return wrapper
 
 class FastQC(object):
+    """Simple QC diagnostic
+
+
+    .. plot::
+
+        from sequana import sequana_data
+        from sequana import FastQC
+
+        filename  = sequana_data("reads.fastq")
+        qc = FastQC(filename)
+        qc.histogram_gc_content()
+
+    """
     def __init__(self, filename, sample=500000):
+        """
+
+        """
         self.fastq = FastQ(filename)
 
         N = self.fastq.count_reads()
@@ -793,6 +813,9 @@ class FastQC(object):
 
     @run_info
     def histogram_gc_content(self):
+        """Plot histogram of GC content
+
+        """
         pylab.hist(self.gc_list, bins=range(0, self.maximum))
         pylab.grid()
         pylab.title("GC content distribution over all sequences")

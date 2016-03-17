@@ -34,10 +34,6 @@ metainfo = {
           'Topic :: Scientific/Engineering :: Physics']
     }
 
-# files in share/data
-datadir = os.path.join('pipelines')
-datafiles = [(datadir, [f for f in glob.glob(os.path.join(datadir, '*'))])]
-
 
 setup(
     name             = "sequana",
@@ -56,20 +52,29 @@ setup(
     classifiers      = metainfo['classifiers'],
 
     # package installation
-    packages = find_packages(exclude=["test"]),
+    #packages = find_packages(exclude=["test"]),
+    packages = find_packages(),
 
-    include_package_data=True,
+    include_package_data = True,
 
     install_requires = ["easydev>=0.9.12", "reports", "matplotlib", "pandas",
         "cutadapt==1.9.1", "pysam", "pyVCF"],
 
-    # uncomment if you have share/data files
-    # package_data = {
-    #     '': ['Snakefile*']
-    # },
+    # tells discutils extra packages are under share/data
+    package_dir={
+        'share.data': 'share/data',
+        'share.templates': 'share/templates'
+        },
+
+    # here below '': pattern means include that pattern in all packages
+    # so '' :['README.rst'] will include all README.rst recursively
+    package_data = {
+        'share.data' : ["*"],
+        '' : ['*.html', "*.css"],
+        },
+
 
     zip_safe=False,
-    #use_2to3 = True, # causes issue with nosetests
     entry_points = {
         'console_scripts':[
             'fastq_head=scripts.fastq_head:main',
