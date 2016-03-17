@@ -23,6 +23,28 @@ def bam_to_mapped_unmapped_fastq(filename, mode='pe'):
     Given a BAM file, create FASTQ with R1/R2 reads mapped and unmapped.
     In the paired-end case, 4 files are created.
 
+    Reads that are not paired or not "proper pair" (neither flag 4 nor flag 8)
+    are ignored
+
+
+    This is equivalent to the following script (for example)::
+
+        # map alignments (4 is flag for unmapped segment and -F is do not
+        # include them)
+        samtools view -F 4 filename.bam -o mapped.sam
+        # unmapped segments
+        samtools view -F 4 filename.bam -o unmapped.sam
+        awk '{print $1}' unmapped.sam | uniq  > unmapped.bed
+        awk '{print $1}' mapped.sam | uniq > mapped.bed
+
+        # create the fastq files based on the fastq and bed files
+        seqtk subseq {input.R1} unmapped.bed > R1.unmapped.fastq
+        seqtk subseq {input.R1} mapped.bed > R1.mapped.fastq
+        seqtk subseq {input.R2} unmapped.bed > R2.unmapped.fastq
+        seqtk subseq {input.R2} mapped.bed > R2.mapped.fastq
+
+    This function does not create intermediate files.
+
 
     """
     bam = BAM(filename)
@@ -48,6 +70,17 @@ def bam_to_mapped_unmapped_fastq(filename, mode='pe'):
             if this.is_paired is False:
                 stats['unpaired'] +=1
                 # What to do in such case ?
+            elif this.flag & 256:
+                # Unmapped reads are in the BAM file but have no valid assigned
+                # position (N.B., they may have an assigned position, but it should be ignored).
+                # It's typically the case that a number of reads can't be aligned, due to things
+                # like sequencing errors, imperfect matches between the DNA sequenced and the
+                # reference, random e. coli or other contamination, etc..
+                # A secondary alignment occurs when a given read could align reasonably well to
+                # more than one place. One of the possible reported alignments is termed "primary"
+                # and the others will be marked as "secondary".
+
+                stats['secondary'] +=1 
             else:
                 # inpysam, seq is a string and qual a bytes....
                 if this.is_reverse is True:
