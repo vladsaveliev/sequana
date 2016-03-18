@@ -29,7 +29,7 @@ before_install:
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy matplotlib nose pandas coverage numexpr xlrd cython
   # use pip to get latest version
-  - pip install --yes biokit 
+  - conda install --yes biokit 
   - pip install easydev>=0.9.14 --upgrade
   - pip install coveralls
   - pip install tabulate
