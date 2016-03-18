@@ -20,10 +20,8 @@ Sequana documentation
 What is Sequana ?
 =====================
 
-A Python package that provides NGS pipelines in the form of Snakefiles (link to
-snakemake). Those pipelines uses utilities and reports provided within Sequana
-so as to ease the elaoration of new pipelines. Pipelines are made of
-modules that we try to make generic enough to be re-used if possible.
+Sequana provides (i) modules and pipelines dedicated to NGS in the form os Snakefiles (Makefile-like syntax with Python syntax) and (ii) tools to help in the creation of such pipelines and associtated HTML reports.
+
 
 Installation
 #################
