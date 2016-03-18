@@ -3,6 +3,8 @@ from . import data
 pathdata = data.__path__[0]
 from easydev import TempFile
 import os
+from nose.plugins.attrib import attr
+
 
 
 def test_fastq_unzipped():
@@ -69,7 +71,6 @@ def test_split():
     remove_files(outputs)
     outputs = f.split_lines(500, gzip=True)
     remove_files(outputs)
-    
 
 
 def remove_files(filenames):
