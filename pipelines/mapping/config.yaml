@@ -1,0 +1,22 @@
+# Input files ------------------------------------------------------------------
+reference: reference.fa
+samples: 
+    - ERR036019_1.fastq.gz
+    - ERR036019_2.fastq.gz
+
+# Output prefix ----------------------------------------------------------------
+output: ERR036019
+
+# Software options -------------------------------------------------------------
+# Option for bwa_index
+bwa_index:
+    -a: "is"
+
+# Module load ------------------------------------------------------------------
+# Do you use it on a cluster ?
+on_cluster: yes
+# Set the path of the module sources.
+src_module: /etc/profile.d/pasteur_modules.sh
+# Set versions of modules
+bwa_module: bwa/0.7.5a
+samtools_module: samtools/1.2
