@@ -6,7 +6,7 @@ configfile: "config.yaml"
 
 rule all:
     input:
-        config["output"] + ".sorted.bam",
+        config["output"] + "_sorted.bam",
 
 rule bwa_index:
     input:
@@ -57,7 +57,7 @@ rule samtools:
         ref = config["reference"]
     output:
         refid = config["reference"] + ".fai",
-        sort = config["output"] + ".sorted.bam"
+        sort = config["output"] + "_sorted.bam"
     params:
         prefix = config["output"] + ".sorted",
         src = config["src_module"],
