@@ -114,9 +114,68 @@ class BAM(pysam.AlignmentFile):
         return df
 
 
+class Alignment(object):
+    """Helper class to retrieve info about Alignment
+
+    Takes an alignment as read by :class:`BAM` 
+
+    A segment is a contiguous sequence. A read is a sequence that may consist of
+    multiple segments
+
+    * QNAME: a query template name. Reads/segment having same QNAME come from the
+      same template. A QNAME set to `*` indicates the information is unavailable.
+      In a sam file, a read may occupy multiple alignment 
+    * FLAG: combination of bitwise flags. See :class:`SAMFlags`
+    * RNAME: reference sequence
+    * POS
+    * MAPQ: mapping quality if segment is mapped. equals -10 log10 Pr
+    * CIGAR: 
+    * RNEXT: reference sequence name of the primary alignment of the NEXT read
+      in the template
+    * PNEXT: position of primary alignment
+    * TLEN: signed observed template length
+    * SEQ: segment sequence
+    * QUAL: ascii of base quality
+
+    """
+    def __init__(self, alignment):
+        """.. rubric:: constructor
+
+        :param alignment: alignment instance from :class:`BAM`
+
+        ::
+
+            b = BAM()
+            s = next(b)
+            a = Alignment(s)
+            a.as_dict()
+
+        """
+        self._data = alignment
+        d = self.as_dict()
+        for key in d.keys():
+            setattr(self, key, d[key])
+
+    def as_dict(self):
+        d = {}
+        s = self._data
+        d['QNAME'] = s.qname
+        d['FLAG'] = s.flag
+        d['RNAME'] = s.rname
+        d['POS'] = s.pos
+        d['MAPQ'] = s.mapq
+        d['CIGAR'] = s.cigar
+        d['PNEXT'] = s.pnext
+        d['RNEXT'] = s.rnext
+        d['TLEN'] = s.tlen
+        d['SEQ'] = s.seq
+        d['QUAL'] = s.qual
+        return d
+
 
 class SAMFlags(object):
-
+    """
+    """
     def __init__(self, value):
         self.value = value
         self._flags = {

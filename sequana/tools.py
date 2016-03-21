@@ -45,7 +45,12 @@ def bam_to_mapped_unmapped_fastq(filename, mode='pe'):
 
     This function does not create intermediate files.
 
+    Secondary alignment are dropped so as to remove any ambiguous alignment and
+    keep the number of final reads equal to the initial number of reads
 
+    Note about chimeric alginment. One is the representative and the other is
+    the supplementary. This flag is not used in this function. Note also that
+    chimeric alignment have same QNAME and flag 4 and 8
     """
     bam = BAM(filename)
 
