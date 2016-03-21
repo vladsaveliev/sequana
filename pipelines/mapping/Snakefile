@@ -1,6 +1,6 @@
 # Import Yaml or Json config file ----------------------------------------------
 
-configfile: "config_bic.yaml"
+configfile: "config.yaml"
 
 # Snakemake --------------------------------------------------------------------
 
