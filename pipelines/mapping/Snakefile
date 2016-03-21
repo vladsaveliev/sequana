@@ -1,0 +1,77 @@
+# Import Yaml or Json config file ----------------------------------------------
+
+configfile: "config_bic.yaml"
+
+# Snakemake --------------------------------------------------------------------
+
+rule all:
+    input:
+        config["output"] + ".sorted.bam",
+
+rule bwa_index:
+    input:
+        config["reference"]
+    output:
+        config["reference"] + ".bwt"
+    params:
+        bwa_params = " ".join(['%s %s' % (key, value) for (key, value) in \
+            config["bwa_index"].items()]),
+        src = config["src_module"],
+        bwa_module = config["bwa_module"]
+    run:
+        if(config["on_cluster"]):
+            shell("""
+                . {params.src}
+                module load {params.bwa_module}
+                bwa index {params.bwa_params} {input}
+                """)
+        else:
+            shell("bwa index {params.bwa_params} {input}")
+
+rule bwa_mem:
+    input:
+        ref = config["reference"],
+        index = config["reference"] + ".bwt"
+    output:
+        config["output"] + "_unsort.bam"
+    params:
+        fastq = " ".join([i for i in config["samples"]]),
+        src = config["src_module"],
+        bwa_module = config["bwa_module"],
+        samtools_module = config["samtools_module"]
+    run:
+        if(config["on_cluster"]): 
+            shell("""
+                . {params.src}
+                module load {params.bwa_module} {params.samtools_module}
+                bwa mem -M {input.ref} {params.fastq} |\
+                samtools view -Sbh - > {output}
+                """)
+        else:
+            shell(" bwa mem -M {input.ref} {params.fastq} |\
+                samtools view -Sbh - > {output}")
+
+rule samtools:
+    input:
+        bam = config["output"] + "_unsort.bam",
+        ref = config["reference"]
+    output:
+        refid = config["reference"] + ".fai",
+        sort = config["output"] + ".sorted.bam"
+    params:
+        prefix = config["output"] + ".sorted",
+        src = config["src_module"],
+        samtools_module = config["samtools_module"]
+    run:
+        if(config["on_cluster"]):
+            shell("""
+                . {params.src}
+                module load {params.samtools_module}
+                samtools sort {input.bam} {params.prefix}
+                samtools faidx {input.ref}
+                """)
+        else:
+            shell("""
+                samtools sort {input.bam} {params.prefix}
+                samtools faidx {input.ref}
+                """)
