@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <p>Data type: {{ mode }} </p>
+    <p>Command: <br>
+            <code class="bash">
+                {{ command }}
+            </code> 
+    </p>
+
+    <div class="section" id="Stats">
+    <h2> 1 -  <a class="toc-backref" href="#id1">Stats</a></h2>
+    {{ stats }}
+    Contamination with fix = {{ contamination }} % 
+    </div>
+
+
+
+{% endblock %}
