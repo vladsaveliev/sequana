@@ -42,7 +42,7 @@ Examples
 Given a set of FASTQ files in a local directory, you can run a pipeline as
 follows (given its name)::
 
-    sequana --pipeline contaminant
+    sequana --init fix_contaminant
 
 This will copy the Snakefile locally as well as the corresponding configuration
 file.

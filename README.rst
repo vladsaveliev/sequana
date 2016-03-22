@@ -51,21 +51,18 @@ Python3.5 version installed.
 Example
 ==========
 
+**WIP** but one component will be to have a set of rules available and ready to use in Snakefiles
 ::
 
     # contaminant and adapter removal search
-    from sequana import biomics
+    from sequana import snakemake
+    snakemake.rules()
 
+In a snakefile::
 
-    pipeline = biomics.Biomics("*fastq.gz") # assumm two paired-end fastq files
-    pipeline.create()
-    pipeline.start()
-    pipeline.report()
+    from sequana import snakemake as sm
+    include: sm.rules['dag']
 
-Behind the scene, a Snakefile and a config file are created in the local
-directory. The snakefile can be executed indepedently::
-
-    snakemake Snakefile -p
 
 
 

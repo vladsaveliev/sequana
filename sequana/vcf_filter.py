@@ -24,10 +24,16 @@ class VCF(vcf.Reader):
 
     def _filter_info_field(self, info_value, threshold):
         if(threshold.startswith("<")):
-            if(info_value < int(threshold[1:])):
+            if(threshold.startswith("<=")):
+                if(info_value <= int(threshold[2:])):
+                    return False
+            elif(info_value < int(threshold[1:])):
                 return False
         else:
-            if(info_value > int(threshold[1:])):
+            if(threshold.startswith(">=")):
+                if(info_value >= int(threshold[2:])):
+                    return False
+            elif(info_value > int(threshold[1:])):
                 return False
         return True
 
@@ -38,12 +44,15 @@ class VCF(vcf.Reader):
         if(alt_freq[0] < filter_dict["FREQ"]):
             return False
         for key, value in filter_dict["INFO"].items():
-            if(type(vcf_line.INFO[key]) != list):
-                if(self._filter_info_field(vcf_line.INFO[key], value)):
-                    return False
-            else:
-                if(self._filter_info_field(vcf_line.INFO[key][0], value)):
-                    return False
+            try:
+                if(type(vcf_line.INFO[key]) != list):
+                    if(self._filter_info_field(vcf_line.INFO[key], value)):
+                        return False
+                else:
+                    if(self._filter_info_field(vcf_line.INFO[key][0], value)):
+                        return False
+            except KeyError:
+                print("The information key doesn't exist in VCF file.\n")
         return True
 
     def filter_vcf(self, filter_dict, output):
@@ -55,3 +64,10 @@ class VCF(vcf.Reader):
             for variant in self:
                 if(self._filter_line(variant, filter_dict)):
                     vcf_writer.write_record(variant)
+
+if __name__ == "__main__":
+    vcf_record = VCF("ERR036019.vcf")
+    filter_dict = {"QUAL": 10000, "FREQ": 0.85, "INFO": {"DP": ">10",
+                                                         "AO": ">200",
+                                                         "SRP": "<100"}}
+    vcf_record.filter_vcf(filter_dict, "test.out")
