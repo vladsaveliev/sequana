@@ -17,7 +17,7 @@ import pylab
 class SnakeMakeProfile(object):
     def __init__(self, filename):
         self.filename = filename
-        
+
     def parse(self):
         data = json.loads(self.filename)
 
@@ -25,7 +25,7 @@ class SnakeMakeProfile(object):
 class SnakeMakeStats(object):
     def __init__(self, filename):
         self.filename = filename
-        
+
     def parse_data(self):
         with open(self.filename, 'r') as fin:
             data = json.load(fin)
@@ -39,7 +39,7 @@ class SnakeMakeStats(object):
         pylab.xlabel("Seconds (s)", fontsize=fontsize)
         try:pylab.tight_layout()
         except:pass
-        
+
 
 class RuleBase(object):
     def __init__(self):
@@ -111,7 +111,7 @@ class Rule(RuleBase):
             with open(self.location + os.sep + "README.rst", "r") as fh:
                 self.description = fh.read()
         except:
-            self.description = "no description" 
+            self.description = "no description"
 
     def __str__(self):
         txt = "Rule **" + self.name + "**:\n" + self.description
@@ -140,7 +140,7 @@ class ValidateConfig(object):
         True
 
     """
-    def __init__(self, filename): 
+    def __init__(self, filename):
         """Could be a json or a yaml"""
         self.filename = filename
 
@@ -150,7 +150,7 @@ class ValidateConfig(object):
             else:
                 raise NotImplementedError
         else:
-            self.config = filename 
+            self.config = filename
 
     def __call__(self):
         from easydev import AttrDict
@@ -183,7 +183,7 @@ class DOTParser(object):
                     name = name.replace(",","")
                     name = name.replace('"',"")
                     name = name.strip()
-                    line = lhs + ' URL="%s.html" target="_blank", ' % name 
+                    line = lhs + ' URL="%s.html" target="_blank", ' % name
                     line += separator + rhs
                     fout.write(line + "\n")
 
@@ -191,5 +191,34 @@ class DOTParser(object):
 
 
 
+
+class Modules(object):
+    def __init__(self):
+        self.rules = {}
+        for name in Rules().names:
+            self.rules[name] = Rule(name).location
+        self.registered = rules.keys()
+
+    def onweb(self, name):
+        assert name in self.names
+        from easydev import onweb
+        url = "https://github.com/sequana/sequana/blob/master/pipelines/" 
+        url += name + "/README.rst"
+        onweb(url)
+
+    def info(self, name):
+        assert name in self.names
+        filename = self.rules[name]
+        lhs, rhs = filename.rsplit("/", 1)
+        filename = lhs + "/README.rst"
+        with open(filename, "r") as fin:
+            print(fin.read())
+
+    def _get_names(self):
+        return self.registered
+    names = property(_get_names)
+
+
+modules = Modules()
 
 
