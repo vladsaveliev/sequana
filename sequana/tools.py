@@ -1,7 +1,7 @@
 import os
 import string
 
-from sequoia import BAM
+from sequana import BAM
 
 
 __all__ = ['bam_to_mapped_unmapped_fastq']
@@ -23,30 +23,17 @@ def bam_to_mapped_unmapped_fastq(filename, mode='pe'):
     Given a BAM file, create FASTQ with R1/R2 reads mapped and unmapped.
     In the paired-end case, 4 files are created.
 
+    The interest of this function is that it does not create intermediate files
+    limiting IO in the process.
+
     Reads that are not paired or not "proper pair" (neither flag 4 nor flag 8)
     are ignored
 
-
-    This is equivalent to the following script (for example)::
-
-        # map alignments (4 is flag for unmapped segment and -F is do not
-        # include them)
-        samtools view -F 4 filename.bam -o mapped.sam
-        # unmapped segments
-        samtools view -F 4 filename.bam -o unmapped.sam
-        awk '{print $1}' unmapped.sam | uniq  > unmapped.bed
-        awk '{print $1}' mapped.sam | uniq > mapped.bed
-
-        # create the fastq files based on the fastq and bed files
-        seqtk subseq {input.R1} unmapped.bed > R1.unmapped.fastq
-        seqtk subseq {input.R1} mapped.bed > R1.mapped.fastq
-        seqtk subseq {input.R2} unmapped.bed > R2.unmapped.fastq
-        seqtk subseq {input.R2} mapped.bed > R2.mapped.fastq
-
-    This function does not create intermediate files.
-
-    Secondary alignment are dropped so as to remove any ambiguous alignment and
+    Secondary alignment (flag 256) are dropped so as to remove any ambiguous alignments and
     keep the number of final reads equal to the initial number of reads
+
+    If R1 is mapped or R2 is mapped then the reads are considered mapped. If
+    both R1 and R2 are unammped, then reads are unmapped.
 
     Note about chimeric alginment. One is the representative and the other is
     the supplementary. This flag is not used in this function. Note also that
@@ -66,14 +53,12 @@ def bam_to_mapped_unmapped_fastq(filename, mode='pe'):
         R1_unmapped = open(newname + "_R1.unmapped.fastq", "bw")
         R2_unmapped = open(newname + "_R2.unmapped.fastq", "bw")
 
-        
-
         from easydev import Progress
         pb = Progress(len(bam))
         for i, this in enumerate(bam):
             # check that this is paired indeed
             if this.is_paired is False:
-                stats['unpaired'] +=1
+                stats['unpaired'] += 1
                 # What to do in such case ?
             elif this.flag & 256:
                 # Unmapped reads are in the BAM file but have no valid assigned
@@ -101,18 +86,17 @@ def bam_to_mapped_unmapped_fastq(filename, mode='pe'):
                     txt += b"+\n"
                     txt += this.qual + b"\n"
 
-                # Here, we must take keep the pairs so if R1 is mapped
-                # but R2 is unmapped (or the inverse), then the pair is
-                # unmapped
+                # Here, we must be careful as to keep the pairs. So if R1 is mapped
+                # but R2 is unmapped (or the inverse), then the pair is mapped
                 if this.is_read1:
-                    if this.is_unmapped or this.mate_is_unmapped:
+                    if this.is_unmapped and this.mate_is_unmapped:
                         R1_unmapped.write(txt % b"1:N:0:GTGAAA")
                         stats['R1_unmapped'] += 1
                     else:
                         R1_mapped.write(txt % b"1:N:0:GTGAAA")
                         stats['R1_mapped'] += 1
                 elif this.is_read2:
-                    if this.is_unmapped or this.mate_is_unmapped:
+                    if this.is_unmapped and this.mate_is_unmapped:
                         R2_unmapped.write(txt % b"2:N:0:GTGAAA")
                         stats['R2_unmapped'] += 1
                     else:
