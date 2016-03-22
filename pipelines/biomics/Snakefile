@@ -14,7 +14,7 @@ configfile: "config.json"
 
 
 workdir: "."
-sm.message("Sequoia pipeline biomics")
+sm.message("Sequana pipeline biomics")
 sm.message("The current working directory is " )
 
 ############# NOTHING to change here below
@@ -53,10 +53,11 @@ rule all:
         expand("fastqc_results/{dataset}.cutadapt%(sample)s_fastqc.zip" % tags,
             dataset=DATA),
         # a report
+        "bwa_contaminant/contaminant_R1.mapped.fastq",
         "bwa_contaminant/contaminant.sam",
         "dag.svg",
         "report/index.html"
-    version:sequana. version
+    version: sequana.version
 
 
 rule sampling:
@@ -95,7 +96,7 @@ rule fastqc:
     shell:  "fastqc -t {threads} --outdir {params.dir} -f fastq {input} > {params.dir}/{log}"
 
 
-rule bwa_contaminant:
+rule bwa_fix:
     message: """
     -- Running bwa index and bwa mem
     -- information saved in {log}
@@ -107,17 +108,12 @@ rule bwa_contaminant:
     params:
         wkdir = "bwa_contaminant",
     output:
-        sam = "bwa_contaminant/contaminant.sam",
         bam = "bwa_contaminant/contaminant.bam",
-        mapped = "bwa_contaminant/contaminant.mapped.sam",
-        unmapped = "bwa_contaminant/contaminant.unmapped.sam",
-        fastqR1 = "bwa_contaminant/R1.mapped.fastq",
-        fastqR2 = "bwa_contaminant/R2.mapped.fastq"
-
-    log: "logs/bwa_contaminant.log"
+        sam = "bwa_contaminant/contaminant.sam",
+    log: "logs/bwa_fix.log"
     threads: 1
-    shell: """
-
+    shell:
+        """
         # a local copy of contaminant from input to bwa_contaminant
         cp {config.contaminant} {params.wkdir}
 
@@ -130,53 +126,31 @@ rule bwa_contaminant:
         # Run samtools
         # -b output BAM
         # -T reference
-        samtools view -bT {params.wkdir}/{input.contaminant} {output.sam} \
-            -o {output.bam}
+        samtools view -bT {params.wkdir}/{input.contaminant} {output.sam} -o {output.bam}
+        """
 
-        # tiotal alignments ; print on stdout number of reads
-        samtools view -c {output.sam}
 
-        # mapped alignments (4 is the flag for segment unmapped and -F is do not include
-        # those fragments)
-        samtools view -F 4 {output.bam} -o {output.mapped} -h
-
-        # mapped alignments and its mate mapped
-        # -F 12 : 12=8+4=fragments unmapped and the next fragment (mate)
-        # -f 1: include fragments that have multiple segments
-        #samtools view -c -f 1 -F 12 output/2016_2016_test_R.sam
-
-        # unmapped alignments
-        samtools view -f 4 {output.bam} -o {output.unmapped} -h
-
-        # With the mapped.sam and unmapped.sam, we now analyse them with
-        # analywe_sam_file tool, which creates a list of the reads
-        # mapped/unmapped. This is then used inside dante to create
-        # the filtered fastq files. 
-
-        # We actually do not need that complexity. Instead, we can use
-        # pysam to scan the content of the BAM file to extract
-        # the reads of the mapped/unmapped reads' names.
-
-        # create a file called pair_mapping_countds.csv
-        # with this format:
-        # prefix, 'total_reads_in_bam', 'mapped', 'unmapped', mapped_percentage'
-        # can be just using wc of the mapped/unmapped files
-        # and using samtools view -c on the bam file
-
-        # screen_fastq -l fastq_cutadapt/Hm2_GTGAAA_L005_R2_001.cutadapt.sample.fastq -r fastq_cutadapt/Hm2_GTGAAA_L005_R1_001.cutadapt.sample.fastq --output output -p myproject --time_stamp 2016 
-
-        awk '{{print $1}}' {output.unmapped} | uniq  > {params.wkdir}/unmapped.bed
-        awk '{{print $1}}' {output.mapped} | uniq > {params.wkdir}/mapped.bed
-
-        # create the fastq files based on the fastq and bed files
-
-        seqtk subseq {input.R1} {params.wkdir}/unmapped.bed > {params.wkdir}/R1.unmapped.fastq
-        seqtk subseq {input.R1} {params.wkdir}/mapped.bed > {params.wkdir}/R1.mapped.fastq
-        seqtk subseq {input.R2} {params.wkdir}/unmapped.bed > {params.wkdir}/R2.unmapped.fastq
-        seqtk subseq {input.R2} {params.wkdir}/mapped.bed > {params.wkdir}/R2.mapped.fastq
-
+rule bwa_bam_to_fastq:
+    message: """
+    -- Extracting the fastq from the BAM/SAM files
+    -- information saved in {log}
     """
-
+    input:
+        bam = "bwa_contaminant/contaminant.bam",
+        sam = "bwa_contaminant/contaminant.sam",
+        R1 = "fastq_cutadapt/" + DATA[0] + ".cutadapt%(sample)s.fastq.gz" % tags,
+        R2 = "fastq_cutadapt/" + DATA[1] + ".cutadapt%(sample)s.fastq.gz" % tags
+    params:
+        wkdir = "bwa_contaminant",
+    output:
+        mapped = "bwa_contaminant/contaminant.mapped.sam",
+        unmapped = "bwa_contaminant/contaminant.unmapped.sam",
+        fastqR1 = "bwa_contaminant/R1.mapped.fastq",
+        fastqR2 = "bwa_contaminant/R2.mapped.fastq"
+    threads: 1
+    run:
+        from sequana.tools import bam_to_mapped_unmapped_fastq as bam2fastq
+        stats = bam2fastq(input["bam"])
 
 
 rule report:
@@ -188,7 +162,7 @@ rule report:
         from sequana import report_cutadapt
         from sequana import report_main
 
-        s = report_main.SequoiaReport()
+        s = report_main.SequanaReport()
         s.create_report()
 
         s = report_cutadapt.CutAdaptReport("fastq_cutadapt/cutadapt.log")
