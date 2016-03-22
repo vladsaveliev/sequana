@@ -5,12 +5,14 @@ configfile: "config_vc.yaml"
 # Some trick -------------------------------------------------------------------
 
 get_prefixes = lambda filename: filename.split(".")[0]
-DATA = [get_prefixes(flname) for flname in config["sample"]] 
+DATA = [get_prefixes(flname) for flname in config["sample"]]
+REF_PREFIX = get_prefixes(config["reference"])
 
+# Set up tag for markduplicates
 MARKJOB = config["markduplicate"]
 MARKTAG = ""
 if MARKJOB:
-    MARKTAG = "_undup"
+    MARKTAG = "_rmdup"
 
 
 # Snakemake --------------------------------------------------------------------
@@ -19,38 +21,167 @@ rule all:
     input:
         expand("{sample}_filter.vcf", sample=DATA)
 
-rule markDuplicate:
+rule add_read_group:
     input:
         bam = "{sample}.bam"
+    output: 
+        rgbam = "{sample}_rg.bam"
+    params:
+        r = " ".join(['%s%s' % (key, value) for (key, value) in \
+            config["read_group"].items()]),
+        jar = config["picard_jar"],
+        src = config["src_module"],
+        picard_module = config["picard_module"]
+    run:
+        if(config["on_cluster"]):
+            shell("""
+                . {params.src}
+                module load {params.picard_module}
+                AddOrReplaceReadGroups I={input.bam} O={output.rgbam} {params.r}
+                """)
+        else:
+            shell("java -jar {params.jar} AddOrReplaceReadGroups I={input.bam} \
+            O={output.rgbam} {params.r}")
+
+rule markDuplicate:
+    input:
+        bam = "{sample}_rg.bam"
     output:
-        a = "{sample}%s.bam" % MARKTAG,
+        a = "{sample}_rg%s.bam" % MARKTAG,
         b = temp("{sample}.metrics")
+    params:
+        jar = config["picard_jar"],
+        src = config["src_module"],
+        picard_module = config["picard_module"]
     run:
         if MARKJOB:
-            shell("./MarkDuplicates I={input.bam} O={output.a} M={output.b}")
+            if(config["on_cluster"]):
+                shell(""" 
+                    . {params.src}
+                    module load {params.picard_module}
+                    MarkDuplicates I={input.bam} O={output.a} M={output.b}
+                    """)
+            else:
+                shell("java -jar {params.jar} MarkDuplicates I={input.bam} \
+                    O={output.a} M={output.b}")
         else:
             shell("touch {output.b}")
 
 rule samtools_index:
     input: 
-        bam = "{sample}%s.bam" % MARKTAG
+        bam = "{sample}_rg%s.bam" % MARKTAG
     output:
-        "{sample}%s.bam.bai" % MARKTAG
-    shell:
-        "samtools index {input.bam}"
+        bai = "{sample}_rg%s.bam.bai" % MARKTAG
+    params:
+        src = config["src_module"],
+        samtools_module = config["samtools_module"]
+    run:
+        if(config["on_cluster"]):
+            shell("""
+                . {params.src}
+                module load {params.samtools_module}
+                samtools index {input.bam}
+                """)
+        else:
+            shell("samtools index {input.bam}")
+
+rule create_dict:
+    input:
+        ref = config["reference"]
+    output:
+        REF_PREFIX + ".dict"
+    params:
+        src = config["src_module"],
+        picard_module = config["picard_module"],
+        picard_jar = config["picard_jar"]
+    run:
+        if(config["on_cluster"]):
+            shell("""
+                . {params.src}
+                module load {params.picard_module}
+                CreateSequenceDictionary R={input.ref} O={output}
+                """)
+        else:
+            shell("java -jar {params.jar} CreateSequenceDictionary \
+                R={input.ref} O={output}")
+
+rule target_indel:
+    input:
+        bam = "{sample}_rg%s.bam" % MARKTAG,
+        bai = "{sample}_rg%s.bam.bai" % MARKTAG,
+        ref = config["reference"],
+        ref_dict = REF_PREFIX + ".dict"
+    output:
+        intervals = "{sample}.intervals"
+    params:
+        src = config["src_module"],
+        gatk_module = config["gatk_module"],
+        gatk_jar = config["gatk_jar"]
+    run:
+        if(config["on_cluster"]):
+            shell("""
+                . {params.src}
+                module load {params.gatk_module}
+                GenomeAnalysisTK -T RealignerTargetCreator -R {input.ref} \
+                -I {input.bam} -o {output.intervals}
+                """)
+        else:
+            shell("""
+                java -jar {params.gatk_jar} -T RealignerTargetCreator \
+                -R {input.ref} -I {input.bam} -o {output.intervals}
+                """)
+
+rule indel_realigner:
+    input:
+        bam = "{sample}_rg%s.bam" % MARKTAG,
+        ref = config["reference"],
+        interval = "{sample}.intervals"
+    output:
+        bam = "{sample}_realign.bam"
+    params:
+        src = config["src_module"],
+        gatk_module = config["gatk_module"],
+        gatk_jar = config["gatk_jar"]
+    run:
+        if(config["on_cluster"]):
+            shell("""
+                . {params.src}
+                module load {params.gatk_module}
+                GenomeAnalysisTK -T IndelRealigner -R {input.ref} \
+                -I {input.bam} -targetIntervals {input.interval} -o {output.bam}
+                """)
+        else:
+            shell("java -jar {params.gatk_jar} -T IndelRealigner \
+                -R {input.ref} -I {input.bam} \
+                -targetIntervals {input.interval} -o {output.bam}")
 
 rule freebayes:
     input:
-        bam = "{sample}%s.bam" % MARKTAG,
-        bai = "{sample}%s.bam.bai" % MARKTAG,
+        bam = "{sample}_realign.bam",
         ref = config["reference"]
     output:
         vcf = "{sample}.vcf"
     params:
-        " ".join(['%s %s' % (key, value) for (key, value) in \
-            config["freebayes"].items()])
-    shell:
-        "freebayes {params} -f {input.ref} -b {input.bam} -v {output.vcf}"
+        freebayes_params = " ".join(['%s %s' % (key, value) for (key, value) \
+            in config["freebayes"].items()]),
+        src = config["src_module"],
+        freebayes_module = config["freebayes_module"],
+        samtools_module = config["samtools_module"]
+    run:
+        if(config["on_cluster"]):
+            shell("""
+                . {params.src}
+                module load {params.freebayes_module} {params.samtools_module}
+                samtools index {input.bam}
+                freebayes {params.freebayes_params} -f {input.ref} \
+                -b {input.bam} -v {output.vcf}
+                """)
+        else:
+            shell("""
+                samtools index {input.bam}
+                freebayes {params.freebayes_params} -f {input.ref} \
+                -b {input.bam} -v {output.vcf}
+                """)
 
 rule vcf_filter:
     input:
