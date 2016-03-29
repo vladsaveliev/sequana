@@ -1,7 +1,9 @@
 # Input files ------------------------------------------------------------------
 reference: reference.fa
-sample: 
-    - ERR036019_sorted.bam
+input_bam: ERR036019_sorted.bam
+
+# Output prefix ----------------------------------------------------------------
+output: ERR036019
 
 # Software params --------------------------------------------------------------
 read_group:
@@ -30,7 +32,7 @@ gatk_jar:
 
 # Module load ------------------------------------------------------------------
 # Do you use it on a cluster ?
-on_cluster: yes
+on_cluster: no
 # Set the path of the module sources.
 src_module: /etc/profile.d/pasteur_modules.sh
 # Set versions of modules
