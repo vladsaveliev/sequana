@@ -5,8 +5,8 @@ configfile: "config_vc.yaml"
 # Some trick -------------------------------------------------------------------
 
 get_prefixes = lambda filename: filename.split(".")[0]
-DATA = [get_prefixes(flname) for flname in config["sample"]]
 REF_PREFIX = get_prefixes(config["reference"])
+OUTPUT = config["output"]
 
 # Set up tag for markduplicates
 MARKJOB = config["markduplicate"]
@@ -19,13 +19,16 @@ if MARKJOB:
 
 rule all:
     input:
-        expand("{sample}_filter.vcf", sample=DATA)
+        OUTPUT + "_filter.vcf"
 
 rule add_read_group:
     input:
-        bam = "{sample}.bam"
+        bam = config["input_bam"]
     output: 
-        rgbam = "{sample}_rg.bam"
+        rgbam = OUTPUT + "_rg.bam"
+    log:
+        out = OUTPUT + "_logs/picard_tools/AddOrReplaceReadGroups/stdout.logs",
+        err = OUTPUT + "_logs/picard_tools/AddOrReplaceReadGroups/stderr.logs"
     params:
         r = " ".join(['%s%s' % (key, value) for (key, value) in \
             config["read_group"].items()]),
@@ -37,18 +40,23 @@ rule add_read_group:
             shell("""
                 . {params.src}
                 module load {params.picard_module}
-                AddOrReplaceReadGroups I={input.bam} O={output.rgbam} {params.r}
+                AddOrReplaceReadGroups I={input.bam} O={output.rgbam} \
+                {params.r} > {log.out} 2> {log.err}
                 """)
         else:
             shell("java -jar {params.jar} AddOrReplaceReadGroups I={input.bam} \
-            O={output.rgbam} {params.r}")
+            O={output.rgbam} {params.r} > {log.out} 2> {log.err}")
 
 rule markDuplicate:
     input:
-        bam = "{sample}_rg.bam"
+        bam = OUTPUT + "_rg.bam"
     output:
-        a = "{sample}_rg%s.bam" % MARKTAG,
-        b = temp("{sample}.metrics")
+        a = "%s_rg%s.bam" % (OUTPUT, MARKTAG),
+    log:
+        out = OUTPUT + "_logs/picard_tools/MarkDuplicates/stdout.logs",
+        err = OUTPUT + "_logs/picard_tools/MarkDuplicates/stderr.logs",
+        metrics = OUTPUT + "_logs/picard_tools/MarkDuplicates/" + OUTPUT + 
+            ".metrics"
     params:
         jar = config["picard_jar"],
         src = config["src_module"],
@@ -59,19 +67,20 @@ rule markDuplicate:
                 shell(""" 
                     . {params.src}
                     module load {params.picard_module}
-                    MarkDuplicates I={input.bam} O={output.a} M={output.b}
+                    MarkDuplicates I={input.bam} O={output.a} M={log.metrics} \
+                    > {log.out} 2> {log.err}
                     """)
             else:
                 shell("java -jar {params.jar} MarkDuplicates I={input.bam} \
-                    O={output.a} M={output.b}")
-        else:
-            shell("touch {output.b}")
+                    O={output.a} M={log.metrics} > {log.out} 2> {log.err}")
 
 rule samtools_index:
     input: 
-        bam = "{sample}_rg%s.bam" % MARKTAG
+        bam = "%s_rg%s.bam" % (OUTPUT, MARKTAG)
     output:
-        bai = "{sample}_rg%s.bam.bai" % MARKTAG
+        bai = "%s_rg%s.bam.bai" % (OUTPUT, MARKTAG)
+    log:
+        OUTPUT + "_logs/samtools_index.logs"
     params:
         src = config["src_module"],
         samtools_module = config["samtools_module"]
@@ -80,39 +89,47 @@ rule samtools_index:
             shell("""
                 . {params.src}
                 module load {params.samtools_module}
-                samtools index {input.bam}
+                samtools index {input.bam} 2> {log}
                 """)
         else:
-            shell("samtools index {input.bam}")
+            shell("samtools index {input.bam} 2> {log}")
 
 rule create_dict:
     input:
         ref = config["reference"]
     output:
         REF_PREFIX + ".dict"
+    log:
+        out = OUTPUT + "_logs/picard_tools/CreateSequenceDictionary/" + 
+            "stdout.logs",
+        err = OUTPUT + "_logs/picard_tools/CreateSequenceDictionary/stderr.logs"
     params:
         src = config["src_module"],
         picard_module = config["picard_module"],
-        picard_jar = config["picard_jar"]
+        jar = config["picard_jar"]
     run:
         if(config["on_cluster"]):
             shell("""
                 . {params.src}
                 module load {params.picard_module}
-                CreateSequenceDictionary R={input.ref} O={output}
+                CreateSequenceDictionary R={input.ref} O={output} \
+                > {log.out} 2> {log.err}
                 """)
         else:
             shell("java -jar {params.jar} CreateSequenceDictionary \
-                R={input.ref} O={output}")
+                R={input.ref} O={output} > {log.out} 2> {log.err}")
 
 rule target_indel:
     input:
-        bam = "{sample}_rg%s.bam" % MARKTAG,
-        bai = "{sample}_rg%s.bam.bai" % MARKTAG,
+        bam = "%s_rg%s.bam" % (OUTPUT, MARKTAG),
+        bai = "%s_rg%s.bam.bai" % (OUTPUT, MARKTAG),
         ref = config["reference"],
         ref_dict = REF_PREFIX + ".dict"
     output:
-        intervals = "{sample}.intervals"
+        intervals = OUTPUT + ".intervals"
+    log:
+        out = OUTPUT + "_logs/gatk/RealignerTargetCreator/stdout.logs",
+        err = OUTPUT + "_logs/gatk/RealignerTargetCreator/stderr.logs"
     params:
         src = config["src_module"],
         gatk_module = config["gatk_module"],
@@ -123,21 +140,25 @@ rule target_indel:
                 . {params.src}
                 module load {params.gatk_module}
                 GenomeAnalysisTK -T RealignerTargetCreator -R {input.ref} \
-                -I {input.bam} -o {output.intervals}
+                -I {input.bam} -o {output.intervals} > {log.out} 2> {log.err}
                 """)
         else:
             shell("""
                 java -jar {params.gatk_jar} -T RealignerTargetCreator \
-                -R {input.ref} -I {input.bam} -o {output.intervals}
+                -R {input.ref} -I {input.bam} -o {output.intervals} \
+                > {log.out} 2> {log.err}
                 """)
 
 rule indel_realigner:
     input:
-        bam = "{sample}_rg%s.bam" % MARKTAG,
+        bam = "%s_rg%s.bam" % (OUTPUT, MARKTAG),
         ref = config["reference"],
-        interval = "{sample}.intervals"
+        interval = OUTPUT + ".intervals"
     output:
-        bam = "{sample}_realign.bam"
+        bam = OUTPUT + "_realign.bam"
+    log:
+        out = OUTPUT + "_logs/gatk/IndelRealigner/stdout.logs",
+        err = OUTPUT + "_logs/gatk/IndelRealigner/stderr.logs"
     params:
         src = config["src_module"],
         gatk_module = config["gatk_module"],
@@ -148,19 +169,24 @@ rule indel_realigner:
                 . {params.src}
                 module load {params.gatk_module}
                 GenomeAnalysisTK -T IndelRealigner -R {input.ref} \
-                -I {input.bam} -targetIntervals {input.interval} -o {output.bam}
+                -I {input.bam} -targetIntervals {input.interval} \
+                -o {output.bam} > {log.out} 2> {log.err}
                 """)
         else:
             shell("java -jar {params.gatk_jar} -T IndelRealigner \
                 -R {input.ref} -I {input.bam} \
-                -targetIntervals {input.interval} -o {output.bam}")
+                -targetIntervals {input.interval} -o {output.bam} \
+                > {log.out} 2> {log.err}")
 
 rule freebayes:
     input:
-        bam = "{sample}_realign.bam",
+        bam = OUTPUT + "_realign.bam",
         ref = config["reference"]
     output:
-        vcf = "{sample}.vcf"
+        vcf = OUTPUT + ".vcf"
+    log:
+        out = OUTPUT + "_logs/freebayes/stdout.logs",
+        err = OUTPUT + "_logs/freebayes/stderr.logs"
     params:
         freebayes_params = " ".join(['%s %s' % (key, value) for (key, value) \
             in config["freebayes"].items()]),
@@ -174,20 +200,20 @@ rule freebayes:
                 module load {params.freebayes_module} {params.samtools_module}
                 samtools index {input.bam}
                 freebayes {params.freebayes_params} -f {input.ref} \
-                -b {input.bam} -v {output.vcf}
+                -b {input.bam} -v {output.vcf} > {log.out} 2> {log.err}
                 """)
         else:
             shell("""
                 samtools index {input.bam}
                 freebayes {params.freebayes_params} -f {input.ref} \
-                -b {input.bam} -v {output.vcf}
+                -b {input.bam} -v {output.vcf} > {log.out} 2> {log.err}
                 """)
 
 rule vcf_filter:
     input:
-        vcf = "{sample}.vcf"
+        vcf = OUTPUT + ".vcf"
     output:
-        vcf = "{sample}_filter.vcf"
+        vcf = OUTPUT + "_filter.vcf"
     run:
         from sequana import vcf_filter
         vcf_record = vcf_filter.VCF(input["vcf"])
