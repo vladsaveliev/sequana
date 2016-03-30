@@ -53,7 +53,7 @@ class BaseReport(Report):
 
         # Here, we defined default values from what is expected from the Jinja
         # template in share/templates/adapter_removal
-        self.data['sequana_version'] = version
+        self.jinja['sequana_version'] = version
 
         # Common information to be filled (possibly)
         self.data['command'] = "unset"
