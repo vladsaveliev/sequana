@@ -95,7 +95,7 @@ class SequanaReport(BaseReport):
 
     def parse(self, snakefile="Snakefile"):
         self.read_snakefile(snakefile)
-        
+ 
 
 
 

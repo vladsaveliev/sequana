@@ -36,10 +36,10 @@ general tools
     :undoc-members:
 
 
-SAMTOOLs related
+BAMTOOLs related
 --------------------
 
-.. automodule:: sequana.samtools
+.. automodule:: sequana.bamtools
     :members:
     :undoc-members:
 
