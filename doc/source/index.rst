@@ -63,6 +63,7 @@ Please fill bug report in https://github.com/sequana/sequana
 
     userguide
     references
+    Changelog
 
 
 Indices and tables
