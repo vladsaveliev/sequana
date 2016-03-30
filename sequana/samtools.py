@@ -1,22 +1,10 @@
 """
 
+We will not use SAM format since it is uncompressed. However,
+a few tools may be added. Once could ba to convert SAM to BAM, 
+which may already be present in other tools such as as pysam.
 
 
-http://www.acgt.me/blog/2014/12/16/understanding-mapq-scores-in-sam-files-does-37-42
-
-http://biofinysics.blogspot.fr/2014/05/how-does-bowtie2-assign-mapq-scores.html
-
-
-https://gitlab.univ-nantes.fr/a-slide/ContaVect/blob/9a411abfa720064c205c5f6c811afdfea206ed12/pyDNA/pySamTools/Bam.py
-
-pysamtools
-
-
-
-Interesting commands::
-
-    samtools flagstat contaminant.bam
-    samtools stats contaminant.bam
 """
 
 import pandas as pd
@@ -108,7 +96,6 @@ class SAM(pysam.AlignmentFile):
         pylab.grid(True)
         pylab.xlabel('MAPQ score')
         pylab.ylabel('Fraction of reads')
-
 
     def __len__(self):
         self.reset()
