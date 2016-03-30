@@ -18,10 +18,11 @@ Interesting commands::
     samtools flagstat contaminant.bam
     samtools stats contaminant.bam
 """
-
+import os
 import pandas as pd
 import pylab
 import pysam
+from reports import HTMLTable
 
 # pysam uses htlib behing the scene and is very fast
 # pysam works great for BAM file but with SAM, it needs to read the file after
@@ -113,6 +114,51 @@ class BAM(pysam.AlignmentFile):
         df = df > 0
         return df
 
+    def plot_bar_flags(self, logy=True, fontsize=16, filename=None):
+        df = self.get_flags_as_df()
+        df = df.sum()
+        pylab.clf()
+        if logy is True:
+            df.plot(kind='bar', logy=logy, grid=True)
+        else:
+            df.plot(kind='bar', grid=True)
+        pylab.xlabel("flags", fontsize=fontsize)
+        pylab.ylabel("count", fontsize=fontsize)
+        try:
+            pylab.tight_layout()
+        except:
+            pass
+        if filename:
+            pylab.savefig(filename)
+
+    def to_fastq(self):
+        raise NotImplementedError
+
+    def to_sam(self):
+        raise NotImplementedError
+
+    def head(self, N=100):
+        # Export the first top alignment into a new BAM file ?
+        raise NotImplementedError
+
+    def get_mapq_as_df(self):
+        self.reset()
+        df = pd.DataFrame({'mapq': [this.mapq for this in self]})
+        self.reset()
+        return df
+
+    def plot_bar_mapq(self, fontsize=16, filename=None):
+        df = self.get_mapq_as_df()
+        df.plot(kind='hist', bins=60, legend=False, grid=True, logy=True)
+        pylab.xlabel("MAPQ", fontsize=fontsize)
+        try:
+            pylab.tight_layout()
+        except:
+            pass
+        if filename:
+            pylab.savefig(filename)
+
+
 
 class Alignment(object):
     """Helper class to retrieve info about Alignment
@@ -173,10 +219,12 @@ class Alignment(object):
         return d
 
 
+
+
 class SAMFlags(object):
     """
     """
-    def __init__(self, value):
+    def __init__(self, value=4095):
         self.value = value
         self._flags = {
             1: "template having multiple segments in sequencing",
@@ -192,6 +240,9 @@ class SAMFlags(object):
             1024: "PCR or optical duplicate",
             2048: "supplementary alignme"}
 
+    def get_meaning(self):
+        return [self._flags[k] for k in sorted(self._flags.keys())]
+
     def get_flags(self):
         flags = []
         for this in sorted(self._flags.keys()):
@@ -205,4 +256,39 @@ class SAMFlags(object):
             if self.value & this:
                 txt += "%s: %s\n" % (this, self._flags[this])
         return txt
+
+
+from .report_main import BaseReport
+class BAMReport(BaseReport):
+    def __init__(self, jinja_template="bam", output_filename="bam.html",
+                 directory="report", **kargs):
+        super(BAMReport, self).__init__(jinja_template, output_filename,
+            directory, **kargs)
+
+        self.jinja['title'] = "Bam Report"
+
+    def set_data(self, data):
+        self.bam = data
+
+    def parse(self):
+        self.jinja['alignment_count'] = len(self.bam)
+
+        # first, we store the flags
+        df = self.bam.get_flags_as_df().sum()
+        df = df.to_frame()
+        df.columns = ['counter']
+        sf = SAMFlags()
+        df['meaning'] = sf.get_meaning()
+        df = df[['meaning', 'counter']]
+        html = HTMLTable(df).to_html(index=True)
+        self.jinja['flags_table'] = html
+
+        # create the bar plot with flags
+        self.bam.plot_bar_flags(logy=True, filename=self.directory + os.sep +
+                                                    "bar_flags_logy.png")
+        self.bam.plot_bar_flags(logy=False, filename=self.directory + os.sep +
+                                                     "bar_flags.png")
+
+        self.bam.plot_bar_mapq(filename=self.directory + os.sep + "bar_mapq.png")
+
 
