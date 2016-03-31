@@ -2,21 +2,7 @@
 
 
 
-http://www.acgt.me/blog/2014/12/16/understanding-mapq-scores-in-sam-files-does-37-42
 
-http://biofinysics.blogspot.fr/2014/05/how-does-bowtie2-assign-mapq-scores.html
-
-
-https://gitlab.univ-nantes.fr/a-slide/ContaVect/blob/9a411abfa720064c205c5f6c811afdfea206ed12/pyDNA/pySamTools/Bam.py
-
-pysamtools
-
-
-
-Interesting commands::
-
-    samtools flagstat contaminant.bam
-    samtools stats contaminant.bam
 """
 import os
 import pandas as pd
@@ -24,15 +10,32 @@ import pylab
 import pysam
 from reports import HTMLTable
 
+"""
+#http://www.acgt.me/blog/2014/12/16/understanding-mapq-scores-in-sam-files-does-37-42#
+#http://biofinysics.blogspot.fr/2014/05/how-does-bowtie2-assign-mapq-scores.html
+#https://gitlab.univ-nantes.fr/a-slide/ContaVect/blob/9a411abfa720064c205c5f6c811afdfea206ed12/pyDNA/pySamTools/Bam.py
+# pysamtools
 # pysam uses htlib behing the scene and is very fast
 # pysam works great for BAM file but with SAM, it needs to read the file after
 # each compete iteration, which is not very useful
 
+Interesting commands::
+
+    samtools flagstat contaminant.bam
+    samtools stats contaminant.bam
+"""
 
 class BAM(pysam.AlignmentFile):
     """
 
     mode rb for bam files
+
+    .. doctest::
+
+        >>> from sequana import BAM, sequana_data
+        >>> b = BAM(sequana_data("test.bam"))
+        >>> len(b)
+        1000
 
     """
     def __init__(self, filename, mode="rb", *args):
@@ -43,6 +46,7 @@ class BAM(pysam.AlignmentFile):
         pysam.AlignmentFile.__init__(filename, mode, *args)
 
     def get_read_names(self):
+        """Return the reads' names"""
         self.reset()
         names = [this.qname for this in self]
         self.reset()
@@ -67,9 +71,15 @@ class BAM(pysam.AlignmentFile):
         return N
 
     def get_stats(self):
-        #See samtools stats
+        """Return basic stats about the reads
 
-        """1526795 + 0 in total (QC-passed reads + QC-failed reads)
+
+
+        """
+
+        """#See samtools stats
+
+        # 1526795 + 0 in total (QC-passed reads + QC-failed reads)
         13 + 0 secondary
         0 + 0 supplementary
         0 + 0 duplicates
@@ -101,9 +111,25 @@ class BAM(pysam.AlignmentFile):
     def get_flags_as_df(self):
         """
 
-            b = BAM(filename)
-            df = b.get_flags_as_df()
-            df.sum()
+        .. doctest::
+
+            >>> from sequana import BAM, sequana_data
+            >>> b = BAM(sequana_data('test.bam'))
+            >>> df = b.get_flags_as_df()
+            >>> df.sum()
+            1       1000
+            2        484
+            4          2
+            8          2
+            16       499
+            32       500
+            64       477
+            128      523
+            256       64
+            512        0
+            1024       0
+            2048       0
+            dtype: int64
 
         """
         flags = self.get_flags()
@@ -115,6 +141,17 @@ class BAM(pysam.AlignmentFile):
         return df
 
     def plot_bar_flags(self, logy=True, fontsize=16, filename=None):
+        """
+
+        .. plot::
+            :include-source:
+
+            from sequana import BAM, sequana_data
+            b = BAM(sequana_data('test.bam'))
+            b.plot_bar_flags()
+
+
+        """
         df = self.get_flags_as_df()
         df = df.sum()
         pylab.clf()
@@ -132,22 +169,52 @@ class BAM(pysam.AlignmentFile):
             pylab.savefig(filename)
 
     def to_fastq(self):
+        """
+
+        .. todo::
+
+        """
         raise NotImplementedError
 
     def to_sam(self):
+        """
+
+               .. todo::
+
+        """
         raise NotImplementedError
 
     def head(self, N=100):
+        """
+
+               .. todo::
+
+        """
         # Export the first top alignment into a new BAM file ?
         raise NotImplementedError
 
     def get_mapq_as_df(self):
+        """Return dataframe with mapq for each read
+
+
+        """
         self.reset()
         df = pd.DataFrame({'mapq': [this.mapq for this in self]})
         self.reset()
         return df
 
     def plot_bar_mapq(self, fontsize=16, filename=None):
+        """
+
+            .. plot::
+                :include-source:
+
+                from sequana import BAM, sequana_data
+                b = BAM(sequana_data('test.bam'))
+                b.plot_bar_mapq()
+
+            """
+
         df = self.get_mapq_as_df()
         df.plot(kind='hist', bins=60, legend=False, grid=True, logy=True)
         pylab.xlabel("MAPQ", fontsize=fontsize)
@@ -163,10 +230,25 @@ class BAM(pysam.AlignmentFile):
 class Alignment(object):
     """Helper class to retrieve info about Alignment
 
-    Takes an alignment as read by :class:`BAM` 
+    Takes an alignment as read by :class:`BAM` and provide simplified version
+    of pysam.Alignmennt class.
 
-    A segment is a contiguous sequence. A read is a sequence that may consist of
-    multiple segments
+    ::
+
+        >>> from sequana.bamtools import Alignment
+        >>> from sequana import BAM, sequana_data
+        >>> b = BAM(sequana_data("test.bam"))
+        >>> segment = next(b)
+        >>> align = Alignment(segment)
+        >>> align.as_dict()
+        >>> align.FLAG
+        353
+
+
+
+    The original data is stored in hidden attribute :attr:`_data` and the
+    following values are available as attributes or dictionary:
+
 
     * QNAME: a query template name. Reads/segment having same QNAME come from the
       same template. A QNAME set to `*` indicates the information is unavailable.
@@ -183,18 +265,16 @@ class Alignment(object):
     * SEQ: segment sequence
     * QUAL: ascii of base quality
 
+    .. note:: A segment is a contiguous sequence. A read is a sequence that
+        may consist of multiple segments.
+
+
     """
     def __init__(self, alignment):
         """.. rubric:: constructor
 
         :param alignment: alignment instance from :class:`BAM`
 
-        ::
-
-            b = BAM()
-            s = next(b)
-            a = Alignment(s)
-            a.as_dict()
 
         """
         self._data = alignment
@@ -223,6 +303,36 @@ class Alignment(object):
 
 class SAMFlags(object):
     """
+
+    .. doctest::
+
+        >>> from sequana import SAMFlags
+        >>> sf = SAMFlags(257)
+        >>> sf.get_flags()
+        [1, 256]
+
+
+    You can also print the bits and their description::
+
+        print(sf)
+
+    ======= ====================================================================
+    bit     Meaning/description
+    ======= ====================================================================
+    1       template having multiple segments in sequencing
+    2       each segment properly aligned according to the aligner
+    4       segment unmapped
+    8       next segment in the template unmapped
+    16      SEQ being reverse complemented
+    32      SEQ of the next segment in the template being reverse complemented
+    64      the first segment in the template
+    128     the last segment in the template
+    256     secondary alignment
+    512     not passing filters, such as platform/vendor quality controls
+    1024    PCR or optical duplicate
+    2048    supplementary alignme
+    ======= ====================================================================
+
     """
     def __init__(self, value=4095):
         self.value = value
@@ -241,9 +351,14 @@ class SAMFlags(object):
             2048: "supplementary alignme"}
 
     def get_meaning(self):
+        """
+
+        Return the meaning/description (sorted by bit i.e. 1,2,4,8...2048)
+        """
         return [self._flags[k] for k in sorted(self._flags.keys())]
 
     def get_flags(self):
+        """Return the individual bits included in the flag"""
         flags = []
         for this in sorted(self._flags.keys()):
             if self.value & this:
@@ -260,6 +375,20 @@ class SAMFlags(object):
 
 from .report_main import BaseReport
 class BAMReport(BaseReport):
+    """
+
+    ::
+
+        from sequana import BAM, sequana_data, BAMReport
+        b = BAM(sequana_data("test.bam))
+
+        r = BAMReport()
+        r.set_data(b)
+        r.create_report()
+
+        # report/bam.html is now available
+
+    """
     def __init__(self, jinja_template="bam", output_filename="bam.html",
                  directory="report", **kargs):
         super(BAMReport, self).__init__(jinja_template, output_filename,
