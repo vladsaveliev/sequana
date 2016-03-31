@@ -31,16 +31,15 @@ class Bed_genomecov(object):
         ret[n:] = ret[n:] - ret[:-n]
         ma = ret[n - 1:] / n
         mid = int(n / 2)
-        self.df["ma"] = pd.Series(ma, index=np.arange(start=mid, 
+        self.df["ma"] = pd.Series(ma, index=np.arange(start=mid,
             stop=(len(ma) + mid)))
 
-    def _normalize_coverage(self, size):
+    def coverage_scalling(self):
         """ Normalize data with moving average of coverage.
+        Needs result of moving_average().
 
         """
-        ma = self._moving_average(size)
-        mid = int(size/2)
-        return ma, self.df[2][mid:(len(ma) + mid)] / ma
+        self.df["scale"] =  self.df[2] / self.df["ma"]
 
     def _get_best_gaussian(self, results):
         diff = 100
@@ -50,22 +49,18 @@ class Bed_genomecov(object):
                 indice = i
         return indice
 
-    def compute_zscore(self, k=2, size=500):
-        """ Compute zscore of coverage.
+    def compute_zscore(self, k=2):
+        """ Compute zscore of coverage. 
+        Needs result of coverage_scaling().
 
         :param k: Number gaussian predicted in mixture (default = 2)
-        :param size: Size of the moved average window
+
         """
-        ma, ma_result = self._normalize_coverage(size)
-        mid = int(size) / 2
-        self.df[3] = pd.Series(ma, index=np.arange(start=mid, 
-            stop=(len(ma) + mid)))
-        self.df[4] = ma_result
-        mf = mixture.GaussianMixtureFitting(ma_result.dropna(), k=k)
+        mf = mixture.GaussianMixtureFitting(self.df["scale"].dropna(), k=k)
         mf.estimate()
         self.gaussian = mf.results
         i = self._get_best_gaussian(mf.results)
-        self.df[5] = (ma_result - mf.results["mus"][i]) / \
+        self.df["zscore"] = (ma_result - mf.results["mus"][i]) / \
             mf.results["sigmas"][i]
 
 
