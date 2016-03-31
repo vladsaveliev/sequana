@@ -16,3 +16,7 @@ def test_snakemake_stats():
     s.plot()
     assert 'dag' in s.parse_data()['rules']
 
+
+def test_modules():
+    m = snakemake.Modules()
+    m.onweb('dag')

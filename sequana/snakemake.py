@@ -165,6 +165,10 @@ def message(mes):
 
 
 class DOTParser(object):
+    """Utility to parse the dot returned by Snakemake and add URLs automatically
+
+
+    """
     def __init__(self, filename):
         self.filename = filename
 
@@ -190,9 +194,20 @@ class DOTParser(object):
     #  label="cutadapt.html", URL="cutadapt.html", target="_blank",
 
 
-
-
 class Modules(object):
+    """Class to get information about a module/pipeline
+
+    ::
+
+        from sequana.snakemake import Modules
+        m = Modules()
+        m.onweb('dag')
+        m.info('dag')
+
+
+    .. todo::
+
+    """
     def __init__(self):
         self.rules = {}
         for name in Rules().names:
@@ -200,6 +215,9 @@ class Modules(object):
         self.registered = rules.keys()
 
     def onweb(self, name):
+        """Open web page with the README file corresponding to the module
+
+        """
         assert name in self.names
         from easydev import onweb
         url = "https://github.com/sequana/sequana/blob/master/pipelines/" 
@@ -207,6 +225,7 @@ class Modules(object):
         onweb(url)
 
     def info(self, name):
+        """print the README of the module"""
         assert name in self.names
         filename = self.rules[name]
         lhs, rhs = filename.rsplit("/", 1)
