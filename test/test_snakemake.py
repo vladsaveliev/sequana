@@ -1,7 +1,5 @@
 from sequana import snakemake
 import os
-from . import data
-pathdata = data.__path__[0]
 
 
 def test_rules():
@@ -12,7 +10,11 @@ def test_rules():
 def test_snakemake_stats():
 
     # this is created using snakemake with the option "--stats stats.txt"
-    s = snakemake.SnakeMakeStats(pathdata + os.sep + "stats.txt")
+    s = snakemake.SnakeMakeStats(sequana_data("test_snakemake_stats.txt"))
     s.plot()
     assert 'dag' in s.parse_data()['rules']
 
+
+def test_modules():
+    m = snakemake.Modules()
+    m.onweb('dag')

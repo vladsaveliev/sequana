@@ -9,6 +9,7 @@ Changelog
 
 * NEWS:
     * split samtools module into bamtools and samtools
+    * add new class :class:`sequana.bamtools.BAMReport`
 * CHANGES
 * BUG FIXES
 
