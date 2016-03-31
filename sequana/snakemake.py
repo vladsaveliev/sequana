@@ -14,6 +14,7 @@ import pandas as pd
 import pylab
 
 
+
 class SnakeMakeProfile(object):
     def __init__(self, filename):
         self.filename = filename
@@ -23,6 +24,24 @@ class SnakeMakeProfile(object):
 
 
 class SnakeMakeStats(object):
+    """
+
+    Run the Snakemake with this option::
+
+        -- stats stats.txt
+
+    Then:
+
+    .. plot::
+        :include-source:
+
+        from sequana.snakemake import SnakeMakeStats
+        from sequana import sequana_data
+        filename = sequana_data("test_snakemake_stats.txt")
+        s = SnakeMakeStats(filename)
+        s.plot()
+
+    """
     def __init__(self, filename):
         self.filename = filename
 
