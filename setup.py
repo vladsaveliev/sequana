@@ -57,7 +57,7 @@ setup(
 
     include_package_data = True,
 
-    install_requires = ["easydev>=0.9.12", "reports", "matplotlib", "pandas",
+    install_requires = ["easydev>=0.9.15", "reports", "matplotlib", "pandas",
         "cutadapt==1.9.1", "pysam", "pyVCF"],
 
     # tells discutils extra packages are under share/data
