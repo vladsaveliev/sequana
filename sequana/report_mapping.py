@@ -76,17 +76,18 @@ class Bed_genomecov(object):
                 indice = i
         return indice
 
-    def compute_zscore(self, k=2):
+    def compute_zscore(self, k=2, method='rm'):
         """ Compute zscore of coverage. 
         Needs result of coverage_scaling().
 
         :param k: Number gaussian predicted in mixture (default = 2)
+        :param method: moving average ('ma') or running median ('rm')
 
         """
         try:
-            mf = mixture.GaussianMixtureFitting(self.df["scale"].dropna(), k=k)
+            mf = mixture.GaussianMixtureFitting(self.df[method].dropna(), k=k)
         except KeyError:
-            print("Column 'scale' is missing in data frame.\n"
+            print("Column '", method,"' is missing in data frame.\n"
                   "You must run coverage_scaling() function before this.\n\n"
                   "Usage:\n"
                   "> mydata = Bed_genomecov('exemple.txt')\n"
