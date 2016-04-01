@@ -4,6 +4,7 @@ import os
 import pandas as pd
 import numpy as np
 from biokit.stats import mixture
+import running_median
 
 # Class ------------------------------------------------------------------------
 
@@ -37,6 +38,18 @@ class Bed_genomecov(object):
         mid = int(n / 2)
         self.df["ma"] = pd.Series(ma, index=np.arange(start=mid,
             stop=(len(ma) + mid)))
+
+    def running_median(self, n):
+        """ Do running median of reads coverage and create a column called 'rm'
+        in data frame withe results.
+
+        :param n: window's size.
+
+        """
+        rm = list(running_median.RunningMedian(n, mydata.df["cov"]))
+        mid = int(n / 2)
+        self.df["rm"] = pd.Series(rm, index=np.arange(start=mid,
+            stop=(len(rm) + mid)))
 
     def coverage_scaling(self):
         """ Normalize data with moving average of coverage and create a column 
