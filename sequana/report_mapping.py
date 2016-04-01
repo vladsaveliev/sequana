@@ -17,6 +17,7 @@ class Bed_genomecov(object):
     def __init__(self, input_filename):
         try:
             self.df = pd.read_table(input_filename, header=None)
+            self.df = self.df.rename(columns={0: "chr", 1: "pos", 2: "cov"})
         except IOError as e:
             print("I/0 error({0}): {1}".format(e.errno, e.strerror))
 
@@ -30,7 +31,7 @@ class Bed_genomecov(object):
         :param n: window's size.
 
         """
-        ret = np.cumsum(np.array(self.df[2]), dtype=float)
+        ret = np.cumsum(np.array(self.df["cov"]), dtype=float)
         ret[n:] = ret[n:] - ret[:-n]
         ma = ret[n - 1:] / n
         mid = int(n / 2)
@@ -44,7 +45,7 @@ class Bed_genomecov(object):
 
         """
         try:
-            self.df["scale"] =  self.df[2] / self.df["ma"]
+            self.df["scale"] =  self.df["cov"] / self.df["ma"]
         except KeyError:
             print("Column 'ma' is missing.\n"
                    "You must run moving_average() function before this.\n\n"
@@ -53,8 +54,6 @@ class Bed_genomecov(object):
                    "> mydata.moving_average(n=1000)\n"
                    "> mydata.coverage_scaling()")
             return
-
-
 
     def _get_best_gaussian(self, results):
         diff = 100
@@ -121,5 +120,23 @@ class Bed_genomecov(object):
                   "> mydata.coverage_scaling()\n"
                   "> mydata.compute_zscore(k=2)")
 
-
+if __name__ == "__main__":
+    mydata = Bed_genomecov("~/Documents/pasteur/py_dev/mapping_stats/output.txt")
+    mydata.moving_average(n=30001)
+    mydata.coverage_scaling()
+    mydata.compute_zscore(k=2)
+    plot(mydata.df["pos"], mydata.df["cov"], label="coverage")
+    mydata.moving_average(n=1001)
+    plot(mydata.df["pos"], mydata.df["ma"], label="w1001")
+    mydata.moving_average(n=2001)
+    plot(mydata.df["pos"], mydata.df["ma"], label="w2001")
+    mydata.moving_average(n=5001)
+    plot(mydata.df["pos"], mydata.df["ma"], label="w5001")
+    mydata.moving_average(n=10001)
+    plot(mydata.df["pos"], mydata.df["ma"], label="w10001")
+    mydata.moving_average(n=20001)
+    plot(mydata.df["pos"], mydata.df["ma"], label="w20001")
+    mydata.moving_average(n=30001)
+    plot(mydata.df["pos"], mydata.df["ma"], label="w30001")
+    legend()
 
