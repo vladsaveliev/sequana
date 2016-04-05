@@ -380,7 +380,7 @@ class BAMReport(BaseReport):
     ::
 
         from sequana import BAM, sequana_data, BAMReport
-        b = BAM(sequana_data("test.bam))
+        b = BAM(sequana_data("test.bam"))
 
         r = BAMReport()
         r.set_data(b)

@@ -12,7 +12,7 @@ except:
 from .snakemake import rules
 from .snakemake import ValidateConfig, modules
 from .phred import Quality
-from .bamtools import BAM, SAMFlags
+from .bamtools import BAM, SAMFlags, BAMReport
 from .fastq import FastQ, FastQC
 from .vcf_filter import VCF
 
