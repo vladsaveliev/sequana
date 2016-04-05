@@ -1,6 +1,7 @@
 User Guide
 ############
 
+.. contents::
 
 Snakemake tools
 ================
@@ -27,4 +28,34 @@ Save this example in a file called Snakefile and type::
 
     snakemake
 
+
+
+Sequana Toolkit
+====================
+
+We provide a set of tools to perform post-analysis on standard files (e.g., BAM,
+FastQ, VCF). As an example, we will play here below with a smaple of BAM file:
+
+.. plot::
+    :include-source:
+
+    from sequana import sequana_data, BAM
+    b = BAM(sequana_data("test.bam"))
+    b.plot_bar_mapq()
+
+
+Sequana Reports
+==================
+
+In snakemake, we provide also with different snakefile and standard formats,
+the ability to create or generate reports. Here is a BAM report file::
+
+    from sequana import BAM, sequana_data, BAMReport
+    b = BAM(sequana_data("test.bam"))
+
+    r = BAMReport()
+    r.set_data(b)
+    r.create_report()
+
+that results can be shown in `report/bam.html <_static/report/bam.html>`_
 
