@@ -10,6 +10,7 @@ Changelog:
 """
 from sequana import version
 
+
 rule dag:
     output: "dag.svg"
     log: "dag.log"
@@ -35,5 +36,5 @@ rule dag:
         #shell("rm -f dag.ann.dot")
 
 
-
-
+rule dag_cleanup:
+    params: cleanup=['dag.log', 'dag.dot', 'dag.ann.dot']
