@@ -25,7 +25,7 @@ class Bed_genomecov(object):
     def __str__(self):
         return self.df.__str__()
 
-    def moving_average(self, n):
+    def moving_average(self, n, label="ma"):
         """ Do moving average of reads coverage and create a column called 'ma'
         in data frame with results.
 
@@ -39,34 +39,35 @@ class Bed_genomecov(object):
         self.df["ma"] = pd.Series(ma, index=np.arange(start=mid,
             stop=(len(ma) + mid)))
 
-    def running_median(self, n):
+    def running_median(self, n, label="rm"):
         """ Do running median of reads coverage and create a column called 'rm'
         in data frame withe results.
 
         :param n: window's size.
 
         """
-        rm = list(running_median.RunningMedian(n, mydata.df["cov"]))
+        rm = list(running_median.RunningMedian(n, self.df["cov"]))
         mid = int(n / 2)
-        self.df["rm"] = pd.Series(rm, index=np.arange(start=mid,
+        self.df[label] = pd.Series(rm, index=np.arange(start=mid,
             stop=(len(rm) + mid)))
 
-    def coverage_scaling(self):
+    def coverage_scaling(self, method="rm", label="scale"):
         """ Normalize data with moving average of coverage and create a column 
         called 'scale' in data frame with results.
         Needs result of moving_average().
 
         """
         try:
-            self.df["scale"] =  self.df["cov"] / self.df["ma"]
+            self.df[label] =  self.df["cov"] / self.df[method] 
         except KeyError:
-            print("Column 'ma' is missing.\n"
+            print("Column " + method + "is missing.\n"
                    "You must run moving_average() function before this.\n\n"
                    "Usage:\n"
                    "> mydata = Bed_genomecov('exemple.txt')\n"
                    "> mydata.moving_average(n=1000)\n"
                    "> mydata.coverage_scaling()")
             return
+        self.df = self.df.replace(np.inf , np.nan)
 
     def _get_best_gaussian(self, results):
         diff = 100
@@ -76,29 +77,31 @@ class Bed_genomecov(object):
                 indice = i
         return indice
 
-    def compute_zscore(self, k=2, method='rm'):
+    def compute_zscore(self, k=2, label="zscore", step=10):
         """ Compute zscore of coverage. 
         Needs result of coverage_scaling().
 
         :param k: Number gaussian predicted in mixture (default = 2)
-        :param method: moving average ('ma') or running median ('rm')
+        :param method: Column name with result of running median
+        :param step: (default = 10)
 
         """
         try:
-            mf = mixture.GaussianMixtureFitting(self.df[method].dropna(), k=k)
+            mf = mixture.GaussianMixtureFitting(
+                    self.df["scale"].dropna()[::step],k=k)
         except KeyError:
             print("Column '", method,"' is missing in data frame.\n"
                   "You must run coverage_scaling() function before this.\n\n"
                   "Usage:\n"
                   "> mydata = Bed_genomecov('exemple.txt')\n"
-                  "> mydata.moving_average(n=1000)\n"
-                  "> mydata.coverage_scaling()\n"
+                  "> mydata.running_median(n=1000, label='rm')\n"
+                  "> mydata.coverage_scaling(method='rm')\n"
                   "> mydata.compute_zscore()")
             return
         mf.estimate()
         self.gaussian = mf.results
         i = self._get_best_gaussian(mf.results)
-        self.df["zscore"] = (self.df["scale"] - mf.results["mus"][i]) / \
+        self.df[label] = (self.df["scale"] - mf.results["mus"][i]) / \
             mf.results["sigmas"][i]
 
 
@@ -154,3 +157,17 @@ if __name__ == "__main__":
     plot(mydata.df["pos"], mydata.df["ma"], label="w30001")
     legend()
 
+    mydata.running_median(n=1001, label="rm_1001")
+    mydata.running_median(n=2001, label="rm_2001")
+    mydata.running_median(n=5001, label="rm_5001")
+    mydata.running_median(n=10001, label="rm_10001")
+    mydata.running_median(n=30001, label="rm_30001")
+    mydata.running_median(n=100001, label="rm_100001")
+    plot(mydata.df["pos"], mydata.df["cov"], label="coverage")
+    plot(mydata.df["pos"], mydata.df["rm_1001"], label="w1001")
+    plot(mydata.df["pos"], mydata.df["rm_2001"], label="w2001")
+    plot(mydata.df["pos"], mydata.df["rm_5001"], label="w5001")
+    plot(mydata.df["pos"], mydata.df["rm_10001"], label="w10001")
+    plot(mydata.df["pos"], mydata.df["rm_30001"], label="w30001")
+    plot(mydata.df["pos"], mydata.df["rm_100001"], label="w100001")
+    legend()
