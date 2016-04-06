@@ -260,3 +260,61 @@ class Modules(object):
 modules = Modules()
 
 
+
+import glob
+
+
+class GetInOutFiles(object):
+    """
+    Given list of input files, replaces the input directory with output one:
+
+
+    Given this file : **input/test.csv**::
+
+        >>> inout = GetInOutFiles("input/*csv", "output")
+        >>> ins, outs, wkdir = inout.getinfo()
+        >>> ins
+        ["input/test.csv"]
+        >>> outs
+        ["output/test.csv"]
+        >>> wdir
+        "output"
+
+    """
+    def __init__(self, wildcard, wkdir):
+        self.wildcard = wildcard
+        self.wkdir = wkdir
+
+        # store the input_filenames
+        self.input_filenames = glob.glob(wildcard)
+
+        # create the output filenames
+        self.output_filenames = []
+        for input_filename in self.input_filenames:
+            path, filename = os.path.split(input_filename)
+            output_filename = wkdir + os.sep + filename
+            self.output_filenames.append(output_filename)
+            
+
+def get_inout(inputs, wkdir):
+    s = GetInOutFiles(inputs, wkdir)
+    return s.input_filenames, s.output_filenames, s.wkdir 
+
+
+def get_filenames(wildcard):
+    import os
+    import glob
+    filenames = glob.glob(wildcard)
+    filenames = [os.path.split(filename)[1] for filename in filenames]
+    return filenames
+
+
+def get_cleanup_rules(filename):
+    import snakemake
+    s = snakemake.Workflow(filename)
+    s.include(filename)
+    names = [rule.name for rule in list(s.rules) if rule.name.endswith('_cleanup')]
+    return names
+
+
+
