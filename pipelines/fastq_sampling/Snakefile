@@ -1,0 +1,45 @@
+"""
+Author: TC
+Affiliation: IP
+Aim: create a sample data set for quick testing
+Type: module
+
+"""
+import sequana.snakemake as sm
+
+name = 'fastq_sampling'
+
+try:
+    config[name] = {'N':10000, 'wkdir': name}
+except:
+    config = {}
+    config[name] = {'N':10000, 'wkdir': name}
+
+
+rule fastq_sampling_output:
+    """This rule is used to make this pipeline independent"""
+    input:
+        expand("fastq_sampling/{dataset}", dataset=sm.get_filenames("fastq_raw/*gz"))
+
+
+rule fastq_sampling:
+    """Select a sample from raw FastQ files"""
+    input:  "fastq_raw/{dataset}"
+    output: "fastq_sampling/{dataset}"
+    params:
+        N = config[name]['N']
+    run:
+        shell("fastq_head {input} {params.N} {output}")
+
+
+rule fastq_sampling_cleanup:
+    """A cleanup rule"""
+    params:
+        wkdir = config[name]['wkdir'],
+    run:
+        import glob
+        filenames = glob.glob(params['wkdir']+'/*')
+        for filename in filenames:
+            print('removing %s' % filename)
+            os.remove(filename)
+
