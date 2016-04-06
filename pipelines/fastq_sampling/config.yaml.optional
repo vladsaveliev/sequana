@@ -1,3 +1,4 @@
-sampling:
-    sample: 10000
+fastq_sampling:
+    include: False
+    N: 10000
 
