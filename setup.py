@@ -52,26 +52,31 @@ setup(
     classifiers      = metainfo['classifiers'],
 
     # package installation
-    packages = ['sequana', 'sequana.funny', 'rules'],
-    package_dir = {
-        "sequana": "src",
-        "sequana.funny": 'src/funny',
-        "rules": "rules"
-    },
-    include_package_data = True,
+    #packages = ['sequana', 'sequana.rules'],
+    packages = find_packages(),
+    #package_dir = {
+    #    "sequana": "sequana",
+    #    "sequana.rules": 'rules'
+    #},
+    #include_package_data = True,
 
     install_requires = ["easydev==0.9.17", "reports==0.1.2", "matplotlib", "pandas",
         "cutadapt==1.9.1", "pysam", "pyVCF"],
 
-
+    #package_data = {'': ['Snakefile*', 'README.rst', 'config.yaml*']},
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
+    # required to use python setup.py install
     package_data = {
-        'share.data' : ["*"],
-        '' : ['*.html', "*.css"],
+        'sequana.rules' : ["*/*"],
+        'sequana.resources' : ['*.html', "*.css"],
+        'sequana.resources.data' : ['*']
         },
 
+    # thise files do not need to be added in MANIFEST.in since there are python
+    # packages that will be copied from sequana/ into sequana/
+    # Note, however, that e.g. ./pipelines must be added 
 
     zip_safe=False,
     #entry_points = {
