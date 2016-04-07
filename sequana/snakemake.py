@@ -62,8 +62,9 @@ class SnakeMakeStats(object):
 
 class RuleBase(object):
     def __init__(self):
+        # with python setup.py install, the gpl function
+        # returns sequana-1.0.egg/ ans "sequana" must be added
         self.basedir = os.sep.join([gpl("sequana"), "sequana", "rules"])
-        print(self.basedir)
 
 
 class Rules(RuleBase):
