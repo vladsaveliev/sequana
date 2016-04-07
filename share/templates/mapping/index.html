@@ -11,30 +11,18 @@
     </div>
 -->
 
-    <div class="section" id="Input">
-    <h2> 1 -  <a class="toc-backref" href="#id1">Input</a></h2>
-    <a href=""> </a>
+<div class="section" id="Coverage">
+    <h2> 1 -  <a class="toc-backref" href="#id1">Coverage</a></h2>
+    <img src="coverage.png"> </>
+</div>
 
-    The BAM file contains {{ alignment_count }} fragments/alignments.
-    </div>
+<div class="section" id="Low coverage region">
+    <h2> 2 - <a class="toc-backref" href="#id1">Low coverage region</a></h2>
+    {{ low_coverage }}
+</div>
 
-
-    <div class="section" id="Flags">
-    <h2> 1 -  <a class="toc-backref" href="#id1">Flags</a></h2>
-
-
-    {{ flags_table }}
-
-    <img src="bar_flags.png"> </>
-    <img src="bar_flags_logy.png"> </>
-
-
-
-    <div class="section" id="mapq">
-    <h2> 1 -  <a class="toc-backref" href="#id1">MAPQ</a></h2>
-    <img src="bar_mapq.png"> </>
-
-
-    </div>
-
+<div class="section" id="High coverage region">
+    <h2> 3 - <a class="toc-backref" href="#id1">High coverage region</a></h2>
+    {{ high_coverage }}
+</div>
 {% endblock %}
