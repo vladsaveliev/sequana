@@ -62,7 +62,8 @@ class SnakeMakeStats(object):
 
 class RuleBase(object):
     def __init__(self):
-        self.basedir = gpl("sequana") + os.sep.join(["sequana", "rules"])
+        self.basedir = os.sep.join([gpl("sequana"), "sequana", "rules"])
+        print(self.basedir)
 
 
 class Rules(RuleBase):
