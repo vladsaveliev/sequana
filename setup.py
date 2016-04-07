@@ -52,19 +52,18 @@ setup(
     classifiers      = metainfo['classifiers'],
 
     # package installation
-    #packages = find_packages(exclude=["test"]),
-    packages = find_packages(),
-
+    packages = ['sequana', 'sequana.funny', 'rules'],
+    package_dir = {
+        "sequana": "src",
+        "sequana.funny": 'src/funny',
+        "rules": "rules"
+    },
     include_package_data = True,
 
     install_requires = ["easydev==0.9.17", "reports==0.1.2", "matplotlib", "pandas",
         "cutadapt==1.9.1", "pysam", "pyVCF"],
 
-    # tells discutils extra packages are under share/data
-    package_dir={
-        'share.data': 'share/data',
-        'share.templates': 'share/templates'
-        },
+
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
@@ -75,11 +74,11 @@ setup(
 
 
     zip_safe=False,
-    entry_points = {
-        'console_scripts':[
-            'fastq_head=scripts.fastq_head:main',
-            'fastq_count=scripts.fastq_count:main',
-        ]
-    },
+    #entry_points = {
+    #    'console_scripts':[
+     #       'fastq_head=scripts.fastq_head:main',
+     #       'fastq_count=scripts.fastq_count:main',
+      #  ]
+    #},
 
 )
