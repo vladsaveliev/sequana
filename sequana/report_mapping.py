@@ -3,8 +3,10 @@
 import os
 import pandas as pd
 import numpy as np
+import pylab
 from biokit.stats import mixture
 import running_median
+from reports import HTMLTable
 
 # Class ------------------------------------------------------------------------
 
@@ -104,7 +106,6 @@ class Bed_genomecov(object):
         self.df[label] = (self.df["scale"] - mf.results["mus"][i]) / \
             mf.results["sigmas"][i]
 
-
     def get_low_coverage(self, threshold=-3):
         """Keep position with zscore lower than INT and return a data frame.
 
@@ -137,37 +138,81 @@ class Bed_genomecov(object):
                   "> mydata.coverage_scaling()\n"
                   "> mydata.compute_zscore(k=2)")
 
-if __name__ == "__main__":
-    mydata = Bed_genomecov("~/Documents/pasteur/py_dev/mapping_stats/output.txt")
-    mydata.moving_average(n=30001)
-    mydata.coverage_scaling()
-    mydata.compute_zscore(k=2)
-    plot(mydata.df["pos"], mydata.df["cov"], label="coverage")
-    mydata.moving_average(n=1001)
-    plot(mydata.df["pos"], mydata.df["ma"], label="w1001")
-    mydata.moving_average(n=2001)
-    plot(mydata.df["pos"], mydata.df["ma"], label="w2001")
-    mydata.moving_average(n=5001)
-    plot(mydata.df["pos"], mydata.df["ma"], label="w5001")
-    mydata.moving_average(n=10001)
-    plot(mydata.df["pos"], mydata.df["ma"], label="w10001")
-    mydata.moving_average(n=20001)
-    plot(mydata.df["pos"], mydata.df["ma"], label="w20001")
-    mydata.moving_average(n=30001)
-    plot(mydata.df["pos"], mydata.df["ma"], label="w30001")
-    legend()
+    def _merge_row(self, start, stop):
+        chrom = self.df["chr"][start]
+        region = "{0} : {1}".format(start + 1, stop)
+        cov = np.mean(self.df["cov"][start:stop])
+        rm = np.mean(self.df["rm"][start:stop])
+        zscore = np.mean(self.df["zscore"][start:stop])
+        size = stop - start
+        return {"chr": chrom, "region": region, "size": size, "mean_cov": cov, 
+                "mean_rm": rm, "mean_zscore": zscore}
 
-    mydata.running_median(n=1001, label="rm_1001")
-    mydata.running_median(n=2001, label="rm_2001")
-    mydata.running_median(n=5001, label="rm_5001")
-    mydata.running_median(n=10001, label="rm_10001")
-    mydata.running_median(n=30001, label="rm_30001")
-    mydata.running_median(n=100001, label="rm_100001")
-    plot(mydata.df["pos"], mydata.df["cov"], label="coverage")
-    plot(mydata.df["pos"], mydata.df["rm_1001"], label="w1001")
-    plot(mydata.df["pos"], mydata.df["rm_2001"], label="w2001")
-    plot(mydata.df["pos"], mydata.df["rm_5001"], label="w5001")
-    plot(mydata.df["pos"], mydata.df["rm_10001"], label="w10001")
-    plot(mydata.df["pos"], mydata.df["rm_30001"], label="w30001")
-    plot(mydata.df["pos"], mydata.df["rm_100001"], label="w100001")
-    legend()
+    def merge_region(self, df):
+        """Merge position side by side of a data frame.
+        """
+        merge_df = pd.DataFrame(columns=["chr", "region", "size", "mean_cov",
+                                         "mean_rm", "mean_zscore"])
+        for i, pos in enumerate(zip(df["pos"])):
+            stop = pos[0]
+            if(i == 0):
+                start = pos[0]
+                prev = pos[0]
+                continue
+            if(stop - 1 == prev):
+                prev = stop
+                continue
+            else:
+                merge_df = merge_df.append(self._merge_row(start - 1, prev),
+                        ignore_index=True)
+                start = stop
+                prev = stop
+        return merge_df
+                
+
+
+    def plot_coverage(self, fontsize=16, filename=None, rm="rm"):
+        """ Plot coverage as a function of position.
+
+        """
+        self.df[["cov",rm]].plot(grid=True, color=["b", "r"])
+        pylab.xlabel("Position", fontsize=fontsize)
+        pylab.ylabel("Coverage", fontsize=fontsize)
+        try:
+            pylab.tight_layout()
+        except:
+            pass
+        if filename:
+            pylab.savefig(filename)
+
+from report_main import BaseReport
+class MappingReport(BaseReport):
+    """
+    """
+    def __init__(self, jinja_template="mapping", output_filename="mapping.html",
+                 directory="report", **kargs):
+        super(MappingReport, self).__init__(jinja_template, output_filename,
+            directory, **kargs)
+        self.jinja['title'] = "Mapping Report"
+
+    def set_data(self, data):
+        self.mapping = data
+
+    def parse(self):
+        self.mapping.plot_coverage(filename=self.directory + os.sep + 
+                                            "coverage.png")
+        
+        low_cov_df = self.mapping.get_low_coverage(-0.4)
+        merge_low_cov = self.mapping.merge_region(low_cov_df)
+        html = HTMLTable(merge_low_cov)
+        html.add_bgcolor("size")
+        self.jinja['low_coverage'] = html.to_html(index=False)
+        
+        high_cov_df = self.mapping.get_high_coverage(2)
+        merge_high_cov = self.mapping.merge_region(high_cov_df)
+        html = HTMLTable(merge_high_cov)
+        html.add_bgcolor("size")
+        self.jinja['high_coverage'] = html.to_html(index=False)
+
+
+
