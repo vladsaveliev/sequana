@@ -62,7 +62,7 @@ class SnakeMakeStats(object):
 
 class RuleBase(object):
     def __init__(self):
-        self.basedir = gpl("sequana") + os.sep + "pipelines"
+        self.basedir = gpl("sequana") + os.sep.join(["sequana", "rules"])
 
 
 class Rules(RuleBase):
@@ -239,7 +239,7 @@ class Modules(object):
         """
         assert name in self.names
         from easydev import onweb
-        url = "https://github.com/sequana/sequana/blob/master/pipelines/" 
+        url = "https://github.com/sequana/sequana/blob/master/rules/" 
         url += name + "/README.rst"
         onweb(url)
 

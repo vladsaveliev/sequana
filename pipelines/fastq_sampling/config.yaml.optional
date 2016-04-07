@@ -1,4 +1,5 @@
+# 
 fastq_sampling:
-    include: False
-    N: 10000
+    skip: True
+    N: 100000
 

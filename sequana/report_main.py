@@ -10,8 +10,8 @@ def _get_template_path(name):
     if os.path.exists(name):
         return name
     else:
-        template_path = easydev.get_shared_directory_path("sequana")
-        template_path += os.sep + "templates"  + os.sep + name
+        template_path = easydev.get_package_location("sequana")
+        template_path += os.sep + os.sep.join(['share', "templates" , name])
         return template_path
 
 
@@ -74,27 +74,37 @@ class BaseReport(Report):
         super(BaseReport, self).create_report(onweb=onweb)
 
 
-class SequanaReport(BaseReport):
-    def __init__(self, jinja_template="main", output_filename="index.html", 
-        directory="report", **kargs):
-
-        super(SequanaReport, self).__init__(jinja_template, output_filename,
-            directory, **kargs)
-
-        self.title = "Sequana Report"
-
-        #self.data['snakefile'] = "undefined"
-
-    def read_snakefile(self, filename):
+    def read_snakefile(self, snakefile):
         """
 
         :param str filename:
         """
-        with open(filename, "r") as fin:
+        with open(snakefile, "r") as fin:
             self.jinja['snakefile'] = fin.read()
 
-    def parse(self, snakefile="Snakefile"):
+    def read_configfile(self, configfile):
+        with open(configfile, "r") as fin:
+            self.jinja['config'] = fin.read()
+
+
+class SequanaReport(BaseReport):
+    def __init__(self,
+                 jinja_template="main",
+                 output_filename="index.html",
+                 directory="report",
+                 snakefile="Snakefile",
+                 configfile="config.yaml",
+                 **kargs):
+
+        super(SequanaReport, self).__init__(jinja_template, output_filename,
+            directory, **kargs)
         self.read_snakefile(snakefile)
+        self.read_configfile(configfile)
+
+        self.jinja['title'] = "Sequana Report"
+
+    def parse(self):
+        pass
  
 
 

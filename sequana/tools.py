@@ -79,12 +79,13 @@ def bam_to_mapped_unmapped_fastq(filename, mode='pe'):
                     revcomp = reverse_complement(this.seq)
                     txt += bytes(revcomp, "utf-8") + b"\n"
                     txt += b"+\n"
-                    txt += this.qual[::-1] + b"\n"
+                    txt += bytes(this.qual[::-1], 'utf-8') + b"\n"
+
                 else:
                     txt = b"@" + bytes(this.qname, "utf-8") + b"\t%s\n"
                     txt += bytes(this.seq, "utf-8") + b"\n"
                     txt += b"+\n"
-                    txt += this.qual + b"\n"
+                    txt += bytes(this.qual,"utf-8") + b"\n"
 
                 # Here, we must be careful as to keep the pairs. So if R1 is mapped
                 # but R2 is unmapped (or the inverse), then the pair is mapped

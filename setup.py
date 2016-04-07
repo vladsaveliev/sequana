@@ -7,7 +7,7 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 0
-_MICRO               = 3
+_MICRO               = 4
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -57,7 +57,7 @@ setup(
 
     include_package_data = True,
 
-    install_requires = ["easydev>=0.9.15", "reports", "matplotlib", "pandas",
+    install_requires = ["easydev==0.9.17", "reports==0.1.2", "matplotlib", "pandas",
         "cutadapt==1.9.1", "pysam", "pyVCF"],
 
     # tells discutils extra packages are under share/data
