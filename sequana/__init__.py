@@ -23,7 +23,7 @@ def sequana_data(filename, where=None):
     import os
     import easydev
     sequana_path = easydev.get_package_location('sequana')
-    share = os.sep.join([sequana_path , "share", 'data'])
+    share = os.sep.join([sequana_path , "sequana", 'resources', 'data'])
     # in the code one may use / or \ 
     if where:
         filename = os.sep.join([share, where, filename])
