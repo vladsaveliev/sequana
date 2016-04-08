@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!--    <div class="contents local topic" id="contents">
+        <ul class="simple">
+            <li> 1 - <a class="reference internal" href="#Stats" id="id1">
+                Stats</a></li>
+            <li> 2 - <a class="reference internal" href="#Dependencies"
+                id="id11">Dependencies</a> </li>
+        </ul>
+    </div>
+-->
+
+    <div class="section" id="Input">
+    <h2> 1 -  <a class="toc-backref" href="#id1">Input</a></h2>
+    </div>
+
+
+    <div class="section" id="Snakefile">
+        <h2> 1 -  <a class="toc-backref" href="#id1">Snakefile</a></h2>
+
+        <object data="dag.svg" type="image/svg+xml">
+        <img src="dag.svg">
+        </object>
+
+        <div id="1">
+        <a href="#1" class="show_hide">Show/hide Snakemake file</a>
+        <div class="slidingDiv">
+        <pre><code class="python">{{ snakefile }}</code></pre>
+        </div>
+    
+        <div id="2">
+        <a href="#2" class="show_hideC">Show/hide config file</a>
+        <div class="slidingDivC">
+        <pre><code class="yaml">{{ config }}</code></pre>
+        </div>
+
+    </div>
+
+{% endblock %}
+

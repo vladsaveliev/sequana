@@ -373,3 +373,15 @@ div.copyright{
 }
 
 
+/*
+ * ┌──────────────────────────────────────────────────────────────────────────┐
+ * │                                                             Collapse div │
+ * └──────────────────────────────────────────────────────────────────────────┘
+ */
+div#tabs p{display:none;}
+
+div#tabs p.tab1:target {display:block;}
+div#tabs p.tab2:target {display:block;}
+div#tabs p.tab3:target {display:block;}
+
+

@@ -1,28 +1,28 @@
 import os
 import easydev
+sepjoin = os.sep.join
 
 from reports import Report
 from sequana import version
 
+import glob
 
 def _get_template_path(name):
     # Is it a local directory ?
     if os.path.exists(name):
         return name
     else:
-        template_path = easydev.get_shared_directory_path("sequana")
-        template_path += os.sep + "templates"  + os.sep + name
-        return template_path
+        main_path = easydev.get_package_location("sequana")
+        return os.sep.join([main_path, 'sequana', "resources", "jinja", name])
 
 
 class BaseReport(Report):
     """A Parent child for all reports created in Sequana
 
 
-
     """
-    def __init__(self, jinja_template, output_filename,
-                 directory="report", **kargs):
+    def __init__(self, jinja_filename, directory="report",     
+                output_filename="test.html", **kargs):
         """.. rubric:: Constructor
 
         :param jinja_template: name of a directory (either local) or
@@ -37,26 +37,31 @@ class BaseReport(Report):
         """
         # finds automatically the local directory or a directory to be found in
         # sequana distribution
-        template_path = _get_template_path(jinja_template)
-        super(BaseReport, self).__init__(template_path=template_path,
-            directory=directory, **kargs)
+        sequana_path = easydev.get_package_location('sequana')
+        extra_css_path = sepjoin([sequana_path, "sequana", "resources", "css"])
+        extra_css_list = glob.glob(extra_css_path + os.sep + "*css")
+
+        searchpath = sepjoin([sequana_path, "sequana", "resources", "jinja"])
+
+        super(BaseReport, self).__init__(searchpath, filename=output_filename, 
+            template_filename=jinja_filename,
+            directory=directory, extra_css_list=extra_css_list, **kargs)
 
         # This redefines the default name of the output (index.html) otherwise,
-        # several reports will overwrite the default index.html. One must make
-        # sure that adapter_removal does not exists
+        # several reports will overwrite the default index.html. 
         self.filename = output_filename
 
         # That is where we will store all data to be used by the Jinja templates
         # in Report, everything is saved in jinja, but just to not get confused,
         # we will use data attribute for now
-        self.data = {}
+        #self.data = {}
 
         # Here, we defined default values from what is expected from the Jinja
         # template in share/templates/adapter_removal
         self.jinja['sequana_version'] = version
 
         # Common information to be filled (possibly)
-        self.data['command'] = "unset"
+        #self.data['command'] = "unset"
 
     def parse(self):
         """populate the :attr:`data` attribute used by the JINJA templates
@@ -70,31 +75,42 @@ class BaseReport(Report):
         except Exception as err:
             print(err)
             print("Parsing of %s failed" % self.input_filename)
-
         super(BaseReport, self).create_report(onweb=onweb)
 
-
-class SequanaReport(BaseReport):
-    def __init__(self, jinja_template="main", output_filename="index.html", 
-        directory="report", **kargs):
-
-        super(SequanaReport, self).__init__(jinja_template, output_filename,
-            directory, **kargs)
-
-        self.title = "Sequana Report"
-
-        #self.data['snakefile'] = "undefined"
-
-    def read_snakefile(self, filename):
+    def read_snakefile(self, snakefile):
         """
 
         :param str filename:
         """
-        with open(filename, "r") as fin:
+        with open(snakefile, "r") as fin:
             self.jinja['snakefile'] = fin.read()
 
-    def parse(self, snakefile="Snakefile"):
-        self.read_snakefile(snakefile)
+    def read_configfile(self, configfile):
+        with open(configfile, "r") as fin:
+            self.jinja['config'] = fin.read()
+
+
+class SequanaReport(BaseReport):
+    def __init__(self, snakefile="Snakefile", configfile="config.yaml", **kargs):
+
+        super(SequanaReport, self).__init__(
+            jinja_filename="main/index.html", 
+            directory="report",  
+            output_filename="index.html",
+            **kargs)
+        try:
+            self.read_snakefile(snakefile)
+        except:
+            pass
+        try:
+            self.read_configfile(configfile)
+        except:
+            pass
+
+        self.jinja['title'] = "Sequana Report"
+
+    def parse(self):
+        pass
  
 
 

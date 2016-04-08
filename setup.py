@@ -7,7 +7,7 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 0
-_MICRO               = 3
+_MICRO               = 4
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -35,6 +35,10 @@ metainfo = {
     }
 
 
+packages = find_packages()
+packages = [this for this in packages if this.startswith('test.') is False]
+packages = [this for this in packages if this not in ['test', 'scripts', 'pipelines']]
+
 setup(
     name             = "sequana",
     version          = version,
@@ -52,33 +56,31 @@ setup(
     classifiers      = metainfo['classifiers'],
 
     # package installation
-    #packages = find_packages(exclude=["test"]),
-    packages = find_packages(),
+    packages = packages,
 
-    include_package_data = True,
-
-    install_requires = ["easydev>=0.9.15", "reports", "matplotlib", "pandas",
+    install_requires = ["easydev==0.9.17", "reports==0.1.3", "matplotlib", "pandas",
         "cutadapt==1.9.1", "pysam", "pyVCF"],
-
-    # tells discutils extra packages are under share/data
-    package_dir={
-        'share.data': 'share/data',
-        'share.templates': 'share/templates'
-        },
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
+    # required to use python setup.py install
     package_data = {
-        'share.data' : ["*"],
-        '' : ['*.html', "*.css"],
+        '': ['Snakefile*', '*html', 'README.rst', 'config.yaml*'],
+        'sequana.rules' : ["*/*"],
+        'sequana.resources' : ['*.html', "*.css"],
+        'sequana.resources.data' : ['*'],
+        'sequana.resources.jinja' : ['*/*.html']
         },
 
+    # thise files do not need to be added in MANIFEST.in since there are python
+    # packages that will be copied from sequana/ into sequana/
+    # Note, however, that e.g. ./pipelines must be added 
 
     zip_safe=False,
     entry_points = {
         'console_scripts':[
-            'fastq_head=scripts.fastq_head:main',
-            'fastq_count=scripts.fastq_count:main',
+           'fastq_head=scripts.fastq_head:main',
+           'fastq_count=scripts.fastq_count:main',
         ]
     },
 

@@ -26,8 +26,7 @@ class FixReport(BaseReport):
 
 
     """
-    def __init__(self, jinja_template="fix_contaminant",
-            output_filename="fix.html", directory="report",
+    def __init__(self, output_filename="fix.html", directory="report",
             overwrite=False, **kargs):
         """
 
@@ -41,8 +40,9 @@ class FixReport(BaseReport):
         Parameters accepted by :class:`reports.Report` are also accepted.
 
         """
-        super(FixReport, self).__init__(jinja_template, output_filename,
-              directory, **kargs)
+        super(FixReport, self).__init__(jinja_filename="fix_contaminant/index.html", 
+                 directory=directory, output_filename=output_filename, **kargs)
+
 
         self.title = "Fix Report Summary"
         self.jinja['title'] = "Fix Report Summary"

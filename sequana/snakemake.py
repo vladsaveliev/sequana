@@ -6,8 +6,9 @@
 import os
 import sys
 import json
-
+import glob
 from os.path import isdir
+
 from easydev import get_package_location as gpl
 
 import pandas as pd
@@ -62,7 +63,9 @@ class SnakeMakeStats(object):
 
 class RuleBase(object):
     def __init__(self):
-        self.basedir = gpl("sequana") + os.sep + "pipelines"
+        # with python setup.py install, the gpl function
+        # returns sequana-1.0.egg/ ans "sequana" must be added
+        self.basedir = os.sep.join([gpl("sequana"), "sequana", "rules"])
 
 
 class Rules(RuleBase):
@@ -206,9 +209,14 @@ class DOTParser(object):
                     name = name.replace(",","")
                     name = name.replace('"',"")
                     name = name.strip()
-                    line = lhs + ' URL="%s.html" target="_blank", ' % name
-                    line += separator + rhs
-                    fout.write(line + "\n")
+                    if name in ['dag', 'report', 'all']:
+                        print('Skipping %s' % name)
+                        fout.write(line +  "\n")
+                    else:
+                        print('adding %s' % name)
+                        newline = lhs + ' URL="%s.html" target="_blank", ' % name
+                        newline += separator + rhs
+                        fout.write(newline + "\n")
 
     #  label="cutadapt.html", URL="cutadapt.html", target="_blank",
 
@@ -239,7 +247,7 @@ class Modules(object):
         """
         assert name in self.names
         from easydev import onweb
-        url = "https://github.com/sequana/sequana/blob/master/pipelines/" 
+        url = "https://github.com/sequana/sequana/sequana/blob/master/rules/" 
         url += name + "/README.rst"
         onweb(url)
 
@@ -258,5 +266,62 @@ class Modules(object):
 
 
 modules = Modules()
+
+
+
+
+
+class GetInOutFiles(object):
+    """
+    Given list of input files, replaces the input directory with output one:
+
+
+    Given this file : **input/test.csv**::
+
+        >>> inout = GetInOutFiles("input/*csv", "output")
+        >>> ins, outs, wkdir = inout.getinfo()
+        >>> ins
+        ["input/test.csv"]
+        >>> outs
+        ["output/test.csv"]
+        >>> wdir
+        "output"
+
+    """
+    def __init__(self, wildcard, wkdir):
+        self.wildcard = wildcard
+        self.wkdir = wkdir
+
+        # store the input_filenames
+        self.input_filenames = glob.glob(wildcard)
+
+        # create the output filenames
+        self.output_filenames = []
+        for input_filename in self.input_filenames:
+            path, filename = os.path.split(input_filename)
+            output_filename = wkdir + os.sep + filename
+            self.output_filenames.append(output_filename)
+            
+
+def get_inout(inputs, wkdir):
+    s = GetInOutFiles(inputs, wkdir)
+    return s.input_filenames, s.output_filenames, s.wkdir 
+
+
+def get_filenames(wildcard):
+    import os
+    import glob
+    filenames = glob.glob(wildcard)
+    filenames = [os.path.split(filename)[1] for filename in filenames]
+    return filenames
+
+
+def get_cleanup_rules(filename):
+    import snakemake
+    s = snakemake.Workflow(filename)
+    s.include(filename)
+    names = [rule.name for rule in list(s.rules) if rule.name.endswith('_cleanup')]
+    return names
+
 
 
