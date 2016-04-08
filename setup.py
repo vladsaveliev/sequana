@@ -36,11 +36,8 @@ metainfo = {
 
 
 packages = find_packages()
-#packages = [this.replace('src.', 'sequana.') for this in packages]
 packages = [this for this in packages if this.startswith('test.') is False]
 packages = [this for this in packages if this not in ['test', 'scripts', 'pipelines']]
-
-print(packages)
 
 setup(
     name             = "sequana",
@@ -61,7 +58,7 @@ setup(
     # package installation
     packages = packages,
 
-    install_requires = ["easydev==0.9.17", "reports==0.1.2", "matplotlib", "pandas",
+    install_requires = ["easydev==0.9.17", "reports==0.1.3", "matplotlib", "pandas",
         "cutadapt==1.9.1", "pysam", "pyVCF"],
 
     # here below '': pattern means include that pattern in all packages

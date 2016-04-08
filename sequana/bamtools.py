@@ -389,10 +389,11 @@ class BAMReport(BaseReport):
         # report/bam.html is now available
 
     """
-    def __init__(self, jinja_template="bam", output_filename="bam.html",
-                 directory="report", **kargs):
-        super(BAMReport, self).__init__(jinja_template, output_filename,
-            directory, **kargs)
+    def __init__(self, **kargs):
+        super(BAMReport, self).__init__(
+            jinja_filename="bam/index.html",
+            directory="report",
+            output_filename="bam.html", **kargs)
 
         self.jinja['title'] = "Bam Report"
 
