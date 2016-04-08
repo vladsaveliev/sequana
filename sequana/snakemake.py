@@ -247,7 +247,7 @@ class Modules(object):
         """
         assert name in self.names
         from easydev import onweb
-        url = "https://github.com/sequana/sequana/sequana/blob/master/rules/" 
+        url = "https://github.com/sequana/sequana/tree/master/sequana/rules/" 
         url += name + "/README.rst"
         onweb(url)
 
