@@ -1,4 +1,4 @@
-from sequana import snakemake
+from sequana import snakemake, sequana_data
 import os
 
 
