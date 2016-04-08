@@ -6,8 +6,9 @@
 import os
 import sys
 import json
-
+import glob
 from os.path import isdir
+
 from easydev import get_package_location as gpl
 
 import pandas as pd
@@ -208,9 +209,14 @@ class DOTParser(object):
                     name = name.replace(",","")
                     name = name.replace('"',"")
                     name = name.strip()
-                    line = lhs + ' URL="%s.html" target="_blank", ' % name
-                    line += separator + rhs
-                    fout.write(line + "\n")
+                    if name in ['dag', 'report', 'all']:
+                        print('Skipping %s' % name)
+                        fout.write(line +  "\n")
+                    else:
+                        print('adding %s' % name)
+                        newline = lhs + ' URL="%s.html" target="_blank", ' % name
+                        newline += separator + rhs
+                        fout.write(newline + "\n")
 
     #  label="cutadapt.html", URL="cutadapt.html", target="_blank",
 
@@ -263,7 +269,6 @@ modules = Modules()
 
 
 
-import glob
 
 
 class GetInOutFiles(object):
