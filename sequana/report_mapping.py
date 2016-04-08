@@ -189,10 +189,11 @@ from report_main import BaseReport
 class MappingReport(BaseReport):
     """
     """
-    def __init__(self, jinja_template="mapping", output_filename="mapping.html",
-                 directory="report", **kargs):
-        super(MappingReport, self).__init__(jinja_template, output_filename,
-            directory, **kargs)
+    def __init__(self, **kargs):
+        super(MappingReport, self).__init__(
+                jinja_filename="mapping/index.html",
+                directory="report",
+                output_filename="mapping.html", **kargs)
         self.jinja['title'] = "Mapping Report"
 
     def set_data(self, data):
