@@ -64,12 +64,12 @@ setup(
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
     # required to use python setup.py install
+
+    # This is recursive include of data files
     package_data = {
-        '': ['Snakefile*', '*html', 'README.rst', 'config.yaml*'],
+        '': ['Snakefile*', '*html', 'README.rst', 'config.yaml*', '*.css'],
         'sequana.rules' : ["*/*"],
-        'sequana.resources' : ['*.html', "*.css"],
         'sequana.resources.data' : ['*'],
-        'sequana.resources.jinja' : ['*/*.html']
         },
 
     # thise files do not need to be added in MANIFEST.in since there are python
