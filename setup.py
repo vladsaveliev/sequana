@@ -35,6 +35,13 @@ metainfo = {
     }
 
 
+packages = find_packages()
+#packages = [this.replace('src.', 'sequana.') for this in packages]
+packages = [this for this in packages if this.startswith('test.') is False]
+packages = [this for this in packages if this not in ['test', 'scripts', 'pipelines']]
+
+print(packages)
+
 setup(
     name             = "sequana",
     version          = version,
@@ -52,26 +59,20 @@ setup(
     classifiers      = metainfo['classifiers'],
 
     # package installation
-    #packages = ['sequana', 'sequana.rules'],
-    packages = find_packages(),
-    #package_dir = {
-    #    "sequana": "sequana",
-    #    "sequana.rules": 'rules'
-    #},
-    #include_package_data = True,
+    packages = packages,
 
     install_requires = ["easydev==0.9.17", "reports==0.1.2", "matplotlib", "pandas",
         "cutadapt==1.9.1", "pysam", "pyVCF"],
-
-    #package_data = {'': ['Snakefile*', 'README.rst', 'config.yaml*']},
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
     # required to use python setup.py install
     package_data = {
+        '': ['Snakefile*', '*html', 'README.rst', 'config.yaml*'],
         'sequana.rules' : ["*/*"],
         'sequana.resources' : ['*.html', "*.css"],
-        'sequana.resources.data' : ['*']
+        'sequana.resources.data' : ['*'],
+        'sequana.resources.jinja' : ['*/*.html']
         },
 
     # thise files do not need to be added in MANIFEST.in since there are python
@@ -79,11 +80,11 @@ setup(
     # Note, however, that e.g. ./pipelines must be added 
 
     zip_safe=False,
-    #entry_points = {
-    #    'console_scripts':[
-     #       'fastq_head=scripts.fastq_head:main',
-     #       'fastq_count=scripts.fastq_count:main',
-      #  ]
-    #},
+    entry_points = {
+        'console_scripts':[
+           'fastq_head=scripts.fastq_head:main',
+           'fastq_count=scripts.fastq_count:main',
+        ]
+    },
 
 )
