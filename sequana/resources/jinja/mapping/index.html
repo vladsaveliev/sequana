@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!--    <div class="contents local topic" id="contents">
+        <ul class="simple">
+            <li> 1 - <a class="reference internal" href="#Stats" id="id1">
+                Stats</a></li>
+            <li> 2 - <a class="reference internal" href="#Dependencies"
+                id="id11">Dependencies</a> </li>
+        </ul>
+    </div>
+-->
+
+<div class="section" id="Coverage">
+    <h2> 1 -  <a class="toc-backref" href="#id1">Coverage</a></h2>
+    <img src="coverage.png"> </>
+</div>
+
+<div class="section" id="Low coverage region">
+    <h2> 2 - <a class="toc-backref" href="#id1">Low coverage region</a></h2>
+    {{ low_coverage }}
+</div>
+
+<div class="section" id="High coverage region">
+    <h2> 3 - <a class="toc-backref" href="#id1">High coverage region</a></h2>
+    {{ high_coverage }}
+</div>
+{% endblock %}
