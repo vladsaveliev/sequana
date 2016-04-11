@@ -41,6 +41,9 @@ Some dependencies required include matplotlib, pandas, cutadapt, pysam. If you
 are new or starting with Python, we strongly recommand to use anaconda. We use the **bioconda** channel, which can be
 added to your environment as follows::
 
+    conda config --add channels r
+    conda config --add channels bioconda
+    
 Then, install those dependencies
 
     conda install numpy matplotlib pandas cutadapt pysam bwa bcftools pyvcf samtools snakemake biokit
