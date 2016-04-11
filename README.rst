@@ -44,7 +44,7 @@ added to your environment as follows::
     conda config --add channels r
     conda config --add channels bioconda
     
-Then, install those dependencies
+Then, install those dependencies::
 
     conda install numpy matplotlib pandas cutadapt pysam bwa bcftools pyvcf samtools snakemake biokit
 
