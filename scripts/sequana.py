@@ -54,10 +54,22 @@ def main(args=None):
     except:
         pass
 
+    try:
+        os.mkdir("report")
+    except:
+        print('could not create report. Exist already ?')
+        pass
+    try:
+        
+        shellcmd("conda list --export > report/requirements\n")
+    except:
+        print("Could not call 'conda list' You should use an anaconda environment?")
+
     # a running script
 
     with open("sequana.sh", "w") as fh:
         fh.write("#!/usr/bin sh\n")
+        fh.write("conda list --export > report>requirements\n")
         fh.write("snakemake -s Snakefile --stats stats.txt -p")
     #os.chmod("sequana.sh", 744)
 
