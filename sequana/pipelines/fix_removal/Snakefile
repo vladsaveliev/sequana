@@ -21,6 +21,7 @@ include: sm.modules["fastq_sampling"]
 include: sm.modules['bwa_fix']
 include: sm.modules['fastqc']
 include: sm.modules['bwa_bam_to_fastq']
+include: sm.modules['conda']
 
 sm.message(str(config))
 
@@ -41,6 +42,7 @@ rule all:
         "bwa_fix/contaminant_R2.mapped.fastq",
         "report/index.html", 
         "report/bwa_fix.html",
+        "report/requirements.txt"
     version: sequana.version
 
 
