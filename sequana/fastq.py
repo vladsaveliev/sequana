@@ -830,7 +830,12 @@ class FastQC(object):
         df = pd.DataFrame(self.qualities)
         from biokit.viz.boxplot import Boxplot
         bx = Boxplot(df)
-        bx.plot(ax=ax)
+        try:
+            # new version of biokit
+            bx.plot(ax=ax)
+        except:
+            bx.plot()
+            
 
     @run_info
     def histogram_sequence_coordinates(self):
