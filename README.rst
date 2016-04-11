@@ -49,6 +49,9 @@ Then, install those dependencies::
 although the code is Python2.7 and Python3.5 compatible, a dependency
 (Snakemake) only supports Python3.5 for the moment so we will support only Python3.5 version. If you wish to use functionalities of Sequana that do not make use of Snakemake, you may still used it with Python2.7.
 
+Developers can also install other tols::
+
+    conda install nose coverage
 
 **Please see the** `documentation <http://sequana.readthedocs.org>`_ **for usage and examples**
 
