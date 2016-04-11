@@ -6,8 +6,8 @@ from setuptools import setup, find_packages
 import glob
 
 _MAJOR               = 0
-_MINOR               = 0
-_MICRO               = 4
+_MINOR               = 1
+_MICRO               = 0
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -81,6 +81,7 @@ setup(
         'console_scripts':[
            'fastq_head=scripts.fastq_head:main',
            'fastq_count=scripts.fastq_count:main',
+           'sequana=scripts.sequana:main'
         ]
     },
 
