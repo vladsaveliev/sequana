@@ -3,43 +3,68 @@
 
 
 """
-import sequana.snakemake as sm
+import sequana.snaketools as sm
+import glob
 
-# find all fastq files and parse them through fastqc
+
+configfile: "config.yaml"
 
 
-#sm.get_filenames("fastq_raw/*fastq.gz")]
-# TODO also include the zip 
+sm.message("Include sequana.fastqc rule")
 
-data_tags =  ["Hm2_GTGAAA_L005_R1_001", "Hm2_GTGAAA_L005_R2_001"]
 
+# identify the files automatically
+data_tags =  [sm.get_tagname(x) for x in glob.glob(config['datadir']+"/*fastq*")]
 
 
 
 # fastq_results must be created for now
 rule fastqc:
-    input: 
+    input:
         expand("fastq_sampling/{dataset}.fastq.gz", dataset=data_tags),
-        expand("bwa_fix/{dataset}.unmapped.fastq", 
+        expand("bwa_fix/{dataset}.unmapped.fastq",
             dataset=['contaminant_R1', 'contaminant_R2']),
-        expand("bwa_fix/{dataset}.mapped.fastq", 
+        expand("bwa_fix/{dataset}.mapped.fastq",
             dataset=['contaminant_R1', 'contaminant_R2']),
-    output: 
+    output:
         expand("fastqc/{dataset}_fastqc.html", dataset=data_tags),
-        expand("fastqc/{dataset}.unmapped_fastqc.html", 
+        expand("fastqc/{dataset}.unmapped_fastqc.html",
             dataset=['contaminant_R1', 'contaminant_R2']),
-        expand("fastqc/{dataset}.mapped_fastqc.html", 
+        expand("fastqc/{dataset}.mapped_fastqc.html",
             dataset=['contaminant_R1', 'contaminant_R2']),
-        touch("fastqc.done")
+        touch("fastqc/fastqc.done")
     params: dir="fastqc"
     threads: 6
-    log: 
-        expand("{dataset}.log", dataset=data_tags),
-        expand("{dataset}.log", dataset=['contaminant_R1', 'contaminant_R2'])
-    run: 
-        shell("fastqc -t {threads} --outdir {params.dir} -f fastq {input} > {params.dir}/{log}")
-
+    log:
+        "fastqc.log",
+    run:
+        # if the content of the file is empty, this will fail. We need to
+        # touch  a file in such case.
+        from sequana import FastQ
+        newinput = []
+        for i, this in enumerate(input):
+            fastq = FastQ(this)
+            if len(fastq) != 0:
+                newinput.append(this)
+            else:
+                with open(output[i], "w") as fh:
+                    fh.write("No data in %s" % output[i])
+        shell("fastqc -t {threads} --outdir {params.dir} -f fastq {newinput} > {params.dir}/{log}")
 
 
 rule fastqc_output:
     input: "fastqc.done"
+
+
+rule fastqc_cleanup:
+    """Remove the contents of the fastqc directory"""
+    params:
+        wkdir = "fastqc",
+    run:
+        filenames = glob.glob(params['wkdir']+'/*')
+        for filename in filenames:
+            print('removing %s' % filename)
+            os.remove(filename)
+
+
+

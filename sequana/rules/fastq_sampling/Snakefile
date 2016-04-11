@@ -5,12 +5,13 @@ Aim: create a sample data set for quick testing
 Type: module
 
 """
-import sequana.snakemake as sm
+import sequana.snaketools as sm
 
-fastq_sampling = {
+"""fastq_sampling = {
     'name': 'fastq_sampling',
     'wildcards': ("fastq_sampling/{dataset}")
     }
+"""
 
 name = 'fastq_sampling'
 
@@ -24,6 +25,7 @@ try:
     configfile: "config.yaml"
 except:
     pass
+
 
 fastq_sampling_wc = ["fastq_sampling/{dataset}", sm.get_filenames("fastq_raw/*gz")]
 fastq_sampling_input = expand(fastq_sampling_wc[0], dataset=fastq_sampling_wc[1])
@@ -41,6 +43,9 @@ rule fastq_sampling_output:
     """This rule is used to make this pipeline independent"""
     input:
         fastq_sampling_input
+
+
+sm.message("-------->>>>" + str(out))
 
 
 rule fastq_sampling:
