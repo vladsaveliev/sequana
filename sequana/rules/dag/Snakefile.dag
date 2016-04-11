@@ -24,7 +24,7 @@ rule dag:
         shell("snakemake --dag > dag.dot")
 
         # Annotate the dag with URLs 
-        from sequana.snakemake import DOTParser
+        from sequana.snaketools import DOTParser
         d = DOTParser("dag.dot")
         d.add_urls()
 
@@ -37,4 +37,4 @@ rule dag:
 
 
 rule dag_cleanup:
-    params: cleanup=['dag.log', 'dag.dot', 'dag.ann.dot']
+    params: cleanup=['dag.log', 'dag.dot', 'dag.ann.dot', 'dag.svg']

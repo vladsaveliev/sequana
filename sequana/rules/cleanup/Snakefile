@@ -9,10 +9,11 @@ rule cleanup:
     run:
         # ideally, we'd like to know the name of this file dynamically
 
+        import snakemake
         s = snakemake.Workflow('Snakefile')
         s.include('Snakefile')
         import glob
-        from sequana import snakemake as sm
+        from sequana import snaketools as sm
         cleanup_rules = sm.get_cleanup_rules("Snakefile")
         for this_rule_name in cleanup_rules:
             this_rule = s.get_rule(this_rule_name)
