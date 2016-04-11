@@ -48,7 +48,7 @@ although the code is Python2.7 and Python3.5 compatible, a dependency
 Python3.5 version installed.
 
 
-**Please see the `documentation <sequana.readthedocs.org>`_ for usage and examples**
+**Please see the** `documentation <sequana.readthedocs.org>`_ **for usage and examples**
 
 
 
