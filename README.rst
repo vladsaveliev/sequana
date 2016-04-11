@@ -48,20 +48,7 @@ although the code is Python2.7 and Python3.5 compatible, a dependency
 Python3.5 version installed.
 
 
-Example
-==========
-
-**WIP** but one component will be to have a set of rules available and ready to use in Snakefiles
-::
-
-    # contaminant and adapter removal search
-    from sequana import snakemake
-    snakemake.rules()
-
-In a snakefile::
-
-    from sequana import snakemake as sm
-    include: sm.rules['dag']
+**Please see the `documentation <sequana.readthedocs.org>`_ for usage and examples**
 
 
 
