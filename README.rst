@@ -46,7 +46,11 @@ added to your environment as follows::
     
 Then, install those dependencies::
 
-    conda install numpy matplotlib pandas cutadapt pysam bwa bcftools pyvcf samtools snakemake biokit
+    conda install numpy matplotlib pandas cutadapt pysam bwa bcftools pyvcf samtools snakemake biokit bioservices
+
+Update some of the packages::
+
+    pip install easydev biokit
 
 although the code is Python2.7 and Python3.5 compatible, a dependency
 (Snakemake) only supports Python3.5 for the moment so we will support only Python3.5 version.
