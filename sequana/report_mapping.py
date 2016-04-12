@@ -41,17 +41,23 @@ class Bed_genomecov(object):
         self.df["ma"] = pd.Series(ma, index=np.arange(start=mid,
             stop=(len(ma) + mid)))
 
-    def running_median(self, n, label="rm"):
+    def running_median(self, n, label="rm", circular=False):
         """ Do running median of reads coverage and create a column called 'rm'
         in data frame withe results.
 
         :param n: window's size.
 
         """
-        rm = list(running_median.RunningMedian(n, self.df["cov"]))
         mid = int(n / 2)
-        self.df[label] = pd.Series(rm, index=np.arange(start=mid,
-            stop=(len(rm) + mid)))
+        if(circular):
+            cov = list(self.df["cov"])
+            cov = cov[-mid:] + cov + cov[:mid]
+            rm = list(running_median.RunningMedian(n, cov))
+            self.df[label] = pd.Series(rm)
+        else:
+            rm = list(running_median.RunningMedian(n, self.df["cov"]))
+            self.df[label] = pd.Series(rm, index=np.arange(start=mid,
+                stop=(len(rm) + mid)))
 
     def coverage_scaling(self, method="rm", label="scale"):
         """ Normalize data with moving average of coverage and create a column 
