@@ -195,6 +195,8 @@ class MappingReport(BaseReport):
                 directory="report",
                 output_filename="mapping.html", **kargs)
         self.jinja['title'] = "Mapping Report"
+        self.low_t = low_threshold
+        self.high_t = high_threshold
 
     def set_data(self, data):
         self.mapping = data
@@ -203,13 +205,13 @@ class MappingReport(BaseReport):
         self.mapping.plot_coverage(filename=self.directory + os.sep + 
                                             "coverage.png")
         
-        low_cov_df = self.mapping.get_low_coverage(low_threshold)
+        low_cov_df = self.mapping.get_low_coverage(self.low_t)
         merge_low_cov = self.mapping.merge_region(low_cov_df)
         html = HTMLTable(merge_low_cov)
         html.add_bgcolor("size")
         self.jinja['low_coverage'] = html.to_html(index=False)
         
-        high_cov_df = self.mapping.get_high_coverage(high_threshold)
+        high_cov_df = self.mapping.get_high_coverage(self.high_t)
         merge_high_cov = self.mapping.merge_region(high_cov_df)
         html = HTMLTable(merge_high_cov)
         html.add_bgcolor("size")
