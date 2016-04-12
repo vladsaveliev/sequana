@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import pylab
 from biokit.stats import mixture
-import running_median
+from sequana import running_median
 from reports import HTMLTable
 
 # Class ------------------------------------------------------------------------
