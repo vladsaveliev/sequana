@@ -31,22 +31,27 @@ It will provide a set of modular pipelines and reports associated to them.
 Installation
 =================
 
+If you already already install dependencies, this should install the latest release::
 
-::
-
-    pip install sequana
-
+    pip install sequana --upgrade
 
 Some dependencies required include matplotlib, pandas, cutadapt, pysam. If you
-are new or starting with Python, we strongly recommand to use anaconda and to
-install those dependencies::
+are new or starting with Python, we strongly recommand you to use anaconda. We use the **bioconda** channel, which can be
+added to your environment as follows::
 
-    conda install matplotlib pandas cutadapt pysam
+    conda config --add channels r
+    conda config --add channels bioconda
+    
+Then, install those dependencies::
+
+    conda install numpy matplotlib pandas cutadapt pysam bwa bcftools pyvcf samtools snakemake biokit bioservices bedtools picard freebayes
 
 although the code is Python2.7 and Python3.5 compatible, a dependency
-(Snakemake) only supports Python3.5 for the moment so, we will assume you have a
-Python3.5 version installed.
+(Snakemake) only supports Python3.5 for the moment so we will support only Python3.5 version. If you wish to use functionalities of Sequana that do not make use of Snakemake, you may still used it with Python2.7.
 
+Developers can also install other tols::
+
+    conda install nose coverage
 
 **Please see the** `documentation <http://sequana.readthedocs.org>`_ **for usage and examples**
 
