@@ -185,7 +185,7 @@ class Bed_genomecov(object):
         if filename:
             pylab.savefig(filename)
 
-from report_main import BaseReport
+from sequana.report_main import BaseReport
 class MappingReport(BaseReport):
     """
     """
@@ -214,6 +214,3 @@ class MappingReport(BaseReport):
         html = HTMLTable(merge_high_cov)
         html.add_bgcolor("size")
         self.jinja['high_coverage'] = html.to_html(index=False)
-
-
-
