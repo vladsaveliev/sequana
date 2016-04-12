@@ -189,7 +189,7 @@ from report_main import BaseReport
 class MappingReport(BaseReport):
     """
     """
-    def __init__(self, **kargs):
+    def __init__(self, low_threshold=-3, high_threshold=3, **kargs):
         super(MappingReport, self).__init__(
                 jinja_filename="mapping/index.html",
                 directory="report",
@@ -203,13 +203,13 @@ class MappingReport(BaseReport):
         self.mapping.plot_coverage(filename=self.directory + os.sep + 
                                             "coverage.png")
         
-        low_cov_df = self.mapping.get_low_coverage(-0.4)
+        low_cov_df = self.mapping.get_low_coverage(low_threshold)
         merge_low_cov = self.mapping.merge_region(low_cov_df)
         html = HTMLTable(merge_low_cov)
         html.add_bgcolor("size")
         self.jinja['low_coverage'] = html.to_html(index=False)
         
-        high_cov_df = self.mapping.get_high_coverage(2)
+        high_cov_df = self.mapping.get_high_coverage(high_threshold)
         merge_high_cov = self.mapping.merge_region(high_cov_df)
         html = HTMLTable(merge_high_cov)
         html.add_bgcolor("size")
