@@ -1,10 +1,10 @@
 import easydev
 import os
-
-
+import json
 from .report_main import BaseReport
 
-# a utility from external reports package
+# externals
+from easydev import precision
 from reports import HTMLTable
 
 import pandas as pd
@@ -20,13 +20,12 @@ def _get_template_path(name):
           return template_path
 
 
+class PhixReport(BaseReport):
+    """Report dedicated to inform amount of phix in the FastQ
 
-class FixReport(BaseReport):
+
     """
-
-
-    """
-    def __init__(self, output_filename="fix.html", directory="report",
+    def __init__(self, output_filename="phix.html", directory="report",
             overwrite=False, **kargs):
         """
 
@@ -40,27 +39,28 @@ class FixReport(BaseReport):
         Parameters accepted by :class:`reports.Report` are also accepted.
 
         """
-        super(FixReport, self).__init__(jinja_filename="fix_contaminant/index.html", 
+        super(PhixReport, self).__init__(jinja_filename="phix_contaminant/index.html", 
                  directory=directory, output_filename=output_filename, **kargs)
 
 
-        self.title = "Fix Report Summary"
-        self.jinja['title'] = "Fix Report Summary"
+        self.title = "Phix Report Summary"
+        self.jinja['title'] = "Phix Report Summary"
 
-        self.jinja['mode'] = "Paired-end"
-        self.mode = "pe"
-
-        self.input_filename = "fix_stats.json"
+        self.input_filename = "phix_stats.json"
 
     def parse(self):
-        import json
-        from easydev import precision
-        import pandas as pd
 
         data = json.load(open(self.input_filename, "r"))
 
         for key, value in data.items():
             self.jinja[key] = value
+
+        # Overwrite mode is a real name (rather than se or pe)
+        if data['mode'] == "pe":
+            self.jinja['mode'] = "Paired-end"
+        elif data['mode'] == "se":
+            self.jinja['mode'] = "Single-end"
+
 
         x = data['R1_mapped']
         y = data['R1_unmapped']
@@ -70,10 +70,16 @@ class FixReport(BaseReport):
         self.jinja['contamination'] = precision(contamination, 3)
 
         # add HTML table 
-        df = pd.DataFrame({
-            'R1': [data['R1_mapped'], data['R1_unmapped']],
-            'R2': [data['R2_mapped'], data['R2_unmapped']]})
+        if "R2_mapped" in data.keys():
+            df = pd.DataFrame({
+                'R1': [data['R1_mapped'], data['R1_unmapped']],
+                'R2': [data['R2_mapped'], data['R2_unmapped']]})
+        else:
+            df = pd.DataFrame({
+                'R1': [data['R1_mapped'], data['R1_unmapped']]})
         df.index = ['mapped', 'unmapped']
+
+        print(df)
 
         h = HTMLTable(df)
         html = h.to_html(index=True)
