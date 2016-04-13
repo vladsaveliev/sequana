@@ -31,6 +31,7 @@ import pandas as pd
 import pylab
 
 try:
+    # This is for python2.7
     import snakemake
 except:
     print("Snakemake must be installed. Available for Python3 only")
@@ -52,7 +53,7 @@ class ExpandedSnakeFile(object):
     a Snakefile may look like::
 
         from sequana import snaketools as sm
-        include: sm.modules['bwa_fix']
+        include: sm.modules['bwa_phix']
         include: sm.modules['fastqc']
 
     This is nice and compact but we do not see anymore what the Snakefile does.
@@ -407,7 +408,9 @@ class DOTParser(object):
                     name = name.replace(",","")
                     name = name.replace('"',"")
                     name = name.strip()
-                    if name in ['dag', 'conda', 'report', 'all', "bwa_bam_to_fastq"] or \
+                    if name in ['dag', 'conda']:
+                        pass
+                    elif name in ['report', 'all', "bwa_bam_to_fastq"] or \
                             "dataset:" in line:
                         # redirect to the main page
                         newline = lhs + ' URL="index.html" target="_parent", '
