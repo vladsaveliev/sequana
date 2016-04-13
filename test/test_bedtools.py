@@ -10,6 +10,7 @@ pathdata = data.__path__[0]
 
 def test_genomecov():
     mydata = bedtools.genomecov(pathdata + os.sep + "test.bed")
+    mydata.moving_average(n=3)
     mydata.running_median(n=3, circular=True)
     mydata.running_median(n=3, circular=False)
     mydata.coverage_scaling()
