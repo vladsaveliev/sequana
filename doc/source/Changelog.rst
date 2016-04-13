@@ -4,6 +4,14 @@ Changelog
 .. contents::
 
 
+
+0.1.1 - 0.1.2
+--------------
+* NEWS
+    - Phix pipeline added
+
+
+
 0.1.0 April 2006
 ------------------
 
