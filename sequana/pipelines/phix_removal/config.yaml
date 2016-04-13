@@ -1,5 +1,5 @@
 
-input: "*fastq*"
+input: "../*fastq.gz"
 
 requirements: ['Coliphage_phiX174.fa']
 

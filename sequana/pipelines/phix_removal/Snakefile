@@ -6,6 +6,7 @@ Data: paired end to be placed inside ./fastq_raw
 Run: snakemake -s Snakefile
 Changelog:
 """
+import sequana
 from sequana import snaketools as sm
 
 # This must be defined before the include 
