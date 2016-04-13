@@ -98,7 +98,6 @@ def bam_to_mapped_unmapped_fastq(filename, mode='pe'):
 
                 # Here, we must be careful as to keep the pairs. So if R1 is mapped
                 # but R2 is unmapped (or the inverse), then the pair is mapped
-                print(txt)
                 if this.is_read1:
                     if this.is_unmapped and this.mate_is_unmapped:
                         R1_unmapped.write(txt)
