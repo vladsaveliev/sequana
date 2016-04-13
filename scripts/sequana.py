@@ -81,7 +81,7 @@ def main(args=None):
 
     print("""You can now run snakemake yourself or type::
 
-        snakemake -s Snakefile --stats stats.txt -p -j2
+        snakemake -s Snakefile --stats stats.txt -p -j 2
 
     # -j 2 means you will use 2 cores
     # -p prints the commands used

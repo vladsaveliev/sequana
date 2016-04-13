@@ -53,11 +53,10 @@ def test_valid_config():
     config = snaketools.SequanaConfig(s.config)
 
 
-def test_file_name_factory():
+def _test_file_name_factory():
     # __file__ should contain either "test_snaketools.py" in local mode
     # or test/test_snaketools
     if __file__.startswith('test/'):
-        print(1)
         ff = snaketools.FileFactory("test/test_snaketools.py")
         #assert ff.dataset == ["test_snaketools.py"]
         #assert ff.dataset_noext == ['test_snaketools']
