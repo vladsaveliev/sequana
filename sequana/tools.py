@@ -9,6 +9,8 @@ __all__ = ['bam_to_mapped_unmapped_fastq']
 
 try:
     _translate = string.maketrans('ACGTacgt', 'TGCAtgca')
+    def bytes(x,dummy):
+        return x
 except:
     _translate = bytes.maketrans(b'ACGTacgt', b'TGCAtgca')
 
