@@ -38,7 +38,7 @@ if config['fastq_sampling']['enable'] is True:
         run:
             shell("fastq_head {input} {params.N} {output}")
 else:
-    rule fasq_sampling:
+    rule fastq_sampling:
         # Using temp for the output is very important here. 
         # If the sym link stayed, this would create clashes in the other case
         # when input will be the same as output
