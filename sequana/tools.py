@@ -124,7 +124,7 @@ def bam_to_mapped_unmapped_fastq(filename, mode='pe'):
                 # This should be a single read
                 #assert self.is_paired is False
                 stats['unpaired'] += 1
-                if this.is_unmapped and this.mate_is_unmapped:
+                if this.is_unmapped:
                     R1_unmapped.write(txt)
                     stats['R1_unmapped'] += 1
                 else:
