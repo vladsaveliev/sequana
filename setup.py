@@ -7,7 +7,7 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 1
-_MICRO               = 0
+_MICRO               = 1
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -37,7 +37,7 @@ metainfo = {
 
 packages = find_packages()
 packages = [this for this in packages if this.startswith('test.') is False]
-packages = [this for this in packages if this not in ['test', 'scripts', 'pipelines']]
+packages = [this for this in packages if this not in ['test', 'pipelines']]
 
 setup(
     name             = "sequana",
