@@ -12,23 +12,23 @@ rule bwa_bam_to_fastq:
     -- information saved in {log}
     """
     input:
-        bam = "bwa_fix/contaminant.bam",
-        sam = "bwa_fix/contaminant.sam",
+        bam = "bwa_phix/contaminant.bam",
     params:
-        wkdir = "bwa_fix",
+        wkdir = "bwa_phix",
     output:
-        # 4 files are expected
-        "bwa_fix/contaminant_R1.mapped.fastq",
-        "bwa_fix/contaminant_R2.mapped.fastq",
-        "bwa_fix/contaminant_R1.unmapped.fastq",
-        "bwa_fix/contaminant_R2.unmapped.fastq",
-        "bwa_fix/fix_stats.json"
+        "bwa_phix/phix_stats.json"
     threads: 1
     run:
         from sequana.tools import bam_to_mapped_unmapped_fastq as bam2fastq
         stats = bam2fastq(input["bam"])
         import json
-        json.dump(stats, open("bwa_fix/fix_stats.json", "w"))
+        json.dump(stats, open("%s/phix_stats.json" % params.wkdir, "w"))
+
+        # zip the fastq files
+        import glob
+        tozip = glob.glob("%s/*.fastq")
+        for filename in tozip:
+            shell("pigz %s filename" )
 
 
 
