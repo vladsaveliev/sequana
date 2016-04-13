@@ -109,11 +109,25 @@ class SequanaReport(BaseReport):
 
         try:
             self.read_configfile(configfile)
+            # figure out the local files if any (in fastq_raw)
+            html = "<ul>"
+            if len(glob.glob('fastq_raw/*')):
+                for filename in glob.glob('fastq_raw/*'):
+                    html += '<li><a href="../%s">%s</a></li>\n' % (filename, filename)
+            else:
+                from sequana.snaketools import SequanaConfig
+                config = SequanaConfig(configfile)
+                if "input" in config.parameters.keys():
+                    for filename in glob.glob(config.parameters.input):
+                        html += '<li><a href="../%s">%s</a></li>\n' % (filename, filename)
+
+            html += "</ul>"
+            self.jinja['dataset'] = html
         except:
             pass
 
         try:
-            from sequana.snakemake import SnakeMakeStats
+            from sequana.snaketools import SnakeMakeStats
             s = SnakeMakeStats(stats)
             s.plot()
             import pylab
@@ -121,7 +135,7 @@ class SequanaReport(BaseReport):
             pylab.savefig(self.directory + os.sep + output_file)
             self.jinja['snakemake_stats'] = output_file
         except:
-            print('snakemake stats.txt not found')
+            print('snakemake stats.txt not found. Use "--stats stats.txt" next time')
 
 
         self.jinja['title'] = "Sequana Report"
