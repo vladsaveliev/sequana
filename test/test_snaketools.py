@@ -76,7 +76,6 @@ def _test_file_name_factory():
         assert ff.pathnames == ['']
         assert ff.pattern == 'test_snaketools.py'
 
-test_file_name_factory()
 
 
 
