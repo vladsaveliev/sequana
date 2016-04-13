@@ -1,0 +1,58 @@
+"""
+
+
+Takes fastq in fastq_sampling if possible, otherwise
+takes original data sets in fastq_raw
+
+Then, the code does::
+
+    bwa index reference
+    bwa mem -t {threads} -M reference fastq_files > output.sam
+    samtools view -bT reference output.sam -o output.bam
+"""
+import glob
+from sequana import snaketools as sm
+
+
+configfile: "config.yaml"
+
+
+# -- module definition
+
+_bwa_phix_dataset = sm.FileFactory(config['input']).dataset
+
+
+
+rule bwa_phix:
+    message: """
+    -- Running bwa index and bwa mem
+    -- information saved in {log}
+    """
+    input:
+        contaminant = config['bwa_phix']['reference'],
+        data = expand("fastq_raw/{dataset}", dataset=_bwa_phix_dataset)
+    params:
+        # fastq here must be a string not a list hence the join
+        wkdir = "bwa_phix",
+        fastq = " ".join(['fastq_raw/%s'%x for x in _bwa_phix_dataset])
+    output:
+        bam = "bwa_phix/contaminant.bam",
+        sam = "bwa_phix/contaminant.sam",
+    log: "logs/bwa_phix.log"
+    threads: 4
+    shell:
+        """
+        # a local copy of contaminant from input to bwa_contaminant
+        cp {input.contaminant} {params.wkdir}
+
+        # Create index
+        bwa index {params.wkdir}/{input.contaminant}
+
+        # Run bwa
+        bwa mem -t {threads}  -M {params.wkdir}/{input.contaminant} {params.fastq} > {output.sam}
+
+        # Run samtools
+        # -b output BAM
+        # -T reference
+        samtools view -bT {params.wkdir}/{input.contaminant} {output.sam} -o {output.bam}
+        """
