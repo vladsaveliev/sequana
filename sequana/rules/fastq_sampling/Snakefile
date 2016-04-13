@@ -3,72 +3,58 @@ Author: TC
 Affiliation: IP
 Aim: create a sample data set for quick testing
 Type: module
-
+Input: fastq_raw/{}*gz
+Output: fastq_sampling/{}*gz
 """
 import sequana.snaketools as sm
 
-"""fastq_sampling = {
-    'name': 'fastq_sampling',
-    'wildcards': ("fastq_sampling/{dataset}")
-    }
-"""
 
-name = 'fastq_sampling'
+__requires__ = ["fastq_sampling:enable", "fastq_sampling:N", "input"]
 
-try:
-    config[name] = {'N':10000, 'skip':"True", 'wkdir': name}
-except:
-    config = {}
-    config[name] = {'N':10000, 'skip':'True', 'wkdir': name}
-
-try:
-    configfile: "config.yaml"
-except:
-    pass
+configfile: "config.yaml"
 
 
-fastq_sampling_wc = ["fastq_sampling/{dataset}", sm.get_filenames("fastq_raw/*gz")]
-fastq_sampling_input = expand(fastq_sampling_wc[0], dataset=fastq_sampling_wc[1])
+fastq_sampling_factory = sm.FileFactory(config['input'])
+_fsf = fastq_sampling_factory
+
+_fsf_wkdir = "fastq_raw"
 
 
-if config['fastq_sampling']['skip']:
-    out = temp("fastq_sampling/{dataset}")
-    sm.message("skipping")
-else:
-    out = "fastq_sampling/{dataset}"
-    sm.message("include fastq_sampling")
 
-
+# This rule exists just for testing this Snakefile independently of a pipeline
 rule fastq_sampling_output:
     """This rule is used to make this pipeline independent"""
     input:
-        fastq_sampling_input
+        expand("%s/{dataset}" % _fsf_wkdir, dataset=_fsf.dataset)
 
 
-sm.message("-------->>>>" + str(out))
-
-
-rule fastq_sampling:
-    """Select a sample from raw FastQ files"""
-    input:  "fastq_raw/{dataset}"
-    output: out
-    params:
-        N = config[name]['N']
-    run:
-        # make sure sym links do not exists
-        if config['fastq_sampling']['skip']:
-            shell("ln -sf $(pwd)/{input} {output}")
-        else:
+if config['fastq_sampling']['enable'] is True:
+    rule fastq_sampling:
+        """Select a sample from raw FastQ files"""
+        input: _fsf.pathname + "{dataset}"
+        output: "%s/{dataset}" % _fsf_wkdir
+        params: N = config["fastq_sampling"]['N']
+        message: "fastq_sampling extracting %s reads" % config['fastq_sampling']['N']
+        run:
             shell("fastq_head {input} {params.N} {output}")
+else:
+    rule fasq_sampling:
+        # Using temp for the output is very important here. 
+        # If the sym link stayed, this would create clashes in the other case
+        # when input will be the same as output
+        input: _fsf.pathname + "{dataset}"
+        output: temp("%s/{dataset}" % _fsf_wkdir)
+        message: "fastq_sampling creating symbolic links"
+        run:
+            shell("ln -sf $(pwd)/{input} {output}")
 
 
 rule fastq_sampling_cleanup:
-    """A cleanup rule"""
-    params:
-        wkdir = config[name]['wkdir'],
+    params: wkdir = _fsf_wkdir,
+    message: "fastq_sampling rule cleanup (removing content of fastq_sampling)"
     run:
         import glob
-        filenames = glob.glob(params['wkdir']+'/*')
+        filenames = glob.glob(params['wkdir'] + '/*')
         for filename in filenames:
             print('removing %s' % filename)
             os.remove(filename)

@@ -1,5 +1,0 @@
-# 
-fastq_sampling:
-    skip: True
-    N: 100000
-
