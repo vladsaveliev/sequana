@@ -9,6 +9,8 @@ __all__ = ['bam_to_mapped_unmapped_fastq']
 
 try:
     _translate = string.maketrans('ACGTacgt', 'TGCAtgca')
+    def bytes(x,dummy):
+        return x
 except:
     _translate = bytes.maketrans(b'ACGTacgt', b'TGCAtgca')
 
@@ -44,91 +46,103 @@ def bam_to_mapped_unmapped_fastq(filename, mode='pe'):
         from the fastq qname are not stored in BAM.
     """
     bam = BAM(filename)
+    # figure out if this is paired or unpaired
 
     newname, ext = os.path.splitext(filename)
 
-    if mode == "pe":
-        import collections
-        stats = collections.defaultdict(int)
-        unpaired = 0
-        stats['R1_unmapped'] = 0
+    import collections
+    stats = collections.defaultdict(int)
+    stats['R1_unmapped'] = 0
+    stats['R1_mapped'] = 0
+
+    R1_mapped = open(newname + "_R1.mapped.fastq", "wb")
+    R1_unmapped = open(newname + "_R1.unmapped.fastq", "wb")
+    stats['duplicated'] = 0
+    stats['unpaired'] = 0
+
+    unpaired = 0
+
+    # if paired, let open other files
+    if bam.is_paired:
+        stats['mode'] = "pe"
         stats['R2_unmapped'] = 0
-        stats['R1_mapped'] = 0
         stats['R2_mapped'] = 0
-        stats['duplicated'] = 0
-        stats['unpaired'] = 0
-
-        R1_mapped = open(newname + "_R1.mapped.fastq", "wb")
         R2_mapped = open(newname + "_R2.mapped.fastq", "wb")
-        R1_unmapped = open(newname + "_R1.unmapped.fastq", "wb")
         R2_unmapped = open(newname + "_R2.unmapped.fastq", "wb")
+    else:
+        stats['mode'] = "se"
 
-        from easydev import Progress
-        pb = Progress(len(bam))
-        bam.reset()
-        for i, this in enumerate(bam):
-            # check that this is paired indeed
+
+    # loop through the BAM (make sure it is rewind)
+    bam.reset()
+
+    from easydev import Progress
+    pb = Progress(len(bam))
+    for i, this in enumerate(bam):
+        if this.flag & 256:
+            # Unmapped reads are in the BAM file but have no valid assigned
+            # position (N.B., they may have an assigned position, but it should be ignored).
+            # It's typically the case that a number of reads can't be aligned, due to things
+            # like sequencing errors, imperfect matches between the DNA sequenced and the
+            # reference, random e. coli or other contamination, etc..
+            # A secondary alignment occurs when a given read could align reasonably well to
+            # more than one place. One of the possible reported alignments is termed "primary"
+            # and the others will be marked as "secondary".
+            stats['secondary'] +=1 
             if this.is_paired is False:
                 stats['unpaired'] += 1
-                # What to do in such case ?
-            elif this.flag & 256:
-                # Unmapped reads are in the BAM file but have no valid assigned
-                # position (N.B., they may have an assigned position, but it should be ignored).
-                # It's typically the case that a number of reads can't be aligned, due to things
-                # like sequencing errors, imperfect matches between the DNA sequenced and the
-                # reference, random e. coli or other contamination, etc..
-                # A secondary alignment occurs when a given read could align reasonably well to
-                # more than one place. One of the possible reported alignments is termed "primary"
-                # and the others will be marked as "secondary".
-                stats['secondary'] +=1 
+        else:
+            # inpysam, seq is a string and qual a bytes....
+            if this.is_reverse is True:
+                #print("reversed complement entry %s" % i)
+                txt = b"@" + bytes(this.qname, "utf-8") + b"\n"
+                revcomp = reverse_complement(this.seq)
+                txt += bytes(revcomp, "utf-8") + b"\n"
+                txt += b"+\n"
+                txt += bytes(this.qual[::-1], 'utf-8') + b"\n"
             else:
-                # inpysam, seq is a string and qual a bytes....
-                if this.is_reverse is True:
-                    #print("reversed complement entry %s" % i)
-                    txt = b"@" + bytes(this.qname, "utf-8") + b"\n"
-                    revcomp = reverse_complement(this.seq)
-                    txt += bytes(revcomp, "utf-8") + b"\n"
-                    txt += b"+\n"
-                    txt += bytes(this.qual[::-1], 'utf-8') + b"\n"
-                else:
-                    txt = b"@" + bytes(this.qname, "utf-8") + b"\n"
-                    txt += bytes(this.seq, "utf-8") + b"\n"
-                    txt += b"+\n"
-                    txt += bytes(this.qual,"utf-8") + b"\n"
+                txt = b"@" + bytes(this.qname, "utf-8") + b"\n"
+                txt += bytes(this.seq, "utf-8") + b"\n"
+                txt += b"+\n"
+                txt += bytes(this.qual,"utf-8") + b"\n"
 
-                # Here, we must be careful as to keep the pairs. So if R1 is mapped
-                # but R2 is unmapped (or the inverse), then the pair is mapped
-                print(txt)
-                if this.is_read1:
-                    if this.is_unmapped and this.mate_is_unmapped:
-                        R1_unmapped.write(txt)
-                        stats['R1_unmapped'] += 1
-                    else:
-                        R1_mapped.write(txt)
-                        stats['R1_mapped'] += 1
-                elif this.is_read2:
-                    if this.is_unmapped and this.mate_is_unmapped:
-                        R2_unmapped.write(txt)
-                        stats['R2_unmapped'] += 1
-                    else:
-                        R2_mapped.write(txt)
-                        stats['R2_mapped'] += 1
+            # Here, we must be careful as to keep the pairs. So if R1 is mapped
+            # but R2 is unmapped (or the inverse), then the pair is mapped
+            if this.is_read1:
+                if this.is_unmapped and this.mate_is_unmapped:
+                    R1_unmapped.write(txt)
+                    stats['R1_unmapped'] += 1
                 else:
-                    #pass
-                    print("Neither R1 or R2")
-                if this.is_duplicate:
-                    stats['duplicated'] += 1
-            pb.animate(i+1)
+                    R1_mapped.write(txt)
+                    stats['R1_mapped'] += 1
+            elif this.is_read2:
+                if this.is_unmapped and this.mate_is_unmapped:
+                    R2_unmapped.write(txt)
+                    stats['R2_unmapped'] += 1
+                else:
+                    R2_mapped.write(txt)
+                    stats['R2_mapped'] += 1
+            else:
+                # This should be a single read
+                #assert self.is_paired is False
+                stats['unpaired'] += 1
+                if this.is_unmapped:
+                    R1_unmapped.write(txt)
+                    stats['R1_unmapped'] += 1
+                else:
+                    R1_mapped.write(txt)
+                    stats['R1_mapped'] += 1
 
-        print("\nNumber of entries in the BAM: %s" % str(i+1))
-        R1_mapped.close()
+            if this.is_duplicate:
+                stats['duplicated'] += 1
+        pb.animate(i+1)
+
+    if bam.is_paired:
         R2_mapped.close()
-        R1_unmapped.close()
         R2_unmapped.close()
-        return stats
-    elif mode == "se":
-        raise NotImplementedError
-    else:
-        raise ValueError("mode must be se or pe")
+    print("\nNumber of entries in the BAM: %s" % str(i+1))
+    R1_mapped.close()
+    R1_unmapped.close()
+    return stats
 
 

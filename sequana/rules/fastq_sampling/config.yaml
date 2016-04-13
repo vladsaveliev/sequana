@@ -1,0 +1,7 @@
+
+input: "../A571*gz"
+
+fastq_sampling:
+    enable: True
+    N: 100000
+

@@ -16,7 +16,7 @@ def test_report():
     stats = sequana_data("test_snakemake_stats.txt", "testing")
 
     from sequana import Module
-    module = Module('fix_removal')
+    module = Module('phix_removal')
     
 
     r = SequanaReport(snakefile=module.snakefile, configfile=module.config,

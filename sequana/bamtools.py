@@ -103,17 +103,20 @@ class BAM(pysam.AlignmentFile):
         # Let us save the length (handy and use in other places).
         # If is is a SAM file, the rewind does not work and calling it again wil
         # return 0. This may give us a hint that it is a SAM file
-        self.N = len(self)
+        self.reset()
+        self.N = sum(1 for _ in self) 
+        self.reset()
+
+        # Figure out if the data is paired-end or not
+        # I believe that checking just one alignement is enough.
+        self.is_paired = next(self).is_paired
+        self.reset()
 
         # running a second time the len() should return the correct answer with
         # BAM files but the SAM will not work and return 0
         if len(self) == 0:
             raise ValueError("Convert your SAM file to a BAM file please")
 
-        # since we called len(), let us reset the iterator so that if the user
-        # decide to use the BAM data structure, it will work at least once as
-        # expected by the pysam API
-        self.reset()
 
     @seek
     def get_read_names(self):
@@ -133,10 +136,9 @@ class BAM(pysam.AlignmentFile):
         mapped = (this.qname for this in self if this.is_unmapped is False)
         return mapped
 
-    @seek
     def __len__(self):
-        N = len([x for x in self])
-        return N
+        return self.N
+        
 
     @seek
     def get_flags(self):

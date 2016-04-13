@@ -36,15 +36,56 @@ def test_expanded_snakefile():
         assert True
     #TODO remove the file just created (Snakefile.expanded)
 
+
 def test_get_tagname():
     assert get_tagname("test") == "test"
     assert get_tagname("test.txt") == "test"
     assert get_tagname("prefix/test.txt") == "test"
 
+
 def test_module():
     m = snaketools.Module('dag')
     m.description
 
+
 def test_valid_config():
-    s = snaketools.Module("fix_removal")
+    s = snaketools.Module("phix_removal")
     config = snaketools.SequanaConfig(s.config)
+
+
+def _test_file_name_factory():
+    # __file__ should contain either "test_snaketools.py" in local mode
+    # or test/test_snaketools
+    if __file__.startswith('test/'):
+        ff = snaketools.FileFactory("test/test_snaketools.py")
+        #assert ff.dataset == ["test_snaketools.py"]
+        #assert ff.dataset_noext == ['test_snaketools']
+        #assert ff.extensions == ['.py']
+        #assert ff.filenames == ['test_snaketools.py']
+        #assert ff.pathname == 'test/'
+        #assert ff.pathnames == ['test']
+        assert ff.pattern == 'test/test_snaketools.py'
+    else:
+        print(2)
+        ff = snaketools.FileFactory("test_snaketools.py")
+        assert ff.dataset == ["test/test_snaketools.py"]
+        assert ff.dataset_noext == ['test_snaketools']
+        assert ff.extensions == ['.py']
+        assert ff.filenames == ['test_snaketools.py']
+        assert ff.pathname == '/'
+        assert ff.pathnames == ['']
+        assert ff.pattern == 'test_snaketools.py'
+
+
+
+
+
+
+
+
+
+
+
+
+
+

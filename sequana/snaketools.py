@@ -31,6 +31,7 @@ import pandas as pd
 import pylab
 
 try:
+    # This is for python2.7
     import snakemake
 except:
     print("Snakemake must be installed. Available for Python3 only")
@@ -52,7 +53,7 @@ class ExpandedSnakeFile(object):
     a Snakefile may look like::
 
         from sequana import snaketools as sm
-        include: sm.modules['bwa_fix']
+        include: sm.modules['bwa_phix']
         include: sm.modules['fastqc']
 
     This is nice and compact but we do not see anymore what the Snakefile does.
@@ -308,6 +309,17 @@ class Module(object):
 
 """)
 
+    def onweb(self):
+        #TOD: automatic switch
+        from easydev import onweb
+        if "rules" in self._path:
+            onweb("http://github.com/sequana/sequana/tree/"
+                  "master/sequana/rules/%s" % self.name)
+        else:
+            onweb("http://github.com/sequana/sequana/tree/"
+                  "master/sequana/pipelines/%s" % self.name)
+
+
 
 def _get_modules_snakefiles():
     modules = {}
@@ -330,7 +342,6 @@ class SequanaConfig(object):
         >>> vc = SequanaConfig(config)
         >>> config.e == 1
         True
-
 
     """
     def __init__(self, filename):
@@ -397,21 +408,19 @@ class DOTParser(object):
                     name = name.replace(",","")
                     name = name.replace('"',"")
                     name = name.strip()
-                    if name in ['dag', 'report', 'all']:
-                        #print('Skipping %s' % name)
-                        fout.write(line +  "\n")
+                    if name in ['dag', 'conda']:
+                        pass
+                    elif name in ['report', 'all', "bwa_bam_to_fastq"] or \
+                            "dataset:" in line:
+                        # redirect to the main page
+                        newline = lhs + ' URL="index.html" target="_parent", '
+                        newline += separator + rhs
+                        fout.write(newline + "\n")
                     else:
-                        #print('adding %s' % name)
-                        # This does not work well: open link inside a subframe
-                        #newline = lhs + ' URL="%s.html" , ' % name
-                        #
-                        #newline = lhs + ' URL="%s.html" target="_blank", ' % name
-
+                        # redirect to another report
                         newline = lhs + ' URL="%s.html" target="_parent", ' % name
                         newline += separator + rhs
                         fout.write(newline + "\n")
-
-    #  label="cutadapt.html", URL="cutadapt.html", target="_blank",
 
 
 def get_tagname(filename):
@@ -432,21 +441,50 @@ def get_tagname(filename):
     return name
 
 
-def get_filenames(wildcard):
-    """Return filenames without fullpath for a given wildcards
+class FileFactory(object):
+    """
 
-    ::
-        
-        filenames = get_filenames("/home/user/*")
-
-    .. warning:: not good naming. will be renamed or removed
+        ff = FileNameFactory("../*")
+        ff.dataset
 
     """
-    import os
-    import glob
-    filenames = glob.glob(wildcard)
-    filenames = [os.path.split(filename)[1] for filename in filenames]
-    return filenames
+    def __init__(self, pattern):
+        self.pattern = pattern
+        self._glob = glob.glob(pattern)
+
+    def _get_filenames(self):
+        filenames = [os.path.split(filename)[1] for filename in self._glob]
+        return filenames
+    dataset = property(_get_filenames)
+    filenames = property(_get_filenames)
+
+    def _get_dataset_no_ext(self):
+        filenames = [os.path.splitext(filename)[0] for filename in self.filenames]
+        return filenames
+    dataset_noext = property(_get_dataset_no_ext)
+
+    def _get_dataset_no_ext(self):
+        filenames = [filename.split('.', 1)[0] for filename in self.filenames]
+        return filenames
+    dataset_noexts = property(_get_dataset_no_ext)
+
+    def _pathnames(self):
+        pathnames = [os.path.split(filename)[0] for filename in self._glob]
+        return pathnames
+    pathnames = property(_pathnames)
+
+    def _pathname(self):
+        pathname = set(self.pathnames)
+        if len(pathname) == 1:
+            return list(pathname)[0] + os.sep
+        else:
+            raise ValueError("found more than one pathname")
+    pathname = property(_pathname)
+
+    def _get_extensions(self):
+        filenames = [os.path.splitext(filename)[1] for filename in self._glob]
+        return filenames
+    extensions = property(_get_extensions)
 
 
 def get_cleanup_rules(filename):
