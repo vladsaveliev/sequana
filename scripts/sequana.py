@@ -21,6 +21,8 @@ class Options(argparse.ArgumentParser):
                 help="Get the snakefile and config file and possible other files")
         self.add_argument("--info", dest='info', type=str,
                 required=False, help="Open README on the web")
+        self.add_argument("--version", dest='version',
+                action="store_true", help="print version")
 
 
 def main(args=None):
@@ -32,10 +34,13 @@ def main(args=None):
     user_options = Options(prog="sequana")
     if len(args) == 1:
         user_options.parse_args(["prog", "--help"])
-    elif len(args) == 2:
-        print(user_options)
     else:
        options = user_options.parse_args(args[1:])
+
+    if options.version:
+        import sequana
+        print(sequana.version)
+        sys.exit(0)
 
     if options.info:
         module = Module(options.info)
