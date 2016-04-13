@@ -104,8 +104,12 @@ class BAM(pysam.AlignmentFile):
         # If is is a SAM file, the rewind does not work and calling it again wil
         # return 0. This may give us a hint that it is a SAM file
         self.reset()
-        print("Computing length of the BAM file")
         self.N = sum(1 for _ in self) 
+        self.reset()
+
+        # Figure out if the data is paired-end or not
+        # I believe that checking just one alignement is enough.
+        self.is_paired = next(self).is_paired
         self.reset()
 
         # running a second time the len() should return the correct answer with
