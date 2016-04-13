@@ -1,0 +1,37 @@
+
+
+
+include: sm.modules['dag']     # Create DAG file
+include: sm.modules['conda']   # Create requirements.txt(dependencies)
+
+
+rule report_phix_removal:
+    input:
+        dag = "dag.svg",
+        conda = "report/requirements.txt",
+        other = "bwa_phix/phix_stats.json", 
+        fastqc = "fastqc/fastqc.done",
+    output: 
+        "report/index.html", 
+        "report/bwa_phix.html"
+    run:
+        from sequana import report_main
+        from sequana import report_phix
+        from sequana import report_fastqc
+
+        # Main page
+        s = report_main.SequanaReport()
+        s.create_report()
+
+        # Phix page
+        s = report_phix.PhixReport(output_filename="bwa_phix.html")
+        s.input_filename = "bwa_phix/phix_stats.json"
+        s.create_report()
+
+        s = report_fastqc.FastQCReport()
+        s.create_report()
+
+        shell("cp Snakefile report/")
+        shell("cp dag.svg report/")
+
+
