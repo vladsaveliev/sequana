@@ -3,8 +3,10 @@ configfile: "config.yaml"
 
 import sequana.snaketools as sm
 
-_fastqc = sm.FileFactory("fastq_raw/*gz")
 
+# Should use a config file
+_fastqc = sm.FileFactory("fastq_raw/*gz")
+_fastqc_bwa_fix = sm.FileFactory("bwa_fix/*gz")
 
 
 rule fastqc:
@@ -12,16 +14,10 @@ rule fastqc:
     # we could have a dynamic search or based on config file
     input:
         expand("fastq_raw/{dataset}", dataset=_fastqc.dataset),
-        expand("bwa_fix/{dataset}.unmapped.fastq",
-            dataset=['contaminant_R1', 'contaminant_R2']),
-        expand("bwa_fix/{dataset}.mapped.fastq",
-            dataset=['contaminant_R1', 'contaminant_R2']),
+        expand("bwa_fix/{dataset}", dataset=_fastqc_bwa_fix.dataset),
     output:
         expand("fastqc/{dataset}_fastqc.html", dataset=_fastqc.dataset_noexts),
-        expand("fastqc/{dataset}.unmapped_fastqc.html",
-            dataset=['contaminant_R1', 'contaminant_R2']),
-        expand("fastqc/{dataset}.mapped_fastqc.html",
-            dataset=['contaminant_R1', 'contaminant_R2']),
+        expand("fastqc/{dataset}_fastqc.html", dataset=_fastqc_bwa_fix.dataset_noexts),
         touch("fastqc/fastqc.done")
     params:
         wkdir="fastqc",
