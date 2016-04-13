@@ -174,16 +174,29 @@ class Bed_genomecov(object):
                 start = stop
                 prev = stop
         return merge_df
-                
-
 
     def plot_coverage(self, fontsize=16, filename=None, rm="rm"):
         """ Plot coverage as a function of position.
 
         """
+        pylab.clf()
         self.df[["cov",rm]].plot(grid=True, color=["b", "r"])
         pylab.xlabel("Position", fontsize=fontsize)
         pylab.ylabel("Coverage", fontsize=fontsize)
+        try:
+            pylab.tight_layout()
+        except:
+            pass
+        if filename:
+            pylab.savefig(filename)
+
+    def plot_hist(self, fontsize=16, filename=None, label="zscore"):
+        """ Barplot of zscore
+
+        """
+        pylab.clf()
+        self.df[label].hist(grid=True, color="b", bins=50)
+        pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
         except:
@@ -210,7 +223,8 @@ class MappingReport(BaseReport):
     def parse(self):
         self.mapping.plot_coverage(filename=self.directory + os.sep + 
                                             "coverage.png")
-        
+        self.mapping.plot_hist(filename=self.directory + os.sep + 
+                                            "zscore_hist.png")
         low_cov_df = self.mapping.get_low_coverage(self.low_t)
         merge_low_cov = self.mapping.merge_region(low_cov_df)
         html = HTMLTable(merge_low_cov)
