@@ -405,9 +405,7 @@ class DOTParser(object):
             for line in data.split("\n"):
                 if "[label =" not in line:
                     if " -> " in line:
-                        print(indices_to_drop)
                         label = line.split(" -> ")[0].strip()
-                        
                         if label not in indices_to_drop:
                             fout.write(line + "\n")
                     else:
