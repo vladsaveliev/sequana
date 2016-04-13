@@ -739,37 +739,36 @@ class FastQC(object):
 
         # could use multiprocessing
         fastq = pysam.FastxFile(self.filename)
-        if 1 == 1:
-            count = 0
-            for record in fastq:
-                # keep track of min/max sequence length
-                N = len(record.sequence)
-                if N < minimum:
-                    minimum = N
-                if N > maximum:
-                    maximum = N
-                self.nucleotides += N
+        count = 0
+        for record in fastq:
+            # keep track of min/max sequence length
+            N = len(record.sequence)
+            if N < minimum:
+                minimum = N
+            if N > maximum:
+                maximum = N
+            self.nucleotides += N
 
-                import numpy as np
+            import numpy as np
 
-                quality = record.get_quality_array()
-                qualities.append(quality)
-                mean_qualities.append(np.mean(quality))
+            quality = record.get_quality_array()
+            qualities.append(quality)
+            mean_qualities.append(np.mean(quality))
 
-                if count > self.sample:
-                    break
-                identifier = Identifier(record.name)
-                self.identifiers.append(identifier.info)
+            if count > self.sample:
+                break
+            identifier = Identifier(record.name)
+            self.identifiers.append(identifier.info)
 
-                sequence = record.sequence
-                sequences.append(sequence)
+            sequence = record.sequence
+            sequences.append(sequence)
 
-                GC = sequence.count('G') + sequence.count('C')
-                self.gc_list.append(GC)
-                self.N_list.append(sequence.count('N'))
+            GC = sequence.count('G') + sequence.count('C')
+            self.gc_list.append(GC)
+            self.N_list.append(sequence.count('N'))
 
-                count += 1
-                pb.animate(count)
+            count += 1
+            pb.animate(count)
 
         # other data
         self.gc_content = sum(self.gc_list) / float(self.nucleotides)
@@ -835,7 +834,6 @@ class FastQC(object):
             bx.plot(ax=ax)
         except:
             bx.plot()
-            
 
     @run_info
     def histogram_sequence_coordinates(self):
