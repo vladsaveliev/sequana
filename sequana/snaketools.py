@@ -132,6 +132,9 @@ class SnakeMakeStats(object):
         """Create the barplot from the stats file"""
         df = pd.DataFrame(self._parse_data()['rules'])
         ts = df.ix['mean-runtime']
+        ts['total'] = self._parse_data()['total_runtime']
+        ts.sort_values(inplace=True)
+
         ts.plot.barh(fontsize=fontsize)
         pylab.grid(True)
         pylab.xlabel("Seconds (s)", fontsize=fontsize)
@@ -398,9 +401,17 @@ class DOTParser(object):
             data = fh.read()
 
         with open(self.filename.replace(".dot", ".ann.dot"), "w") as fout:
+            indices_to_drop = []
             for line in data.split("\n"):
                 if "[label =" not in line:
-                    fout.write(line + "\n")
+                    if " -> " in line:
+                        print(indices_to_drop)
+                        label = line.split(" -> ")[0].strip()
+                        
+                        if label not in indices_to_drop:
+                            fout.write(line + "\n")
+                    else:
+                        fout.write(line + "\n")
                 else:
                     separator = "color ="
                     lhs, rhs = line.split(separator)
@@ -409,7 +420,8 @@ class DOTParser(object):
                     name = name.replace('"',"")
                     name = name.strip()
                     if name in ['dag', 'conda']:
-                        pass
+                        index = lhs.split("[")[0]
+                        indices_to_drop.append(index.strip())
                     elif name in ['report', 'all', "bwa_bam_to_fastq"] or \
                             "dataset:" in line:
                         # redirect to the main page
@@ -421,6 +433,7 @@ class DOTParser(object):
                         newline = lhs + ' URL="%s.html" target="_parent", ' % name
                         newline += separator + rhs
                         fout.write(newline + "\n")
+                        
 
 
 def get_tagname(filename):
