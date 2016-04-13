@@ -1,0 +1,43 @@
+"""
+Author: Thomas Cokelaer
+Affiliation: Institut Pasteur
+Aim: Find Fix contaminant in the fastq
+Data: paired end to be placed inside ./fastq_raw
+Run: snakemake -s Snakefile
+Changelog:
+"""
+from sequana import snaketools as sm
+
+# This must be defined before the include 
+configfile: "config.yaml"
+
+# The actual pipeline
+include: sm.modules["fastq_sampling"]    # include sampling of original data
+include: sm.modules['bwa_phix']           # Search for the Fix
+include: sm.modules['bwa_bam_to_fastq']  # Save mapped and unmapped data in bwa_phix/
+include: sm.modules['fastqc']            # quality control
+include: sm.modules['cleanup']           # Possibly one can cleanup things (for testing)
+include: sm.modules['report_phix_removal']# Report + DAG + CONDA 
+
+
+
+
+############# NOTHING to change here below
+_dataset = sm.FileFactory(config['input']).dataset
+
+
+rule all:
+    input:
+        # required to start the pipeline (of fastq_sampling)
+        expand("fastq_raw/{dataset}", dataset=_dataset),
+        "bwa_phix/phix_stats.json",
+        "fastqc/fastqc.done",
+        "report/index.html",
+        "report/bwa_phix.html"
+    version: sequana.version
+
+
+
+rule general_cleanup:
+    params: cleanup=["report.html"]
+
