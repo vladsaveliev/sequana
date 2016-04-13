@@ -10,14 +10,14 @@ pathdata = data.__path__[0]
 
 def test_genomecov():
     mydata = bedtools.genomecov(pathdata + os.sep + "test.bed")
-    assert mydata.running_median(n=3, circular=True)
-    assert mydata.running_median(n=3, circular=False)
-    assert mydata.coverage_scaling()
-    assert mydata.compute_zscore()
-    assert mydata.get_low_coverage()
-    assert mydata.get_high_coverage()
-    assert mydata.merge_region(mydata.df)
+    mydata.running_median(n=3, circular=True)
+    mydata.running_median(n=3, circular=False)
+    mydata.coverage_scaling()
+    mydata.compute_zscore()
+    mydata.get_low_coverage()
+    mydata.get_high_coverage()
+    mydata.merge_region(mydata.df)
     with TempFile(suffix='.png') as fh:
-        mydata.plot_coverage(filename=fh)
-    with TempDile(suffix='.png') as fh:
-        mydata.plot_hist(filename=fh)
+        mydata.plot_coverage(filename=fh.name)
+    with TempFile(suffix='.png') as fh:
+        mydata.plot_hist(filename=fh.name)
