@@ -1,0 +1,11 @@
+rule bedtools_genomecov:
+    input:
+        "sorted/" + config["output"] + ".bam"
+    output:
+        "genomecov/" + config["output"] + ".bed"
+    params:
+        kargs = config["bedtools"]
+    shell:
+        """
+        bedtools genomecov {params.kargs} -ibam {input} > {output}
+        """

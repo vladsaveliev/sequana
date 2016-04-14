@@ -14,7 +14,7 @@ SEQUANA
     :target: http://sequana.readthedocs.org/en/latest/?badge=latest
     :alt: Documentation Status
 
-:Python version: Python 2.7, 3.4 and 3.5
+:Python version: Python 2.7 and 3.5
 :Online documentation: `On readthedocs <http://sequana.readthedocs.org/>`_
 :Issues and bug reports: `On github <https://github.com/sequana/sequana/issues>`_
 

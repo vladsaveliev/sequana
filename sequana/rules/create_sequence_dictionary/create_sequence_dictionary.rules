@@ -1,0 +1,21 @@
+get_prefixes = lambda filename: filename.split(".")[0]
+REF_PREFIX = get_prefixes(config["ref"])
+
+rule create_sequence_dictionary:
+    input:
+        ref = config["ref"]
+    output:
+        REF_PREFIX + ".dict"
+    log:
+        out = config["output"] + 
+            "_logs/picard_tools/CreateSequenceDictionary/stdout.logs",
+        err = config["output"] + 
+            "_logs/picard_tools/CreateSequenceDictionary/stderr.logs"
+    shell:
+        """
+	if [[ ! -a {output} ]];
+        then
+            picard CreateSequenceDictionary \
+            R={input.ref} O={output} > {log.out} 2> {log.err}
+        fi
+        """

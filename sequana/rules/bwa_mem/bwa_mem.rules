@@ -1,0 +1,31 @@
+"""Read mapping for either single end and paired end data using BWA and samtools.
+
+input:
+    fastq -> list with your fastq.gz (R1, R2)
+    ref -> reference's fastq file
+    index -> reference's bwt file
+"""
+
+FASTQ = sorted([value for key, value in config["samples"].items()])
+
+# Rule -------------------------------------------------------------------------
+
+rule bwa_mem:
+    input:
+        fastq = FASTQ,
+        ref = config["ref"],
+        bwt = config["ref"] + ".bwt"
+    output:
+        "mapped/" + config["output"] + ".bam"
+    log:
+        config["output"] + "_logs/bwa_mem.logs"
+    params:
+        kwargs = config["bwa_mem"]["kwargs"]
+    threads:
+        config["bwa_mem"]["threads"]
+    shell:
+        """
+        (bwa mem {params.kwargs} -t {threads} \
+        {input.ref} {input.fastq} | \
+        samtools view -Sbh -> {output}) 2> {log}
+        """

@@ -1,0 +1,24 @@
+rule indel_realigner:
+    input:
+        bam = indel_realigner_input,
+        ref = config["ref"],
+        ref_dict = REF_PREFIX + ".dict"
+    output:
+        bam = "indel_realigner/" + config["output"] + ".bam",
+        intervals = "indel_realigner/" + config["output"] + ".intervals"
+    log:
+        out = config["output"] + "_logs/gatk/IndelRealigner/stdout.logs",
+        err = config["output"] + "_logs/gatk/IndelRealigner/stderr.logs"
+    params:
+        gatk = config["gatk_bin"]
+    shell:
+        """
+        samtools index {input.bam}
+
+        {params.gatk} -T RealignerTargetCreator -R {input.ref} \
+        -I {input.bam} -o {output.intervals} > {log.out} 2> {log.err}
+
+        {params.gatk} -T IndelRealigner -R {input.ref} -I {input.bam} \
+        -targetIntervals {output.intervals} -o {output.bam} >> {log.out} \
+        2>> {log.err}
+        """
