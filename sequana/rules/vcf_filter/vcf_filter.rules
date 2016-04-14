@@ -1,0 +1,9 @@
+rule vcf_filter:
+    input:
+        vcf = "freebayes/" + config["output"] + ".vcf"
+    output:
+        vcf = "vcf_filter/" + config["output"] + ".vcf"
+    run:
+        from sequana import vcf_filter
+        vcf_record = vcf_filter.VCF(input["vcf"])
+        vcf_record.filter_vcf(config["vcf_filter"], output["vcf"])

@@ -1,0 +1,56 @@
+# list of your input file
+samples:
+    file1: pKM2-EGFP-V-f_S2_L001_R1_001.fastq.gz
+
+# output prefix
+output: pKM2-EGFP-V-f_S2_L001
+
+# reference
+ref: pKM2-eGFP.fa
+
+# Directory with rules
+rules_dir: /home/desvillechabrol/Documents/pasteur/pipeline/mapping_modularization/rules/
+
+# GATK is absent in conda because it is not a free software
+# You must set the GATK bin path.
+# gatk_bin: "java -jar /path/to/GenomeAnalysisTK.jar"
+gatk_bin: GenomeAnalysisTK
+
+# Software parameters
+
+add_read_group:
+    RGID=: 1
+    RGLB=: lib1
+    RGPL=: illumina
+    RGPU=: unit1
+    RGSM=: 20
+
+bedtools: "-d"
+
+bwa_index:
+    -a: "is"
+
+bwa_mem:
+    threads: 2
+    kwargs: ""
+
+freebayes:
+    --ploidy: 1
+
+indel_realigner:
+    do: yes
+
+mark_duplicates:
+    do: yes
+
+report_mapping:
+    do: yes
+    window_size: 1001
+    high_threshold: 3
+    low_threshold: -3
+
+vcf_filter:
+    QUAL: 100
+    FREQ: 0.7
+    INFO:
+        DP: ">= 10"
