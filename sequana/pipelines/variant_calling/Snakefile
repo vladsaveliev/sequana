@@ -7,34 +7,35 @@ indel_realigner_input = "add_read_group/" + config["output"] + ".bam"
 freebayes_input = "add_read_group/" + config["output"] + ".bam"
 
 # Mapping
-include: config["rules_dir"] + "bwa_index.rules"
-include: config["rules_dir"] + "bwa_mem.rules"
-include: config["rules_dir"] + "samtools_sort.rules"
-include: config["rules_dir"] + "add_read_group.rules"
+include: config["rules_dir"] + "bwa_index/bwa_index.rules"
+include: config["rules_dir"] + "bwa_mem/bwa_mem.rules"
+include: config["rules_dir"] + "samtools_sort/samtools_sort.rules"
+include: config["rules_dir"] + "add_read_group/add_read_group.rules"
 
 # Mapping report
 if config["report_mapping"]["do"]:
-    include: config["rules_dir"] + "bed_genomecov.rules"
-    include: config["rules_dir"] + "report_mapping.rules"
+    include: config["rules_dir"] + "bed_genomecov/bed_genomecov.rules"
+    include: config["rules_dir"] + "report_mapping/report_mapping.rules"
     final_output.append("report/mapping.html")
 
 # Mark duplicates
 if config["mark_duplicates"]["do"]:
-    include: config["rules_dir"] + "mark_duplicates.rules"
+    include: config["rules_dir"] + "mark_duplicates/mark_duplicates.rules"
     indel_realigner_input = "mark_duplicates/" + config["output"] + ".bam"
     freebayes_input = "mark_duplicates/" + config["output"] + ".bam"
     
 # Indel realigner
 if config["indel_realigner"]["do"]:
-    include: config["rules_dir"] + "create_sequence_dictionary.rules"
-    include: config["rules_dir"] + "indel_realigner.rules"
+    include: config["rules_dir"] + 
+        "create_sequence_dictionary/create_sequence_dictionary.rules"
+    include: config["rules_dir"] + "indel_realigner/indel_realigner.rules"
     freebayes_input = "indel_realigner/" + config["output"] + ".bam"
 
 # Variant calling
-include: config["rules_dir"] + "freebayes.rules"
+include: config["rules_dir"] + "freebayes/freebayes.rules"
 
 # VCF filter
-include: config["rules_dir"] + "vcf_filter.rules"
+include: config["rules_dir"] + "vcf_filter/vcf_filter.rules"
 
 # Snakemake --------------------------------------------------------------------
 
