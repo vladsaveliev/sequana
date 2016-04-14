@@ -1,0 +1,12 @@
+rule samtools_sort:
+    input:
+        bam = "mapped/" + config["output"] + ".bam"
+    output:
+        sort = "sorted/" + config["output"] + ".bam"
+    log:
+        config["output"] + "_logs/samtools.log"
+    shell:
+        """
+        samtools sort -o {output.sort} {input.bam} 2> {log}
+        samtools index {output.sort} 2>> {log}
+        """

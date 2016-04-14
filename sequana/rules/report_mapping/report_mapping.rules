@@ -1,0 +1,24 @@
+rule report_mapping:
+    input:
+        bed = "genomecov/" + config["output"] + ".bed"
+    output:
+        "report/mapping.html"
+    params:
+        size = config["report_mapping"]["window_size"],
+        high = config["report_mapping"]["high_threshold"],
+        low = config["report_mapping"]["low_threshold"]
+    run:
+        import matplotlib as mpl
+        mpl.use('Agg')
+        from sequana import bedtools
+        from sequana import report_mapping
+
+        mydata = bedtools.genomecov(input["bed"])
+        mydata.running_median(n=params["size"], circular=True)
+        mydata.coverage_scaling()
+        mydata.compute_zscore()
+
+        r = report_mapping.MappingReport(low_threshold=params["low"], 
+            high_threshold=params["high"])
+        r.set_data(mydata)
+        r.create_report()
