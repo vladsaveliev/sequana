@@ -13,7 +13,7 @@ def test_dot_parser():
 
 def test_modules():
     assert "dag" in snaketools.modules.keys()
-    assert snaketools.modules['dag'].endswith("Snakefile.dag")
+    assert snaketools.modules['dag'].endswith("dag.rules")
 
 def test_getcleanup_rules():
     filename =  snaketools.modules['fastq_sampling']

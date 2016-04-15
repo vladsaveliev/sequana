@@ -125,7 +125,7 @@ def test_identifiers():
 
 
 def test_fastqc():
-    qc = fastq.FastQC(data)
+    qc = fastq.FastQC(data, dotile=True)
     qc.boxplot_quality()
     qc.histogram_gc_content()
     qc.imshow_qualities()
