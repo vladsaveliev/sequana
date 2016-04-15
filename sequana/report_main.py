@@ -111,20 +111,23 @@ class SequanaReport(BaseReport):
             self.read_configfile(configfile)
             # figure out the local files if any (in fastq_raw)
             html = "<ul>"
-            if len(glob.glob('fastq_raw/*')):
-                for filename in glob.glob('fastq_raw/*'):
+            if len(glob.glob('fastq_raw/*gz')):
+                for filename in glob.glob('fastq_raw/*gz'):
                     html += '<li><a href="../%s">%s</a></li>\n' % (filename, filename)
             else:
                 from sequana.snaketools import SequanaConfig
                 config = SequanaConfig(configfile)
-                if "input" in config.parameters.keys():
-                    for filename in glob.glob(config.parameters.input):
+                if "glob" in config.parameters.keys():
+                    for filename in glob.glob(config.parameters.glob):
                         html += '<li><a href="../%s">%s</a></li>\n' % (filename, filename)
 
             html += "</ul>"
             self.jinja['dataset'] = html
         except:
             pass
+
+        #any stats compute ??
+
 
         try:
             from sequana.snaketools import SnakeMakeStats

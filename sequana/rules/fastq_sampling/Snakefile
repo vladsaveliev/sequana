@@ -6,56 +6,38 @@ Type: module
 Input: fastq_raw/{}*gz
 Output: fastq_sampling/{}*gz
 """
-import sequana.snaketools as sm
+from sequana.snaketools import FileFactory
+
+__sequana__fastq_sampling = [":enable", ":N", "samples:glob"]
 
 
-__requires__ = ["fastq_sampling:enable", "fastq_sampling:N", "input"]
+_fsf = FileFactory(config['samples']['glob'])
 
-configfile: "config.yaml"
-
-
-fastq_sampling_factory = sm.FileFactory(config['input'])
-_fsf = fastq_sampling_factory
-
-_fsf_wkdir = "fastq_raw"
-
-
-
-# This rule exists just for testing this Snakefile independently of a pipeline
-rule fastq_sampling_output:
-    """This rule is used to make this pipeline independent"""
+"""rule fastq_sampling_input:
     input:
-        expand("%s/{dataset}" % _fsf_wkdir, dataset=_fsf.dataset)
-
+        expand(_fsf.pathname + "{dataset}", dataset=_fsf.basenames)
+"""
 
 if config['fastq_sampling']['enable'] is True:
     rule fastq_sampling:
         """Select a sample from raw FastQ files"""
         input: _fsf.pathname + "{dataset}"
-        output: "%s/{dataset}" % _fsf_wkdir
+        output: "fastq_raw/{dataset}"
         params: N = config["fastq_sampling"]['N']
         message: "fastq_sampling extracting %s reads" % config['fastq_sampling']['N']
         run:
             shell("fastq_head {input} {params.N} {output}")
 else:
+    # No sampling, use raw data so let us create sym links
     rule fastq_sampling:
-        # Using temp for the output is very important here. 
+        # Using temp for the output is very important here.
         # If the sym link stayed, this would create clashes in the other case
         # when input will be the same as output
         input: _fsf.pathname + "{dataset}"
-        output: temp("%s/{dataset}" % _fsf_wkdir)
+        output: temp("fastq_raw/{dataset}")
         message: "fastq_sampling creating symbolic links"
         run:
+            #shell("rm {output}")
             shell("ln -sf $(pwd)/{input} {output}")
 
-
-rule fastq_sampling_cleanup:
-    params: wkdir = _fsf_wkdir,
-    message: "fastq_sampling rule cleanup (removing content of fastq_sampling)"
-    run:
-        import glob
-        filenames = glob.glob(params['wkdir'] + '/*')
-        for filename in filenames:
-            print('removing %s' % filename)
-            os.remove(filename)
 

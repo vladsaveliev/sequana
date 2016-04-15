@@ -13,12 +13,12 @@ from sequana import version
 
 rule dag:
     output: 
-        dot="dag.dot",
-        svg="dag.svg"
+        dot  = temp("dag.dot"),
+        dot2 = temp("dag.ann.dot"),
+        svg  = "dag.svg"
     version: version
     message: """
-    -- Creating DAG in a dot file
-    -- Output saved in dag.svg
+    -- Creating DAG in a dot file and save into report/dag.svg
     """
     run:
         # Create the dot file (graphviz) using snakemake
@@ -26,12 +26,10 @@ rule dag:
 
         # Annotate the dag with URLs 
         from sequana.snaketools import DOTParser
-        d = DOTParser("dag.dot")
+        d = DOTParser(output.dot)
         d.add_urls()
 
         # Now, create the SVG
-        shell("dot -Tsvg dag.ann.dot -o dag.svg")
+        shell("dot -Tsvg {output.dot2} -o {output.svg}")
 
 
-rule dag_cleanup:
-    params: cleanup=['dag.dot', 'dag.ann.dot', 'dag.svg']

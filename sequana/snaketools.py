@@ -26,6 +26,7 @@ import glob
 from os.path import isdir
 
 from easydev import get_package_location as gpl
+from easydev import load_configfile, AttrDict
 
 import pandas as pd
 import pylab
@@ -130,6 +131,7 @@ class SnakeMakeStats(object):
 
     def plot(self, fontsize=16):
         """Create the barplot from the stats file"""
+        pylab.clf()
         df = pd.DataFrame(self._parse_data()['rules'])
         ts = df.ix['mean-runtime']
         ts['total'] = self._parse_data()['total_runtime']
@@ -347,15 +349,64 @@ class SequanaConfig(object):
         True
 
     """
-    def __init__(self, filename):
+    def __init__(self, data):
         """Could be a json or a yaml
 
         :param str filename: filename to a config file in json or yaml format.
         """
-        self.filename = filename
-        from easydev import load_configfile, AttrDict
-        config = load_configfile(filename)
-        self.parameters = AttrDict(**config)
+        if isinstance(data, str):
+            config = load_configfile(data)
+            self.config = AttrDict(**config)
+        else:
+            self.config = AttrDict(**data)
+
+    @staticmethod
+    def from_dict(dic):
+        return SequanaConfig(dic)
+
+
+    def check(self, requirements_dict):
+        """a dcitionary in the form
+
+        rule_name:["param1", ":param2", ":kwargs:N"]
+
+        in a config::
+
+        param1: 1
+        param2:
+            - subparam1
+            - subparam2:
+                - subparam3: 10
+
+
+        """
+        dd = requirements_dict
+        correct = True
+
+        # check that each field request is present
+        for k, vlist in dd.items():
+            k = k.replace('__sequana__', '')
+            if k not in self.config.keys():
+                raise KeyError("Expected section %s not found" % k)
+            else:
+                for item in vlist:
+                    # with : , this means a sub field field 
+                    if item.startswith(":") and item.count(":")==1:
+                        assert item[1:] in self.config[k].keys()
+                    elif item.count(":")>1:
+                        raise NotImplementedError(
+                        "2 hierarchy checks in config not implemented ")
+                    else:
+                        # without : , this means a normal field so item is
+                        # actually a key here
+                        assert item in self.config.keys()
+
+def sequana_check_config(config, globs):
+    s = SequanaConfig.from_dict(config)
+    dic = dict([ (k,v) for k,v in globs.items() 
+                    if k.startswith("__sequana__")])
+    s.check(dic)
+
 
 
 def message(mes):
@@ -405,9 +456,7 @@ class DOTParser(object):
             for line in data.split("\n"):
                 if "[label =" not in line:
                     if " -> " in line:
-                        print(indices_to_drop)
                         label = line.split(" -> ")[0].strip()
-                        
                         if label not in indices_to_drop:
                             fout.write(line + "\n")
                     else:
@@ -422,8 +471,8 @@ class DOTParser(object):
                     if name in ['dag', 'conda']:
                         index = lhs.split("[")[0]
                         indices_to_drop.append(index.strip())
-                    elif name in ['report', 'all', "bwa_bam_to_fastq"] or \
-                            "dataset:" in line:
+                    elif name in ['all', "bwa_bam_to_fastq"] or \
+                            "dataset:" in line or name.startswith("report"):
                         # redirect to the main page
                         newline = lhs + ' URL="index.html" target="_parent", '
                         newline += separator + rhs
@@ -460,26 +509,46 @@ class FileFactory(object):
         ff = FileNameFactory("../*")
         ff.dataset
 
+    special case if ends in .fastq.gz
+
+
+    definition to use::
+
+        >>> fullpath = /home/user/test/A.fastq.gz
+        >>> dirname(fullpath)
+        '/home/user/test'
+        >>> basename(fullpath)
+        'A.fastq.gz'
+        >>> realpath(fullpath) # is .., expanded to /home/user/test
+        >>> all_extensions
+        "fastq.gz"
+        >>> extensions
+        ".gz"
+
+
     """
     def __init__(self, pattern):
         self.pattern = pattern
-        self._glob = glob.glob(pattern)
+        if isinstance(pattern, str):
+            self._glob = glob.glob(pattern)
+        elif isinstance(pattern, list):
+            self._glob = pattern[:]
+        
+
+    def _get_realpath(self):
+        return [os.path.realpath(filename) for filename in self._glob]
+    realpaths = property(_get_realpath)
+
+    def _get_basenames(self):
+        return [os.path.split(filename)[1] for filename in self._glob]
+    basenames = property(_get_basenames)
+
+    def rstrip(self, ext):
+        return [filename.rstrip(ext) for filename in self.basenames]
 
     def _get_filenames(self):
-        filenames = [os.path.split(filename)[1] for filename in self._glob]
-        return filenames
-    dataset = property(_get_filenames)
-    filenames = property(_get_filenames)
-
-    def _get_dataset_no_ext(self):
-        filenames = [os.path.splitext(filename)[0] for filename in self.filenames]
-        return filenames
-    dataset_noext = property(_get_dataset_no_ext)
-
-    def _get_dataset_no_ext(self):
-        filenames = [filename.split('.', 1)[0] for filename in self.filenames]
-        return filenames
-    dataset_noexts = property(_get_dataset_no_ext)
+        return [this.split(".")[0] for this in self.basenames]
+    filenames = property(_get_filenames) 
 
     def _pathnames(self):
         pathnames = [os.path.split(filename)[0] for filename in self._glob]
@@ -499,6 +568,11 @@ class FileFactory(object):
         return filenames
     extensions = property(_get_extensions)
 
+    def _get_all_extensions(self):
+        filenames = [this.split('.', 1)[1] if "." in this else "" for this in self.basenames]
+        return filenames
+    all_extensions = property(_get_all_extensions)
+
 
 def get_cleanup_rules(filename):
     """Scan a Snakefile and its inclusion and returns rules ending in _cleanup"""
@@ -506,6 +580,7 @@ def get_cleanup_rules(filename):
     s.include(filename)
     names = [rule.name for rule in list(s.rules) if rule.name.endswith('_cleanup')]
     return names
+
 
 
 
