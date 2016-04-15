@@ -683,6 +683,7 @@ def run_info(f):
         return f(*args, **kargs)
     return wrapper
 
+from easydev.profiler import do_profile
 
 class FastQC(object):
     """Simple QC diagnostic
@@ -706,7 +707,7 @@ class FastQC(object):
     .. warning:: some plots will work for Illumina reads only right now
 
     """
-    def __init__(self, filename, sample=500000):
+    def __init__(self, filename, sample=500000, dotile=False):
         """.. rubric:: constructor
 
         """
@@ -719,6 +720,7 @@ class FastQC(object):
 
         self.summary = {}
         self.fontsize = 16
+        self.dotile = dotile
 
     def _get_info(self):
         """Populates the data structures for plotting.
@@ -735,7 +737,7 @@ class FastQC(object):
         self.N_list = []
 
         self.identifiers = []
-        pb = Progress(self.sample)
+        pb = Progress(self.N)
 
         # could use multiprocessing
         fastq = pysam.FastxFile(self.filename)
@@ -749,23 +751,20 @@ class FastQC(object):
                 maximum = N
             self.nucleotides += N
 
-            import numpy as np
+            if count < self.sample:
+                quality = record.get_quality_array()
+                mean_qualities.append(np.mean(np.array(quality)))
+                qualities.append(quality)
 
-            quality = record.get_quality_array()
-            qualities.append(quality)
-            mean_qualities.append(np.mean(quality))
+            if self.dotile:
+                identifier = Identifier(record.name)
+                self.identifiers.append(identifier.info)
 
-            if count > self.sample:
-                break
-            identifier = Identifier(record.name)
-            self.identifiers.append(identifier.info)
+            sequences.append(record.sequence)
 
-            sequence = record.sequence
-            sequences.append(sequence)
-
-            GC = sequence.count('G') + sequence.count('C')
+            GC = record.sequence.count('G') + record.sequence.count('C')
             self.gc_list.append(GC)
-            self.N_list.append(sequence.count('N'))
+            self.N_list.append(record.sequence.count('N'))
 
             count += 1
             pb.animate(count)
@@ -779,16 +778,17 @@ class FastQC(object):
         self.sequences = sequences
 
         try:
-            print('\nCreating tiles data')
-            self.tiles = {}
-            self.tiles['x'] = [float(this['x_coordinate']) for this in self.identifiers]
-            self.tiles['y'] = [float(this['y_coordinate']) for this in self.identifiers]
-            self.tiles['tiles'] = [this['tile_number'] for this in self.identifiers]
-            import collections
-            d = collections.defaultdict(list)
-            for tile, seq in zip(self.tiles['tiles'], self.qualities):
-                d[tile].append(seq)
-            self.data_imqual = [pd.DataFrame(d[key]).mean().values for key in sorted(d.keys())]
+            if self.dotile:
+                print('\nCreating tiles data')
+                self.tiles = {}
+                self.tiles['x'] = [float(this['x_coordinate']) for this in self.identifiers]
+                self.tiles['y'] = [float(this['y_coordinate']) for this in self.identifiers]
+                self.tiles['tiles'] = [this['tile_number'] for this in self.identifiers]
+                import collections
+                d = collections.defaultdict(list)
+                for tile, seq in zip(self.tiles['tiles'], self.qualities):
+                    d[tile].append(seq)
+                self.data_imqual = [pd.DataFrame(d[key]).mean().values for key in sorted(d.keys())]
         except:
             print("Some data could not be extracted from identifiers. "
             "Not all figure will be available. Illumina identifiers required")
@@ -880,7 +880,6 @@ class FastQC(object):
         pylab.grid(True)
         pylab.xlabel("position bp", fontsize=self.fontsize)
 
-
     @run_info
     def histogram_gc_content(self):
         """Plot histogram of GC content
@@ -900,6 +899,14 @@ class FastQC(object):
         pylab.title("GC content distribution over all sequences")
         pylab.xlabel("Mean GC content (\%)", fontsize=self.fontsize)
 
+    @run_info
+    def get_stats(self):
+        
+        stats = {"GC content": self.gc_content,
+            "n_reads": self.N}
+        for letter in 'ACGT':
+            stats[letter] = sum((x.count(letter) for x in self.sequences))
+        return stats 
 
 
 class _FastQRandom(object):
