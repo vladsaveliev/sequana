@@ -1,8 +1,8 @@
 rule vcf_filter:
     input:
-        vcf = "freebayes/" + config["output"] + ".vcf"
+        vcf = config["output"] + "/freebayes/" + config["output"] + ".vcf"
     output:
-        vcf = "vcf_filter/" + config["output"] + ".vcf"
+        vcf = config["output"] + "/vcf_filter/" + config["output"] + ".vcf"
     run:
         from sequana import vcf_filter
         vcf_record = vcf_filter.VCF(input["vcf"])

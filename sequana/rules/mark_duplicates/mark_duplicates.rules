@@ -1,14 +1,14 @@
 rule mark_duplicates:
     input:
-        "add_read_group/" + config["output"] + ".bam"
+        config["output"] + "/bwa_mem/" + config["output"] + ".sorted.bam"
     output:
-        "mark_duplicates/" + config["output"] + ".bam"
+        config["output"] + "/mark_duplicates/" + config["output"] + ".bam"
     log:
         out = config["output"] + 
-            "_logs/picard_tools/MarkDuplicates/stdout.logs",
+            "/logs/picard_tools/MarkDuplicates/stdout.logs",
         err = config["output"] + 
-            "_logs/picard_tools/MarkDuplicates/stderr.logs",
-        metrics = config["output"] + "_logs/picard_tools/MarkDuplicates/" + 
+            "/logs/picard_tools/MarkDuplicates/stderr.logs",
+        metrics = config["output"] + "/logs/picard_tools/MarkDuplicates/" + 
             config["output"] + ".metrics"
     shell:
         """
