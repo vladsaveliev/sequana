@@ -15,7 +15,7 @@ rule bwa_mem:
         ref = config["ref"]
     output:
         mem = config["output"] + "/bwa_mem/" + config["output"] + ".bam",
-        sort = config["output"] + "/sorted/" + config["output"] + ".bam"
+        sort = config["output"] + "/bwa_mem/" + config["output"] + ".sorted.bam"
     log:
         mem = config["output"] + "/logs/bwa_mem.logs",
         index = config["output"] + "/logs/bwa_index.logs",
