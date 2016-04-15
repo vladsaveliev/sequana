@@ -3,7 +3,6 @@
 input:
     fastq -> list with your fastq.gz (R1, R2)
     ref -> reference's fastq file
-    index -> reference's bwt file
 """
 
 FASTQ = sorted([value for key, value in config["samples"].items()])
@@ -13,19 +12,34 @@ FASTQ = sorted([value for key, value in config["samples"].items()])
 rule bwa_mem:
     input:
         fastq = FASTQ,
-        ref = config["ref"],
-        bwt = config["ref"] + ".bwt"
+        ref = config["ref"]
     output:
-        "mapped/" + config["output"] + ".bam"
+        mem = config["output"] + "/bwa_mem/" + config["output"] + ".bam",
+        sort = config["output"] + "/bwa_mem/" + config["output"] + ".sorted.bam"
     log:
-        config["output"] + "_logs/bwa_mem.logs"
+        mem = config["output"] + "/logs/bwa_mem.logs",
+        index = config["output"] + "/logs/bwa_index.logs",
+        sort = config["output"] + "/logs/samtools_sort.logs"
     params:
+        index = " ".join(["%s %s" % (key, value) for key, value in
+            config["bwa_index"].items()]),
+        mem = " ".join(["%s %s" % (key, value) for key, value in
+            config["bwa_mem"]["args"].items()]),
         kwargs = config["bwa_mem"]["kwargs"]
     threads:
         config["bwa_mem"]["threads"]
     shell:
         """
-        (bwa mem {params.kwargs} -t {threads} \
+        # Indexing
+        bwa index {params.index} {input.ref} 2> {log.index}
+        samtools faidx {input.ref}
+
+        # Mapping
+        (bwa mem {params.kwargs} -t {threads} {params.mem} \
         {input.ref} {input.fastq} | \
-        samtools view -Sbh -> {output}) 2> {log}
+        samtools view -Sbh -> {output.mem}) 2> {log.mem}
+        
+        # Sorting
+        samtools sort -o {output.sort} {output.mem} 2> {log.sort}
+        samtools index {output.sort} 2>> {log.sort}
         """
