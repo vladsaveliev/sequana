@@ -1,9 +1,12 @@
-"""
+import sequana.snaketools as sm
+from sequana import tools
 
+filefact = sm.FileFactory(config['samples']['glob'])
+info = tools.FastqFactory(filefact.basenames)
 
-
-"""
-
+keys = info.keys()
+assert len(keys) == 1
+project_name = list(keys)[0]
 
 
 rule bwa_bam_to_fastq:
@@ -12,23 +15,23 @@ rule bwa_bam_to_fastq:
     -- information saved in {log}
     """
     input:
-        bam = "bwa_phix/contaminant.bam",
+        bam = "bwa_phix/%s.bam" % project_name,
     params:
         wkdir = "bwa_phix",
     output:
         "bwa_phix/phix_stats.json"
     threads: 1
     run:
+        import json
         from sequana.tools import bam_to_mapped_unmapped_fastq as bam2fastq
         stats = bam2fastq(input["bam"])
-        import json
         json.dump(stats, open("%s/phix_stats.json" % params.wkdir, "w"))
 
         # zip the fastq files
         import glob
-        tozip = glob.glob("%s/*.fastq")
+        tozip = glob.glob("%s/*.fastq" % params.wkdir)
         for filename in tozip:
-            shell("pigz %s filename" )
+            shell("pigz -f %s " % filename)
 
 
 

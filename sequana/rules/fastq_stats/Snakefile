@@ -1,0 +1,39 @@
+import glob
+
+
+
+
+rule fastq_stats:
+    """Calls FastQC on each input datasets + those in bwa_phix directory"""
+    # we could have a dynamic search or based on config file
+    input:
+        list(glob.iglob("**/*fastq.gz", recursive=True))
+    output:
+        touch("fastq_stats/fastq_stats.done")
+    params:
+        wkdir="fastq_stats",
+    threads: 4
+    run:
+        # if the content of the file is empty, this will fail. We need to
+        # touch  a file in such case.
+        from sequana import FastQC
+        newinput = []
+        for i, this in enumerate(input):
+            print(this)
+            fastq = FastQC(this, sample=100000)
+            if len(fastq.fastq) != 0:
+                import pylab
+                pylab.clf()
+                fastq.boxplot_quality()
+                pylab.savefig(this.replace('fastq.gz', "_boxplot_quality.svg"))
+                stats = fastq.get_stats()
+                import json
+                json.dump(stats, open(this.replace("fastq.gz", "fastq_stats.json"), "w"))
+            else:
+                with open(output[i], "w") as fh:
+                    fh.write("No data in %s" % output[i])
+
+
+
+
+

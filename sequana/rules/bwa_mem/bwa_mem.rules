@@ -5,6 +5,8 @@ input:
     ref -> reference's fastq file
     index -> reference's bwt file
 """
+__sequana__bwa_mem = [":samples", "ref", "output", ":kwargs", ":threads"]
+
 
 FASTQ = sorted([value for key, value in config["samples"].items()])
 
