@@ -1,8 +1,8 @@
 rule bedtools_genomecov:
     input:
-        "sorted/" + config["output"] + ".bam"
+        config["output"] + "/bwa_mem/" + config["output"] + ".sorted.bam"
     output:
-        "genomecov/" + config["output"] + ".bed"
+        config["output"] + "/genomecov/" + config["output"] + ".bed"
     params:
         kargs = config["bedtools"]
     shell:

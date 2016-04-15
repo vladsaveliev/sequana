@@ -3,7 +3,7 @@ rule freebayes:
         bam = freebayes_input,
         ref = config["ref"]
     output:
-        vcf = "freebayes/" + config["output"] + ".vcf"
+        vcf = config["output"] + "/freebayes/" + config["output"] + ".vcf"
     log:
         out = config["output"] + "_logs/freebayes/stdout.logs",
         err = config["output"] + "_logs/freebayes/stderr.logs"

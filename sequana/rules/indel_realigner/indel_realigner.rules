@@ -4,11 +4,13 @@ rule indel_realigner:
         ref = config["ref"],
         ref_dict = REF_PREFIX + ".dict"
     output:
-        bam = "indel_realigner/" + config["output"] + ".bam",
-        intervals = "indel_realigner/" + config["output"] + ".intervals"
+        bam = config["output"] + "/indel_realigner/" + config["output"] + 
+            ".bam",
+        intervals = config["output"] + "/indel_realigner/" + config["output"] + 
+            ".intervals"
     log:
-        out = config["output"] + "_logs/gatk/IndelRealigner/stdout.logs",
-        err = config["output"] + "_logs/gatk/IndelRealigner/stderr.logs"
+        out = config["output"] + "/logs/gatk/IndelRealigner/stdout.logs",
+        err = config["output"] + "/logs/gatk/IndelRealigner/stderr.logs"
     params:
         gatk = config["gatk_bin"]
     shell:
