@@ -18,19 +18,14 @@ gatk_bin: GenomeAnalysisTK
 
 # Software parameters
 
-add_read_group:
-    RGID=: 1
-    RGLB=: lib1
-    RGPL=: illumina
-    RGPU=: unit1
-    RGSM=: 20
-
 bedtools: "-d"
 
 bwa_index:
     -a: "is"
 
 bwa_mem:
+    args:
+        -R: '@RG\\tID:1\\tSM:1\\tPL:illumina'
     threads: 2
     kwargs: ""
 
