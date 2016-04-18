@@ -31,6 +31,9 @@ from easydev import load_configfile, AttrDict
 import pandas as pd
 import pylab
 
+
+#__all__ = ["SequanaConfig"]
+
 try:
     # This is for python2.7
     import snakemake
@@ -348,6 +351,17 @@ class SequanaConfig(object):
         >>> config.e == 1
         True
 
+    Input files should be stored into::
+
+        samples:
+            - file1: FILE1
+            - file2: FILE2
+
+    The second file may be optional. 
+
+    :meth:`get_dataset_as_list`
+
+
     """
     def __init__(self, data):
         """Could be a json or a yaml
@@ -359,11 +373,27 @@ class SequanaConfig(object):
             self.config = AttrDict(**config)
         else:
             self.config = AttrDict(**data)
+        requirements = ["samples", "samples:file1", "samples:file2", "project"]
+        # converts to dictionary ?
+        for this in requirements:
+            this = this.split(":")[0]
+            assert this in self.config.keys(),\
+                "Your config must contain %s" % this
+        self.PROJECT = self.config.project
+        self.DATASET = self.get_dataset_as_list()
 
     @staticmethod
     def from_dict(dic):
         return SequanaConfig(dic)
 
+    def get_dataset_as_list(self):
+        filenames = []
+        try:
+            filenames.append(self.config.samples.file1)
+            filenames.append(self.config.samples.file2)
+        except:
+            pass
+        return filenames
 
     def check(self, requirements_dict):
         """a dcitionary in the form
@@ -400,6 +430,7 @@ class SequanaConfig(object):
                         # without : , this means a normal field so item is
                         # actually a key here
                         assert item in self.config.keys()
+
 
 def sequana_check_config(config, globs):
     s = SequanaConfig.from_dict(config)
