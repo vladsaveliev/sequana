@@ -120,6 +120,7 @@ class SequanaReport(BaseReport):
             html += "</ul>"
             self.jinja['dataset'] = html
 
+
         #any stats compute ??
         try:
             from sequana.snaketools import SnakeMakeStats

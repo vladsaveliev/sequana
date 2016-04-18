@@ -36,19 +36,11 @@ include: sm.modules['fastq_stats']
 include: sm.modules['report_phix_removal']# Report + DAG + CONDA 
 
 
-
 #localrules: dag
 #ruleorder: fastq_sampling > bwa_mem > bwa_bam_to_fastq > fastqc > fastq_stats
 
 
-# check that all rules will have the required parameters in the config
-
-
 #sm.sequana_check_config(config, globals())
-
-cfg = sm.SequanaConfig.from_dict(config)
-
-
 
 
 rule all:
