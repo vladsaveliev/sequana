@@ -1,0 +1,35 @@
+"""
+Author: TC
+Affiliation: IP
+Aim: create a sample data set for quick testing
+Type: module
+Input: fastq_raw/{}*gz
+Output: fastq_sampling/{}*gz
+"""
+
+#__sequana__fastq_sampling = [":enable", ":N", "samples:glob"]
+#configfile: "config.yaml"
+
+
+from sequana.snaketools import SequanaConfig, FileFactory
+cfg = SequanaConfig.from_dict(config)
+ff = FileFactory(cfg.DATASET)
+
+
+rule fastq_sampling_input:
+    input : expand("fastq_sampling/{dataset}" , dataset=ff.basenames)
+
+
+rule fastq_sampling:
+    """Select a sample from raw FastQ files"""
+    input: "%s/{dataset}" % ff.pathname
+    output: "fastq_sampling/{dataset}"
+    params: N = config["fastq_sampling"]['N']
+    message: "fastq_sampling extracting %s reads" % config['fastq_sampling']['N']
+    run:
+        shell("fastq_head {input} {params.N} {output}")
+        if "R1" in output:
+            config['samples']['file1'] = output
+        elif "R2" in output:
+            config['samples']['file2'] = output
+
