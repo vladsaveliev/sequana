@@ -27,6 +27,10 @@ rule report_phix_removal:
 
         # Main page
         s = report_main.SequanaReport(directory=params.outdir)
+
+        for this in cfg.DATASET:
+            s.jinja['output'] = cfg.DATASET
+
         s.create_report()
 
         # Phix page
