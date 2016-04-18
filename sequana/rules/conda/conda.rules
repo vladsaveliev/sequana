@@ -1,0 +1,13 @@
+
+
+rule conda:
+    input:
+    output: "%s/requirements.txt" % config['project']
+    run:
+        from easydev import shellcmd
+        try:
+            res = shellcmd("conda list --export > %s" % output[0])
+        except: #conda not installed ?
+            with open('report/requirements.txt', "w") as fh:
+                fh.write("conda was not found on your system.")
+

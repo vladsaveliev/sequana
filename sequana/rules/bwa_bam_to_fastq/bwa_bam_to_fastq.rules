@@ -1,0 +1,33 @@
+import sequana.snaketools as sm
+from sequana import tools
+
+
+PROJECT = config['project']
+
+rule bwa_bam_to_fastq:
+    message: """
+    -- Extracting the fastq from the BAM/SAM files
+    -- information saved in {log}
+    """
+    input:
+        bam = "%s/bwa_mem/%s.bam" % (PROJECT, PROJECT),
+    params:
+        wkdir = "%s/bwa_bam_to_fastq" % PROJECT,
+    output:
+        stats = "%s/bwa_bam_to_fastq/bwa_mem_stats.json" % PROJECT
+    threads: 2
+    message: "Calling bam2fastq and zipping data"
+    run:
+        import json
+        from sequana.tools import bam_to_mapped_unmapped_fastq as bam2fastq
+        stats = bam2fastq(input["bam"], output_directory=params.wkdir)
+        json.dump(stats, open(output["stats"], "w"))
+
+        # zip the fastq files
+        import glob
+        tozip = glob.glob("%s/*.fastq" % params.wkdir)
+        for filename in tozip:
+            shell("pigz -f %s " % filename)
+
+
+
