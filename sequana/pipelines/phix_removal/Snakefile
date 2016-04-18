@@ -2,9 +2,13 @@
 Author: Thomas Cokelaer
 Affiliation: Institut Pasteur
 Aim: Find Fix contaminant in the fastq
-Data: paired end to be placed inside ./fastq_raw
+Data: paired end or single reads
 Run: snakemake -s Snakefile
 Changelog:
+
+Config file needs to be edited to (1) set the input files and (2) the project
+name
+
 """
 import sequana
 from sequana import snaketools as sm
@@ -12,33 +16,46 @@ from sequana import snaketools as sm
 # This must be defined before the include 
 configfile: "config.yaml"
 
-# The actual pipeline
-include: sm.modules["fastq_sampling"]    # include sampling of original data
-include: sm.modules['bwa_phix']           # Search for the Fix
+from sequana.snaketools import SequanaConfig, FileFactory
+cfg = SequanaConfig(config)
+
+
+# Optional for testing
+if config['fastq_sampling']['enable'] is True:
+    include: sm.modules['fastq_sampling']
+    # TODO set FILE1 and FILE2 automatically
+    FILE1 = cfg.PROJECT + "_R1_001.fastq.gz"
+    FILE2 = cfg.PROJECT + "_R2_001.fastq.gz"
+    config['samples']['file1'] = "fastq_sampling/%s" % FILE1
+    config['samples']['file2'] = "fastq_sampling/%s" % FILE2
+
+include: sm.modules['bwa_mem']           # Search for the Fix
 include: sm.modules['bwa_bam_to_fastq']  # Save mapped and unmapped data in bwa_phix/
 include: sm.modules['fastqc']            # quality control
-include: sm.modules['cleanup']           # Possibly one can cleanup things (for testing)
+include: sm.modules['fastq_stats']
 include: sm.modules['report_phix_removal']# Report + DAG + CONDA 
 
 
 
+#localrules: dag
+#ruleorder: fastq_sampling > bwa_mem > bwa_bam_to_fastq > fastqc > fastq_stats
 
-############# NOTHING to change here below
-_dataset = sm.FileFactory(config['input']).dataset
+
+# check that all rules will have the required parameters in the config
+
+
+#sm.sequana_check_config(config, globals())
+
+cfg = sm.SequanaConfig.from_dict(config)
+
+
 
 
 rule all:
-    input:
-        # required to start the pipeline (of fastq_sampling)
-        expand("fastq_raw/{dataset}", dataset=_dataset),
-        "bwa_phix/phix_stats.json",
-        "fastqc/fastqc.done",
-        "report/index.html",
-        "report/bwa_phix.html"
+    input: "%s/index.html" % config["project"],
     version: sequana.version
 
 
 
-rule general_cleanup:
-    params: cleanup=["report.html"]
+
 
