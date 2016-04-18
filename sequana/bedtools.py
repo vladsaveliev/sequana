@@ -155,6 +155,7 @@ class genomecov(object):
 
     def merge_region(self, df):
         """Merge position side by side of a data frame.
+
         """
         merge_df = pd.DataFrame(columns=["chr", "region", "size", "mean_cov",
                                          "mean_rm", "mean_zscore"])
@@ -202,3 +203,18 @@ class genomecov(object):
             pass
         if filename:
             pylab.savefig(filename)
+
+    def write_csv(self, filename, labels=["pos", "cov", "rm"], header=False):
+        """ Write CSV file of the dataframe.
+            
+        :param filename: csv filename.
+        :param labels: list of index.
+        :param header: boolean which determinate if the header is written.
+        
+        """
+        try:
+            self.df[labels].to_csv(filename, header=header)
+        except NameError:
+            print("You must set the file name")
+        except KeyError:
+            print("Labels doesn't exist in the data frame")
