@@ -8,10 +8,11 @@ from sequana.report_main import BaseReport
 class MappingReport(BaseReport):
     """
     """
-    def __init__(self, low_threshold=-3, high_threshold=3, **kargs):
+    def __init__(self, low_threshold=-3, high_threshold=3, 
+            directory="report", **kargs):
         super(MappingReport, self).__init__(
                 jinja_filename="mapping/index.html",
-                directory="report",
+                directory=directory,
                 output_filename="mapping.html", **kargs)
         self.jinja['title'] = "Mapping Report"
         self.low_t = low_threshold
