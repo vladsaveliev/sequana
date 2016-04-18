@@ -1,1 +1,1 @@
-.. image:: dag.svg
+.. image:: dag.png
