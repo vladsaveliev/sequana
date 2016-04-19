@@ -1,8 +1,10 @@
 # Import -----------------------------------------------------------------------
 
 import os
+import pandas as pd
 from reports import HTMLTable
 from sequana.report_main import BaseReport
+from sequana.report_submapping import SubMappingReport
 
 # Class ------------------------------------------------------------------------
 class MappingReport(BaseReport):
@@ -24,8 +26,28 @@ class MappingReport(BaseReport):
     def parse(self):
         self.mapping.plot_coverage(filename=self.directory + os.sep + 
                                             "coverage.png")
+        
         self.mapping.plot_hist(filename=self.directory + os.sep + 
                                             "zscore_hist.png")
+
+        df = pd.DataFrame()
+        formatter = '<a target="_blank" alt={0} href="../{1}">{0}</a>'
+        for i in range(0, len(self.mapping), 500000):
+            name = "mapping_{0}".format(i)
+            stop = i + 500000
+            if stop > len(self.mapping):
+                stop = len(self.mapping)
+            name = "{0}_{1}".format(name, stop)
+            r = SubMappingReport(start=i, stop=stop, 
+                    output_filename=name + ".html")
+            r.set_data(self.mapping)
+            r.create_report()
+            link = self.directory + os.sep + name + ".html"
+            df = df.append({"name": formatter.format(name, link)}, 
+                ignore_index=True)
+        html = HTMLTable(df)
+        self.jinja['list_submapping'] = html.to_html(index=False)
+
         low_cov_df = self.mapping.get_low_coverage(self.low_t)
         merge_low_cov = self.mapping.merge_region(low_cov_df)
         html = HTMLTable(merge_low_cov)
