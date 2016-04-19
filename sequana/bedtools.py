@@ -16,7 +16,7 @@ class genomecov(object):
                            run.
 
     """
-    def __init__(self, input_filename):
+    def __init__(self, input_filename=None, dataframe=None):
         try:
             self.df = pd.read_table(input_filename, header=None)
             self.df = self.df.rename(columns={0: "chr", 1: "pos", 2: "cov"})
@@ -25,6 +25,9 @@ class genomecov(object):
 
     def __str__(self):
         return self.df.__str__()
+
+    def __len__(self):
+        return self.df.__len__()
 
     def moving_average(self, n, label="ma"):
         """ Do moving average of reads coverage and create a column called 'ma'
@@ -111,13 +114,15 @@ class genomecov(object):
         self.df[label] = (self.df["scale"] - mf.results["mus"][i]) / \
             mf.results["sigmas"][i]
 
-    def get_low_coverage(self, threshold=-3):
+    def get_low_coverage(self, threshold=-3, start=None, stop=None):
         """Keep position with zscore lower than INT and return a data frame.
 
         :param threshold: Integer
+        :param start: Integer 
+        :param stop: Integer
         """
         try:
-            return self.df.loc[self.df["zscore"] < threshold]
+            return self.df[start:stop].loc[self.df["zscore"] < threshold]
         except KeyError:
             print("Column 'zscore' is missing in data frame.\n"
                   "You must run compute_zscore before get low coverage.\n\n"
@@ -127,13 +132,15 @@ class genomecov(object):
                   "> mydata.coverage_scaling()\n"
                   "> mydata.compute_zscore(k=2)")
 
-    def get_high_coverage(self, threshold=3):
+    def get_high_coverage(self, threshold=3, start=None, stop=None):
         """Keep position with zscore higher than INT and return a data frame.
 
         :param threshold: Integer
+        :param start: Integer 
+        :param stop: Integer
         """
         try:
-            return self.df.loc[self.df["zscore"] > threshold]
+            return self.df[start:stop].loc[self.df["zscore"] > threshold]
         except KeyError:
             print("Column 'zscore' is missing in data frame.\n"
                   "You must run compute_zscore before get low coverage.\n\n"
@@ -155,7 +162,6 @@ class genomecov(object):
 
     def merge_region(self, df):
         """Merge position side by side of a data frame.
-
         """
         merge_df = pd.DataFrame(columns=["chr", "region", "size", "mean_cov",
                                          "mean_rm", "mean_zscore"])
@@ -174,7 +180,6 @@ class genomecov(object):
                 start = stop
                 prev = stop
         return merge_df
-
     def plot_coverage(self, fontsize=16, filename=None, rm="rm"):
         """ Plot coverage as a function of position.
 
@@ -204,7 +209,8 @@ class genomecov(object):
         if filename:
             pylab.savefig(filename)
 
-    def write_csv(self, filename, labels=["pos", "cov", "rm"], header=False):
+    def write_csv(self, filename, start=None, stop=None,
+            labels=["pos", "cov", "rm"], header=True):
         """ Write CSV file of the dataframe.
             
         :param filename: csv filename.
@@ -213,7 +219,7 @@ class genomecov(object):
         
         """
         try:
-            self.df[labels].to_csv(filename, header=header)
+            self.df[labels][start:stop].to_csv(filename, header=header)
         except NameError:
             print("You must set the file name")
         except KeyError:
