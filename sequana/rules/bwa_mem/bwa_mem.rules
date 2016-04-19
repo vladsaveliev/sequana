@@ -6,41 +6,45 @@ input:
 """
 __sequana__bwa_mem = [":samples", "ref", "output", ":kwargs", ":threads"]
 
+import sequana.snaketools as sm
+cfg = sm.SequanaConfig.from_dict(config)
 
-FASTQ = sorted([value for key, value in config["samples"].items()])
 
-# Rule -------------------------------------------------------------------------
+
 
 rule bwa_mem:
     input:
-        fastq = FASTQ,
-        ref = config["ref"]
+        fastq = cfg.DATASET,
+        reference = config["bwa_mem"]["reference"]
     output:
-        mem = config["output"] + "/bwa_mem/" + config["output"] + ".bam",
-        sort = config["output"] + "/bwa_mem/" + config["output"] + ".sorted.bam"
+        mem = cfg.PROJECT +  "/bwa_mem/%s.bam" % cfg.PROJECT,
+        sort = cfg.PROJECT +  "/bwa_mem/%s.sorted.bam" % cfg.PROJECT,
+        done = touch(cfg.PROJECT + "/bwa_mem/done")
     log:
-        mem = config["output"] + "/logs/bwa_mem.logs",
-        index = config["output"] + "/logs/bwa_index.logs",
-        sort = config["output"] + "/logs/samtools_sort.logs"
+        mem = cfg.PROJECT + "/logs/bwa_mem.logs",
+        index = cfg.PROJECT + "/logs/bwa_index.logs",
+        sort = cfg.PROJECT + "/logs/samtools_sort.logs"
     params:
         index = " ".join(["%s %s" % (key, value) for key, value in
             config["bwa_index"].items()]),
         mem = " ".join(["%s %s" % (key, value) for key, value in
             config["bwa_mem"]["args"].items()]),
-        kwargs = config["bwa_mem"]["kwargs"]
+        kwargs = config["bwa_mem"]["kwargs"],
+        wkdir = cfg.PROJECT + "/bwa_mem/"
     threads:
         config["bwa_mem"]["threads"]
     shell:
         """
         # Indexing
-        bwa index {params.index} {input.ref} 2> {log.index}
-        samtools faidx {input.ref}
+        ln -sf $(pwd)/{input.reference} {params.wkdir}
+        bwa index {params.index} {params.wkdir}/{input.reference} 2> {log.index}
+        samtools faidx {params.wkdir}{input.reference}
 
         # Mapping
         (bwa mem {params.kwargs} -t {threads} {params.mem} \
-        {input.ref} {input.fastq} | \
+        {params.wkdir}{input.reference} {input.fastq} | \
         samtools view -Sbh -> {output.mem}) 2> {log.mem}
-        
+ 
         # Sorting
         samtools sort -o {output.sort} {output.mem} 2> {log.sort}
         samtools index {output.sort} 2>> {log.sort}

@@ -1,37 +1,76 @@
 include: sm.modules['dag']     # Create DAG file
 include: sm.modules['conda']   # Create requirements.txt(dependencies)
 
+import sequana.snaketools as sm
+cfg = sm.SequanaConfig.from_dict(config)
+PROJECT = cfg.PROJECT
+
 
 
 rule report_phix_removal:
     input:
         dag = "dag.svg",
-        conda = "report/requirements.txt",
-        bwa_phix = "bwa_phix/phix_stats.json",
-        fastqc = "fastqc/fastqc.done",
-        stats = "fastq_stats/fastq_stats.done"
+        conda = "%s/requirements.txt" % PROJECT,
+        bwa_bam_to_fastq = "%s/bwa_bam_to_fastq/bwa_mem_stats.json" % PROJECT,
+        fastqc = "%s/fastqc/fastqc.done" % PROJECT,
+        fastq_stats = "%s/logs/fastq_stats.done" % PROJECT
     output:
-        "report/index.html",
-        "report/bwa_phix.html",
-        "report/dag.svg"
+        "%s/index.html" % PROJECT,
+        "%s/bwa_mem.html" % PROJECT,
+        "%s/dag.svg" % PROJECT,
+    params:
+        outdir = PROJECT
     run:
         from sequana import report_main
         from sequana import report_phix
         from sequana import report_fastqc
+        #from sequana import report_fastq_stats
 
         # Main page
-        s = report_main.SequanaReport()
+        s = report_main.SequanaReport(directory=params.outdir)
+        s.jinja['description'] = """
+
+        This is the output of the Phix removal pipeline. This pipeline
+        search for a specific contaminant and provide as an output
+        a pair of files with the contaminant (mapped) and without it (unmapped).
+        The unmapped files are the files to be further analysed ( see links here
+        below)
+
+        """
+
+        import os
+        html = ""
+        for this in cfg.DATASET:
+            basename = os.path.split(cfg.DATASET[0])[1]
+            name = basename.replace("_001.fastq.gz", ".unmapped.fastq.gz")
+            link = "bwa_bam_to_fastq"+ os.sep + name
+            html += '<br><a href="%s">%s</a>' % (link, name)
+            name = basename.replace("_001.fastq.gz", ".mapped.fastq.gz")
+            link = "bwa_bam_to_fastq"+ os.sep + name
+            html += '<br><a href="%s">%s</a>' % (link, name)
+        s.jinja['output'] = html
+
         s.create_report()
 
         # Phix page
-        s = report_phix.PhixReport(output_filename="bwa_phix.html")
-        s.input_filename = "bwa_phix/phix_stats.json"
+        s = report_phix.PhixReport(output_filename="bwa_mem.html",
+                directory=params.outdir)
+        s.input_filename = "%s/bwa_bam_to_fastq/bwa_mem_stats.json" % PROJECT
         s.create_report()
 
-        s = report_fastqc.FastQCReport()
+        # FastQC page
+        s = report_fastqc.FastQCReport(directory=params.outdir)
         s.create_report()
 
-        shell("cp Snakefile report/")
-        shell("cp {input.dag} report/")
+        # FastQ stats page
+        shell("cp Snakefile %s/" % params.outdir)
+        shell("mv {input.dag} %s/" % params.outdir)
+
+
+
+
+
+
+
 
 

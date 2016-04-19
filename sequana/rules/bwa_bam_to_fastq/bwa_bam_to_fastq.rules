@@ -1,13 +1,8 @@
 import sequana.snaketools as sm
 from sequana import tools
 
-filefact = sm.FileFactory(config['samples']['glob'])
-info = tools.FastqFactory(filefact.basenames)
 
-keys = info.keys()
-assert len(keys) == 1
-project_name = list(keys)[0]
-
+PROJECT = config['project']
 
 rule bwa_bam_to_fastq:
     message: """
@@ -15,17 +10,18 @@ rule bwa_bam_to_fastq:
     -- information saved in {log}
     """
     input:
-        bam = "bwa_phix/%s.bam" % project_name,
+        bam = "%s/bwa_mem/%s.bam" % (PROJECT, PROJECT),
     params:
-        wkdir = "bwa_phix",
+        wkdir = "%s/bwa_bam_to_fastq" % PROJECT,
     output:
-        "bwa_phix/phix_stats.json"
-    threads: 1
+        stats = "%s/bwa_bam_to_fastq/bwa_mem_stats.json" % PROJECT
+    threads: 2
+    message: "Calling bam2fastq and zipping data"
     run:
         import json
         from sequana.tools import bam_to_mapped_unmapped_fastq as bam2fastq
-        stats = bam2fastq(input["bam"])
-        json.dump(stats, open("%s/phix_stats.json" % params.wkdir, "w"))
+        stats = bam2fastq(input["bam"], output_directory=params.wkdir)
+        json.dump(stats, open(output["stats"], "w"))
 
         # zip the fastq files
         import glob

@@ -94,11 +94,11 @@ class BaseReport(Report):
 
 class SequanaReport(BaseReport):
     def __init__(self, snakefile="Snakefile", configfile="config.yaml",
-                 stats="stats.txt", **kargs):
+                 stats="stats.txt", directory="report", **kargs):
 
         super(SequanaReport, self).__init__(
             jinja_filename="main/index.html", 
-            directory="report",  
+            directory=directory,  
             output_filename="index.html",
             **kargs)
 
@@ -109,26 +109,19 @@ class SequanaReport(BaseReport):
 
         try:
             self.read_configfile(configfile)
-            # figure out the local files if any (in fastq_raw)
-            html = "<ul>"
-            if len(glob.glob('fastq_raw/*gz')):
-                for filename in glob.glob('fastq_raw/*gz'):
-                    html += '<li><a href="../%s">%s</a></li>\n' % (filename, filename)
-            else:
-                from sequana.snaketools import SequanaConfig
-                config = SequanaConfig(configfile)
-                if "glob" in config.parameters.keys():
-                    for filename in glob.glob(config.parameters.glob):
-                        html += '<li><a href="../%s">%s</a></li>\n' % (filename, filename)
-
-            html += "</ul>"
-            self.jinja['dataset'] = html
         except:
             pass
 
+        from sequana.snaketools import SequanaConfig
+        config = SequanaConfig(configfile)
+        html = ""
+        for filename in config.DATASET:
+            html += '<li><a href="../%s">%s</a></li>\n' % (filename, filename)
+            html += "</ul>"
+            self.jinja['dataset'] = html
+
+
         #any stats compute ??
-
-
         try:
             from sequana.snaketools import SnakeMakeStats
             s = SnakeMakeStats(stats)
@@ -139,7 +132,6 @@ class SequanaReport(BaseReport):
             self.jinja['snakemake_stats'] = output_file
         except:
             print('snakemake stats.txt not found. Use "--stats stats.txt" next time')
-
 
         self.jinja['title'] = "Sequana Report"
 

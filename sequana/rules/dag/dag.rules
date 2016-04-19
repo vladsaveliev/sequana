@@ -8,15 +8,19 @@ Run: snakemake -s Snakefile
 Changelog:
 
 """
-from sequana import version
+
+
+import sequana.snaketools as sm
+cfg = sm.SequanaConfig.from_dict(config)
+PROJECT = cfg.PROJECT
+
 
 
 rule dag:
-    output: 
+    output:
         dot  = temp("dag.dot"),
         dot2 = temp("dag.ann.dot"),
         svg  = "dag.svg"
-    version: version
     message: """
     -- Creating DAG in a dot file and save into report/dag.svg
     """
@@ -29,7 +33,7 @@ rule dag:
         d = DOTParser(output.dot)
         d.add_urls()
 
-        # Now, create the SVG
+        # Now, create the SVG. Somehow if called dag.svg, this is a conflict
         shell("dot -Tsvg {output.dot2} -o {output.svg}")
 
 

@@ -21,7 +21,8 @@ def reverse_complement(seq):
     return seq.translate(_translate)[::-1]
 
 
-def bam_to_mapped_unmapped_fastq(filename):
+
+def bam_to_mapped_unmapped_fastq(filename, output_directory=None):
     """Create mapped and unmapped fastq files from a BAM file
 
     Given a BAM file, create FASTQ with R1/R2 reads mapped and unmapped.
@@ -55,6 +56,16 @@ def bam_to_mapped_unmapped_fastq(filename):
     stats = collections.defaultdict(int)
     stats['R1_unmapped'] = 0
     stats['R1_mapped'] = 0
+
+
+    # figure out where to save the file 
+    if output_directory is None:
+        pass
+    else:
+        assert isinstance(filename, str)
+        from sequana.snaketools import FileFactory
+        ff = FileFactory(filename)
+        newname = output_directory + os.sep + ff.filenames[0]
 
     R1_mapped = open(newname + "_R1.mapped.fastq", "wb")
     R1_unmapped = open(newname + "_R1.unmapped.fastq", "wb")

@@ -1,22 +1,26 @@
 import glob
 
 __sequana__fastqc = [":options"]
+import sequana.snaketools as sm
+cfg = sm.SequanaConfig.from_dict(config)
 
+
+# should be called after bwa_mem and bwa_bam
 
 
 rule fastqc:
     """Calls FastQC on each input datasets + those in bwa_phix directory"""
     # we could have a dynamic search or based on config file
     input:
-        list(glob.iglob("**/*fastq.gz", recursive=True))
+        list(glob.iglob("%s/**/*fastq.gz" % cfg.PROJECT, recursive=True)) + cfg.DATASET
     output:
-        touch('fastqc/fastqc.done')
+        touch('%s/fastqc/fastqc.done' % cfg.PROJECT)
     params:
-        wkdir="fastqc",
-        kargs = config['fastqc']['options']
+        wkdir="%s/fastqc" % cfg.PROJECT,
+        kargs = cfg.config.fastqc.options
     threads: 4
     log:
-        "fastqc.log",
+        "fastqc.log"
     run:
         # if the content of the file is empty, this will fail. We need to
         # touch  a file in such case.
@@ -35,6 +39,7 @@ rule fastqc:
             " fastqc -t {threads} --outdir {params.wkdir} -f fastq "
             " {newinput} {params.kargs} > {params.wkdir}/{log}")
         else:
-            print(str(newinput) + " is empty")
-            raise ValueError("No non-empty fastq files found")
+            #print(str(newinput) + " is empty")
+            pass
+            #raise ValueError("No non-empty fastq files found")
 

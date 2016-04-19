@@ -1,23 +1,33 @@
 
-input: "../*fastq.gz"
+samples: 
+    file1: "../Hm2_GTGAAA_L005_R1_001.fastq.gz"
+    file2: "../Hm2_GTGAAA_L005_R2_001.fastq.gz"
+
+project: "Hm2_GTGAAA_L005"
+
 
 requirements: ['Coliphage_phiX174.fa']
 
 
-datadir: fastq_raw
-
-
 fastqc:
-    kargs: "--nogroup"
+    options: "--nogroup"
+
 
 fastq_sampling:
     enable: False
     N: 100000
 
 
-# Name of the Fix to be found in bwa_phix rule
-bwa_phix:
-    reference: Coliphage_phiX174.fa
-    kargs: 
+bwa_index:
+    -a: "is"
 
+
+# Name of the Fix to be found in bwa_phix rule
+bwa_mem:
+    args:
+        -R: '@RG\\tID:1\\tSM:1\\tPL:illumina'
+    reference: Coliphage_phiX174.fa
+    ref: Coliphage_phiX174.fa
+    threads: 4
+    kwargs: "-M"
 

@@ -4,6 +4,12 @@ Changelog
 .. contents::
 
 
+0.1.3
+--------
+
+* NEWS
+    - Update the pipeline phix_removal
+
 
 0.1.1 - 0.1.2
 --------------

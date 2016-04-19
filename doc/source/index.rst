@@ -69,6 +69,7 @@ Please fill bug report in https://github.com/sequana/sequana
     :maxdepth: 2
 
     userguide
+    pipelines
     references
     Changelog
 

@@ -1,0 +1,53 @@
+import glob
+
+
+import sequana.snaketools as sm
+cfg = sm.SequanaConfig.from_dict(config)
+
+
+
+input_fastq_stats = list(glob.iglob("%s/**/*fastq.gz"%cfg.PROJECT, recursive=True))
+
+
+rule fastq_stats:
+    """Calls FastQC on each input datasets + those in bwa_phix directory"""
+    # we could have a dynamic search as follows to use parallelisation but
+    # this requires the input_fastq_stats to be populated before
+    # so this rules would not work in another context....
+    """input:
+        expand("{dataset}", dataset=input_fastq_stats)
+    output:
+        expand("{dataset}".replace(".fastq.gz", "_fastq_stats.json"), dataset=input_fastq_stats),
+    """
+    input:
+        cfg.DATASET + input_fastq_stats
+    output:
+        # touch is used since we do not know the files a priori
+        # if we consider that this rule can be re-used in any pipeline
+        [x.replace(".fastq.gz", "_fastq_stats.json") for x in input_fastq_stats + cfg.DATASET],
+        touch("%s/logs/fastq_stats.done" % cfg.PROJECT)
+    threads: 4
+    run:
+        # if the content of the file is empty, this will fail. We need to
+        # touch  a file in such case.
+        from sequana import FastQC
+        for inf, outf in zip(input, output):
+            print(inf)
+            print(outf)
+            fastq = FastQC(inf, sample=100000)
+            if len(fastq.fastq) != 0:
+                import pylab
+                pylab.clf()
+                fastq.boxplot_quality()
+                pylab.savefig(inf.replace('fastq.gz', "_boxplot_quality.svg"))
+                stats = fastq.get_stats()
+                import json
+                json.dump(stats, open(outf, "w"))
+            else:
+                with open(outf[i], "w") as fh:
+                    fh.write("No data in %s" % outf)
+
+
+
+
+
