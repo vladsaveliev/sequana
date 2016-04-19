@@ -26,4 +26,4 @@ Requirements
 
 
 
-.. image:: https://raw.githubusercontent.com/sequana/sequana/merge_bwa_phix_mem/sequana/pipelines/phix_removal/dag.png
+.. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/phix_removal/dag.png

@@ -10,11 +10,6 @@ Changelog:
 """
 
 
-import sequana.snaketools as sm
-cfg = sm.SequanaConfig.from_dict(config)
-PROJECT = cfg.PROJECT
-
-
 
 rule dag:
     output:
