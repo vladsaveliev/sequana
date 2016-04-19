@@ -10,19 +10,28 @@
         </ul>
     </div>
 -->
+    {% if description %}    
+        <div class="section" id="Description">
+        <p>{{ description }}</p>
+        </div>
+    {% endif %}
 
     <div class="section" id="Input">
     <h2> 1 -  <a class="toc-backref" href="#id1">Input</a></h2>
     {{ dataset }}
     </div>
-    
-    <div class="section" id="Output">
-    <h2> 2 -  <a class="toc-backref" href="#id1">Output</a></h2>
-    {{ output }}
-    </div>
+
+    {% if output %}    
+        <div class="section" id="Output">
+        <h2> 2 -  <a class="toc-backref" href="#id1">Output</a></h2>
+        {{ output }}
+        </div>
+    {% endif %}
 
     <div class="section" id="Snakefile">
         <h2> 3 -  <a class="toc-backref" href="#id2">Snakefile</a></h2>
+        <p>Here is pipeline flow. Click on a box to get more information
+(possibly)</p>
 
         <object data="dag.svg" type="image/svg+xml">
         <img src="dag.svg">
@@ -43,7 +52,7 @@
 
     {% if snakemake_stats %}
     <div class="section" id="stats">
-        <h2> 4 -  <a class="toc-backref" href="#id3">Runinng Stats</a></h2>
+        <h2> 4 -  <a class="toc-backref" href="#id3">Running Stats</a></h2>
         <img src="{{ snakemake_stats }}"></img>
     </div>
     {% endif %}
