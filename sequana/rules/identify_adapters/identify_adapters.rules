@@ -1,0 +1,63 @@
+
+
+from sequana.snaketools import SequanaConfig, FileFactory
+cfg = SequanaConfig(config)
+
+__identify_adapters__output = [
+    cfg.PROJECT + "/identify_adapters/adapters.txt",
+    cfg.PROJECT + "/identify_adapters/identify_adapters.done"]
+
+
+if "adapter_removal_input" in config.keys():
+    if config["adapter_removal_input"] == "bwa_bam_to_fastq":
+        __identify_adapters__input = [cfg.PROJECT + "/bwa_bam_to_fastq/" 
+                + this for this in cfg.BASENAME]
+    __identify_adapters__input = [this.replace("_001.", ".unmapped.") 
+                for this in __identify_adapters__input]
+
+else:
+    __identify_adapters__input = cfg.DATASET[:]
+
+
+if cfg.paired:
+    rule identify_adapters:
+        input:
+            file1= __identify_adapters__input[0],
+            file2= __identify_adapters__input[1]
+        output:
+            results=__identify_adapters__output[0],
+            results_html=cfg.PROJECT + "/identify_adapters.html",
+            done=touch(__identify_adapters__output[1])
+        params:
+            path_to_executable="/home/cokelaer/Work/github/adapterremoval/build/",
+        run:
+            shell("{params.path_to_executable}AdapterRemoval --file1 {input.file1}"
+            " --file2 {input.file2} --identify-adapters > {output.results}")
+            shell("cp {output.results} {output.results_html}")
+            with open(output.results_html, "w") as fout:
+                with open(output.results, "r") as fin:
+                    fout.write("<pre>\n")
+                    fout.write(fin.read())
+                    fout.write("</pre>")
+else:
+    rule identify_adapters:
+        input:
+            file1= cfg.DATASET[0],
+        output:
+            results=__identify_adapters__output[0],
+            results_html=cfg.PROJECT + "/identify_adapters.html",
+            done=touch(__identify_adapters__output[1])
+        params:
+            path_to_executable="/home/cokelaer/Work/github/adapterremoval/build/",
+        run:
+            # Works only for paired so we trick the software to feed file2 (but
+            # it is file1) so adapter1 and adapter2 should be identical !
+            shell("{params.path_to_executable}AdapterRemoval "
+            " --file1 {input.file1}"
+            " --file2 {input.file1}"
+            " --identify-adapters > {output.results}")
+            with open(output.results_html, "w") as fout:
+                with open(output.results, "r") as fin:
+                    fout.write("<pre>\n")
+                    fout.write(fin.read())
+                    fout.write("</pre>")
