@@ -58,7 +58,7 @@ setup(
     # package installation
     packages = packages,
 
-    install_requires = ["easydev==0.9.18", "reports>=0.1.6", "matplotlib", "pandas",
+    install_requires = ["easydev==0.9.18", "reports>=0.1.7", "matplotlib", "pandas",
         "cutadapt==1.9.1", "pysam", "pyVCF"],
 
     # here below '': pattern means include that pattern in all packages
@@ -66,8 +66,9 @@ setup(
     # required to use python setup.py install
 
     # This is recursive include of data files
+    exclude_package_data = {"": ["__pycache__"]},
     package_data = {
-        '': ['Snakefile*', '*html', 'README.rst', 'config.yaml*', '*.css'],
+        '': ['Snakefile*', '*html', 'README.rst', 'config.yaml*', '*.css', "*.js"],
         'sequana.rules' : ["*/*"],
         'sequana.resources.data' : ['*'],
         },
