@@ -30,14 +30,14 @@ class SubMappingReport(BaseReport):
         self.jinja['input_df'] = "'mapping_{0}_{1}.csv'".format(self.start, 
                 self.stop)
 
-        low_cov_df = self.mapping.get_low_coverage(self.low_t, start=self.start, 
-                stop=self.stop)
+        low_cov_df = self.mapping.get_low_coverage(threshold=self.low_t, 
+                start=self.start, stop=self.stop)
         merge_low_cov = self.mapping.merge_region(low_cov_df)
         html = HTMLTable(merge_low_cov)
         html.add_bgcolor("size")
         self.jinja['low_coverage'] = html.to_html(index=False)
         
-        high_cov_df = self.mapping.get_high_coverage(self.high_t, 
+        high_cov_df = self.mapping.get_high_coverage(threshold=self.high_t, 
                 start=self.start, stop=self.stop)
         merge_high_cov = self.mapping.merge_region(high_cov_df)
         html = HTMLTable(merge_high_cov)
