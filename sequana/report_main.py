@@ -39,13 +39,19 @@ class BaseReport(Report):
         # sequana distribution
         sequana_path = easydev.get_package_location('sequana')
         extra_css_path = sepjoin([sequana_path, "sequana", "resources", "css"])
+        extra_js_path = sepjoin([sequana_path, "sequana", "resources", "js"])
+
         extra_css_list = glob.glob(extra_css_path + os.sep + "*css")
+        extra_js_list = glob.glob(extra_js_path + os.sep + "*css")
 
         searchpath = sepjoin([sequana_path, "sequana", "resources", "jinja"])
 
         super(BaseReport, self).__init__(searchpath, filename=output_filename, 
             template_filename=jinja_filename,
-            directory=directory, extra_css_list=extra_css_list, **kargs)
+            directory=directory, 
+            extra_css_list=extra_css_list, 
+            extra_js_list=extra_js_list,
+            **kargs)
 
         # This redefines the default name of the output (index.html) otherwise,
         # several reports will overwrite the default index.html. 
