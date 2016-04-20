@@ -38,7 +38,8 @@ $(document).ready(function () {
 	function drawChart(dataCov, dataRm) {
 		var chart = new CanvasJS.Chart("chartContainer", {
             zoomEnabled: true,
-            zoomType: "xy",
+            zoomType: "x",
+            exportEnabled: true,
 			title:{
 				text: "Coverage and Running Median"
 			},
