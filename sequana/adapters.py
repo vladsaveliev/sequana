@@ -9,9 +9,6 @@ May be removed
 """
 
 
-class AdapterRemoval(object):
-    def __init__(self):
-        pass
 
 
 def adapters_files_to_list(filename1, filename2):
@@ -59,8 +56,32 @@ def adapters_to_clean_ngs(filename):
 
 
 
-adapters_to_clean_ngs("adapters_48_PCR-free_FWD.fa")
+#adapters_to_clean_ngs("adapters_48_PCR-free_FWD.fa")
 #if __name__ == "__main__":
 #    import sys
 #    args = sys.argv
 #    adapters_files_to_list(args[1], args[2])
+
+
+def adapter_removal_parser(filename):
+    """Parses output of AdapterRemoval"""
+    results = {}
+
+    with open(filename, "r") as fin:
+        lines = fin.readlines()
+        for line in lines:
+            if line.startswith("  --adapter"):
+                lhs, rhs = line.split(":")
+                name = lhs.strip().replace("-", "")
+                sequence = rhs.strip()
+                results[name] = sequence
+    return results
+
+
+
+
+
+
+
+
+
