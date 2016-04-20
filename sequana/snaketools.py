@@ -361,9 +361,14 @@ class SequanaConfig(object):
 
     :meth:`get_dataset_as_list`
 
+    Empty strings in a config are interpreted as None but SequanaConfig will
+    replace  None with empty strings, which is probably what was expected from
+    the user. Similarly, in snakemake when settings the config file, one
+    can override a value with a False but this is interepted as "False"
+    This will transform back the "True" into True
 
     """
-    def __init__(self, data):
+    def __init__(self, data, test_requirements=True, converts_none_to_str=True):
         """Could be a json or a yaml
 
         :param str filename: filename to a config file in json or yaml format.
@@ -373,14 +378,51 @@ class SequanaConfig(object):
             self.config = AttrDict(**config)
         else:
             self.config = AttrDict(**data)
-        requirements = ["samples", "samples:file1", "samples:file2", "project"]
-        # converts to dictionary ?
-        for this in requirements:
-            this = this.split(":")[0]
-            assert this in self.config.keys(),\
-                "Your config must contain %s" % this
+
+        if converts_none_to_str:
+            #
+            self._set_none_to_empty_string(self.config)
+
+        self._converts_boolean(self.config)
+
+        if test_requirements:
+            requirements = ["samples", "samples:file1", "samples:file2", "project"]
+            # converts to dictionary ?
+            for this in requirements:
+                this = this.split(":")[0]
+                assert this in self.config.keys(),\
+                    "Your config must contain %s" % this
+
         self.PROJECT = self.config.project
         self.DATASET = self.get_dataset_as_list()
+        self.ff = FileFactory(self.DATASET)
+        self.BASENAME = self.ff.basenames
+        self.FILENAME = self.ff.filenames
+        if len(self.DATASET) == 2:
+            self.paired = True
+        else:
+            self.paired = False
+
+    def _converts_boolean(self, subdic):
+        for key,value in subdic.items():
+            if isinstance(value, dict):
+                subdic[key] = self._converts_boolean(value)
+            else:
+                if value in ['True', 'true', 'TRUE']:
+                    subdic[key] = True
+                if value in ['False', 'false', 'FALSE']:
+                    subdic[key] = False
+        return subdic
+        
+    def _set_none_to_empty_string(self, subdic):
+        # recursively set parameter (None) to ""
+        for key,value in subdic.items():
+            if isinstance(value, dict):
+                subdic[key] = self._set_none_to_empty_string(value)
+            else:
+                if value is None:
+                    subdic[key] = ""
+        return subdic
 
     @staticmethod
     def from_dict(dic):
@@ -390,7 +432,8 @@ class SequanaConfig(object):
         filenames = []
         try:
             filenames.append(self.config.samples.file1)
-            filenames.append(self.config.samples.file2)
+            if self.config.samples.file2 != "":
+                filenames.append(self.config.samples.file2)
         except:
             pass
         return filenames

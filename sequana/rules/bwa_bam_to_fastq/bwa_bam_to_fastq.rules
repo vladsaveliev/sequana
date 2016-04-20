@@ -14,7 +14,8 @@ rule bwa_bam_to_fastq:
     params:
         wkdir = "%s/bwa_bam_to_fastq" % PROJECT,
     output:
-        stats = "%s/bwa_bam_to_fastq/bwa_mem_stats.json" % PROJECT
+        stats = "%s/bwa_bam_to_fastq/bwa_mem_stats.json" % PROJECT,
+        R1 = "%s/bwa_bam_to_fastq/%s_R1.unmapped.fastq.gz" % (PROJECT, PROJECT)
     threads: 2
     message: "Calling bam2fastq and zipping data"
     run:
