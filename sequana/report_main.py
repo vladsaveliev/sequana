@@ -42,8 +42,9 @@ class BaseReport(Report):
         extra_js_path = sepjoin([sequana_path, "sequana", "resources", "js"])
 
         extra_css_list = glob.glob(extra_css_path + os.sep + "*css")
-        extra_js_list = glob.glob(extra_js_path + os.sep + "*css")
+        extra_js_list = glob.glob(extra_js_path + os.sep + "*js")
 
+        print(extra_js_list)
         searchpath = sepjoin([sequana_path, "sequana", "resources", "jinja"])
 
         super(BaseReport, self).__init__(searchpath, filename=output_filename, 
@@ -118,14 +119,16 @@ class SequanaReport(BaseReport):
         except:
             pass
 
-        from sequana.snaketools import SequanaConfig
-        config = SequanaConfig(configfile)
-        html = ""
-        for filename in config.DATASET:
-            html += '<li><a href="../%s">%s</a></li>\n' % (filename, filename)
-            html += "</ul>"
-            self.jinja['dataset'] = html
-
+        try:
+            from sequana.snaketools import SequanaConfig
+            config = SequanaConfig(configfile)
+            html = ""
+            for filename in config.DATASET:
+                html += '<li><a href="../%s">%s</a></li>\n' % (filename, filename)
+                html += "</ul>"
+                self.jinja['dataset'] = html
+        except:
+            pass
 
         #any stats compute ??
         try:
