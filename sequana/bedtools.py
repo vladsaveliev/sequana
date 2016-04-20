@@ -163,6 +163,8 @@ class genomecov(object):
     def merge_region(self, df):
         """Merge position side by side of a data frame.
         """
+        start = 0
+        stop = 0
         merge_df = pd.DataFrame(columns=["chr", "region", "size", "mean_cov",
                                          "mean_rm", "mean_zscore"])
         for i, pos in enumerate(zip(df["pos"])):
@@ -179,7 +181,11 @@ class genomecov(object):
                         ignore_index=True)
                 start = stop
                 prev = stop
+        if(start < stop):
+            merge_df = merge_df.append(self._merge_row(start - 1, prev),
+                    ignore_index=True)
         return merge_df
+
     def plot_coverage(self, fontsize=16, filename=None, rm="rm"):
         """ Plot coverage as a function of position.
 
