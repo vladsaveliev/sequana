@@ -529,7 +529,7 @@ class FastQ(object):
 
     def split_chunks(self, N=10):
         # split per chunks of size N
-        pass
+        raise NotImplementedError
 
     def random(self, N=10000, output_filename="test.fastq",
                bp=50, quality=40):
@@ -607,7 +607,7 @@ class FastQ(object):
             if temp == b"":
                 raise StopIteration
         except KeyboardInterrupt:
-            # THis should allow developers to break an function that iterets
+            # THis should allow developers to break an function that iterates
             # through the read to run forever
             self._fileobj.close()
             self.__enter__()
