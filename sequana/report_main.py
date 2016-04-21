@@ -44,7 +44,6 @@ class BaseReport(Report):
         extra_css_list = glob.glob(extra_css_path + os.sep + "*css")
         extra_js_list = glob.glob(extra_js_path + os.sep + "*js")
 
-        print(extra_js_list)
         searchpath = sepjoin([sequana_path, "sequana", "resources", "jinja"])
 
         super(BaseReport, self).__init__(searchpath, filename=output_filename, 
