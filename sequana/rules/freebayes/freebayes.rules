@@ -1,12 +1,12 @@
 rule freebayes:
     input:
         bam = freebayes_input,
-        ref = config["ref"]
+        ref = cfg.PROJECT + "/references/%s.fa" % cfg.PROJECT
     output:
-        vcf = config["output"] + "/freebayes/" + config["output"] + ".vcf"
+        vcf = cfg.PROJECT + "/freebayes/%s.vcf" % cfg.PROJECT
     log:
-        out = config["output"] + "_logs/freebayes/stdout.logs",
-        err = config["output"] + "_logs/freebayes/stderr.logs"
+        out = cfg.PROJECT + "/logs/freebayes/stdout.logs",
+        err = cfg.PROJECT + "/logs/freebayes/stderr.logs"
     params:
         freebayes_params = " ".join(['%s %s' % (key, value) for (key, value) \
             in config["freebayes"].items()])

@@ -1,16 +1,14 @@
 rule indel_realigner:
     input:
         bam = indel_realigner_input,
-        ref = config["ref"],
-        ref_dict = REF_PREFIX + ".dict"
+        ref = cfg.PROJECT + "/references/%s.fa" % cfg.PROJECT ,
+        ref_dict = cfg.PROJECT + "/references/%s.dict" % cfg.PROJECT 
     output:
-        bam = config["output"] + "/indel_realigner/" + config["output"] + 
-            ".bam",
-        intervals = config["output"] + "/indel_realigner/" + config["output"] + 
-            ".intervals"
+        bam = cfg.PROJECT  + "/indel_realigner/%s.bam" % cfg.PROJECT,
+        intervals = cfg.PROJECT + "/indel_realigner/%s.intervals" % cfg.PROJECT
     log:
-        out = config["output"] + "/logs/gatk/IndelRealigner/stdout.logs",
-        err = config["output"] + "/logs/gatk/IndelRealigner/stderr.logs"
+        out = cfg.PROJECT + "/logs/gatk/IndelRealigner/stdout.logs",
+        err = cfg.PROJECT + "/logs/gatk/IndelRealigner/stderr.logs"
     params:
         gatk = config["gatk_bin"]
     shell:

@@ -9,16 +9,14 @@ __sequana__bwa_mem = [":samples", "ref", "output", ":kwargs", ":threads"]
 import sequana.snaketools as sm
 cfg = sm.SequanaConfig.from_dict(config)
 
-
-
-
 rule bwa_mem:
     input:
         fastq = cfg.DATASET,
-        reference = config["bwa_mem"]["reference"]
+        reference = config["reference"]
     output:
         mem = cfg.PROJECT +  "/bwa_mem/%s.bam" % cfg.PROJECT,
         sort = cfg.PROJECT +  "/bwa_mem/%s.sorted.bam" % cfg.PROJECT,
+        reference = cfg.PROJECT + "/references/%s.fa" % cfg.PROJECT,
         done = touch(cfg.PROJECT + "/bwa_mem/done")
     log:
         mem = cfg.PROJECT + "/logs/bwa_mem.logs",
@@ -30,19 +28,18 @@ rule bwa_mem:
         mem = " ".join(["%s %s" % (key, value) for key, value in
             config["bwa_mem"]["args"].items()]),
         kwargs = config["bwa_mem"]["kwargs"],
-        wkdir = cfg.PROJECT + "/bwa_mem/"
     threads:
         config["bwa_mem"]["threads"]
     shell:
         """
         # Indexing
-        ln -sf $(pwd)/{input.reference} {params.wkdir}
-        bwa index {params.index} {params.wkdir}/{input.reference} 2> {log.index}
-        samtools faidx {params.wkdir}{input.reference}
+        ln -sf $(pwd)/{input.reference} {output.reference}
+        bwa index {params.index} {output.reference} 2> {log.index}
+        samtools faidx {output.reference}
 
         # Mapping
         (bwa mem {params.kwargs} -t {threads} {params.mem} \
-        {params.wkdir}{input.reference} {input.fastq} | \
+        {output.reference} {input.fastq} | \
         samtools view -Sbh -> {output.mem}) 2> {log.mem}
  
         # Sorting
