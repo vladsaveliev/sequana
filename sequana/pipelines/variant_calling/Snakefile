@@ -18,14 +18,12 @@ cfg = SequanaConfig(config)
 
 # Python -----------------------------------------------------------------------
 
-final_output = [config["output"] + "/vcf_filter/" + config["output"] + ".vcf"]
-indel_realigner_input = config["output"] + "/bwa_mem/" + config["output"] + \
-    ".sorted.bam"
-freebayes_input = config["output"] + "/bwa_mem/" + config["output"] + \
-    ".sorted.bam"
+final_output = ["{0}/vcf_filter/{0}.vcf".format(cfg.PROJECT)]
+indel_realigner_input = "{0}/bwa_mem/{0}.sorted.bam".format(cfg.PROJECT)
+freebayes_input = "{0}/bwa_mem/{0}.sorted.bam".format(cfg.PROJECT)
 
 # Mapping
-include: sm.modules["bwa_mem/bwa_mem.rules"]
+include: sm.modules["bwa_mem"]
 
 # Mapping report
 if config["report_mapping"]["do"]:
@@ -36,17 +34,14 @@ if config["report_mapping"]["do"]:
 # Mark duplicates
 if config["mark_duplicates"]["do"]:
     include: sm.modules["mark_duplicates"]
-    indel_realigner_input = config["output"] + "/mark_duplicates/" + \
-        config["output"] + ".bam"
-    freebayes_input = config["output"] + "/mark_duplicates/" + \
-        config["output"] + ".bam"
+    indel_realigner_input = "{0}/mark_duplicates/{0}.bam".format(cfg.PROJECT)
+    freebayes_input = "{0}/mark_duplicates/{0}.bam".format(cfg.PROJECT)
     
 # Indel realigner
 if config["indel_realigner"]["do"]:
     include: sm.modules["create_sequence_dictionary"]
-    include: sm.modules["indel_realigner.rules"]
-    freebayes_input = config["output"] + "/indel_realigner/" + \
-        config["output"] + ".bam"
+    include: sm.modules["indel_realigner"]
+    freebayes_input = "{0}/indel_realigner/{0}.bam".format(cfg.PROJECT)
 
 # Variant calling
 include: sm.modules["freebayes"]
