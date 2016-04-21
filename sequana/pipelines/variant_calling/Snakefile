@@ -1,4 +1,20 @@
+"""
+Author: Dimitri Desvillechabrol
+Affiliation: Institut Pasteur
+Aim: Variant calling
+Data: paired end or single reads
+Run: snakemake -s Snakefile
+"""
+# Import -----------------------------------------------------------------------
+
+import sequana
+from sequana import snaketools as sm
+from sequana.snaketools import SequanaConfig, FileFactory
+
+# Import config file -----------------------------------------------------------
+
 configfile: "config.yaml"
+cfg = SequanaConfig(config)
 
 # Python -----------------------------------------------------------------------
 
@@ -9,17 +25,17 @@ freebayes_input = config["output"] + "/bwa_mem/" + config["output"] + \
     ".sorted.bam"
 
 # Mapping
-include: config["rules_dir"] + "bwa_mem/bwa_mem.rules"
+include: sm.modules["bwa_mem/bwa_mem.rules"]
 
 # Mapping report
 if config["report_mapping"]["do"]:
-    include: config["rules_dir"] + "bed_genomecov/bed_genomecov.rules"
-    include: config["rules_dir"] + "report_mapping/report_mapping.rules"
+    include: sm.modules["bed_genomecov"]
+    include: sm.modules["report_mapping"]
     final_output.append("report/mapping.html")
 
 # Mark duplicates
 if config["mark_duplicates"]["do"]:
-    include: config["rules_dir"] + "mark_duplicates/mark_duplicates.rules"
+    include: sm.modules["mark_duplicates"]
     indel_realigner_input = config["output"] + "/mark_duplicates/" + \
         config["output"] + ".bam"
     freebayes_input = config["output"] + "/mark_duplicates/" + \
@@ -27,17 +43,16 @@ if config["mark_duplicates"]["do"]:
     
 # Indel realigner
 if config["indel_realigner"]["do"]:
-    include: config["rules_dir"] + 
-        "create_sequence_dictionary/create_sequence_dictionary.rules"
-    include: config["rules_dir"] + "indel_realigner/indel_realigner.rules"
+    include: sm.modules["create_sequence_dictionary"]
+    include: sm.modules["indel_realigner.rules"]
     freebayes_input = config["output"] + "/indel_realigner/" + \
         config["output"] + ".bam"
 
 # Variant calling
-include: config["rules_dir"] + "freebayes/freebayes.rules"
+include: sm.modules["freebayes"]
 
 # VCF filter
-include: config["rules_dir"] + "vcf_filter/vcf_filter.rules"
+include: sm.modules["vcf_filter"]
 
 # Snakemake --------------------------------------------------------------------
 
