@@ -1,15 +1,15 @@
 rule mark_duplicates:
     input:
-        config["output"] + "/bwa_mem/" + config["output"] + ".sorted.bam"
+        cfg.PROJECT + "/bwa_mem/%s.sorted.bam" % cfg.PROJECT 
     output:
-        config["output"] + "/mark_duplicates/" + config["output"] + ".bam"
+        cfg.PROJECT  + "/mark_duplicates/%s.bam" % cfg.PROJECT
     log:
-        out = config["output"] + 
+        out = cfg.PROJECT + 
             "/logs/picard_tools/MarkDuplicates/stdout.logs",
-        err = config["output"] + 
+        err = cfg.PROJECT  + 
             "/logs/picard_tools/MarkDuplicates/stderr.logs",
-        metrics = config["output"] + "/logs/picard_tools/MarkDuplicates/" + 
-            config["output"] + ".metrics"
+        metrics = cfg.PROJECT  + 
+            "/logs/picard_tools/MarkDuplicates/%s.metrics" % cfg.PROJECT
     shell:
         """
         picard MarkDuplicates I={input} \

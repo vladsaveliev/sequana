@@ -1,6 +1,6 @@
 rule report_mapping:
     input:
-        bed = "genomecov/" + config["output"] + ".bed"
+        bed = cfg.PROJECT + "/genomecov/%s.bed" % cfg.PROJECT
     output:
         "report/mapping.html"
     params:
