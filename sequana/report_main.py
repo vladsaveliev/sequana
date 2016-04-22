@@ -100,12 +100,13 @@ class BaseReport(Report):
 
 class SequanaReport(BaseReport):
     def __init__(self, snakefile="Snakefile", configfile="config.yaml",
-                 stats="stats.txt", directory="report", **kargs):
+                 stats="stats.txt", directory="report",
+                output_filename="index.html",  **kargs):
 
         super(SequanaReport, self).__init__(
             jinja_filename="main/index.html", 
             directory=directory,  
-            output_filename="index.html",
+            output_filename=output_filename,
             **kargs)
 
         try:

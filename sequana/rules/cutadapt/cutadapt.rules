@@ -15,12 +15,11 @@ if len(cfg.DATASET) == 2:
 
 if "adapter_removal_input" in config.keys():
     if config["adapter_removal_input"] == "bwa_bam_to_fastq":
-        __cutadapt__input = [cfg.PROJECT + "/bwa_bam_to_fastq/" + this for this in cfg.BASENAME]
-
-    __cutadapt__input = [this.replace("_001.", ".unmapped.") for this in __cutadapt__input]
-
+        __cutadapt__input = __bwa_bam_to_fastq__output,
+        __cutadapt__input = [x for x in __cutadapt__input if "unmapped" in x]
 else:
     __cutadapt__input = cfg.DATASET[:]
+
 
 
 if len(cfg.DATASET) == 2:

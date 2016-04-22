@@ -1,8 +1,21 @@
-import sequana.snaketools as sm
-from sequana import tools
 
 
-PROJECT = config['project']
+
+cfg = SequanaConfig(config)
+
+__format = "%(proj)s/bwa_bam_to_fastq/%(proj)s_{read}.{tag}.fastq.gz" 
+
+if cfg.paired is True:
+
+    # !! here we use the project name not the samples' names
+    __bwa_bam_to_fastq__output = expand(
+        __format % {'proj':cfg.PROJECT},
+        read=["R1", "R2"], tag=["mapped", "unmapped"])
+else:
+    __bwa_bam_to_fastq__output = expand(
+        __format % {'proj':cfg.PROJECT},
+        readt=["R1"], tag=["mapped", "unmapped"])
+
 
 rule bwa_bam_to_fastq:
     message: """
@@ -10,12 +23,13 @@ rule bwa_bam_to_fastq:
     -- information saved in {log}
     """
     input:
-        bam = "%s/bwa_mem/%s.bam" % (PROJECT, PROJECT),
+        bam = "%s/bwa_mem/%s.bam" % (cfg.PROJECT, cfg.PROJECT),
     params:
-        wkdir = "%s/bwa_bam_to_fastq" % PROJECT,
+        wkdir = "%s/bwa_bam_to_fastq" % cfg.PROJECT,
     output:
-        stats = "%s/bwa_bam_to_fastq/bwa_mem_stats.json" % PROJECT,
-        R1 = "%s/bwa_bam_to_fastq/%s_R1.unmapped.fastq.gz" % (PROJECT, PROJECT)
+        __bwa_bam_to_fastq__output,
+        stats = "%s/bwa_bam_to_fastq/bwa_mem_stats.json" % cfg.PROJECT,
+        done = touch("%s/bwa_bam_to_fastq/bwa_bam_to_fastq.done" % cfg.PROJECT)
     threads: 2
     message: "Calling bam2fastq and zipping data"
     run:

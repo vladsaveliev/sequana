@@ -8,22 +8,29 @@ cfg = sm.SequanaConfig.from_dict(config)
 # should be called after bwa_mem and bwa_bam
 
 
-rule fastqc:
-    """Calls FastQC on each input datasets + those in bwa_phix directory"""
+def fastqc_dynamic(name, inputs, outputs=[]):
+
+    metadata = {'inputs':inputs, 'name':name, 'project':cfg.PROJECT}
+
+    fastqc_code = '''
+rule fastqc__%(name)s:
+    """Calls FastQC on input data sets """
     # we could have a dynamic search or based on config file
     input:
-        list(glob.iglob("%s/**/*fastq.gz" % cfg.PROJECT, recursive=True)) + cfg.DATASET
+        %(inputs)s
     output:
-        touch('%s/fastqc/fastqc.done' % cfg.PROJECT)
+        touch('%(project)s/fastqc_%(name)s/fastqc.done')
     params:
-        wkdir="%s/fastqc" % cfg.PROJECT,
+        wkdir="%(project)s/fastqc_%(name)s",
         kargs = cfg.config.fastqc.options
     threads: 4
     log:
-        "fastqc.log"
+        "%(project)s/logs/fastqc_%(name)s.log"
     run:
         # if the content of the file is empty, this will fail. We need to
         # touch  a file in such case.
+        #
+        from sequana import snaketools as sm
         from sequana import FastQ
         newinput = []
         for i, this in enumerate(input):
@@ -33,13 +40,24 @@ rule fastqc:
                 newinput.append(this)
             else:
                 with open(output[i], "w") as fh:
-                    fh.write("No data in %s" % output[i])
+                    fh.write("No data in {0}".format(output[i]))
         if len(newinput):
             shell(
             " fastqc -t {threads} --outdir {params.wkdir} -f fastq "
-            " {newinput} {params.kargs} > {params.wkdir}/{log}")
+            " {newinput} {params.kargs} > {log}")
         else:
-            #print(str(newinput) + " is empty")
             pass
-            #raise ValueError("No non-empty fastq files found")
+    '''
+
+    from easydev import TempFile
+    tt = TempFile()
+    fh = open(tt.name, "w")
+    fh.write(fastqc_code % metadata)
+    fh.close()
+    return fh.name
+
+
+
+
+
 

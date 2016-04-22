@@ -26,7 +26,8 @@ class FastQCReport(BaseReport):
 
 
     """
-    def __init__(self, output_filename="fastqc.html", directory="report", **kargs):
+    def __init__(self, input_directory, output_filename="fastqc.html", 
+                 directory="report", **kargs):
         """
 
         :param jinja_template: name of a directory (either local) or
@@ -43,7 +44,7 @@ class FastQCReport(BaseReport):
                 jinja_filename="fastqc/index.html", 
                 directory=directory, 
                 output_filename=output_filename, **kargs)
-
+        self.input_directory = input_directory
 
         self.jinja['title'] = "FastQC Report Summary"
         self.jinja['mode'] = "Paired-end"
@@ -56,7 +57,7 @@ class FastQCReport(BaseReport):
         # create a table accordingly.
 
         import glob
-        links = glob.glob("*/fastqc/*html")
+        links = glob.glob("%s/*html" % self.input_directory)
 
         names = [filename.rsplit('/',1)[1].split('.html')[0] for filename in links]
 

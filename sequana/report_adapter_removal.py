@@ -2,12 +2,14 @@
 
 
 """
+import os
 from .report_main import BaseReport
 
 # a utility from external reports package
 from reports import HTMLTable
 
 import pandas as pd
+import pylab
 
 
 class AdapterRemovalReport(BaseReport):
@@ -19,8 +21,9 @@ class AdapterRemovalReport(BaseReport):
     This class defines a minimal set of information to be provided
 
     """
-    def __init__(self, jinja_template="adapter_removal",
-            output_filename="adapter_removal.html", directory="report",
+    def __init__(self, 
+            output_filename="adapter_removal.html", 
+            directory="report",
             overwrite=False, **kargs):
         """
 
@@ -34,8 +37,10 @@ class AdapterRemovalReport(BaseReport):
         Parameters accepted by :class:`reports.Report` are also accepted.
 
         """
-        super(AdapterRemovalReport, self).__init__(jinja_template, 
-            output_filename, directory, **kargs)
+        super(AdapterRemovalReport, self).__init__(
+            jinja_filename="adapter_removal/index.html",
+            output_filename=output_filename,
+            directory=directory, **kargs)
 
         # Here, we defined default values from what is expected from the Jinja
         # template in share/templates/adapter_removal
@@ -77,7 +82,6 @@ class AdapterRemovalReport(BaseReport):
         html = h.to_html(index=True)
         self.jinja['stats'] = html
 
-
         # Create a Table with adapters
         df = pd.DataFrame()
         df = pd.DataFrame({'Length': [], 'Trimmed':[], 'Type':[], 'Sequence': [], })
@@ -91,6 +95,24 @@ class AdapterRemovalReport(BaseReport):
         h = HTMLTable(df)
         html = h.to_html(index=True)
         self.jinja['adapters'] = html
+
+
+        # This would work for cutadapt only
+        histograms = self.get_histogram_data()
+        html = ""
+        html += "<div>\n"
+        for key in sorted(histograms.keys()):
+            histograms[key].plot(logy=True, lw=2)
+            pylab.title(name)
+            name = key.replace(" ", "_")
+            filename =  self.directory + os.sep + "%s.png" % name
+            pylab.savefig(filename)
+            pylab.grid(True)
+            html += '<img src="%s" width="45%%"></img> ' % ("%s.png" % name)
+        html += "</div>\n"
+
+        self.jinja['cutadapt'] = html
+
 
         super(AdapterRemovalReport, self).create_report(onweb=onweb)
 

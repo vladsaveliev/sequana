@@ -10,11 +10,7 @@ __identify_adapters__output = [
 
 if "adapter_removal_input" in config.keys():
     if config["adapter_removal_input"] == "bwa_bam_to_fastq":
-        __identify_adapters__input = [cfg.PROJECT + "/bwa_bam_to_fastq/" 
-                + this for this in cfg.BASENAME]
-    __identify_adapters__input = [this.replace("_001.", ".unmapped.") 
-                for this in __identify_adapters__input]
-
+        __identify_adapters__input = [x for x in __bwa_bam_to_fastq__output if "unmapped" in x]
 else:
     __identify_adapters__input = cfg.DATASET[:]
 
