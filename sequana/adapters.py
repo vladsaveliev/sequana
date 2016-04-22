@@ -10,6 +10,35 @@ May be removed
 
 
 
+def fasta_fwd_rev_to_columns(file1, file2=None, output_filename=None):
+    """Reads FWD and (optional) REV adapters in FASTA and save
+    into a column-style file
+
+
+    """
+
+    import pysam
+    f1 = pysam.FastxFile(file1)
+    if output_filename is not None:
+        fout = open(output_filename, "w")
+    if file2:
+        f2 = pysam.FastxFile(file2)
+        for read1, read2 in zip(f1, f2):
+            txt = "%s %s" % (read1.sequence, read2.sequence)
+            if output_filename is None:
+                print(txt)
+            else:
+                fout.write(txt+"\n")
+    else:
+        for read1 in f1:
+            txt = "%s" % read1.sequence
+            if output_filename is None:
+                print(read1.sequence, read2.sequence)
+            else:
+                fout.write(txt+"\n")
+    if output_filename is not None:
+        fout.close()
+
 
 def adapters_files_to_list(filename1, filename2):
 
