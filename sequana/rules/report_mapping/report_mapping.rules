@@ -5,9 +5,9 @@ rule report_mapping:
         dag = "dag.svg",
         bed = cfg.PROJECT + "/genomecov/%s.bed" % cfg.PROJECT
     output:
-        cfg.PROJECT + "/report_mapping.html"
+        cfg.PROJECT + "/report/report_mapping.html"
     params:
-        outdir = cfg.PROJECT,
+        outdir = cfg.PROJECT +"/report",
         size = config["report_mapping"]["window_size"],
         high = config["report_mapping"]["high_threshold"],
         low = config["report_mapping"]["low_threshold"]
