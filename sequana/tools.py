@@ -161,6 +161,54 @@ bam2fastq = bam_to_mapped_unmapped_fastq
 
 
 
+def bam_get_paired_distance(filename):
+    """
+
+
+    return position start and end of the paired-end reads that were mapped
+    (both)
+
+    """
+
+    b = BAM(filename)
+    distances = []
+
+    for fragment in b:
+        if fragment.is_unmapped is False and fragment.mate_is_unmapped is False \
+            and fragment.is_read1:
+
+            # get the mate:
+            mate = next(b)
+
+
+            if fragment.is_reverse:
+                position2 = fragment.reference_end
+                position1 = mate.reference_start
+                mode = 1
+            elif mate.is_reverse:
+                position1 = fragment.reference_start
+                position2 = mate.reference_end
+                mode = 2
+            else: # if both are not reversed, what does that mean.
+                # On Hm2, this is the case for 4 pairs out of 1622
+                # This seems to be a special case for fragment ends exactly 
+                # at the end of the reference and mate starts exactly at 
+                # the beginnin with a length less than 100
+                print(fragment.reference_start, fragment.reference_end)
+                print(mate.reference_start, mate.reference_end)
+
+            distances.append((position1, position2, mode))
+
+    return distances
+
+
+
+
+
+
+
+
+
 
 class FastqFactory(dict):
     """List a set of files and identify projects (paired or not)
