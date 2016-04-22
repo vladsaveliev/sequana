@@ -1,51 +1,54 @@
-import glob
-
-
-import sequana.snaketools as sm
-cfg = sm.SequanaConfig.from_dict(config)
 
 
 
-input_fastq_stats = list(glob.iglob("%s/**/*fastq.gz"%cfg.PROJECT, recursive=True))
+
+def fastq_stats_dynamic(name, inputs, outputs=[]):
+
+    metadata = {'inputs':inputs, 'name':name, 'project':cfg.PROJECT}
 
 
-rule fastq_stats:
+    fastq_stats_code = '''
+ff = sm.FileFactory(%(inputs)s)
+__fastq_stats__output = [cfg.PROJECT + "/fastq_stats_%(name)s/" + x for x in ff.basenames]
+__fastq_stats__output_json = [x.replace(".fastq.gz", "_fastq_stats.json") for x in __fastq_stats__output]
+__fastq_stats__output_bx = [x.replace(".fastq.gz", "_boxplot.png") for x in __fastq_stats__output]
+
+
+rule fastq_stats__%(name)s:
     """Calls FastQC on each input datasets + those in bwa_phix directory"""
-    # we could have a dynamic search as follows to use parallelisation but
-    # this requires the input_fastq_stats to be populated before
-    # so this rules would not work in another context....
-    """input:
-        expand("{dataset}", dataset=input_fastq_stats)
-    output:
-        expand("{dataset}".replace(".fastq.gz", "_fastq_stats.json"), dataset=input_fastq_stats),
-    """
     input:
-        cfg.DATASET + input_fastq_stats
+        %(inputs)s
     output:
-        # touch is used since we do not know the files a priori
-        # if we consider that this rule can be re-used in any pipeline
-        [x.replace(".fastq.gz", "_fastq_stats.json") for x in input_fastq_stats + cfg.DATASET],
-        touch("%s/logs/fastq_stats.done" % cfg.PROJECT)
+        json= __fastq_stats__output_json,
+        boxplot=__fastq_stats__output_bx,
+        done= touch("%(project)s/fastq_stats_%(name)s/fastq_stats.done")
     threads: 4
     run:
-        # if the content of the file is empty, this will fail. We need to
-        # touch  a file in such case.
         from sequana import FastQC
-        for inf, outf in zip(input, output):
-            print(inf)
-            print(outf)
-            fastq = FastQC(inf, sample=100000)
+        import json
+        import pylab
+        pylab.ioff()
+
+        for i in range(len(input)):
+            fastq = FastQC(input[i], sample=100000)
             if len(fastq.fastq) != 0:
-                import pylab
                 pylab.clf()
                 fastq.boxplot_quality()
-                pylab.savefig(inf.replace('fastq.gz', "_boxplot_quality.svg"))
+                pylab.savefig(output.boxplot[i])
                 stats = fastq.get_stats()
-                import json
-                json.dump(stats, open(outf, "w"))
+                json.dump(stats, open(output.json[i], "w"))
             else:
-                with open(outf[i], "w") as fh:
-                    fh.write("No data in %s" % outf)
+                pass
+
+    '''
+    from easydev import TempFile
+    tt = TempFile()
+    fh = open(tt.name, "w")
+    fh.write(fastq_stats_code % metadata)
+    fh.close()
+    return fh.name
+
+
 
 
 

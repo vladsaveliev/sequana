@@ -11,13 +11,14 @@ rule report_phix_removal:
     input:
         dag = "dag.svg",
         conda = "%s/requirements.txt" % PROJECT,
-        bwa_bam_to_fastq = "%s/bwa_bam_to_fastq/bwa_mem_stats.json" % PROJECT,
-        fastqc = "%s/fastqc/fastqc.done" % PROJECT,
-        fastq_stats = "%s/logs/fastq_stats.done" % PROJECT
+        fastqc_phix = "%s/fastqc_phix/fastqc.done" % PROJECT,
+        fastqc_samples = "%s/fastqc_samples/fastqc.done" % PROJECT,
+        fastq_stats = "%s/fastq_stats_samples/fastq_stats.done" % PROJECT,
+        fastq_phix = "%s/fastq_stats_phix/fastq_stats.done" % PROJECT,
     output:
-        "%s/index.html" % PROJECT,
-        "%s/bwa_mem.html" % PROJECT,
-        "%s/dag.svg" % PROJECT,
+        touch("%s/report_phix_removal.html" % PROJECT),
+        touch("%s/bwa_mem.html" % PROJECT),
+        touch("%s/dag.svg" % PROJECT),
     params:
         outdir = PROJECT
     run:
@@ -27,7 +28,9 @@ rule report_phix_removal:
         #from sequana import report_fastq_stats
 
         # Main page
-        s = report_main.SequanaReport(directory=params.outdir)
+        s = report_main.SequanaReport(directory=params.outdir,
+                    output_filename="report_phix_removal.html")
+
         s.jinja['description'] = """
 
         This is the output of the Phix removal pipeline. This pipeline
@@ -40,14 +43,18 @@ rule report_phix_removal:
 
         import os
         html = ""
+        html += "<h3>Download Fastq without Phix </h3>\n"
         for this in cfg.DATASET:
             basename = os.path.split(cfg.DATASET[0])[1]
             name = basename.replace("_001.fastq.gz", ".unmapped.fastq.gz")
             link = "bwa_bam_to_fastq"+ os.sep + name
-            html += '<br><a href="%s">%s</a>' % (link, name)
+            html += '<br>-<a href="%s">%s</a>' % (link, name)
+
+        html += "<h3>Dowload Fastq with Phix </h3>\n"
+        for this in cfg.DATASET:
             name = basename.replace("_001.fastq.gz", ".mapped.fastq.gz")
             link = "bwa_bam_to_fastq"+ os.sep + name
-            html += '<br><a href="%s">%s</a>' % (link, name)
+            html += '<br>-<a href="%s">%s</a>' % (link, name)
         s.jinja['output'] = html
 
         s.create_report()
@@ -59,7 +66,16 @@ rule report_phix_removal:
         s.create_report()
 
         # FastQC page
-        s = report_fastqc.FastQCReport(directory=params.outdir)
+        s = report_fastqc.FastQCReport(
+                PROJECT+ "/fastqc_phix", 
+                output_filename="fastqc__phix.html",
+                directory=params.outdir)
+        s.create_report()
+
+        s = report_fastqc.FastQCReport(
+                PROJECT+ "/fastqc_samples", 
+                output_filename="fastqc__samples.html",
+                directory=params.outdir)
         s.create_report()
 
         # FastQ stats page
