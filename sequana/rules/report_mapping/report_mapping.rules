@@ -8,8 +8,6 @@ rule report_mapping:
         high = config["report_mapping"]["high_threshold"],
         low = config["report_mapping"]["low_threshold"]
     run:
-        import matplotlib as mpl
-        mpl.use('Agg')
         from sequana import bedtools
         from sequana import report_mapping
 
