@@ -542,21 +542,21 @@ class DOTParser(object):
                     name = name.replace(",","")
                     name = name.replace('"',"")
                     name = name.strip()
+                    if "__" in name:
+                        lhs = lhs.replace(name, name.split('__')[0])
+
                     if name in ['dag', 'conda']:
                         index = lhs.split("[")[0]
                         indices_to_drop.append(index.strip())
-                    elif name in ['all', "bwa_bam_to_fastq"] or \
-                            "dataset:" in line or name.startswith("report"):
-                        # redirect to the main page
-                        newline = lhs + ' URL="index.html" target="_parent", '
-                        newline += separator + rhs
+                    elif name in ['all', "bwa_bam_to_fastq"] or "dataset:" in name:
+                        # redirect to the main page so nothing to do 
+                        newline = lhs + separator + rhs
                         fout.write(newline + "\n")
                     else:
                         # redirect to another report
                         newline = lhs + ' URL="%s.html" target="_parent", ' % name
                         newline += separator + rhs
                         fout.write(newline + "\n")
-                        
 
 
 def get_tagname(filename):
