@@ -16,4 +16,4 @@ Usage
 ~~~~~~
 The simple way to use this pipeline, is using with anaconda environment.
 Installation of sequana is explain in the readme of the main directory.
-YYou
+You
