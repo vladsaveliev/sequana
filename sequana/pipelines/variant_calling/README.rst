@@ -1,20 +1,29 @@
-:Overview: variant calling
-:Input: fastq files
+:Overview: Variant calling
+:Input: fastq file from Illumina Sequencer
 :Output: bam, vcf and html files
 :Config file requirements:
+    - samples:file1
+    - samples:file2
+    - project
+    - reference:sequence.fa
 
+Usage
+~~~~~~~~~
 
+::
+
+    mkdir analysis
+    cd analysis
+    cp path/to/config.yaml .
+    # Edit the config.yaml file
+    snakemake -p -s path/to/Snakefile
 
 Requirements
 ~~~~~~~~~~~~~~~~
 
-- bwa
-- samtools
-- freebayes
-
-Usage
-~~~~~~
-The simple way to use this pipeline, is using with anaconda environment.
-Installation of sequana is explain at this page: https://github.com/sequana/sequana.
-We copy the Snakefile and the config file (config.yaml) in your working directory.
-The config file must be modified to fit with your data. 
+- Bedtools
+- BWA
+- Freebayes
+- GenomeAnalysisTK
+- Picard-tools
+- Samtools
