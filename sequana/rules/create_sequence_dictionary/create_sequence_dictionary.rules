@@ -10,9 +10,10 @@ rule create_sequence_dictionary:
             "/logs/picard_tools/CreateSequenceDictionary/stderr.logs"
     shell:
         """
-	    if [[ ! -a {output} ]];
+	    if [[ -a {output} ]];
         then
-            picard CreateSequenceDictionary \
-            R={input.ref} O={output} > {log.out} 2> {log.err}
+            rm {output}
         fi
+        picard CreateSequenceDictionary \
+        R={input.ref} O={output} > {log.out} 2> {log.err}
         """
