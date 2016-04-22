@@ -31,22 +31,37 @@ if config['fastq_sampling']['enable'] is True:
 
 include: sm.modules['bwa_mem']           # Search for the Fix
 include: sm.modules['bwa_bam_to_fastq']  # Save mapped and unmapped data in bwa_phix/
-include: sm.modules['fastqc']            # quality control
 include: sm.modules['fastq_stats']
 include: sm.modules['report_phix_removal']# Report + DAG + CONDA 
 
+# Generic include:
+exec(open(sequana.modules["fastqc"], "r").read())
+exec(open(sequana.modules["fastq_stats"], "r").read())
 
-#localrules: dag
-#ruleorder: fastq_sampling > bwa_mem > bwa_bam_to_fastq > fastqc > fastq_stats
+# Let us run fastqc on the following fastq :
+include: fastqc_dynamic("phix", __bwa_bam_to_fastq__output)
+include: fastqc_dynamic("samples", cfg.DATASET)
 
+# Let us run a fastq_stats run on the following fastq
+include: fastq_stats_dynamic("phix", __bwa_bam_to_fastq__output)
+include: fastq_stats_dynamic("samples", cfg.DATASET)
+
+# Those rules takes a couple of seconds so no need for a cluster
+localrules: dag, conda, all
 
 #sm.sequana_check_config(config, globals())
 
-
 rule all:
-    input: "%s/index.html" % config["project"],
+    input: "%s/report_phix_removal.html" % cfg.PROJECT, 
     version: sequana.version
 
+
+onsuccess:
+    print("Workflow finished, no error")
+
+#onerror:
+#    print("An error occurred")
+#    shell("mail -s "an error occurred" youremail@provider.com < {log}")
 
 
 
