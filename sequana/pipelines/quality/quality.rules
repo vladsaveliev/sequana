@@ -1,0 +1,43 @@
+import sequana
+from sequana import snaketools as sm
+from sequana.snaketools import SequanaConfig, FileFactory
+
+# This must be defined before the include 
+configfile: "config.yaml"
+
+
+cfg = SequanaConfig(config)
+
+expected_output = []
+
+
+include: sm.modules['phix_removal']
+config["adapter_removal_input"] = "bwa_bam_to_fastq"
+config["identify_adapters_input"] = "bwa_bam_to_fastq"
+
+# Include the cutadapt module
+include: sm.modules['cutadapt']
+expected_output += __cutadapt__output
+
+# Include the identify_adapters module
+include: sm.modules['identify_adapters']
+expected_output += __identify_adapters__output
+
+
+#guarantees that all fastq are available before fastqc starts
+ruleorder:  bwa_mem > bwa_bam_to_fastq > cutadapt > fastqc
+
+
+
+rule pipeline_quality:
+    input:
+        cfg.PROJECT +"/index.html",
+        expected_output
+    run:
+        from sequana import report_cutadapt
+        s = report_cutadapt.CutAdaptReport(directory=cfg.PROJECT)
+        s.read_data(cfg.PROJECT + "/logs/cutadapt.txt")
+        s.create_report()
+
+
+
