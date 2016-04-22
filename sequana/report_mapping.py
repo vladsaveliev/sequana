@@ -15,7 +15,8 @@ class MappingReport(BaseReport):
         super(MappingReport, self).__init__(
                 jinja_filename="mapping/index.html",
                 directory=directory,
-                output_filename="mapping.html", **kargs)
+                output_filename="report_mapping.html", **kargs)
+        self.directory = directory
         self.jinja['title'] = "Mapping Report"
         self.low_t = low_threshold
         self.high_t = high_threshold
@@ -39,7 +40,8 @@ class MappingReport(BaseReport):
                 stop = len(self.mapping)
             name = "{0}_{1}".format(name, stop)
             r = SubMappingReport(start=i, stop=stop, 
-                    output_filename=name + ".html")
+                    output_filename=name + ".html",
+                    directory=self.directory)
             r.set_data(self.mapping)
             r.create_report()
             link = self.directory + os.sep + name + ".html"
