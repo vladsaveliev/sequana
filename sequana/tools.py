@@ -202,14 +202,6 @@ def bam_get_paired_distance(filename):
     return distances
 
 
-
-
-
-
-
-
-
-
 class FastqFactory(dict):
     """List a set of files and identify projects (paired or not)
 
