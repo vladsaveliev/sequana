@@ -10,15 +10,6 @@ from reports import HTMLTable
 import pandas as pd
 
 
-def _get_template_path(name):
-    # Is it a local directory ?
-    if os.path.exists(name):
-          return name
-    else:
-          template_path = easydev.get_shared_directory_path("sequana")
-          template_path += os.sep + "templates"  + os.sep + name
-          return template_path
-
 
 class PhixReport(BaseReport):
     """Report dedicated to inform amount of phix in the FastQ

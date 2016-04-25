@@ -11,17 +11,6 @@ from reports import HTMLTable
 import pandas as pd
 
 
-def _get_template_path(name):
-    # Is it a local directory ?
-    if os.path.exists(name):
-          return name
-    else:
-          template_path = easydev.get_shared_directory_path("sequana")
-          template_path += os.sep + "templates"  + os.sep + name
-          return template_path
-
-
-
 class FastQStatsReport(BaseReport):
     """
 
@@ -81,6 +70,8 @@ class FastQStatsReport(BaseReport):
             acgt[3]["data"][key] = thisdata['T']
 
             # { "n_reads": 1627, "GC content": 0.45281800009750867}
+
+        # First argument is just an Identifier
         data = bar.stacked_bar("Test", "ACGT distribution", acgt)
 
         data += """<script type="text/javascript" src="js/canvasjs.min.js"></script> """

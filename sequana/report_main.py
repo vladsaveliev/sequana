@@ -7,13 +7,6 @@ from sequana import version
 
 import glob
 
-def _get_template_path(name):
-    # Is it a local directory ?
-    if os.path.exists(name):
-        return name
-    else:
-        main_path = easydev.get_package_location("sequana")
-        return os.sep.join([main_path, 'sequana', "resources", "jinja", name])
 
 
 class BaseReport(Report):
