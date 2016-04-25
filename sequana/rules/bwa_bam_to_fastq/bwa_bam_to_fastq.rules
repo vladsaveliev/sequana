@@ -17,13 +17,15 @@ else:
         readt=["R1"], tag=["mapped", "unmapped"])
 
 
+__input_dir = 'bwa_mem_phix'
+
 rule bwa_bam_to_fastq:
     message: """
     -- Extracting the fastq from the BAM/SAM files
     -- information saved in {log}
     """
     input:
-        bam = "%s/bwa_mem/%s.bam" % (cfg.PROJECT, cfg.PROJECT),
+        bam = "%s/%s/%s.bam" % (cfg.PROJECT, __input_dir, cfg.PROJECT),
     params:
         wkdir = "%s/bwa_bam_to_fastq" % cfg.PROJECT,
     output:
