@@ -7,13 +7,6 @@ from sequana import version
 
 import glob
 
-def _get_template_path(name):
-    # Is it a local directory ?
-    if os.path.exists(name):
-        return name
-    else:
-        main_path = easydev.get_package_location("sequana")
-        return os.sep.join([main_path, 'sequana', "resources", "jinja", name])
 
 
 class BaseReport(Report):
@@ -70,6 +63,19 @@ class BaseReport(Report):
         #self.data['command'] = "unset"
         self.jinja['dependencies'] =  self.get_table_dependencies('sequana').to_html()
 
+        # the menu has a back button that may not always be the index.html
+        self.jinja["main_link"] = output_filename
+        self.input_filename = "undefined"
+
+        # Another set of data for the HTML is the galleria them
+        import shutil
+        target = directory + "/galleria/themes"
+        try:
+            shutil.copytree(sequana_path + "/sequana/resources/js/galleria/themes",
+                target)
+        except:
+            pass
+
     def parse(self):
         """populate the :attr:`data` attribute used by the JINJA templates
 
@@ -123,8 +129,8 @@ class SequanaReport(BaseReport):
             from sequana.snaketools import SequanaConfig
             config = SequanaConfig(configfile)
             html = ""
-            for filename in config.DATASET:
-                html += '<li><a href="../%s">%s</a></li>\n' % (filename, filename)
+            for link, filename in zip(config.DATASET, config.BASENAME):
+                html += '<li><a href="../%s">%s</a></li>\n' % (link, filename)
                 html += "</ul>"
                 self.jinja['dataset'] = html
         except:
@@ -143,6 +149,8 @@ class SequanaReport(BaseReport):
             print('snakemake stats.txt not found. Use "--stats stats.txt" next time')
 
         self.jinja['title'] = "Sequana Report"
+
+        
 
     def parse(self):
         pass

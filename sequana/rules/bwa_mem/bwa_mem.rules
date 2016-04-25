@@ -4,10 +4,11 @@ input:
     fastq -> list with your fastq.gz (R1, R2)
     ref -> reference's fastq file
 """
-__sequana__bwa_mem = [":samples", "ref", "output", ":kwargs", ":threads"]
+__sequana__bwa_mem = [":samples", "output", ":kwargs", ":threads"]
 
 import sequana.snaketools as sm
 cfg = sm.SequanaConfig.from_dict(config)
+
 
 rule bwa_mem:
     input:

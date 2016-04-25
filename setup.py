@@ -59,7 +59,7 @@ setup(
     packages = packages,
 
     install_requires = ["easydev==0.9.18", "reports>=0.1.8", "matplotlib", "pandas",
-        "cutadapt==1.9.1", "pysam", "pyVCF"],
+        "cutadapt>=1.9.1", "pysam", "pyVCF"],
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
@@ -71,6 +71,7 @@ setup(
         '': ['Snakefile*', '*html', 'README.rst', 'config.yaml*', '*.css', "*.js"],
         'sequana.rules' : ["*/*"],
         'sequana.resources.data' : ['*'],
+        'sequana.resources.js/galleria/themes' : ['*'],
         },
 
     # thise files do not need to be added in MANIFEST.in since there are python

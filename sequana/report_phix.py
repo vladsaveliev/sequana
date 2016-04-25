@@ -10,15 +10,6 @@ from reports import HTMLTable
 import pandas as pd
 
 
-def _get_template_path(name):
-    # Is it a local directory ?
-    if os.path.exists(name):
-          return name
-    else:
-          template_path = easydev.get_shared_directory_path("sequana")
-          template_path += os.sep + "templates"  + os.sep + name
-          return template_path
-
 
 class PhixReport(BaseReport):
     """Report dedicated to inform amount of phix in the FastQ
@@ -42,9 +33,9 @@ class PhixReport(BaseReport):
         super(PhixReport, self).__init__(jinja_filename="phix_contaminant/index.html", 
                  directory=directory, output_filename=output_filename, **kargs)
 
-
         self.title = "Phix Report Summary"
         self.jinja['title'] = "Phix Report Summary"
+        self.jinja['main_link'] = "index.html"
         self.input_filename = "undefined" # to be provided by the user
 
     def parse(self):
@@ -58,7 +49,6 @@ class PhixReport(BaseReport):
             self.jinja['mode'] = "Paired-end"
         elif data['mode'] == "se":
             self.jinja['mode'] = "Single-end"
-
 
         x = data['R1_mapped']
         y = data['R1_unmapped']
@@ -86,7 +76,6 @@ class PhixReport(BaseReport):
         html += "duplicated: %s <hr>" % data['duplicated']
 
         self.jinja['stats'] = html
-
 
 
 

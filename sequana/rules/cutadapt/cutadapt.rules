@@ -7,15 +7,16 @@ cfgca = cfg.config.cutadapt
 
 prefix = cfg.PROJECT + "/cutadapt/"
 
-__cutadapt__output = [prefix + cfg.BASENAME[0].replace(".fastq.gz", ".cutadapt.fastq.gz")]
+# TODO: should make these lines more robus (R1 hardcoded)
+__cutadapt__output = [prefix + cfg.PROJECT +"_R1.cutadapt.fastq.gz"]
 
 if len(cfg.DATASET) == 2:
-    __cutadapt__output.append(prefix + cfg.BASENAME[1].replace(".fastq.gz", ".cutadapt.fastq.gz"))
+    __cutadapt__output += [prefix + cfg.PROJECT +"_R2.cutadapt.fastq.gz"]
 
 
 if "adapter_removal_input" in config.keys():
     if config["adapter_removal_input"] == "bwa_bam_to_fastq":
-        __cutadapt__input = __bwa_bam_to_fastq__output,
+        __cutadapt__input = __bwa_bam_to_fastq__output[:]
         __cutadapt__input = [x for x in __cutadapt__input if "unmapped" in x]
 else:
     __cutadapt__input = cfg.DATASET[:]
@@ -29,7 +30,7 @@ if len(cfg.DATASET) == 2:
             file2 = __cutadapt__input[1]
         output:
             file1 = __cutadapt__output[0],
-            file2 = __cutadapt__output[1]
+            file2 = __cutadapt__output[1],
         params:
             fwd= cfgca.fwd,
             rev= cfgca.rev,
