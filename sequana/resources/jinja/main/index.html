@@ -29,15 +29,16 @@
     {% endif %}
 
     <div class="section" id="Pipeline flow">
-        <h2> 3 -  <a class="toc-backref" href="#dag">Snakefile</a></h2>
-        <p>Here is pipeline flow. Click on a box to get more information
-(possibly)</p>
+        <h2> 3 -  <a class="toc-backref" href="#dag">Workflow</a></h2>
+        <p>The following picture is clickable and some boxes may have specific report page. </p>
 
         <object data="dag.svg" type="image/svg+xml">
         <img src="dag.svg">
         </object>
 
         <div id="1">
+        <p>The analysis was performed with the following Snakemake and config
+file:<br></p>
         <a href="#1" class="show_hide">Show/hide Snakemake file</a>
         <div class="slidingDiv">
         <pre><code class="python">{{ snakefile }}</code></pre>
