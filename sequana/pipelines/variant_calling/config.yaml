@@ -4,35 +4,38 @@ samples:
 
 project: pKM2-EGFP-V-f_S2_L001
 
-# reference
-reference: pKM2-eGFP.fa
-
 # GATK is absent in conda because it is not a free software
 # You must set the GATK bin path.
 # gatk_bin: "java -jar /path/to/GenomeAnalysisTK.jar"
 gatk_bin: GenomeAnalysisTK
 
+# Bwa parameter for reference mapping
+bwa_ref:
+    reference: pKM2-eGFP.fa
+    index:
+        options: '-a is'
+    mem:
+        options: '-T 30'
+        # -R option for GATK
+        read_groups: '@RG\\tID:1\\tSM:1\\tPL:illumina'
+        # -t option (number thread)
+        threads: 2 
+
 # Software parameters
 
-bedtools: "-d"
-
-bwa_index:
-    -a: "is"
-
-bwa_mem:
-    args:
-        -R: '@RG\\tID:1\\tSM:1\\tPL:illumina'
-    threads: 2
-    kwargs: ""
+bedtools: 
+    options: '-d'
 
 freebayes:
-    --ploidy: 1
+    options: '--ploidy 1'
 
 indel_realigner:
     do: yes
+    options: ''
 
 mark_duplicates:
     do: yes
+    options: ''
 
 report_mapping:
     do: yes
@@ -44,4 +47,4 @@ vcf_filter:
     QUAL: 100
     FREQ: 0.7
     INFO:
-        DP: ">= 10"
+        DP: '>= 10'

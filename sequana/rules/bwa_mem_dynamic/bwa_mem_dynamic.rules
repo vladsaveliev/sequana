@@ -1,0 +1,59 @@
+"""Read mapping for either single end and paired end data using BWA and samtools.
+
+input:
+    fastq -> list with your fastq.gz (R1, R2)
+    ref -> reference's fastq file
+"""
+__sequana__bwa_mem = [":samples", "ref", "output", ":kwargs", ":threads"]
+
+import sequana.snaketools as sm
+cfg = sm.SequanaConfig.from_dict(config)
+
+def bwa_mem_dynamic(name, inputs, outputs=[]):
+    
+    metadata = {'inputs':inputs, 'name':name, 'project':cfg.PROJECT}
+    
+    bwa_mem_code = '''
+rule bwa_mem__%(name)s:
+    input:
+        fastq = %(inputs)s,
+        reference = config["bwa_%(name)s"]["reference"]
+    output:
+        mem = "%(project)s/bwa_mem_%(name)s/%(project)s.bam",
+        sort = "%(project)s/bwa_mem_%(name)s/%(project)s.sorted.bam",
+        reference = "%(project)s/references_%(name)s/%(project)s.fa",
+        done = touch("%(project)s/bwa_mem_%(name)s/done")
+    log:
+        mem = "%(project)s/logs/bwa_mem_%(name)s/bwa_mem.logs",
+        index = "%(project)s/logs/bwa_mem_%(name)s/bwa_index.logs",
+        sort = "%(project)s/logs/bwa_mem_%(name)s/samtools_sort.logs"
+    params:
+        index = config["bwa_%(name)s"]["index"]["options"],
+        mem = config["bwa_%(name)s"]["mem"]["options"],
+        rg = config["bwa_%(name)s"]["mem"]["read_groups"]
+    threads:
+        config["bwa_%(name)s"]["mem"]["threads"]
+    shell:
+        """
+        # Indexing
+        ln -sf $(pwd)/{input.reference} {output.reference}
+        bwa index {params.index} {output.reference} 2> {log.index}
+        samtools faidx {output.reference}
+
+        # Mapping
+        (bwa mem -t {threads} -R {params.rg} {params.mem} \
+        {output.reference} {input.fastq} | \
+        samtools view -Sbh -> {output.mem}) 2> {log.mem}
+ 
+        # Sorting
+        samtools sort -o {output.sort} {output.mem} 2> {log.sort}
+        samtools index {output.sort} 2>> {log.sort}
+        """
+    '''
+
+    from easydev import TempFile
+    tt = TempFile()
+    fh = open(tt.name, "w")
+    fh.write(bwa_mem_code % metadata)
+    fh.close()
+    return fh.name
