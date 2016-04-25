@@ -1,6 +1,6 @@
 rule vcf_filter:
     input:
-        vcf = cfg.PROJECT + "/freebayes/%s.vcf" % cfg.PROJECT
+        vcf = __freebayes__output
     output:
         vcf = cfg.PROJECT + "/vcf_filter/%s.vcf" % cfg.PROJECT
     run:

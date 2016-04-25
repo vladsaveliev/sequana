@@ -44,8 +44,6 @@ class MappingReport(BaseReport):
                     directory=self.directory)
             r.set_data(self.mapping)
             r.create_report()
-            print(link)
-            print(self.directory)
             df = df.append({"name": formatter.format(name, link)}, 
                 ignore_index=True)
         html = HTMLTable(df)

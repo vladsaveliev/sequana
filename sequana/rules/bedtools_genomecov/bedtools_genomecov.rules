@@ -1,0 +1,13 @@
+__bedtools_genomecov__output = cfg.PROJECT + "/genomecov/%s.bed" % cfg.PROJECT
+
+rule bedtools_genomecov:
+    input:
+        __bwa_mem_ref__output
+    output:
+        __bedtools_genomecov__output
+    params:
+        options = config["bedtools"]["options"]
+    shell:
+        """
+        bedtools genomecov {params.options} -ibam {input} > {output}
+        """

@@ -1,11 +1,13 @@
 include: sm.modules['dag']     # Create DAG file
 
+__report_mapping__output = cfg.PROJECT + "/report/report_mapping.html"
+
 rule report_mapping:
     input:
         dag = "dag.svg",
-        bed = cfg.PROJECT + "/genomecov/%s.bed" % cfg.PROJECT
+        bed = __bedtools_genomecov__output
     output:
-        cfg.PROJECT + "/report/report_mapping.html"
+        __report_mapping__output
     params:
         outdir = cfg.PROJECT +"/report",
         size = config["report_mapping"]["window_size"],
