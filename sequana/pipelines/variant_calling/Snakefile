@@ -19,29 +19,31 @@ cfg = SequanaConfig(config)
 # Python -----------------------------------------------------------------------
 
 final_output = ["{0}/vcf_filter/{0}.vcf".format(cfg.PROJECT)]
-indel_realigner_input = "{0}/bwa_mem/{0}.sorted.bam".format(cfg.PROJECT)
-freebayes_input = "{0}/bwa_mem/{0}.sorted.bam".format(cfg.PROJECT)
+
 
 # Mapping
-include: sm.modules["bwa_mem"]
+exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
+include: bwa_mem_dynamic("ref", cfg.DATASET)
+__indel_realigner__input = __bwa_mem_ref__output
+__freebayes__input = __bwa_mem_ref__output
 
 # Mapping report
 if config["report_mapping"]["do"]:
-    include: sm.modules["bed_genomecov"]
+    include: sm.modules["bedtools_genomecov"]
     include: sm.modules["report_mapping"]
-    final_output.append(cfg.PROJECT + "/report/report_mapping.html")
+    final_output.append(__report_mapping__output)
 
 # Mark duplicates
 if config["mark_duplicates"]["do"]:
     include: sm.modules["mark_duplicates"]
-    indel_realigner_input = "{0}/mark_duplicates/{0}.bam".format(cfg.PROJECT)
-    freebayes_input = "{0}/mark_duplicates/{0}.bam".format(cfg.PROJECT)
+    __indel_realigner__input = __mark_duplicates__output
+    __freebayes__input = __mark_duplicates__output
     
 # Indel realigner
 if config["indel_realigner"]["do"]:
     include: sm.modules["create_sequence_dictionary"]
     include: sm.modules["indel_realigner"]
-    freebayes_input = "{0}/indel_realigner/{0}.bam".format(cfg.PROJECT)
+    __freebayes__input = __indel_realigner__output
 
 # Variant calling
 include: sm.modules["freebayes"]

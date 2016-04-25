@@ -1,8 +1,11 @@
+__mark_duplicates__output = cfg.PROJECT  + \
+    "/mark_duplicates/%s.bam" % cfg.PROJECT
+
 rule mark_duplicates:
     input:
-        cfg.PROJECT + "/bwa_mem/%s.sorted.bam" % cfg.PROJECT 
+        __bwa_mem_ref__output
     output:
-        cfg.PROJECT  + "/mark_duplicates/%s.bam" % cfg.PROJECT
+        __mark_duplicates__output
     log:
         out = cfg.PROJECT + 
             "/logs/picard_tools/MarkDuplicates/stdout.logs",
@@ -10,6 +13,8 @@ rule mark_duplicates:
             "/logs/picard_tools/MarkDuplicates/stderr.logs",
         metrics = cfg.PROJECT  + 
             "/logs/picard_tools/MarkDuplicates/%s.metrics" % cfg.PROJECT
+    params:
+        options = config["mark_duplicates"]["options"]
     shell:
         """
         picard MarkDuplicates I={input} \

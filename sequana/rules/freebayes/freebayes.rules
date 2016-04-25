@@ -1,18 +1,19 @@
+__freebayes__output = cfg.PROJECT + "/freebayes/%s.vcf" % cfg.PROJECT
+
 rule freebayes:
     input:
-        bam = freebayes_input,
-        ref = cfg.PROJECT + "/references/%s.fa" % cfg.PROJECT
+        bam = __freebayes__input,
+        ref = __bwa_mem_ref__reference
     output:
-        vcf = cfg.PROJECT + "/freebayes/%s.vcf" % cfg.PROJECT
+        vcf = __freebayes__output
     log:
         out = cfg.PROJECT + "/logs/freebayes/stdout.logs",
         err = cfg.PROJECT + "/logs/freebayes/stderr.logs"
     params:
-        freebayes_params = " ".join(['%s %s' % (key, value) for (key, value) \
-            in config["freebayes"].items()])
+        freebayes = config["freebayes"]["options"]
     shell:
         """
         samtools index {input.bam}
-        freebayes {params.freebayes_params} -f {input.ref} \
+        freebayes {params.freebayes} -f {input.ref} \
         -b {input.bam} -v {output.vcf} > {log.out} 2> {log.err}
         """

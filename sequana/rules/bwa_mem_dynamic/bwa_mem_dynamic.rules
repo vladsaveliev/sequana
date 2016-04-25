@@ -14,14 +14,17 @@ def bwa_mem_dynamic(name, inputs, outputs=[]):
     metadata = {'inputs':inputs, 'name':name, 'project':cfg.PROJECT}
     
     bwa_mem_code = '''
+__bwa_mem_%(name)s__reference = "%(project)s/references_%(name)s/%(project)s.fa"
+__bwa_mem_%(name)s__output = "%(project)s/bwa_mem_%(name)s/%(project)s.sorted.bam"
+
 rule bwa_mem__%(name)s:
     input:
         fastq = %(inputs)s,
         reference = config["bwa_%(name)s"]["reference"]
     output:
         mem = "%(project)s/bwa_mem_%(name)s/%(project)s.bam",
-        sort = "%(project)s/bwa_mem_%(name)s/%(project)s.sorted.bam",
-        reference = "%(project)s/references_%(name)s/%(project)s.fa",
+        sort = __bwa_mem_%(name)s__output,
+        reference = __bwa_mem_%(name)s__reference,
         done = touch("%(project)s/bwa_mem_%(name)s/done")
     log:
         mem = "%(project)s/logs/bwa_mem_%(name)s/bwa_mem.logs",

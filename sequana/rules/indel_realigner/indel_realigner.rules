@@ -1,10 +1,13 @@
+__indel_realigner__output = cfg.PROJECT  + \
+    "/indel_realigner/%s.bam" % cfg.PROJECT
+
 rule indel_realigner:
     input:
-        bam = indel_realigner_input,
-        ref = cfg.PROJECT + "/references/%s.fa" % cfg.PROJECT ,
-        ref_dict = cfg.PROJECT + "/references/%s.dict" % cfg.PROJECT 
+        bam = __indel_realigner__input,
+        ref = __bwa_mem_ref__reference ,
+        ref_dict = __create_sequence_dictionary__output
     output:
-        bam = cfg.PROJECT  + "/indel_realigner/%s.bam" % cfg.PROJECT,
+        bam = __indel_realigner__output,
         intervals = cfg.PROJECT + "/indel_realigner/%s.intervals" % cfg.PROJECT
     log:
         out = cfg.PROJECT + "/logs/gatk/IndelRealigner/stdout.logs",
