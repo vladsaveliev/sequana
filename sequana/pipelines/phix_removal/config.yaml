@@ -58,4 +58,27 @@ fastq_sampling:
 
 bwa_phix:
     reference: Coliphage_phiX174.fa
+    index:
+        options: '-a is'
+    mem:
+        options: '-T 30'
+        read_groups: '@RG\\tID:1\\tSM:1\\tPL:illumina'
+        threads: 2 
+
+cutadapt:
+    fwd: GATCGGAAGAGCACACGTCTGAACTCCAGTCACGTGAAAATCTCGTATG
+    rev: AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCC
+    m: 20
+    quality: 30,30
+    kwargs: "--progress"
+
+alien_trimmer:
+    fwd: adapters_48_PCR-free_FWD.fa
+    rev: adapters_48_PCR-free_REV.fa
+
+adapter_removal:
+    fwd: GATCGGAAGAGCACACGTCTGAACTCCAGTCACGTGAAAATCTCGTATG
+    rev: AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCC
+
+
 

@@ -29,7 +29,12 @@ if config['fastq_sampling']['enable'] is True:
     config['samples']['file1'] = "fastq_sampling/%s" % FILE1
     config['samples']['file2'] = "fastq_sampling/%s" % FILE2
 
-include: sm.modules['bwa_mem']           # Search for the Fix
+
+# Generic include for bwa_mem on the phix reference
+exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
+include: bwa_mem_dynamic("phix", cfg.DATASET)
+
+# Some specific rules to be included for the phix removal pipeline
 include: sm.modules['bwa_bam_to_fastq']  # Save mapped and unmapped data in bwa_phix/
 include: sm.modules['report_phix_removal']# Report + DAG + CONDA 
 
@@ -48,14 +53,13 @@ include: fastq_stats_dynamic("samples", cfg.DATASET)
 # Those rules takes a couple of seconds so no need for a cluster
 localrules: dag, conda, all
 
-#sm.sequana_check_config(config, globals())
-
 rule all:
     input: "%s/report_phix_removal.html" % cfg.PROJECT, 
     version: sequana.version
 
-#onsuccess:
-#    print("Workflow finished, no error")
+
+onsuccess:
+    print("Workflow finished, no error")
 
 #onerror:
 #    print("An error occurred")
