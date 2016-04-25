@@ -7,7 +7,7 @@ project: "Hm2_GTGAAA_L005"
 
 
 requirements: ['Coliphage_phiX174.fa']
-
+reference: "Coliphage_phiX174.fa"
 
 fastqc:
     options: "--nogroup"
@@ -26,8 +26,6 @@ bwa_index:
 bwa_mem:
     args:
         -R: '@RG\\tID:1\\tSM:1\\tPL:illumina'
-    reference: Coliphage_phiX174.fa
-    ref: Coliphage_phiX174.fa
     threads: 4
     kwargs: "-M"
 

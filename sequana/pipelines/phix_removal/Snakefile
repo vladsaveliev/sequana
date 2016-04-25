@@ -31,7 +31,6 @@ if config['fastq_sampling']['enable'] is True:
 
 include: sm.modules['bwa_mem']           # Search for the Fix
 include: sm.modules['bwa_bam_to_fastq']  # Save mapped and unmapped data in bwa_phix/
-include: sm.modules['fastq_stats']
 include: sm.modules['report_phix_removal']# Report + DAG + CONDA 
 
 # Generic include:
@@ -55,9 +54,8 @@ rule all:
     input: "%s/report_phix_removal.html" % cfg.PROJECT, 
     version: sequana.version
 
-
-onsuccess:
-    print("Workflow finished, no error")
+#onsuccess:
+#    print("Workflow finished, no error")
 
 #onerror:
 #    print("An error occurred")

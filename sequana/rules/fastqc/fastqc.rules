@@ -13,6 +13,7 @@ def fastqc_dynamic(name, inputs, outputs=[]):
     metadata = {'inputs':inputs, 'name':name, 'project':cfg.PROJECT}
 
     fastqc_code = '''
+
 rule fastqc__%(name)s:
     """Calls FastQC on input data sets """
     # we could have a dynamic search or based on config file

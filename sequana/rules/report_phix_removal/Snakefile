@@ -25,12 +25,12 @@ rule report_phix_removal:
         from sequana import report_main
         from sequana import report_phix
         from sequana import report_fastqc
+        from sequana import report_fastq_stats
         #from sequana import report_fastq_stats
 
         # Main page
         s = report_main.SequanaReport(directory=params.outdir,
                     output_filename="report_phix_removal.html")
-
         s.jinja['description'] = """
 
         This is the output of the Phix removal pipeline. This pipeline
@@ -63,6 +63,7 @@ rule report_phix_removal:
         s = report_phix.PhixReport(output_filename="bwa_mem.html",
                 directory=params.outdir)
         s.input_filename = "%s/bwa_bam_to_fastq/bwa_mem_stats.json" % PROJECT
+        s.jinja['main_link'] = 'report_phix_removal.html'
         s.create_report()
 
         # FastQC page
@@ -70,16 +71,34 @@ rule report_phix_removal:
                 PROJECT+ "/fastqc_phix", 
                 output_filename="fastqc__phix.html",
                 directory=params.outdir)
+        s.jinja['main_link'] = 'report_phix_removal.html'
         s.create_report()
 
         s = report_fastqc.FastQCReport(
                 PROJECT+ "/fastqc_samples", 
                 output_filename="fastqc__samples.html",
                 directory=params.outdir)
+        s.jinja['main_link'] = 'report_phix_removal.html'
         s.create_report()
 
         # FastQ stats page
+        s = report_fastq_stats.FastQStatsReport(
+                PROJECT+ "/fastq_stats_phix", 
+                output_filename="fastq_stats__phix.html",
+                directory=params.outdir)
+        s.jinja['main_link'] = 'report_phix_removal.html'
+        s.create_report()
+
+        s = report_fastq_stats.FastQStatsReport(
+                PROJECT+ "/fastq_stats_samples", 
+                output_filename="fastq_stats__samples.html",
+                directory=params.outdir)
+        s.jinja['main_link'] = 'report_phix_removal.html'
+        s.create_report()
+
+        # Copy some files
         shell("cp Snakefile %s/" % params.outdir)
+        shell("cp config.yaml %s/" % params.outdir)
         shell("mv {input.dag} %s/" % params.outdir)
 
 

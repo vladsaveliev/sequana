@@ -70,6 +70,10 @@ class BaseReport(Report):
         #self.data['command'] = "unset"
         self.jinja['dependencies'] =  self.get_table_dependencies('sequana').to_html()
 
+        # the menu has a back button that may not always be the index.html
+        self.jinja["main_link"] = output_filename
+        self.input_filename = "undefined"
+
     def parse(self):
         """populate the :attr:`data` attribute used by the JINJA templates
 
@@ -143,6 +147,8 @@ class SequanaReport(BaseReport):
             print('snakemake stats.txt not found. Use "--stats stats.txt" next time')
 
         self.jinja['title'] = "Sequana Report"
+
+        
 
     def parse(self):
         pass
