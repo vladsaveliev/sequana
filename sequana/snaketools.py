@@ -506,14 +506,14 @@ class DOTParser(object):
         filename = sequana_data("test_dag.dot", "testing")
         dot = DOTParser(filename)
 
-        # creates test_dag.ann.dot
+        # creates test_dag.ann.dot locally
         dot.add_urls()
 
     """
     def __init__(self, filename):
         self.filename = filename
 
-    def add_urls(self):
+    def add_urls(self, output_filename=None):
         """Create a new dot file with clickable links.
 
         So far all boxes are clickable even though a HTML report is not created.
@@ -525,7 +525,11 @@ class DOTParser(object):
         with open(self.filename, "r") as fh:
             data = fh.read()
 
-        with open(self.filename.replace(".dot", ".ann.dot"), "w") as fout:
+        if output_filename is None:
+            import os
+            output_filename = os.path.basename(self.filename)
+
+        with open(output_filename.replace(".dot", ".ann.dot"), "w") as fout:
             indices_to_drop = []
             for line in data.split("\n"):
                 if "[label =" not in line:
