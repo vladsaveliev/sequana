@@ -6,7 +6,6 @@ cfg = sm.SequanaConfig.from_dict(config)
 PROJECT = cfg.PROJECT
 
 
-
 rule report_phix_removal:
     input:
         dag = "dag.svg",
@@ -26,7 +25,6 @@ rule report_phix_removal:
         from sequana import report_phix
         from sequana import report_fastqc
         from sequana import report_fastq_stats
-        #from sequana import report_fastq_stats
 
         # Main page
         s = report_main.SequanaReport(directory=params.outdir,
@@ -40,27 +38,26 @@ rule report_phix_removal:
         below)
 
         """
-
         import os
         html = ""
-        html += "<h3>Download Fastq without Phix </h3>\n"
+        html += "<h3>Download Fastq without Phix: </h3>\n"
         for this in cfg.DATASET:
             basename = os.path.split(cfg.DATASET[0])[1]
             name = basename.replace("_001.fastq.gz", ".unmapped.fastq.gz")
             link = "bwa_bam_to_fastq"+ os.sep + name
-            html += '<br>-<a href="%s">%s</a>' % (link, name)
+            html += '<br>-- <a href="%s">%s</a>' % (link, name)
 
         html += "<h3>Dowload Fastq with Phix </h3>\n"
         for this in cfg.DATASET:
             name = basename.replace("_001.fastq.gz", ".mapped.fastq.gz")
             link = "bwa_bam_to_fastq"+ os.sep + name
-            html += '<br>-<a href="%s">%s</a>' % (link, name)
+            html += '<br>-- <a href="%s">%s</a>' % (link, name)
         s.jinja['output'] = html
 
         s.create_report()
 
         # Phix page
-        s = report_phix.PhixReport(output_filename="bwa_mem.html",
+        s = report_phix.PhixReport(output_filename="bwa_mem__phix.html",
                 directory=params.outdir)
         s.input_filename = "%s/bwa_bam_to_fastq/bwa_mem_stats.json" % PROJECT
         s.jinja['main_link'] = 'report_phix_removal.html'
