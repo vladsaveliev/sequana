@@ -3,7 +3,15 @@ rule vcf_filter:
         vcf = __freebayes__output
     output:
         vcf = cfg.PROJECT + "/vcf_filter/%s.vcf" % cfg.PROJECT
+    params:
+        outdir =cfg.PROJECT + "/report/"
     run:
         from sequana import vcf_filter
+        from sequana import report_vcf
+        
         vcf_record = vcf_filter.VCF(input["vcf"])
-        vcf_record.filter_vcf(config["vcf_filter"], output["vcf"])
+        df = vcf_record.filter_vcf(config["vcf_filter"], output["vcf"])
+
+        r = report_vcf.VCFReport(directory=params.outdir)
+        r.set_data(df)
+        r.create_report()
