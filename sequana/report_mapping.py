@@ -24,6 +24,8 @@ class MappingReport(BaseReport):
         self.mapping = data
 
     def parse(self):
+        self.jinja['main_link'] = 'index.html'
+
         self.mapping.plot_coverage(filename=self.directory + os.sep + 
                                             "coverage.png")
         
@@ -40,8 +42,9 @@ class MappingReport(BaseReport):
             name = "{0}_{1}".format(name, stop)
             link = name + ".html"
             r = SubMappingReport(start=i, stop=stop, 
-                    output_filename=name + ".html",
-                    directory=self.directory)
+                    output_filename=name + ".html", directory=self.directory,
+                    low_threshold=self.low_t, high_threshold=self.high_t)
+            r.jinja["main_link"] = "index.html"
             r.set_data(self.mapping)
             r.create_report()
             df = df.append({"name": formatter.format(name, link)}, 

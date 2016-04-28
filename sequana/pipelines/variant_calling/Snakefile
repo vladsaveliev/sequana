@@ -18,7 +18,7 @@ cfg = SequanaConfig(config)
 
 # Python -----------------------------------------------------------------------
 
-final_output = ["{0}/vcf_filter/{0}.vcf".format(cfg.PROJECT)]
+final_output = ["{0}/vcf_filter/{0}_filter.vcf".format(cfg.PROJECT)]
 
 
 # Mapping

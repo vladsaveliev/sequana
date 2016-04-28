@@ -33,6 +33,8 @@ class SubMappingReport(BaseReport):
         low_cov_df = self.mapping.get_low_coverage(threshold=self.low_t, 
                 start=self.start, stop=self.stop)
         merge_low_cov = self.mapping.merge_region(low_cov_df)
+        self.jinja["low_cov_threshold"] = self.low_t
+        self.jinja["nb_low_region"] = len(merge_low_cov)
         html = HTMLTable(merge_low_cov)
         html.add_bgcolor("size")
         self.jinja['low_coverage'] = html.to_html(index=False)
@@ -40,6 +42,8 @@ class SubMappingReport(BaseReport):
         high_cov_df = self.mapping.get_high_coverage(threshold=self.high_t, 
                 start=self.start, stop=self.stop)
         merge_high_cov = self.mapping.merge_region(high_cov_df)
+        self.jinja["high_cov_threshold"] = self.high_t
+        self.jinja["nb_high_region"] = len(merge_high_cov)
         html = HTMLTable(merge_high_cov)
         html.add_bgcolor("size")
         self.jinja['high_coverage'] = html.to_html(index=False)

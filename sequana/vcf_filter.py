@@ -97,7 +97,7 @@ class VCF(vcf.Reader):
         line_dict = {"chr": vcf_line.CHROM, "position": str(vcf_line.POS),
                 "depth": vcf_line.INFO["DP"], "reference": vcf_line.REF,
                 "alternative": "; ".join(str(x) for x in vcf_line.ALT), 
-                "freebayes": vcf_line.QUAL, 
+                "freebayes_score": vcf_line.QUAL, 
                 "strand_balance": "; ".join("{0:.2f}".format(x) for x in \
                         strand_bal),
                 "frequency": "; ".join("{0:.2f}".format(x) for x in alt_freq)}
@@ -109,7 +109,8 @@ class VCF(vcf.Reader):
 
         """
         df = pd.DataFrame(columns=["chr", "position", "reference", 
-            "alternative", "depth", "frequency", "strand_balance", "freebayes"])
+            "alternative", "depth", "frequency", "strand_balance", 
+            "freebayes_score"])
         with open(output, "w") as fp:
             vcf_writer = vcf.Writer(fp, self)
             for variant in self:
