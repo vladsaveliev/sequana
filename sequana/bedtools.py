@@ -12,8 +12,14 @@ from sequana import running_median
 class genomecov(object):
     """ Create pandas dataframe of bed file provided by bedtools genomecov (-d).
     
-    :param input_filename: the input data with results of a bedtools genomecov
-                           run.
+:param input_filename: the input data with results of a bedtools genomecov run.
+
+:Example:
+
+    > mydata = bedtools.genomecov('exemple.bed')
+    > mydata.running_median(n=1001, label='rm')
+    > mydata.coverage_scaling(method='rm')
+    > mydata.compute_zscore(label='zscore)
 
     """
     def __init__(self, input_filename=None, dataframe=None):
@@ -70,12 +76,8 @@ class genomecov(object):
         try:
             self.df[label] =  self.df["cov"] / self.df[method] 
         except KeyError:
-            print("Column " + method + "is missing.\n"
-                   "You must run moving_average() function before this.\n\n"
-                   "Usage:\n"
-                   "> mydata = Bed_genomecov('exemple.txt')\n"
-                   "> mydata.moving_average(n=1000)\n"
-                   "> mydata.coverage_scaling()")
+            print("Column " + method + " is missing.\n",
+                    self.__doc__)
             return
         self.df = self.df.replace(np.inf , np.nan)
 
@@ -100,13 +102,9 @@ class genomecov(object):
             mf = mixture.GaussianMixtureFitting(
                     self.df["scale"].dropna()[::step],k=k)
         except KeyError:
-            print("Column '", method,"' is missing in data frame.\n"
-                  "You must run coverage_scaling() function before this.\n\n"
-                  "Usage:\n"
-                  "> mydata = Bed_genomecov('exemple.txt')\n"
-                  "> mydata.running_median(n=1000, label='rm')\n"
-                  "> mydata.coverage_scaling(method='rm')\n"
-                  "> mydata.compute_zscore()")
+            print("Column 'scale' is missing in data frame.\n"
+                  "You must scale your data with coverage_scaling\n\n",
+                  self.__doc__)
             return
         mf.estimate()
         self.gaussian = mf.results
@@ -114,7 +112,8 @@ class genomecov(object):
         self.df[label] = (self.df["scale"] - mf.results["mus"][i]) / \
             mf.results["sigmas"][i]
 
-    def get_low_coverage(self, threshold=-3, start=None, stop=None):
+    def get_low_coverage(self, threshold=-3, start=None, stop=None, 
+            label="zscore"):
         """Keep position with zscore lower than INT and return a data frame.
 
         :param threshold: Integer
@@ -122,17 +121,14 @@ class genomecov(object):
         :param stop: Integer
         """
         try:
-            return self.df[start:stop].loc[self.df["zscore"] < threshold]
+            return self.df[start:stop].loc[self.df[label] < threshold]
         except KeyError:
-            print("Column 'zscore' is missing in data frame.\n"
-                  "You must run compute_zscore before get low coverage.\n\n"
-                  "Usage:\n"
-                  "> mydata = Bed_genomecov('exemple.txt')\n"
-                  "> mydata.moving_average(n=1000)\n"
-                  "> mydata.coverage_scaling()\n"
-                  "> mydata.compute_zscore(k=2)")
+            print("Column '" + label + "' is missing in data frame.\n"
+                  "You must run compute_zscore before get low coverage.\n\n",
+                  self.__doc__)
 
-    def get_high_coverage(self, threshold=3, start=None, stop=None):
+    def get_high_coverage(self, threshold=3, start=None, stop=None, 
+            label="zscore"):
         """Keep position with zscore higher than INT and return a data frame.
 
         :param threshold: Integer
@@ -142,13 +138,9 @@ class genomecov(object):
         try:
             return self.df[start:stop].loc[self.df["zscore"] > threshold]
         except KeyError:
-            print("Column 'zscore' is missing in data frame.\n"
-                  "You must run compute_zscore before get low coverage.\n\n"
-                  "Usage:\n"
-                  "> mydata = Bed_genomecov('exemple.txt')\n"
-                  "> mydata.moving_average(n=1000)\n"
-                  "> mydata.coverage_scaling()\n"
-                  "> mydata.compute_zscore(k=2)")
+            print("Column '" + label + "' is missing in data frame.\n"
+                  "You must run compute_zscore before get low coverage.\n\n",
+                    self.__doc__)
 
     def _merge_row(self, start, stop):
         chrom = self.df["chr"][start]
@@ -191,7 +183,9 @@ class genomecov(object):
 
         """
         pylab.clf()
-        self.df[["cov",rm]].plot(grid=True, color=["b", "r"])
+        self.df["cov"].plot(grid=True, color="b", label="coverage")
+        self.df[rm].plot(grid=True, color="r", label="running median")
+        pylab.legend(loc='best')
         pylab.xlabel("Position", fontsize=fontsize)
         pylab.ylabel("Coverage", fontsize=fontsize)
         try:

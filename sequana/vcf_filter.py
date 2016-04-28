@@ -42,10 +42,22 @@ class VCF(vcf.Reader):
         except IOError as e:
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
 
+    def _strand_rate(self, number1, number2):
+        try:
+            division = float(number1) / (number1 + number2)
+        except ZeroDivisionError:
+            return 0
+        return division
+
     def _compute_freq(self, vcf_line):
         alt_freq = [float(count)/vcf_line.INFO["DP"] for count in \
                 vcf_line.INFO["AO"]]
         return alt_freq
+
+    def _compute_strand_bal(self, vcf_line):
+        strand_bal = [self._strand_rate(vcf_line.INFO["SAF"][i], 
+            vcf_line.INFO["SAR"][i]) for i in range(len(vcf_line.INFO["SAF"]))]
+        return strand_bal
 
     def _filter_info_field(self, info_value, threshold):
         if(threshold.startswith("<")):
@@ -68,7 +80,7 @@ class VCF(vcf.Reader):
         if(vcf_line.QUAL < filter_dict["QUAL"]):
             return False, None
         alt_freq = self._compute_freq(vcf_line)
-
+        strand_bal = self._compute_strand_bal(vcf_line)
         if(alt_freq[0] < filter_dict["FREQ"]):
             return False, None
 
@@ -82,10 +94,12 @@ class VCF(vcf.Reader):
                         return False, None
             except KeyError:
                 print("The key {0} does not exist in VCF file.\n".format(key))
-        line_dict = {"chr": vcf_line.CHROM, "position": vcf_line.POS,
+        line_dict = {"chr": vcf_line.CHROM, "position": str(vcf_line.POS),
                 "depth": vcf_line.INFO["DP"], "reference": vcf_line.REF,
                 "alternative": "; ".join(str(x) for x in vcf_line.ALT), 
-                "freebayes": vcf_line.QUAL,
+                "freebayes": vcf_line.QUAL, 
+                "strand_balance": "; ".join("{0:.2f}".format(x) for x in \
+                        strand_bal),
                 "frequency": "; ".join("{0:.2f}".format(x) for x in alt_freq)}
         return True, line_dict
 
@@ -94,8 +108,8 @@ class VCF(vcf.Reader):
         frame.
 
         """
-        df = pd.DataFrame(columns=["chr", "position", "depth", "reference", 
-            "alternative", "frequency", "freebayes"])
+        df = pd.DataFrame(columns=["chr", "position", "reference", 
+            "alternative", "depth", "frequency", "strand_balance", "freebayes"])
         with open(output, "w") as fp:
             vcf_writer = vcf.Writer(fp, self)
             for variant in self:
