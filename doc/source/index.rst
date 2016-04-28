@@ -13,8 +13,8 @@ Sequana documentation
 .. image::  https://coveralls.io/repos/github/sequana/sequana/badge.svg?branch=master
    :target: https://coveralls.io/github/sequana/sequana?branch=master 
 
-.. image:: http://readthedocs.org/projects/sequana/badge/?version=latest
-    :target: http://sequana.readthedocs.org/en/latest/?badge=latest
+.. image:: http://readthedocs.io/projects/sequana/badge/?version=latest
+    :target: http://sequana.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
 What is Sequana ?
