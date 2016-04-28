@@ -19,5 +19,9 @@ class VCFReport(BaseReport):
         self.vcf = data
 
     def parse(self):
+        csv_path = self.directory + os.sep + "vcf_filter.csv"
+        self.vcf.to_csv(csv_path, index=False, header=True)
+        self.jinja["csv_link"] = "vcf_filter.csv"
+
         html = HTMLTable(self.vcf)
         self.jinja['vcf_filter'] = html.to_html(index=False)

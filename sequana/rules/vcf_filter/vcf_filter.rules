@@ -2,7 +2,7 @@ rule vcf_filter:
     input:
         vcf = __freebayes__output
     output:
-        vcf = cfg.PROJECT + "/vcf_filter/%s.vcf" % cfg.PROJECT
+        vcf = cfg.PROJECT + "/vcf_filter/%s_filter.vcf" % cfg.PROJECT
     params:
         outdir =cfg.PROJECT + "/report/"
     run:
@@ -13,5 +13,6 @@ rule vcf_filter:
         df = vcf_record.filter_vcf(config["vcf_filter"], output["vcf"])
 
         r = report_vcf.VCFReport(directory=params.outdir)
+        r.jinja["main_link"] = "index.html"
         r.set_data(df)
         r.create_report()

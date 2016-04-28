@@ -24,6 +24,8 @@ class MappingReport(BaseReport):
         self.mapping = data
 
     def parse(self):
+        self.jinja['main_link'] = 'index.html'
+
         self.mapping.plot_coverage(filename=self.directory + os.sep + 
                                             "coverage.png")
         
@@ -40,8 +42,9 @@ class MappingReport(BaseReport):
             name = "{0}_{1}".format(name, stop)
             link = name + ".html"
             r = SubMappingReport(start=i, stop=stop, 
-                    output_filename=name + ".html",
-                    directory=self.directory)
+                    output_filename=name + ".html", directory=self.directory,
+                    low_threshold=self.low_t, high_threshold=self.high_t)
+            r.jinja["main_link"] = "index.html"
             r.set_data(self.mapping)
             r.create_report()
             df = df.append({"name": formatter.format(name, link)}, 
@@ -51,12 +54,16 @@ class MappingReport(BaseReport):
 
         low_cov_df = self.mapping.get_low_coverage(self.low_t)
         merge_low_cov = self.mapping.merge_region(low_cov_df)
+        self.jinja['low_cov_threshold'] = self.low_t
+        self.jinja['nb_low_region'] = len(merge_low_cov)
         html = HTMLTable(merge_low_cov)
         html.add_bgcolor("size")
         self.jinja['low_coverage'] = html.to_html(index=False)
         
         high_cov_df = self.mapping.get_high_coverage(self.high_t)
         merge_high_cov = self.mapping.merge_region(high_cov_df)
+        self.jinja['high_cov_threshold'] = self.high_t
+        self.jinja['nb_high_region'] = len(merge_high_cov)
         html = HTMLTable(merge_high_cov)
         html.add_bgcolor("size")
         self.jinja['high_coverage'] = html.to_html(index=False)

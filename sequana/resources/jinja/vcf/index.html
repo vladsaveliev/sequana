@@ -10,10 +10,19 @@
         </ul>
     </div>
 -->
-
-<div class="section" id="Variant detected">
-    <h2> 1 -  <a class="toc-backref" href="#id1">Variant detected</a></h2>
-    {{ vcf_filter }}
+<div class="section" id="Parameters">
+    
 </div>
 
+<div class="section" id="Variant detected">
+    <h2> 2 -  <a class="toc-backref" href="#id1">Variant detected</a></h2>
+This table present variant detected by freebayes after filtering. You can 
+download the table as csv format on this 
+<a href={{ csv_link }} download="vcf_filter.csv">link</a>.
+
+{{ vcf_filter }}
+
+Note: the freebayes score can be understood as 1 - P(locus is homozygous given 
+the data).
+</div>
 {% endblock %}
