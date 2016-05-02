@@ -91,7 +91,7 @@ class Vcf_to_snpeff(object):
                 self.ext[self.file_format])
 
         with open("snpEff.config", "a") as fp:
-            print(self.reference + ".genome : " + self.reference, file=fp)
+            fp.write(self.reference + ".genome : " + self.reference)
         
         with open(stdout, "wb") as out, open(stderr, "wb") as err:
             snp_build = sp.Popen(["snpEff", "build", self.file_format, 
