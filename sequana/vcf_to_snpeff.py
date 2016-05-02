@@ -34,7 +34,7 @@ class Vcf_to_snpeff(object):
         self.file_format = file_format
         self.ext = {"-genbank": ".gbk", "-gff3": ".gff", "-gtf22": ".gtf"}
         
-        if os.path.exists("snpEff.config"):
+        if not os.path.exists("snpEff.config"):
             self.get_snpeff_config()
         
         if file_format == "auto":
