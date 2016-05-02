@@ -58,8 +58,8 @@ setup(
     # package installation
     packages = packages,
 
-    install_requires = ["easydev>=0.9.18", "reports>=0.1.8", "matplotlib", "pandas",
-        "cutadapt>=1.9.1", "pysam", "pyVCF"],
+    install_requires = ["easydev>=0.9.18", "reports>=0.1.8", "matplotlib",
+        "pandas", "cutadapt>=1.9.1", "pysam", "pyVCF", "snpEff"],
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
