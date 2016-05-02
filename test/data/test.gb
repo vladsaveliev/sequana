@@ -1,0 +1,76 @@
+LOCUS       NC_002929            4086189 bp    DNA     circular CON 13-JUN-2012
+DEFINITION  Bordetella pertussis Tohama I chromosome, complete genome.
+ACCESSION   NC_002929
+VERSION     NC_002929.2  GI:33591275
+DBLINK      Project: 57617
+KEYWORDS    complete genome.
+SOURCE      Bordetella pertussis Tohama I
+  ORGANISM  Bordetella pertussis Tohama I
+            Bacteria; Proteobacteria; Betaproteobacteria; Burkholderiales;
+            Alcaligenaceae; Bordetella.
+REFERENCE   1  (bases 1 to 4086189)
+  AUTHORS   Parkhill,J., Sebaihia,M., Preston,A., Murphy,L.D., Thomson,N.,
+            Harris,D.E., Holden,M.T., Churcher,C.M., Bentley,S.D.,
+            Mungall,K.L., Cerdeno-Tarraga,A.M., Temple,L., James,K., Harris,B.,
+            Quail,M.A., Achtman,M., Atkin,R., Baker,S., Basham,D., Bason,N.,
+            Cherevach,I., Chillingworth,T., Collins,M., Cronin,A., Davis,P.,
+            Doggett,J., Feltwell,T., Goble,A., Hamlin,N., Hauser,H.,
+            Holroyd,S., Jagels,K., Leather,S., Moule,S., Norberczak,H.,
+            O'Neil,S., Ormond,D., Price,C., Rabbinowitsch,E., Rutter,S.,
+            Sanders,M., Saunders,D., Seeger,K., Sharp,S., Simmonds,M.,
+            Skelton,J., Squares,R., Squares,S., Stevens,K., Unwin,L.,
+            Whitehead,S., Barrell,B.G. and Maskell,D.J.
+  TITLE     Comparative analysis of the genome sequences of Bordetella
+            pertussis, Bordetella parapertussis and Bordetella bronchiseptica
+  JOURNAL   Nat. Genet. 35 (1), 32-40 (2003)
+   PUBMED   12910271
+REFERENCE   2  (bases 1 to 4086189)
+  AUTHORS   Sebaihia,M.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (06-AUG-2003) Submitted on behalf of the Pathogen
+            Sequencing Unit, Sanger Institute, Wellcome Trust Genome Campus,
+            Hinxton, Cambridge CB10 1SA, E-mail: ms5@sanger.ac.uk
+REFERENCE   3  (bases 1 to 4086189)
+  CONSRTM   NCBI Genome Project
+  TITLE     Direct Submission
+  JOURNAL   Submitted (08-APR-2002) National Center for Biotechnology
+            Information, NIH, Bethesda, MD 20894, USA
+COMMENT     PROVISIONAL REFSEQ: This record has not yet been subject to final
+            NCBI review. The reference sequence was derived from BX470248.
+            On Aug 12, 2003 this sequence version replaced gi:20070454.
+            COMPLETENESS: full length.
+FEATURES             Location/Qualifiers
+     source          1..4086189
+                     /organism="Bordetella pertussis Tohama I"
+                     /mol_type="genomic DNA"
+                     /strain="Tohama I"
+                     /db_xref="taxon:257313"
+     gene            1..1920
+                     /gene="gidA"
+                     /locus_tag="BP0001"
+                     /db_xref="GeneID:2664547"
+     CDS             1..1920
+                     /gene="gidA"
+                     /locus_tag="BP0001"
+                     /note="GidA; glucose-inhibited cell division protein A;
+                     involved in the 5-carboxymethylaminomethyl modification
+                     (mnm(5)s(2)U) of the wobble uridine base in some tRNAs"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="tRNA uridine 5-carboxymethylaminomethyl
+                     modification protein GidA"
+                     /protein_id="NP_878920.1"
+                     /db_xref="GI:33591276"
+                     /db_xref="GeneID:2664547"
+                     /translation="MDFPREFDVIVVGGGHAGTEAALAAARAGAQTLLLTHNIETLGQ
+                     MSCNPSIGGIGKGHLVKEVDALGGAMAIATDEAGIQFRILNSSKGPAVRATRAQADRV
+                     LYRNAIRAQLENQPNLWLFQQAVDDLMVQGDQVVGAVTQIGLRFRARTVVLTAGTFLN
+                     GLIHVGLQNYSGGRAGDPPANSLGQRLKELQLPQGRLKTGTPPRIDGRSINYSVLEEQ
+                     PGDLDPVPVFSFLGKASMHPRQLPCWITHTNARTHEIIRGGLDRSPMYSGVIEGVGPR
+                     YCPSIEDKIHRFADKASHQVFLEPEGLNTHEIYPNGVSTSLPFDVQYELIHSLPGLEN
+                     AHILRPGYAIEYDYFDPRALKSTLETKAISGLFFAGQINGTTGYEEAAAQGLLAGANA
+                     ALQAQGKEPWVPRRDEAYLGVLVDDLVTRGVTEPYRMFTSRAEYRLSLREDNADLRLT
+                     EIGRRLGLVDDVRWDAFSRKRDAVAQEVERLKSTWVNPRVLPAHAAEALLGKAIEREY
+                     SLSDLLKRPNVSYEALMQARTDEGELLAGPGVLEDQVLAEQVETQVKYAGYIARQQDE
+                     VQKHLSHEQQPIPADIDYDAVTSLSFEVRQKLKTHRPETIGQAARVSGVTPAAISLLL
+                     IHLKRLHYGSRKQAA"
