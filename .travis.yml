@@ -34,7 +34,7 @@ install:
   - pip install coveralls
   - pip install tabulate
   - pip install biokit>=0.2.0
-  - conda install cutadapt pysam pyvcf --yes
+  - conda install cutadapt pysam pyvcf snpEff --yes
 
 # # command to run tests, e.g. python setup.py test
 script:
