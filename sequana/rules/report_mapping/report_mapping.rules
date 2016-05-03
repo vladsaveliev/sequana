@@ -28,7 +28,7 @@ rule report_mapping:
         """
         s.create_report()
 
-        mydata = bedtools.genomecov(input.bed)
+        mydata = bedtools.Genomecov(input.bed)
         mydata.running_median(n=params.size, circular=True)
         mydata.coverage_scaling()
         mydata.compute_zscore()
