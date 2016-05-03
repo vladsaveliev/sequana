@@ -18,7 +18,7 @@ CONFIG = sequana_data("snpeff/snpEff.config.gz")
 
 # Class ------------------------------------------------------------------------
 
-class Vcf_to_snpeff(object):
+class VcfToSnpeff(object):
     """ Python wrapper to launch snpEff.
 
     """
