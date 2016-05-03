@@ -17,7 +17,7 @@ def test_genomecov():
     mydata.compute_zscore()
     mydata.get_low_coverage()
     high_cov = mydata.get_high_coverage()
-    high_cov.merge_region(mydata.df)
+    high_cov.merge_region(3)
     with TempFile(suffix='.png') as fh:
         mydata.plot_coverage(filename=fh.name)
     with TempFile(suffix='.png') as fh:
