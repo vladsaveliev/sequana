@@ -11,7 +11,7 @@ pathdata = data.__path__[0]
 
 def test_vcf_to_snpeff():
 
-    mydata = vcf_to_snpeff.Vcf_to_snpeff(
+    mydata = vcf_to_snpeff.VcfToSnpeff(
             vcf_filename=pathdata + os.sep + "test.vcf",
             reference=pathdata + os.sep + "test.gb")
     mydata.add_custom_db()
