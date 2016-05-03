@@ -9,7 +9,7 @@ pathdata = data.__path__[0]
 # Test -------------------------------------------------------------------------
 
 def test_report():
-    mydata = bedtools.genomecov(pathdata + os.sep + "test.bed")
+    mydata = bedtools.Genomecov(pathdata + os.sep + "test.bed")
     mydata.running_median(n=3, circular=False)
     mydata.coverage_scaling()
     mydata.compute_zscore()

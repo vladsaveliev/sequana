@@ -98,7 +98,7 @@ class VcfToSnpeff(object):
                 self.reference], stderr=err, stdout=out)
             snp_build.wait()
 
-    def launch_snpEff(self, output, stderr="annot.err"):
+    def launch_snpeff(self, output, stderr="annot.err"):
         """ Launch snpEff
         
         """
