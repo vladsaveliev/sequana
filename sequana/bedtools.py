@@ -9,7 +9,7 @@ from sequana import running_median
 
 # Class ------------------------------------------------------------------------
 
-class genomecov(object):
+class Genomecov(object):
     """ Create pandas dataframe of bed file provided by bedtools genomecov (-d).
     
 :param input_filename: the input data with results of a bedtools genomecov run.
@@ -22,7 +22,7 @@ class genomecov(object):
     > mydata.compute_zscore(label='zscore)
 
     """
-    def __init__(self, input_filename=None, dataframe=None):
+    def __init__(self, input_filename=None):
         try:
             self.df = pd.read_table(input_filename, header=None)
             self.df = self.df.rename(columns={0: "chr", 1: "pos", 2: "cov"})
@@ -57,7 +57,7 @@ class genomecov(object):
 
         """
         mid = int(n / 2)
-        if(circular):
+        if circular:
             cov = list(self.df["cov"])
             cov = cov[-mid:] + cov + cov[:mid]
             rm = list(running_median.RunningMedian(n, cov))
@@ -84,7 +84,7 @@ class genomecov(object):
     def _get_best_gaussian(self, results):
         diff = 100
         for i, value in enumerate(results.mus):
-            if(abs(value - 1) < diff):
+            if abs(value - 1) < diff:
                 diff = value
                 indice = i
         return indice
@@ -121,7 +121,8 @@ class genomecov(object):
         :param stop: Integer
         """
         try:
-            return self.df[start:stop].loc[self.df[label] < threshold]
+            return FilteredGenomecov(self.df[start:stop].loc[self.df[label] 
+                < threshold])
         except KeyError:
             print("Column '" + label + "' is missing in data frame.\n"
                   "You must run compute_zscore before get low coverage.\n\n",
@@ -136,47 +137,12 @@ class genomecov(object):
         :param stop: Integer
         """
         try:
-            return self.df[start:stop].loc[self.df["zscore"] > threshold]
+            return FilteredGenomecov(self.df[start:stop].loc[self.df["zscore"] 
+                > threshold])
         except KeyError:
             print("Column '" + label + "' is missing in data frame.\n"
                   "You must run compute_zscore before get low coverage.\n\n",
                     self.__doc__)
-
-    def _merge_row(self, start, stop):
-        chrom = self.df["chr"][start]
-        region = "{0} : {1}".format(start + 1, stop)
-        cov = np.mean(self.df["cov"][start:stop])
-        rm = np.mean(self.df["rm"][start:stop])
-        zscore = np.mean(self.df["zscore"][start:stop])
-        size = stop - start
-        return {"chr": chrom, "region": region, "size": size, "mean_cov": cov, 
-                "mean_rm": rm, "mean_zscore": zscore}
-
-    def merge_region(self, df):
-        """Merge position side by side of a data frame.
-        """
-        start = 0
-        stop = 0
-        merge_df = pd.DataFrame(columns=["chr", "region", "size", "mean_cov",
-                                         "mean_rm", "mean_zscore"])
-        for i, pos in enumerate(zip(df["pos"])):
-            stop = pos[0]
-            if(i == 0):
-                start = pos[0]
-                prev = pos[0]
-                continue
-            if(stop - 1 == prev):
-                prev = stop
-                continue
-            else:
-                merge_df = merge_df.append(self._merge_row(start - 1, prev),
-                        ignore_index=True)
-                start = stop
-                prev = stop
-        if(start < stop):
-            merge_df = merge_df.append(self._merge_row(start - 1, prev),
-                    ignore_index=True)
-        return merge_df
 
     def plot_coverage(self, fontsize=16, filename=None, rm="rm"):
         """ Plot coverage as a function of position.
@@ -224,3 +190,60 @@ class genomecov(object):
             print("You must set the file name")
         except KeyError:
             print("Labels doesn't exist in the data frame")
+
+
+class FilteredGenomecov(object):
+    def __init__(self, df):
+        """ Dataframe with filtered position.
+
+        """
+        self.df = df
+
+    def __str__(self):
+        return self.df.__str__()
+
+    def __len__(self):
+        return self.df.__len__()
+
+    def _merge_row(self, start, stop):
+        chrom = self.df["chr"][start]
+        cov = np.mean(self.df["cov"].loc[start:stop])
+        rm = np.mean(self.df["rm"].loc[start:stop])
+        zscore = np.mean(self.df["zscore"].loc[start:stop])
+        size = stop - start
+        return {"chr": chrom, "start": start + 1, "stop": stop, "size": size, 
+                "mean_cov": cov, "mean_rm": rm, "mean_zscore": zscore}
+
+    def merge_region(self, threshold, zscore_label="zscore"):
+        """Merge position side by side of a data frame.
+        """
+        flag = False
+        start = 0
+        stop = 0
+        merge_df = pd.DataFrame(columns=["chr", "start", "stop", "size",
+            "mean_cov", "mean_rm", "mean_zscore"])
+        int_column = ["start", "stop", "size"]
+        merge_df[int_column] = merge_df[int_column].astype(int)
+        for i, (pos, zscore) in enumerate(zip(self.df["pos"], 
+                self.df[zscore_label])):
+            stop = pos
+            if i == 0:
+                start = pos
+                prev = pos
+                continue
+            if abs(zscore) > abs(threshold):
+                flag = True
+            if stop - 1 == prev:
+                prev = stop
+                continue
+            else:
+                if flag:
+                    merge_df = merge_df.append(self._merge_row(start - 1, prev),
+                        ignore_index=True)
+                    flag = False
+                start = stop
+                prev = stop
+        if start < stop and flag:
+            merge_df = merge_df.append(self._merge_row(start - 1, prev),
+                    ignore_index=True)
+        return merge_df
