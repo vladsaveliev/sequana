@@ -23,6 +23,34 @@ class MappingReport(BaseReport):
     def set_data(self, data):
         self.mapping = data
 
+    def _generate_submapping(self, low_df, high_df):
+        i=0
+        while True:
+            i += 1
+            if len(self.mapping) / i < 500000:
+                step = int(len(self.mapping) / i) + 1
+                break
+        df = pd.DataFrame()
+        formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
+        for i in range(0, len(self.mapping), step):
+            name = "mapping_{0}".format(i)
+            stop = i + step
+            if stop > len(self.mapping):
+                stop = len(self.mapping)
+            name = "{0}_{1}".format(name, stop)
+            link = name + ".html"
+            r = SubMappingReport(start=i, stop=stop, low_df=low_df,
+                    high_df=high_df, output_filename=name + ".html",
+                    directory=self.directory, low_threshold=self.low_t,
+                    high_threshold=self.high_t)
+            r.jinja["main_link"] = "index.html"
+            r.set_data(self.mapping)
+            r.create_report()
+            df = df.append({"name": formatter.format(name, link)}, 
+                ignore_index=True)
+        return df
+
+
     def parse(self):
         self.jinja['main_link'] = 'index.html'
 
@@ -32,38 +60,25 @@ class MappingReport(BaseReport):
         self.mapping.plot_hist(filename=self.directory + os.sep + 
                                             "zscore_hist.png")
 
-        df = pd.DataFrame()
-        formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
-        for i in range(0, len(self.mapping), 500000):
-            name = "mapping_{0}".format(i)
-            stop = i + 500000
-            if stop > len(self.mapping):
-                stop = len(self.mapping)
-            name = "{0}_{1}".format(name, stop)
-            link = name + ".html"
-            r = SubMappingReport(start=i, stop=stop, 
-                    output_filename=name + ".html", directory=self.directory,
-                    low_threshold=self.low_t, high_threshold=self.high_t)
-            r.jinja["main_link"] = "index.html"
-            r.set_data(self.mapping)
-            r.create_report()
-            df = df.append({"name": formatter.format(name, link)}, 
-                ignore_index=True)
-        html = HTMLTable(df)
-        self.jinja['list_submapping'] = html.to_html(index=False)
-
-        low_cov_df = self.mapping.get_low_coverage(self.low_t)
-        merge_low_cov = self.mapping.merge_region(low_cov_df)
+        low_cov_df = self.mapping.get_low_coverage(self.low_t / 2)
+        merge_low_cov = low_cov_df.merge_region(self.low_t)
         self.jinja['low_cov_threshold'] = self.low_t
         self.jinja['nb_low_region'] = len(merge_low_cov)
         html = HTMLTable(merge_low_cov)
         html.add_bgcolor("size")
         self.jinja['low_coverage'] = html.to_html(index=False)
         
-        high_cov_df = self.mapping.get_high_coverage(self.high_t)
-        merge_high_cov = self.mapping.merge_region(high_cov_df)
+        high_cov_df = self.mapping.get_high_coverage(self.high_t / 2)
+        merge_high_cov = high_cov_df.merge_region(self.high_t)
         self.jinja['high_cov_threshold'] = self.high_t
         self.jinja['nb_high_region'] = len(merge_high_cov)
         html = HTMLTable(merge_high_cov)
         html.add_bgcolor("size")
         self.jinja['high_coverage'] = html.to_html(index=False)
+
+        df = self._generate_submapping(merge_low_cov, merge_high_cov)
+        html = HTMLTable(df)
+        self.jinja['list_submapping'] = html.to_html(index=False)
+
+
+        
