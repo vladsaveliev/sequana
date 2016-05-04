@@ -18,7 +18,7 @@ cfg = SequanaConfig(config)
 
 # Python -----------------------------------------------------------------------
 
-final_output = ["{0}/vcf_filter/{0}_filter.vcf".format(cfg.PROJECT)]
+final_output = list()
 
 
 # Mapping
@@ -50,6 +50,13 @@ include: sm.modules["freebayes"]
 
 # VCF filter
 include: sm.modules["vcf_filter"]
+
+# snpEff
+if config["snpeff"]["do"]:
+    include: sm.modules["snpeff"]
+    final_output.append(__snpeff__output)
+else:
+    final_output.append(__vcf_filter__output)
 
 # Snakemake --------------------------------------------------------------------
 

@@ -11,10 +11,10 @@ pathdata = data.__path__[0]
 
 def test_vcf_to_snpeff():
 
-    mydata = vcf_to_snpeff.VcfToSnpeff(
+    mydata = vcf_to_snpeff.VCFToSnpeff(
             vcf_filename=pathdata + os.sep + "test.vcf",
             reference=pathdata + os.sep + "test.gb")
-    mydata = vcf_to_snpeff.VcfToSnpeff(
+    mydata = vcf_to_snpeff.VCFToSnpeff(
             vcf_filename=pathdata + os.sep + "test.vcf",
             reference="Bordetella_pertussis_Tohama_I_uid57617")
     with TempFile() as fh:

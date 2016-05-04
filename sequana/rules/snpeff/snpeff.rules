@@ -1,0 +1,18 @@
+__snpeff__output = cfg.PROJECT + "/snpeff/%s.ann.vcf" % cfg.PROJECT
+
+rule snpeff:
+    input:
+        vcf = __vcf_filter__output,
+        genome = config["snpeff"]["reference"]
+    output:
+        ann = __snpeff__output
+    log:
+        build_err = cfg.PROJECT + "/logs/snpeff/snpeff_build.err",
+        build_out = cfg.PROJECT + "/logs/snpeff/snpeff_build.out",
+        launch = cfg.PROJECT + "/logs/snpeff/snpeff_launch.err"
+    run:
+        from sequana import vcf_to_snpeff
+
+        mydata = vcf_to_snpeff.VCFToSnpeff(vcf_filename=input.vcf,
+            reference=input.genome, stdout=log.build_out, stderr=log.build_err)
+        mydata.launch_snpeff(output.ann, log.launch)
