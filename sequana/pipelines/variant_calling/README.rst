@@ -1,5 +1,5 @@
 :Overview: Variant calling
-:Input: fastq file from Illumina Sequencer
+:Input: fastq file from Illumina Sequencing instrument
 :Output: bam, vcf and html files
 :Config file requirements:
     - samples:file1
