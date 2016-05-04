@@ -220,22 +220,20 @@ class FilteredGenomecov(object):
         flag = False
         start = 0
         stop = 0
+        
         merge_df = pd.DataFrame(columns=["chr", "start", "stop", "size",
             "mean_cov", "mean_rm", "mean_zscore"])
         int_column = ["start", "stop", "size"]
         merge_df[int_column] = merge_df[int_column].astype(int)
+        
         for i, (pos, zscore) in enumerate(zip(self.df["pos"], 
                 self.df[zscore_label])):
             stop = pos
             if i == 0:
                 start = pos
                 prev = pos
-                continue
-            if abs(zscore) > abs(threshold):
-                flag = True
             if stop - 1 == prev:
-                prev = stop
-                continue
+                prev = stop        
             else:
                 if flag:
                     merge_df = merge_df.append(self._merge_row(start - 1, prev),
@@ -243,6 +241,9 @@ class FilteredGenomecov(object):
                     flag = False
                 start = stop
                 prev = stop
+            if abs(zscore) > abs(threshold):
+                flag = True
+
         if start < stop and flag:
             merge_df = merge_df.append(self._merge_row(start - 1, prev),
                     ignore_index=True)
