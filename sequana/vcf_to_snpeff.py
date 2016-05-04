@@ -44,7 +44,7 @@ class VcfToSnpeff(object):
             else:
                 try:
                     self._check_format(reference)
-                    self._add_custom_db(reference, stdout, stderr)
+                    self._add_custom_db(stdout, stderr)
                 except IOError:
                     print("The file " + reference + " is not present in the "
                           "directory.\n")
