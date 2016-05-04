@@ -21,6 +21,11 @@ bwa_ref:
         # -t option (number thread)
         threads: 2 
 
+# snpEff parameter
+snpeff:
+    do: yes
+    reference:
+
 # Software parameters
 
 bedtools: 
