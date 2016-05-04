@@ -22,7 +22,8 @@ class VcfToSnpeff(object):
     """ Python wrapper to launch snpEff.
 
     """
-    def __init__(self, vcf_filename, reference, file_format="auto"):
+    def __init__(self, vcf_filename, reference, file_format="auto",
+            stdout=None, stderr=None):
         """
 
         :param vcf_filename: the input vcf file.
@@ -43,6 +44,7 @@ class VcfToSnpeff(object):
             else:
                 try:
                     self._check_format(reference)
+                    self._add_custom_db(reference, stdout, stderr)
                 except IOError:
                     print("The file " + reference + " is not present in the "
                           "directory.\n")
@@ -77,7 +79,7 @@ class VcfToSnpeff(object):
         gunzip_proc = sp.Popen(["gunzip", "snpEff.config.gz"])
         gunzip_proc.wait()
         
-    def add_custom_db(self, stdout="build.err", stderr="build.out"):
+    def _add_custom_db(self, stdout=None, stderr=None):
         """ Add your custom file in the local snpEff database.
 
         """
@@ -93,10 +95,15 @@ class VcfToSnpeff(object):
         with open("snpEff.config", "a") as fp:
             fp.write(self.reference + ".genome : " + self.reference)
         
-        with open(stdout, "wb") as out, open(stderr, "wb") as err:
-            snp_build = sp.Popen(["snpEff", "build", self.file_format, 
-                self.reference], stderr=err, stdout=out)
-            snp_build.wait()
+        try:
+            with open(stdout, "wb") as out, open(stderr, "wb") as err:
+                snp_build = sp.Popen(["snpEff", "build", self.file_format, 
+                    self.reference], stderr=err, stdout=out)
+        except TypeError:
+                snp_build = sp.Popen(["snpEff", "build", self.file_format, 
+                    self.reference], stderr=None, stdout=None)
+        snp_build.wait()
+
 
     def launch_snpeff(self, output, stderr="annot.err"):
         """ Launch snpEff
