@@ -22,15 +22,13 @@ class VCFToSnpeff(object):
     """ Python wrapper to launch snpEff.
 
     """
-    def __init__(self, vcf_filename, reference, file_format="auto",
-            stdout=None, stderr=None):
+    def __init__(self, reference, file_format="auto", stdout=None, stderr=None):
         """
 
         :param vcf_filename: the input vcf file.
         :param reference: annotation reference.
         :param file_format: format of your file. ('-genbank'/'-gff3'/'-gtf22')
         """
-        self.vcf_filename = vcf_filename
         self.reference = reference
         self.file_format = file_format
         self.ext = {"-genbank": ".gbk", "-gff3": ".gff", "-gtf22": ".gtf"}
@@ -40,7 +38,9 @@ class VCFToSnpeff(object):
         
         if file_format == "auto":
             if self._check_database(reference):
-                print("Everything is alright. You can launch snpEff\n")
+                if not os.path.exists("data" + os.sep + reference):
+                    snpeff_dl = sp.Popen(["snpEff", "download", reference])
+                    snpeff_dl.wait()
             else:
                 try:
                     self._check_format(reference)
@@ -105,11 +105,11 @@ class VCFToSnpeff(object):
         snp_build.wait()
 
 
-    def launch_snpeff(self, output, stderr="annot.err"):
+    def launch_snpeff(self, vcf_filename, output, stderr="annot.err"):
         """ Launch snpEff
         
         """
-        args_ann = ["snpEff", self.reference, self.vcf_filename]
+        args_ann = ["snpEff", self.reference, vcf_filename]
         with open(output, "wb") as fp:
             proc_ann = sp.Popen(args_ann, stdout=fp)
             proc_ann.wait()

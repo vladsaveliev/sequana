@@ -20,6 +20,12 @@ cfg = SequanaConfig(config)
 
 final_output = list()
 
+# Generate data directory
+
+from sequana import vcf_to_snpeff
+
+if config["snpeff"]["do"]:
+    tmp = vcf_to_snpeff.VCFToSnpeff(config["snpeff"]["reference"])
 
 # Mapping
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
