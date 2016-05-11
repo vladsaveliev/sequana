@@ -2,7 +2,6 @@ import os
 
 from bioservices import NCBIblast, easyXML, ENA
 import pandas as pd
-from joblib import Parallel, delayed
 from bs4 import BeautifulSoup
 from easydev import shellcmd, TempFile, Progress
 

@@ -23,7 +23,7 @@ from easydev import AttrDict
 class EUtilsTools(object):
 
     def __init__(self):
-        self.eutils = EUtils()
+        self.eutils = EUtils(cache=True)
 
     def accession_to_info(self, ids):
         print('Fetching using EUtils')
@@ -136,6 +136,8 @@ class ENADownload(object):
             pb.animate(i+1)
 
     def switch_header_to_gi(self, acc):
+        """Kraken will only accept the GI from NCBI so we need to convert 
+        the ENA accession to GI numbers"""
         res = self.eutils.accession_to_info(acc)[acc]
         return ">"+res['identifier']+" " + res['comment']
 
