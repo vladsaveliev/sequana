@@ -637,7 +637,7 @@ class FastaDB(object):
 
     def _init(self):
         # Let us store the name and description and length of the sequence
-        f = pysam.FastxFile(self.filename)
+        f = FastA(self.filename)
 
         from easydev import Progress
         pb = Progress(len(f))
@@ -645,6 +645,7 @@ class FastaDB(object):
         for i, this in enumerate(f):
             data.append((this.name, this.comment, len(this.sequence)))
             pb.animate(i+1)
+        print()
         self.df = pd.DataFrame.from_records(data,
             columns=['name', 'comment', 'seq_length'])
 
