@@ -68,7 +68,8 @@ setup(
     # This is recursive include of data files
     exclude_package_data = {"": ["__pycache__"]},
     package_data = {
-        '': ['Snakefile*', '*html', 'README.rst', 'config.yaml*', '*.css', "*.js", "snpEff.config*"],
+        '': ['Snakefile*', '*html', 'README.rst', 'config.yaml*', '*.css', "*.js", 
+                "snpEff.config*", "*.fa"],
         'sequana.rules' : ["*/*"],
         'sequana.resources.data' : ['*'],
         'sequana.resources.js/galleria/themes' : ['*'],

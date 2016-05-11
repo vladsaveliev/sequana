@@ -182,6 +182,7 @@ class FastQ(object):
         - convert to/from sff
         - convert to fasta
     """
+    _N = 4
     def __init__(self, filename, verbose=False):
 
         self.filename = filename
@@ -254,9 +255,9 @@ class FastQ(object):
 
     def count_reads(self):
         nlines = self.count_lines()
-        if divmod(nlines, 4)[1] != 0:
+        if divmod(nlines, self._N)[1] != 0:
             print("WARNING. number of lines not multiple of 4.")
-        return int(nlines / 4)
+        return int(nlines / self._N)
 
     def _count_reads_buf(self, block=1024*1024):
         # 0.12 seconds to read 3.4M lines, faster than wc command
@@ -385,7 +386,6 @@ class FastQ(object):
                 else:
                     pass
                 pb.animate(i+1)
-
 
     def split_lines(self, N=100000, gzip=True):
         if self.filename.endswith(".gz"):
@@ -619,6 +619,36 @@ class FastQ(object):
 
     def __getitem__(self, index):
         return 1
+
+    def to_fasta(self, output_filename="test.fasta", level=6, CHUNKSIZE=65536):
+        """
+
+        """
+        #twice as slow as a tool such as seqtk and final fasta number not correct...
+        # this is to supress the header
+        d = zlib.decompressobj(16 + zlib.MAX_WBITS)
+
+        # will we gzip the output file ?
+        output_filename, tozip = self._istozip(output_filename)
+
+        with open(self.filename, 'rb') as fin:
+            buf = fin.read(CHUNKSIZE)
+
+            count = 0
+            with open(output_filename, "wb") as fout:
+                while buf:
+                    outstr = d.decompress(buf)
+                    lines = outstr.strip().split(b"\n")
+                    for line in lines:
+                        if count%4 == 0:
+                            fout.write(b">"+line[1:]+b"\n")
+                        elif count%4==1:
+                            fout.write(line+b"\n")
+                        count += 1
+
+                    buf = fin.read(CHUNKSIZE)
+
+        if tozip is True: self._gzip(output_filename)
 
     def filter(self, identifiers_list=[], min_bp=None, max_bp=None,
         progressbar=True, output_filename='filtered.fastq', remove=True):
@@ -901,7 +931,6 @@ class FastQC(object):
 
     @run_info
     def get_stats(self):
-        
         stats = {"GC content": self.gc_content,
             "n_reads": self.N}
         for letter in 'ACGT':

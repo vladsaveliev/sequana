@@ -17,6 +17,7 @@ from .bamtools import BAM, SAMFlags
 from .report_bam import BAMReport
 
 from .fastq import FastQ, FastQC, Identifier
+from .fasta import FastA
 
 from .vcf_filter import VCF
 

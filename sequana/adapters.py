@@ -1,14 +1,32 @@
 """
 
-USed for adapter removal benchmarks. 
+Used for adapter removal benchmarks. 
 
 May not be used on long term. 
 
 May be removed
 
+
+Lots of different formats are used to store/read adapters...
+
+One of them, which is convenient since it exists already is Fasta::
+
+    >NextFlex_PCR_Free_adapter1   NextFlex_PCR_Free_adapter1
+    GATCGGAAGAGCACACGTCTGAACTCCAGTCACCGATGTATCTCGTATGCCGTCTTCTGCTTG
+
+Note however, that the name is not standard here. If you want use this fasta in
+other tools, it may fail, so let us add the missing bits that is 
+
+
+    >NextFlex_PCR_Free_adapter1|kraken:taxid|10000001   NextFlex_PCR_Free_adapter1
+    GATCGGAAGAGCACACGTCTGAACTCCAGTCACCGATGTATCTCGTATGCCGTCTTCTGCTTG
+
+AlienTrimmer format is home-made.advantages can add comments but need another parser
+cleanngs uses a two columns format for FWD and REV
+
 """
 
-
+import pandas as pd
 
 def fasta_fwd_rev_to_columns(file1, file2=None, output_filename=None):
     """Reads FWD and (optional) REV adapters in FASTA and save
@@ -108,6 +126,58 @@ def adapter_removal_parser(filename):
 
 
 
+
+class AdapterDB(object):
+    """
+
+    The name of the Fasta should be formatted as
+
+        >Name|kraken:taxid|id
+
+    where id is a number starting with 1000000
+    This convention is adopted for now but may change. 
+
+    """
+    def __init__(self, filename=None):
+
+        self.df = pd.DataFrame(columns=["name", "sequence", 
+            "comment", "identifier", "filename"])
+
+        if filename:
+            self.load_fasta(filename)
+
+    def load_all(self):
+        from sequana.resources.data import adapters as dict_adapters
+        from sequana import sequana_data
+        for k,v in dict_adapters.items():
+            self.load_fasta(sequana_data("data/%s" % v))
+
+    def load_fasta(self, filename):
+        from sequana.fasta import FastA
+        adapters = FastA(filename)
+        self.records = []
+        for adapter in adapters:
+            identifier = adapter.name.split("|")[2]
+            record = {
+                'name': adapter.name, 
+                "sequence": adapter.sequence,
+                "comment":adapter.comment,
+                "identifier":identifier,
+                "filename":filename}
+            self.records.append(record)
+
+        self.df = self.df.append(self.records)
+        self.df.reset_index(drop=True, inplace=True)
+
+        # check that identifiers should be unique
+        if len(self.df) > len(self.df.identifier.unique()):
+            print("Warn: there are duplicated identifiers in the adapters")
+
+    def get_name(self, identifier):
+        name =  self.df[self.df.identifier == str(identifier)].comment
+        if len(name) == 1:
+            name = list(name)[0]
+        return name
 
 
 
