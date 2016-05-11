@@ -643,7 +643,7 @@ class FastaDB(object):
         pb = Progress(len(f))
         data = []
         for i, this in enumerate(f):
-            data.append((this.name, this.comment, len(this.sequence))
+            data.append((this.name, this.comment, len(this.sequence)))
             pb.animate(i+1)
         self.df = pd.DataFrame.from_records(data,
             columns=['name', 'comment', 'seq_length'])
