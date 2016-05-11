@@ -123,7 +123,7 @@ class ENADownload(object):
             db, id_, acc = name.split("|")
 
             # Here, we will fetch info from NCBI every time. This is a pity but
-            # no choice.
+            # no choice for now
             header = self.switch_header_to_gi(acc)
 
             # Save to local file

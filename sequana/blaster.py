@@ -738,7 +738,7 @@ class Contaminant(object):
 
     """
     def __init__(self, fastq_filename, database="em_rel",
-            local_fasta_db="db/measles.fasta", online=True):
+            local_fasta_db="db/measles.fasta", online=True, fastaDB=False):
         self.ena = ENA()
 
         self.chunk = 10  # number of sequences in a single chunk to look at
@@ -758,7 +758,8 @@ class Contaminant(object):
         self.database = database
         self.local_fasta_db = local_fasta_db
 
-        self.fastaDB = FastaDB(filename=local_fasta_db)
+        if fastaDB:
+            self.fastaDB = FastaDB(filename=local_fasta_db)
 
         self._indices = []
         self.sequences = []
@@ -773,11 +774,14 @@ class Contaminant(object):
         except:
             n = max([len(x.sequence) for x in self.fastq])
 
-        m = self.fastaDB.get_stats()['nbp']
-        self.bits_threshold = math.ceil(math.log2(m*n*len(self.fastq)))
+        if fastaDB:
+            m = self.fastaDB.get_stats()['nbp']
+            self.bits_threshold = math.ceil(math.log2(m*n*len(self.fastq)))
 
-        self.verbose = True
-        print("Threshold for bits score set to %s" % self.bits_threshold)
+            self.verbose = True
+            print("Threshold for bits score set to %s" % self.bits_threshold)
+        else:
+            self.bits_threshold = 50
 
     def run(self, chunk=2000):
         # 350 seconds using the virus DB on 110000 reads settings search_missing
@@ -884,7 +888,7 @@ class Contaminant(object):
         self.results[self.results.bits < self.bits_threshold] = None
         self.results.fillna(np.nan, inplace=True)
 
-    def update_missing(self, N=None, update_local_db=True):
+    def update_missing(self, N=None):
         if self.verbose:
             print("Running online blast ")
 
@@ -907,7 +911,7 @@ class Contaminant(object):
                 # found it so, let us now download the fasta
                 # and update the local DB
                 identifier = df.ix[0]['id']
-                self.add_fasta_in_db(identifier)
+                #self.add_fasta_in_db(identifier)
 
     def add_fasta_in_db(self, identifier):
         if identifier not in self.fastaDB.ids:
