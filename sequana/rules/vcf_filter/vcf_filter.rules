@@ -2,19 +2,11 @@ __vcf_filter__output = cfg.PROJECT + "/vcf_filter/%s_filter.vcf" % cfg.PROJECT
 
 rule vcf_filter:
     input:
-        vcf = __freebayes__output
+        vcf = __vcf_filter__input
     output:
         vcf = __vcf_filter__output
-    params:
-        outdir =cfg.PROJECT + "/report/"
     run:
         from sequana import vcf_filter
-        from sequana import report_vcf
         
         vcf_record = vcf_filter.VCF(input["vcf"])
-        df = vcf_record.filter_vcf(config["vcf_filter"], output["vcf"])
-
-        r = report_vcf.VCFReport(directory=params.outdir)
-        r.jinja["main_link"] = "index.html"
-        r.set_data(df)
-        r.create_report()
+        vcf_record.filter_vcf(config["vcf_filter"], output["vcf"])

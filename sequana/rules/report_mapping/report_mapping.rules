@@ -5,7 +5,7 @@ __report_mapping__output = cfg.PROJECT + "/report/report_mapping.html"
 rule report_mapping:
     input:
         dag = "dag.svg",
-        bed = __bedtools_genomecov__output
+        bed = __report_mapping__input
     output:
         __report_mapping__output
     params:

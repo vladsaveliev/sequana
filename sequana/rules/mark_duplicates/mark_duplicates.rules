@@ -3,7 +3,7 @@ __mark_duplicates__output = cfg.PROJECT  + \
 
 rule mark_duplicates:
     input:
-        __bwa_mem_ref__output
+        __mark_duplicates__input
     output:
         __mark_duplicates__output
     log:

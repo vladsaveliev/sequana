@@ -2,7 +2,7 @@ __bedtools_genomecov__output = cfg.PROJECT + "/genomecov/%s.bed" % cfg.PROJECT
 
 rule bedtools_genomecov:
     input:
-        __bwa_mem_ref__output
+        __bedtools_genomecov__input
     output:
         __bedtools_genomecov__output
     params:

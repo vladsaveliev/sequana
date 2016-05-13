@@ -78,24 +78,42 @@ class VCF(vcf.Reader):
         # dictionary must have QUAL/FREQ/INFO keys
 
         if(vcf_line.QUAL < filter_dict["QUAL"]):
-            return False, None
+            return False
         
         alt_freq = self._compute_freq(vcf_line)
         strand_bal = self._compute_strand_bal(vcf_line)
         if(alt_freq[0] < filter_dict["FREQ"]):
-            return False, None
+            return False
 
         for key, value in filter_dict["INFO"].items():
             try:
                 if(type(vcf_line.INFO[key]) != list):
                     if(self._filter_info_field(vcf_line.INFO[key], value)):
-                        return False, None
+                        return False
                 else:
                     if(self._filter_info_field(vcf_line.INFO[key][0], value)):
-                        return False, None
+                        return False
             except KeyError:
-                print("The key {0} does not exist in VCF file.\n".format(key))
+                print("The key {0} does not exist in VCF file".format(key))
+                print("Please, remove it in your config file")
+                sys.exit(1)
+        return True
 
+    def filter_vcf(self, filter_dict, output):
+        """ Read the VCF file and write the filter vcf file and return a data
+        frame.
+
+        """
+        with open(output, "w") as fp:
+            vcf_writer = vcf.Writer(fp, self)
+            for variant in self:
+                keep_line = self._filter_line(variant, filter_dict)
+                if keep_line:
+                    vcf_writer.write_record(variant)
+
+    def _vcf_line_to_csv_line(self, vcf_line):
+        alt_freq = self._compute_freq(vcf_line)
+        strand_bal = self._compute_strand_bal(vcf_line)
         line_dict = {"chr": vcf_line.CHROM, "position": str(vcf_line.POS),
                 "depth": vcf_line.INFO["DP"], "reference": vcf_line.REF,
                 "alternative": "; ".join(str(x) for x in vcf_line.ALT), 
@@ -103,38 +121,31 @@ class VCF(vcf.Reader):
                 "strand_balance": "; ".join("{0:.2f}".format(x) for x in \
                         strand_bal),
                 "frequency": "; ".join("{0:.2f}".format(x) for x in alt_freq)} 
-
         try:
             annotation = vcf_line.INFO["ANN"][0].split("|")
             ann_dict = {"annotation": annotation[1], 
+                        "prot_effect": annotation[10],
                         "putative_impact": annotation[2],
                         "cDNA_position": annotation[11],
                         "CDS_position": annotation[12]}
             line_dict = dict(line_dict, **ann_dict)
         except KeyError:
             pass
+        return line_dict
 
-        return True, line_dict
-
-    def filter_vcf(self, filter_dict, output):
-        """ Read the VCF file and write the filter vcf file and return a data
-        frame.
-
-        """
+    def vcf_to_csv(self, output):
         df = pd.DataFrame(columns=["chr", "position", "reference", 
             "alternative", "depth", "frequency", "strand_balance", 
             "freebayes_score"])
-        with open(output, "w") as fp:
-            vcf_writer = vcf.Writer(fp, self)
-            for variant in self:
-                keep_line, line_dict = self._filter_line(variant, filter_dict)
-                if keep_line:
-                    df = df.append(line_dict, ignore_index=True)
-                    vcf_writer.write_record(variant)
+        for variant in self:
+            line_dict = self._vcf_line_to_csv_line(variant)
+            df = df.append(line_dict, ignore_index=True)
+
         try:
             cols = df.columns.tolist()
-            df = df[cols[:8] + [cols[9], cols[11], cols[10], cols[8]]]
+            df = df[cols[:8] + [cols[9], cols[11], cols[12], cols[10], cols[8]]]
         except (ValueError, IndexError):
             pass
         
+        df.to_csv(output)
         return df

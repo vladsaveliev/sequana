@@ -30,6 +30,7 @@ if config["snpeff"]["do"]:
 # Mapping
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 include: bwa_mem_dynamic("ref", cfg.DATASET)
+__mark_duplicates__input = __bwa_mem_ref__output
 __indel_realigner__input = __bwa_mem_ref__output
 __freebayes__input = __bwa_mem_ref__output
 
@@ -37,6 +38,8 @@ __freebayes__input = __bwa_mem_ref__output
 if config["report_mapping"]["do"]:
     include: sm.modules["bedtools_genomecov"]
     include: sm.modules["report_mapping"]
+    __bedtools_genomecov__input = __bwa_mem_ref__output
+    __report_mapping__input = __bedtools_genomecov__output
     final_output.append(__report_mapping__output)
 
 # Mark duplicates
@@ -56,13 +59,18 @@ include: sm.modules["freebayes"]
 
 # VCF filter
 include: sm.modules["vcf_filter"]
+__vcf_filter__input = __freebayes__output
+__report_vcf__input = __vcf_filter__output
 
 # snpEff
 if config["snpeff"]["do"]:
     include: sm.modules["snpeff"]
-    final_output.append(__snpeff__output)
-else:
-    final_output.append(__vcf_filter__output)
+    __snpeff__input = __vcf_filter__output
+    __report_vcf__input = __snpeff__output
+
+# report vcf
+include: sm.modules["report_vcf"]
+final_output.append(__report_vcf__output)
 
 # Snakemake --------------------------------------------------------------------
 

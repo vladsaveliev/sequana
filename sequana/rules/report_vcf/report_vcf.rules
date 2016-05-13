@@ -1,0 +1,20 @@
+__report_vcf__output = cfg.PROJECT + "/report/%s.csv" % cfg.PROJECT
+
+rule report_vcf:
+    input:
+        vcf = __report_vcf__input
+    output:
+        __report_vcf__output
+    params:
+        outdir = cfg.PROJECT + "/report/"
+    run:
+        from sequana import vcf_filter
+        from sequana import report_vcf
+
+        vcf_record = vcf_filter.VCF(input["vcf"])
+        df = vcf_record.vcf_to_csv(config["vcf_filter"], output)
+
+        r = report_vcf.VCFReport(directory=params.outdir)
+        r.jinja["main_link"] = "index.html"
+        r.set_data(df)
+        r.create_report()
