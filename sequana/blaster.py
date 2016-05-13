@@ -811,12 +811,12 @@ class Contaminant(object):
 
         """
         sequences = [this['sequence'].decode("utf-8") for this in self.fastq]
-        from easydev.chunks import baskets_from
+        from easydev import split_into_chunks
         if len(sequences) < 1000:
             nchunks = 4
         else:
             nchunks = int(len(sequences)/1000.) + 1
-        this = baskets_from(sequences, nchunks)
+        this = split_into_chunks(sequences, nchunks)
         res = blat_multireads(list(this), database=self.local_fasta_db, njobs=njobs)
         res.reset_index(drop=True, inplace=True)
         self.results = res

@@ -141,10 +141,10 @@ class KrakenContaminant(object):
         if mode != "adapters":
             self.scnames = []
             self.lineage = []
-            from easydev.chunks import baskets_from
+            from easydev import split_into_chunks
             N = int(len(taxon_to_find)/180.) + 1
 
-            for chunk in baskets_from(taxon_to_find, N):
+            for chunk in split_into_chunks(taxon_to_find, N):
                 lineage, scnames = self.get_taxonomy(chunk)
                 self.lineage.extend(lineage)
                 self.scnames.extend(scnames)

@@ -111,8 +111,8 @@ class ENADownload(object):
         print("Fetching identifiers from NCBI")
         Nbaskets = math.ceil(len(identifiers)/200.)
         results = {}
-        from easydev.chunks import baskets_from
-        for chunk in baskets_from(identifiers, Nbaskets):
+        from easydev import split_into_chunks
+        for chunk in split_into_chunks(identifiers, Nbaskets):
             result = self.eutils.accession_to_info(",".join(chunk))
             results.update(result)
 
