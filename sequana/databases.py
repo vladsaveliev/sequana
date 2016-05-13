@@ -24,7 +24,7 @@ from easydev import AttrDict
 class EUtilsTools(object):
 
     def __init__(self):
-        self.eutils = EUtils(cache=True)
+        self.eutils = EUtils()
 
     def accession_to_info(self, ids):
         res = self.eutils.EFetch(db="nuccore",id=ids,
