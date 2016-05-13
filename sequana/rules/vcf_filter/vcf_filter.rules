@@ -1,8 +1,10 @@
+__vcf_filter__output = cfg.PROJECT + "/vcf_filter/%s_filter.vcf" % cfg.PROJECT
+
 rule vcf_filter:
     input:
         vcf = __freebayes__output
     output:
-        vcf = cfg.PROJECT + "/vcf_filter/%s_filter.vcf" % cfg.PROJECT
+        vcf = __vcf_filter__output
     params:
         outdir =cfg.PROJECT + "/report/"
     run:

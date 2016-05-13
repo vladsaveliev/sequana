@@ -79,6 +79,7 @@ class VCF(vcf.Reader):
 
         if(vcf_line.QUAL < filter_dict["QUAL"]):
             return False, None
+        
         alt_freq = self._compute_freq(vcf_line)
         strand_bal = self._compute_strand_bal(vcf_line)
         if(alt_freq[0] < filter_dict["FREQ"]):
@@ -94,17 +95,29 @@ class VCF(vcf.Reader):
                         return False, None
             except KeyError:
                 print("The key {0} does not exist in VCF file.\n".format(key))
+
         line_dict = {"chr": vcf_line.CHROM, "position": str(vcf_line.POS),
                 "depth": vcf_line.INFO["DP"], "reference": vcf_line.REF,
                 "alternative": "; ".join(str(x) for x in vcf_line.ALT), 
                 "freebayes_score": vcf_line.QUAL, 
                 "strand_balance": "; ".join("{0:.2f}".format(x) for x in \
                         strand_bal),
-                "frequency": "; ".join("{0:.2f}".format(x) for x in alt_freq)}
+                "frequency": "; ".join("{0:.2f}".format(x) for x in alt_freq)} 
+
+        try:
+            annotation = vcf_line.INFO["ANN"][0].split("|")
+            ann_dict = {"annotation": annotation[1], 
+                        "putative_impact": annotation[2],
+                        "cDNA_position": annotation[11],
+                        "CDS_position": annotation[12]}
+            line_dict = dict(line_dict, **ann_dict)
+        except KeyError:
+            pass
+
         return True, line_dict
 
     def filter_vcf(self, filter_dict, output):
-        """Read the VCF file and write the filter vcf file and return a data
+        """ Read the VCF file and write the filter vcf file and return a data
         frame.
 
         """
@@ -118,4 +131,10 @@ class VCF(vcf.Reader):
                 if keep_line:
                     df = df.append(line_dict, ignore_index=True)
                     vcf_writer.write_record(variant)
+        try:
+            cols = df.columns.tolist()
+            df = df[cols[:8] + [cols[9], cols[11], cols[10], cols[8]]]
+        except (ValueError, IndexError):
+            pass
+        
         return df

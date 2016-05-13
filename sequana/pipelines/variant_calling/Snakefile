@@ -18,8 +18,14 @@ cfg = SequanaConfig(config)
 
 # Python -----------------------------------------------------------------------
 
-final_output = ["{0}/vcf_filter/{0}_filter.vcf".format(cfg.PROJECT)]
+final_output = list()
 
+# Generate data directory
+
+from sequana import vcf_to_snpeff
+
+if config["snpeff"]["do"]:
+    tmp = vcf_to_snpeff.VCFToSnpeff(config["snpeff"]["reference"])
 
 # Mapping
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
@@ -50,6 +56,13 @@ include: sm.modules["freebayes"]
 
 # VCF filter
 include: sm.modules["vcf_filter"]
+
+# snpEff
+if config["snpeff"]["do"]:
+    include: sm.modules["snpeff"]
+    final_output.append(__snpeff__output)
+else:
+    final_output.append(__vcf_filter__output)
 
 # Snakemake --------------------------------------------------------------------
 

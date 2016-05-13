@@ -1,6 +1,7 @@
 # list of your input file
 samples:
     file1: pKM2-EGFP-V-f_S2_L001_R1_001.fastq.gz
+    #file2: R2.fastq.gz
 
 project: pKM2-EGFP-V-f_S2_L001
 
@@ -20,6 +21,11 @@ bwa_ref:
         read_groups: '@RG\\tID:1\\tSM:1\\tPL:illumina'
         # -t option (number thread)
         threads: 2 
+
+# snpEff parameter
+snpeff:
+    do: yes
+    reference:
 
 # Software parameters
 
