@@ -4,7 +4,7 @@ rule report_vcf:
     input:
         vcf = __report_vcf__input
     output:
-        __report_vcf__output
+        csv = __report_vcf__output
     params:
         outdir = cfg.PROJECT + "/report/"
     run:
@@ -12,7 +12,7 @@ rule report_vcf:
         from sequana import report_vcf
 
         vcf_record = vcf_filter.VCF(input["vcf"])
-        df = vcf_record.vcf_to_csv(config["vcf_filter"], output)
+        df = vcf_record.vcf_to_csv(output["csv"])
 
         r = report_vcf.VCFReport(directory=params.outdir)
         r.jinja["main_link"] = "index.html"

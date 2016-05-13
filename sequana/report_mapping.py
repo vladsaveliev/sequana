@@ -50,7 +50,6 @@ class MappingReport(BaseReport):
                 ignore_index=True)
         return df
 
-
     def parse(self):
         self.jinja['main_link'] = 'index.html'
 

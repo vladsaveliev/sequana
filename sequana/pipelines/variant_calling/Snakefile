@@ -36,10 +36,11 @@ __freebayes__input = __bwa_mem_ref__output
 
 # Mapping report
 if config["report_mapping"]["do"]:
-    include: sm.modules["bedtools_genomecov"]
-    include: sm.modules["report_mapping"]
     __bedtools_genomecov__input = __bwa_mem_ref__output
+    include: sm.modules["bedtools_genomecov"]
+    
     __report_mapping__input = __bedtools_genomecov__output
+    include: sm.modules["report_mapping"]
     final_output.append(__report_mapping__output)
 
 # Mark duplicates
@@ -58,14 +59,14 @@ if config["indel_realigner"]["do"]:
 include: sm.modules["freebayes"]
 
 # VCF filter
-include: sm.modules["vcf_filter"]
 __vcf_filter__input = __freebayes__output
+include: sm.modules["vcf_filter"]
 __report_vcf__input = __vcf_filter__output
 
 # snpEff
-if config["snpeff"]["do"]:
-    include: sm.modules["snpeff"]
+if config["snpeff"]["do"]: 
     __snpeff__input = __vcf_filter__output
+    include: sm.modules["snpeff"]
     __report_vcf__input = __snpeff__output
 
 # report vcf

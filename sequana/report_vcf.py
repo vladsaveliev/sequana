@@ -12,7 +12,7 @@ class VCFReport(BaseReport):
     """
     def __init__(self, directory="report", **kargs):
         super(VCFReport, self).__init__(jinja_filename="vcf/index.html",
-                directory=directory, output_filename="vcf_filter.html", **kargs)
+                directory=directory, output_filename="report_vcf.html", **kargs)
         self.jinja['title'] = "VCF Report"
 
     def set_data(self, data):

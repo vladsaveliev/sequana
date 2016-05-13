@@ -146,6 +146,5 @@ class VCF(vcf.Reader):
             df = df[cols[:8] + [cols[9], cols[11], cols[12], cols[10], cols[8]]]
         except (ValueError, IndexError):
             pass
-        
         df.to_csv(output)
         return df
