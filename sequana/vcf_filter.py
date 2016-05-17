@@ -37,6 +37,7 @@ class VCF(vcf.Reader):
         :param kwargs: any arguments accepted by vcf.Reader
         """
         try:
+            self.filename = filename
             filin = open(filename, "r")
             vcf.Reader.__init__(self, fsock=filin, **kwargs)
         except IOError as e:

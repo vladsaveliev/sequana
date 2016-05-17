@@ -161,12 +161,12 @@ class Genomecov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist(self, fontsize=16, filename=None, label="zscore"):
+    def plot_hist(self, fontsize=16, bins=100,filename=None, label="zscore"):
         """ Barplot of zscore
 
         """
         pylab.clf()
-        self.df[label].hist(grid=True, color="b", bins=50)
+        self.df[label].hist(grid=True, color="b", bins=100)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
@@ -218,9 +218,9 @@ class FilteredGenomecov(object):
         """Merge position side by side of a data frame.
         """
         flag = False
-        start = 0
-        stop = 0
-        prev = 0
+        start = 1
+        stop = 1
+        prev = 1
         
         merge_df = pd.DataFrame(columns=["chr", "start", "stop", "size",
             "mean_cov", "mean_rm", "mean_zscore"])
