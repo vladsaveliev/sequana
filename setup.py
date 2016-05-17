@@ -58,7 +58,7 @@ setup(
     # package installation
     packages = packages,
 
-    install_requires = ["easydev>=0.9.18", "reports>=0.1.8", "matplotlib",
+    install_requires = ["easydev>=0.9.21", "reports>=0.1.8", "matplotlib",
         "pandas", "cutadapt>=1.9.1", "pysam", "pyVCF"],
 
     # here below '': pattern means include that pattern in all packages
