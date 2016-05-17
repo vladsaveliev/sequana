@@ -167,6 +167,7 @@ class ModuleNames(object):
         """
         self._module_paths = ['rules', 'pipelines']
         self._module_paths += extra_paths
+        self._extra_paths = extra_paths
 
         # names for eacj directory
         self._names = {}
@@ -184,9 +185,13 @@ class ModuleNames(object):
 
         # Finds all modules (directories)
         toignore = ['__pycache__']
+
         names = [this for this in os.listdir(fullpath) if isdir_alias(this)
                 and this not in toignore]
         for name in names:
+            # FIXME a hack that will be fixed once all rules end in .rules
+            if "Taxonomy" in name:
+                continue
             if name in self._paths.keys():
                 raise ValueError("Found duplicated name %s " % name)
             self._paths[name] = fullpath + os.sep + name
@@ -208,18 +213,17 @@ class Module(object):
     A **Module** in sequana's parlance is a directory that contains 
     the following files:
 
-        - a **snakemake** file named **Snakefile** (although other naming
-          conventions are accepted as explained below)
-        - a **README.rst** file in restructured text format 
-        - a config file in YAML format. Although json format is possible, 
+        - A **snakemake** file named after the directory with the extension
+          **.rules**
+        - Possibly a **README.rst** file in restructured text format 
+        - A config file in YAML format. Although json format is possible, 
           we use YAML throughout **sequana** for consistency.
 
     The name of the module is the name of the directory where the files are
     stored. The **Modules** are stored in sequana/rules and sequana/pipelines
     directories.
 
-    The Snakefile may be named **Snakefile** or **Snakefile.<tag>** or
-    **<module_name>.rules**.
+    The Snakefile may be named **Snakefile** or **<module_name>.rules**.
 
     Before explaining the different type of **Modules**, let us remind
     that a **rule** in **Snakemake** terminology looks like::
@@ -244,7 +248,7 @@ class Module(object):
 
     """
     def __init__(self, name):
-        name_validator = ModuleNames()
+        name_validator = ModuleNames(extra_paths=["rules/Taxonomy"])
         name_validator.isvalid(name)
         self._path = name_validator._paths[name]
         self._name = name
@@ -290,7 +294,7 @@ class Module(object):
         elif self._get_file(self.name + '.rules'):
             self._snakefile = self._get_file(self.name + ".rules")
         else:
-            print("Snakefile for %s not found" % self.name)
+            print("//Snakefile for %s not found" % self.name)
         return self._snakefile
     snakefile = property(_get_snakefile,
         doc="full path to the Snakefile file of the module")
