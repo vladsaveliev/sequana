@@ -86,8 +86,16 @@ class ENADownload(object):
             'phage': ("phage.txt", "Phages"),
             'archaealvirus': ("archaealvirus.txt", "ArchaeaViruses"),
             'archaea': ("archaea.txt", "Archaea"),
-            'bacteria': ("bacteria.txt", "Bacteria")
+            'bacteria': ("bacteria.txt", "Bacteria"),
+            'organelle': ("organelle.txt", "Organelle"),
+            'viroid': ("viroid.txt", "Viroid"),
         }
+
+    def download_list(self):
+        from easydev import execute
+        for key, values in self._metadata.items():
+            execute("wget http://www.ebi.ac.uk/genomes/%s" % values[0])
+
 
     def download_fasta(self, filelist, output_dir=None):
         """
@@ -95,6 +103,10 @@ class ENADownload(object):
         :param filelist: a name to find on the ENA web server OR the
             name of an accession number.
 
+
+        .. warning:: The filename is named after the accession without .X number
+            If there are several variant .1, .2 the later will be used. This
+            should not happen if the list is properly defined. 
         """
         from bioservices import ENA
         if filelist.endswith(".txt"):
@@ -144,18 +156,22 @@ class ENADownload(object):
             # Split header and Fasta
             header, others = data.decode().split("\n", 1)
 
-            name  = header.strip(">").split(" ")[0]
-            db, id_, acc = name.split("|")
 
             # Here, we will fetch info from NCBI every time. This is a pity but
             # no choice for now
             try:
+                name  = header.strip(">").split(" ")[0]
+                db, id_, acc = name.split("|")
                 header = self.switch_header_to_gi(acc)
             except Exception as err:
-                print("Skipping %s (not found in NCBI) " % acc)
+                try:
+                    print("Skipping %s (not found in NCBI) " % acc)
+                except:
+                    print("Skipping %s " % header)
                 continue
             # Save to local file
-            filename = "%s_%s.fasta" % (db, acc.split(".")[0])
+            # WARNINGS: extension is .fa because kraken-build expects .fa files
+            filename = "%s_%s.fa" % (db, acc.split(".")[0])
             if output_dir:
                 filename = output_dir + os.sep + filename
 
@@ -172,24 +188,25 @@ class ENADownload(object):
             res = self.results[acc.split(".")[0]]
         return ">"+res['identifier']+" " + res['comment']
 
+    def download_viroid(self):
+        self.download_fasta(*self._metadata['viroid'])
+
+    def download_organelle(self):
+        self.download_fasta(*self._metadata['organelle'])
+
     def download_viruses(self):
-        """4700 organisms (may 2016)"""
-        self.download_fasta(*self._medata['virus'])
+        self.download_fasta(*self._metadata['virus'])
 
     def download_plasmids(self):
-        """2800 organisms (may 2016) """
         self.download_fasta("plasmid.txt", "Plasmids")
 
     def download_phage(self):
-        """2400 organisms (may 2016) """
         self.download_fasta("phage.txt", "Phages")
 
     def download_archaealvirus(self):
-        """2400 organisms (may 2016) """
         self.download_fasta("archaealvirus.txt", "ArchaeaViruses")
 
     def download_archaea(self):
-        """2400 organisms (may 2016) """
         self.download_fasta("archaea.txt", "Archaea")
 
     def download_bacteria(self):
