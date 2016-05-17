@@ -63,6 +63,10 @@ class FastQStatsReport(BaseReport):
                 key = "R1"
             elif "_R2_" in filename:
                 key = "R2"
+            elif "_R1." in filename:
+                key = "R1"
+            elif "_R2." in filename:
+                key = "R2"
             print(filename)
             acgt[0]["data"][key] = thisdata['A']
             acgt[1]["data"][key] = thisdata['C']

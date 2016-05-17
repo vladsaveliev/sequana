@@ -9,6 +9,11 @@ Phix Removal
 
 .. include:: ../../sequana/pipelines/phix_removal/README.rst
 
+Quality
+==========
+
+.. include:: ../../sequana/pipelines/quality/README.rst
+
 Variant Calling
 =================
 

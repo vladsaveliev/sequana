@@ -97,12 +97,3 @@ rule report_phix_removal:
         shell("cp Snakefile %s/" % params.outdir)
         shell("cp config.yaml %s/" % params.outdir)
         shell("mv {input.dag} %s/" % params.outdir)
-
-
-
-
-
-
-
-
-

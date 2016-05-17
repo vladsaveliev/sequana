@@ -59,7 +59,7 @@ setup(
     packages = packages,
 
     install_requires = ["easydev>=0.9.18", "reports>=0.1.8", "matplotlib",
-        "pandas", "cutadapt>=1.9.1", "pysam", "pyVCF"],
+        "pandas", "cutadapt>=1.9.1", "pysam", "pyVCF", "bs4"],
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
@@ -68,7 +68,8 @@ setup(
     # This is recursive include of data files
     exclude_package_data = {"": ["__pycache__"]},
     package_data = {
-        '': ['Snakefile*', '*html', 'README.rst', 'config.yaml*', '*.css', "*.js", "snpEff.config*"],
+        '': ['Snakefile*', '*html', 'README.rst', 'config.yaml*', '*.css', "*.js", 
+                "snpEff.config*", "*.fa"],
         'sequana.rules' : ["*/*"],
         'sequana.resources.data' : ['*'],
         'sequana.resources.js/galleria/themes' : ['*'],

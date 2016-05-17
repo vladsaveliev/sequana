@@ -86,8 +86,7 @@ class BaseReport(Report):
         try:
             self.parse()
         except Exception as err:
-            print(err)
-            print("Parsing of %s failed" % self.input_filename)
+            raise(err)
         super(BaseReport, self).create_report(onweb=onweb)
 
     def read_snakefile(self, snakefile):

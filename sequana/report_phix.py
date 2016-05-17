@@ -36,10 +36,12 @@ class PhixReport(BaseReport):
         self.title = "Phix Report Summary"
         self.jinja['title'] = "Phix Report Summary"
         self.jinja['main_link'] = "index.html"
-        self.input_filename = "undefined" # to be provided by the user
+        self.input_filename = None # to be provided by the user
 
     def parse(self):
 
+        if self.input_filename is None:
+            return
         data = json.load(open(self.input_filename, "r"))
         for key, value in data.items():
             self.jinja[key] = value
