@@ -3,7 +3,7 @@ from sequana import sequana_data
 
 
 
-def test_blast_xml_parser():
+def _test_blast_xml_parser():
 
     ebi = sequana_data('testing/test_blast_ebi.xml')
     local = sequana_data('testing/test_blast_local.xml')
@@ -17,7 +17,7 @@ def test_blast_xml_parser():
     assert len(BlastHits(open(local).read()).hits) == 6
 
 
-def test_blast_online():
+def _test_blast_online():
 
     bro = BlastRunOnline()
     results = bro.run("ACGTACGT", database="em_rel_vrl")
