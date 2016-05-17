@@ -83,11 +83,11 @@ class BaseReport(Report):
         raise NotImplementedError
 
     def create_report(self, onweb=False):
-        #try:
-        self.parse()
-        #except Exception as err:
-        #    print(err)
-        #    print("Parsing of %s failed" % self.input_filename)
+        try:
+            self.parse()
+        except Exception as err:
+            print(err)
+            print("Parsing of %s failed" % self.input_filename)
         super(BaseReport, self).create_report(onweb=onweb)
 
     def read_snakefile(self, snakefile):
