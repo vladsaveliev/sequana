@@ -80,6 +80,8 @@ class ENADownload(object):
         self.convert_enaacc_to_gi = True
         self.eutils = EUtilsTools()
 
+        # In the tuple, the first element is either a ebi txt files to obtain
+        # via wget or locally, and the second item is the output directory
         self._metadata = {
             'virus': ("virus.txt", "Viruses"),
             'plasmid': ("plasmid.txt", "Plasmids"),
@@ -89,6 +91,7 @@ class ENADownload(object):
             'bacteria': ("bacteria.txt", "Bacteria"),
             'organelle': ("organelle.txt", "Organelle"),
             'viroid': ("viroid.txt", "Viroid"),
+            "macaca_fascicularis": ("macaca", "MacacaFascicularis")
         }
 
     def download_list(self):
@@ -113,14 +116,19 @@ class ENADownload(object):
             print("Downloading list from http://www.ebi.ac.uk/genomes/%s" % filelist)
             data = urlopen("http://www.ebi.ac.uk/genomes/%s" % filelist).readlines()
             identifiers = [x.strip().decode() for x in data]
+        elif filelist == "macaca":
+            identifiers = [ "CM001276", "CM001277", "CM001278", "CM001279",
+                "CM001280", "CM001281", "CM001282", "CM001283", "CM001284", 
+                "CM001285", "CM001286", "CM001287", "CM001288", "CM001289", 
+                "CM001290", "CM001291","CM001292",  "CM001293", "CM001294", 
+                "CM001295", "CM001296"]
         else:
             identifiers = [filelist]
         self._identifiers = identifiers
 
         # Now, let us convert the ENA accession to NCBI GI number once for all.
-        # This will avoid to perform request one by one
         # We can fetch only at max 200 identifiers:
-        print("Fetching identifiers from NCBI")
+        print("Fetching %s identifiers from NCBI" % len(identifiers))
         Nbaskets = math.ceil(len(identifiers)/200.)
         results = {}
         from easydev import split_into_chunks
@@ -147,10 +155,12 @@ class ENADownload(object):
             filenames = glob.glob(output_dir + os.sep + "ENA_%s*" % identifier)
 
             if len(filenames) >= 1:
+                pb.animate(i+1)
                 # no need to fetch and save the data it looks like...
                 continue
 
             # download data from ENA
+            # http://www.ebi.ac.uk/ena/data/view/CM001276&display=fasta&download=fasta&filename=CM001276.fasta
             data = ena.get_data(identifier, "fasta")
 
             # Split header and Fasta
@@ -207,7 +217,10 @@ class ENADownload(object):
         self.download_fasta("archaealvirus.txt", "ArchaeaViruses")
 
     def download_archaea(self):
-        self.download_fasta("archaea.txt", "Archaea")
+        self.download_fasta(*self._metadata["archaea"])
+
+    def download_macaca(self):
+        self.download_fasta(*self._metadata["macaca_fascicularis"])
 
     def download_bacteria(self):
         """ organisms (may 2016)
