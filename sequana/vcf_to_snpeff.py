@@ -110,7 +110,7 @@ class VCFToSnpeff(object):
         """ Launch snpEff
         
         """
-        args_ann = ["snpEff", self.reference, vcf_filename]
+        args_ann = ["snpEff", self.ref_name, vcf_filename]
         with open(output, "wb") as fp:
             proc_ann = sp.Popen(args_ann, stdout=fp)
             proc_ann.wait()
