@@ -70,7 +70,7 @@ setup(
     package_data = {
         '': ['Snakefile*', '*html', 'README.rst', 'config.yaml*', '*.css', "*.js", 
                 "snpEff.config*", "*.fa"],
-        'sequana.rules' : ["*/*"],
+        'sequana.rules' : ["*/*.rules"],
         'sequana.resources.data' : ['*'],
         'sequana.resources.js/galleria/themes' : ['*'],
         },
