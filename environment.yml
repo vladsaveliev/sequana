@@ -5,11 +5,10 @@ dependencies:
 - matplotlib
 - scipy
 - pysam
-- cutadapt
 - pip:
+  - sequana
   - easydev
   - bioservices
   - biokit
   - mpld3
   - reports
-  - sequana
