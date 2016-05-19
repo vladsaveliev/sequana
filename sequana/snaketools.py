@@ -123,9 +123,14 @@ class SnakeMakeStats(object):
         s.plot()
 
     """
-    def __init__(self, filename):
+    def __init__(self, filename, cfg=None):
         """.. rubric:: Cosntructor"""
         self.filename = filename
+        self.cfg = cfg
+        if cfg:
+            self.project = self.cfg.PROJECT
+        else:
+            self.project = "."
 
     def _parse_data(self):
         with open(self.filename, 'r') as fin:
@@ -145,6 +150,10 @@ class SnakeMakeStats(object):
         pylab.xlabel("Seconds (s)", fontsize=fontsize)
         try:pylab.tight_layout()
         except:pass
+
+    def plot_and_save(self, filename="snakemake_stats.png"):
+        self.plot()
+        pylab.savefig(self.project + os.sep + filename)
 
 
 class ModuleNames(object):
@@ -615,7 +624,6 @@ class FileFactory(object):
             self._glob = glob.glob(pattern)
         elif isinstance(pattern, list):
             self._glob = pattern[:]
-        
 
     def _get_realpath(self):
         return [os.path.realpath(filename) for filename in self._glob]
