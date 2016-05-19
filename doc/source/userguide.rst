@@ -6,9 +6,9 @@ User Guide
 Snakemake tools
 ================
 
-We provide so utilities in the :mod:`sequana.snakemake` to be used within
+We provide so utilities in the :mod:`sequana.snaketools` to be used within
 Snakefile. Although Python code can be added the print command output may
-interfer with the Snakefile interpretation. The :func:`sequana.snakemake.message` is provided to prevent that issue (see example below).
+interfer with the Snakefile interpretation. The :func:`sequana.snaketools.message` is provided to prevent that issue (see example below).
 
 
 Another feature of Sequana is to provide a set of modules that are independent
