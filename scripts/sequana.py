@@ -16,8 +16,10 @@ class Options(argparse.ArgumentParser):
 
         """
         super(Options, self).__init__(usage=usage, prog=prog)
+
+
         self.add_argument("--init", dest='snakefile', type=str,
-                required=False, 
+                required=False,
                 help="Get the snakefile and config file and possible other files")
         self.add_argument("--info", dest='info', type=str,
                 required=False, help="Open README on the web")
@@ -28,6 +30,9 @@ class Options(argparse.ArgumentParser):
 def main(args=None):
     from sequana.snaketools import modules, Module, SequanaConfig
     import shutil
+    from easydev import DevTools
+    devtools = DevTools()
+
     if args is None:
         args = sys.argv[:]
 
@@ -47,11 +52,10 @@ def main(args=None):
         module.onweb()
         sys.exit(0)
 
-
     try:
         module = Module(options.snakefile)
     except:
-        print("Invalid module name provided (%s). " % options.snakefile) 
+        print("Invalid module name provided (%s). " % options.snakefile)
         print("Here are the valid modules from sequana: \n - %s" %
 "\n - ".join(sorted(modules.keys())))
         sys.exit(1)
@@ -60,36 +64,27 @@ def main(args=None):
     # the Snakefile, the config and readme:
     print("Will override the following files: config.yaml, README.rst,"
           " Snakefile")
-    from easydev.console import purple
-    choice = input(purple("Do you want to proceed ? y/n"))
+    from easydev.console import red
+    choice = input(red("Do you want to proceed ? y/n"))
     if choice == "y":
         pass
     else:
         sys.exit(0)
-    
+
     shutil.copy(module.snakefile, "Snakefile")
     shutil.copy(module.config, "config.yaml")
-    shutil.copy(module.readme, "REAME.rst")
+    shutil.copy(module.readme, "README.rst")
 
     # we also crate the directory to hold the raw data
-    try:
-        os.mkdir("fastq_raw")
-    except:
-        pass
-
-    # a running script
-
-    with open("sequana.sh", "w") as fh:
-        fh.write("#!/usr/bin sh\n")
-        fh.write("snakemake -s Snakefile --stats stats.txt -p")
-    #os.chmod("sequana.sh", 744)
+    devtools.mkdir("fastq_raw")
 
     print("""You can now run snakemake yourself or type::
 
-        snakemake -s Snakefile --stats stats.txt -p -j 2
+    snakemake -s Snakefile --stats stats.txt -p -j 4
 
-    # -j 2 means you will use 2 cores
+    # -j 4 means you will use 4 cores
     # -p prints the commands used
+    # --stats stats.txt must be used since stats.txt is expected to be found.
 
     or just run the bash script::
 
@@ -117,6 +112,14 @@ def main(args=None):
     except Exception as err:
         print(err)
         print("No config file found")
+
+
+
+
+
+
+
+
 
 
 
