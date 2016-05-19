@@ -63,6 +63,10 @@ rule pipeline_quality:
         shell('ln -sf report_phix_removal.html %s/pipeline_quality.html' % (cfg.PROJECT))
 
 
+onsuccess:
+    print("Workflow finished. Creating stats image")
+    from sequana.snaketools import SnakeMakeStats
+    SnakeMakeStats("stats.txt",cfg).plot_and_save()
 
 
 

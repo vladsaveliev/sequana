@@ -3,6 +3,12 @@ Changelog
 
 .. contents::
 
+0.1.4
+--------
+
+  - Taxonomy rules included
+  - Fix the stats image creation
+  
 
 0.1.3
 --------

@@ -14,7 +14,7 @@ class BaseReport(Report):
 
 
     """
-    def __init__(self, jinja_filename, directory="report",     
+    def __init__(self, jinja_filename, directory="report",
                 output_filename="test.html", **kargs):
         """.. rubric:: Constructor
 
@@ -39,15 +39,15 @@ class BaseReport(Report):
 
         searchpath = sepjoin([sequana_path, "sequana", "resources", "jinja"])
 
-        super(BaseReport, self).__init__(searchpath, filename=output_filename, 
+        super(BaseReport, self).__init__(searchpath, filename=output_filename,
             template_filename=jinja_filename,
-            directory=directory, 
-            extra_css_list=extra_css_list, 
+            directory=directory,
+            extra_css_list=extra_css_list,
             extra_js_list=extra_js_list,
             **kargs)
 
         # This redefines the default name of the output (index.html) otherwise,
-        # several reports will overwrite the default index.html. 
+        # several reports will overwrite the default index.html.
         self.filename = output_filename
 
         # That is where we will store all data to be used by the Jinja templates
@@ -109,8 +109,8 @@ class SequanaReport(BaseReport):
                 output_filename="index.html",  **kargs):
 
         super(SequanaReport, self).__init__(
-            jinja_filename="main/index.html", 
-            directory=directory,  
+            jinja_filename="main/index.html",
+            directory=directory,
             output_filename=output_filename,
             **kargs)
 
@@ -127,6 +127,8 @@ class SequanaReport(BaseReport):
         try:
             from sequana.snaketools import SequanaConfig
             config = SequanaConfig(configfile)
+            self.jinja['project'] = config.PROJECT
+
             html = ""
             for link, filename in zip(config.DATASET, config.BASENAME):
                 html += '<li><a href="../%s">%s</a></li>\n' % (link, filename)
@@ -135,25 +137,13 @@ class SequanaReport(BaseReport):
         except:
             pass
 
-        #any stats compute ??
-        try:
-            from sequana.snaketools import SnakeMakeStats
-            s = SnakeMakeStats(stats)
-            s.plot()
-            import pylab
-            output_file = "snakemake_stats.png"
-            pylab.savefig(self.directory + os.sep + output_file)
-            self.jinja['snakemake_stats'] = output_file
-        except:
-            print('snakemake stats.txt not found. Use "--stats stats.txt" next time')
-
+        self.jinja['online_link'] = "http://sequana.readthedocs.io/en/latest/pipelines.html"
+        self.jinja['snakemake_stats'] = "snakemake_stats.png"
         self.jinja['title'] = "Sequana Report"
-
-        
 
     def parse(self):
         pass
- 
+
 
 
 

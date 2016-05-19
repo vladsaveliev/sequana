@@ -10,8 +10,9 @@
         </ul>
     </div>
 -->
-    {% if description %}    
+    {% if description %}
         <div class="section" id="Description">
+        <p><b>Project:</b> {{ project }} </p>
         <p>{{ description }}</p>
         </div>
     {% endif %}
@@ -21,7 +22,7 @@
     {{ dataset }}
     </div>
 
-    {% if output %}    
+    {% if output %}
         <div class="section" id="Output">
         <h2> 2 -  <a class="toc-backref" href="#id1">Output</a></h2>
         {{ output }}
@@ -36,19 +37,29 @@
         <img src="dag.svg">
         </object>
 
+       
         <div id="1">
-        <p>The analysis was performed with the following Snakemake and config
-file:<br></p>
-        <a href="#1" class="show_hide">Show/hide Snakemake file</a>
-        <div class="slidingDiv">
-        <pre><code class="python">{{ snakefile }}</code></pre>
-        </div>
-    
-        <div id="2">
-        <a href="#2" class="show_hideC">Show/hide config file</a>
-        <div class="slidingDivC">
-        <pre><code class="yaml">{{ config }}</code></pre>
-        </div>
+        {% if online_link %}
+        <p>This pipeline is documented on the <a href="{{ online_link }}">online documentation</a>
+        The analysis was performed with the following Snakemake and config file:<br>
+        {% else %}
+        <p>The analysis was performed with the following Snakemake and config file:<br>
+        {% endif %}
+        <ul>
+            <li><a href="#1" class="show_hide">Show/hide Snakemake file</a>
+                <div class="slidingDiv">
+                <pre><code class="python">{{ snakefile }}</code></pre>
+                </div>
+            </li>
+            <li>
+                <div id="2">
+                <a href="#2" class="show_hideC">Show/hide config file</a>
+                <div class="slidingDivC">
+                <pre><code class="yaml">{{ config }}</code></pre>
+                </div>
+            </li>
+        </ul>
+        </p>
     </div>
 
     {% if snakemake_stats %}

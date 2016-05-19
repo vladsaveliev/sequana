@@ -59,7 +59,10 @@ rule all:
 
 
 onsuccess:
-    print("Workflow finished, no error")
+    print("Workflow finished. Creating stats image")
+    from sequana.snaketools import SnakeMakeStats
+    SnakeMakeStats("stats.txt",cfg).plot_and_save()
+
 
 #onerror:
 #    print("An error occurred")
