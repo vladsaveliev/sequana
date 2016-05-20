@@ -4,12 +4,11 @@ dependencies:
 - pandas
 - matplotlib
 - scipy
+- pysam
 - pip:
-  - easydev>=0.9.21
+  - sequana
+  - easydev
   - bioservices
   - biokit
-  - pysam
-  - cutadapt
   - mpld3
   - reports
-  - sequana
