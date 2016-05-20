@@ -1,13 +1,14 @@
 name: sequana
 dependencies:
+- python=3
 - numpy
 - pandas
 - matplotlib
 - scipy
 - pysam
+- easydev>=0.9.21
 - pip:
   - sequana
-  - easydev
   - bioservices
   - biokit
   - mpld3
