@@ -9,7 +9,6 @@ dependencies:
 - pysam
 - pip:
   - easydev>=0.9.21
-  - sequana
   - bioservices
   - biokit
   - mpld3
