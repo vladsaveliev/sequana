@@ -85,7 +85,7 @@ class Genomecov(object):
         diff = 100
         for i, value in enumerate(results.mus):
             if abs(value - 1) < diff:
-                diff = value
+                diff = abs(value - 1)
                 indice = i
         return indice
 
