@@ -1,4 +1,5 @@
 name: sequana
+channel: bioconda
 dependencies:
 - python=3
 - numpy
@@ -6,8 +7,8 @@ dependencies:
 - matplotlib
 - scipy
 - pysam
-- easydev>=0.9.21
 - pip:
+  - easydev>=0.9.21
   - sequana
   - bioservices
   - biokit
