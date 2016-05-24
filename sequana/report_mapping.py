@@ -57,7 +57,10 @@ class MappingReport(BaseReport):
                 "coverage.png", low_threshold=self.low_t, 
                 high_threshold=self.high_t)
         
-        self.mapping.plot_hist(filename=self.directory + os.sep + 
+        self.jinja["mu"] = "{:.2f}".format(self.mapping.best_gaussian["mu"])
+        self.jinja["sigma"] = "{:.2f}".format(
+                self.mapping.best_gaussian["sigma"])
+        self.mapping.plot_hist(filename=self.directory + os.sep +
                 "zscore_hist.png")
 
         low_cov_df = self.mapping.get_low_coverage(self.low_t / 2)

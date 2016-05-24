@@ -87,7 +87,7 @@ class Genomecov(object):
             if abs(value - 1) < diff:
                 diff = abs(value - 1)
                 indice = i
-        return indice
+        return {"mu": results.mus[indice], "sigma": results.sigmas[indice]}
 
     def compute_zscore(self, k=2, label="zscore", step=10):
         """ Compute zscore of coverage. 
@@ -107,10 +107,10 @@ class Genomecov(object):
                   self.__doc__)
             return
         mf.estimate()
-        self.gaussian = mf.results
-        i = self._get_best_gaussian(mf.results)
-        self.df[label] = (self.df["scale"] - mf.results["mus"][i]) / \
-            mf.results["sigmas"][i]
+        self.gaussians = mf.results
+        self.best_gaussian = self._get_best_gaussian(mf.results)
+        self.df[label] = (self.df["scale"] - self.best_gaussian["mu"]) / \
+            self.best_gaussian["sigma"]
 
     def get_low_coverage(self, threshold=-3, start=None, stop=None, 
             label="zscore"):
@@ -149,13 +149,10 @@ class Genomecov(object):
         """ Plot coverage as a function of position.
 
         """
-        i = self._get_best_gaussian(self.gaussian)
-        mu = self.gaussian.mus[i]
-        sigma = self.gaussian.sigmas[i]
-        high_zcov = (high_threshold * sigma + mu) * self.df["rm"]
-        low_zcov = (low_threshold * sigma + mu) * self.df["rm"]
-        self.df["high_threshold"] = high_zcov
-        self.df["low_threshold"] = low_zcov
+        high_zcov = (high_threshold * self.best_gaussian["sigma"] + 
+                self.best_gaussian["mu"]) * self.df["rm"]
+        low_zcov = (low_threshold * self.best_gaussian["sigma"] + 
+                self.best_gaussian["mu"]) * self.df["rm"]
 
         pylab.clf()
         pylab.xlim(0,self.df["pos"].iloc[-1])
@@ -163,10 +160,9 @@ class Genomecov(object):
                 linewidth=1)
         p2, = pylab.plot(self.df["rm"], color="r", linewidth=1, 
                 label="Running median")
-        p3, = pylab.plot(self.df["high_threshold"], linewidth=1, color="r", 
-                ls="--",label="Thresholds")
-        p4, = pylab.plot(self.df["low_threshold"], linewidth=1, color="r", 
-                ls="--")
+        p3, = pylab.plot(high_zcov, linewidth=1, color="r", ls="--",
+                label="Thresholds")
+        p4, = pylab.plot(low_zcov, linewidth=1, color="r", ls="--")
 
         pylab.legend([p1, p2, p3], [p1.get_label(), p2.get_label(), 
                 p3.get_label()], loc="best")
