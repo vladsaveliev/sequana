@@ -54,10 +54,11 @@ class MappingReport(BaseReport):
         self.jinja['main_link'] = 'index.html'
 
         self.mapping.plot_coverage(filename=self.directory + os.sep + 
-                                            "coverage.png")
+                "coverage.png", low_threshold=self.low_t, 
+                high_threshold=self.high_t)
         
         self.mapping.plot_hist(filename=self.directory + os.sep + 
-                                            "zscore_hist.png")
+                "zscore_hist.png")
 
         low_cov_df = self.mapping.get_low_coverage(self.low_t / 2)
         merge_low_cov = low_cov_df.merge_region(self.low_t)

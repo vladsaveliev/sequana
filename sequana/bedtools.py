@@ -16,10 +16,10 @@ class Genomecov(object):
 
 :Example:
 
-    > mydata = bedtools.genomecov('exemple.bed')
-    > mydata.running_median(n=1001, label='rm')
-    > mydata.coverage_scaling(method='rm')
-    > mydata.compute_zscore(label='zscore)
+    > self = bedtools.genomecov('exemple.bed')
+    > self.running_median(n=1001, label='rm')
+    > self.coverage_scaling(method='rm')
+    > self.compute_zscore(label='zscore)
 
     """
     def __init__(self, input_filename=None):
@@ -144,14 +144,32 @@ class Genomecov(object):
                   "You must run compute_zscore before get low coverage.\n\n",
                     self.__doc__)
 
-    def plot_coverage(self, fontsize=16, filename=None, rm="rm"):
+    def plot_coverage(self, fontsize=16, filename=None, rm="rm",
+            low_threshold=-3, high_threshold=3):
         """ Plot coverage as a function of position.
 
         """
+        i = self._get_best_gaussian(self.gaussian)
+        mu = self.gaussian.mus[i]
+        sigma = self.gaussian.sigmas[i]
+        high_zcov = (high_threshold * sigma + mu) * self.df["rm"]
+        low_zcov = (low_threshold * sigma + mu) * self.df["rm"]
+        self.df["high_threshold"] = high_zcov
+        self.df["low_threshold"] = low_zcov
+
         pylab.clf()
-        self.df["cov"].plot(grid=True, color="b", label="coverage")
-        self.df[rm].plot(grid=True, color="r", label="running median")
-        pylab.legend(loc='best')
+        pylab.xlim(0,self.df["pos"].iloc[-1])
+        p1, = pylab.plot(self.df["cov"], color="b", label="Coverage", 
+                linewidth=1)
+        p2, = pylab.plot(self.df["rm"], color="r", linewidth=1, 
+                label="Running median")
+        p3, = pylab.plot(self.df["high_threshold"], linewidth=1, color="r", 
+                ls="--",label="Thresholds")
+        p4, = pylab.plot(self.df["low_threshold"], linewidth=1, color="r", 
+                ls="--")
+
+        pylab.legend([p1, p2, p3], [p1.get_label(), p2.get_label(), 
+                p3.get_label()], loc="best")
         pylab.xlabel("Position", fontsize=fontsize)
         pylab.ylabel("Coverage", fontsize=fontsize)
         try:
