@@ -24,6 +24,13 @@ import matplotlib
 matplotlib.use('Agg')
 
 
+on_rtd = os.environ.get("READTHEDOCS", None) == "True"
+if on_rtd:
+    # Mocking of the dependencies
+    sys.path.insert(0,'.')
+    from readthedocs import *
+    sys.path.pop(0)
+
 
 import pkg_resources
 version = pkg_resources.require(pkg_name)[0].version
@@ -136,7 +143,6 @@ modindex_common_prefix = ["sequana."]
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
 html_theme = 'standard'
-on_rtd = os.environ.get("READTHEDOCS", None) == True
 if not on_rtd:
     import sphinx_rtd_theme
     html_theme = 'sphinx_rtd_theme'
