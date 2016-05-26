@@ -25,12 +25,12 @@ matplotlib.use('Agg')
 
 
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
-if on_rtd:
+"""if on_rtd:
     # Mocking of the dependencies
     sys.path.insert(0,'.')
     from readthedocs import *
     sys.path.pop(0)
-
+"""
 
 import pkg_resources
 version = pkg_resources.require(pkg_name)[0].version
