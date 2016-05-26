@@ -1,6 +1,6 @@
 name: sequana_env
 
-channels: 
+channels:
 - bioconda
 
 dependencies:

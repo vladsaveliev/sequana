@@ -28,6 +28,10 @@ matplotlib.use('Agg')
 
 import pkg_resources
 version = pkg_resources.require(pkg_name)[0].version
+
+import matplotlib
+import matplotlib.sphinxext
+
 release = version
 author = "Thomas Cokelaer"
 title = "Sequana"
@@ -137,7 +141,6 @@ modindex_common_prefix = ["sequana."]
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
-print("ON RTD", on_rtd)
 if not on_rtd:
     import sphinx_rtd_theme
     html_theme = 'sphinx_rtd_theme'
