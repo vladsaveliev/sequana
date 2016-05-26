@@ -108,7 +108,7 @@ class VCFToSnpeff(object):
             snp_build = sp.Popen(["snpEff", "build", self.file_format, 
                 self.ref_name], stderr=None, stdout=None)
         snp_build.wait()
-        rc = snp_build.returncode()
+        rc = snp_build.returncode
         if rc != 0:
             print("snpEff build return a non-zero code")
             sys.exit(rc)
