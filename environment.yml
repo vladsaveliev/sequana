@@ -10,6 +10,7 @@ dependencies:
 - scipy
 - pysam
 - pip:
+  - matplotlib
   - easydev>=0.9.21
   - bioservices
   - biokit
