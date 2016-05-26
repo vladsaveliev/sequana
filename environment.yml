@@ -1,7 +1,9 @@
-name: sequana
-channel: bioconda
+name: sequana_env
+
+channels: 
+- bioconda
+
 dependencies:
-- python=3
 - numpy
 - pandas
 - matplotlib
