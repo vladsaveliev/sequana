@@ -72,6 +72,7 @@ setup(
                 "snpEff.config*", "*.fa"],
         'sequana.rules' : ['*/*.rules'],
         'sequana.resources.data' : ['*'],
+        'sequana.resources.testing' : ['*'],
         'sequana.resources.js/galleria/themes' : ['*'],
         },
 
