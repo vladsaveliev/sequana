@@ -8,7 +8,7 @@ except:
 
 from .snaketools import modules
 from .snaketools import SequanaConfig
-from .snaketools import Module, ModuleNames
+from .snaketools import Module, ModuleFinder
 
 from .phred import Quality
 

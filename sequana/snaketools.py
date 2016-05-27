@@ -8,7 +8,7 @@ Here is an overview (see details here below)
     sequana.snaketools.DOTParser
     sequana.snaketools.ExpandedSnakeFile
     sequana.snaketools.Module
-    sequana.snaketools.ModuleNames
+    sequana.snaketools.ModuleFinder
     sequana.snaketools.SnakeMakeProfile
     sequana.snaketools.SnakeMakeStats
     sequana.snaketools.SequanaConfig
@@ -156,35 +156,30 @@ class SnakeMakeStats(object):
         pylab.savefig(self.project + os.sep + filename)
 
 
-class ModuleNames(object):
+class ModuleFinder(object):
     """Data structure to hold the :class:`Module` names"""
-    def __init__(self, extra_paths=[]):
+    def __init__(self):
         """.. rubric:: constructor
 
         :param list extra_paths: 
 
-
         .. doctest::
 
-            >>> from sequana import ModuleNames
-            >>> modnames = ModuleNames()
+            >>> from sequana import ModuleFinder
+            >>> modnames = ModuleFinder()
             >>> modnames.isvalid('dag')
             True
             >>> modnames.isvalid('dummy')
             False
 
         """
-        self._module_paths = ['rules', 'pipelines']
-        self._module_paths += extra_paths
-        self._extra_paths = extra_paths
 
-        # names for eacj directory
-        self._names = {}
+        # names for each directory
         self._paths = {}
 
-        # scan the paths
-        for path in self._module_paths:
-            self._add_names(path)
+        # scan the official paths
+        self._add_names("rules")
+        self._add_names("pipelines")
 
     def _add_names(self, path):
         sepjoin = os.sep.join
@@ -192,18 +187,26 @@ class ModuleNames(object):
         # just an alias
         isdir_alias = lambda x: isdir(sepjoin([fullpath, x]))
 
-        # Finds all modules (directories)
-        toignore = ['__pycache__']
+        fullpaths = self._iglob(fullpath)
+        for this in fullpaths:
+            whatever, module_name, filename = this.rsplit(os.sep, 2)
+            if module_name in self._paths.keys():
+                raise ValueError("Found duplicated name %s. Overwrites previous rule " % module_name)
+            self._paths[module_name] = whatever + os.sep + module_name
 
-        names = [this for this in os.listdir(fullpath) if isdir_alias(this)
-                and this not in toignore]
-        for name in names:
-            # FIXME a hack that will be fixed once all rules end in .rules
-            if "Taxonomy" in name:
-                continue
-            if name in self._paths.keys():
-                raise ValueError("Found duplicated name %s " % name)
-            self._paths[name] = fullpath + os.sep + name
+    def _iglob(self, path, extension="rules"):
+        try:
+            from glob import iglob
+            matches = list(iglob("%s/**/*.%s" % (path, extension), recursive=True))
+        except:
+            # iglob use recursivity with ** only in py3.5 (snakemake)
+            import fnmatch
+            import os
+            matches = []
+            for root, dirnames, filenames in os.walk(path):
+                for filename in fnmatch.filter(filenames, '*.' + extension):
+                    matches.append(os.path.join(root, filename))
+        return matches
 
     def _get_names(self):
         return sorted(list(self._paths.keys()))
@@ -230,9 +233,10 @@ class Module(object):
 
     The name of the module is the name of the directory where the files are
     stored. The **Modules** are stored in sequana/rules and sequana/pipelines
-    directories.
+    directories. Those main directories may have sub-directories main names
+    should not but duplicated
 
-    The Snakefile may be named **Snakefile** or **<module_name>.rules**.
+    The Snakefile should be named **<module_name>.rules**.
 
     Before explaining the different type of **Modules**, let us remind
     that a **rule** in **Snakemake** terminology looks like::
@@ -242,22 +246,22 @@ class Module(object):
             :output: file2
             :shell: "cp file1 file2"
 
-    However, in **sequana**, we speak of **Rules** with a different meaning. 
-    Indeed, **Modules** are sub-divided into **Rules** and **Modules** defined
-    as follows:
+    However, in **sequana**, the module may contain several rules.
+
+    Here is the terminolgy. Within a module directory, :
 
         - if the **Snakefile** includes other **Snakefile** then
-          we consider that that Module is a **Pipeline**.
+          we consider that that Module is a **Pipeline** module.
         - if the **Snakefile** does not include other **Snakefile** and
           all internal snakemake rules start with the same name, we consider
           that that module is a **Rule** module. 
 
-    This data structure ease the retrieval of metadata for the **Modules**
-    stored in **sequana**. 
+    This data structure ease the retrieval of metadata and Snakefiles stored
+    within Sequana.
 
     """
     def __init__(self, name):
-        name_validator = ModuleNames(extra_paths=["rules/Taxonomy"])
+        name_validator = ModuleFinder()
         name_validator.isvalid(name)
         self._path = name_validator._paths[name]
         self._name = name
@@ -344,7 +348,7 @@ class Module(object):
 
 def _get_modules_snakefiles():
     modules = {}
-    for name in ModuleNames().names:
+    for name in ModuleFinder().names:
         if Module(name).snakefile:
             modules[name] = Module(name).snakefile
     return modules
