@@ -64,7 +64,7 @@ class ExpandedSnakeFile(object):
     This class will recreate the Snakefile without this compactness so that one
     can see the entire structure. The expansion is performed by :meth:`expand`.
 
-    .. warning:: experimental. docstrings should be removed. lines starting 
+    .. warning:: experimental. docstrings should be removed. lines starting
         with **include** should also be removed.
 
     """
@@ -105,7 +105,7 @@ class SnakeMakeProfile(object):
 
 
 class SnakeMakeStats(object):
-    """Interpret the snakemake stats file 
+    """Interpret the snakemake stats file
 
     Run the Snakemake with this option::
 
@@ -161,7 +161,7 @@ class ModuleFinder(object):
     def __init__(self):
         """.. rubric:: constructor
 
-        :param list extra_paths: 
+        :param list extra_paths:
 
         .. doctest::
 
@@ -222,13 +222,13 @@ class ModuleFinder(object):
 class Module(object):
     """Data structure that holds metadata about a **Module**
 
-    A **Module** in sequana's parlance is a directory that contains 
+    A **Module** in sequana's parlance is a directory that contains
     the following files:
 
         - A **snakemake** file named after the directory with the extension
           **.rules**
-        - Possibly a **README.rst** file in restructured text format 
-        - A config file in YAML format. Although json format is possible, 
+        - Possibly a **README.rst** file in restructured text format
+        - A config file in YAML format. Although json format is possible,
           we use YAML throughout **sequana** for consistency.
 
     The name of the module is the name of the directory where the files are
@@ -254,7 +254,7 @@ class Module(object):
           we consider that that Module is a **Pipeline** module.
         - if the **Snakefile** does not include other **Snakefile** and
           all internal snakemake rules start with the same name, we consider
-          that that module is a **Rule** module. 
+          that that module is a **Rule** module.
 
     This data structure ease the retrieval of metadata and Snakefiles stored
     within Sequana.
@@ -288,7 +288,7 @@ class Module(object):
         if filename is None:
             filename = self._get_file("config.yaml.optional")
         return filename
-    config = property(_get_config, 
+    config = property(_get_config,
         doc="full path to the config file of the module")
 
     def _get_readme(self):
@@ -323,8 +323,8 @@ class Module(object):
         except:
                 self._description = "no description"
         return self._description
-    description = property(_get_description, 
-        doc="""Content of the README file associated with the module. 
+    description = property(_get_description,
+        doc="""Content of the README file associated with the module.
 
 ::
 
@@ -353,7 +353,7 @@ def _get_modules_snakefiles():
             modules[name] = Module(name).snakefile
     return modules
 
-#: dictionary with module names as keys and fullpath to the Snakefile as values 
+#: dictionary with module names as keys and fullpath to the Snakefile as values
 modules = _get_modules_snakefiles()
 
 
@@ -374,7 +374,7 @@ class SequanaConfig(object):
             - file1: FILE1
             - file2: FILE2
 
-    The second file may be optional. 
+    The second file may be optional.
 
     :meth:`get_dataset_as_list`
 
@@ -430,7 +430,7 @@ class SequanaConfig(object):
                 if value in ['False', 'false', 'FALSE']:
                     subdic[key] = False
         return subdic
-        
+
     def _set_none_to_empty_string(self, subdic):
         # recursively set parameter (None) to ""
         for key,value in subdic.items():
@@ -458,15 +458,17 @@ class SequanaConfig(object):
     def check(self, requirements_dict):
         """a dcitionary in the form
 
-        rule_name:["param1", ":param2", ":kwargs:N"]
+        ::
+
+            rule_name:["param1", ":param2", ":kwargs:N"]
 
         in a config::
 
-        param1: 1
-        param2:
-            - subparam1
-            - subparam2:
-                - subparam3: 10
+            param1: 1
+            param2:
+                - subparam1
+                - subparam2:
+                    - subparam3: 10
 
 
         """
@@ -480,7 +482,7 @@ class SequanaConfig(object):
                 raise KeyError("Expected section %s not found" % k)
             else:
                 for item in vlist:
-                    # with : , this means a sub field field 
+                    # with : , this means a sub field field
                     if item.startswith(":") and item.count(":")==1:
                         assert item[1:] in self.config[k].keys()
                     elif item.count(":")>1:
@@ -494,7 +496,7 @@ class SequanaConfig(object):
 
 def sequana_check_config(config, globs):
     s = SequanaConfig.from_dict(config)
-    dic = dict([ (k,v) for k,v in globs.items() 
+    dic = dict([ (k,v) for k,v in globs.items()
                     if k.startswith("__sequana__")])
     s.check(dic)
 
@@ -555,6 +557,7 @@ class DOTParser(object):
                         if label not in indices_to_drop:
                             fout.write(line + "\n")
                     else:
+                        line = line.replace("dashed", "")
                         fout.write(line + "\n")
                 else:
                     separator = "color ="
@@ -570,13 +573,15 @@ class DOTParser(object):
                         index = lhs.split("[")[0]
                         indices_to_drop.append(index.strip())
                     elif name in ['all', "bwa_bam_to_fastq"] or "dataset:" in name:
-                        # redirect to the main page so nothing to do 
+                        # redirect to the main page so nothing to do
                         newline = lhs + separator + rhs
+                        newline = newline.replace("dashed", "")
                         fout.write(newline + "\n")
                     else:
                         # redirect to another report
                         newline = lhs + ' URL="%s.html" target="_parent", ' % name
                         newline += separator + rhs
+                        newline = newline.replace("dashed", "")
                         fout.write(newline + "\n")
 
 
@@ -642,7 +647,7 @@ class FileFactory(object):
 
     def _get_filenames(self):
         return [this.split(".")[0] for this in self.basenames]
-    filenames = property(_get_filenames) 
+    filenames = property(_get_filenames)
 
     def _pathnames(self):
         pathnames = [os.path.split(filename)[0] for filename in self._glob]
