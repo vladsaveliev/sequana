@@ -827,8 +827,7 @@ class FastQC(object):
     def imshow_qualities(self):
         """Qualities
 
-        .. plot::
-            :include-source:
+        ::
 
             from sequana import sequana_data
             from sequana import FastQC
@@ -869,8 +868,7 @@ class FastQC(object):
     def histogram_sequence_coordinates(self):
         """Histogram of the sequence coordinates on the plate
 
-        .. plot::
-            :include-source:
+        ::
 
             from sequana import sequana_data
             from sequana import FastQC
