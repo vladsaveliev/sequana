@@ -12,7 +12,11 @@
 # serve to show the default.
 
 import sys, os
+import sphinx
 
+sys.path.insert(0, os.path.abspath('sphinxext'))
+
+import sphinx_gallery
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -58,13 +62,16 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
-    'sphinx.ext.coverage',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
+    "numpydoc.numpydoc",
     'easydev.copybutton',
     'matplotlib.sphinxext.plot_directive',
     'matplotlib.sphinxext.only_directives',
-    'sphinx.ext.pngmath',
+    ('sphinx.ext.imgmath'  # only available for sphinx >= 1.4
+                  if sphinx.version_info[:2] >= (1, 4)
+                  else 'sphinx.ext.pngmath'),
+    'sphinx_gallery.gen_gallery'
     ]
 # note that the numpy directives is buggy. Example: class and init are not recognised as two entities for the autoclass_content=both here below
 
@@ -136,6 +143,43 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 modindex_common_prefix = ["sequana."]
 
+# -- sphinx gallery ------------------------------------------------------------
+plot_gallery = True
+sphinx_gallery_conf = {
+    "doc_module": "sequana",
+#    "examples_dirs": "examples",
+#    "gallery_dirs": "auto_examples",
+}
+
+# Get rid of spurious warnings due to some interaction between
+# autosummary and numpydoc. See
+# https://github.com/phn/pytpm/issues/3#issuecomment-12133978 for more
+# details
+numpydoc_show_class_members = False
+
+
+# solution from nilearn
+def touch_example_backreferences(app, what, name, obj, options, lines):
+    # generate empty examples files, so that we don't get
+    # inclusion errors if there are no examples for a class / module
+    examples_path = os.path.join(app.srcdir, "modules", "generated",
+                                 "%s.examples" % name)
+    if not os.path.exists(examples_path):
+        # touch file
+        open(examples_path, 'w').close()
+
+
+
+# Add the 'copybutton' javascript, to hide/show the prompt in code
+# examples
+def setup(app):
+    app.add_javascript('copybutton.js')
+    app.connect('autodoc-process-docstring', touch_example_backreferences)
+
+
+
+
+
 # -- Options for HTML output ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
@@ -153,7 +197,6 @@ else:
 # documentation.
 # the user theme contains the otpions 'homepage', which is populated here
 #html_theme_options = {'homepage': init_sphinx.url}
-
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = [get_path_sphinx_themes()]
 
