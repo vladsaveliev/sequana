@@ -176,6 +176,7 @@ class ModuleFinder(object):
 
         # names for each directory
         self._paths = {}
+        self._type = {}
 
         # scan the official paths
         self._add_names("rules")
@@ -193,6 +194,7 @@ class ModuleFinder(object):
             if module_name in self._paths.keys():
                 raise ValueError("Found duplicated name %s. Overwrites previous rule " % module_name)
             self._paths[module_name] = whatever + os.sep + module_name
+            self._type[module_name] = path[:-1]
 
     def _iglob(self, path, extension="rules"):
         try:
@@ -217,6 +219,9 @@ class ModuleFinder(object):
         if name not in self.names:
             return False
         return True
+
+    def ispipeline(self, name):
+        return self._type[name] == "pipeline"
 
 
 class Module(object):
@@ -261,14 +266,17 @@ class Module(object):
 
     """
     def __init__(self, name):
-        name_validator = ModuleFinder()
-        name_validator.isvalid(name)
-        self._path = name_validator._paths[name]
+        self._mf = ModuleFinder()
+        self._mf.isvalid(name)
+        self._path = self._mf._paths[name]
         self._name = name
 
         # could look into ./rules or ./pipelines
         self._snakefile = None
         self._description = None
+
+    def ispipeline(self):
+        return self._mf.ispipeline(self._name)
 
     def _get_file(self, name):
         filename = self._path + os.sep + name
@@ -357,7 +365,7 @@ def _get_modules_snakefiles():
 modules = _get_modules_snakefiles()
 
 #: list of pipeline names found in the list of modules
-pipeline_names = [m for m in modules if "pipelines"+os.sep  in Module(m).path]
+pipeline_names = [m for m in modules if Module(m).ispipeline()]
 
 class SequanaConfig(object):
     """Reads YAML (or json) config file and ease access to its contents
