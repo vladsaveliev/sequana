@@ -356,6 +356,8 @@ def _get_modules_snakefiles():
 #: dictionary with module names as keys and fullpath to the Snakefile as values
 modules = _get_modules_snakefiles()
 
+#: list of pipeline names found in the list of modules
+pipeline_names = [m for m in modules if "pipelines"+os.sep  in Module(m).path]
 
 class SequanaConfig(object):
     """Reads YAML (or json) config file and ease access to its contents
