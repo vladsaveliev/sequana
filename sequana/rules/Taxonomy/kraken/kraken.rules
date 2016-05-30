@@ -2,39 +2,56 @@ import sequana
 from sequana import snaketools as sm
 from sequana.snaketools import SequanaConfig, FileFactory
 
-# This must be defined before the include 
+# This must be defined before the include
 configfile: "config.yaml"
 
 cfg = SequanaConfig(config)
 expected_output = []
 
 
+prefix = cfg.PROJECT + "/kraken/"
+__kraken__outdir = prefix
+
+
+
+__kraken__input = [cfg.DATASET[0]]
+if cfg.paired:
+    __kraken__input += [cfg.DATASET[1]]
+
+if "kraken_input" in config.keys():
+    if config["kraken_input"] == "cutadapt":
+        __kraken__input = __cutadapt__output[:]
+
+__kraken__output = __kraken__outdir + "kraken_to_krona.html"
+
+
+rule kraken_to_krona:
+    input: __kraken__outdir + "kraken.out.summary"
+    output: __kraken__output
+    run:
+        shell("ktImportText %s -o %s" % (input, output))
+
+
 rule kraken_translate:
     input:
-        "kraken/kraken.out"
+        __kraken__outdir + "kraken.out"
     output:
-        summary="kraken/kraken.out.summary",
+        summary=__kraken__outdir + "kraken.out.summary",
     run:
         from sequana.kraken import KrakenContaminant
         k = KrakenContaminant(input[0])
         k.kraken_to_krona(output_filename=output.summary)
 
-rule kraken_to_krona:
-    input: "kraken/kraken.out.summary"
-    output: "kraken/krona.html"
-    run:
-        shell("ktImportText %s -o %s" % (input, output))
-
 
 if cfg.paired:
     rule kraken_contaminant:
         input:
-            file1=cfg.DATASET[0],
-            file2=cfg.DATASET[1]
+            file1=__kraken__input[0],
+            file2=__kraken__input[1]
         output:
-            classified="kraken/kraken_classified.fasta",
-            unclassified="kraken/kraken_unclassified.fasta",
-            kraken="kraken/kraken.out"
+            classified=__kraken__outdir + "kraken_classified.fasta",
+            unclassified=__kraken__outdir + "kraken_unclassified.fasta",
+            kraken=__kraken__outdir + "kraken.out"
         params:
             database = config['kraken']['database']
         threads: 4
@@ -43,11 +60,11 @@ if cfg.paired:
 else:
     rule kraken_contaminant:
         input:
-            file1=cfg.DATASET[0]
+            file1=__kraken__input
         output:
-            classified="kraken/kraken_classified.fasta",
-            unclassified="kraken/kraken_unclassified.fasta",
-            kraken="kraken/kraken.out"
+            classified=__kraken__outdir + "/kraken_classified.fasta",
+            unclassified=__kraken__outdir + "/kraken_unclassified.fasta",
+            kraken=__kraken__outdir + "/kraken.out"
         params:
             database = config['kraken']['database']
         threads: 4
@@ -58,9 +75,6 @@ else:
                 " --paired")
 
 
-rule all:
-    input: "kraken/krona.html",
-        expand("kraken/kraken_{tag}.fasta", tag=["classified", "unclassified"])
 
 
 

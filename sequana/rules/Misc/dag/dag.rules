@@ -30,5 +30,6 @@ rule dag:
 
         # Now, create the SVG. Somehow if called dag.svg, this is a conflict
         shell("dot -Tsvg {output.dot2} -o {output.svg}")
+        shell("dot -Tpng {output.dot2} -o dag.png")
 
 
