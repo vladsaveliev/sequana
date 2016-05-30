@@ -57,14 +57,14 @@ def main(args=None):
     if options.version:
         import sequana
         print(purple("Sequana version %s" % sequana.version))
-        sys.exit(0)
+        return
 
 
     if options.show_pipelines:
         print(purple("Valid pipeline names:"))
         for this in sorted(valid_pipelines):
             print(" - " + this)
-        sys.exit(0)
+        return
 
 
     # In all other cases we must have either --init, --run or --info (mutually
@@ -73,13 +73,13 @@ def main(args=None):
 
     if options.init and options.info:
         print(red("ERROR: --init and --info options are mutually exclusive"))
-        sys.exit(0)
+        sys.exit(1)
     if options.init and options.run:
         print(red("ERROR: --init and --run options are mutually exclusive"))
-        sys.exit(0)
+        sys.exit(1)
     if options.run and options.info:
         print(red("ERROR: --run and --info options are mutually exclusive"))
-        sys.exit(0)
+        sys.exit(1)
 
 
     if options.init:
@@ -87,26 +87,26 @@ def main(args=None):
     elif options.run:
         raise NotImplementedError
     elif options.info: 
+        from sequana import Module
         module = Module(options.info)
         module.onweb()
-        sys.exit(0)
-
+        return
 
 
 def sequana_init(options):
 
-    from sequana import modules, Module, SequanaConfig
+    import sequana.snaketools as sm
+    from sequana import Module, SequanaConfig
+    #modules, Module
     from easydev.console import red, purple
-    from easydev import DevTools
-
-    devtools = DevTools()
 
     try:
         module = Module(options.init)
     except:
-        print("Invalid module name provided (%s). " % options.init)
-        print("Here are the valid modules from sequana: \n - %s" %
-"\n - ".join(sorted(modules.keys())))
+        print(red("Invalid module name provided (%s). " % options.init))
+        print("Valid pipeline names are:")
+        for this in sm.pipeline_names:
+            print(" - %s" % this)
         sys.exit(1)
 
     # the module exists, let us now copy the relevant files that is
@@ -123,13 +123,14 @@ def sequana_init(options):
     shutil.copy(module.config, "config.yaml")
     shutil.copy(module.readme, "README.rst")
 
-    # we also crate the directory to hold the raw data
-    devtools.mkdir("fastq_raw")
 
-    print("""You can now run snakemake yourself or type::
+    print("You can now run snakemake yourself or type::")
+    print(purple("""
 
     snakemake -s Snakefile --stats stats.txt -p -j 4
 
+    """))
+    print("""
     # -j 4 means you will use 4 cores
     # -p prints the commands used
     # --stats stats.txt must be used since stats.txt is expected to be found.
