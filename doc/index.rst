@@ -50,12 +50,19 @@ Examples
 Given a set of FASTQ files in a local directory, you can run a pipeline as
 follows (given its name)::
 
-    sequana --init fix_removal
-    # populate the fastq_raw with your FASTQ files (R1 and R2)
-    # execute the script sequana.sh
-    sh sequana.sh
-    # open the report in ./report
-    open report/index.html
+    sequana --init quality
+    # EDIT the file config.yaml to provide the fastq files
+    # and the project name (e.g. TEST)
+    
+Run the pipelines and wait for completion. Check the output ::
+    
+    # Note that in version 0.1.4, you must rename the Snakefile into **Snakefile**
+    
+    snakemake -s Snakefile --stats stats.txt -p -j 4
+    
+And finally, open the report in ./TEST::
+
+    open TEST/report_quality.html
 
 
 
