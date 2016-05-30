@@ -16,9 +16,12 @@ class TestPipeline(object):
         """This method is run once for each class _after_ all tests are run"""
         import os
         # local nosetests execution
-        os.remove('README')
-        os.remove('quality.rules')
-        os.remove('config.yaml')
+        try:os.remove('README')
+        except:pass
+        try:os.remove('quality.rules')
+        except:pass
+        try:os.remove('config.yaml')
+        except:pass
 
 
     def setUp(self):

@@ -13,9 +13,14 @@ Sequana documentation
 .. image::  https://coveralls.io/repos/github/sequana/sequana/badge.svg?branch=master
    :target: https://coveralls.io/github/sequana/sequana?branch=master 
 
-.. image:: http://readthedocs.io/projects/sequana/badge/?version=latest
-    :target: http://sequana.readthedocs.io/en/latest/?badge=latest
+.. image:: http://readthedocs.org/projects/sequana/badge/?version=master
+    :target: http://sequana.readthedocs.org/en/latest/?badge=master
     :alt: Documentation Status
+
+
+:Python version: Python 2.7 and 3.5
+:Issues and bug reports: `On github <https://github.com/sequana/sequana/issues>`_
+
 
 What is Sequana ?
 =====================
