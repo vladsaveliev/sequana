@@ -10,8 +10,8 @@ SEQUANA
 .. image:: https://coveralls.io/repos/github/sequana/sequana/badge.svg?branch=master
     :target: https://coveralls.io/github/sequana/sequana?branch=master 
 
-.. image:: http://readthedocs.org/projects/sequana/badge/?version=latest
-    :target: http://sequana.readthedocs.org/en/latest/?badge=latest
+.. image:: http://readthedocs.org/projects/sequana/badge/?version=master
+    :target: http://sequana.readthedocs.org/en/latest/?badge=master
     :alt: Documentation Status
 
 :Python version: Python 2.7 and 3.5
@@ -23,37 +23,40 @@ SEQUANA
 
 
 
-**Sequana** includes a set of pipelines related to NGS (new generation sequencing). 
+**Sequana** includes a set of pipelines related to NGS (new generation sequencing) including quality control, variant calling, coverage, taxonomy. 
 
-It will provide a set of modular pipelines and reports associated to them.
-
+**Please see the** `documentation <http://sequana.readthedocs.org>`_ **for usage and examples**
 
 Installation
 =================
 
-If you already already install dependencies, this should install the latest release::
+The installation process is explained in the documentation but here is a quick
+explanation. If you have already installed **Sequana** dependencies, this command
+should install the latest release posted on Pypi website::
 
     pip install sequana --upgrade
 
-Some dependencies required include matplotlib, pandas, cutadapt, pysam. If you
-are new or starting with Python, we strongly recommand you to use anaconda. We use the **bioconda** channel, which can be
-added to your environment as follows::
+There are a few dependencies that needs to be compiled (time consumming and
+requires proper C compilator). For instance, we use Matplotlib, Pandas, cutadapt but some pipelines also require more specific tools (e.g. BWA for read alignment). We therefore strongly recommend to use Anaconda and in particular the **bioconda** channel, which can be
+added to your environment as follows (once Anaconda is installed)::
 
     conda config --add channels r
     conda config --add channels bioconda
-    
-Then, install those dependencies::
 
-    conda install numpy matplotlib pandas cutadapt pysam bwa bcftools pyvcf samtools snakemake biokit bioservices bedtools picard freebayes fastqc
+Here is a non exhaustive list of dependencies that should be enough to run the
+current pipelines (version 0.1.4). We split the command on several lines to
+emphasize the standard Anaconda packages and te bioconda ones but you
+can use only one::
 
-although the code is Python2.7 and Python3.5 compatible, a dependency
-(Snakemake) only supports Python3.5 for the moment so we will support only Python3.5 version. If you wish to use functionalities of Sequana that do not make use of Snakemake, you may still used it with Python2.7.
+    conda install numpy matplotlib pandas cutadapt pysam pyvcf snakemake biokit bioservices
+    conda install bwa bcftools samtools bedtools picard freebayes fastqc
 
-Developers can also install other tols::
 
-    conda install nose coverage
+.. note:: Sequana is compatible with Python 2.7 and 3.5 but pipelines are
+    built with Snakemake, which is only 3.5 compatible. So officially, Sequana is a
+    Python3.5 compatible package only.
 
-**Please see the** `documentation <http://sequana.readthedocs.org>`_ **for usage and examples**
+
 
 
 
