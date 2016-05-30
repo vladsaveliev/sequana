@@ -14,6 +14,12 @@ class TestPipeline(object):
     @classmethod
     def teardown_class(klass):
         """This method is run once for each class _after_ all tests are run"""
+        import os
+        # local nosetests execution
+        os.remove('README')
+        os.remove('quality.rules')
+        os.remove('config.yaml')
+
 
     def setUp(self):
         """This method is run once before _each_ test method is executed"""
@@ -27,13 +33,15 @@ class TestPipeline(object):
     def test_init(self):
         with mock.patch('builtins.input', return_value="y"):
             main.main([self.prog, '--init', "quality"])
-        
+
         with mock.patch('builtins.input', return_value="y"):
             try:
                 main.main([self.prog, '--init', "qualitydummy"])
                 assert False
             except:
                 assert True
+
+        main.main([self.prog, '--init', "quality", "--force-init"])
 
     def test_run(self):
         pass

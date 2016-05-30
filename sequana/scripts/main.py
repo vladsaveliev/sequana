@@ -14,9 +14,9 @@ class Options(argparse.ArgumentParser):
         usage += """Examples:
 
             sequana --init <sequana pipeline>
-            sequana --run +snakemake options
-            sequana --report
-            sequana --show-pipleines
+            sequana --run <sequana pipeline>.rules 
+            sequana --show-pipelines
+            sequana --version
 
         """
         super(Options, self).__init__(usage=usage, prog=prog)
@@ -32,6 +32,8 @@ class Options(argparse.ArgumentParser):
         self.add_argument("--version", dest='version',
                 action="store_true", help="print version")
         self.add_argument("--show-pipelines", dest='show_pipelines',
+                action="store_true", help="print available pipelines")
+        self.add_argument("--force-init", dest='force_init',
                 action="store_true", help="print available pipelines")
 
 
@@ -69,8 +71,6 @@ def main(args=None):
 
     # In all other cases we must have either --init, --run or --info (mutually
     # exclusive
-    print(options)
-
     if options.init and options.info:
         print(red("ERROR: --init and --info options are mutually exclusive"))
         sys.exit(1)
@@ -111,26 +111,29 @@ def sequana_init(options):
 
     # the module exists, let us now copy the relevant files that is
     # the Snakefile, the config and readme:
-    print("Will override the following files: config.yaml, README.rst,"
-          " Snakefile")
-    choice = input(red("Do you want to proceed ? y/n"))
-    if choice == "y":
-        pass
+    print("Will override the following files: config.yaml,"
+          " %s.rules if they  exist" % options.init)
+
+    if options.force_init is True:
+        choice = "y"
     else:
-        sys.exit(0)
+        choice = input(red("Do you want to proceed ? y/n"))
+        if choice == "y":
+            pass
+        else:
+            sys.exit(0)
 
-    shutil.copy(module.snakefile, "Snakefile")
+    shutil.copy(module.snakefile, options.init + ".rules")
     shutil.copy(module.config, "config.yaml")
-    shutil.copy(module.readme, "README.rst")
 
 
-    print("You can now run snakemake yourself or type::")
-    print(purple("""
+    txt = "You can now run snakemake yourself or type::"
+    txt += purple("""
 
-    snakemake -s Snakefile --stats stats.txt -p -j 4
+    snakemake -s %s.rules --stats stats.txt -p -j 4
 
-    """))
-    print("""
+    """ % options.init)
+    txt += """
     # -j 4 means you will use 4 cores
     # -p prints the commands used
     # --stats stats.txt must be used since stats.txt is expected to be found.
@@ -141,17 +144,22 @@ def sequana_init(options):
 
 
     EDIT THE config.yaml FILE TO SPECIFIED THE INPUT FILE LOCATION
-    """)
+    """
+    print(txt)
+
+    with open("README", "w") as fh:
+        fh.write(txt.replace("\x1b[35m","").replace("\x1b[39;49;00m", ""))
+    
 
 
     # figure out from the config file if any files are required
     try:
         # stop here if the file does not exists
         configfile = os.path.split(module.config)[1]
-        config = SequanaConfig(configfile)
-        if 'requirements' in config.parameters.keys():
+        cfg = SequanaConfig(configfile)
+        if 'requirements' in cfg.config.keys():
             from sequana import sequana_data
-            for filename in config.parameters.requirements:
+            for filename in cfg.config.requirements:
                 try:
                     print('Getting %s ' % filename)
                     shutil.copy(sequana_data(filename, "data"), ".")
