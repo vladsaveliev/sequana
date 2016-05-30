@@ -8,7 +8,7 @@ Here is an overview (see details here below)
     sequana.snaketools.DOTParser
     sequana.snaketools.ExpandedSnakeFile
     sequana.snaketools.Module
-    sequana.snaketools.ModuleNames
+    sequana.snaketools.ModuleFinder
     sequana.snaketools.SnakeMakeProfile
     sequana.snaketools.SnakeMakeStats
     sequana.snaketools.SequanaConfig
@@ -64,7 +64,7 @@ class ExpandedSnakeFile(object):
     This class will recreate the Snakefile without this compactness so that one
     can see the entire structure. The expansion is performed by :meth:`expand`.
 
-    .. warning:: experimental. docstrings should be removed. lines starting 
+    .. warning:: experimental. docstrings should be removed. lines starting
         with **include** should also be removed.
 
     """
@@ -105,7 +105,7 @@ class SnakeMakeProfile(object):
 
 
 class SnakeMakeStats(object):
-    """Interpret the snakemake stats file 
+    """Interpret the snakemake stats file
 
     Run the Snakemake with this option::
 
@@ -156,35 +156,31 @@ class SnakeMakeStats(object):
         pylab.savefig(self.project + os.sep + filename)
 
 
-class ModuleNames(object):
+class ModuleFinder(object):
     """Data structure to hold the :class:`Module` names"""
-    def __init__(self, extra_paths=[]):
+    def __init__(self):
         """.. rubric:: constructor
 
-        :param list extra_paths: 
-
+        :param list extra_paths:
 
         .. doctest::
 
-            >>> from sequana import ModuleNames
-            >>> modnames = ModuleNames()
+            >>> from sequana import ModuleFinder
+            >>> modnames = ModuleFinder()
             >>> modnames.isvalid('dag')
             True
             >>> modnames.isvalid('dummy')
             False
 
         """
-        self._module_paths = ['rules', 'pipelines']
-        self._module_paths += extra_paths
-        self._extra_paths = extra_paths
 
-        # names for eacj directory
-        self._names = {}
+        # names for each directory
         self._paths = {}
+        self._type = {}
 
-        # scan the paths
-        for path in self._module_paths:
-            self._add_names(path)
+        # scan the official paths
+        self._add_names("rules")
+        self._add_names("pipelines")
 
     def _add_names(self, path):
         sepjoin = os.sep.join
@@ -192,18 +188,27 @@ class ModuleNames(object):
         # just an alias
         isdir_alias = lambda x: isdir(sepjoin([fullpath, x]))
 
-        # Finds all modules (directories)
-        toignore = ['__pycache__']
+        fullpaths = self._iglob(fullpath)
+        for this in fullpaths:
+            whatever, module_name, filename = this.rsplit(os.sep, 2)
+            if module_name in self._paths.keys():
+                raise ValueError("Found duplicated name %s. Overwrites previous rule " % module_name)
+            self._paths[module_name] = whatever + os.sep + module_name
+            self._type[module_name] = path[:-1]
 
-        names = [this for this in os.listdir(fullpath) if isdir_alias(this)
-                and this not in toignore]
-        for name in names:
-            # FIXME a hack that will be fixed once all rules end in .rules
-            if "Taxonomy" in name:
-                continue
-            if name in self._paths.keys():
-                raise ValueError("Found duplicated name %s " % name)
-            self._paths[name] = fullpath + os.sep + name
+    def _iglob(self, path, extension="rules"):
+        try:
+            from glob import iglob
+            matches = list(iglob("%s/**/*.%s" % (path, extension), recursive=True))
+        except:
+            # iglob use recursivity with ** only in py3.5 (snakemake)
+            import fnmatch
+            import os
+            matches = []
+            for root, dirnames, filenames in os.walk(path):
+                for filename in fnmatch.filter(filenames, '*.' + extension):
+                    matches.append(os.path.join(root, filename))
+        return matches
 
     def _get_names(self):
         return sorted(list(self._paths.keys()))
@@ -215,24 +220,28 @@ class ModuleNames(object):
             return False
         return True
 
+    def ispipeline(self, name):
+        return self._type[name] == "pipeline"
+
 
 class Module(object):
     """Data structure that holds metadata about a **Module**
 
-    A **Module** in sequana's parlance is a directory that contains 
+    A **Module** in sequana's parlance is a directory that contains
     the following files:
 
         - A **snakemake** file named after the directory with the extension
           **.rules**
-        - Possibly a **README.rst** file in restructured text format 
-        - A config file in YAML format. Although json format is possible, 
+        - Possibly a **README.rst** file in restructured text format
+        - A config file in YAML format. Although json format is possible,
           we use YAML throughout **sequana** for consistency.
 
     The name of the module is the name of the directory where the files are
     stored. The **Modules** are stored in sequana/rules and sequana/pipelines
-    directories.
+    directories. Those main directories may have sub-directories main names
+    should not but duplicated
 
-    The Snakefile may be named **Snakefile** or **<module_name>.rules**.
+    The Snakefile should be named **<module_name>.rules**.
 
     Before explaining the different type of **Modules**, let us remind
     that a **rule** in **Snakemake** terminology looks like::
@@ -242,29 +251,32 @@ class Module(object):
             :output: file2
             :shell: "cp file1 file2"
 
-    However, in **sequana**, we speak of **Rules** with a different meaning. 
-    Indeed, **Modules** are sub-divided into **Rules** and **Modules** defined
-    as follows:
+    However, in **sequana**, the module may contain several rules.
+
+    Here is the terminolgy. Within a module directory, :
 
         - if the **Snakefile** includes other **Snakefile** then
-          we consider that that Module is a **Pipeline**.
+          we consider that that Module is a **Pipeline** module.
         - if the **Snakefile** does not include other **Snakefile** and
           all internal snakemake rules start with the same name, we consider
-          that that module is a **Rule** module. 
+          that that module is a **Rule** module.
 
-    This data structure ease the retrieval of metadata for the **Modules**
-    stored in **sequana**. 
+    This data structure ease the retrieval of metadata and Snakefiles stored
+    within Sequana.
 
     """
     def __init__(self, name):
-        name_validator = ModuleNames(extra_paths=["rules/Taxonomy"])
-        name_validator.isvalid(name)
-        self._path = name_validator._paths[name]
+        self._mf = ModuleFinder()
+        self._mf.isvalid(name)
+        self._path = self._mf._paths[name]
         self._name = name
 
         # could look into ./rules or ./pipelines
         self._snakefile = None
         self._description = None
+
+    def ispipeline(self):
+        return self._mf.ispipeline(self._name)
 
     def _get_file(self, name):
         filename = self._path + os.sep + name
@@ -284,7 +296,7 @@ class Module(object):
         if filename is None:
             filename = self._get_file("config.yaml.optional")
         return filename
-    config = property(_get_config, 
+    config = property(_get_config,
         doc="full path to the config file of the module")
 
     def _get_readme(self):
@@ -319,8 +331,8 @@ class Module(object):
         except:
                 self._description = "no description"
         return self._description
-    description = property(_get_description, 
-        doc="""Content of the README file associated with the module. 
+    description = property(_get_description,
+        doc="""Content of the README file associated with the module.
 
 ::
 
@@ -344,14 +356,16 @@ class Module(object):
 
 def _get_modules_snakefiles():
     modules = {}
-    for name in ModuleNames().names:
+    for name in ModuleFinder().names:
         if Module(name).snakefile:
             modules[name] = Module(name).snakefile
     return modules
 
-#: dictionary with module names as keys and fullpath to the Snakefile as values 
+#: dictionary with module names as keys and fullpath to the Snakefile as values
 modules = _get_modules_snakefiles()
 
+#: list of pipeline names found in the list of modules
+pipeline_names = [m for m in modules if Module(m).ispipeline()]
 
 class SequanaConfig(object):
     """Reads YAML (or json) config file and ease access to its contents
@@ -370,7 +384,7 @@ class SequanaConfig(object):
             - file1: FILE1
             - file2: FILE2
 
-    The second file may be optional. 
+    The second file may be optional.
 
     :meth:`get_dataset_as_list`
 
@@ -426,7 +440,7 @@ class SequanaConfig(object):
                 if value in ['False', 'false', 'FALSE']:
                     subdic[key] = False
         return subdic
-        
+
     def _set_none_to_empty_string(self, subdic):
         # recursively set parameter (None) to ""
         for key,value in subdic.items():
@@ -454,15 +468,17 @@ class SequanaConfig(object):
     def check(self, requirements_dict):
         """a dcitionary in the form
 
-        rule_name:["param1", ":param2", ":kwargs:N"]
+        ::
+
+            rule_name:["param1", ":param2", ":kwargs:N"]
 
         in a config::
 
-        param1: 1
-        param2:
-            - subparam1
-            - subparam2:
-                - subparam3: 10
+            param1: 1
+            param2:
+                - subparam1
+                - subparam2:
+                    - subparam3: 10
 
 
         """
@@ -476,7 +492,7 @@ class SequanaConfig(object):
                 raise KeyError("Expected section %s not found" % k)
             else:
                 for item in vlist:
-                    # with : , this means a sub field field 
+                    # with : , this means a sub field field
                     if item.startswith(":") and item.count(":")==1:
                         assert item[1:] in self.config[k].keys()
                     elif item.count(":")>1:
@@ -490,7 +506,7 @@ class SequanaConfig(object):
 
 def sequana_check_config(config, globs):
     s = SequanaConfig.from_dict(config)
-    dic = dict([ (k,v) for k,v in globs.items() 
+    dic = dict([ (k,v) for k,v in globs.items()
                     if k.startswith("__sequana__")])
     s.check(dic)
 
@@ -551,6 +567,7 @@ class DOTParser(object):
                         if label not in indices_to_drop:
                             fout.write(line + "\n")
                     else:
+                        line = line.replace("dashed", "")
                         fout.write(line + "\n")
                 else:
                     separator = "color ="
@@ -566,13 +583,15 @@ class DOTParser(object):
                         index = lhs.split("[")[0]
                         indices_to_drop.append(index.strip())
                     elif name in ['all', "bwa_bam_to_fastq"] or "dataset:" in name:
-                        # redirect to the main page so nothing to do 
+                        # redirect to the main page so nothing to do
                         newline = lhs + separator + rhs
+                        newline = newline.replace("dashed", "")
                         fout.write(newline + "\n")
                     else:
                         # redirect to another report
                         newline = lhs + ' URL="%s.html" target="_parent", ' % name
                         newline += separator + rhs
+                        newline = newline.replace("dashed", "")
                         fout.write(newline + "\n")
 
 
@@ -638,7 +657,7 @@ class FileFactory(object):
 
     def _get_filenames(self):
         return [this.split(".")[0] for this in self.basenames]
-    filenames = property(_get_filenames) 
+    filenames = property(_get_filenames)
 
     def _pathnames(self):
         pathnames = [os.path.split(filename)[0] for filename in self._glob]

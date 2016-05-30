@@ -59,7 +59,7 @@ setup(
     packages = packages,
 
     install_requires = ["easydev>=0.9.21", "reports>=0.1.8", "matplotlib",
-        "pandas", "cutadapt>=1.9.1", "pysam", "pyVCF"],
+        "pandas", "cutadapt>=1.9.1", "pysam", "pyVCF", "sphinx-gallery", "mock"],
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
@@ -83,9 +83,9 @@ setup(
     zip_safe=False,
     entry_points = {
         'console_scripts':[
-           'fastq_head=scripts.fastq_head:main',
-           'fastq_count=scripts.fastq_count:main',
-           'sequana=scripts.sequana:main'
+           'fastq_head=sequana.scripts.fastq_head:main',
+           'fastq_count=sequana.scripts.fastq_count:main',
+           'sequana=sequana.scripts.main:main'
         ]
     },
 

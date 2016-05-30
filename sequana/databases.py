@@ -5,7 +5,6 @@
 http://www.ebi.ac.uk/genomes/archaea.html
 
 """
-
 import os
 import glob
 import math
@@ -99,6 +98,17 @@ class ENADownload(object):
         for key, values in self._metadata.items():
             execute("wget http://www.ebi.ac.uk/genomes/%s" % values[0])
 
+    def ena_id_to_gi_number(self, identifiers):
+        # Now, let us convert the ENA accession to NCBI GI number once for all.
+        # We can fetch only at max 200 identifiers:
+        print("Fetching %s identifiers from NCBI" % len(identifiers))
+        Nbaskets = math.ceil(len(identifiers)/200.)
+        results = {}
+        from easydev import split_into_chunks
+        for chunk in split_into_chunks(identifiers, Nbaskets):
+            result = self.eutils.accession_to_info(",".join(chunk))
+            results.update(result)
+        return results
 
     def download_fasta(self, filelist, output_dir=None):
         """
@@ -126,17 +136,7 @@ class ENADownload(object):
             identifiers = [filelist]
         self._identifiers = identifiers
 
-        # Now, let us convert the ENA accession to NCBI GI number once for all.
-        # We can fetch only at max 200 identifiers:
-        print("Fetching %s identifiers from NCBI" % len(identifiers))
-        Nbaskets = math.ceil(len(identifiers)/200.)
-        results = {}
-        from easydev import split_into_chunks
-        for chunk in split_into_chunks(identifiers, Nbaskets):
-            result = self.eutils.accession_to_info(",".join(chunk))
-            results.update(result)
-
-        self.results = results
+        self.results = self.ena_id_to_gi_number()
 
         # do not use caching things this could be huge data sets.
         ena = ENA()

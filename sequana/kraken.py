@@ -10,6 +10,21 @@ import sys
 import glob
 from easydev import execute
 
+"""
+
+
+
+
+
+
+kraken-build --shrink 100000 --db viruses_only --new-db test2 --shrink-block-offset 1 --kmer-len 15 --minimizer-len 8
+
+The taxonomy files is still very large. One could filter it.
+
+
+
+
+"""
 
 class Krona(collections.Counter):
     def __init__(self, filename):
