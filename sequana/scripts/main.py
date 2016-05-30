@@ -149,7 +149,6 @@ def sequana_init(options):
 
     with open("README", "w") as fh:
         fh.write(txt.replace("\x1b[35m","").replace("\x1b[39;49;00m", ""))
-    
 
 
     # figure out from the config file if any files are required
@@ -158,12 +157,13 @@ def sequana_init(options):
         configfile = os.path.split(module.config)[1]
         cfg = SequanaConfig(configfile)
         if 'requirements' in cfg.config.keys():
-            from sequana import sequana_data
-            for filename in cfg.config.requirements:
-                try:
-                    print('Getting %s ' % filename)
+            if "sequana" in cfg.config.requirements.keys():
+                from sequana import sequana_data
+                for filename in cfg.config.requirements.sequana:
+                    print('Copying %s from sequana' % filename)
                     shutil.copy(sequana_data(filename, "data"), ".")
-                except:
+            if "url" in cfg.config.requirements.keys():
+                for link in cfg.config.requirements.url:
                     print("This file %s will be needed" % filename)
 
     except Exception as err:

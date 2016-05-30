@@ -232,9 +232,10 @@ class Module(object):
 
         - A **snakemake** file named after the directory with the extension
           **.rules**
-        - Possibly a **README.rst** file in restructured text format
-        - A config file in YAML format. Although json format is possible,
-          we use YAML throughout **sequana** for consistency.
+        - A **README.rst** file in restructured text format
+        - An optional config file in YAML format named config.yaml. 
+          Although json format is possible, we use YAML throughout 
+          **sequana** for consistency.
 
     The name of the module is the name of the directory where the files are
     stored. The **Modules** are stored in sequana/rules and sequana/pipelines
@@ -294,7 +295,7 @@ class Module(object):
     def _get_config(self):
         filename = self._get_file("config.yaml")
         if filename is None:
-            filename = self._get_file("config.yaml.optional")
+            filename = self._get_file("../config.yaml")
         return filename
     config = property(_get_config,
         doc="full path to the config file of the module")
