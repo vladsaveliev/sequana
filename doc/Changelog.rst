@@ -6,6 +6,10 @@ Changelog
 0.1.4
 --------
 
+  - add gallery in the documentation
+  - remove old pipelines/ directory
+  - sequana standlone refactored (--init option added) 
+  - Pipeline quality_taxon added
   - Taxonomy rules included
   - Fix the stats image creation
   
