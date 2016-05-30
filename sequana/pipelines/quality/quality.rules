@@ -34,6 +34,9 @@ rule pipeline_quality:
         expected_output,
         fastqc_cutadapt="%s/fastqc_cutadapt/fastqc.done" % PROJECT,
         fastq_stats_cutadapt="%s/fastq_stats_cutadapt/fastq_stats.done" % PROJECT
+    output:
+        # Used by other workflow that uses this workflow
+        touch("%s/logs/pipeline_quality.done" % PROJECT)
     run:
         from sequana import report_cutadapt
         from sequana import report_fastqc
@@ -57,8 +60,6 @@ rule pipeline_quality:
             directory=cfg.PROJECT)
         s.jinja['main_link'] = 'report_phix_removal.html'
         s.create_report()
-
-
 
         shell('ln -sf report_phix_removal.html %s/pipeline_quality.html' % (cfg.PROJECT))
 
