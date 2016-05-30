@@ -1,0 +1,73 @@
+"""
+Author: Thomas Cokelaer
+Affiliation: Institut Pasteur
+Aim: Find Fix contaminant in the fastq
+Data: paired end or single reads
+Run: snakemake -s Snakefile
+Changelog:
+
+Config file needs to be edited to (1) set the input files and (2) the project
+name
+
+"""
+import sequana
+from sequana import snaketools as sm
+
+# This must be defined before the include 
+configfile: "config.yaml"
+
+from sequana.snaketools import SequanaConfig, FileFactory
+cfg = SequanaConfig(config)
+
+
+# Optional for testing
+if config['fastq_sampling']['enable'] is True:
+    include: sm.modules['fastq_sampling']
+    # TODO set FILE1 and FILE2 automatically
+    FILE1 = cfg.PROJECT + "_R1_001.fastq.gz"
+    FILE2 = cfg.PROJECT + "_R2_001.fastq.gz"
+    config['samples']['file1'] = "fastq_sampling/%s" % FILE1
+    config['samples']['file2'] = "fastq_sampling/%s" % FILE2
+
+
+# Generic include for bwa_mem on the phix reference
+exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
+include: bwa_mem_dynamic("phix", cfg.DATASET)
+
+# Some specific rules to be included for the phix removal pipeline
+include: sm.modules['bwa_bam_to_fastq']  # Save mapped and unmapped data in bwa_phix/
+include: sm.modules['report_phix_removal']# Report + DAG + CONDA 
+
+# Generic include:
+exec(open(sequana.modules["fastqc"], "r").read())
+exec(open(sequana.modules["fastq_stats"], "r").read())
+
+# Let us run fastqc on the following fastq :
+include: fastqc_dynamic("phix", __bwa_bam_to_fastq__output)
+include: fastqc_dynamic("samples", cfg.DATASET)
+
+# Let us run a fastq_stats run on the following fastq
+include: fastq_stats_dynamic("phix", __bwa_bam_to_fastq__output)
+include: fastq_stats_dynamic("samples", cfg.DATASET)
+
+# Those rules takes a couple of seconds so no need for a cluster
+localrules: dag, conda, all
+
+rule all:
+    input: "%s/report_phix_removal.html" % cfg.PROJECT, 
+    version: sequana.version
+
+
+onsuccess:
+    print("Workflow finished. Creating stats image")
+    from sequana.snaketools import SnakeMakeStats
+    SnakeMakeStats("stats.txt",cfg).plot_and_save()
+
+
+#onerror:
+#    print("An error occurred")
+#    shell("mail -s "an error occurred" youremail@provider.com < {log}")
+
+
+
+
