@@ -37,7 +37,7 @@ metainfo = {
 
 packages = find_packages()
 packages = [this for this in packages if this.startswith('test.') is False]
-packages = [this for this in packages if this not in ['test', 'pipelines']]
+packages = [this for this in packages if this not in ['test']]
 
 setup(
     name             = "sequana",
