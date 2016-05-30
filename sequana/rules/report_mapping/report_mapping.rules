@@ -12,7 +12,8 @@ rule report_mapping:
         outdir = cfg.PROJECT +"/report",
         size = config["report_mapping"]["window_size"],
         high = config["report_mapping"]["high_threshold"],
-        low = config["report_mapping"]["low_threshold"]
+        low = config["report_mapping"]["low_threshold"],
+        circular = config["report_mapping"]["circular"]
     run:
         from sequana import bedtools
         from sequana import report_mapping
@@ -29,7 +30,7 @@ rule report_mapping:
         s.create_report()
 
         mydata = bedtools.Genomecov(input.bed)
-        mydata.running_median(n=params.size, circular=True)
+        mydata.running_median(n=params.size, circular=params.circular)
         mydata.coverage_scaling()
         mydata.compute_zscore()
 

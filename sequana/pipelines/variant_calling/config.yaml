@@ -45,6 +45,7 @@ mark_duplicates:
 
 report_mapping:
     do: yes
+    circular: no
     window_size: 1001
     high_threshold: 3
     low_threshold: -3
