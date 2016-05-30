@@ -1,3 +1,8 @@
+
+
+
+# =========================================== Sections for the users
+
 # list of your input file
 samples:
     file1: ../Hm2_GTGAAA_L005_R1_001.fastq.gz
@@ -5,6 +10,27 @@ samples:
 
 
 project: Hm2_GTGAAA_L005
+
+
+# if files are required for a pipeline and are within sequana or should
+# be downloaded before the pipeline provide them in this section
+requirements:
+    sequana:
+        - Coliphage_phiX174.fa
+        - Coliphage_phiX174.fa
+    url:
+
+
+# =========================================== For testing only
+# If True, only a subset of the reads (N) are used
+
+fastq_sampling:
+    enable: False
+    N: 100000
+
+# =========================================== Sections related to external tools
+
+
 
 # GATK is absent in conda because it is not a free software
 # You must set the GATK bin path.
@@ -22,6 +48,11 @@ bwa_ref:
         read_groups: '@RG\\tID:1\\tSM:1\\tPL:illumina'
         # -t option (number thread)
         threads: 2 
+
+# snpEff parameter
+snpeff:
+    do: yes
+    reference:
 
 # Software parameters
 
@@ -54,9 +85,6 @@ vcf_filter:
 fastqc:
     options: "--nogroup"
 
-fastq_sampling:
-    enable: False
-    N: 100000
 
 bwa_phix:
     reference: Coliphage_phiX174.fa
@@ -82,5 +110,6 @@ adapter_removal:
     fwd: GATCGGAAGAGCACACGTCTGAACTCCAGTCACGTGAAAATCTCGTATG
     rev: AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCC
 
-
+kraken:
+    database: sequana_db_minimalist
 
