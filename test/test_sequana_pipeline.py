@@ -31,15 +31,28 @@ class TestPipeline(object):
         main.main([self.prog, '--version'])
 
     def test_init(self):
-        with mock.patch('builtins.input', return_value="y"):
-            main.main([self.prog, '--init', "quality"])
+        try:
+            # py3
+            with mock.patch('builtins.input', return_value="y"):
+                main.main([self.prog, '--init', "quality"])
 
-        with mock.patch('builtins.input', return_value="y"):
-            try:
-                main.main([self.prog, '--init', "qualitydummy"])
-                assert False
-            except:
-                assert True
+            with mock.patch('builtins.input', return_value="y"):
+                try:
+                    main.main([self.prog, '--init', "qualitydummy"])
+                    assert False
+                except:
+                    assert True
+        except:
+            # py2
+            with mock.patch('__builtin__.input', return_value="y"):
+                main.main([self.prog, '--init', "quality"])
+
+            with mock.patch('__builtin__.input', return_value="y"):
+                try:
+                    main.main([self.prog, '--init', "qualitydummy"])
+                    assert False
+                except:
+                    assert True
 
         main.main([self.prog, '--init', "quality", "--force-init"])
 
