@@ -7,6 +7,7 @@ from sequana.report_main import BaseReport
 from sequana.report_submapping import SubMappingReport
 
 # Class ------------------------------------------------------------------------
+
 class MappingReport(BaseReport):
     """
     """
@@ -24,7 +25,7 @@ class MappingReport(BaseReport):
         self.mapping = data
 
     def _generate_submapping(self, low_df, high_df):
-        i=0
+        i = 0
         while True:
             i += 1
             if len(self.mapping) / i < 500000:
