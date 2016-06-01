@@ -37,7 +37,7 @@ metainfo = {
 
 packages = find_packages()
 packages = [this for this in packages if this.startswith('test.') is False]
-packages = [this for this in packages if this not in ['test', 'pipelines']]
+packages = [this for this in packages if this not in ['test']]
 
 setup(
     name             = "sequana",
@@ -59,7 +59,8 @@ setup(
     packages = packages,
 
     install_requires = ["easydev>=0.9.21", "reports>=0.1.8", "matplotlib",
-        "pandas", "cutadapt>=1.9.1", "pysam", "pyVCF"],
+        "pandas", "cutadapt>=1.9.1", "pysam", "pyVCF", "sphinx-gallery", 
+        "mock", "numpydoc"],
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
@@ -69,8 +70,9 @@ setup(
     exclude_package_data = {"": ["__pycache__"]},
     package_data = {
         '': ['Snakefile*', '*html', 'README.rst', 'config.yaml*', '*.css', "*.js", 
-                "snpEff.config*", "*.fa"],
-        'sequana.rules' : ['*/*.rules'],
+                "snpEff.config*", "*.fa", "*.rules"],
+        'sequana.rules' : ['*/*.rules', "*/*/*.rules"],
+        'sequana.pipelines' : ['*/*.rules', "*/*/*.rules"],
         'sequana.resources.data' : ['*'],
         'sequana.resources.testing' : ['*'],
         'sequana.resources.js/galleria/themes' : ['*'],
@@ -83,9 +85,9 @@ setup(
     zip_safe=False,
     entry_points = {
         'console_scripts':[
-           'fastq_head=scripts.fastq_head:main',
-           'fastq_count=scripts.fastq_count:main',
-           'sequana=scripts.sequana:main'
+           'fastq_head=sequana.scripts.fastq_head:main',
+           'fastq_count=sequana.scripts.fastq_count:main',
+           'sequana=sequana.scripts.main:main'
         ]
     },
 

@@ -1,0 +1,116 @@
+
+
+
+# =========================================== Sections for the users
+
+# list of your input file
+samples:
+    file1: ../Hm2_GTGAAA_L005_R1_001.fastq.gz
+    file2: ../Hm2_GTGAAA_L005_R2_001.fastq.gz
+
+
+project: Hm2_GTGAAA_L005
+
+
+# if files are required for a pipeline and are within sequana or should
+# be downloaded before the pipeline provide them in this section
+# Note that sequana and url fields are followed by itemised files or links using
+# the front dashes
+requirements:
+    sequana:
+        - Coliphage_phiX174.fa
+    url:
+
+
+# =========================================== For testing only
+# If True, only a subset of the reads (N) are used
+
+fastq_sampling:
+    enable: False
+    N: 100000
+
+# =========================================== Sections related to external tools
+
+
+
+# GATK is absent in conda because it is not a free software
+# You must set the GATK bin path.
+# gatk_bin: "java -jar /path/to/GenomeAnalysisTK.jar"
+gatk_bin: GenomeAnalysisTK
+
+# Bwa parameter for reference mapping
+bwa_ref:
+    reference: pKM2-eGFP.fa
+    index:
+        options: '-a is'
+    mem:
+        options: '-T 30'
+        # -R option for GATK
+        read_groups: '@RG\\tID:1\\tSM:1\\tPL:illumina'
+        # -t option (number thread)
+        threads: 2 
+
+# snpEff parameter
+snpeff:
+    do: yes
+    reference:
+
+# Software parameters
+
+bedtools: 
+    options: '-d'
+
+freebayes:
+    options: '--ploidy 1'
+
+indel_realigner:
+    do: yes
+    options: ''
+
+mark_duplicates:
+    do: yes
+    options: ''
+
+report_mapping:
+    do: yes
+    window_size: 1001
+    high_threshold: 3
+    low_threshold: -3
+
+vcf_filter:
+    QUAL: 100
+    FREQ: 0.7
+    INFO:
+        DP: '>= 10'
+
+fastqc:
+    options: "--nogroup"
+
+
+bwa_phix:
+    reference: Coliphage_phiX174.fa
+    index:
+        options: '-a is'
+    mem:
+        options: '-T 30'
+        read_groups: '@RG\\tID:1\\tSM:1\\tPL:illumina'
+        threads: 2 
+
+cutadapt:
+    fwd: GATCGGAAGAGCACACGTCTGAACTCCAGTCACGTGAAAATCTCGTATG
+    rev: AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCC
+    m: 20
+    quality: 30,30
+    kwargs: "--progress"
+
+alien_trimmer:
+    fwd: adapters_48_PCR-free_FWD.fa
+    rev: adapters_48_PCR-free_REV.fa
+
+adapter_removal:
+    fwd: GATCGGAAGAGCACACGTCTGAACTCCAGTCACGTGAAAATCTCGTATG
+    rev: AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCC
+
+kraken:
+    database: sequana_db_minimalist
+

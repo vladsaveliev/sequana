@@ -28,3 +28,6 @@ Requirements
 - GenomeAnalysisTK
 - Picard-tools
 - Samtools
+- snpEff
+
+.. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/variant_calling/variant_calling_dag.png

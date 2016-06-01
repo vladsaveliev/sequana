@@ -8,7 +8,7 @@ except:
 
 from .snaketools import modules
 from .snaketools import SequanaConfig
-from .snaketools import Module, ModuleNames
+from .snaketools import Module, ModuleFinder
 
 from .phred import Quality
 
@@ -21,6 +21,7 @@ from .fasta import FastA
 
 from .vcf_filter import VCF
 
+from . import scripts
 
 
 def sequana_data(filename, where=None):

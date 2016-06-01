@@ -1,5 +1,6 @@
-include pipelines/*/*
+include examples/*
 recursive-exclude * __pycache__
 recursive-exclude * *pyc
+recursive-include * *rules
 
 

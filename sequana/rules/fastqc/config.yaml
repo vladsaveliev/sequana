@@ -1,7 +1,0 @@
-fastqc:
-    directories: ["fastqc_raw"]
-    extension:  ["*.fastq.gz", "*.fastq"]
-    kargs: "--nogroup"
-
-
-
