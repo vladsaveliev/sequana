@@ -13,6 +13,7 @@ from .snaketools import Module, ModuleFinder
 from .phred import Quality
 
 from .bamtools import BAM, SAMFlags
+from .bedtools import Genomecov
 
 from .report_bam import BAMReport
 

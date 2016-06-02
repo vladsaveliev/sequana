@@ -14,6 +14,12 @@ BAMTOOLs related
     :members:
     :undoc-members:
 
+BEDTOOLs related (coverage)
+---------------------------
+.. automodule:: sequana.bedtools
+    :members:
+    :undoc-members:
+
 FASTQ module
 ---------------
 .. automodule:: sequana.fastq
