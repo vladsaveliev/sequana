@@ -4,6 +4,7 @@
 .. autosummary:: 
 
     RunningMedian
+    RunningMedianOld
 
 
 """
@@ -15,7 +16,10 @@ from random import random
 from math import log, ceil
 from collections import deque
 from itertools import islice
+from bisect import bisect_left, insort
 
+
+import numpy as np
 
 class Node(object):
     __slots__ = 'value', 'next', 'width'
@@ -109,7 +113,7 @@ class IndexableSkiplist:
             node = node.next[0]
 
 
-class RunningMedian:
+class RunningMedianOld:
     'Fast running median with O(lg n) updates where n is the window size'
 
     def __init__(self, n, iterable):
@@ -130,3 +134,34 @@ class RunningMedian:
             queue.append(newelem)
             skiplist.insert(newelem)
             yield skiplist[midpoint]
+
+
+class RunningMedian:
+    """
+
+
+    """
+    def __init__(self, iterable, n, container=list):
+        self.container = container
+        self.W = n
+        self.data = iterable
+
+    def __call__(self):
+        return self.run()
+
+    def run(self, width=None, listclass=list):
+        if width is None:
+            width = self.W
+
+        l = listclass(self.data[0].repeat(width))
+        #l.sort()  # not needed because all values are the same here
+        mididx = (width - 1) // 2
+        result = np.empty_like(self.data)
+        for idx, new_elem in enumerate(self.data):
+            old_elem = self.data[max(0, idx - width)]
+            del l[bisect_left(l, old_elem)]
+            insort(l, new_elem)
+            result[idx] = l[mididx]
+        return result
+
+
