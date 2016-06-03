@@ -1,167 +1,97 @@
-"""Data analysis tool 
+"""Data analysis tool
 
 
-.. autosummary:: 
+.. autosummary::
 
     RunningMedian
-    RunningMedianOld
 
 
 """
-# Code from ActiveState Code:
-# http://code.activestate.com/recipes/576930-efficient-running-median-using-an-indexable-skipli/
-# Adapted for python 3
-
-from random import random
-from math import log, ceil
-from collections import deque
-from itertools import islice
 from bisect import bisect_left, insort
-
-
 import numpy as np
-
-class Node(object):
-    __slots__ = 'value', 'next', 'width'
-    def __init__(self, value, next, width):
-        self.value, self.next, self.width = value, next, width
-
-
-class End(object):
-    'Sentinel object that always compares greater than another object'
-    def __le__(self, other):
-        return False
-
-    def __lt__(self, other):
-        return False
-
-NIL = Node(End(), [], [])               # Singleton terminator node
-
-
-class IndexableSkiplist:
-    'Sorted collection supporting O(lg n) insertion, removal, and lookup by rank.'
-
-    def __init__(self, expected_size=100):
-        self.size = 0
-        self.maxlevels = int(1 + log(expected_size, 2))
-        self.head = Node('HEAD', [NIL]*self.maxlevels, [1]*self.maxlevels)
-
-    def __len__(self):
-        return self.size
-
-    def __getitem__(self, i):
-        node = self.head
-        i += 1
-        for level in reversed(range(self.maxlevels)):
-            while node.width[level] <= i:
-                i -= node.width[level]
-                node = node.next[level]
-        return node.value
-
-    def insert(self, value):
-        # find first node on each level where node.next[levels].value > value
-        chain = [None] * self.maxlevels
-        steps_at_level = [0] * self.maxlevels
-        node = self.head
-        for level in reversed(range(self.maxlevels)):
-            while node.next[level].value <= value:
-                steps_at_level[level] += node.width[level]
-                node = node.next[level]
-            chain[level] = node
-
-        # insert a link to the newnode at each level
-        d = min(self.maxlevels, 1 - int(log(random(), 2.0)))
-        newnode = Node(value, [None]*d, [None]*d)
-        steps = 0
-        for level in range(d):
-            prevnode = chain[level]
-            newnode.next[level] = prevnode.next[level]
-            prevnode.next[level] = newnode
-            newnode.width[level] = prevnode.width[level] - steps
-            prevnode.width[level] = steps + 1
-            steps += steps_at_level[level]
-        for level in range(d, self.maxlevels):
-            chain[level].width[level] += 1
-        self.size += 1
-
-    def remove(self, value):
-        # find first node on each level where node.next[levels].value >= value
-        chain = [None] * self.maxlevels
-        node = self.head
-        for level in reversed(range(self.maxlevels)):
-            while node.next[level].value < value:
-                node = node.next[level]
-            chain[level] = node
-        if value != chain[0].next[0].value:
-            raise KeyError('Not Found')
-
-        # remove one link at each level
-        d = len(chain[0].next[0].next)
-        for level in range(d):
-            prevnode = chain[level]
-            prevnode.width[level] += prevnode.next[level].width[level] - 1
-            prevnode.next[level] = prevnode.next[level].next[level]
-        for level in range(d, self.maxlevels):
-            chain[level].width[level] -= 1
-        self.size -= 1
-
-    def __iter__(self):
-        'Iterate over values in sorted order'
-        node = self.head.next[0]
-        while node is not NIL:
-            yield node.value
-            node = node.next[0]
-
-
-class RunningMedianOld:
-    'Fast running median with O(lg n) updates where n is the window size'
-
-    def __init__(self, n, iterable):
-        self.it = iter(iterable)
-        self.queue = deque(islice(self.it, n))
-        self.skiplist = IndexableSkiplist(n)
-        for elem in self.queue:
-            self.skiplist.insert(elem)
-
-    def __iter__(self):
-        queue = self.queue
-        skiplist = self.skiplist
-        midpoint = len(queue) // 2
-        yield skiplist[midpoint]
-        for newelem in self.it:
-            oldelem = queue.popleft()
-            skiplist.remove(oldelem)
-            queue.append(newelem)
-            skiplist.insert(newelem)
-            yield skiplist[midpoint]
 
 
 class RunningMedian:
-    """
+    """Running median (fast)
+
+
+    This is an efficient implementation of running media, faster than SciPy
+    implementation v0.17 and the skip list shown in :class:`RunningMedianOld`.
+    The main idea was taken from a recipe posted in this website:
+    http://code.activestate.com/recipes/576930/#c3 that uses a simple list
+    as proposed in https://gist.github.com/f0k/2f8402e4dfb6974bfcf1
+
+    ::
+
+        from sequana.running_median import RunningMedian
+        rm = RunningMedian(data, 101)
+        results = rm.run()
+
+
+    .. warning:: the first W/2 and last W/2 positions should be ignored
+        since they do not use W values. In this implementation, the last
+        W/2 values are currently set to zero.
+
+    This shows how the results agree with scipy
+    ::
+
+        from pylab import *
+        import scipy.signal
+        clf()
+        plot(x)
+        plot(RunningMedian(x,5).run(), 'k', lw=4)
+        plot(scipy.signal.medfilt(x, 5), 'ro')
 
 
     """
-    def __init__(self, iterable, n, container=list):
+    def __init__(self, data, width, container=list):
+        """.. rubric:: constructor
+
+        :param data: your data vector
+        :param width: running window length
+        :param container: a container (defaults to list). Could be a B-tree
+            blist from the blist package
+
+        """
+        if (width % 2) != 1:
+            raise ValueError("Window length should be odd.")
+
         self.container = container
-        self.W = n
-        self.data = iterable
+        self.W = width
+        self.data = data
 
     def __call__(self):
         return self.run()
 
-    def run(self, width=None, listclass=list):
-        if width is None:
-            width = self.W
+    def run(self):
 
-        l = listclass(self.data[0].repeat(width))
-        #l.sort()  # not needed because all values are the same here
-        mididx = (width - 1) // 2
+        # initialise with first W values and sort the values
+        lc = self.container(self.data[:self.W])
+        lc.sort()  # not needed because all values are the same here
+
+        mididx = (self.W - 1) // 2
         result = np.empty_like(self.data)
-        for idx, new_elem in enumerate(self.data):
-            old_elem = self.data[max(0, idx - width)]
-            del l[bisect_left(l, old_elem)]
-            insort(l, new_elem)
-            result[idx] = l[mididx]
+
+        # We initialise the first element
+        idx = mididx
+        result[idx] = lc[mididx]
+
+        # We start at position W removing first element in lc
+        # and adding a new one. We do not use enumerate since we do not
+        # start at zero.
+        for new_elem in self.data[self.W:]:
+            old_elem = self.data[idx-mididx]
+            del lc[bisect_left(lc, old_elem)]
+            insort(lc, new_elem)
+            idx += 1
+            result[idx] = lc[mididx]
+
+        # We decided to keep the first W/2 and last W/2 values as in the
+        # original data. Ideally, they should not be used for post processing
+        result[0:mididx] = self.data[0:mididx]
+        result[-mididx:] = self.data[-mididx:]
+
         return result
+
 
 

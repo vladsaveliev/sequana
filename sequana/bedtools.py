@@ -76,10 +76,8 @@ class Genomecov(object):
             cov = list(self.df["cov"])
             cov = cov[-mid:] + cov + cov[:mid]
             rm = running_median.RunningMedian(cov, n).run()
-            #rm = list(running_median.RunningMedianOld(n, cov))
             self.df["rm"] = pd.Series(rm)
         else:
-            #rm = list(running_median.RunningMedianOld(n, self.df["cov"]))
             rm = running_median.RunningMedian(self.df["cov"], n).run()
             self.df["rm"] = pd.Series(rm, index=np.arange(start=mid,
                 stop=(len(rm) + mid)))
