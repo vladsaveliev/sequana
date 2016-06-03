@@ -9,6 +9,8 @@ from biokit.stats import mixture
 from sequana import running_median
 
 
+
+
 class Genomecov(object):
     """Create a dataframe of BED file provided by bedtools genomecov (-d)
 
@@ -73,10 +75,10 @@ class Genomecov(object):
         if circular:
             cov = list(self.df["cov"])
             cov = cov[-mid:] + cov + cov[:mid]
-            rm = list(running_median.RunningMedian(n, cov))
+            rm = running_median.RunningMedian(cov, n).run()
             self.df["rm"] = pd.Series(rm)
         else:
-            rm = list(running_median.RunningMedian(n, self.df["cov"]))
+            rm = running_median.RunningMedian(self.df["cov"], n).run()
             self.df["rm"] = pd.Series(rm, index=np.arange(start=mid,
                 stop=(len(rm) + mid)))
 
@@ -198,7 +200,7 @@ class Genomecov(object):
 
         """
         pylab.clf()
-        self.df["label"].hist(grid=True, color="b", bins=100)
+        self.df["zscore"].hist(grid=True, color="b", bins=100)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
