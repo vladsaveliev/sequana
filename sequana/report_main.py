@@ -8,7 +8,6 @@ from sequana import version
 import glob
 
 
-
 class BaseReport(Report):
     """A Parent child for all reports created in Sequana
 
@@ -114,15 +113,8 @@ class SequanaReport(BaseReport):
             output_filename=output_filename,
             **kargs)
 
-        try:
-            self.read_snakefile(snakefile)
-        except:
-            pass
-
-        try:
-            self.read_configfile(configfile)
-        except:
-            pass
+        self.read_snakefile(snakefile)
+        self.read_configfile(configfile)
 
         try:
             from sequana.snaketools import SequanaConfig
