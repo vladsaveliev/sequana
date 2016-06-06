@@ -3,15 +3,17 @@ Author: Thomas Cokelaer
 Affiliation: Institut Pasteur
 Aim: Find Fix contaminant in the fastq
 Data: paired end or single reads
-Run: snakemake -s Snakefile
-Changelog:
+Run: snakemake -s phix_removal.rules 
 
 Config file needs to be edited to (1) set the input files and (2) the project
 name
 
 """
+
 import sequana
 from sequana import snaketools as sm
+sm.init("phix_removal.rules", globals())
+
 
 # This must be defined before the include 
 configfile: "config.yaml"
@@ -23,11 +25,11 @@ cfg = SequanaConfig(config)
 # Optional for testing
 if config['fastq_sampling']['enable'] is True:
     include: sm.modules['fastq_sampling']
-    # TODO set FILE1 and FILE2 automatically
-    FILE1 = cfg.PROJECT + "_R1_001.fastq.gz"
-    FILE2 = cfg.PROJECT + "_R2_001.fastq.gz"
+    FILE1 = cfg.BASENAME[0]
     config['samples']['file1'] = "fastq_sampling/%s" % FILE1
-    config['samples']['file2'] = "fastq_sampling/%s" % FILE2
+    if cfg.paired:
+        FILE2 = cfg.BASENAME[1]
+        config['samples']['file2'] = "fastq_sampling/%s" % FILE2
 
 
 # Generic include for bwa_mem on the phix reference
