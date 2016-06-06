@@ -27,7 +27,8 @@ rule report_phix_removal:
         from sequana import report_fastq_stats
 
         # Main page
-        s = report_main.SequanaReport(directory=params.outdir,
+        s = report_main.SequanaReport(snakefile=__snakefile__, 
+                    directory=params.outdir,
                     output_filename="report_phix_removal.html")
         s.jinja['description'] = """
 
@@ -92,9 +93,10 @@ rule report_phix_removal:
                 output_filename="fastq_stats__samples.html",
                 directory=params.outdir)
         s.jinja['main_link'] = 'report_phix_removal.html'
+       
         s.create_report()
 
         # Copy some files
-        shell("cp Snakefile %s/" % params.outdir)
+        shell("cp %s %s/" % (__snakefile__, params.outdir))
         shell("cp config.yaml %s/" % params.outdir)
         shell("mv {input.dag} %s/" % params.outdir)
