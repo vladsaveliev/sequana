@@ -1,6 +1,8 @@
+
 import sequana
 from sequana import snaketools as sm
 from sequana.snaketools import SequanaConfig, FileFactory
+sm.init("quality.rules", globals())
 
 # This must be defined before the include 
 configfile: "config.yaml"

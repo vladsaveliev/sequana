@@ -9,9 +9,16 @@ Changelog:
 
 """
 
+try:
+    # pipelines must have __snakefile__ variable defined
+    __dag__input = __snakefile__
+except:
+    __dag__input = "Snakefile"
 
 
 rule dag:
+    input: 
+        filename = __dag__input
     output:
         dot  = temp("dag.dot"),
         dot2 = temp("dag.ann.dot"),
@@ -21,7 +28,7 @@ rule dag:
     """
     run:
         # Create the dot file (graphviz) using snakemake
-        shell("snakemake --dag > {output.dot}")
+        shell("snakemake -s {input.filename} --dag > {output.dot}")
 
         # Annotate the dag with URLs 
         from sequana.snaketools import DOTParser
@@ -30,6 +37,4 @@ rule dag:
 
         # Now, create the SVG. Somehow if called dag.svg, this is a conflict
         shell("dot -Tsvg {output.dot2} -o {output.svg}")
-        shell("dot -Tpng {output.dot2} -o dag.png")
-
 

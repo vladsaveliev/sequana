@@ -1,3 +1,21 @@
+# -*- coding: utf-8 -*-
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016 - Sequana Development Team
+#
+#  File author(s):
+#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#          <d.desvillechabrol@gmail.com>
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  website: https://github.com/sequana/sequana
+#  documentation: http://sequana.readthedocs.io
+#
+##############################################################################
 import os
 
 from bioservices import NCBIblast, easyXML, ENA
@@ -487,7 +505,6 @@ class LocalBlat(object):
         # so we need to get it back ourself from the database if provided
         self.fastaDB = FastaDB(self.dbname)
 
-
     def run(self, sequence):
         cmd = "blat %(database)s %(sequence)s %(output)s -out=%(outfmt)s -noHead"
 
@@ -660,7 +677,7 @@ class FastaDB(object):
         # check that this fasta is not already in the DB
         # If not, add to the local dataframe
         header, sequence = fasta.split("\n", 1)
-        name, comment = header.split(" ")
+        name, comment = header.split(" ",1)
         if name.startswith('>'):
             name = name[1:]
         if "|" in name:
@@ -738,7 +755,7 @@ class Contaminant(object):
 
     """
     def __init__(self, fastq_filename, database="em_rel",
-            local_fasta_db="db/measles.fasta", online=True, fastaDB=False):
+            local_fasta_db="db/measles.fasta", online=True, fastaDB=True):
         self.ena = ENA()
 
         self.chunk = 10  # number of sequences in a single chunk to look at
@@ -761,6 +778,7 @@ class Contaminant(object):
         if fastaDB:
             self.fastaDB = FastaDB(filename=local_fasta_db)
 
+        self.verbose = True
         self._indices = []
         self.sequences = []
         self.identifiers = []
@@ -778,7 +796,6 @@ class Contaminant(object):
             m = self.fastaDB.get_stats()['nbp']
             self.bits_threshold = math.ceil(math.log2(m*n*len(self.fastq)))
 
-            self.verbose = True
             print("Threshold for bits score set to %s" % self.bits_threshold)
         else:
             self.bits_threshold = 50
@@ -888,7 +905,7 @@ class Contaminant(object):
         self.results[self.results.bits < self.bits_threshold] = None
         self.results.fillna(np.nan, inplace=True)
 
-    def update_missing(self, N=None):
+    def update_missing(self, N=None, njobs=4):
         if self.verbose:
             print("Running online blast ")
 
@@ -899,7 +916,8 @@ class Contaminant(object):
             self._indices = self._indices[0:N]
             self._sequences = self._sequences[0:N]
 
-        self.res = blast_multireads_online(self._sequences, database=self.database)
+        self.res = blast_multireads_online(self._sequences,
+            database=self.database, n_jobs=njobs)
         if self.verbose:
             print('Fetching new FASTA')
         for i, this in enumerate(self.res):
@@ -911,10 +929,10 @@ class Contaminant(object):
                 # found it so, let us now download the fasta
                 # and update the local DB
                 identifier = df.ix[0]['id']
-                #self.add_fasta_in_db(identifier)
+                self.add_fasta_in_db(identifier)
 
     def add_fasta_in_db(self, identifier):
-        if identifier not in self.fastaDB.ids:
+        if identifier not in self.fastaDB.df.id:
             if self.verbose:
                 print("Downloading %s from ENA and updating local DB" % identifier)
             fasta = self.download_fasta(identifier)

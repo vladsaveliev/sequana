@@ -1,3 +1,22 @@
+# -*- coding: utf-8 -*-
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016 - Sequana Development Team
+#
+#  File author(s):
+#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#          <d.desvillechabrol@gmail.com>
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  website: https://github.com/sequana/sequana
+#  documentation: http://sequana.readthedocs.io
+#
+##############################################################################
+
 """Set of tools to manipulate Snakefile and config files
 
 Here is an overview (see details here below)
@@ -368,6 +387,7 @@ modules = _get_modules_snakefiles()
 #: list of pipeline names found in the list of modules
 pipeline_names = [m for m in modules if Module(m).ispipeline()]
 
+
 class SequanaConfig(object):
     """Reads YAML (or json) config file and ease access to its contents
 
@@ -430,6 +450,9 @@ class SequanaConfig(object):
             self.paired = True
         else:
             self.paired = False
+
+    def save(self, filename="config.yaml"):
+        pass
 
     def _converts_boolean(self, subdic):
         for key,value in subdic.items():
@@ -694,7 +717,12 @@ def get_cleanup_rules(filename):
 
 
 
+def init(filename, namespace):
 
+    if "__snakefile__" in namespace.keys():
+        pass
+    else:
+        namespace['__snakefile__'] = filename
 
 
 

@@ -3,6 +3,14 @@ Changelog
 
 .. contents::
 
+0.1.5
+-------
+
+  - sequana standalone first official version with --init and various options to
+    fill the config file automaticall
+  - quality_taxon pipeline
+  
+
 0.1.4
 --------
 

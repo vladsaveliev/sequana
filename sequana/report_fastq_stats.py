@@ -1,3 +1,22 @@
+# -*- coding: utf-8 -*-
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016 - Sequana Development Team
+#
+#  File author(s):
+#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#          <d.desvillechabrol@gmail.com>
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  website: https://github.com/sequana/sequana
+#  documentation: http://sequana.readthedocs.io
+#
+##############################################################################
+
 import easydev
 import os
 import glob
@@ -50,7 +69,11 @@ class FastQStatsReport(BaseReport):
             {"name":"T", "data": {}}]
 
         for filename in files:
-            thisdata = json.load(open(filename))
+            try:
+                # if the mapped file is empty, the file is empty
+                thisdata = json.load(open(filename))
+            except:
+                thisdata= {"A":0, "C":0, "G":0, "T":0}
             if "R2.unmapped" in filename:
                 key = "R2.unmapped"    
             elif "R1.unmapped" in filename:
@@ -67,7 +90,7 @@ class FastQStatsReport(BaseReport):
                 key = "R1"
             elif "_R2." in filename:
                 key = "R2"
-            print(filename)
+            
             acgt[0]["data"][key] = thisdata['A']
             acgt[1]["data"][key] = thisdata['C']
             acgt[2]["data"][key] = thisdata['G']
