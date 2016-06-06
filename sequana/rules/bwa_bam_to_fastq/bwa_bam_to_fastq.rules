@@ -14,7 +14,7 @@ if cfg.paired is True:
 else:
     __bwa_bam_to_fastq__output = expand(
         __format % {'proj':cfg.PROJECT},
-        readt=["R1"], tag=["mapped", "unmapped"])
+        read=["R1"], tag=["mapped", "unmapped"])
 
 
 __input_dir = 'bwa_mem_phix'
