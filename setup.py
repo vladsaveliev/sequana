@@ -7,7 +7,7 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 1
-_MICRO               = 4
+_MICRO               = 5
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -76,6 +76,7 @@ setup(
         'sequana.rules' : ['*/*.rules', "*/*/*.rules"],
         'sequana.pipelines' : ['*/*.rules', "*/*/*.rules"],
         'sequana.resources.data' : ['*'],
+        'sequana.resources.images' : ['*'],
         'sequana.resources.testing' : ['*'],
         'sequana.resources.js/galleria/themes' : ['*'],
         },
