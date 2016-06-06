@@ -10,6 +10,7 @@ Run: snakemake -s Snakefile
 import sequana
 from sequana import snaketools as sm
 from sequana.snaketools import SequanaConfig, FileFactory
+sm.init("variant_calling.rules", globals())
 
 # Import config file -----------------------------------------------------------
 
