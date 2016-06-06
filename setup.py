@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# License: 3-clause BSD
 __revision__ = "$Id: $" # for the SVN Id
 import sys
 import os
@@ -14,7 +15,7 @@ release              = '%d.%d' % (_MAJOR, _MINOR)
 metainfo = {
     'authors': {"main": ("yourname", "email@whatever.org")},
     'version': version,
-    'license' : 'GPL',
+    'license' : 'new BSD',
     'download_url' : ['http://pypi.python.org/pypi/sequana'],
     'url' : ["http://github.com/sequana/"],
     'description': "Put a short description here" ,
@@ -24,7 +25,7 @@ metainfo = {
           'Development Status :: 4 - Beta',
           'Intended Audience :: Developers',
           'Intended Audience :: Science/Research',
-          'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
+          'License :: OSI Approved :: BSD License',
           'Operating System :: OS Independent',
           'Programming Language :: Python :: 2.7',
           'Topic :: Software Development :: Libraries :: Python Modules',
