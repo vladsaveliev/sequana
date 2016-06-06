@@ -368,6 +368,7 @@ modules = _get_modules_snakefiles()
 #: list of pipeline names found in the list of modules
 pipeline_names = [m for m in modules if Module(m).ispipeline()]
 
+
 class SequanaConfig(object):
     """Reads YAML (or json) config file and ease access to its contents
 
@@ -430,6 +431,9 @@ class SequanaConfig(object):
             self.paired = True
         else:
             self.paired = False
+
+    def save(self, filename="config.yaml"):
+        pass
 
     def _converts_boolean(self, subdic):
         for key,value in subdic.items():
@@ -694,7 +698,12 @@ def get_cleanup_rules(filename):
 
 
 
+def init(filename, namespace):
 
+    if "__snakefile__" in namespace.keys():
+        pass
+    else:
+        namespace['__snakefile__'] = filename
 
 
 
