@@ -28,18 +28,13 @@ import sys
 import glob
 from easydev import execute
 
+import pylab
 """
-
-
-
-
 
 
 kraken-build --shrink 100000 --db viruses_only --new-db test2 --shrink-block-offset 1 --kmer-len 15 --minimizer-len 8
 
 The taxonomy files is still very large. One could filter it.
-
-
 
 
 """
@@ -84,18 +79,26 @@ class KrakenContaminant(object):
 
     """
 
-    def __init__(self, filename="kraken.out"):
+    def __init__(self, filename="kraken.out", verbose=True):
         self.filename = filename
+        self.verbose = verbose
+        from biokit import Taxonomy
+        self.tax = Taxonomy(verbose=self.verbose)
 
-    def get_taxonomy(self, ids):
+    def _get_taxonomy_eutils(self, ids):
         """
 
         "param list ids: list of taxon identifiers from whih c we want to get
             the lineage
+
+        This won't be used anymore since it requires internet connection, not
+        available on the IP cluster
         """
-        print('Connecting to NCBI/EUtils')
+        if self.verbose:
+            print('Connecting to NCBI/EUtils')
         e = EUtils()
-        print("Calling EFetch...")
+        if self.verbose:
+            print("Calling EFetch...")
         res = e.EFetch("taxonomy", ids)
         self.xml = easyXML(res)
 
@@ -114,20 +117,50 @@ class KrakenContaminant(object):
 
         return lineage, scnames
 
+    def get_taxonomy_biokit(self, ids):
+        if self.verbose:
+            print('Retrieving taxon using biokit.Taxonomy')
+
+        # filter the lineage to keep only information from one of the main rank
+        # that is superkingdom, kingdom, phylum, class, order, family, genus and
+        # species
+        ranks = ('kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
+        lineage = [self.tax.get_lineage_and_rank(x) for x in ids]
+
+        # Now, we filter each lineage to keep only relevant ranks
+        # We drop the 'no rank' and create a dictionary
+        # Not nice but works for now
+        results = []
+        for i, this in enumerate(lineage):
+            default = dict.fromkeys(ranks, ' ')
+            for entry in this:
+                if entry[1] in ranks:
+                    default[entry[1]] = entry[0]
+                elif entry[1] == "superkingdom":
+                    default["kingdom"] = entry[0]
+            # Scientific name is the last entry tagged as no_rank  following
+            # species TODO (check this assumption)
+            # e.g. 351680 and 151529 have same 7 ranks so to differenatiate
+            # them, the scientific name should be used.
+            # By default, we will take the last one. If species or genus, we
+            # repeat the term
+            try:
+                default['name'] = this[-1][0]
+            except:
+                default['name'] = "unspecified"
+            results.append(default)
+
+        df = pd.DataFrame.from_records(results)
+        df.index = ids
+        df = df[list(ranks) + ['name']]
+
+        return df
+
     def _parse_data(self):
-
-        # Each entry is made of an identifier and a taxonomy
-            # The taxonomy looks like:
-        #     d__Viruses|o__Mononegavirales|f__Paramyxoviridae|g__Morbillivirus|s__Measles_virus
-        # where we can identify the standard levels of taxonomy with rank
-        # assignments from kingdom, phylum, class, order, family, genus, species that
-        # can be identifier with leading character as d, p, c, o, f, g, s
-        # Note that "d" stands for kingdom and superkindom is dropped
-        tags = ["d", "p", "c", "o", "f", "g", "s"]
-
         taxonomy = {}
 
-        print("Reading kraken data")
+        if self.verbose:
+            print("Reading kraken data")
         # we select only col 0,2,3 to save memoty, which is required on very
         # large files
         self._df = pd.read_csv(self.filename, sep="\t", header=None, usecols=[0,2,3])
@@ -165,31 +198,43 @@ class KrakenContaminant(object):
             return self._df
     df = property(_get_df)
 
-    def kraken_to_krona(self, output_filename=None, mode=None):
+    def kraken_to_krona(self, output_filename=None, mode=None, nofile=False):
         if output_filename is None:
             output_filename = self.filename + ".summary"
         taxon_to_find = list(self.taxons.index)
-        print("Fetching %s taxons " % len(taxon_to_find))
+
+        # classified reads as root  (1)
+        try:
+            if self.verbose:
+                print("Removing taxon 1 (%s values) " % self.taxons.ix[1])
+                print("Found %s taxons " % len(taxon_to_find))
+            taxon_to_find.pop(taxon_to_find.index(1))
+        except:
+            pass
 
         if mode != "adapters":
-            self.scnames = []
-            self.lineage = []
-            from easydev import split_into_chunks
-            N = int(len(taxon_to_find)/180.) + 1
-
-            for chunk in split_into_chunks(taxon_to_find, N):
-                lineage, scnames = self.get_taxonomy(chunk)
-                self.lineage.extend(lineage)
-                self.scnames.extend(scnames)
+            df = self.get_taxonomy_biokit(taxon_to_find)
+            self.lineage = [";".join(this) for this in df[df.columns[0:-1]].values]
+            self.scnames = list(df['name'].values)  # do we need a cast ?
         else:
             # Let us get the known adapters and their identifiers
             from sequana.adapters import AdapterDB
             adapters = AdapterDB()
             adapters.load_all()
 
-            self.scnames = [adapters.get_name(ide) if ide not in [1, "1"]
-                else "unknown" for ide in self.taxons.index]
-            self.lineage = ["Adapters;%s" for x in self.scnames]
+            self.scnames = []
+
+            for taxon in self.taxons.index:
+                if str(taxon) in [1, "1"]:
+                    self.scnames.append('unknown')
+                    continue
+
+                if str(taxon) not in list(adapters.df.identifier):
+                    self.scnames.append('unknown')
+                    continue
+
+                self.scnames.append(adapters.get_name(taxon))
+            self.lineage = ["Adapters;%s"% x for x in self.scnames]
 
             assert len(self.lineage) == len(self.taxons)
             assert len(self.scnames) == len(self.taxons)
@@ -204,7 +249,37 @@ class KrakenContaminant(object):
             fout.write("%s\t%s" % (self.unclassified, "Unclassified"))
 
 
+    def plot(self, kind="pie", cmap="copper", threshold=1, radius=0.7, **kargs):
+        if kind not in ['barh', 'pie']:
+            print('kind parameter: Only barh and pie are supported')
+            return
+        # This may have already been called but maybe not. This is not time
+        # consuming, so we call it again here
+        df = self.get_taxonomy_biokit(list(self.taxons.index))
+        data = self.taxons.copy()
+        data = data/data.sum()*100
+        others = data[data<1].sum()
+        data = data[data>1]
 
+        names = df.ix[data.index]['name']
+        data.index = names.values
+        data.ix['others'] = others
+        try:
+            data.sort_values(inplace=True)
+        except:
+            data.sort(inplace=True)
+
+        if kind == "pie":
+            ax = data.plot(kind=kind, cmap=cmap, **kargs, autopct='%1.1f%%',    
+                radius=0.7)
+            pylab.ylabel(" ")
+            for text in ax.texts:
+                text.set_size("x-small")
+        elif kind == "barh":
+            ax = data.plot(kind=kind,  **kargs)
+            pylab.xlabel(" percentage ")
+
+        return data
 
 
 class KrakenBuilder():

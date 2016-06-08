@@ -62,7 +62,7 @@ setup(
     # pillow, sphinx-gallery and pillow are  for the doc only
     # mock is for the test only
     install_requires = ["easydev>=0.9.21", "reports>=0.1.8", "matplotlib",
-        "pandas", "cutadapt>=1.9.1", "pysam", "pyVCF", "sphinx-gallery", 
+        "pandas", "cutadapt>=1.9.1", "biokit>=0.3.0", "pysam", "pyVCF", "sphinx-gallery", 
         "mock", "numpydoc", "pillow"],
 
     # here below '': pattern means include that pattern in all packages

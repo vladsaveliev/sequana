@@ -6,22 +6,25 @@ except:
     version = __version__
 
 
+# snakemake related
 from .snaketools import modules
 from .snaketools import SequanaConfig
 from .snaketools import Module, ModuleFinder
 
-from .phred import Quality
 
+# tools
 from .bamtools import BAM, SAMFlags
 from .bedtools import Genomecov
-
-from .report_bam import BAMReport
-
 from .fastq import FastQ, FastQC, Identifier
 from .fasta import FastA
-
+from .kraken import KrakenContaminant
+from .phred import Quality
 from .vcf_filter import VCF
 
+# Reports
+from .report_bam import BAMReport
+
+# The standalone app
 from . import scripts
 
 

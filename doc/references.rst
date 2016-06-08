@@ -26,6 +26,12 @@ FASTQ module
     :members:
     :undoc-members:
 
+Taxonomy related
+--------------------
+.. automodule:: sequana.kraken
+    :members:
+    :undoc-members:
+
 VCF module
 ------------
 .. automodule:: sequana.vcf_filter

@@ -13,6 +13,6 @@ dependencies:
   - matplotlib
   - easydev>=0.9.21
   - bioservices
-  - biokit
+  - biokit>=0.3.0
   - mpld3
   - reports
