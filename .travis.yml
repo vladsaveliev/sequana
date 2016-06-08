@@ -33,7 +33,7 @@ install:
   - pip install easydev>=0.9.21 --upgrade
   - pip install coveralls
   - pip install tabulate
-  - pip install biokit>=0.2.0
+  - pip install biokit>=0.3.0
   - conda install cutadapt pysam pyvcf snpEff --yes
 
 # # command to run tests, e.g. python setup.py test
