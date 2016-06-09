@@ -85,7 +85,15 @@ class Coverage(object):
         self._G = G  # length target genome
 
     def __repr__(self):
-        return "Coverage(N=%s, L=%s, G=%s, a=%s) "% (self.N, self.L, self.G, self.a)
+        if self._N is None: 
+            N = "undefined"
+        else:
+            N = self._N
+        if self._a is None:
+            a = "undefined"
+        else:
+            a = self._a
+        return "Coverage(N=%s, L=%s, G=%s, a=%s) "% (N, self.L, self.G,a)
 
     def _get_a(self):
         return self._N * self._L / float(self._G)
@@ -162,9 +170,11 @@ class Coverage(object):
         """
         # What should be the coverage to have 99% of the genome sequenced ?
         # It is the same question as equating 1-e^{-(NL/G}) == 0.99, we need NL/G = 4.6
-        if isinstance(M, float):
+        if isinstance(M, float) or isinstance(M, int):
             assert M < 1
             assert M >=0
+        else:
+            M = np.array(M)
         # Here we do not use log(-1/(E-1)) but log(-1/(1-E-1)) to allow
         # for using float down to 1e-300 since 0.999999999999999 == 1
         return np.log(-1/(-M))
