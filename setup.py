@@ -91,7 +91,8 @@ setup(
         'console_scripts':[
            'fastq_head=sequana.scripts.fastq_head:main',
            'fastq_count=sequana.scripts.fastq_count:main',
-           'sequana=sequana.scripts.main:main'
+           'sequana=sequana.scripts.main:main',
+           'sequana_taxonomy=sequana.scripts.taxonomy:main'
         ]
     },
 
