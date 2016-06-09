@@ -3,12 +3,15 @@ Changelog
 
 .. contents::
 
-0.1.5
--------
+0.1.5 June 2016
+--------------------
 
-  - sequana standalone first official version with --init and various options to
-    fill the config file automaticall
-  - quality_taxon pipeline
+* NEWS
+
+  - sequana_taxonomy standalone available (kraken + krona)
+  - sequana standalone available
+  - quality_taxon pipeline available
+  - module coverage for theoretical computations
   
 
 0.1.4

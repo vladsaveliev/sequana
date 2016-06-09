@@ -20,6 +20,12 @@ BEDTOOLs related (coverage)
     :members:
     :undoc-members:
 
+Coverage
+------------
+.. automodule:: sequana.coverage
+    :members:
+    :undoc-members:
+
 FASTQ module
 ---------------
 .. automodule:: sequana.fastq

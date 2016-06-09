@@ -15,9 +15,10 @@ from .snaketools import Module, ModuleFinder
 # tools
 from .bamtools import BAM, SAMFlags
 from .bedtools import Genomecov
+from .coverage import Coverage
 from .fastq import FastQ, FastQC, Identifier
 from .fasta import FastA
-from .kraken import KrakenContaminant
+from .kraken import KrakenContaminant, KrakenTaxon
 from .phred import Quality
 from .vcf_filter import VCF
 
