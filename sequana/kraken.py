@@ -26,8 +26,7 @@ import ftplib
 import subprocess
 import sys
 import glob
-from easydev import execute
-
+from easydev import execute, TempFile
 import pylab
 """
 
@@ -270,8 +269,8 @@ class KrakenContaminant(object):
             data.sort(inplace=True)
 
         if kind == "pie":
-            ax = data.plot(kind=kind, cmap=cmap, **kargs, autopct='%1.1f%%',    
-                radius=0.7)
+            ax = data.plot(kind=kind, cmap=cmap, autopct='%1.1f%%', 
+                radius=0.7, **kargs)
             pylab.ylabel(" ")
             for text in ax.texts:
                 text.set_size("x-small")
@@ -424,4 +423,60 @@ class KrakenBuilder():
 
         # again, kraken-build prints on stderr so we cannot use easydev.shellcmd
         execute(cmd)
+
+
+class KrakenTaxon(object):
+    def __init__(self, fastq, database, threads=4, output="krona.html"):
+
+        self.database = database
+        self.threads = threads
+        self.output = output
+
+        # Fastq input
+        if isinstance(fastq, str):
+            self.paired = False
+            self.fastq = [fastq]
+        elif isinstance(fastq, list):
+            if len(fastq) == 2: 
+                self.paired = True
+            else:
+                self.paired = False
+            self.fastq = fastq
+        else:
+            raise ValueError("Expected a fastq filename or list of 2 fastq filenames")
+
+    def run(self):
+
+        # We need two temp file
+        kraken_summary = TempFile()
+        kraken_output = TempFile()
+
+        params = {
+            "database": self.database,
+            "thread": self.threads,
+            "file1": self.fastq[0],
+            "kraken_output": kraken_output.name,
+            "kraken_summary": kraken_summary.name
+            }
+
+        if self.paired:
+            params["file2"] = self.fastq[1]
+
+        command = "kraken -db %(database)s %(file1)s " 
+        if self.paired:
+            command += " %(file2)s --paired"
+        command += " --threads %(thread)s --out %(kraken_output)s" 
+
+
+        command = command % params
+        from snakemake import shell
+        shell(command)
+
+        # Translate kraken output to a format understood by Krona
+        krona_summary = TempFile()
+        k = KrakenContaminant(kraken_output.name)
+        k.kraken_to_krona(output_filename=kraken_summary.name)
+
+        # Transform to Krona
+        shell("ktImportText %s -o %s" % (kraken_summary.name, self.output))
 
