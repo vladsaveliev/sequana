@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -26,42 +26,80 @@ import ftplib
 import subprocess
 import sys
 import glob
-from easydev import execute, TempFile
+from easydev import execute, TempFile, Progress
 import pylab
-"""
 
 
-kraken-build --shrink 100000 --db viruses_only --new-db test2 --shrink-block-offset 1 --kmer-len 15 --minimizer-len 8
-
-The taxonomy files is still very large. One could filter it.
+__all__ = ['KronaMerger', 'KrakenResults', "KrakenBuilder"]
 
 
-"""
+class KronaMerger(collections.Counter):
+    """
 
-class Krona(collections.Counter):
+    Imagine those two files (formatted for Krona; first column is a counter)::
+
+        14011   Bacteria    Proteobacteria  species1
+        591 Bacteria    Proteobacteria  species4
+
+        184 Bacteria    Proteobacteria  species3
+        132 Bacteria    Proteobacteria  species2
+        32  Bacteria    Proteobacteria  species1
+
+    You can merge the two files. The first and last lines correspond to the same
+    taxon (species1) so we should end up with a new Krona file with 4 lines
+    only.
+
+    The test files are available within Sequana as test_krona_k1.tsv
+    and test_krona_k2.tsv
+
+        from sequana import KronaMerger, sequana_data
+        k1 = KronaMerger(sequana_data("test_krona_k1.tsv")
+        k2 = KronaMerger(sequana_data("test_krona_k2.tsv")
+        k1 += k2
+        # Save the results. Note that it must be tabulated for Krona external usage
+        k1.to_tsv("new.tsv")
+
+
+    .. warning:: separator must be tabulars
+
+    """
     def __init__(self, filename):
-        super(Krona, self).__init__()
+        super(KronaMerger, self).__init__()
         self.filename = filename
         self._read()
 
-    def _read(self, filename=None):
-        if filename:
-            self.filename = filename
+    def _read(self):
         with open(self.filename, "r") as fin:
             for line in fin.readlines():
                 count, name = line.split("\t", 1)
+                count = int(count)
                 self[name] += count
 
-    def __add__(self, krona):
-        self+=krona
+    def to_tsv(self, output_filename):
+        """Save the content into a new file in TSV format"""
+        assert output_filename.endswith('.tsv')
+        labels = []
+        counts = []
+        for k,count in self.items():
+            labels.append(k)
+            counts.append(count)
+        import pandas as pd
+        df = pd.DataFrame({'label':labels, 'count':counts})
+        df = df[['count', 'label']]
+        df['label'] = df['label'].apply(lambda x: x.strip())
+        try:
+            df.sort_values("count", inplace=True, ascending=False)
+        except:
+            df.sort("count", inplace=True, ascending=False)
+        df.to_csv(output_filename, sep="\t", index=None, header=None)
+        return df
 
 
+class KrakenResults(object):
+    """Translate Kraken results into a Krona-compatible file
 
-class KrakenContaminant(object):
-    """
 
-
-    Run a kraken analysis. You will end up with a file e.g. kraken.out
+    If you run a kraken analysis, you will end up with a file e.g. kraken.out
 
     You could use kraken-translate but then you need extra parsing to convert
     into a Krona-compatible file. Here, we take the output from kraken and
@@ -69,7 +107,7 @@ class KrakenContaminant(object):
 
     ::
 
-        k = KrakenContamimant()
+        k = KrakenResults()
         k.kraken_to_krona()
 
     Then in a shell, ::
@@ -83,38 +121,6 @@ class KrakenContaminant(object):
         self.verbose = verbose
         from biokit import Taxonomy
         self.tax = Taxonomy(verbose=self.verbose)
-
-    def _get_taxonomy_eutils(self, ids):
-        """
-
-        "param list ids: list of taxon identifiers from whih c we want to get
-            the lineage
-
-        This won't be used anymore since it requires internet connection, not
-        available on the IP cluster
-        """
-        if self.verbose:
-            print('Connecting to NCBI/EUtils')
-        e = EUtils()
-        if self.verbose:
-            print("Calling EFetch...")
-        res = e.EFetch("taxonomy", ids)
-        self.xml = easyXML(res)
-
-        # There is one lineage per taxon so we can use the findAll
-        lineage = [x.text for x in self.xml.findAll("lineage")]
-
-
-        # We now want to get the scientific name for each taxon. Note, however
-        # that there are several taxon children-tags within a taxon each having
-        # a scientific name, so we first use getchildren() to make sure to loop
-        # over a the children only
-        scnames = []
-        for taxon in self.xml.root.getchildren():
-            name = taxon.findall("ScientificName")[0].text
-            scnames.append(name)
-
-        return lineage, scnames
 
     def get_taxonomy_biokit(self, ids):
         if self.verbose:
@@ -202,6 +208,9 @@ class KrakenContaminant(object):
             output_filename = self.filename + ".summary"
         taxon_to_find = list(self.taxons.index)
 
+        if len(taxon_to_find) == 0:
+            print("No reads were identified. You will need a more complete database")
+            return
         # classified reads as root  (1)
         try:
             if self.verbose:
@@ -238,7 +247,7 @@ class KrakenContaminant(object):
             assert len(self.lineage) == len(self.taxons)
             assert len(self.scnames) == len(self.taxons)
 
-
+        # Now save the file
         with open(output_filename, "w") as fout:
             for i, this in enumerate(self.lineage):
                 index = self.taxons.index[i]
@@ -247,8 +256,11 @@ class KrakenContaminant(object):
                 fout.write(line+'\n')
             fout.write("%s\t%s" % (self.unclassified, "Unclassified"))
 
-
     def plot(self, kind="pie", cmap="copper", threshold=1, radius=0.7, **kargs):
+        """A simple non-interactive plot of taxons
+
+        A Krona Javascript output is also available in :meth:`kraken_to_krona`
+        """
         if kind not in ['barh', 'pie']:
             print('kind parameter: Only barh and pie are supported')
             return
@@ -269,7 +281,7 @@ class KrakenContaminant(object):
             data.sort(inplace=True)
 
         if kind == "pie":
-            ax = data.plot(kind=kind, cmap=cmap, autopct='%1.1f%%', 
+            ax = data.plot(kind=kind, cmap=cmap, autopct='%1.1f%%',
                 radius=0.7, **kargs)
             pylab.ylabel(" ")
             for text in ax.texts:
@@ -282,39 +294,81 @@ class KrakenContaminant(object):
 
 
 class KrakenBuilder():
-    """
+    """This class will help you building a custom Kraken database
 
+    
+    You will need a few steps, and depending on the FASTA files you want to
+    include lots of resources (memory and space wise). In the following example, 
+    we will be reasonable and use only viruses FASTA files. 
 
+    First, we need to create the data structure directory. Let us call it
+    **virusdb**::
 
-    # For the viruses + subset of bacteria (salmonelle, ecoli and listeria) +
-    # plasmids, this command::
+        from sequana import KrakenBuilder
+        kb = KrakenBuilder("virusdb")
 
-        kraken-build  --rebuild -db test2 --minimizer-len 10 --max-db-size 4 --threads 4
+    We then need to download a large taxonomic database from NCBI. You may
+    already have a local copy, in which case you would need to copy it in 
+    virusdb/taxonomy directory. If not, type::
+
+        kb.download_taxonomy()
+
+    The virusdb/taxonomy directory will contain about 8.5G of data.
+
+    Note that this currently requires the unix tools **wget** and **tar**.
+
+    Then, we need to add some fasta files. You may download specific FASTA files
+    if you know the accession numbers using :meth:`download_accession`. However, 
+    we also provide a method to download all viruses from ENA::
+
+        kb.download_viruses()
+
+    This will take a while to download the more than 4500 FASTA files (10
+    minutes on a good connection). You will end up with a data set of about 100
+    Mb of FASTA files.
+
+    If you wish to download other FASTA (e.g. all bacteria), you will need to
+    use another class from the :mod:`sequana.databases`::
+
+        from sequana.databases import ENADownload
+        ena = ENADownload()
+        ena.download_fasta("bacteria.txt", output_dir="virusdb/library/added")
+
+    Please see the documentation for more options and list of species to
+    download.
+
+    It is now time to build the DB itself. This is based on the kraken tool.
+    You may do it yourself in a shell::
+
+        kraken-build  --rebuild -db virusdb --minimizer-len 10 --max-db-size 4 --threads 4
         --kmer-len 26 --jellyfish-hash-size 500000000
 
-    takes about 12 minutes and generates a DB of 4.2 Gb
+    Or you the KrakenBuilder. First you need to look at the :attr:`params`
+    attribute. The most important key/value that affect the size of the DB are 
 
-    Downloading the taxonomy files takes about 10 minutes. This step can be
-    skipped and you may just copy/paste previous downloads
+        kb.params['kmer_length']  (max value is 31)
+        kb.params['max_db_size'] is tha max size of the DB files in Gb
+        kb.params['minimizer_len'] 
 
-    The downloads of FASTA files 
+    To create a small DB quicly, we set those values::
 
+        kb.params['kmer_length']  = 26
+        kb.params['minimizer_len'] = 10
 
-    The construction of the DB (viruses only) takes about 30-60 seconds ::
+    However, for production, we would recommend 31 and 13 (default)
 
-        from sequana.kraken import KrakenBuilder
-        k = KrakenBuilder(dbname="viruses")
-        k.download_taxonomy = True # This takes time depending on your connection
-        k.run(dbs=['virus'])
- 
-    The directly kraken_builder should now contain a database called viruses,
-    which can be used by kraken
+    This takes about 2 minutes to build and the final DB is about 800Mb.
 
+    Lots of useless files are in the direcory and can be removed using kraken
+    itself. However we do a little bit more and therefore have our own
+    cleaning function::
+
+        kb.clean_db()
 
     Kraken-build uses jellyfish. The **hash_size** parameter is the jellyfish
     hash_size parameter. If you set it to 6400M, the memort reqquired it about
     6.9bytes times 6400M that is 40Gb of memory. The default value used here
-    means 3.5Gb are required. 
+    means 3.5Gb are required.
 
     The size to store the DB itself should be
 
@@ -323,16 +377,47 @@ class KrakenBuilder():
         sD + 8 (4^M)
 
     where **s** is about 12 bytes (used to store a kmer/taxon pair, D is the
-    number of kmer in the final database, which cannot be estimated before 
+    number of kmer in the final database, which cannot be estimated before
     hand, and M the length minimiser parameter.
 
+
+    The quick way:
+    =====================
+
+        kb = KrakenBuilder("virusdb")
+        kb.run(['virus']) # use only viruses from ENA list
+        
+    Here, you may want to re-run the analysis with different parameters
+    for the database built. If you require the virus DB, it has been
+    downloaded already so this step will be skip. The Taxon DB does not 
+    need to be downloaded again, so set download_taxonomy to False.
+
+    Before, let us change the parameter to build a full database::
+        
+        kb.params['kmer_length']  = 31
+        kb.params['minimizer_len'] = 13
+
+    We have here instead of 800Mb DB a new DB of 1.5Gb but it should
+    take more or less the same time to build it
+
+    Finally if you do not need to test it anymore, you may clean the DB once for
+    all. This will remove useless files. The directory's name is the name of the
+    DB that should be used in e.g. quality_taxon pipeline.
+
+        kb.clean_db()
+
     """
-    def __init__(self, dbname, download_taxon=False):
+    def __init__(self, dbname):
+        """.. rubric:: Constructor
+
+        :param str dbname: Create the Kraken DB in this directory
+
+
+        """
         # See databases.py module
         self.dbname = dbname
         self.enadb = ENADownload()
         self.valid_dbs = self.enadb._metadata.keys()
-        self.download_taxon = download_taxon
 
         # mini_kraken uses minimiser-length = 13, max_db =4, others=default so
         # kmer-len=31 hashsize=default
@@ -349,69 +434,98 @@ class KrakenBuilder():
 
     def init(self):
         # mkdir library
+        self.library_path = self.dbname + os.sep + "library"
+        self.taxon_path = self.dbname + os.sep + "taxonomy"
+        self.fasta_path = self.library_path + os.sep + "added"
+
         self._devtools = DevTools()
         self._devtools.mkdir(self.dbname)
-        self._devtools.mkdir(self.dbname + os.sep + "library")
-        self.added_dir = self.dbname + os.sep + "library" + os.sep + "added"
-        self._devtools.mkdir(self.added_dir)
-        self.taxon_dir = self.dbname + os.sep + "taxonomy" 
-        self._devtools.mkdir(self.taxon_dir)
+        self._devtools.mkdir(self.library_path)
+        self._devtools.mkdir(self.fasta_path)
+        self._devtools.mkdir(self.taxon_path)
 
-    def run(self, dbs=[]):
+    def download_accession(self, acc):
+        """Donwload a specific Fasta from ENA given its accession number
+
+        Note that if you want to add specific FASTA from ENA, you must use
+        that function to make sure the header will be understood by Kraken; 
+        The header must use a GI number (not ENA)
+
+        """
+        output = self.dbname+os.sep + "library" + os.sep + "added"
+        from sequana import databases
+        d = databases.ENADownload()
+        """Download a specific FASTA file given its ENA accession number """
+        d.download_accession(acc, output=output)
+
+    def download_viruses(self):
+        from sequana.databases import ENADownload
+        ena = ENADownload()
+        ena.download_fasta("virus.txt", output_dir=self.fasta_path)
+
+    def run(self, dbs=[], download_taxon=True):
         """Create the Custom Kraken DB
 
         #. download taxonomy files
-        #. Load the DBs (e.g. virus)
+        #. Load the DBs (e.g. viruses)
         #. Build DB with kraken-build
+        #. Clean it up
 
         """
-        if self.download_taxon: 
+        # Start with the FASTA
+        self._download_dbs(dbs)
+
+        if download_taxon:
             self.download_taxonomy()
         else:
             # search for taxon file. If not found, error
+            required = self.taxon_path + os.sep + "gi_taxid_nucl.dmp"
 
-            required = self.taxon_dir + os.sep + "gi_taxid_nucl.dmp" 
-
-            if required not  in glob.glob(self.taxon_dir + os.sep + "*"):
+            if required not  in glob.glob(self.taxon_path + os.sep + "*"):
                 raise IOError("Taxon file not found. Please set download_taxon to True")
 
-        self.download_dbs(dbs)
-        self.build_kraken()
+        print("Depending on the input, this step may take a few hours to finish")
+        self._build_kraken()
+        print("""You may now call .clean_db() to remove large files, which are not
+required for the analysis. Note, however, that you this prevents the DB to be
+rebuilt with Kraken.""")
 
     def download_taxonomy(self):
         # download taxonomy
         print('Downloading taxonomy files. Takes a while depending on your connection')
-        if self.download_taxonomy:
-            # We could use kraken-build --download-taxonomy + a subprocess but
-            # even simpler to get the file via ftp
-            FTP = "ftp.ncbi.nih.gov" 
-            execute("wget %s/pub/taxonomy/gi_taxid_nucl.dmp.gz --directory-prefix %s"
-                % (FTP, self.taxon_dir))
+        # We could use kraken-build --download-taxonomy + a subprocess but
+        # even simpler to get the file via ftp
+        FTP = "ftp.ncbi.nih.gov"
+        execute("wget %s/pub/taxonomy/gi_taxid_nucl.dmp.gz --directory-prefix %s"
+            % (FTP, self.taxon_path))
 
-            execute("wget %s/pub/taxonomy/taxdump.tar.gz --directory-prefix %s"
-                % (FTP, self.taxon_dir))
+        execute("wget %s/pub/taxonomy/taxdump.tar.gz --directory-prefix %s"
+            % (FTP, self.taxon_path))
 
-            # Unzip the files
-            try:
-                execute('unpigz %s/gi_taxid_nucl.dmp.gz' % self.taxon_dir)
-            except:
-                pass # alreaqdy done
-            try:
-                execute('tar xvfz %s/taxdump.tar.gz -C %s' % 
-                    (self.taxon_dir, self.taxon_dir))
-            except:
-                pass # already done
+        # Unzip the files
+        try:
+            execute('unpigz %s/gi_taxid_nucl.dmp.gz' % self.taxon_path)
+        except:
+            pass # alreaqdy done
+        try:
+            execute('tar xvfz %s/taxdump.tar.gz -C %s' %
+                (self.taxon_path, self.taxon_path))
+        except:
+            pass # already done
 
-    def download_dbs(self, dbs=[]):
+    def _download_dbs(self, dbs=[]):
         print("Downloading all Fasta files for %s" % dbs)
         # Download the DBs in it
         from .databases import ENADownload
         for db in dbs:
-            assert db in self.valid_dbs, "use dbs in %s" % self.valid_dbs
-            dbname, output_dir = self.enadb._metadata[db]
-            self.enadb.download_fasta(dbname, self.added_dir + os.sep + output_dir)
+            if db not in self.valid_dbs and os.path.exists(db) is False:
+                msg = "db must be a local file with a list of ENA or one of"
+                for this in self.enadb._metadata.keys():
+                    msg += " - %s" % this
+                raise ValueError(msg)
+            self.enadb.download_fasta(db, output_dir=self.fasta_path)
 
-    def build_kraken(self):
+    def _build_kraken(self):
         print('Building the kraken db ')
 
         cmd = """kraken-build  --rebuild -db %(dbname)s \
@@ -424,10 +538,158 @@ class KrakenBuilder():
         # again, kraken-build prints on stderr so we cannot use easydev.shellcmd
         execute(cmd)
 
+    def clean_db(self):
+        """Once called, you will not be able to append more FASTA files
+
+        """
+        # Now we can clean the kraken db:
+        print('Cleaning the kraken db ')
+        # Clean the nodes.dmp and names.dmp
+        print('Identifying the GI numbers') 
+        gis = self.get_gis()
+        taxons = self.get_taxons_from_gis(gis)
+        print("")
+
+        self.gis = gis
+        self.taxons = taxons
+
+        # This cleans the nodes.dmp and names.dmp. This must be done
+        # before kraken-build --clean since it requires the gi_taxid_nucl.dmp
+        # file
+        names_file = self.taxon_path + os.sep + "names.dmp"
+        nodes_file = self.taxon_path + os.sep + "nodes.dmp"
+        names_file_temp = self.taxon_path + os.sep + "names_temp.dmp"
+        nodes_file_temp = self.taxon_path + os.sep + "nodes_temp.dmp"
+ 
+        taxon_file_reader = NCBITaxonReader(names=names_file, nodes=nodes_file, 
+            verbose=True)
+        print("Filtering")
+        taxon_file_reader.filter_nodes_dmp_file(nodes_file, nodes_file_temp, 
+            taxons=taxons)
+        taxon_file_reader.filter_names_dmp_file(names_file, names_file_temp, 
+            taxons=taxons)
+
+        # mv the new files into the old ones
+        os.rename(names_file_temp, names_file)
+        os.rename(nodes_file_temp, nodes_file)
+
+        # Finally, the kraken cleaning itself
+        cmd = "kraken-build --clean --db %s" % self.params['dbname']
+        execute(cmd)
+
+    def get_gis(self, extensions=['fa']):
+        import glob
+        self.filenames = []
+        root = self.dbname
+        for extension in extensions:
+            self.filenames.extend( list(glob.iglob("%s/library/**/*%s" % 
+                (root, extension))))
+        for extension in extensions:
+            self.filenames.extend( list(glob.iglob("%s/library/**/**/*%s" % 
+                (root, extension))))
+
+        N = len(self.filenames)
+        pb = Progress(N)
+        gis = []
+        for i, filename in enumerate(self.filenames):
+            data = open(filename, "r")
+            line = data.readline()
+            if line.startswith('>'):
+                assert "gi" in line, "expected >gi to be found at the beginning"
+                gi = line[1:].split("|")[1]
+            else:
+                raise ValueError("This file %s does not seem to be a FASTA file" % filename)
+            gis.append(gi)
+            pb.animate(i+1)
+        print()
+        gis = [int(x) for x in gis]
+        self.gis = gis
+
+        assert len(gis) == len(self.filenames)
+        return gis
+
+    def get_taxons_from_gis(self, gis, filename="gi_taxid_nucl.dmp"):
+        filename = self.taxon_path + os.sep + filename
+        data = pd.read_csv(filename, chunksize=1000000, sep='\t',
+            header=None)
+        N = 560  # with time this number will be deprecated but good for now
+
+        local_gis = gis[:]
+        taxons = []
+        # we search for the unique gis. Once found, we remove them from the
+        # vector and keep going until the vector is empty or there is no more
+        # chunks. A good sanity check is that the final gis vector should be
+        # empty meaning all have been found. We do not care about the order
+        # of the final taxons vector as compare to the GI vector
+
+        print("Scanning %s to look for %s GI numbers" % (filename, len(gis)))
+        pb = Progress(N)
+        for i, chunk in enumerate(data):
+            chunk.set_index(0, inplace=True)
+            chunk = chunk.ix[local_gis].dropna()
+
+            found_gis = list(chunk.index)
+            found_gis = [int(x) for x in list(chunk.index)]
+            for this in found_gis:
+                _ = local_gis.remove(this)
+
+            if len(found_gis)>0:
+                taxons.extend(chunk[1].values) 
+
+            # no need to carry on if all GIs were found
+            if len(local_gis) == 0:
+                break
+            pb.animate(i+1)
+        print("")
+
+        # Some GIs may not be found if the taxon.dmp from NCBI is not synchrone
+        # with the FASTA list used in the build. In such case, we set to 32644
+        # (unidentified)
+        if len(local_gis) > 0:
+            print('Warning: those GIs were not found and set as undefined')
+            for this in local_gis:
+                print(this)
+            taxons += [32644] * len(local_gis)
+
+        taxons = [int(x) for x in taxons]
+        return taxons
+
+
+
+
 
 class KrakenTaxon(object):
-    def __init__(self, fastq, database, threads=4, output="krona.html"):
+    """Used by the standalone application sequana_taxonomy
 
+    This runs Kraken on a set of FastQ files, transform the results
+    in a format compatible for Krona, and creates a Krona HTML report.
+
+    ::
+
+        from sequana import KrakenTaxon
+        kt = KrakenTaxon(["R1.fastq.gz", "R2.fastq.gz"], database="krakendb")
+        kt.run()
+        kt.show()
+
+
+    .. seealso:: We provide a standalone application of this class, which is
+        called sequana_taxonomy and can be used within a command shell.
+
+    """
+    def __init__(self, fastq, database, threads=4, output="krona.html"):
+        """.. rubric:: Constructor
+
+        :param fastq: either a fastq filename or a list of 2 fastq filenames
+        :param database: the path to a valid Kraken database
+        :param threads: number of threads to be used by Kraken
+        :param output: output filename of the Krona HTML page
+
+        Description: internally, once Kraken has performed an analysis, reads
+        are associated to a taxon (or not). We then find the correponding
+        lineage and scientif names to store within a Krona formatted file.
+        KtImportTex is then used to create the Krona page.
+
+        """
         self.database = database
         self.threads = threads
         self.output = output
@@ -437,7 +699,7 @@ class KrakenTaxon(object):
             self.paired = False
             self.fastq = [fastq]
         elif isinstance(fastq, list):
-            if len(fastq) == 2: 
+            if len(fastq) == 2:
                 self.paired = True
             else:
                 self.paired = False
@@ -446,7 +708,7 @@ class KrakenTaxon(object):
             raise ValueError("Expected a fastq filename or list of 2 fastq filenames")
 
     def run(self):
-
+        """Run the analysis using Kraken and create the Krona output"""
         # We need two temp file
         kraken_summary = TempFile()
         kraken_output = TempFile()
@@ -462,11 +724,10 @@ class KrakenTaxon(object):
         if self.paired:
             params["file2"] = self.fastq[1]
 
-        command = "kraken -db %(database)s %(file1)s " 
+        command = "kraken -db %(database)s %(file1)s "
         if self.paired:
             command += " %(file2)s --paired"
-        command += " --threads %(thread)s --out %(kraken_output)s" 
-
+        command += " --threads %(thread)s --out %(kraken_output)s"
 
         command = command % params
         from snakemake import shell
@@ -474,9 +735,200 @@ class KrakenTaxon(object):
 
         # Translate kraken output to a format understood by Krona
         krona_summary = TempFile()
-        k = KrakenContaminant(kraken_output.name)
+        k = KrakenResults(kraken_output.name)
         k.kraken_to_krona(output_filename=kraken_summary.name)
 
         # Transform to Krona
         shell("ktImportText %s -o %s" % (kraken_summary.name, self.output))
+
+    def show(self):
+        """Opens the filename defined in the constructor"""
+        from easydev import onweb
+        onweb(self.output)
+
+
+
+class NCBITaxonReader(object):
+    """This class will help in reading, handling, simplifying NCBI taxon DB
+    used by Kraken
+
+    When downloading NCBI taxonomy DB using e.g. Kraken, we end up with very
+    large files. One is called names.dmp and the other nodes.dmp.
+
+    Yet, when we build a Kraken DB, we select a subset of fasta/species. It
+    would be convenient to be able to filter the names.dmp and nodes.dmp to reduce
+    the size of the final Kraken DB.
+
+    The names.dmp is just a CSV file. The header looks like::
+
+
+        1   |   all |       |   synonym |
+        1   |   root    |       |   scientific name |
+        2   |   Bacteria    |   Bacteria <prokaryote>   |   scientific name |
+        2   |   Monera  |   Monera <Bacteria>   |   in-part |
+        2   |   Procaryotae |   Procaryotae <Bacteria>  |   in-part |
+
+    It is a tabulated file. If we ignore the | signs, it contains 4 columns::
+
+        taxid
+        name
+        unique name
+        type of name
+
+    The *unique name* column is generally empty and is dropped internally.
+    There are different types of *name*, so there can be several rows for
+    a given *taxid*. For instance
+    for the taxon 1, there isa  *scientific name* and a **synonym**
+
+    The :attr:`df_name` is a dataframe that stores the taxid, name and type of
+    name in a dataframe.
+
+    The second file 'nodes.dmp') looks like::
+
+        1 | 1       | no rank |     | 8 | 0 | 1  | 0  | 0 | 0 | 0 | 0 |   |
+        2 | 131567  | superkingdom  |   | 0 | 0  | 11 | 0 | 0 | 0 | 0 | 0 | |
+        6 | 335928  | genus   |     | 0 | 1 | 11 | 1  | 0 | 1 | 0 | 0 |   |
+        7 | 6       | species | AC  | 0 | 1 | 11 | 1  | 0 | 1 | 1 | 0 |   |
+        9 | 32199   | species | BA  | 0 | 1 | 11 | 1  | 0 | 1 | 1 | 0 |   |
+
+    Again this is a tabulated file. The first three columns are taxid, parent taxid, 
+    and rank. Rank is species, genus, family, phylum, etc.
+
+    ::
+
+        gi = kraken.GetGIFromLibrary("../library/")
+        gis = gi.get_gis()
+        k = kraken.CreateGI_to_TaxonFile()
+        taxons = k.get_taxons_from_gis(gis)
+
+        kk = kraken.NCBITaxonReader()
+        kk.filter_nodes_dmp_file(taxons=taxons)
+        kk.filter_names_dmp_file(taxons=taxons)
+
+    """
+    def __init__(self, names="names.dmp", nodes="nodes.dmp", verbose=True):
+        if verbose:
+            print("Reading %s" %  names)
+        self.df_name = pd.read_csv(names, sep='\t', header=None)
+        self.df_name = self.df_name[[0,2,6]]
+        self.df_name.columns = ["taxon", "name", "scname"]
+
+        # This will provide a faster lookup table to search for scientific
+        # names given a taxon. We can drop rows that are not scientific names
+        # and set the taxons as index
+        _subdf = self.df_name.query("'scientific name' in scname")
+        self._subdf = _subdf.set_index("taxon")
+
+        # Here, this is for general purpose (slower it we were to use
+        # this for the get_scientic_name method
+        self._group_name = self.df_name.groupby('taxon').groups
+
+        if verbose:
+            print("Reading %s" %  nodes)
+        self.df_nodes = pd.read_csv(nodes, sep='\t', header=None)
+        self.df_nodes = self.df_nodes[[0,2,4,6,8,10,12,14,16,18,20,22,24]]
+        self.df_nodes.columns = ['taxon', 'parent_taxon', 'rank', 0,1,2,3,4,5,6,7,8,9]
+
+        self._df_nodes_taxon = self.df_nodes.copy()
+        self._df_nodes_taxon.set_index('taxon', inplace=True)
+
+
+    def get_number_taxon(self):
+        """Return number of unique taxon"""
+        return len(self.df_name['taxon'].unique())
+
+    def get_average_name_per_taxon(self):
+        """Return number of rows/names per node/taxon"""
+        return pylab.mean([len(values) for values in self._group_name.values()])
+
+    def get_scientific_name(self, taxon):
+        """Return scientific name of a given Taxon"""
+        # Takes 2 minutes to scan all taxons
+        return self._subdf.ix[taxon].values[0]
+
+    def get_taxon_from_scientific_name(self, scname):
+        """Return taxon corresponding to a scientific name
+
+        return: unique taxon or first one found. If none found, returns None
+        """
+        res = self.df_name.query("@scname in name")['taxon']
+        return res
+
+    def search(self, name):
+        """Search names colum"""
+        return self.df_name[self.df_name['name'].apply(lambda x : name in x)]
+
+    def get_family(self, taxon):
+        """Get all parent taxons"""
+        taxons = [1]
+        df = self._df_nodes_taxon
+        while True:
+            res = df.ix[taxon]
+            taxons.append(taxon)
+            taxon = res['parent_taxon']
+            # hopefully there is always a family link to 0 or 1
+            if len(res) == 0 or taxon in [0,1]:
+                break
+        return taxons
+
+    def filter_nodes_dmp_file(self, filename="nodes.dmp",
+            output="nodes_filtered.dmp", taxons=[]):
+        with open(filename, "r") as fin:
+            with open(output, "w") as fout:
+                for line in fin.readlines():
+                    if int(line.split("\t", 1)[0]) in taxons:
+                        fout.write(line)
+
+    def filter_names_dmp_file(self, filename="names.dmp",
+            output="names_filtered.dmp", taxons=[]):
+
+        all_taxons = set()
+        pb = Progress(len(taxons))
+        for i, taxon in enumerate(taxons):
+            parents = self.get_family(taxon)
+            all_taxons.update(parents)
+            pb.animate(i+1)
+        print("")
+        with open(filename, "r") as fin:
+            with open(output, "w") as fout:
+                for line in fin.readlines():
+                    if int(line.split("\t", 1)[0]) in all_taxons:
+                        fout.write(line)
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
