@@ -18,7 +18,9 @@ from .bedtools import Genomecov
 from .coverage import Coverage
 from .fastq import FastQ, FastQC, Identifier
 from .fasta import FastA
-from .kraken import KrakenResults, KrakenTaxon, KronaMerger, KrakenBuilder
+from .kraken_builder import KrakenBuilder
+from .krona import KronaMerger
+from .kraken import KrakenResults, KrakenPipeline
 from .phred import Quality
 from .vcf_filter import VCF
 
