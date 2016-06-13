@@ -31,7 +31,6 @@ def test_kraken_taxon():
 
 def _test_kraken_builder():
 
-
     k = KrakenBuilder(download_taxon=True)
     k.run(['viroids'])
 
