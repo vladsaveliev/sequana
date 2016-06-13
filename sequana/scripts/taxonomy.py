@@ -55,14 +55,14 @@ def main(args=None):
        options = user_options.parse_args(args[1:])
 
     # We put the import here to make the --help faster
-    from sequana import KrakenTaxon
+    from sequana import KrakenPipeline
 
     fastq = []
     if options.file1:
         fastq.append(options.file1)
     if options.file2:
         fastq.append(options.file2)
-    k = KrakenTaxon(fastq, options.database, threads=options.thread, 
+    k = KrakenPipeline(fastq, options.database, threads=options.thread, 
             output=options.output)
     k.run()
 
