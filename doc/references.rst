@@ -32,9 +32,17 @@ FASTQ module
     :members:
     :undoc-members:
 
-Taxonomy related
---------------------
+Taxonomy related (Kraken - Krona)
+------------------------------------
 .. automodule:: sequana.kraken
+    :members:
+    :undoc-members:
+
+.. automodule:: sequana.krona
+    :members:
+    :undoc-members:
+
+.. automodule:: sequana.kraken_builder
     :members:
     :undoc-members:
 
