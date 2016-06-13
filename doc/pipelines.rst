@@ -17,6 +17,8 @@ Quality
 
 .. include:: ../sequana/pipelines/quality/README.rst
 
+.. _quality_taxon:
+
 Quality Taxon
 =======================
 

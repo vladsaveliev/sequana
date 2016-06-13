@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -26,42 +26,20 @@ import ftplib
 import subprocess
 import sys
 import glob
-from easydev import execute, TempFile
+from easydev import execute, TempFile, Progress
 import pylab
-"""
 
 
-kraken-build --shrink 100000 --db viruses_only --new-db test2 --shrink-block-offset 1 --kmer-len 15 --minimizer-len 8
-
-The taxonomy files is still very large. One could filter it.
-
-
-"""
-
-class Krona(collections.Counter):
-    def __init__(self, filename):
-        super(Krona, self).__init__()
-        self.filename = filename
-        self._read()
-
-    def _read(self, filename=None):
-        if filename:
-            self.filename = filename
-        with open(self.filename, "r") as fin:
-            for line in fin.readlines():
-                count, name = line.split("\t", 1)
-                self[name] += count
-
-    def __add__(self, krona):
-        self+=krona
+__all__ = ['KrakenResults', "KrakenBuilder", 
+    "KrakenPipeline", "KrakenAnalysis"]
 
 
 
-class KrakenContaminant(object):
-    """
+class KrakenResults(object):
+    """Translate Kraken results into a Krona-compatible file
 
 
-    Run a kraken analysis. You will end up with a file e.g. kraken.out
+    If you run a kraken analysis, you will end up with a file e.g. kraken.out
 
     You could use kraken-translate but then you need extra parsing to convert
     into a Krona-compatible file. Here, we take the output from kraken and
@@ -69,11 +47,10 @@ class KrakenContaminant(object):
 
     ::
 
-        k = KrakenContamimant()
+        k = KrakenResults()
         k.kraken_to_krona()
 
     Then in a shell, ::
-
 
 
     """
@@ -83,38 +60,7 @@ class KrakenContaminant(object):
         self.verbose = verbose
         from biokit import Taxonomy
         self.tax = Taxonomy(verbose=self.verbose)
-
-    def _get_taxonomy_eutils(self, ids):
-        """
-
-        "param list ids: list of taxon identifiers from whih c we want to get
-            the lineage
-
-        This won't be used anymore since it requires internet connection, not
-        available on the IP cluster
-        """
-        if self.verbose:
-            print('Connecting to NCBI/EUtils')
-        e = EUtils()
-        if self.verbose:
-            print("Calling EFetch...")
-        res = e.EFetch("taxonomy", ids)
-        self.xml = easyXML(res)
-
-        # There is one lineage per taxon so we can use the findAll
-        lineage = [x.text for x in self.xml.findAll("lineage")]
-
-
-        # We now want to get the scientific name for each taxon. Note, however
-        # that there are several taxon children-tags within a taxon each having
-        # a scientific name, so we first use getchildren() to make sure to loop
-        # over a the children only
-        scnames = []
-        for taxon in self.xml.root.getchildren():
-            name = taxon.findall("ScientificName")[0].text
-            scnames.append(name)
-
-        return lineage, scnames
+        self._data_created = False
 
     def get_taxonomy_biokit(self, ids):
         if self.verbose:
@@ -202,6 +148,9 @@ class KrakenContaminant(object):
             output_filename = self.filename + ".summary"
         taxon_to_find = list(self.taxons.index)
 
+        if len(taxon_to_find) == 0:
+            print("No reads were identified. You will need a more complete database")
+            return
         # classified reads as root  (1)
         try:
             if self.verbose:
@@ -238,7 +187,8 @@ class KrakenContaminant(object):
             assert len(self.lineage) == len(self.taxons)
             assert len(self.scnames) == len(self.taxons)
 
-
+        # Now save the file
+        self.output_filename = output_filename
         with open(output_filename, "w") as fout:
             for i, this in enumerate(self.lineage):
                 index = self.taxons.index[i]
@@ -246,9 +196,16 @@ class KrakenContaminant(object):
                 line += " " +self.scnames[i]
                 fout.write(line+'\n')
             fout.write("%s\t%s" % (self.unclassified, "Unclassified"))
-
+        self._data_created = True
 
     def plot(self, kind="pie", cmap="copper", threshold=1, radius=0.7, **kargs):
+        """A simple non-interactive plot of taxons
+
+        A Krona Javascript output is also available in :meth:`kraken_to_krona`
+        """
+        if self._data_created == False:
+            self.kraken_to_krona()
+
         if kind not in ['barh', 'pie']:
             print('kind parameter: Only barh and pie are supported')
             return
@@ -269,7 +226,7 @@ class KrakenContaminant(object):
             data.sort(inplace=True)
 
         if kind == "pie":
-            ax = data.plot(kind=kind, cmap=cmap, autopct='%1.1f%%', 
+            ax = data.plot(kind=kind, cmap=cmap, autopct='%1.1f%%',
                 radius=0.7, **kargs)
             pylab.ylabel(" ")
             for text in ax.texts:
@@ -279,165 +236,111 @@ class KrakenContaminant(object):
             pylab.xlabel(" percentage ")
 
         return data
+        
+    def to_js(self, output="krona.html", onweb=False):
+        if self._data_created == False:
+            self.kraken_to_krona()
+        from easydev import execute
+        execute("ktImportText %s -o %s" % (self.output_filename, output))
+        if onweb is True:
+            import easydev
+            easydev.onweb(output)
 
 
-class KrakenBuilder():
-    """
 
 
+class KrakenPipeline(object):
+    """Used by the standalone application sequana_taxonomy
 
-    # For the viruses + subset of bacteria (salmonelle, ecoli and listeria) +
-    # plasmids, this command::
+    This runs Kraken on a set of FastQ files, transform the results
+    in a format compatible for Krona, and creates a Krona HTML report.
 
-        kraken-build  --rebuild -db test2 --minimizer-len 10 --max-db-size 4 --threads 4
-        --kmer-len 26 --jellyfish-hash-size 500000000
+    ::
 
-    takes about 12 minutes and generates a DB of 4.2 Gb
-
-    Downloading the taxonomy files takes about 10 minutes. This step can be
-    skipped and you may just copy/paste previous downloads
-
-    The downloads of FASTA files 
-
-
-    The construction of the DB (viruses only) takes about 30-60 seconds ::
-
-        from sequana.kraken import KrakenBuilder
-        k = KrakenBuilder(dbname="viruses")
-        k.download_taxonomy = True # This takes time depending on your connection
-        k.run(dbs=['virus'])
- 
-    The directly kraken_builder should now contain a database called viruses,
-    which can be used by kraken
+        from sequana import KrakenTaxon
+        kt = KrakenPipeline(["R1.fastq.gz", "R2.fastq.gz"], database="krakendb")
+        kt.run()
+        kt.show()
 
 
-    Kraken-build uses jellyfish. The **hash_size** parameter is the jellyfish
-    hash_size parameter. If you set it to 6400M, the memort reqquired it about
-    6.9bytes times 6400M that is 40Gb of memory. The default value used here
-    means 3.5Gb are required. 
-
-    The size to store the DB itself should be
-
-    :math:
-
-        sD + 8 (4^M)
-
-    where **s** is about 12 bytes (used to store a kmer/taxon pair, D is the
-    number of kmer in the final database, which cannot be estimated before 
-    hand, and M the length minimiser parameter.
+    .. seealso:: We provide a standalone application of this class, which is
+        called sequana_taxonomy and can be used within a command shell.
 
     """
-    def __init__(self, dbname, download_taxon=False):
-        # See databases.py module
-        self.dbname = dbname
-        self.enadb = ENADownload()
-        self.valid_dbs = self.enadb._metadata.keys()
-        self.download_taxon = download_taxon
+    def __init__(self, fastq, database, threads=4, output="krona.html"):
+        """.. rubric:: Constructor
 
-        # mini_kraken uses minimiser-length = 13, max_db =4, others=default so
-        # kmer-len=31 hashsize=default
-        self.params = {
-            "dbname": self.dbname,
-            "minimizer_len": 10,
-            "max_db_size": 4,
-            "threads": 4,
-            "kmer_length" : 26,
-            "hash_size" : 500000000
-        }
+        :param fastq: either a fastq filename or a list of 2 fastq filenames
+        :param database: the path to a valid Kraken database
+        :param threads: number of threads to be used by Kraken
+        :param output: output filename of the Krona HTML page
 
-        self.init()
-
-    def init(self):
-        # mkdir library
-        self._devtools = DevTools()
-        self._devtools.mkdir(self.dbname)
-        self._devtools.mkdir(self.dbname + os.sep + "library")
-        self.added_dir = self.dbname + os.sep + "library" + os.sep + "added"
-        self._devtools.mkdir(self.added_dir)
-        self.taxon_dir = self.dbname + os.sep + "taxonomy" 
-        self._devtools.mkdir(self.taxon_dir)
-
-    def run(self, dbs=[]):
-        """Create the Custom Kraken DB
-
-        #. download taxonomy files
-        #. Load the DBs (e.g. virus)
-        #. Build DB with kraken-build
+        Description: internally, once Kraken has performed an analysis, reads
+        are associated to a taxon (or not). We then find the correponding
+        lineage and scientif names to store within a Krona formatted file.
+        KtImportTex is then used to create the Krona page.
 
         """
-        if self.download_taxon: 
-            self.download_taxonomy()
-        else:
-            # search for taxon file. If not found, error
+        self.ka = KrakenAnalysis(fastq, database, threads)
+        self.output = output
 
-            required = self.taxon_dir + os.sep + "gi_taxid_nucl.dmp" 
+    def run(self, keep_temporary_files=False):
+        """Run the analysis using Kraken and create the Krona output"""
 
-            if required not  in glob.glob(self.taxon_dir + os.sep + "*"):
-                raise IOError("Taxon file not found. Please set download_taxon to True")
+        # Run Kraken
+        self.ka.run()
 
-        self.download_dbs(dbs)
-        self.build_kraken()
+        # Translate kraken output to a format understood by Krona
+        kraken_summary = TempFile()
+        kr = KrakenResults(self.ka.kraken_output.name)
+        kr.kraken_to_krona(output_filename=kraken_summary.name)
 
-    def download_taxonomy(self):
-        # download taxonomy
-        print('Downloading taxonomy files. Takes a while depending on your connection')
-        if self.download_taxonomy:
-            # We could use kraken-build --download-taxonomy + a subprocess but
-            # even simpler to get the file via ftp
-            FTP = "ftp.ncbi.nih.gov" 
-            execute("wget %s/pub/taxonomy/gi_taxid_nucl.dmp.gz --directory-prefix %s"
-                % (FTP, self.taxon_dir))
+        # Transform to Krona
+        from snakemake import shell
+        shell("ktImportText %s -o %s" % (kraken_summary.name, self.output))
 
-            execute("wget %s/pub/taxonomy/taxdump.tar.gz --directory-prefix %s"
-                % (FTP, self.taxon_dir))
+        print(self.ka.kraken_output.name)
+        print(kraken_summary.name)
+        #if keep_temporary_files is False:
+        #    self.ka.kraken_output.delete()
+        #    kraken_summary.delete()
 
-            # Unzip the files
-            try:
-                execute('unpigz %s/gi_taxid_nucl.dmp.gz' % self.taxon_dir)
-            except:
-                pass # alreaqdy done
-            try:
-                execute('tar xvfz %s/taxdump.tar.gz -C %s' % 
-                    (self.taxon_dir, self.taxon_dir))
-            except:
-                pass # already done
-
-    def download_dbs(self, dbs=[]):
-        print("Downloading all Fasta files for %s" % dbs)
-        # Download the DBs in it
-        from .databases import ENADownload
-        for db in dbs:
-            assert db in self.valid_dbs, "use dbs in %s" % self.valid_dbs
-            dbname, output_dir = self.enadb._metadata[db]
-            self.enadb.download_fasta(dbname, self.added_dir + os.sep + output_dir)
-
-    def build_kraken(self):
-        print('Building the kraken db ')
-
-        cmd = """kraken-build  --rebuild -db %(dbname)s \
-            --minimizer-len %(minimizer_len)s\
-            --max-db-size %(max_db_size)s \
-            --threads %(threads)s\
-            --kmer-len %(kmer_length)s \
-            --jellyfish-hash-size %(hash_size)s""" % self.params
-
-        # again, kraken-build prints on stderr so we cannot use easydev.shellcmd
-        execute(cmd)
+    def show(self):
+        """Opens the filename defined in the constructor"""
+        from easydev import onweb
+        onweb(self.output)
 
 
-class KrakenTaxon(object):
-    def __init__(self, fastq, database, threads=4, output="krona.html"):
+class KrakenAnalysis(object):
+    """Run kraken on a set of FastQ files
+
+
+        ka = KrakenAnalysis("R1.fastq.gz", database="krakendb")
+
+    """
+    def __init__(self, fastq, database, threads=4 ):
+        """.. rubric:: Constructor
+
+        :param fastq: either a fastq filename or a list of 2 fastq filenames
+        :param database: the path to a valid Kraken database
+        :param threads: number of threads to be used by Kraken
+        :param output: output filename of the Krona HTML page
+
+        :param return:
+
+        """
+        self._devtools = DevTools()
+        self._devtools.check_exists(database)
 
         self.database = database
         self.threads = threads
-        self.output = output
 
         # Fastq input
         if isinstance(fastq, str):
             self.paired = False
             self.fastq = [fastq]
         elif isinstance(fastq, list):
-            if len(fastq) == 2: 
+            if len(fastq) == 2:
                 self.paired = True
             else:
                 self.paired = False
@@ -445,38 +348,30 @@ class KrakenTaxon(object):
         else:
             raise ValueError("Expected a fastq filename or list of 2 fastq filenames")
 
-    def run(self):
+        for this in self.fastq:
+            self._devtools.check_exists(database)
 
-        # We need two temp file
-        kraken_summary = TempFile()
-        kraken_output = TempFile()
+    def run(self):
+        self.kraken_output = TempFile()
 
         params = {
             "database": self.database,
             "thread": self.threads,
             "file1": self.fastq[0],
-            "kraken_output": kraken_output.name,
-            "kraken_summary": kraken_summary.name
+            "kraken_output": self.kraken_output.name,
             }
 
         if self.paired:
             params["file2"] = self.fastq[1]
 
-        command = "kraken -db %(database)s %(file1)s " 
+        command = "kraken -db %(database)s %(file1)s "
         if self.paired:
             command += " %(file2)s --paired"
-        command += " --threads %(thread)s --out %(kraken_output)s" 
-
+        command += " --threads %(thread)s --out %(kraken_output)s"
 
         command = command % params
+        # Somehow there is an error using easydev.execute with pigz
         from snakemake import shell
         shell(command)
 
-        # Translate kraken output to a format understood by Krona
-        krona_summary = TempFile()
-        k = KrakenContaminant(kraken_output.name)
-        k.kraken_to_krona(output_filename=kraken_summary.name)
-
-        # Transform to Krona
-        shell("ktImportText %s -o %s" % (kraken_summary.name, self.output))
 
