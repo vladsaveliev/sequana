@@ -36,6 +36,9 @@ Issues: http://github.com/sequana/sequana
             help="""Kraken DB """, default="krona.html")
         self.add_argument("--thread", dest="thread", type=int,
             help="""number of threads to use """, default=4)
+        self.add_argument("--show-html", dest="html", 
+            action="store_true", 
+            help="""number of threads to use """, default=4)
 
 
 def main(args=None):
@@ -63,6 +66,8 @@ def main(args=None):
             output=options.output)
     k.run()
 
+    if options.html is True:
+        k.show()
 
 if __name__ == "__main__":
    import sys
