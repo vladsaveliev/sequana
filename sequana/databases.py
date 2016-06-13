@@ -33,6 +33,7 @@ except:
 
 from bioservices import EUtils, ENA
 from easydev import AttrDict
+from easydev import execute
 
 
 class EUtilsTools(object):
@@ -81,8 +82,6 @@ class EUtilsTools(object):
         return records
 
 
-
-
 class ENADownload(object):
     """
 
@@ -109,11 +108,12 @@ class ENADownload(object):
         }
 
     def download_list(self):
-        from easydev import execute
         for key, values in self._metadata.items():
-            execute("wget http://www.ebi.ac.uk/genomes/%s" % values[0])
+            execute("wget -q -t 3 http://www.ebi.ac.uk/genomes/%s -O %s"  
+                % (values[0], values[0]))
 
     def ena_id_to_gi_number(self, identifiers):
+
         # Now, let us convert the ENA accession to NCBI GI number once for all.
         # We can fetch only at max 200 identifiers:
         print("Fetching %s identifiers from NCBI" % len(identifiers))
@@ -137,7 +137,7 @@ class ENADownload(object):
             should not happen if the list is properly defined. 
         """
         from bioservices import ENA
-        if filelist.endswith(".txt") and from_ena is True:
+        if filelist.endswith(".txt") and os.path.exists(filelist) is False:
             print("Downloading list from http://www.ebi.ac.uk/genomes/%s" % filelist)
             data = urlopen("http://www.ebi.ac.uk/genomes/%s" % filelist).readlines()
             identifiers = [x.strip().decode() for x in data]
@@ -147,6 +147,11 @@ class ENADownload(object):
                 "CM001285", "CM001286", "CM001287", "CM001288", "CM001289", 
                 "CM001290", "CM001291","CM001292",  "CM001293", "CM001294", 
                 "CM001295", "CM001296"]
+        elif isinstance(filelist, str) and filelist in self._metadata.keys():
+            name = self._metadata[filelist][0]
+            print("Downloading list from http://www.ebi.ac.uk/genomes/%s" % name)
+            data = urlopen("http://www.ebi.ac.uk/genomes/%s" % name).readlines()
+            identifiers = [x.strip().decode() for x in data]
         elif isinstance(filelist, list):
             pass
         elif isinstance(filelist, str):
@@ -183,21 +188,30 @@ class ENADownload(object):
                 continue
 
             # download data from ENA
-            # http://www.ebi.ac.uk/ena/data/view/CM001276&display=fasta&download=fasta&filename=CM001276.fasta
             data = ena.get_data(identifier, "fasta")
 
             # Split header and Fasta
             header, others = data.decode().split("\n", 1)
 
+            # Source of failure:
+            # - list and DB are not synchrone: e.g. some entries may be deleted
+            if "suppressed" in header:
+                continue
+            if ">" not in header:
+                continue
 
-            # Here, we will fetch info from NCBI every time. This is a pity but
-            # no choice for now
+            # Do not use try/except since when it fails, this is a real issue
             name  = header.strip(">").split(" ")[0]
             db, id_, acc = name.split("|")
-            header = self.switch_header_to_gi(acc)
-            # HEre we could have a try/except but better to fails since it
-            # indicates in general that something is wrong e.g. unknown
-            # identifier
+
+            try:
+                header = self.switch_header_to_gi(acc)
+            except:
+                print("Failed for this entry") 
+                print(identifier)
+                print(header)
+                print(name)
+                continue
 
             # Save to local file
             # WARNINGS: extension is .fa because kraken-build expects .fa files
@@ -212,10 +226,28 @@ class ENADownload(object):
     def switch_header_to_gi(self, acc):
         """Kraken will only accept the GI from NCBI so we need to convert
         the ENA accession to GI numbers"""
-        try:
+
+        # Accession may have a version .1, .2 hence this try/except first
+        # without the version and then with the version. 
+        # Note also that some accession are different from an earlier version. 
+        # For instance, AF525933 is in the virus.txt list from ENA but
+        # the new updated accession ois AH012103 showing that the list and DB
+        # must not be fully synchronised.
+        # http://www.ebi.ac.uk/ena/data/search?query=AF525933
+        # In such case, the results attribute will be missing that accession,
+        # which needs to be searched for specifically. We cannot now its name
+        # before downloading the fasta.
+        if acc in self.results.keys():
             res = self.results[acc]
-        except:
-            res = self.results[acc.split(".")[0]]
+        else:
+            try:
+                res = self.results[acc.split(".")[0]]
+            except:
+                print("\nUnknown accession (%s). May be an updated version. Checking..." % acc)
+                res = self.ena_id_to_gi_number([acc])
+                self.results.update(res)
+                res = res[acc]
+                print('ok')
         return ">"+res['identifier']+" " + res['comment']
 
     def download_viroid(self):
@@ -250,6 +282,7 @@ class ENADownload(object):
         """
         self.download_fasta("bacteria.txt", "Bacteria")
 
-    def download_accession(self, acc):
-        self.download_fasta(acc, "Custom")
+    def download_accession(self, acc, output="Custom"):
+        """Download a specific FASTA file fiven its ENA accession number """
+        self.download_fasta(acc, output)
 
