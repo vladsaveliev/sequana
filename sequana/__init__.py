@@ -22,6 +22,7 @@ from .kraken_builder import KrakenBuilder
 from .krona import KronaMerger
 from .kraken import KrakenResults, KrakenPipeline, KrakenAnalysis
 from .phred import Quality
+from .snpeff import SnpEff
 from .vcf_filter import VCF
 
 # Reports
