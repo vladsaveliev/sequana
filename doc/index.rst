@@ -82,8 +82,8 @@ Quick start example: the quality pipeline
 The following example will show how to run the quality control on a pair of FastQ files.
 The data comes from a sequencing (using HiSeq technology) of a
 Measles virus. For testing purposes, you can download :download:`R1
-<../sequana/resources/testing/Hm2_GTGAAA_L005_R1_001.fastq.gz>` and
-:download:`R2 <../sequana/resources/testing/Hm2_GTGAAA_L005_R2_001.fastq.gz>`)
+<../sequana/resources/datag/Hm2_GTGAAA_L005_R1_001.fastq.gz>` and
+:download:`R2 <../sequana/resources/data/Hm2_GTGAAA_L005_R2_001.fastq.gz>`)
 files that contain only 1500 reads. Copy them in a local directory. 
 
 First, run the sequana standalone application to initialise the pipeline

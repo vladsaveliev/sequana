@@ -9,8 +9,8 @@ reproduce the quality pipeline here below.
 The following example will show how to run the quality control on a pair of
 FastQ files. The data comes from a sequencing (using HiSeq technology) of a
 Measles virus. For testing purposes, you can download :download:`R1
-<../sequana/resources/testing/Hm2_GTGAAA_L005_R1_001.fastq.gz>` and
-:download:`R2 <../sequana/resources/testing/Hm2_GTGAAA_L005_R2_001.fastq.gz>`)
+<../sequana/resources/data/Hm2_GTGAAA_L005_R1_001.fastq.gz>` and
+:download:`R2 <../sequana/resources/data/Hm2_GTGAAA_L005_R2_001.fastq.gz>`)
 files that contain only 1500 reads. Copy them in a local directory. 
 
 
@@ -23,7 +23,16 @@ Quality pipeline
 Taxonomy
 -------------------------------
 
-.. todo:: WIP
+Download a toy kraken database designed for this problem (contains only 100
+FASTA files mixing measles viruses and others viruses)
+
+Then, you may use a Sequana pipeline or this standalone application::
+
+    sequana_taxonomy  --file1 Test_R1.cutadapt.fastq.gz --file2 Test_R2.cutadapt.fastq.gz --database
+        kraken_toydb/
+
+Open the local HTML file krona.html. An example is available 
+in  `Krona example <_static/krona.html>`_
 
 
 Variant calling
@@ -71,7 +80,8 @@ We will also get the FASTA from ENA::
         fout.write(data.decode())
 
 Get a snpEff config file and update it 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~é
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Then you need to initialise a config file for snpEff tool::
 
     from sequana import vcf_to_snpeff
@@ -96,5 +106,8 @@ and bwa_ref section::
 
 Run the pipeline
 ~~~~~~~~~~~~~~~~~~~~
+
+
+::
 
     snakemake -s Snakefile --stats stats.txt -p -j 4 --forceall
