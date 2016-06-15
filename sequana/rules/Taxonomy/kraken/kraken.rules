@@ -38,8 +38,8 @@ rule kraken_translate:
     output:
         summary=__kraken__outdir + "kraken.out.summary",
     run:
-        from sequana.kraken import KrakenContaminant
-        k = KrakenContaminant(input[0])
+        from sequana.kraken import KrakenResults
+        k = KrakenResults(input[0])
         k.kraken_to_krona(output_filename=output.summary)
 
 
