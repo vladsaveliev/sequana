@@ -12,8 +12,8 @@ rule snpeff:
     params:
         genome = config["snpeff"]["reference"]
     run:
-        from sequana import vcf_to_snpeff
+        from sequana import SnpEff
 
-        mydata = vcf_to_snpeff.VCFToSnpeff(reference=params.genome, 
+        mydata = SnpEff(reference=params.genome, 
             stdout=log.build_out, stderr=log.build_err)
         mydata.launch_snpeff(input.vcf, output.ann, log.launch)
