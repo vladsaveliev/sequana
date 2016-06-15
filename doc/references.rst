@@ -7,6 +7,12 @@ References
 .. contents::
 
 
+Adapters
+---------------
+.. automodule:: sequana.adapters
+    :members:
+    :undoc-members:
+
 
 BAMTOOLs related
 --------------------
