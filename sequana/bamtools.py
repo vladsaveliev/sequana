@@ -25,8 +25,8 @@
     SAMFlags
 
 .. note:: BAM being the compressed version of SAM files, we do not
-    implement any function to read SAM files. We strongly encourage
-    developers to convert their SAM to BAM
+    implement any functionalities related to SAM files. We strongly encourage
+    developers to convert their SAM to BAM.
 
 """
 import os
@@ -50,6 +50,8 @@ Interesting commands::
 """
 
 
+__all__ = ['BAM','Alignment', 'SAMFlags'] 
+
 # simple decorator ro rewind the BAM file
 from functools import wraps
 def seek(f):
@@ -71,8 +73,10 @@ class BAM(pysam.AlignmentFile):
     This BAM class can also read a SAM file but some functionalities will not
     work. Besides, you need to create new instances each time a method is
     called. This is inherent to pysam implementation. Python2.7 and 3.5 also
-    behave differently and we would recommend the py35 version. For instance,
-    :meth:`to_fastq` would work only for that version;
+    behave differently and we would recommend the Python 3.5 version. For instance,
+    :meth:`to_fastq` would work only with Python 3.5.
+
+    We provide a test file in Sequana to create a BAM instance:
 
     .. doctest::
 
@@ -88,7 +92,6 @@ class BAM(pysam.AlignmentFile):
         So if you want to call an iterator yourself you must use the
         :meth:`reset` method yourself. In particular, if you want to use the
         next() funtion.
-
 
 
     """
@@ -156,7 +159,6 @@ class BAM(pysam.AlignmentFile):
 
     def __len__(self):
         return self.N
-        
 
     @seek
     def get_flags(self):
@@ -198,15 +200,27 @@ class BAM(pysam.AlignmentFile):
         0 + 0 with mate mapped to a different chr (mapQ>=5)
         """
         d = {}
-        d['total_reads'] = len(list(self.iter_unmapped_reads()))
-        d['mapped_reads'] = len(list(self.iter_mapped_reads()))
-        d['unmapped_reads'] = len(list(self.iter_unmapped_reads()))
-        d['contamination [%]'] = float(d['mapped_reads']) /float(d['unmapped_reads'])
+
+        N1 = len(list(self.iter_unmapped_reads()))
+        N2 = len(list(self.iter_mapped_reads()))
+
+        d['total_reads'] = N1 + N2 
+        d['mapped_reads'] = N2 
+        d['unmapped_reads'] = N1 
+        d['contamination [%]'] = float(d['mapped_reads']) / float(N1+N2)
         d['contamination [%]'] *= 100
         return d
 
     def get_full_stats_as_df(self):
         """Return a dictionary with full stats about the BAM file
+
+        ::
+        
+            >>> from sequana import BAM, sequana_data
+            >>> b = BAM(sequana_data("test.bam", "testing"))
+            >>> df = b.get_full_stats_as_df()
+            >>> df.query("description=='average quality'")
+            36.9
 
         .. note:: uses samtools behind the scene
         """
@@ -270,7 +284,7 @@ class BAM(pysam.AlignmentFile):
         return df
 
     def plot_bar_flags(self, logy=True, fontsize=16, filename=None):
-        """
+        """Plot an histogram of the flags contained in the BAM
 
         .. plot::
             :include-source:
@@ -279,7 +293,7 @@ class BAM(pysam.AlignmentFile):
             b = BAM(sequana_data('test.bam', "testing"))
             b.plot_bar_flags()
 
-
+        .. seealso:: :class:`SAMFlags` for meaning of each flag
         """
         df = self.get_flags_as_df()
         df = df.sum()
@@ -329,7 +343,8 @@ class BAM(pysam.AlignmentFile):
 
         """
         df = self.get_mapq_as_df()
-        df.plot(kind='hist', bins=60, legend=False, grid=True, logy=True)
+        df.plot(kind='hist', bins=range(0,df.max().values[0]+1), legend=False, 
+            grid=True, logy=True)
         pylab.xlabel("MAPQ", fontsize=fontsize)
         try:
             # This may raise issue on MAC platforms
@@ -377,9 +392,6 @@ class Alignment(object):
     * TLEN: signed observed template length
     * SEQ: segment sequence
     * QUAL: ascii of base quality
-
-    .. note:: A segment is a contiguous sequence. A read is a sequence that
-        may consist of multiple segments.
 
 
     """
