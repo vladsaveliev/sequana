@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -27,27 +27,33 @@ from biokit.stats import mixture
 from sequana import running_median
 
 
-
-
 class Genomecov(object):
     """Create a dataframe of BED file provided by bedtools genomecov (-d)
 
 
-    :Example::
+    Example:
 
-        from sequana import Genomecov
-        gencov = Genomecov('exemple.bed')
+    .. plot::
+        :include-source:
+
+        from sequana import Genomecov, sequana_data
+        filename = sequana_data("test_bedcov.bed", "testing")
+
+        gencov = Genomecov(filename)
         gencov.running_median(n=1001 )
         gencov.coverage_scaling()
         gencov.compute_zscore()
         gencov.plot_coverage()
+
+    Results are stored in a dataframe named :attr:`df`.
 
     """
     def __init__(self, input_filename=None):
         """.. rubric:: constructor
 
         :param str input_filename: the input data with results of a bedtools
-            genomecov run.
+            genomecov run. This is just a 3-column file. The first column is a
+            string, second column is the base postion and third is the coverage.
 
         """
         try:
@@ -68,7 +74,7 @@ class Genomecov(object):
         :param n: window's size.
 
         Store the results in the :attr:`df` attribute (dataframe) with a
-        column called *ma*.
+        column named *ma*.
 
         """
         ret = np.cumsum(np.array(self.df["cov"]), dtype=float)
@@ -86,7 +92,7 @@ class Genomecov(object):
             whole genome sequencing), set to True
 
         Store the results in the :attr:`df` attribute (dataframe) with a
-        column called *rm*.
+        column named *rm*.
 
         """
         mid = int(n / 2)# in py2/py3 the division (integer or not) has no impact
@@ -105,7 +111,7 @@ class Genomecov(object):
         """Normalize data with moving average of coverage
 
         Store the results in the :attr:`df` attribute (dataframe) with a
-        column called *scale*.
+        column named *scale*.
 
         .. note:: Needs to call :meth:`running_median`
         """
@@ -130,21 +136,21 @@ class Genomecov(object):
 
         :param k: Number gaussian predicted in mixture (default = 2)
         :param step: (default = 10)
-        
+
         .. note:: needs to call :meth:`coverage_scaling` before hand.
 
         """
         try:
-            mf = mixture.GaussianMixtureFitting(
+            self.mixture_fitting = mixture.GaussianMixtureFitting(
                     self.df["scale"].dropna()[::step],k=k)
         except KeyError:
             print("Column 'scale' is missing in data frame.\n"
                   "You must scale your data with coverage_scaling\n\n",
                   self.__doc__)
             return
-        mf.estimate()
-        self.gaussians = mf.results
-        self.best_gaussian = self._get_best_gaussian(mf.results)
+        self.mixture_fitting.estimate()
+        self.gaussians = self.mixture_fitting.results
+        self.best_gaussian = self._get_best_gaussian(self.mixture_fitting.results)
         self.df["zscore"] = (self.df["scale"] - self.best_gaussian["mu"]) / \
             self.best_gaussian["sigma"]
 
@@ -185,7 +191,7 @@ class Genomecov(object):
         """ Plot coverage as a function of base position.
 
         In addition, the running median and coverage confidence corrsponding to
-        the lower and upper  zscore thresholds 
+        the lower and upper  zscore thresholds
 
         """
         high_zcov = (high_threshold * self.best_gaussian["sigma"] +
@@ -245,7 +251,7 @@ class Genomecov(object):
 
 
 class FilteredGenomecov(object):
-    """Class used within :class:`Genomecov` to select a subset of the original Genomecov 
+    """Class used within :class:`Genomecov` to select a subset of the original Genomecov
 
     :target: developers only
     """
@@ -253,7 +259,7 @@ class FilteredGenomecov(object):
         """ .. rubric:: constructor
 
         :param df: dataframe with filtered position used within
-            :class:`Genomecov`. Must contain the following columns: 
+            :class:`Genomecov`. Must contain the following columns:
             ["pos", "cov", "rm", "zscore"]
 
         """
