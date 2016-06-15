@@ -74,6 +74,7 @@ can use only one::
     functionalities would work under Python 2.7 
 
 
+.. _quick_start:
 
 Quick start example: the quality pipeline
 #############################################
@@ -118,6 +119,7 @@ User guide and reference
     :maxdepth: 2
 
     userguide
+    tutorial
     pipelines
     auto_examples/index
     developers
