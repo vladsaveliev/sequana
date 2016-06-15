@@ -3,6 +3,20 @@ Changelog
 
 .. contents::
 
+0.1.6 June 2016
+-----------------
+
+* CHANGES:
+
+  - module vcf_to_snpeff renamed as snpeff
+  - lots of doc added
+  - clean adapters module
+
+* BUG:
+
+  - Fix bug in running median (shift)
+
+
 0.1.5 June 2016
 --------------------
 
