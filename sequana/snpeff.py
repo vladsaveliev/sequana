@@ -26,15 +26,12 @@ import sys
 import os
 import shutil
 from sequana.resources import snpeff
-from sequana import sequana_data
 
-# Global -----------------------------------------------------------------------
 
-CONFIG = sequana_data("snpeff/snpEff.config.gz")
 
 # Class ------------------------------------------------------------------------
 
-class VCFToSnpeff(object):
+class SnpEff(object):
     """ Python wrapper to launch snpEff.
 
     """
@@ -96,6 +93,8 @@ class VCFToSnpeff(object):
         return False
     
     def _get_snpeff_config(self):
+        from sequana import sequana_data
+        CONFIG = sequana_data("snpeff/snpEff.config.gz")
         shutil.copyfile(CONFIG, "./snpEff.config.gz")
         gunzip_proc = sp.Popen(["gunzip", "snpEff.config.gz"])
         gunzip_proc.wait()

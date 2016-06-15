@@ -97,8 +97,9 @@ class Genomecov(object):
             self.df["rm"] = pd.Series(rm)
         else:
             rm = running_median.RunningMedian(self.df["cov"], n).run()
-            self.df["rm"] = pd.Series(rm, index=np.arange(start=mid,
-                stop=(len(rm) + mid)))
+            self.df["rm"] = pd.Series(rm)
+            #, index=np.arange(start=mid,
+            #    stop=(len(rm) + mid)))
 
     def coverage_scaling(self):
         """Normalize data with moving average of coverage

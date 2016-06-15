@@ -24,6 +24,9 @@ Quality Taxon
 
 .. include:: ../sequana/pipelines/quality_taxon/README.rst
 
+
+.. _pipeline_variant_calling:
+
 Variant Calling
 =================
 
