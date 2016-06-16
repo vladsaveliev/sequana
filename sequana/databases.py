@@ -16,8 +16,8 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-"""
-http://www.ebi.ac.uk/genomes/archaea.html
+"""Utilities to access to online FASTA, taxon, lineage ...
+
 
 """
 import os
@@ -37,11 +37,27 @@ from easydev import execute
 
 
 class EUtilsTools(object):
+    """Simple wrapper around EUtils to fetch basic informatino about an accession number
 
+
+
+    ::
+
+        >>> from sequana.databases import EUtilsTools
+        >>> et.accession_to_info("K01711.1")
+        {'K01711.1': {'accession': '331784',
+          'comment': 'Measles virus (strain Edmonston), complete genome',
+          'gi': '331784',
+          'identifier': 'gi|331784|gb|K01711.1|MEANPCG[331784]',
+          'taxid': '11234'}}
+
+
+    """
     def __init__(self):
         self.eutils = EUtils()
 
     def accession_to_info(self, ids):
+        """An accession or list of them returns list of dictionaries"""
         res = self.eutils.EFetch(db="nuccore",id=ids,
                 rettype="docsum", retmode="dict")
 
@@ -83,13 +99,22 @@ class EUtilsTools(object):
 
 
 class ENADownload(object):
-    """
+    """Downloader to retrieve genome fasta files from ENA amongst other things
 
-    Downloader facility to retrieve genome fasta files from ENA
+    In order to facilitate the download of FASTA files (e.g. to build a Kraken
+    DB), this class can be used to download a bunch of FASTA files, or just one
+    given its accession. 
 
+    Pre-defined lists are available from ENA. We refer to them as *virus*,
+    *plasmid*, *phage*, *archaealvirus*, *archaea*, *bacteria*, *organelle*,
+    *viroid*. In addition we have predefined lists within Sequana. For now,
+    there is one named macaca_fascicularis.
 
+    .. warning:: the header of the FASTA files are changed to add the GI number
+        instead of embl.
     """
     def __init__(self):
+        """..rubric:: constructor"""
         self.convert_enaacc_to_gi = True
         self.eutils = EUtilsTools()
 
@@ -108,6 +133,7 @@ class ENADownload(object):
         }
 
     def download_list(self):
+        """Download all standard lists of accession numbers from ENA"""
         for key, values in self._metadata.items():
             execute("wget -q -t 3 http://www.ebi.ac.uk/genomes/%s -O %s"  
                 % (values[0], values[0]))
@@ -126,11 +152,10 @@ class ENADownload(object):
         return results
 
     def download_fasta(self, filelist, output_dir=None, from_ena=True):
-        """
+        """Download a FASTA (or list of)
 
         :param filelist: a name to find on the ENA web server OR the
             name of an accession number.
-
 
         .. warning:: The filename is named after the accession without .X number
             If there are several variant .1, .2 the later will be used. This
@@ -277,12 +302,12 @@ class ENADownload(object):
     def download_bacteria(self):
         """ organisms (may 2016)
 
-        THis is the longest and takes about 20mins on a very good connection
-        couple of hours otherwise.
+        .. note:: this download method is the longest to end. It took about 20mins on 
+            a good connection.
         """
         self.download_fasta("bacteria.txt", "Bacteria")
 
     def download_accession(self, acc, output="Custom"):
-        """Download a specific FASTA file fiven its ENA accession number """
+        """Download a specific FASTA file given its ENA accession number """
         self.download_fasta(acc, output)
 
