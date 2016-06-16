@@ -6,16 +6,16 @@ __all__ = ["Coverage"]
 
 
 class Coverage(object):
-    r"""Utilities related to sequencing coverage
+    r"""Utilities related to depth of coverage (DOC)
 
-    We denote :math:`G` the genome length in nucleotides, :math:`L` the read
+    We denote :math:`G` the genome length in nucleotides and :math:`L` the read
     length in nucleotides. These two numbers are in principle well defined since
     :math:`G` is defined by biology and :math:`L` by the sequencing machine.
 
     The total number of reads sequenced during an experiment is denoted
     :math:`N`. Therefore the total number of nucleotides is simply :math:`NL`.
 
-    The coverage is then defined as :
+    The depth of coverage (coverage hereafter) is defined as :
 
     .. math:: a = NL/G
 
@@ -24,7 +24,7 @@ class Coverage(object):
 
     In the :class:`Coverage` class, :math:`G` and :math:`N` are fixed at 
     the beginning. Then, if one changes :math:`a`, then :math:`N` is updated and
-    vice-versa so that the relation :math:`a=NL/G` is up-to-date::
+    vice-versa so that the relation :math:`a=NL/G` is always true::
 
         >>> cover = Coverage(G=1000000, L=100)
         >>> cover.N = 100000    # number of reads
@@ -41,11 +41,10 @@ class Coverage(object):
     (except the last position L-1). So in a genome :math:`G` with :math:`n_c`
     chromosomes, there are :math:`G - n_c (L-1)` possible starting positions.
     In general  :math:`G >> n_c (L-1)` so the probability that one of the
-    :math:`N` read starts at any specific nucleotide is therefore :math:`N/G`.
-
+    :math:`N` read starts at any specific nucleotide is :math:`N/G`.
 
     The probability that a read (of length :math:`L`) covers a given 
-    position :math:`L/G`. The probability of **not** covering that location 
+    position is :math:`L/G`. The probability of **not** covering that location 
     is :math:`1-L/G`. For :math:`N` fragments, we obtain the probability
     :math:`\left(1-L/G\right)^N`. So, the probability of covering a given
     location with at least one read is :
@@ -61,12 +60,16 @@ class Coverage(object):
 
     .. math:: a = log(-1/(E-1)
 
+    .. indeed e^x = lim (1+x/N)^N when N goes to infinite so for x -> -x.N
+        e^-Nx = lim (1-x)^N when N goes to infinite
+
     equivalent to
 
     .. math:: a = -log(1-E)
 
     The method :meth:`get_required_coverage` uses this equation. However, for
     numerical reason, one should not provide :math:`E` as an argument but (1-E). 
+    See :meth:`get_required_coverage`
 
     Other information can also be derived using the methods
     :meth:`get_mean_number_contigs`, :meth:`get_mean_contig_length`,
@@ -137,17 +140,17 @@ class Coverage(object):
         This equation is correct but have a limitation due to floating precision. 
         If one provides E=0.99, the answer is 4.6 but we are limited to a
         maximum coverage of about 36 when one provides E=0.9999999999999999
-        after which E is rounded to 1 but most computers. Besides, it is no
+        after which E is rounded to 1 on most computers. Besides, it is no
         convenient to enter all those numbers. A scientific notation would be better but
         requires to work with :math:`M=1-E` instead of :math:`E`.
 
         .. math:: \log^{-1/ - M}
 
-        So instead of asking the question what is
+        So instead of asking the question what is the
         requested coverage to have 99% of the genome covered, we ask the question what
         is the requested coverage to have 1% of the genome not covered.
-        This allows us to use :math:`M` valuesas low as 1e-300 that is coverage 
-        as high as 690
+        This allows us to use :math:`M` values as low as 1e-300 that is coverage 
+        as high as 690.
 
 
         :param float M: this is the fraction of the genome not covered by
