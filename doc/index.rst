@@ -4,19 +4,14 @@ Sequana documentation
 |version|, |today|
 
 
-.. image:: https://badge.fury.io/py/sequana.svg
-    :target: https://pypi.python.org/pypi/sequana
+.. raw:: html
 
-.. image:: https://travis-ci.org/sequana/sequana.svg?branch=master
-    :target: https://travis-ci.org/sequana/sequana
-
-.. image::  https://coveralls.io/repos/github/sequana/sequana/badge.svg?branch=master
-   :target: https://coveralls.io/github/sequana/sequana?branch=master 
-
-.. image:: http://readthedocs.org/projects/sequana/badge/?version=master
-    :target: http://sequana.readthedocs.org/en/master/?badge=master
-    :alt: Documentation Status
-
+    <div style="width:40%">
+    <a href="https://pypi.python.org/pypi/sequana"> <img src="https://badge.fury.io/py/sequana.svg"></a> 
+    <a href="https://travis-ci.org/sequana/sequana"> <img src="https://travis-ci.org/sequana/sequana.svg?branch=master"></a>
+    <a href="https://coveralls.io/github/sequana/sequana?branch=master"> <img src="https://coveralls.io/repos/github/sequana/sequana/badge.svg?branch=master"></a>
+    <a href="http://sequana.readthedocs.org/en/master/?badge=master"> <img src="http://readthedocs.org/projects/sequana/badge/?version=master"></a>
+    </div>
 
 :Python version: Python 3.5 although some modules are Python2.7 compatible
 :Issues: Please fill a report on `github/sequana/sequana/issues <https://github.com/sequana/sequana/issues>`_
