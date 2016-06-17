@@ -31,26 +31,21 @@ Mapping is split as multiple report for interactive graphics.
 
 <div class="section" id="Z-Score distribution">
     <h2> 2 - <a class="toc-backref" href="#id1">Z-Score distribution</a></h2>
-If everything is alright, we may see a Gaussian distribution center on 0. The
-predicted Gaussian has as parameter mu={{ mu }} and sigma={{ sigma }}.
+    {{ bp_paragraph }}
 <div>    
-    <img src={{ hist_graphic }}> </>
+    <img src={{ bp_plot }}> </>
 </div>
 </div>
 
 <div class="section" id="Low coverage region">
     <h2> 3 - <a class="toc-backref" href="#id1">Low coverage region</a></h2>
-Region with a zscore lower than {{ low_cov_threshold_2 }} and at least one base
-with a zscore lower than {{ low_cov_threshold }} are detected as low 
-coverage region. Thus, there are {{ nb_low_region }} low coverage regions.
+    {{ lc_paragraph }}
     {{ low_coverage }}
 </div>
 
 <div class="section" id="High coverage region">
     <h2> 4 - <a class="toc-backref" href="#id1">High coverage region</a></h2>
-Region with a zscore higher than {{ high_cov_threshold_2 }} and at least on base
- with a zscore higher than {{ high_cov_threshold }} are detected as high 
-coverage region. Thus, there are {{ nb_high_region }} high coverage regions.
+    {{ hc_coverage }}
     {{ high_coverage }}
 </div>
 {% endblock %}
