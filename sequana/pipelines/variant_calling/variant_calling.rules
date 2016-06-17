@@ -10,6 +10,7 @@ Run: snakemake -s Snakefile
 import sequana
 from sequana import snaketools as sm
 from sequana.snaketools import SequanaConfig, FileFactory
+sm.init("variant_calling.rules", globals())
 
 # Import config file -----------------------------------------------------------
 
@@ -22,10 +23,10 @@ final_output = list()
 
 # Generate data directory
 
-from sequana import vcf_to_snpeff
+from sequana import SnpEff
 
 if config["snpeff"]["do"]:
-    tmp = vcf_to_snpeff.VCFToSnpeff(config["snpeff"]["reference"])
+    tmp = SnpEff(config["snpeff"]["reference"])
 
 # Mapping
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())

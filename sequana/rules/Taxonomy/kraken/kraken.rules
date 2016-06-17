@@ -24,12 +24,12 @@ if "kraken_input" in config.keys():
 
 __kraken__output = __kraken__outdir + "kraken_to_krona.html"
 
-
 rule kraken_to_krona:
     input: __kraken__outdir + "kraken.out.summary"
     output: __kraken__output
     run:
         shell("ktImportText %s -o %s" % (input, output))
+        shell("cp %s %s" % (output, cfg.PROJECT+os.sep+"kraken_to_krona.html"))
 
 
 rule kraken_translate:
@@ -38,8 +38,8 @@ rule kraken_translate:
     output:
         summary=__kraken__outdir + "kraken.out.summary",
     run:
-        from sequana.kraken import KrakenContaminant
-        k = KrakenContaminant(input[0])
+        from sequana.kraken import KrakenResults
+        k = KrakenResults(input[0])
         k.kraken_to_krona(output_filename=output.summary)
 
 
@@ -60,11 +60,11 @@ if cfg.paired:
 else:
     rule kraken_contaminant:
         input:
-            file1=__kraken__input
+            file1=__kraken__input[0]
         output:
             classified=__kraken__outdir + "/kraken_classified.fasta",
             unclassified=__kraken__outdir + "/kraken_unclassified.fasta",
-            kraken=__kraken__outdir + "/kraken.out"
+            kraken=__kraken__outdir + "kraken.out"
         params:
             database = config['kraken']['database']
         threads: 4
@@ -72,7 +72,7 @@ else:
             shell("kraken -db {params.database} {input.file1} "
                 " --threads {threads} --classified-out "
                 " {output.classified} --unclassified-out {output.unclassified}"
-                " --paired")
+                " --out {output.kraken}")
 
 
 

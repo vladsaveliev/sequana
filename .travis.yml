@@ -5,7 +5,6 @@ cache:
 
 matrix:
   include:
-    - python: 2.7
     - python: 3.5
 
 before_install:
@@ -29,11 +28,11 @@ before_install:
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy matplotlib nose pandas coverage numexpr xlrd cython
   # use pip to get latest version
-  - conda install --yes biokit 
   - pip install easydev>=0.9.21 --upgrade
   - pip install coveralls
   - pip install tabulate
-  - pip install biokit>=0.2.0
+  - pip install biokit>=0.3.0
+  - pip install bioservices>=1.4.11
   - conda install cutadapt pysam pyvcf snpEff --yes
 
 # # command to run tests, e.g. python setup.py test

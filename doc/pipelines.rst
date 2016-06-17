@@ -1,3 +1,6 @@
+
+.. _pipelines:
+
 Pipelines
 ##############
 
@@ -14,10 +17,15 @@ Quality
 
 .. include:: ../sequana/pipelines/quality/README.rst
 
+.. _quality_taxon:
+
 Quality Taxon
 =======================
 
 .. include:: ../sequana/pipelines/quality_taxon/README.rst
+
+
+.. _pipeline_variant_calling:
 
 Variant Calling
 =================

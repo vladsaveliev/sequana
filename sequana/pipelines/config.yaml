@@ -5,11 +5,11 @@
 
 # list of your input file
 samples:
-    file1: ../Hm2_GTGAAA_L005_R1_001.fastq.gz
-    file2: ../Hm2_GTGAAA_L005_R2_001.fastq.gz
+    file1: "%(file1)s"
+    file2: "%(file2)s"
 
 
-project: Hm2_GTGAAA_L005
+project: "%(project)s"
 
 
 # if files are required for a pipeline and are within sequana or should
@@ -40,7 +40,7 @@ gatk_bin: GenomeAnalysisTK
 
 # Bwa parameter for reference mapping
 bwa_ref:
-    reference: pKM2-eGFP.fa
+    reference: "%(reference)s"
     index:
         options: '-a is'
     mem:
@@ -113,5 +113,5 @@ adapter_removal:
     rev: AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCC
 
 kraken:
-    database: sequana_db_minimalist
+    database: "%(kraken)s"
 

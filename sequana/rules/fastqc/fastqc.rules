@@ -40,8 +40,10 @@ rule fastqc__%(name)s:
             if len(fastq) != 0:
                 newinput.append(this)
             else:
-                with open(output[i], "w") as fh:
-                    fh.write("No data in {0}".format(output[i]))
+                pass
+                #with open(output[i], "w") as fh:
+                #    fh.write("No data in {0}".format(output[i]))
+
         if len(newinput):
             shell(
             " fastqc -t {threads} --outdir {params.wkdir} -f fastq "

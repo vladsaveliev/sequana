@@ -17,11 +17,18 @@ add channel from where to download packages::
 
 What are the dependencies
 -----------------------------
-There are quite a few dependencies and depends on the pipelines. This no
-exhaustive list contains all the python libraries used by default::
 
-    conda install numpy matplotlib pandas pysam bwa samtools snakemake biokit
+There are two kind of dependencies. First, the Python libraries such as
+matplotlib or Pandas. Second, the external tools such as BWA (alignment) or
+Kraken (taxonomy). The first kind of tools can be installed using Anaconda and the
+default conda channel. For instance::
 
-However, other packages may be required ::
+    conda install pandas
 
-    conda install cutadapt bcftools pyvcf
+The second kind of tools can also be installed using another conda channel
+called **bioconda**. For instance::
+
+    conda install bwa
+
+The full list of dependencies will be maintained in the :ref:`installation`
+section.

@@ -26,7 +26,7 @@ rule fastq_stats__%(name)s:
         done= touch("%(project)s/fastq_stats_%(name)s/fastq_stats.done")
     threads: 4
     run:
-        from sequana import FastQC
+        from sequana import FastQC, sequana_data
         import json
         import pylab
         pylab.ioff()
@@ -37,13 +37,20 @@ rule fastq_stats__%(name)s:
                 pylab.clf()
                 fastq.boxplot_quality()
                 pylab.savefig(output.boxplot[i])
+
                 pylab.clf()
                 fastq.histogram_gc_content()
                 pylab.savefig(output.gc[i])
                 stats = fastq.get_stats()
                 json.dump(stats, open(output.json[i], "w"))
             else:
-                pass
+                import shutil
+                from easydev import touch
+                location = sequana_data("no_data.jpg", "images")
+                shutil.copy(location, output.gc[i])
+                shutil.copy(location, output.boxplot[i])
+                # this will be handled inside report_fastq_stats
+                touch(output.json[i])
 
     '''
     from easydev import TempFile

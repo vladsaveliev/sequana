@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# License: 3-clause BSD
 __revision__ = "$Id: $" # for the SVN Id
 import sys
 import os
@@ -7,14 +8,14 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 1
-_MICRO               = 4
+_MICRO               = 5
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
 metainfo = {
     'authors': {"main": ("yourname", "email@whatever.org")},
     'version': version,
-    'license' : 'GPL',
+    'license' : 'new BSD',
     'download_url' : ['http://pypi.python.org/pypi/sequana'],
     'url' : ["http://github.com/sequana/"],
     'description': "Put a short description here" ,
@@ -24,7 +25,7 @@ metainfo = {
           'Development Status :: 4 - Beta',
           'Intended Audience :: Developers',
           'Intended Audience :: Science/Research',
-          'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
+          'License :: OSI Approved :: BSD License',
           'Operating System :: OS Independent',
           'Programming Language :: Python :: 2.7',
           'Topic :: Software Development :: Libraries :: Python Modules',
@@ -58,9 +59,11 @@ setup(
     # package installation
     packages = packages,
 
-    install_requires = ["easydev>=0.9.21", "reports>=0.1.8", "matplotlib",
-        "pandas", "cutadapt>=1.9.1", "pysam", "pyVCF", "sphinx-gallery", 
-        "mock", "numpydoc"],
+    # pillow, sphinx-gallery and numpydoc are  for the doc only
+    # mock is for the test only
+    install_requires = ["easydev>=0.9.22", "reports>=0.1.8", "matplotlib",
+        "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.11", "biokit>=0.3.0", 
+        "pysam", "pyVCF", "sphinx-gallery", "mock", "numpydoc", "pillow"],
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
@@ -74,6 +77,7 @@ setup(
         'sequana.rules' : ['*/*.rules', "*/*/*.rules"],
         'sequana.pipelines' : ['*/*.rules', "*/*/*.rules"],
         'sequana.resources.data' : ['*'],
+        'sequana.resources.images' : ['*'],
         'sequana.resources.testing' : ['*'],
         'sequana.resources.js/galleria/themes' : ['*'],
         },
@@ -87,7 +91,8 @@ setup(
         'console_scripts':[
            'fastq_head=sequana.scripts.fastq_head:main',
            'fastq_count=sequana.scripts.fastq_count:main',
-           'sequana=sequana.scripts.main:main'
+           'sequana=sequana.scripts.main:main',
+           'sequana_taxonomy=sequana.scripts.taxonomy:main'
         ]
     },
 

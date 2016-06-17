@@ -1,18 +1,47 @@
-# Import -----------------------------------------------------------------------
+# -*- coding: utf-8 -*-
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016 - Sequana Development Team
+#
+#  File author(s):
+#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#          <d.desvillechabrol@gmail.com>
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  website: https://github.com/sequana/sequana
+#  documentation: http://sequana.readthedocs.io
+#
+##############################################################################
 
+"""Report dedicated to Mapping
+
+"""
 import os
+
 import pandas as pd
+
 from reports import HTMLTable
 from sequana.report_main import BaseReport
 from sequana.report_submapping import SubMappingReport
 
+<<<<<<< HEAD
 # Class ------------------------------------------------------------------------
+=======
+>>>>>>> master
 
 class MappingReport(BaseReport):
-    """
+    """Report dedicated to Mapping
     """
     def __init__(self, low_threshold=-3, high_threshold=3, 
             directory="report", **kargs):
+        """.. rubric:: constructor
+
+
+        """
         super(MappingReport, self).__init__(
                 jinja_filename="mapping/index.html",
                 directory=directory,
@@ -57,13 +86,14 @@ class MappingReport(BaseReport):
         self.mapping.plot_coverage(filename=self.directory + os.sep + 
                 "coverage.png", low_threshold=self.low_t, 
                 high_threshold=self.high_t)
-        
+
         self.jinja["mu"] = "{:.2f}".format(self.mapping.best_gaussian["mu"])
         self.jinja["sigma"] = "{:.2f}".format(
                 self.mapping.best_gaussian["sigma"])
         self.mapping.plot_hist(filename=self.directory + os.sep +
                 "zscore_hist.png")
 
+        # Low threshold case
         low_cov_df = self.mapping.get_low_coverage(self.low_t / 2)
         merge_low_cov = low_cov_df.merge_region(self.low_t)
         self.jinja['low_cov_threshold'] = self.low_t
@@ -73,7 +103,8 @@ class MappingReport(BaseReport):
         html = HTMLTable(merge_low_cov)
         html.add_bgcolor("size")
         self.jinja['low_coverage'] = html.to_html(index=False)
-        
+
+        # High threshold case
         high_cov_df = self.mapping.get_high_coverage(self.high_t / 2)
         merge_high_cov = high_cov_df.merge_region(self.high_t)
         self.jinja['high_cov_threshold'] = self.high_t
@@ -84,6 +115,7 @@ class MappingReport(BaseReport):
         html.add_bgcolor("size")
         self.jinja['high_coverage'] = html.to_html(index=False)
 
+        # sub mapping
         df = self._generate_submapping(merge_low_cov, merge_high_cov)
         html = HTMLTable(df)
         self.jinja['list_submapping'] = html.to_html(index=False) 
