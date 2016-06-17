@@ -28,7 +28,6 @@ from sequana import sequana_config_path
 
 
 
-
 __all__ = ['KrakenResults', "KrakenPipeline", "KrakenAnalysis"]
 
 
@@ -54,10 +53,33 @@ class KrakenResults(object):
 
     """
     def __init__(self, filename="kraken.out", verbose=True):
+        """
+
+        :param filename: the input from KrakenAnalysis class
+        :param verbose:
+
+        """
         self.filename = filename
         self.verbose = verbose
-        from biokit import Taxonomy
-        self.tax = Taxonomy(verbose=self.verbose)
+
+        self.rtd = rtd
+
+        on_rtd = os.environ.get("READTHEDOCS", None) == "True"
+
+        if on_rtd is False:
+            from biokit import Taxonomy
+            self.tax = Taxonomy(verbose=self.verbose)
+        else:
+            class Taxonomy(object):
+                from sequana import sequana_data # must be local
+                df = pd.read_csv(sequana_data("test_taxon_rtd.csv"), 
+                    index_col=0)
+                def get_lineage_and_rank(self, x):
+                    # Note that we add the name as well here
+                    ranks = ['kingdom', 'phylum', 'class', 'order', 
+                            'family', 'genus', 'species', 'name']
+                    return [(self.df.ix[x][rank], rank) for rank in ranks]
+            self.tax = Taxonomy()
         self._data_created = False
 
     def get_taxonomy_biokit(self, ids):

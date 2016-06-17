@@ -40,7 +40,7 @@ a standalone application named **sequana_taxonomy** is available.
 #
 from sequana import KrakenResults, sequana_data
 test_file = sequana_data("test_kraken.out", "testing")
-k = KrakenResults(test_file, verbose=False)
+k = KrakenResults(test_file, verbose=False)   
 df = k.plot(kind='pie')
 print(df)
 
