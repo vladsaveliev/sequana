@@ -94,7 +94,7 @@ class SnpEff(object):
     
     def _get_snpeff_config(self):
         from sequana import sequana_data
-        CONFIG = sequana_data("snpeff/snpEff.config.gz")
+        CONFIG = sequana_data("snpEff.config.gz", "snpeff")
         shutil.copyfile(CONFIG, "./snpEff.config.gz")
         gunzip_proc = sp.Popen(["gunzip", "snpEff.config.gz"])
         gunzip_proc.wait()

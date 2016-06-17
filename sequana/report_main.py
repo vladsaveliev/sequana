@@ -16,6 +16,7 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
+"""Data structure to build reports in a consistent way"""
 import os
 import easydev
 sepjoin = os.sep.join
@@ -121,9 +122,27 @@ class BaseReport(Report):
 
 
 class SequanaReport(BaseReport):
+    """The main sequana report
+
+
+    """
     def __init__(self, snakefile="Snakefile", configfile="config.yaml",
                  stats="stats.txt", directory="report",
                 output_filename="index.html",  **kargs):
+        """.. rubric:: constructor
+
+
+        :param str snakefile: the filename of the snakefile
+        :param str configfile: the name of the snakemake config file
+        :param str stats: where to save the stats
+        :param str directory: where to save the report
+        :param str output_filename: the name of the final HTML file
+
+        This class reads the snakefile and config file to copy them in the
+        directory and the HTML documents.
+
+
+        """
 
         super(SequanaReport, self).__init__(
             jinja_filename="main/index.html",

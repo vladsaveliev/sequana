@@ -24,7 +24,7 @@ import glob
 from sequana import BAM
 
 
-__all__ = ['bam_to_mapped_unmapped_fastq']
+__all__ = ['bam_to_mapped_unmapped_fastq', "FastqFactory"]
 
 
 try:

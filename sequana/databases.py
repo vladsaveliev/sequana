@@ -40,7 +40,6 @@ class EUtilsTools(object):
     """Simple wrapper around EUtils to fetch basic informatino about an accession number
 
 
-
     ::
 
         >>> from sequana.databases import EUtilsTools
@@ -178,7 +177,7 @@ class ENADownload(object):
             data = urlopen("http://www.ebi.ac.uk/genomes/%s" % name).readlines()
             identifiers = [x.strip().decode() for x in data]
         elif isinstance(filelist, list):
-            pass
+            identifiers = filelist[:]
         elif isinstance(filelist, str):
             # could be a single identifier or a filename (assuming a single
             # column)

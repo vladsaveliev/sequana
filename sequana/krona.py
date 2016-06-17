@@ -40,11 +40,11 @@ class KronaMerger(collections.Counter):
     only.
 
     The test files are available within Sequana as test_krona_k1.tsv
-    and test_krona_k2.tsv
+    and test_krona_k2.tsv::
 
         from sequana import KronaMerger, sequana_data
-        k1 = KronaMerger(sequana_data("test_krona_k1.tsv")
-        k2 = KronaMerger(sequana_data("test_krona_k2.tsv")
+        k1 = KronaMerger(sequana_data("test_krona_k1.tsv"))
+        k2 = KronaMerger(sequana_data("test_krona_k2.tsv"))
         k1 += k2
         # Save the results. Note that it must be tabulated for Krona external usage
         k1.to_tsv("new.tsv")
@@ -54,6 +54,11 @@ class KronaMerger(collections.Counter):
 
     """
     def __init__(self, filename):
+        """.. rubric:: constructor
+
+        :param str filename:
+
+        """
         super(KronaMerger, self).__init__()
         self.filename = filename
         self._read()
@@ -82,5 +87,3 @@ class KronaMerger(collections.Counter):
             df.sort("count", inplace=True, ascending=False)
         df.to_csv(output_filename, sep="\t", index=None, header=None)
         return df
-
-

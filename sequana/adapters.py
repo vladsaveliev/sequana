@@ -144,7 +144,7 @@ class AdapterDB(object):
         from sequana.resources.data import adapters as dict_adapters
         from sequana import sequana_data
         for k,v in dict_adapters.items():
-            self.load_fasta(sequana_data("data/%s" % v))
+            self.load_fasta(sequana_data("%s" % v, "data"))
 
     def load_fasta(self, filename):
         from sequana.fasta import FastA

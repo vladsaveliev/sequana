@@ -5,6 +5,9 @@ try:
 except:
     version = __version__
 
+from easydev import CustomConfig
+configuration = CustomConfig("sequana", verbose=False)
+sequana_config_path = configuration.user_config_dir
 
 # snakemake related
 from .snaketools import modules
@@ -20,7 +23,7 @@ from .fastq import FastQ, FastQC, Identifier
 from .fasta import FastA
 from .kraken_builder import KrakenBuilder
 from .krona import KronaMerger
-from .kraken import KrakenResults, KrakenPipeline, KrakenAnalysis
+from .kraken import KrakenResults, KrakenPipeline, KrakenAnalysis, KrakenDownload
 from .phred import Quality
 from .snpeff import SnpEff
 from .vcf_filter import VCF
@@ -32,7 +35,7 @@ from .report_bam import BAMReport
 from . import scripts
 
 
-def sequana_data(filename=None, where=None):
+def sequana_data(filename=None, where="testing"):
     """Simple utilities to retrieve data sets from gdsctools/share directory"""
     import os
     import easydev
@@ -43,12 +46,14 @@ def sequana_data(filename=None, where=None):
 
     if filename is None:
         for thisdir in ['data', 'testing']:
+            print('From %s directory:' % thisdir)
             for filename in glob.glob(sharedir + "/%s/*" % thisdir):
+                filename = os.path.split(filename)[1]
                 to_ignore = ["__init__.py", "__pycache__"]
                 if filename.endswith('.pyc') or filename in to_ignore:
                     pass
                 else:
-                    print('sequana("%s", "%s")' % (os.path.split(filename)[1], thisdir))
+                    print(' - sequana("%s", "%s")' % (os.path.split(filename)[1], thisdir))
         raise ValueError("Choose a valid file from the list above")
     # in the code one may use / or \ 
     if where:

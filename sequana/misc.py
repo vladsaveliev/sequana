@@ -17,7 +17,7 @@
 #
 ##############################################################################
 """misc utilities"""
-
+import numpy as np
 
 def wget(link, output):
     """Retrieve a file from internet.
@@ -27,5 +27,21 @@ def wget(link, output):
 
     .. warning:: no sanity check of any kind for now
     """
-    import urllib
-    urllib.urlretrieve(link, filename=output)
+    try:
+        from urllib import urlretrieve
+    except:
+        from urllib.request import urlretrieve
+    urlretrieve(link, filename=output)
+
+
+def moving_average(data, n):
+        """Compute moving average
+
+        :param n: window's size.
+
+        """
+        ret = np.cumsum(data, dtype=float)
+        ret[n:] = ret[n:] - ret[:-n]
+        ma = ret[n - 1:] / n
+        return ma
+
