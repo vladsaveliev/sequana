@@ -62,8 +62,6 @@ class KrakenResults(object):
         self.filename = filename
         self.verbose = verbose
 
-        self.rtd = rtd
-
         on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 
         if on_rtd is False:
