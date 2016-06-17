@@ -47,8 +47,6 @@ def test_adapters_db():
     assert db.get_name(100000070) == "NextFlex_PCR_Free_adapter20_r"
 
 
-
-
     db = adapters.AdapterDB()
     db.load_all()
 

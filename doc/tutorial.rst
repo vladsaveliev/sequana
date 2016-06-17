@@ -24,12 +24,22 @@ Taxonomy
 -------------------------------
 
 Download a toy kraken database designed for this problem (contains only 100
-FASTA files mixing measles viruses and others viruses)
+FASTA files mixing measles viruses and others viruses)::
 
-Then, you may use a Sequana pipeline or this standalone application::
+
+    from sequana import KrakenDownload, sequana_config_path
+    kd = KrakenDownload()
+    kd.download("toydb")
+    database_path = sequana_config_path + "/kraken_toydb"
+
+Then, you may use a Sequana pipeline (see :mod:`sequana.kraken`) or this standalone 
+application::
 
     sequana_taxonomy  --file1 Test_R1.cutadapt.fastq.gz --file2 Test_R2.cutadapt.fastq.gz --database
-        kraken_toydb/
+        <database_path>
+
+where <database_path> must be replaced with the proper path.
+
 
 Open the local HTML file krona.html. An example is available 
 in  `Krona example <_static/krona.html>`_

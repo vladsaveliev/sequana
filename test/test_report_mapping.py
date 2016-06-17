@@ -2,14 +2,12 @@
 
 import os
 from sequana.report_mapping import MappingReport
-from sequana import bedtools
-from . import data
-pathdata = data.__path__[0]
+from sequana import bedtools, sequana_data
 
 # Test -------------------------------------------------------------------------
 
 def test_report():
-    mydata = bedtools.Genomecov(pathdata + os.sep + "test.bed")
+    mydata = bedtools.Genomecov(sequana_data("test_bedcov.bed"))
     mydata.running_median(n=3, circular=False)
     mydata.coverage_scaling()
     mydata.compute_zscore()
