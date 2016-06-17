@@ -34,10 +34,12 @@ class RunningMedian:
 
 
     This is an efficient implementation of running media, faster than SciPy
-    implementation v0.17 and the skip list shown in :class:`RunningMedianOld`.
-    The main idea was taken from a recipe posted in this website:
+    implementation v0.17 and a skip list method.
+
+    The main idea comes from a recipe posted in this website:
     http://code.activestate.com/recipes/576930/#c3 that uses a simple list
-    as proposed in https://gist.github.com/f0k/2f8402e4dfb6974bfcf1
+    as proposed in https://gist.github.com/f0k/2f8402e4dfb6974bfcf1 and was
+    adapted to our needs included object oriented implementation.
 
     ::
 
@@ -51,15 +53,59 @@ class RunningMedian:
         W/2 values are currently set to zero.
 
     This shows how the results agree with scipy
-    ::
+
+    .. plot::
+        :include-source:
 
         from pylab import *
         import scipy.signal
-        clf()
-        plot(x)
-        plot(RunningMedian(x,5).run(), 'k', lw=4)
-        plot(scipy.signal.medfilt(x, 5), 'ro')
+        from sequana.running_median import RunningMedian
 
+        clf()
+        x = randn(100)
+        plot(x, 'k')
+        plot(RunningMedian(x,9).run(), 'r', lw=4)
+        plot(scipy.signal.medfilt(x, 9), 'go')
+        grid()
+
+
+    .. plot::
+        :include-source:
+
+        from sequana.running_median import RunningMedian
+        from pylab import *
+
+        N = 1000
+        X = linspace(0, N-1, N)
+
+        # Create some interesting data with SNP and longer over
+        # represented section.
+        data = 20 + randn(N) + sin(X*2*pi/1000.*5)
+        data[300:350] += 10
+        data[500:505] += 100
+        data[700] = 1000
+
+        plot(X, data, "k", label="data")
+        rm = RunningMedian(data, 101)
+        plot(X, rm.run(), 'r', label="median W=201")
+
+        from sequana.misc import moving_average as ma
+        plot(X[100:-100], ma(data, 201), 'g', label="mean W=201")
+        grid()
+        legend()
+        ylim([10, 50])
+
+    Note that for visualisation, we set the ylimits to 50 but the data at
+    position 500 goes up to 120 and there is an large outlier (1000) at
+    position 700 .
+
+    We see that the median is less sensible to the outliers, as expected. The
+    median is highly interesting for large outliers on short duration (e.g. here
+    the peak at position 500) but is also less biases by larger regions.
+
+
+    .. note:: The beginning and end of the running median are irrelevant.
+        There are actually equal to the data in our implementation.
 
     """
     def __init__(self, data, width, container=list):

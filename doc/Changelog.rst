@@ -5,6 +5,29 @@ Changelog
 
 
 
+0.1.6 - June 2016
+---------------------
+
+
+* NEWS:
+
+    - KrakenDownlad class: download kraken_toydv from sequana/data repository or
+      minikraken into a local directotry
+    - New method in FastQC to show ACGT content
+
+* CHANGES:
+
+    - sequana_data by default looks into resources/testing directory 
+    - in fastq module: FastQC a bit faster andFastQRandom class removed
+    - add a moving_average function in misc module
+
+* BUGS:
+
+    - sequana_data was showing __init__ and __pycache__ as possible data sets
+    - databases: filelist as a list was not implemented
+    - in fastq.FastQ extra_head in gzip mode was missing the last row
+
+
 
 0.1.5 June 2016
 --------------------
@@ -63,7 +86,7 @@ First functional release.
 * NEWS
   - rules in sequana/rules and pipelines in sequana/pipelines 
   - standalone tool called sequana to download a Snakefile + config in a local
-directory for further analysis
+    directory for further analysis
   - modules for post-analysis: bamtools, vcf_filter, fastq, ....
   - Fully tested (90% coverage) and documented
   - Set of reports

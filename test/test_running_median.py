@@ -11,3 +11,10 @@ def test_running_median():
 
     assert abs(diff)<=1e-10
 
+
+    # non-even list
+    try:
+        rm1 = RunningMedian(x,10).run()
+        assert True
+    except:
+        assert True

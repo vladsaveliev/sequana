@@ -11,7 +11,7 @@ from functools import wraps
 
 import numpy as np
 import pandas as pd
-from easydev import do_profile, Progress
+from easydev import Progress
 import pylab
 
 import pysam
@@ -217,6 +217,10 @@ class FastQ(object):
         return self.n_reads
 
     def rewind(self):
+        """Allows to iter from the beginning withouh openning the file or
+        creating a new instance.
+
+        """
         nreads = self._count_reads
         self._fileobj.close()
         self.__enter__()
@@ -244,7 +248,7 @@ class FastQ(object):
     def count_lines(self):
         """Return number of lines
 
-        This is 40 times faster than wc on uncompressed file and
+        This is 10-20 times faster than *wc* on uncompressed file and
         3-4 times faster on zipped file (using gunzip -c file | wc -l)
         """
         if self.filename.endswith("gz"):
@@ -254,6 +258,7 @@ class FastQ(object):
         return count
 
     def count_reads(self):
+        """Return count_lines divided by 4"""
         nlines = self.count_lines()
         if divmod(nlines, self._N)[1] != 0:
             print("WARNING. number of lines not multiple of 4.")
@@ -271,13 +276,21 @@ class FastQ(object):
         return lines
 
     def extract_head(self, N, output_filename):
-        # extract N lines
+        """Extract the heads of a FastQ files
 
-        # equivalent to
-        # zcat input.fasta | head -400000 > out.fasta
-        # 3 times slower than cat file | head -1000000 > test.fastq
-        # but remains pretty fast (0.5 seconds for 2M reads).
-        # todo: compress the file
+        :param int N:
+        :param str output_filename: Based on the extension
+            the output file is zipped or not (.gz extension only)
+
+        This function is convenient since it takes into account
+        the input file being compressed or not and the output file
+        being compressed ot not. It is in general 2-3 times faster than the
+        equivalent unix commands combined together but is 10 times
+        slower for the case on uncompressed input and uncompressed output.
+
+        .. warning:: this function extract the N first lines and does not check
+            if there are empty lines in your FastQ/FastA files.
+        """
         if self.filename.endswith(".gz"):
             self._extract_head_gz(N, output_filename)
         else:
@@ -309,13 +322,23 @@ class FastQ(object):
     def _extract_head_gz(self, N, output_filename="test.fastq.gz", level=6, CHUNKSIZE=65536):
         """
 
-        if output not compressed, this is 20% faster than
-        "zcat file | head -1000000 > output.fastq
+        If input is compressed:
 
-        If output is compressed, this is equivalent to :
-        "zcat file | head -1000000 | gzip > output.fastq
+            if output not compressed, this is 20% faster than
+            "zcat file | head -1000000 > output.fastq
 
-        Tested under Python 2.7 , Linux box.
+            If output is compressed, this is 3-4 times faster than :
+            "zcat file | head -1000000 | gzip > output.fastq
+
+        If input is compressed:
+
+            if output not compressed, this is 10 times slower than
+            "head -1000000 > output.fastq
+
+            If output is compressed, this is 3-4 times faster than :
+            "head -1000000 | gzip > output.fastq
+
+        Tested with Python 3.5 , Linux box.
         """
         # make sure N is integer
         N = int(N)
@@ -341,7 +364,7 @@ class FastQ(object):
                         missing = count - N
                         outstr = outstr.strip().split(b"\n")
                         NN = len(outstr)
-                        outstr = b"\n".join(outstr[0:NN-missing-1]) + b"\n"
+                        outstr = b"\n".join(outstr[0:NN-missing]) + b"\n"
                         fout.write(outstr)
                         break
                     fout.write(outstr)
@@ -388,6 +411,7 @@ class FastQ(object):
                 pb.animate(i+1)
 
     def split_lines(self, N=100000, gzip=True):
+        """Not implemented"""
         if self.filename.endswith(".gz"):
             outputs = self._split_lines_gz(N, gzip=gzip)
         else:
@@ -528,8 +552,10 @@ class FastQ(object):
         return outputs
 
     def split_chunks(self, N=10):
+        """Not implemented"""
+        assert N <=100, "you cannot split a file into more than 100 chunks"
         # split per chunks of size N
-        raise NotImplementedError
+        cmd = "split --number %s %s -d"
 
     def random(self, N=10000, output_filename="test.fastq",
                bp=50, quality=40):
@@ -550,7 +576,7 @@ class FastQ(object):
         # quality could be q function for a distribution
 
     def joining(self, pattern, output_filename):
-        """
+        """not implemented
 
         zcat Block*.fastq.gz | gzip > combined.fastq.gz
 
@@ -620,7 +646,7 @@ class FastQ(object):
     def __getitem__(self, index):
         return 1
 
-    def to_fasta(self, output_filename="test.fasta", level=6, CHUNKSIZE=65536):
+    def _to_fasta(self, output_filename="test.fasta", level=6, CHUNKSIZE=65536):
         """
 
         """
@@ -654,7 +680,7 @@ class FastQ(object):
         progressbar=True, output_filename='filtered.fastq', remove=True):
         """Filter reads
 
-        :param int min_bp: ignore reads with length short than min_bp
+        :param int min_bp: ignore reads with length shorter than min_bp
         :param int max_bp: ignore reads with length above max_bp
 
         """
@@ -713,7 +739,6 @@ def run_info(f):
         return f(*args, **kargs)
     return wrapper
 
-from easydev.profiler import do_profile
 
 class FastQC(object):
     """Simple QC diagnostic
@@ -736,21 +761,42 @@ class FastQC(object):
 
     .. warning:: some plots will work for Illumina reads only right now
 
+    .. note:: Although all reads are parsed (e.g. to count the number of
+        nucleotides, some information uses a limited number of reads (e.g.
+        qualities), which is set to 500,000 by deafult.
+
+
     """
-    def __init__(self, filename, sample=500000, dotile=False):
+    def __init__(self, filename, max_sample=500000, dotile=False):
         """.. rubric:: constructor
 
+        :param filename: 
+        :param int max_sample: Large files will npt fit in memory. We therefore
+            restrict the numbers of reads to be used for some of the statistics
+            to 500,000.  This also reduces the amount of time required to get a
+            good feeling of the data quality. The entire input file is
+            parsed tough. This is required for instance to get the number of
+            nucleotides.
+        :param bool dotile: compute more
         """
         self.filename = filename
-        # This is 2/3 times faster than pysam.FastXFile + an iteration
+
+        # Later we will use pysam to scan the fastq because
+        # it iterate quickly while providing the quality already converted
+        # However, the FastQ implementation in this module is faster at
+        # computing the lentgth by a factor 3 
         self.fastq = FastQ(filename)
         self.N = len(self.fastq)
 
-        self.sample = sample
+        # Use only max_sample in some of the computation
+        self.max_sample = max_sample
+        if max_sample > self.N:
+            self.max_sample = self.N
+
+        self.dotile = dotile
 
         self.summary = {}
         self.fontsize = 16
-        self.dotile = dotile
 
     def _get_info(self):
         """Populates the data structures for plotting.
@@ -761,9 +807,8 @@ class FastQC(object):
         sequences = []
         minimum = 1e6
         maximum = 0
-        lengths = []
+        self.lengths = np.empty(self.N)
         self.gc_list = []
-        self.nucleotides = 0
         self.N_list = []
 
         self.identifiers = []
@@ -771,41 +816,34 @@ class FastQC(object):
 
         # could use multiprocessing
         fastq = pysam.FastxFile(self.filename)
-        count = 0
-        for record in fastq:
-            # keep track of min/max sequence length
-            N = len(record.sequence)
-            if N < minimum:
-                minimum = N
-            if N > maximum:
-                maximum = N
-            self.nucleotides += N
+        for i, record in enumerate(fastq):
+            self.lengths[i] = len(record.sequence)
 
-            if count < self.sample:
+            if i < self.max_sample:
                 quality = record.get_quality_array()
-                mean_qualities.append(np.mean(np.array(quality)))
+                mean_qualities.append(sum(quality)/self.lengths[i])
                 qualities.append(quality)
+                sequences.append(record.sequence)
 
             if self.dotile:
                 identifier = Identifier(record.name)
                 self.identifiers.append(identifier.info)
 
-            sequences.append(record.sequence)
 
             GC = record.sequence.count('G') + record.sequence.count('C')
             self.gc_list.append(GC)
             self.N_list.append(record.sequence.count('N'))
 
-            count += 1
-            pb.animate(count)
+            pb.animate(i+1)
 
         # other data
-        self.gc_content = sum(self.gc_list) / float(self.nucleotides)
         self.qualities = qualities
         self.mean_qualities = mean_qualities
-        self.minimum = minimum
-        self.maximum = maximum
+        self.minimum = int(self.lengths.min())
+        self.maximum = int(self.lengths.max())
         self.sequences = sequences
+        self.nucleotides = self.lengths.sum()
+        self.gc_content = sum(self.gc_list) / float(self.nucleotides)
 
         try:
             if self.dotile:
@@ -906,7 +944,8 @@ class FastQC(object):
         pylab.xlim([1,max(data)+1])
 
         pylab.grid(True)
-        pylab.xlabel("position bp", fontsize=self.fontsize)
+        pylab.xlabel("position (bp)", fontsize=self.fontsize)
+        pylab.ylabel("Count (log scale)", fontsize=self.fontsize)
 
     @run_info
     def histogram_gc_content(self):
@@ -925,7 +964,7 @@ class FastQC(object):
         pylab.hist(self.gc_list, bins=range(0, self.maximum))
         pylab.grid()
         pylab.title("GC content distribution over all sequences")
-        pylab.xlabel("Mean GC content (\%)", fontsize=self.fontsize)
+        pylab.xlabel(r"Mean GC content (%)", fontsize=self.fontsize)
 
     @run_info
     def get_stats(self):
@@ -933,28 +972,43 @@ class FastQC(object):
             "n_reads": self.N}
         for letter in 'ACGT':
             stats[letter] = sum((x.count(letter) for x in self.sequences))
-        return stats 
+        return stats
 
+    @run_info
+    def get_actg_content(self):
 
-class _FastQRandom(object):
-    """
+        # Assuming length of the reads are all equal !
+        N = len(self.sequences[0])
+        Total = float(len(self.sequences))
+        
+        Nseq = len(self.sequences)
+        from collections import Counter
+        data = []
+        for pos in range(N):
+            data.append(Counter([self.sequences[i][pos] for i in range(Nseq)]))
 
-    Illumina 1.8
-    """
-    def __init__(self):
+        df = pd.DataFrame.from_records(data)
+        df /= Total 
+        if "N" in df.columns:
+            df = df[["A", "C", "G", "T", "N"]]
+        else:
+            df = df[["A", "C", "G", "T"]]
+        return df 
 
-        self.n_reads = 1000
-        self.quality = 38  # could also be a list of length n_bp
-        self.sigma_quality
-        self.n_bp = 101
-        self.acgt_proportion = [0.25,0.25,0.25,0.25]
+    def plot_acgt_content(self):
+        """Plot histogram of GC content
 
-    def to_fastq(self):
-        reads = "%s\n%s\n+\n%s\n"
-        with open(output, "w") as fh:
-            for this in range(self.n_reads):
-                quality = 'BBBBBBBB'
-                seq =  "ACGTACGT"
-                qname = "@HISEQ:426:C5T65ACXX:5:2302:1943:2127"
-                comments = "random"
-                reads % (qname, seq, quality)
+        .. plot::
+            :include-source:
+
+            from sequana import sequana_data
+            from sequana import FastQC
+            filename  = sequana_data("test.fastq", "testing")
+            qc = FastQC(filename)
+            qc.plot_acgt_content()
+        """
+        df = self.get_actg_content()
+        df.plot()
+        pylab.grid(True)
+        pylab.xlabel("position (bp)", fontsize=self.fontsize)
+        pylab.ylabel("percent", fontsize=self.fontsize)
