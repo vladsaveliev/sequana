@@ -9,6 +9,8 @@ dependencies:
 - matplotlib
 - scipy
 - pysam
+- krona
+- kraken
 - pip:
   - matplotlib
   - easydev>=0.9.21
