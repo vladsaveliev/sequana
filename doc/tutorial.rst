@@ -77,7 +77,7 @@ the genbank file rfom NCBI::
     eu = EUtils()
     data = eu.EFetch(db="nuccore",id="K01711.1", rettype="gbwithparts", retmode="text")
     with open("measles.gbk", "w") as fout:
-        fout.write(data)
+        fout.write(data.decode())
 
 Get the FASTA reference
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -85,7 +85,7 @@ We will also get the FASTA from ENA::
 
     from bioservices import ENA
     ena = ENA()
-    data = ENA.get_data('K01711', 'fasta')
+    data = ena.get_data('K01711', 'fasta')
     with open("measles.fa", "w") as fout:
         fout.write(data.decode())
 
