@@ -73,8 +73,8 @@ Get the genbank reference
 Assuming the reference is **K01711.1** (Measles virus), we first need to fetch
 the genbank file rfom NCBI::
 
-    from bioservices import EUTils
-    eu = EUTils()
+    from bioservices import EUtils
+    eu = EUtils()
     data = eu.EFetch(db="nuccore",id="K01711.1", rettype="gbwithparts", retmode="text")
     with open("measles.gbk", "w") as fout:
         fout.write(data)
