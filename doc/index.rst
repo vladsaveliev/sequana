@@ -14,7 +14,8 @@ Sequana documentation
     </div>
 
 :Python version: Python 3.5 although some modules are Python2.7 compatible
-:Issues: Please fill a report on `github/sequana/sequana/issues <https://github.com/sequana/sequana/issues>`_
+:Source: See  `http://github.com/sequana/sequana <https://github.com/sequana/sequana/>`_.
+:Issues: Please fill a report on `github <https://github.com/sequana/sequana/issues>`_
 
 
 What is Sequana ?
