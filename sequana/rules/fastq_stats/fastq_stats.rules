@@ -32,7 +32,7 @@ rule fastq_stats__%(name)s:
         pylab.ioff()
 
         for i in range(len(input)):
-            fastq = FastQC(input[i], sample=100000)
+            fastq = FastQC(input[i], max_sample=100000)
             if len(fastq.fastq) != 0:
                 pylab.clf()
                 fastq.boxplot_quality()

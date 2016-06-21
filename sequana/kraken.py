@@ -450,20 +450,34 @@ class KrakenAnalysis(object):
 class KrakenDownload(object):
     """Utility to download Kraken DB and place them in a local directory
 
-        ::
+    ::
 
-            from sequana import KrakenDownload
-            kd = KrakenDownload()
-            kd.download('toydb')
-            kd.download('minikraken')
+        from sequana import KrakenDownload
+        kd = KrakenDownload()
+        kd.download('toydb')
+        kd.download('minikraken')
+
+    A large database (8Gb) is available on synapse and has the following DOI::
+
+        doi:10.7303/syn6171000
+
+    It can be downloaded manually or if you have a Synapse login
+    (https://www.synapse.org), you can use::
+
+        from sequana import KrakenDownload
+        kd = KrakenDownload()
+        kd.downloaded("sequana_db1")
     """
+    dv = DevTools()
     def download(self, name, verbose=True):
         if name == "minikraken":
             self._download_minikraken(verbose=verbose)
         elif name == "toydb":
             self._download_kraken_toydb(verbose=verbose)
+        elif name == "sequana_db1":
+            self._download_sequana_db1(verbose=verbose)
         else:
-            raise ValueError("name must be toydb or minikraken")
+            raise ValueError("name must be toydb or minikraken, or sequana_db1")
 
     def _download_kraken_toydb(self, verbose=True):
         """Download the kraken DB toy example from sequana_data into
@@ -499,4 +513,75 @@ class KrakenDownload(object):
         wget("https://ccb.jhu.edu/software/kraken/dl/minikraken.tgz",
              base + os.sep + "minikraken.tgz")
         # unzipping. requires tar and gzip
+
+    def _download_from_synapse(self, synid, target_dir):
+        from synapseclient import Synapse
+        try:
+            self._synapse.get(synid, downloadLocation=target_dir)
+        except:
+            self._synapse = Synapse()
+            self._synapse.login()
+            self._synapse.get(synid, downloadLocation=target_dir)
+
+    def _download_sequana_db1(self, verbose=True):
+        dbname = "sequana_db1"
+        from easydev import md5
+        from sequana import sequana_config_path
+        dir1 = sequana_config_path + os.sep + dbname
+        dir2 = dir1 + os.sep + "taxonomy"
+        self.dv.mkdir(dir1)
+        self.dv.mkdir(dir2)
+
+        print("Downloading about 8Gb of data (if not already downloaded) from"
+            " Synapse into %s" % dir1) 
+
+        from os.path import exists
+        filename = dir1 + "ena_list.txt"
+        if exists(filename) and md5(filename) == "a9cc6268f3338d1632c4712a412593f2":
+            pass
+        else:
+            self._download_from_synapse('syn6171700', dir1)
+
+        # database.idx
+        filename = dir1 + "database.idx"
+        if exists(filename) and md5(filename) == "2fa4a99a4f52f2f04c5a965adb1534ac":
+            pass
+        else:
+            self._download_from_synapse('syn6171017', dir1)
+
+        # database.kdb ; this one is large (8Gb)
+        filename = dir1 + "database.kdb"
+        if exists(filename) and md5(filename) == "ff698696bfc88fe83bc201937cd9cbdf":
+            pass
+        else:
+            self._download_from_synapse('syn6171107', dir1)
+
+        # Then, the taxonomy directory
+        filename = dir1 + "names.dmp"
+        if exists(filename) and md5(filename) == "10bc7a63c579de02112d125a51fd65d0":
+            pass
+        else:
+            self._download_from_synapse('syn6171286', dir2)
+
+        filename = dir1 + "nodes.dmp"
+        if exists(filename) and md5(filename) == "a68af5a60434e2067c4a0a16df873980":
+            pass
+        else:
+            self._download_from_synapse('syn6171289', dir2)
+
+        filename = dir1 + "taxons.txt"
+        if exists(filename) and md5(filename) == "e78fbb43b3b41cbf4511d6af16c0287f":
+            pass
+        else:
+            self._download_from_synapse('syn6171290', dir2)
+        print('done. You should have a kraken DB in %s' % dir1)
+
+
+
+
+
+
+
+
+
 

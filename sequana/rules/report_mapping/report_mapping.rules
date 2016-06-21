@@ -19,7 +19,8 @@ rule report_mapping:
         from sequana import report_main
         import os
 
-        s = report_main.SequanaReport(directory=params.outdir)
+        s = report_main.SequanaReport(snakefile=__snakefile__,
+                directory=params.outdir)
         s.jinja['description'] = """
 
         This is the output of variant calling pipeline. This pipeline search
@@ -38,5 +39,5 @@ rule report_mapping:
         r.set_data(mydata)
         r.create_report()
 
-        shell("cp Snakefile %s/" % params.outdir)
+        shell("cp %s %s/" % (__snakefile__, params.outdir))
         shell("mv {input.dag} %s/" % params.outdir)
