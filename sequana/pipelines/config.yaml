@@ -97,6 +97,12 @@ bwa_phix:
         read_groups: '@RG\\tID:1\\tSM:1\\tPL:illumina'
         threads: 2 
 
+#################################################################
+# Quality trimming and adapter removal
+#   quality: 0,0 means no trimming
+#   m: 20 means discard trimmed reads that are shorter than 20.
+#   ref: http://cutadapt.readthedocs.io/
+#################################################################
 cutadapt:
     fwd: GATCGGAAGAGCACACGTCTGAACTCCAGTCACGTGAAAATCTCGTATG
     rev: AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCC
