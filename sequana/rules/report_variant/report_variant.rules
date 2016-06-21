@@ -1,6 +1,6 @@
 __report_vcf__output = cfg.PROJECT + "/report/report_vcf.html"
 
-rule report_vcf:
+rule report_variant:
     input:
         vcf = __report_vcf__input
     output:
