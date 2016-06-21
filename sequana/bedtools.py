@@ -48,7 +48,7 @@ class Genomecov(object):
             chrom.plot_coverage()
         gencov[0].plot_coverage()
 
-    Results are stored in a list of :class:`ChrGenomecov` named :attr:`chr_list`.
+    Results are stored in a list of :class:`Chromosomecov` named :attr:`chr_list`.
 
     """
 
@@ -66,7 +66,8 @@ class Genomecov(object):
             df = df.set_index("chr", drop=False)
             # Create a list of ChrGenomecov for each chromosome present in the
             # bedtools.
-            self.chr_list = [ChrGenomecov(df.loc[i]) for i in df.index.unique()]
+            self.chr_list = [Chromosomecov(df.loc[i]) for i in 
+                    df.index.unique()]
         except IOError as e:
             print("I/0 error({0}): {1}".format(e.errno, e.strerror))
 
@@ -77,7 +78,7 @@ class Genomecov(object):
         return self.chr_list.__iter__()
 
 
-class ChrGenomecov(object):
+class Chromosomecov(object):
     """Class used within :class:`Genomecov` to select a chromosome of the 
     original Genomecov.
 
@@ -150,10 +151,10 @@ class ChrGenomecov(object):
         if circular:
             cov = cov[-mid:] + cov + cov[:mid]
             rm = running_median.RunningMedian(cov, n).run()
-            self.df["rm"] = pd.Series(rm)
+            self.df["rm"] = rm[mid:-mid]
         else:
             rm = running_median.RunningMedian(cov, n).run()
-            self.df["rm"] = pd.Series(rm)
+            self.df["rm"] = rm
             #, index=np.arange(start=mid,
             #    stop=(len(rm) + mid)))
 
@@ -240,7 +241,7 @@ class ChrGenomecov(object):
             low_threshold=-3, high_threshold=3):
         """ Plot coverage as a function of base position.
 
-        In addition, the running median and coverage confidence corrsponding to
+        In addition, the running median and coverage confidence corresponding to
         the lower and upper  zscore thresholds
 
         """
@@ -293,8 +294,7 @@ class ChrGenomecov(object):
         """
         try:
             labels=["pos", "cov", "rm"]
-            self.df[labels][start:stop].to_csv(filename, header=header, 
-                    index=False)
+            self.df[labels][start:stop].to_csv(filename, header=header)
         except NameError:
             print("You must set the file name")
         except KeyError:
@@ -328,7 +328,7 @@ class FilteredGenomecov(object):
         cov = np.mean(self.df["cov"].loc[start:stop])
         rm = np.mean(self.df["rm"].loc[start:stop])
         zscore = np.mean(self.df["zscore"].loc[start:stop])
-        size = stop - start
+        size = stop - start + 1
         return {"chr": chrom, "start": start, "stop": stop + 1, "size": size,
                 "mean_cov": cov, "mean_rm": rm, "mean_zscore": zscore}
 
