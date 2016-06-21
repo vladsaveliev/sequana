@@ -17,23 +17,23 @@
 #
 ##############################################################################
 
-# Import -----------------------------------------------------------------------
-
 import os
 import shutil
+
 import pandas as pd
+
 from reports import HTMLTable
 from sequana.report_main import BaseReport
 
-# Class ------------------------------------------------------------------------
 
-class VCFReport(BaseReport):
+class VariantReport(BaseReport):
     """
     """
-    def __init__(self, csv_file, directory="report", **kargs):
-        super(VCFReport, self).__init__(jinja_filename="variant/index.html",
-                directory=directory, output_filename="report_vcf.html", **kargs)
-        self.jinja['title'] = "VCF Report"
+    def __init__(self, csv_file, output_filename, directory="report", **kargs):
+        super(VariantReport, self).__init__(jinja_filename="variant/index.html",
+                directory=directory, output_filename=output_filename, 
+                **kargs)
+        self.jinja['title'] = "Variants Report"
         self.csv = csv_file
 
     def set_data(self, data):
