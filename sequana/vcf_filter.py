@@ -20,13 +20,11 @@
 
 """
 
-# Import -----------------------------------------------------------------------
-
 import sys
+
 import vcf
 import pandas as pd
 
-# Class ------------------------------------------------------------------------
 
 class VCF(vcf.Reader):
     """VCF class (Variant Calling Format)
@@ -165,5 +163,5 @@ class VCF(vcf.Reader):
             df = df[cols[:8] + [cols[9], cols[11], cols[12], cols[10], cols[8]]]
         except (ValueError, IndexError):
             pass
-        df.to_csv(output)
+        df.to_csv(output, index=False)
         return df
