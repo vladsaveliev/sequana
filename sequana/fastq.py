@@ -358,15 +358,17 @@ class FastQ(object):
             with open(output_filename, "wb") as fout:
                 while buf:
                     outstr = d.decompress(buf)
-                    count += outstr.count(b"\n")
-                    if count > N:
+                    this_count = outstr.count(b"\n")
+
+                    if count + this_count > N:
                         # there will be too many lines, we need to select a subset
-                        missing = count - N
+                        missing = N - count
                         outstr = outstr.strip().split(b"\n")
-                        NN = len(outstr)
-                        outstr = b"\n".join(outstr[0:NN-missing]) + b"\n"
+                        outstr = b"\n".join(outstr[0:missing]) + b"\n"
                         fout.write(outstr)
                         break
+                    else:
+                        count += this_count
                     fout.write(outstr)
                     buf = fin.read(CHUNKSIZE)
 
@@ -829,9 +831,8 @@ class FastQC(object):
                 identifier = Identifier(record.name)
                 self.identifiers.append(identifier.info)
 
-
             GC = record.sequence.count('G') + record.sequence.count('C')
-            self.gc_list.append(GC)
+            self.gc_list.append(GC/float(self.lengths[i])*100)
             self.N_list.append(record.sequence.count('N'))
 
             pb.animate(i+1)
@@ -963,8 +964,9 @@ class FastQC(object):
         """
         pylab.hist(self.gc_list, bins=range(0, self.maximum))
         pylab.grid()
-        pylab.title("GC content distribution over all sequences")
+        pylab.title("GC content distribution (per sequence)")
         pylab.xlabel(r"Mean GC content (%)", fontsize=self.fontsize)
+        pylab.xlim([0,100])
 
     @run_info
     def get_stats(self):
