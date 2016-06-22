@@ -141,7 +141,11 @@ class VCF(vcf.Reader):
         try:
             annotation = vcf_line.INFO["EFF"][0].split("|")
             effect_type, effect_lvl = annotation[0].split("(")
-            prot_effect, cds_effect = annotation[3].split("/")
+            try:
+                prot_effect, cds_effect = annotation[3].split("/")
+            except ValueError:
+                cds_effect = annotation[3]
+                prot_effect = ""
             ann_dict = {"CDS_position": cds_effect[2:],
                         "annotation": effect_type,
                         "codon_change": annotation[2],
