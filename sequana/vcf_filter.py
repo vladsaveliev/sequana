@@ -178,7 +178,7 @@ class VCF(vcf.Reader):
             "freebayes_score"])
         for variant in self:
             line_dict = self._vcf_line_to_csv_line(variant)
-            sefl.df = self.df.append(line_dict, ignore_index=True)
+            self.df = self.df.append(line_dict, ignore_index=True)
 
         try:
             cols = self.df.columns.tolist()
