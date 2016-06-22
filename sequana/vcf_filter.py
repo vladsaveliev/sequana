@@ -42,7 +42,7 @@ class VCF(vcf.Reader):
         # Filter the data
         filter_dict = {"QUAL": 10000, "FREQ": 0.85, 
             "INFO": {"DP": ">10", "AO": ">200", "SRP": "<100"}}
-        v.filter_vcf(filter_dict)
+        v.filter_vcf(filter_dict, "output.vcf")
 
     """
     def __init__(self, filename, **kwargs):
@@ -137,7 +137,7 @@ class VCF(vcf.Reader):
                 keep_line = self._filter_line(variant, filter_dict)
                 if keep_line:
                     vcf_writer.write_record(variant)
-        self._reader.seek(self.start_index)
+        self._rewind()
 
     def _vcf_line_to_csv_line(self, vcf_line):
         alt_freq = self._compute_freq(vcf_line)
@@ -186,7 +186,11 @@ class VCF(vcf.Reader):
                 cols[8], cols[10], cols[13], cols[14]]]
         except (ValueError, IndexError):
             pass
+        self._rewind()
+
+    def _rewind(self):
         self._reader.seek(self.start_index)
+        self.reader = (line.strip() for line in self._reader if line.strip())
 
     def to_csv(self, output_filename):
         self.df.to_csv(output_filename, index=False)
