@@ -169,7 +169,7 @@ class VCF(vcf.Reader):
 
         try:
             cols = df.columns.tolist()
-            df = df[cols[:8] + [cols[9], cols[10], cols[15], cols[11], cols[8],
+            df = df[cols[:8] + [cols[9], cols[12], cols[15], cols[11], cols[8],
                 cols[10], cols[13], cols[14]]]
         except (ValueError, IndexError):
             pass
