@@ -173,13 +173,11 @@ class VCF(vcf.Reader):
     def _vcf_to_df(self):
         """
         """
-        self.df = pd.DataFrame(columns=["chr", "position", "reference", 
-            "alternative", "depth", "frequency", "strand_balance", 
-            "freebayes_score"])
-        for variant in self:
-            line_dict = self._vcf_line_to_csv_line(variant)
-            self.df = self.df.append(line_dict, ignore_index=True)
-
+        #self.df = pd.DataFrame(columns=["chr", "position", "reference", 
+        #    "alternative", "depth", "frequency", "strand_balance", 
+        #    "freebayes_score"])
+        dict_list = [self._vcf_line_to_csv_line(variant) for variant in self]
+        self.df = pd.DataFrame.from_records(dict_list)
         try:
             cols = self.df.columns.tolist()
             self.df = self.df[cols[:8] + [cols[9], cols[12], cols[15], cols[11], 
