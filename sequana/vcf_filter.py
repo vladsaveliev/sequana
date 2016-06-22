@@ -56,7 +56,7 @@ class VCF(vcf.Reader):
             self.filename = filename
             filin = open(filename, "r")
             vcf.Reader.__init__(self, fsock=filin, **kwargs)
-            self._get_start_indice()
+            self._get_start_index()
             self._vcf_to_df()
         except IOError as e:
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
