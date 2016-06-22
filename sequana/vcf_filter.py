@@ -177,12 +177,12 @@ class VCF(vcf.Reader):
         self.df = pd.DataFrame.from_records(dict_list)
         cols = self.df.columns.tolist()
         try:
-            self.df = self.df[cols[3], cols[10], cols[14], cols[1], cols[5], 
+            self.df = self.df[[cols[3], cols[10], cols[14], cols[1], cols[5], 
                     cols[7], cols[15], cols[6], cols[2], cols[9], cols[13],
-                    cols[8], cols[0], cols[4], cols[11], cols[12]]
+                    cols[8], cols[0], cols[4], cols[11], cols[12]]]
         except (ValueError, IndexError):
-            self.df = self.df[cols[1], cols[5], cols[6], cols[0], cols[2],
-                    cols[4], cols[7], cols[3]]
+            self.df = self.df[[cols[1], cols[5], cols[6], cols[0], cols[2],
+                    cols[4], cols[7], cols[3]]]
         self._rewind()
 
     def _rewind(self):
