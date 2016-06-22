@@ -56,8 +56,18 @@ class VCF(vcf.Reader):
             self.filename = filename
             filin = open(filename, "r")
             vcf.Reader.__init__(self, fsock=filin, **kwargs)
+            self._get_start_indice()
+            self._vcf_to_df()
         except IOError as e:
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
+
+    def _get_start_index(self):
+        self._reader.seek(0)
+        for line in iter(self._reader.readline, ''):
+            if line.startswith("#"):
+                self.start_index = self._reader.tell()
+            else:
+                break
 
     def _strand_rate(self, number1, number2):
         try:
@@ -127,6 +137,7 @@ class VCF(vcf.Reader):
                 keep_line = self._filter_line(variant, filter_dict)
                 if keep_line:
                     vcf_writer.write_record(variant)
+        self._reader.seek(self.start_index)
 
     def _vcf_line_to_csv_line(self, vcf_line):
         alt_freq = self._compute_freq(vcf_line)
@@ -159,19 +170,23 @@ class VCF(vcf.Reader):
             pass
         return line_dict
 
-    def vcf_to_csv(self, output):
-        df = pd.DataFrame(columns=["chr", "position", "reference", 
+    def _vcf_to_df(self):
+        """
+        """
+        self.df = pd.DataFrame(columns=["chr", "position", "reference", 
             "alternative", "depth", "frequency", "strand_balance", 
             "freebayes_score"])
         for variant in self:
             line_dict = self._vcf_line_to_csv_line(variant)
-            df = df.append(line_dict, ignore_index=True)
+            sefl.df = self.df.append(line_dict, ignore_index=True)
 
         try:
-            cols = df.columns.tolist()
-            df = df[cols[:8] + [cols[9], cols[12], cols[15], cols[11], cols[8],
-                cols[10], cols[13], cols[14]]]
+            cols = self.df.columns.tolist()
+            self.df = self.df[cols[:8] + [cols[9], cols[12], cols[15], cols[11], 
+                cols[8], cols[10], cols[13], cols[14]]]
         except (ValueError, IndexError):
             pass
-        df.to_csv(output, index=False)
-        return df
+        self._reader.seek(self.start_index)
+
+    def to_csv(self, output_filename):
+        self.df.to_csv(output_filename, index=False)
