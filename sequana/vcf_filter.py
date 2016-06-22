@@ -139,12 +139,17 @@ class VCF(vcf.Reader):
                         strand_bal),
                 "frequency": "; ".join("{0:.2f}".format(x) for x in alt_freq)} 
         try:
-            annotation = vcf_line.INFO["ANN"][0].split("|")
-            ann_dict = {"annotation": annotation[1], 
-                        "prot_effect": annotation[10],
-                        "putative_impact": annotation[2],
-                        "cDNA_position": annotation[11],
-                        "CDS_position": annotation[12]}
+            annotation = vcf_line.INFO["EFF"][0].split("|")
+            effect_type, effect_lvl = annotation[0].split("(")
+            prot_effect, cds_effect = annotation[3].split("/")
+            ann_dict = {"CDS_position": cds_effect[2:],
+                        "annotation": effect_type,
+                        "codon_change": annotation[2],
+                        "gene_name": annotation[5],
+                        "mutation_type": annotation[1],
+                        "prot_effect": prot_effect[2:],
+                        "prot_size": annotation[4],
+                        "putative_impact": effect_lvl}
             line_dict = dict(line_dict, **ann_dict)
         except KeyError:
             pass
@@ -160,7 +165,8 @@ class VCF(vcf.Reader):
 
         try:
             cols = df.columns.tolist()
-            df = df[cols[:8] + [cols[9], cols[11], cols[12], cols[10], cols[8]]]
+            df = df[cols[:8] + [cols[9], cols[10], cols[15], cols[11], cols[8],
+                cols[10], cols[13], cols[14]]]
         except (ValueError, IndexError):
             pass
         df.to_csv(output, index=False)
