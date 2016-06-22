@@ -51,9 +51,19 @@ bwa_ref:
         threads: 2 
 
 # snpEff parameter
+#Results filter options:
+#	-fi , -filterInterval: Only analyze changes that intersect with the intervals specified in this file (you may use this option many times)
+#	-no-downstream: Do not show DOWNSTREAM changes
+#	-no-intergenic: Do not show INTERGENIC changes
+#	-no-intron: Do not show INTRON changes
+#	-no-upstream: Do not show UPSTREAM changes
+#	-no-utr: Do not show 5_PRIME_UTR or 3_PRIME_UTR changes
+#	-no EffectType: Do not show 'EffectType'. This option can be used several times.
+ 
 snpeff:
     do: yes
     reference:
+    options: "-no-downstream -no-upstream"
 
 # Software parameters
 

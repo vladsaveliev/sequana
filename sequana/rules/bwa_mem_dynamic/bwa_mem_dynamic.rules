@@ -38,8 +38,15 @@ rule bwa_mem__%(name)s:
         config["bwa_%(name)s"]["mem"]["threads"]
     shell:
         """
+        # Symbolic link of the reference
+        if [[ {input.reference} == /* ]];
+        then
+            ln -sf {input.reference} {output.reference}
+        else
+            ln -sf $(pwd)/{input.reference} {output.reference}
+        fi
+
         # Indexing
-        ln -sf $(pwd)/{input.reference} {output.reference}
         bwa index {params.index} {output.reference} 2> {log.index}
         samtools faidx {output.reference}
 
