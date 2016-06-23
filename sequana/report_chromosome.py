@@ -61,7 +61,7 @@ class ChromosomeMappingReport(BaseReport):
         formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
         for i in range(0, len(self.mapping), step):
             name = "{0}_{1}_mapping_{2}".format(self.project, 
-                    self.mapping.chr_name, i)
+                    self.mapping.chrom_name, i)
             stop = i + step
             if stop > len(self.mapping):
                 stop = len(self.mapping)
@@ -80,11 +80,11 @@ class ChromosomeMappingReport(BaseReport):
 
     def parse(self):
         self.jinja['title'] = "Mapping Report of {0}".format(
-                self.mapping.chr_name)
+                self.mapping.chrom_name)
         self.jinja['main_link'] = 'index.html'
 
         # Coverage plot
-        self.jinja["cov_plot"] = self.project + "_" + self.mapping.chr_name + \
+        self.jinja["cov_plot"] = self.project + "_" + self.mapping.chrom_name +\
                 "_coverage.png"
         self.mapping.plot_coverage(filename=self.directory + os.sep + 
                 self.jinja["cov_plot"], low_threshold=self.low_t, 
@@ -98,7 +98,7 @@ class ChromosomeMappingReport(BaseReport):
                 self.mapping.best_gaussian["mu"], 
                 self.mapping.best_gaussian["sigma"])
         self.jinja["bp_plot"] =  self.project + \
-                "_" + self.mapping.chr_name + "_zscore_hist.png"
+                "_" + self.mapping.chrom_name + "_zscore_hist.png"
         self.mapping.plot_hist(filename= self.directory + os.sep + 
                 self.jinja["bp_plot"])
 
