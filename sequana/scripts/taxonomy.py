@@ -33,7 +33,7 @@ Issues: http://github.com/sequana/sequana
         self.add_argument("--database", dest="database", type=str,
             help="""Kraken DB """)
         self.add_argument("--output", dest="output", type=str,
-            help="""Kraken DB """, default="krona.html")
+            help="""name of the output HTML file""", default="krona.html")
         self.add_argument("--thread", dest="thread", type=int,
             help="""number of threads to use """, default=4)
         self.add_argument("--show-html", dest="html", 
