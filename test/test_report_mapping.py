@@ -14,6 +14,6 @@ def test_report():
         chrom.running_median(n=3, circular=False)
         chrom.coverage_scaling()
         chrom.compute_zscore()
-        r = ChromosomeMappingReport()
+        r = ChromosomeMappingReport(chrom=chrom.chrom_name)
         r.set_data(chrom)
         r.create_report()

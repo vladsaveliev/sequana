@@ -111,7 +111,7 @@ class Chromosomecov(object):
         """
         # Chromosome position becomes the index
         self.df = df.set_index("pos", drop=False)
-        self.chr_name = df["chr"].iloc[0]
+        self.chrom_name = df["chr"].iloc[0]
 
     def __str__(self):
         return self.df.__str__()
