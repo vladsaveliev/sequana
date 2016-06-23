@@ -2,7 +2,7 @@
 
 rule conda:
     input:
-    output: "%s/requirements.txt" % config['project']
+    output: "report/requirements.txt"
     run:
         from easydev import shellcmd
         try:

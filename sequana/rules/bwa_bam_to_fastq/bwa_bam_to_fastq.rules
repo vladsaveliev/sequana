@@ -3,10 +3,9 @@
 
 cfg = SequanaConfig(config)
 
-__format = "%(proj)s/bwa_bam_to_fastq/%(proj)s_{read}.{tag}.fastq.gz" 
+__format = "bwa_bam_to_fastq/%(proj)s_{read}.{tag}.fastq.gz"
 
 if cfg.paired is True:
-
     # !! here we use the project name not the samples' names
     __bwa_bam_to_fastq__output = expand(
         __format % {'proj':cfg.PROJECT},
@@ -19,19 +18,20 @@ else:
 
 __input_dir = 'bwa_mem_phix'
 
+
 rule bwa_bam_to_fastq:
     message: """
     -- Extracting the fastq from the BAM/SAM files
     -- information saved in {log}
     """
     input:
-        bam = "%s/%s/%s.bam" % (cfg.PROJECT, __input_dir, cfg.PROJECT),
+        bam = "%s/%s.bam" % (__input_dir, cfg.PROJECT),
     params:
-        wkdir = "%s/bwa_bam_to_fastq" % cfg.PROJECT,
+        wkdir = "bwa_bam_to_fastq"
     output:
         __bwa_bam_to_fastq__output,
-        stats = "%s/bwa_bam_to_fastq/bwa_mem_stats.json" % cfg.PROJECT,
-        done = touch("%s/bwa_bam_to_fastq/bwa_bam_to_fastq.done" % cfg.PROJECT)
+        stats = "bwa_bam_to_fastq/bwa_mem_stats.json",
+        done = touch("bwa_bam_to_fastq/bwa_bam_to_fastq.done")
     threads: 2
     message: "Calling bam2fastq and zipping data"
     run:

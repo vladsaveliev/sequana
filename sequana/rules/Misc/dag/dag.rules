@@ -16,13 +16,14 @@ except:
     __dag__input = "Snakefile"
 
 
+
 rule dag:
     input: 
         filename = __dag__input
     output:
         dot  = temp("dag.dot"),
         dot2 = temp("dag.ann.dot"),
-        svg  = "dag.svg"
+        svg  = "report/dag.svg"
     message: """
     -- Creating DAG in a dot file and save into report/dag.svg
     """

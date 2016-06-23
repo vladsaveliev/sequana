@@ -1,4 +1,3 @@
-
 import sequana
 from sequana import snaketools as sm
 from sequana.snaketools import SequanaConfig, FileFactory
@@ -11,8 +10,6 @@ configfile: "config.yaml"
 cfg = SequanaConfig(config)
 
 
-
-
 # Connect the sub-pipelines together
 include: sm.modules['quality']
 
@@ -22,7 +19,7 @@ include: sm.modules['quality']
 config["kraken_input"] = "cutadapt"
 include: sm.modules['kraken']
 expected_output.append(__kraken__output)
-expected_output.append(cfg.PROJECT + "/logs/pipeline_quality.done")
+expected_output.append("logs/pipeline_quality.done")
 
 
 rule pipeline_quality_taxon:
