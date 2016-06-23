@@ -75,11 +75,11 @@ Get the genbank reference
 Assuming the reference is **K01711.1** (Measles virus), we first need to fetch
 the genbank file rfom NCBI::
 
-    from bioservices import EUTils
-    eu = EUTils()
+    from bioservices import EUtils
+    eu = EUtils()
     data = eu.EFetch(db="nuccore",id="K01711.1", rettype="gbwithparts", retmode="text")
     with open("measles.gbk", "w") as fout:
-        fout.write(data)
+        fout.write(data.decode())
 
 Get the FASTA reference
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -87,7 +87,7 @@ We will also get the FASTA from ENA::
 
     from bioservices import ENA
     ena = ENA()
-    data = ENA.get_data('K01711', 'fasta')
+    data = ena.get_data('K01711', 'fasta')
     with open("measles.fa", "w") as fout:
         fout.write(data.decode())
 
@@ -96,8 +96,8 @@ Get a snpEff config file and update it
 
 Then you need to initialise a config file for snpEff tool::
 
-    from sequana import vcf_to_snpeff
-    v = snpeff.SnpEff("measles.gbk", file)
+    from sequana import SnpEff
+    v = SnpEff("measles.gbk", file)
 
 
 Edit the config file **config.yaml** and add the filename *measles.gbk* in the
