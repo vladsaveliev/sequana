@@ -48,9 +48,9 @@ class MappingReport(BaseReport):
         df = pd.DataFrame()
         formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
         for chrom in self.chr_list:
-            link = self.project + "_" + chrom.chr_name + "_mapping.html"
+            link = self.project + "_" + chrom.chrom_name + "_mapping.html"
             df = df.append({"chromosome": formatter.format(
-                chrom.chr_name, link), "size": "{0:,}".format(len(chrom))}, 
+                chrom.chrom_name, link), "size": "{0:,}".format(len(chrom))}, 
                 ignore_index=True)
         html = HTMLTable(df)
         self.jinja['list_chromosome'] = html.to_html(index=False)
