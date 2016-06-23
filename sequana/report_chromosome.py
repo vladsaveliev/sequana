@@ -91,9 +91,9 @@ class ChromosomeMappingReport(BaseReport):
                 high_threshold=self.high_t)
 
         # Barplot of zscore
-        bp_paragraph = ("If everything is alright, we may see a Gaussian "
-            "distribution center on 0. The predicted Gaussian has as parameter "
-            "mu={0} and sigma={1}.")
+        bp_paragraph = ("Distribution of the z-score (normalised coverage); "
+                        "You should see a Gaussian distribution centered around 0"
+            "The estimated parameters are mu={0:.2f} and sigma={1:.2f}.")
         self.jinja["bp_paragraph"] = bp_paragraph.format(
                 self.mapping.best_gaussian["mu"], 
                 self.mapping.best_gaussian["sigma"])
@@ -103,8 +103,8 @@ class ChromosomeMappingReport(BaseReport):
                 self.jinja["bp_plot"])
 
         # Low threshold case
-        low_cov_paragraph = ("Region with a zscore lower than {0:.2f} and at "
-            "least one base with a zscore lower than {1:.2f} are detected as "
+        low_cov_paragraph = ("Regions with a z-score lower than {0:.2f} and at "
+            "least one base with a z-score lower than {1:.2f} are detected as "
             "low coverage region. Thus, there are {2} low coverage regions")
         low_cov_df = self.mapping.get_low_coverage(self.low_t / 2)
         merge_low_cov = low_cov_df.merge_region(self.low_t)
@@ -115,8 +115,8 @@ class ChromosomeMappingReport(BaseReport):
         self.jinja['low_coverage'] = html.to_html(index=False)
 
         # High threshold case
-        high_cov_paragraph = ("Region with a zscore higher than {0:.2f} and at "
-            "least one base with a zscore higher than {1:.2f} are detected as "
+        high_cov_paragraph = ("Regions with a z-score higher than {0:.2f} and at "
+            "least one base with a z-score higher than {1:.2f} are detected as "
             "high coverage region. Thus, there are {2} high coverage regions")
         high_cov_df = self.mapping.get_high_coverage(self.high_t / 2)
         merge_high_cov = high_cov_df.merge_region(self.high_t)
