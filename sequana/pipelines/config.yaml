@@ -89,7 +89,7 @@ report_mapping:
     low_threshold: -3
 
 vcf_filter:
-    QUAL: 100
+    QUAL: 1000
     FREQ: 0.7
     INFO:
         DP: '>= 10'
