@@ -14,22 +14,22 @@ def bwa_mem_dynamic(name, inputs, outputs=[]):
     metadata = {'inputs':inputs, 'name':name, 'project':cfg.PROJECT}
     
     bwa_mem_code = '''
-__bwa_mem_%(name)s__reference = "%(project)s/references_%(name)s/%(project)s.fa"
-__bwa_mem_%(name)s__output = "%(project)s/bwa_mem_%(name)s/%(project)s.sorted.bam"
+__bwa_mem_%(name)s__reference = "references_%(name)s/%(project)s.fa"
+__bwa_mem_%(name)s__output = "bwa_mem_%(name)s/%(project)s.sorted.bam"
 
 rule bwa_mem__%(name)s:
     input:
         fastq = %(inputs)s,
         reference = config["bwa_%(name)s"]["reference"]
     output:
-        mem = "%(project)s/bwa_mem_%(name)s/%(project)s.bam",
+        mem = "bwa_mem_%(name)s/%(project)s.bam",
         sort = __bwa_mem_%(name)s__output,
         reference = __bwa_mem_%(name)s__reference,
-        done = touch("%(project)s/bwa_mem_%(name)s/done")
+        done = touch("bwa_mem_%(name)s/done")
     log:
-        mem = "%(project)s/logs/bwa_mem_%(name)s/bwa_mem.logs",
-        index = "%(project)s/logs/bwa_mem_%(name)s/bwa_index.logs",
-        sort = "%(project)s/logs/bwa_mem_%(name)s/samtools_sort.logs"
+        mem = "logs/bwa_mem_%(name)s/bwa_mem.logs",
+        index = "logs/bwa_mem_%(name)s/bwa_index.logs",
+        sort = "logs/bwa_mem_%(name)s/samtools_sort.logs"
     params:
         index = config["bwa_%(name)s"]["index"]["options"],
         mem = config["bwa_%(name)s"]["mem"]["options"],
