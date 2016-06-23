@@ -1,15 +1,15 @@
 include: sm.modules['dag']     # Create DAG file
 
-__report_mapping__output = cfg.PROJECT + "/report/report_mapping.html"
+__report_mapping__output = "report/report_mapping.html"
 
 rule report_mapping:
     input:
-        dag = "dag.svg",
+        dag = "report/dag.svg",
         bed = __report_mapping__input
     output:
         __report_mapping__output
     params:
-        outdir = cfg.PROJECT +"/report",
+        outdir = "report",
         size = config["report_mapping"]["window_size"],
         high = config["report_mapping"]["high_threshold"],
         low = config["report_mapping"]["low_threshold"],
@@ -53,4 +53,3 @@ rule report_mapping:
             r.create_report()
 
         shell("cp %s %s/" % (__snakefile__, params.outdir))
-        shell("mv {input.dag} %s/" % params.outdir)

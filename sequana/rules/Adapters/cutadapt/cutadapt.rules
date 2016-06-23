@@ -8,10 +8,10 @@ cfgca = cfg.config.cutadapt
 prefix = "cutadapt/"
 
 # TODO: should make these lines more robus (R1 hardcoded)
-__cutadapt__output = [prefix + cfg.PROJECT +"_R1.cutadapt.fastq.gz"]
+__cutadapt__output = [prefix + cfg.PROJECT +"_R1_.cutadapt.fastq.gz"]
 
 if len(cfg.DATASET) == 2:
-    __cutadapt__output += [prefix + cfg.PROJECT +"_R2.cutadapt.fastq.gz"]
+    __cutadapt__output += [prefix + cfg.PROJECT +"_R2_.cutadapt.fastq.gz"]
 
 
 if "adapter_removal_input" in config.keys():
