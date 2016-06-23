@@ -130,7 +130,8 @@ class SnpEff(object):
         """ Launch snpEff
         
         """
-        args_ann = ["snpEff", options, self.ref_name, vcf_filename]
+        args_ann = ["snpEff", "-formatEff", options, self.ref_name, 
+                vcf_filename]
         with open(output, "wb") as fp:
             proc_ann = sp.Popen(args_ann, stdout=fp)
             proc_ann.wait()
