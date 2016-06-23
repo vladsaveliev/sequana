@@ -60,7 +60,6 @@ class FastQStatsReport(BaseReport):
         # Add the canvas js in the header
         from sequana.resources.canvas import bar
 
-
         files = glob.glob("%s/*json" % self.input_directory)
         acgt = [
             {"name":"A", "data": {}},
@@ -68,12 +67,15 @@ class FastQStatsReport(BaseReport):
             {"name":"G", "data": {}},
             {"name":"T", "data": {}}]
 
+        dfsum = None
         for filename in files:
             try:
                 # if the mapped file is empty, the file is empty
                 thisdata = json.load(open(filename))
             except:
-                thisdata= {"A":0, "C":0, "G":0, "T":0}
+                thisdata= {"A":0, "C":0, "G":0, "T":0, "n_reads":0, "GC content":0}
+
+
             if "R2.unmapped" in filename:
                 key = "R2.unmapped"    
             elif "R1.unmapped" in filename:
@@ -90,6 +92,12 @@ class FastQStatsReport(BaseReport):
                 key = "R1"
             elif "_R2." in filename:
                 key = "R2"
+
+            if dfsum is None:
+                dfsum = pd.Series(thisdata).to_frame()
+                dfsum.columns = [key]
+            else:
+                dfsum[key] = pd.Series(thisdata)
             
             acgt[0]["data"][key] = thisdata['A']
             acgt[1]["data"][key] = thisdata['C']
@@ -104,19 +112,34 @@ class FastQStatsReport(BaseReport):
         data += """<script type="text/javascript" src="js/canvasjs.min.js"></script> """
         self.jinja["canvas"] = data
 
+        dfsum = dfsum[sorted(dfsum.columns)]
+        dfsum = dfsum.ix[['A', 'C', 'G', 'T', 'GC content', 'n_reads']]
+        S = dfsum.ix[['A', 'C', 'G', 'T']].sum()
+        dfsum.ix[['A', 'C', 'G', 'T']] /= S
 
-        html = """
+        html = HTMLTable(dfsum).to_html(index=True)
+
+        html += """
     <div id="chartContainerTest" style="height: 300px; width: 100%;"></div>
         """
 
 
         # Assuming in fastq directory, we figure out the HTML files and
         # create a table accordingly.
-        links = glob.glob("%s/*png" % self.input_directory)
-        links = [x.split("/",1)[1] for x in links]
+        sources = glob.glob("%s/*png" % self.input_directory)
+        import shutil
+        targets = []
+        for source in sources:
+            print(source)
+            filename = source.rsplit("/", 1)[1]
+            print(filename)
+            target = "report/images/" + filename
+            print(target)
+            shutil.copy(source, target)
+            targets.append(target.replace("report/", ""))
 
         from sequana.htmltools import galleria
-        html += galleria(links)
+        html += galleria(targets)
 
         self.jinja["content"] = html
 
