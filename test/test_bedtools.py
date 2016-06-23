@@ -13,24 +13,23 @@ def test_genomecov():
     mydata = bedtools.Genomecov(filename)
   
     # This requires to call other method before
-    mydata.coverage_scaling()
-    mydata.compute_zscore()
+    for chrom in mydata:
+        chrom.coverage_scaling()
+        chrom.compute_zscore()
 
-    mydata.moving_average(n=101)
-    mydata.running_median(n=101, circular=True)
-    mydata.running_median(n=101, circular=False)
-    mydata.coverage_scaling()
+        chrom.moving_average(n=101)
+        chrom.running_median(n=101, circular=True)
+        chrom.running_median(n=101, circular=False)
+        chrom.coverage_scaling()
 
-    mydata.compute_zscore()
-    mydata.get_low_coverage()
-    high_cov = mydata.get_high_coverage()
-    high_cov.merge_region(101)
-    with TempFile(suffix='.png') as fh:
-        mydata.plot_coverage(filename=fh.name)
-    with TempFile(suffix='.png') as fh:
-        mydata.plot_hist(filename=fh.name)
+        chrom.compute_zscore()
+        chrom.get_low_coverage()
+        high_cov = chrom.get_high_coverage()
+        high_cov.merge_region(101)
+        with TempFile(suffix='.png') as fh:
+            chrom.plot_coverage(filename=fh.name)
+        with TempFile(suffix='.png') as fh:
+            chrom.plot_hist(filename=fh.name)
 
-
-
-    len(mydata)
-    print(mydata)
+        len(mydata)
+        print(mydata)
