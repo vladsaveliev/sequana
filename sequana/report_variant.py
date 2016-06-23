@@ -41,6 +41,9 @@ class VariantReport(BaseReport):
 
     def parse(self):
         df = self.vcf_record.df
+
+        # Create readable CSV
+        self.vcf_record.to_csv(self.csv)
         self.jinja["csv_link"] = self.csv.split("/")[-1]
 
         self.jinja["nb_variant"] = len(df)
