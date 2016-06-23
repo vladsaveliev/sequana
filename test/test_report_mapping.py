@@ -9,7 +9,7 @@ def test_report():
     mydata = bedtools.Genomecov(sequana_data("test_bedcov.bed"))
     r = MappingReport()
     r.set_data(mydata)
-    r.create(report)
+    r.create_report()
     for chrom in mydata:
         chrom.running_median(n=3, circular=False)
         chrom.coverage_scaling()

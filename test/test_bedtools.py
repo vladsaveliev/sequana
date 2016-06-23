@@ -31,5 +31,5 @@ def test_genomecov():
         with TempFile(suffix='.png') as fh:
             chrom.plot_hist(filename=fh.name)
 
-        len(mydata)
-        print(mydata)
+        len(chrom)
+        print(chrom)
