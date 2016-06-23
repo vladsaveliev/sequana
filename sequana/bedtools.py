@@ -365,3 +365,4 @@ class FilteredGenomecov(object):
             merge_df = merge_df.append(self._merge_row(start, prev),
                     ignore_index=True)
         return merge_df
+

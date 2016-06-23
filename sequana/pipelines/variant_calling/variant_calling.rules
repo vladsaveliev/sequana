@@ -62,7 +62,7 @@ include: sm.modules["freebayes"]
 # VCF filter
 __vcf_filter__input = __freebayes__output
 include: sm.modules["vcf_filter"]
-__report_vcf__input = __vcf_filter__output
+__report_variant__input = __vcf_filter__output
 
 # snpEff
 if config["snpeff"]["do"]: 
@@ -71,11 +71,11 @@ if config["snpeff"]["do"]:
     __report_vcf__input = __snpeff__output
 
 # report vcf
-include: sm.modules["report_vcf"]
-final_output.append(__report_vcf__output)
+include: sm.modules["report_variant"]
+final_output.append(__report_variant__output)
 
 # Snakemake --------------------------------------------------------------------
 
-rule all:
+rule pipeline_variant:
     input:
         final_output

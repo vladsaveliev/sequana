@@ -16,22 +16,19 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-import pandas as pd
-from bioservices import EUtils, easyXML
-import collections
-from sequana.databases import ENADownload
-from easydev import DevTools
 import os
-import ftplib
-import subprocess
-import sys
-import glob
-from easydev import execute, TempFile, Progress
+
+import pandas as pd
+from easydev import DevTools
+from easydev import execute, TempFile
 import pylab
 
+from sequana.misc import wget
+from sequana import sequana_config_path
 
-__all__ = ['KrakenResults', "KrakenBuilder", 
-    "KrakenPipeline", "KrakenAnalysis"]
+
+
+__all__ = ['KrakenResults', "KrakenPipeline", "KrakenAnalysis"]
 
 
 
@@ -39,32 +36,64 @@ class KrakenResults(object):
     """Translate Kraken results into a Krona-compatible file
 
 
-    If you run a kraken analysis, you will end up with a file e.g. kraken.out
+    If you run a kraken analysis with :class:`KrakenAnalysis`, you will end up
+    with a file e.g. named kraken.out (by default).
 
     You could use kraken-translate but then you need extra parsing to convert
     into a Krona-compatible file. Here, we take the output from kraken and
-    directly transform to the krona-compatible file.
+    directly transform it to a krona-compatible file.
 
     ::
 
-        k = KrakenResults()
+        k = KrakenResults("kraken.out")
         k.kraken_to_krona()
 
-    Then in a shell, ::
-
+    .. note:: This takes care of fetching taxons and the corresponding lineages
+        from online web services.
 
     """
-
     def __init__(self, filename="kraken.out", verbose=True):
+        """
+
+        :param filename: the input from KrakenAnalysis class
+        :param verbose:
+
+        """
         self.filename = filename
         self.verbose = verbose
-        from biokit import Taxonomy
-        self.tax = Taxonomy(verbose=self.verbose)
+
+        on_rtd = os.environ.get("READTHEDOCS", None) == "True"
+
+        if on_rtd is False:
+            from biokit import Taxonomy
+            self.tax = Taxonomy(verbose=self.verbose)
+        else:
+            class Taxonomy(object):
+                from sequana import sequana_data # must be local
+                df = pd.read_csv(sequana_data("test_taxon_rtd.csv"), 
+                    index_col=0)
+                def get_lineage_and_rank(self, x):
+                    # Note that we add the name as well here
+                    ranks = ['kingdom', 'phylum', 'class', 'order', 
+                            'family', 'genus', 'species', 'name']
+                    return [(self.df.ix[x][rank], rank) for rank in ranks]
+            self.tax = Taxonomy()
         self._data_created = False
 
     def get_taxonomy_biokit(self, ids):
+        """Retrieve taxons given a list of taxons
+
+        :param list ids: list of taxons as strings or integers. Could also
+            be a single string or a single integer
+        :return: a dataframe
+        .. note:: the first call first loads all taxons in memory and takes a
+            few seconds but subsequent calls are much faster
+        """
         if self.verbose:
             print('Retrieving taxon using biokit.Taxonomy')
+
+        if isinstance(ids, list) is False:
+            ids = [ids]
 
         # filter the lineage to keep only information from one of the main rank
         # that is superkingdom, kingdom, phylum, class, order, family, genus and
@@ -99,6 +128,8 @@ class KrakenResults(object):
         df.index = ids
         df = df[list(ranks) + ['name']]
 
+        df.index = df.index.astype(int)
+
         return df
 
     def _parse_data(self):
@@ -108,7 +139,8 @@ class KrakenResults(object):
             print("Reading kraken data")
         # we select only col 0,2,3 to save memoty, which is required on very
         # large files
-        self._df = pd.read_csv(self.filename, sep="\t", header=None, usecols=[0,2,3])
+        self._df = pd.read_csv(self.filename, sep="\t", header=None,
+                               usecols=[0,2,3])
 
         # This gives the list of taxons as index and their amount
         # above, we select only columns 0,2,3  the column are still labelled
@@ -202,6 +234,17 @@ class KrakenResults(object):
         """A simple non-interactive plot of taxons
 
         A Krona Javascript output is also available in :meth:`kraken_to_krona`
+
+        .. plot::
+            :include-source:
+
+            from sequana import KrakenResults, sequana_data
+            test_file = sequana_data("test_kraken.out", "testing")
+            k = KrakenResults(test_file, verbose=False)
+            df = k.plot(kind='pie')
+
+        .. seealso:: to generate the data see :class:`KrakenPipeline`
+            or the standalone application **sequana_taxonomy**.
         """
         if self._data_created == False:
             self.kraken_to_krona()
@@ -240,13 +283,10 @@ class KrakenResults(object):
     def to_js(self, output="krona.html", onweb=False):
         if self._data_created == False:
             self.kraken_to_krona()
-        from easydev import execute
         execute("ktImportText %s -o %s" % (self.output_filename, output))
         if onweb is True:
             import easydev
             easydev.onweb(output)
-
-
 
 
 class KrakenPipeline(object):
@@ -261,6 +301,12 @@ class KrakenPipeline(object):
         kt = KrakenPipeline(["R1.fastq.gz", "R2.fastq.gz"], database="krakendb")
         kt.run()
         kt.show()
+
+    .. warning:: We do not provide Kraken database within sequana. You may
+        either download a database from https://ccb.jhu.edu/software/kraken/
+        or use this class to download a toy example that will
+        be stored in e.g .config/sequana under Unix platforms.
+        See :class:`KrakenDownload`.
 
 
     .. seealso:: We provide a standalone application of this class, which is
@@ -314,9 +360,35 @@ class KrakenPipeline(object):
 class KrakenAnalysis(object):
     """Run kraken on a set of FastQ files
 
+    In order to run a Kraken analysis, we firtst need a local database.
+    We provide a Toy example. The ToyDB is downloadable as follows ( you will
+    need to run the following code only once)::
 
-        ka = KrakenAnalysis("R1.fastq.gz", database="krakendb")
+        from sequana import KrakenDownload
+        kd = KrakenDownload()
+        kd.download_kraken_toydb()
 
+    .. seealso:: :class:`KrakenDownload`  for more database and
+        :class:`sequana.kraken_builder.KrakenBuilder` to build your own
+        databases
+
+    The path to the database is required to run the analysis. It has been
+    stored in the directory ./config/sequana/kraken_toydb under Linux platforms
+    The following code should be platform independent::
+
+        import os
+        from sequana import sequana_config_path
+        database = sequana_config_path + os.sep + "kraken_toydb")
+
+    Finally, we can run the analysis on the toy data set::
+
+        from sequana import sequana_data
+        data = sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz", "data")
+        ka = KrakenAnalysis(data, database=database)
+        ka.run()
+
+    This creates a file named *kraken.out*. It can be interpreted with
+    :class:`KrakenResults`
     """
     def __init__(self, fastq, database, threads=4 ):
         """.. rubric:: Constructor
@@ -373,5 +445,143 @@ class KrakenAnalysis(object):
         # Somehow there is an error using easydev.execute with pigz
         from snakemake import shell
         shell(command)
+
+
+class KrakenDownload(object):
+    """Utility to download Kraken DB and place them in a local directory
+
+    ::
+
+        from sequana import KrakenDownload
+        kd = KrakenDownload()
+        kd.download('toydb')
+        kd.download('minikraken')
+
+    A large database (8Gb) is available on synapse and has the following DOI::
+
+        doi:10.7303/syn6171000
+
+    It can be downloaded manually or if you have a Synapse login
+    (https://www.synapse.org), you can use::
+
+        from sequana import KrakenDownload
+        kd = KrakenDownload()
+        kd.downloaded("sequana_db1")
+    """
+    dv = DevTools()
+    def download(self, name, verbose=True):
+        if name == "minikraken":
+            self._download_minikraken(verbose=verbose)
+        elif name == "toydb":
+            self._download_kraken_toydb(verbose=verbose)
+        elif name == "sequana_db1":
+            self._download_sequana_db1(verbose=verbose)
+        else:
+            raise ValueError("name must be toydb or minikraken, or sequana_db1")
+
+    def _download_kraken_toydb(self, verbose=True):
+        """Download the kraken DB toy example from sequana_data into
+        .config/sequana directory
+
+        """
+        dv = DevTools()
+        base = sequana_config_path + os.sep + "kraken_toydb"
+        taxondir = base + os.sep + "taxonomy"
+        dv.mkdir(base)
+        dv.mkdir(taxondir)
+
+        baseurl = "https://github.com/sequana/data/raw/master/"
+
+        # download only if required
+        if verbose:
+            print("Downloadind the database")
+        wget(baseurl + "kraken_toydb/database.idx", base + os.sep + "database.idx")
+        wget(baseurl + "kraken_toydb/database.kdb", base + os.sep + "database.kdb")
+        wget(baseurl + "kraken_toydb/taxonomy/names.dmp",
+             taxondir +  os.sep + "names.dmp")
+        wget(baseurl + "kraken_toydb/taxonomy/nodes.dmp",
+            taxondir + os.sep + "nodes.dmp")
+
+    def _download_minikraken(self, verbose=True):
+        dv = DevTools()
+        base = sequana_config_path + os.sep + ""
+        taxondir = base + os.sep + "taxonomy"
+        dv.mkdir(base)
+        dv.mkdir(taxondir)
+        if verbose:
+            print("Downloading minikraken (4Gb)")
+        wget("https://ccb.jhu.edu/software/kraken/dl/minikraken.tgz",
+             base + os.sep + "minikraken.tgz")
+        # unzipping. requires tar and gzip
+
+    def _download_from_synapse(self, synid, target_dir):
+        from synapseclient import Synapse
+        try:
+            self._synapse.get(synid, downloadLocation=target_dir)
+        except:
+            self._synapse = Synapse()
+            self._synapse.login()
+            self._synapse.get(synid, downloadLocation=target_dir)
+
+    def _download_sequana_db1(self, verbose=True):
+        dbname = "sequana_db1"
+        from easydev import md5
+        from sequana import sequana_config_path
+        dir1 = sequana_config_path + os.sep + dbname
+        dir2 = dir1 + os.sep + "taxonomy"
+        self.dv.mkdir(dir1)
+        self.dv.mkdir(dir2)
+
+        print("Downloading about 8Gb of data (if not already downloaded) from"
+            " Synapse into %s" % dir1) 
+
+        from os.path import exists
+        filename = dir1 + "ena_list.txt"
+        if exists(filename) and md5(filename) == "a9cc6268f3338d1632c4712a412593f2":
+            pass
+        else:
+            self._download_from_synapse('syn6171700', dir1)
+
+        # database.idx
+        filename = dir1 + "database.idx"
+        if exists(filename) and md5(filename) == "2fa4a99a4f52f2f04c5a965adb1534ac":
+            pass
+        else:
+            self._download_from_synapse('syn6171017', dir1)
+
+        # database.kdb ; this one is large (8Gb)
+        filename = dir1 + "database.kdb"
+        if exists(filename) and md5(filename) == "ff698696bfc88fe83bc201937cd9cbdf":
+            pass
+        else:
+            self._download_from_synapse('syn6171107', dir1)
+
+        # Then, the taxonomy directory
+        filename = dir1 + "names.dmp"
+        if exists(filename) and md5(filename) == "10bc7a63c579de02112d125a51fd65d0":
+            pass
+        else:
+            self._download_from_synapse('syn6171286', dir2)
+
+        filename = dir1 + "nodes.dmp"
+        if exists(filename) and md5(filename) == "a68af5a60434e2067c4a0a16df873980":
+            pass
+        else:
+            self._download_from_synapse('syn6171289', dir2)
+
+        filename = dir1 + "taxons.txt"
+        if exists(filename) and md5(filename) == "e78fbb43b3b41cbf4511d6af16c0287f":
+            pass
+        else:
+            self._download_from_synapse('syn6171290', dir2)
+        print('done. You should have a kraken DB in %s' % dir1)
+
+
+
+
+
+
+
+
 
 

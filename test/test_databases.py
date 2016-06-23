@@ -1,14 +1,22 @@
 from sequana import databases
 import os
+import glob
+
+
+def test_eutils():
+    from sequana.databases import EUtilsTools
+    et = EUtilsTools()
+    res = et.accession_to_info("K01711.1")
+    assert res['K01711.1']['gi'] == '331784'
+    assert res['K01711.1']['taxid'] == '11234'
+
 
 def test_database_download():
 
     d = databases.ENADownload()
     d.download_viroid()
-    import glob
     for this in glob.glob('Viroid/*'):
         os.remove(this)
-    
     os.rmdir("Viroid")
 
 

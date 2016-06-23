@@ -18,18 +18,15 @@
 ##############################################################################
 """ Tools to launch snpEff."""
 
-# Import -----------------------------------------------------------------------
-
-import subprocess as sp
 import re
 import sys
 import os
 import shutil
+
+import subprocess as sp
+
 from sequana.resources import snpeff
 
-
-
-# Class ------------------------------------------------------------------------
 
 class SnpEff(object):
     """ Python wrapper to launch snpEff.
@@ -94,7 +91,7 @@ class SnpEff(object):
     
     def _get_snpeff_config(self):
         from sequana import sequana_data
-        CONFIG = sequana_data("snpeff/snpEff.config.gz")
+        CONFIG = sequana_data("snpEff.config.gz", "snpeff")
         shutil.copyfile(CONFIG, "./snpEff.config.gz")
         gunzip_proc = sp.Popen(["gunzip", "snpEff.config.gz"])
         gunzip_proc.wait()
@@ -128,11 +125,12 @@ class SnpEff(object):
             print("snpEff build return a non-zero code")
             sys.exit(rc)
 
-    def launch_snpeff(self, vcf_filename, output, stderr="annot.err"):
+    def launch_snpeff(self, vcf_filename, output, stderr="annot.err",
+            options=""):
         """ Launch snpEff
         
         """
-        args_ann = ["snpEff", self.ref_name, vcf_filename]
+        args_ann = ["snpEff", options, self.ref_name, vcf_filename]
         with open(output, "wb") as fp:
             proc_ann = sp.Popen(args_ann, stdout=fp)
             proc_ann.wait()

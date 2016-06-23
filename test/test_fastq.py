@@ -10,47 +10,41 @@ data = sequana_data("test.fastq", "testing")
 
 def test_fastq_unzipped():
 
-    # isntanciation 
-    f = fastq.FastQ(data)
-    assert f.data_format == "Illumina_1.8+"
-    # count lines
-    # rune it twice because we want to make sure re-running count_lines
-    # (decompression with zlib) works when run again.
-    assert f.count_lines() == 1000
-    assert f.count_lines() == 1000
-    assert f.count_reads() == 250
-    assert f.count_reads() == 250
+    for thisdata in [data, datagz]:
+        # isntanciation
+        f = fastq.FastQ(thisdata)
+        assert f.data_format == "Illumina_1.8+"
+        # count lines
+        # rune it twice because we want to make sure re-running count_lines
+        # (decompression with zlib) works when run again.
+        assert f.count_lines() == 1000
+        assert f.count_lines() == 1000
+        assert f.count_reads() == 250
+        assert f.count_reads() == 250
 
-    # extract head of the file
-    ft = TempFile() 
-    f.extract_head(100, ft.name)
-    fcheck = fastq.FastQ(ft.name)
-    assert fcheck.count_lines() == 100
-    ft.delete() 
+        # extract head of the file into an unzipped file
+        ft = TempFile()
+        f.extract_head(100, ft.name)
+        fcheck = fastq.FastQ(ft.name)
+        assert fcheck.count_lines() == 100
+        ft.delete()
 
-    # extract head of the file and zip output
-    ft = TempFile() 
-    f.extract_head(100, ft.name)
-    fcheck = fastq.FastQ(ft.name)
-    assert fcheck.count_lines() == 100
-    ft.delete() 
+        # extract head of the file and zip output
+        ft = TempFile(suffix=".gz")
+        f.extract_head(100, ft.name)
+        fcheck = fastq.FastQ(ft.name)
+        assert fcheck.count_lines() == 100
+        ft.delete()
 
-    with FastQ(data) as ff:
-        assert len(ff) == 250
+        with FastQ(thisdata) as ff:
+            assert len(ff) == 250
 
-    with TempFile() as fh:
-        f.select_random_reads(10, fh.name)
-
-
-def test_fastq_zipped():
-
-    f = fastq.FastQ(datagz)
-    assert f.count_lines() == 1000
-    assert f.count_reads() == 250
+        with TempFile() as fh:
+            f.select_random_reads(10, fh.name)
 
 
 def test_split():
-    # general tests 
+    # general tests
     f = fastq.FastQ(data)
     try:
         f.split_lines(250) # not a multiple of 4
@@ -58,9 +52,9 @@ def test_split():
     except:
         assert True
 
-    # 
+    #
     outputs = f.split_lines(500)
-    assert len(outputs) == 2 
+    assert len(outputs) == 2
     remove_files(outputs)
     outputs = f.split_lines(256)
     assert len(outputs) == 4
@@ -85,7 +79,7 @@ def test_filter():
     # keeps all
 
     with TempFile() as fh:
-        f.filter(min_bp=80, max_bp=120, output_filename=fh.name,    
+        f.filter(min_bp=80, max_bp=120, output_filename=fh.name,
             progressbar=False)
         assert len(f) == 250
         ff = FastQ(fh.name)
@@ -114,7 +108,7 @@ def test_identifiers():
 
 
     identifier = fastq.Identifier("@prefix:1_13_573/1")
-    assert identifier.version == "unknown" 
+    assert identifier.version == "unknown"
 
 
     identifier = fastq.Identifier("@SEQ:1:1101:9010:3891#0/1")
@@ -131,7 +125,12 @@ def test_fastqc():
     qc.imshow_qualities()
     qc.histogram_sequence_lengths()
     qc.histogram_sequence_coordinates()
+    qc.plot_acgt_content()
 
-
+    stats = qc.get_stats()
+    assert stats['A'] == 6952
+    assert stats['T'] == 6400
+    assert stats['C'] == 6129
+    assert stats['G'] == 5768
 
 

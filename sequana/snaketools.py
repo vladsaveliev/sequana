@@ -16,7 +16,6 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-
 """Set of tools to manipulate Snakefile and config files
 
 Here is an overview (see details here below)

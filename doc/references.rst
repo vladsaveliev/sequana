@@ -32,6 +32,14 @@ Coverage
     :members:
     :undoc-members:
 
+Access to online database (e.g. ENA)
+----------------------------------------
+
+.. automodule:: sequana.databases
+    :members:
+    :undoc-members:
+
+
 FASTQ module
 ---------------
 .. automodule:: sequana.fastq

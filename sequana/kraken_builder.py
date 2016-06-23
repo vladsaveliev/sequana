@@ -83,7 +83,7 @@ class KrakenBuilder():
         --kmer-len 26 --jellyfish-hash-size 500000000
 
     Or you the KrakenBuilder. First you need to look at the :attr:`params`
-    attribute. The most important key/value that affect the size of the DB are 
+    attribute. The most important key/value that affect the size of the DB are::
 
         kb.params['kmer_length']  (max value is 31)
         kb.params['max_db_size'] is tha max size of the DB files in Gb

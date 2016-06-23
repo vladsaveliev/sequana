@@ -79,8 +79,5 @@ class FastA(object):
 
         return d
 
-    def to_fasta(self):
-        pass
-
     def __len__(self):
         return self.N
