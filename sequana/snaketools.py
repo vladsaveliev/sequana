@@ -659,6 +659,8 @@ class FileFactory(object):
         ".gz"
 
 
+        
+
     """
     def __init__(self, pattern):
         self.pattern = pattern
@@ -704,6 +706,67 @@ class FileFactory(object):
         filenames = [this.split('.', 1)[1] if "." in this else "" for this in self.basenames]
         return filenames
     all_extensions = property(_get_all_extensions)
+
+
+class FastQFactory(FileFactory):
+    """
+
+
+    """
+    def __init__(self, pattern, extension="fastq.gz", strict=True):
+        """
+
+        :param strict: if true, the pattern _R1_ or _R2_ must be found
+        """
+        super(FastQFactory,self).__init__(pattern)
+
+        if len(self.filenames) == 0:
+            raise ValueError("No files found with the requested pattern (%s)" % pattern)
+
+        # Check the extension of each file (fastq.gz by default)
+        for this in self.all_extensions:
+            assert this.endswith(extension), \
+                "Expecting file with %s extension. Found %s" % (extension, this)
+
+        # identify a possible tag
+        self.tags = []
+        for this in self.filenames:
+            if '_R1_' in this:
+                self.tags.append(this.split('_R1_', 1)[0])
+            elif '_R2_' in this:
+                self.tags.append(this.split('_R2_', 1)[0])
+            elif strict is True:
+                # Files must have _R1_ and _R2_ 
+                raise ValueError('FastQ filenames must contain _R1_ or _R2_')
+        self.tags = list(set(self.tags)) 
+
+    def _get_file(self, tag, rtag):
+        assert rtag in ["_R1_", "_R2_"]
+
+        if tag is None:
+            if len(self.tags) == 1:
+                tag = self.tags[0]
+            elif len(self.tags) >1:
+                raise ValueError("Ambiguous tag. You must provide one (sequana.FastQFactory)")
+        else:
+            assert tag in self.tags, 'invalid tag'
+
+        candidates = [realpath for filename, realpath in 
+            zip(self.filenames, self.realpaths) if rtag in filename and filename.startswith(tag)]
+
+        if len(candidates) == 0 and rtag == "_R2_":
+            # assuming there is no R2
+            return None
+        elif len(candidates) == 1:
+            return candidates[0]
+        else:
+            raise ValueError("Did ")
+
+    def get_file1(self, tag=None):
+        return self._get_file(tag, "_R1_")
+
+    def get_file2(self, tag=None):
+        return self._get_file(tag, "_R2_")
 
 
 def get_cleanup_rules(filename):
