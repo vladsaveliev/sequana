@@ -246,5 +246,5 @@ def gc_content(filename, window_size, circular=False):
             if chrom.sequence[i + window_size - 1] in checker:
                 gc_count += 1
             gc_content[i] = gc_count
-        chrom_gc_content[chrom.name] = gc_content
+        chrom_gc_content[chrom.name] = gc_content / window_size
     return chrom_gc_content
