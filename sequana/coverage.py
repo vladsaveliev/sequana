@@ -271,18 +271,3 @@ class Coverage(object):
         df = pd.DataFrame.from_records(results)
         df.set_index("coverage", inplace=True)
         return df
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
