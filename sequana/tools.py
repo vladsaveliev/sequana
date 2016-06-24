@@ -21,6 +21,10 @@ import os
 import string
 import glob
 
+import numpy as np
+from pysam import FastxFile
+from collections import Counter
+
 from sequana import BAM
 
 
@@ -221,3 +225,26 @@ def bam_get_paired_distance(filename):
     return distances
 
 
+def gc_content(filename, window_size, circular=False):
+    """ 
+    """
+    fasta = FastxFile(filename)
+    checker = set(["G", "C", "g", "c"])
+    chrom_gc_content = dict()
+    for chrom in fasta:
+        if circular:
+            mid = int(window_size / 2)
+            chrom.sequence = (chrom.sequence[-mid:] + chrom.sequence + 
+                    chrom.sequence[:mid])
+        gc_content = np.arange(len(chrom.sequence) - window_size + 1,dtype=int)
+        counter = Counter(chrom.sequence[0:window_size])
+        gc_count = counter["G"] + counter["C"]
+        gc_content[0] = gc_count
+        for i in range(1, len(chrom.sequence) - window_size + 1):
+            if chrom.sequence[i - 1] in checker:
+                gc_count -= 1
+            if chrom.sequence[i + window_size - 1] in checker:
+                gc_count += 1
+            gc_content[i] = gc_count
+        chrom_gc_content[chrom.name] = gc_content
+    return chrom_gc_content
