@@ -1,23 +1,26 @@
 include: sm.modules['dag']     # Create DAG file
 
-__report_mapping__output = cfg.PROJECT + "/report/report_mapping.html"
+__report_mapping__output = "report/report_mapping.html"
 
 rule report_mapping:
     input:
-        dag = "dag.svg",
+        dag = "report/dag.svg",
         bed = __report_mapping__input
     output:
         __report_mapping__output
     params:
-        outdir = cfg.PROJECT +"/report",
+        outdir = "report",
         size = config["report_mapping"]["window_size"],
         high = config["report_mapping"]["high_threshold"],
-        low = config["report_mapping"]["low_threshold"]
+        low = config["report_mapping"]["low_threshold"],
+        circular = config["report_mapping"]["circular"]
     run:
+        import os        
+
         from sequana import bedtools
         from sequana import report_mapping
+        from sequana import report_chromosome
         from sequana import report_main
-        import os
 
         s = report_main.SequanaReport(snakefile=__snakefile__,
                 directory=params.outdir)
@@ -30,14 +33,23 @@ rule report_mapping:
         s.create_report()
 
         mydata = bedtools.Genomecov(input.bed)
-        mydata.running_median(n=params.size, circular=True)
-        mydata.coverage_scaling()
-        mydata.compute_zscore()
-
-        r = report_mapping.MappingReport(low_threshold=params.low, 
-            high_threshold=params.high, directory=params.outdir)
+        
+        # Report mapping
+        r = report_mapping.MappingReport(directory=params.outdir, 
+            project=cfg.PROJECT)
         r.set_data(mydata)
         r.create_report()
+            
+        # Report chromosomes
+        for chrom in mydata:
+            chrom.running_median(n=params.size, circular=params.circular)
+            chrom.coverage_scaling()
+            chrom.compute_zscore()
+
+            r = report_chromosome.ChromosomeMappingReport(chrom.chrom_name,
+                low_threshold=params.low, high_threshold=params.high, 
+                directory=params.outdir, project=cfg.PROJECT)
+            r.set_data(chrom)
+            r.create_report()
 
         shell("cp %s %s/" % (__snakefile__, params.outdir))
-        shell("mv {input.dag} %s/" % params.outdir)

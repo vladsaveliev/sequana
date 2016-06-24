@@ -20,13 +20,13 @@ rule fastqc__%(name)s:
     input:
         %(inputs)s
     output:
-        touch('%(project)s/fastqc_%(name)s/fastqc.done')
+        touch('fastqc_%(name)s/fastqc.done')
     params:
-        wkdir="%(project)s/fastqc_%(name)s",
+        wkdir="fastqc_%(name)s",
         kargs = cfg.config.fastqc.options
     threads: 4
     log:
-        "%(project)s/logs/fastqc_%(name)s.log"
+        "logs/fastqc_%(name)s.log"
     run:
         # if the content of the file is empty, this will fail. We need to
         # touch  a file in such case.

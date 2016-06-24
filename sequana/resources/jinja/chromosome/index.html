@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!--    <div class="contents local topic" id="contents">
+        <ul class="simple">
+            <li> 1 - <a class="reference internal" href="#Stats" id="id1">
+                Stats</a></li>
+            <li> 2 - <a class="reference internal" href="#Dependencies"
+                id="id11">Dependencies</a> </li>
+        </ul>
+    </div>
+-->
+Sequencing depth report about the chromosome {{chrom_name}} of the project {{project_name}}.
+
+<!--This page informs of the mapping depth coverage. Some regions are detected
+    with an unusual depth coverage and are showed below.-->
+
+<div class="section" id="Coverage">
+    <h2> 1 -  <a class="toc-backref" href="#id1">Coverage</a></h2>
+    <div>
+    The graphics shows the coverage as function of the position in the genome.
+
+    </div>
+    <img src={{ cov_plot }}> </>
+</div>
+
+<div class="section" id="Submapping list"> 
+Interactive plots are available in the following table. Note that the whole
+    reference is split into sub-regions (500,000 bp length at max).
+    {{ list_submapping }}
+</div>
+
+<div class="section" id="Z-Score distribution">
+    <h2> 2 - <a class="toc-backref" href="#id1">Z-Score distribution</a></h2>
+    {{ bp_paragraph }}
+<div>    
+    <img src={{ bp_plot }}> </>
+</div>
+</div>
+
+<div class="section" id="Low coverage region">
+    <h2> 3 - <a class="toc-backref" href="#id1">Low coverage region</a></h2>
+    {{ lc_paragraph }}
+    {{ low_coverage }}
+</div>
+
+<div class="section" id="High coverage region">
+    <h2> 4 - <a class="toc-backref" href="#id1">High coverage region</a></h2>
+    {{ hc_paragraph }}
+    {{ high_coverage }}
+</div>
+{% endblock %}

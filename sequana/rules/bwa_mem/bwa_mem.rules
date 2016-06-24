@@ -15,14 +15,14 @@ rule bwa_mem:
         fastq = cfg.DATASET,
         reference = config["reference"]
     output:
-        mem = cfg.PROJECT +  "/bwa_mem/%s.bam" % cfg.PROJECT,
-        sort = cfg.PROJECT +  "/bwa_mem/%s.sorted.bam" % cfg.PROJECT,
-        reference = cfg.PROJECT + "/references/%s.fa" % cfg.PROJECT,
-        done = touch(cfg.PROJECT + "/bwa_mem/done")
+        mem = "bwa_mem/%s.bam" % cfg.PROJECT,
+        sort = "bwa_mem/%s.sorted.bam" % cfg.PROJECT,
+        reference = "references/%s.fa" % cfg.PROJECT,
+        done = touch("bwa_mem/done")
     log:
-        mem = cfg.PROJECT + "/logs/bwa_mem.logs",
-        index = cfg.PROJECT + "/logs/bwa_index.logs",
-        sort = cfg.PROJECT + "/logs/samtools_sort.logs"
+        mem = "logs/bwa_mem.logs",
+        index = "logs/bwa_index.logs",
+        sort = "logs/samtools_sort.logs"
     params:
         index = " ".join(["%s %s" % (key, value) for key, value in
             config["bwa_index"].items()]),

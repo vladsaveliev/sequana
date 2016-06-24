@@ -2,7 +2,7 @@ from sequana import fastq, sequana_data, FastQ
 from easydev import TempFile
 import os
 from nose.plugins.attrib import attr
-
+from numpy import mean
 
 datagz = sequana_data("test.fastq.gz", "testing")
 data = sequana_data("test.fastq", "testing")
@@ -122,6 +122,8 @@ def test_fastqc():
     qc = fastq.FastQC(data, dotile=True)
     qc.boxplot_quality()
     qc.histogram_gc_content()
+    GC = mean(qc.gc_list)
+    assert GC>0 and GC<1
     qc.imshow_qualities()
     qc.histogram_sequence_lengths()
     qc.histogram_sequence_coordinates()

@@ -26,7 +26,7 @@ requirements:
 # If True, only a subset of the reads (N) are used
 
 fastq_sampling:
-    enable: False
+    do: no
     N: 100000
 
 # =========================================== Sections related to external tools
@@ -51,9 +51,19 @@ bwa_ref:
         threads: 2 
 
 # snpEff parameter
+#Results filter options:
+#	-fi , -filterInterval: Only analyze changes that intersect with the intervals specified in this file (you may use this option many times)
+#	-no-downstream: Do not show DOWNSTREAM changes
+#	-no-intergenic: Do not show INTERGENIC changes
+#	-no-intron: Do not show INTRON changes
+#	-no-upstream: Do not show UPSTREAM changes
+#	-no-utr: Do not show 5_PRIME_UTR or 3_PRIME_UTR changes
+#	-no EffectType: Do not show 'EffectType'. This option can be used several times.
+ 
 snpeff:
     do: yes
     reference:
+    options: "-no-downstream -no-upstream"
 
 # Software parameters
 
@@ -79,7 +89,7 @@ report_mapping:
     low_threshold: -3
 
 vcf_filter:
-    QUAL: 100
+    QUAL: 1000
     FREQ: 0.7
     INFO:
         DP: '>= 10'
@@ -104,20 +114,19 @@ bwa_phix:
 #   ref: http://cutadapt.readthedocs.io/
 #################################################################
 cutadapt:
-    fwd: GATCGGAAGAGCACACGTCTGAACTCCAGTCACGTGAAAATCTCGTATG
-    rev: AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCC
+    fwd: "%(adapter_fwd)s"
+    rev: "%(adapter_rev)s"
     m: 20
-    quality: 30,30
-    kwargs: "--progress"
+    quality: "%(quality_cutoff)s"
+    kwargs: ""
 
 alien_trimmer:
     fwd: adapters_48_PCR-free_FWD.fa
     rev: adapters_48_PCR-free_REV.fa
 
-adapter_removal:
-    fwd: GATCGGAAGAGCACACGTCTGAACTCCAGTCACGTGAAAATCTCGTATG
-    rev: AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCC
 
+########################################################### Kraken
+# For taxonomy. Used in quality_taxon pipeline
 kraken:
     database: "%(kraken)s"
 

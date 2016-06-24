@@ -20,13 +20,11 @@
 
 """
 
-# Import -----------------------------------------------------------------------
-
 import sys
+
 import vcf
 import pandas as pd
 
-# Class ------------------------------------------------------------------------
 
 class VCF(vcf.Reader):
     """VCF class (Variant Calling Format)
@@ -44,7 +42,7 @@ class VCF(vcf.Reader):
         # Filter the data
         filter_dict = {"QUAL": 10000, "FREQ": 0.85, 
             "INFO": {"DP": ">10", "AO": ">200", "SRP": "<100"}}
-        v.filter_vcf(filter_dict)
+        v.filter_vcf(filter_dict, "output.vcf")
 
     """
     def __init__(self, filename, **kwargs):
@@ -58,8 +56,18 @@ class VCF(vcf.Reader):
             self.filename = filename
             filin = open(filename, "r")
             vcf.Reader.__init__(self, fsock=filin, **kwargs)
+            self._get_start_index()
+            self._vcf_to_df()
         except IOError as e:
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
+
+    def _get_start_index(self):
+        self._reader.seek(0)
+        for line in iter(self._reader.readline, ''):
+            if line.startswith("#"):
+                self.start_index = self._reader.tell()
+            else:
+                break
 
     def _strand_rate(self, number1, number2):
         try:
@@ -129,6 +137,7 @@ class VCF(vcf.Reader):
                 keep_line = self._filter_line(variant, filter_dict)
                 if keep_line:
                     vcf_writer.write_record(variant)
+        self._rewind()
 
     def _vcf_line_to_csv_line(self, vcf_line):
         alt_freq = self._compute_freq(vcf_line)
@@ -141,29 +150,45 @@ class VCF(vcf.Reader):
                         strand_bal),
                 "frequency": "; ".join("{0:.2f}".format(x) for x in alt_freq)} 
         try:
-            annotation = vcf_line.INFO["ANN"][0].split("|")
-            ann_dict = {"annotation": annotation[1], 
-                        "prot_effect": annotation[10],
-                        "putative_impact": annotation[2],
-                        "cDNA_position": annotation[11],
-                        "CDS_position": annotation[12]}
+            annotation = vcf_line.INFO["EFF"][0].split("|")
+            effect_type, effect_lvl = annotation[0].split("(")
+            try:
+                prot_effect, cds_effect = annotation[3].split("/")
+            except ValueError:
+                cds_effect = annotation[3]
+                prot_effect = ""
+            ann_dict = {"CDS_position": cds_effect[2:],
+                        "annotation": effect_type,
+                        "codon_change": annotation[2],
+                        "gene_name": annotation[5],
+                        "mutation_type": annotation[1],
+                        "prot_effect": prot_effect[2:],
+                        "prot_size": annotation[4],
+                        "putative_impact": effect_lvl}
             line_dict = dict(line_dict, **ann_dict)
         except KeyError:
             pass
         return line_dict
 
-    def vcf_to_csv(self, output):
-        df = pd.DataFrame(columns=["chr", "position", "reference", 
-            "alternative", "depth", "frequency", "strand_balance", 
-            "freebayes_score"])
-        for variant in self:
-            line_dict = self._vcf_line_to_csv_line(variant)
-            df = df.append(line_dict, ignore_index=True)
-
+    def _vcf_to_df(self):
+        """
+        """
+        dict_list = [self._vcf_line_to_csv_line(variant) for variant in self]
+        self.df = pd.DataFrame.from_records(dict_list)
+        cols = self.df.columns.tolist()
         try:
-            cols = df.columns.tolist()
-            df = df[cols[:8] + [cols[9], cols[11], cols[12], cols[10], cols[8]]]
+            self.df = self.df[[cols[3], cols[10], cols[14], cols[1], cols[5], 
+                    cols[7], cols[15], cols[6], cols[2], cols[9], cols[13],
+                    cols[8], cols[0], cols[4], cols[11], cols[12]]]
         except (ValueError, IndexError):
-            pass
-        df.to_csv(output)
-        return df
+            if cols:
+                self.df = self.df[[cols[1], cols[5], cols[6], cols[0], cols[2],
+                        cols[4], cols[7], cols[3]]]
+        self._rewind()
+
+    def _rewind(self):
+        self._reader.seek(self.start_index)
+        self.reader = (line.strip() for line in self._reader if line.strip())
+
+    def to_csv(self, output_filename):
+        self.df.to_csv(output_filename, index=False)

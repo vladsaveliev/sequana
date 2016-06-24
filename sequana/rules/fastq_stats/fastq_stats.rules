@@ -6,10 +6,9 @@ def fastq_stats_dynamic(name, inputs, outputs=[]):
 
     metadata = {'inputs':inputs, 'name':name, 'project':cfg.PROJECT}
 
-
     fastq_stats_code = '''
 ff = sm.FileFactory(%(inputs)s)
-__fastq_stats__output = [cfg.PROJECT + "/fastq_stats_%(name)s/" + x for x in ff.basenames]
+__fastq_stats__output = ["fastq_stats_%(name)s/" + x for x in ff.basenames]
 __fastq_stats__output_json = [x.replace(".fastq.gz", "_fastq_stats.json") for x in __fastq_stats__output]
 __fastq_stats__output_bx = [x.replace(".fastq.gz", "_boxplot.png") for x in __fastq_stats__output]
 __fastq_stats__output_gc = [x.replace(".fastq.gz", "_gc.png") for x in __fastq_stats__output]
@@ -23,7 +22,7 @@ rule fastq_stats__%(name)s:
         json= __fastq_stats__output_json,
         boxplot=__fastq_stats__output_bx,
         gc=__fastq_stats__output_gc,
-        done= touch("%(project)s/fastq_stats_%(name)s/fastq_stats.done")
+        done= touch("fastq_stats_%(name)s/fastq_stats.done")
     threads: 4
     run:
         from sequana import FastQC, sequana_data

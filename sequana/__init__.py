@@ -16,6 +16,7 @@ from .snaketools import Module, ModuleFinder
 
 
 # tools
+from .adapters import AdapterReader, FindAdaptersFromIndex
 from .bamtools import BAM, SAMFlags
 from .bedtools import Genomecov
 from .coverage import Coverage

@@ -118,6 +118,7 @@ User guide and reference
     tutorial
     pipelines
     auto_examples/index
+    case_examples
     developers
     references
     faqs

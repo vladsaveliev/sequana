@@ -28,7 +28,7 @@ from sequana import running_median
 
 
 class Genomecov(object):
-    """Create a dataframe of BED file provided by bedtools genomecov (-d)
+    """Create a dataframe list of BED file provided by bedtools genomecov (-d)
 
 
     Example:
@@ -39,28 +39,79 @@ class Genomecov(object):
         from sequana import Genomecov, sequana_data
         filename = sequana_data("test_bedcov.bed", "testing")
 
-        gencov = Genomecov(filename)
-        gencov.running_median(n=1001 )
-        gencov.coverage_scaling()
-        gencov.compute_zscore()
-        gencov.plot_coverage()
+        from sequana import Genomecov
+        gencov = Genomecov('exemple.bed')
+        for chrom in gencov:
+            chrom.running_median(n=30001)
+            chrom.coverage_scaling()
+            chrom.compute_zscore()
+            chrom.plot_coverage()
+        gencov[0].plot_coverage()
 
-    Results are stored in a dataframe named :attr:`df`.
+    Results are stored in a list of :class:`Chromosomecov` named :attr:`chr_list`.
 
     """
+
     def __init__(self, input_filename=None):
         """.. rubric:: constructor
-
+        
         :param str input_filename: the input data with results of a bedtools
             genomecov run. This is just a 3-column file. The first column is a
             string, second column is the base postion and third is the coverage.
 
         """
         try:
-            self.df = pd.read_table(input_filename, header=None)
-            self.df = self.df.rename(columns={0: "chr", 1: "pos", 2: "cov"})
+            df = pd.read_table(input_filename, header=None)
+            df = df.rename(columns={0: "chr", 1: "pos", 2: "cov"})
+            df = df.set_index("chr", drop=False)
+            # Create a list of ChrGenomecov for each chromosome present in the
+            # bedtools.
+            self.chr_list = [Chromosomecov(df.loc[i]) for i in 
+                    df.index.unique()]
         except IOError as e:
             print("I/0 error({0}): {1}".format(e.errno, e.strerror))
+
+    def __getitem__(self, index):
+        return self.chr_list[index]
+
+    def __iter__(self):
+        return self.chr_list.__iter__()
+
+
+class Chromosomecov(object):
+    """Class used within :class:`Genomecov` to select a chromosome of the 
+    original Genomecov.
+
+    Example:
+
+    .. plot::
+        :include-source:
+
+        from sequana import Genomecov, sequana_data
+        filename = sequana_data("test_bedcov.bed", "testing")
+
+        gencov = Genomecov(filename)
+
+        chrcov = gencov[0]
+        chrcov.running_median(n=30001)
+        chrcov.coverage_scaling()
+        chrcov.compute_zscore()
+        chrcov.plot_coverage()
+
+    Results are stored in a dataframe named :attr:`df`.
+
+    """
+    def __init__(self, df=None):
+        """.. rubric:: constructor
+
+        :param df: dataframe with position for a chromosome used within
+            :class:`Genomecov`. Must contain the following columns:
+            ["chr", "pos", "cov"]
+
+        """
+        # Chromosome position becomes the index
+        self.df = df.set_index("pos", drop=False)
+        self.chrom_name = df["chr"].iloc[0]
 
     def __str__(self):
         return self.df.__str__()
@@ -96,16 +147,41 @@ class Genomecov(object):
 
         """
         mid = int(n / 2)# in py2/py3 the division (integer or not) has no impact
+        cov = list(self.df["cov"])
         if circular:
-            cov = list(self.df["cov"])
             cov = cov[-mid:] + cov + cov[:mid]
             rm = running_median.RunningMedian(cov, n).run()
-            self.df["rm"] = pd.Series(rm)
+            self.df["rm"] = rm[mid:-mid]
         else:
-            rm = running_median.RunningMedian(self.df["cov"], n).run()
-            self.df["rm"] = pd.Series(rm)
+            rm = running_median.RunningMedian(cov, n).run()
+            self.df["rm"] = rm
             #, index=np.arange(start=mid,
             #    stop=(len(rm) + mid)))
+
+    def get_evenness(self, normalise=False):
+        """Return Evenness of the coverage
+
+        :Reference: Konrad Oexle, Journal of Human Genetics 2016, Evaulation 
+            of the evenness score in NGS.
+
+        work before or after normalisation but lead to different results.
+        """
+        if normalise:
+            coverage = self.df['cov'] / self.df['ma']
+        else:
+            coverage = self.df['cov']
+        coverage = coverage.dropna()
+
+        C = round(coverage.mean())
+        D2 = coverage[coverage<C]
+        E = 1 - (len(D2) - sum(D2)/C)/len(D2)
+        return E
+    
+    def get_cv(self):
+        """coefficient variation"""
+        sigma = self.df['cov'].std()
+        mu = self.df['cov'].mean()
+        return sigma/mu
 
     def coverage_scaling(self):
         """Normalize data with moving average of coverage
@@ -190,7 +266,7 @@ class Genomecov(object):
             low_threshold=-3, high_threshold=3):
         """ Plot coverage as a function of base position.
 
-        In addition, the running median and coverage confidence corrsponding to
+        In addition, the running median and coverage confidence corresponding to
         the lower and upper  zscore thresholds
 
         """
@@ -251,7 +327,8 @@ class Genomecov(object):
 
 
 class FilteredGenomecov(object):
-    """Class used within :class:`Genomecov` to select a subset of the original Genomecov
+    """Class used within :class:`ChrGenomecov` to select a subset of the 
+    original Genomecov
 
     :target: developers only
     """
@@ -276,8 +353,8 @@ class FilteredGenomecov(object):
         cov = np.mean(self.df["cov"].loc[start:stop])
         rm = np.mean(self.df["rm"].loc[start:stop])
         zscore = np.mean(self.df["zscore"].loc[start:stop])
-        size = stop - start
-        return {"chr": chrom, "start": start + 1, "stop": stop, "size": size,
+        size = stop - start + 1
+        return {"chr": chrom, "start": start, "stop": stop + 1, "size": size,
                 "mean_cov": cov, "mean_rm": rm, "mean_zscore": zscore}
 
     def merge_region(self, threshold, zscore_label="zscore"):
@@ -301,7 +378,7 @@ class FilteredGenomecov(object):
                 prev = stop
             else:
                 if flag:
-                    merge_df = merge_df.append(self._merge_row(start - 1, prev),
+                    merge_df = merge_df.append(self._merge_row(start, prev),
                         ignore_index=True)
                     flag = False
                 start = stop
@@ -310,7 +387,7 @@ class FilteredGenomecov(object):
                 flag = True
 
         if start < stop and flag:
-            merge_df = merge_df.append(self._merge_row(start - 1, prev),
+            merge_df = merge_df.append(self._merge_row(start, prev),
                     ignore_index=True)
         return merge_df
 

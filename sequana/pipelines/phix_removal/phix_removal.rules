@@ -1,29 +1,25 @@
-"""
+"""Phix removal pipeline
+
 Author: Thomas Cokelaer
-Affiliation: Institut Pasteur
-Aim: Find Fix contaminant in the fastq
-Data: paired end or single reads
-Run: snakemake -s phix_removal.rules 
+Affiliation: Institut Pasteur @ 2016
 
-Config file needs to be edited to (1) set the input files and (2) the project
-name
-
+This pipeline is part of Sequana software (sequana.readthedocs.io)
 """
 
 import sequana
 from sequana import snaketools as sm
+from sequana.snaketools import SequanaConfig, FileFactory
 sm.init("phix_removal.rules", globals())
+
 
 
 # This must be defined before the include 
 configfile: "config.yaml"
-
-from sequana.snaketools import SequanaConfig, FileFactory
 cfg = SequanaConfig(config)
 
 
 # Optional for testing
-if config['fastq_sampling']['enable'] is True:
+if config['fastq_sampling']['do'] is True:
     include: sm.modules['fastq_sampling']
     FILE1 = cfg.BASENAME[0]
     config['samples']['file1'] = "fastq_sampling/%s" % FILE1
@@ -37,38 +33,46 @@ exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 include: bwa_mem_dynamic("phix", cfg.DATASET)
 
 # Some specific rules to be included for the phix removal pipeline
-include: sm.modules['bwa_bam_to_fastq']  # Save mapped and unmapped data in bwa_phix/
-include: sm.modules['report_phix_removal']# Report + DAG + CONDA 
+# This will create the mapped and unmapped data in bwa_phix directory
+include: sm.modules['bwa_bam_to_fastq']
 
-# Generic include:
+# Include the report
+include: sm.modules['report_phix_removal']
+
+# Generic include to run a fastqc and fastq_stats on the raw data
 exec(open(sequana.modules["fastqc"], "r").read())
 exec(open(sequana.modules["fastq_stats"], "r").read())
 
-# Let us run fastqc on the following fastq :
+# Run a fastqc on the raw data and data without phix
 include: fastqc_dynamic("phix", __bwa_bam_to_fastq__output)
 include: fastqc_dynamic("samples", cfg.DATASET)
 
-# Let us run a fastq_stats run on the following fastq
+# Run a fastq_stats run on the following fastq
 include: fastq_stats_dynamic("phix", __bwa_bam_to_fastq__output)
 include: fastq_stats_dynamic("samples", cfg.DATASET)
 
 # Those rules takes a couple of seconds so no need for a cluster
 localrules: dag, conda, all
 
+
 rule all:
-    input: "%s/report_phix_removal.html" % cfg.PROJECT, 
+    input: "report/report_phix_removal.html"
     version: sequana.version
 
-
 onsuccess:
+    import os
     print("Workflow finished. Creating stats image")
     from sequana.snaketools import SnakeMakeStats
-    SnakeMakeStats("stats.txt",cfg).plot_and_save()
+    try:
+        SnakeMakeStats("stats.txt").plot_and_save("report/snakemake_stats.png")
+        shell('rm stats.txt')
+    except:
+        pass
+    print("HTML files and summary results are in ./report directory")
 
+onerror:
+    print("An error occurred. See message above.")
 
-#onerror:
-#    print("An error occurred")
-#    shell("mail -s "an error occurred" youremail@provider.com < {log}")
 
 
 

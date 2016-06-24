@@ -1,0 +1,21 @@
+__report_variant__output = cfg.PROJECT + "/report/report_variant.html"
+
+rule report_variant:
+    input:
+        vcf = __report_variant__input
+    output:
+        html = __report_variant__output,
+        csv = cfg.PROJECT + "/report/%s.csv" % cfg.PROJECT
+    params:
+        outdir = cfg.PROJECT + "/report/"
+    run:
+        from sequana import vcf_filter
+        from sequana import report_variant
+
+        vcf_record = vcf_filter.VCF(input["vcf"])
+
+        r = report_variant.VariantReport(directory=params.outdir, 
+                csv_file=output.csv, output_filename="report_variant.html")
+        r.jinja["main_link"] = "index.html"
+        r.set_data(vcf_record)
+        r.create_report()
