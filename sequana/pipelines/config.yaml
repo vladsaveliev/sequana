@@ -114,21 +114,16 @@ bwa_phix:
 #   ref: http://cutadapt.readthedocs.io/
 #################################################################
 cutadapt:
-    fwd: GATCGGAAGAGCACACGTCTGAACTCCAGTCACGTGAAAATCTCGTATG
-    rev: AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCC
+    fwd: "%(adapter_fwd)s"
+    rev: "%(adapter_rev)s"
     m: 20
-    quality: 30,30
+    quality: "%(quality_cutoff)s"
     kwargs: ""
 
 alien_trimmer:
     fwd: adapters_48_PCR-free_FWD.fa
     rev: adapters_48_PCR-free_REV.fa
 
-adapter_removal:
-    # Not yet in bioconda so must be installed manually
-    executable: "/home/cokelaer/Work/github/adapterremoval/build/AdapterRemoval"
-    fwd: GATCGGAAGAGCACACGTCTGAACTCCAGTCACGTGAAAATCTCGTATG
-    rev: AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCC
 
 ########################################################### Kraken
 # For taxonomy. Used in quality_taxon pipeline
