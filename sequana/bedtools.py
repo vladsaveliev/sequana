@@ -158,6 +158,25 @@ class Chromosomecov(object):
             #, index=np.arange(start=mid,
             #    stop=(len(rm) + mid)))
 
+    def get_evenness(self, normalise=False):
+        """Return Evenness of the coverage
+
+        :Reference: Konrad Oexle, Journal of Human Genetics 2016, Evaulation 
+            of the evenness score in NGS.
+
+        work before or after normalisation but lead to different results.
+        """
+        if normalise:
+            coverage = self.df['cov'] / self.df['ma']
+        else:
+            coverage = self.df['cov']
+        coverage = coverage.dropna()
+
+        C = round(coverage.mean())
+        D2 = coverage[coverage<C]
+        E = 1 - (len(D2) - sum(D2)/C)/len(D2)
+        return E
+
     def coverage_scaling(self):
         """Normalize data with moving average of coverage
 
