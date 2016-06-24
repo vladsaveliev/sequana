@@ -176,6 +176,12 @@ class Chromosomecov(object):
         D2 = coverage[coverage<C]
         E = 1 - (len(D2) - sum(D2)/C)/len(D2)
         return E
+    
+    def get_cv(self):
+        """coefficient variation"""
+        sigma = self.df['cov'].std()
+        mu = self.df['cov'].mean()
+        return sigma/mu
 
     def coverage_scaling(self):
         """Normalize data with moving average of coverage
