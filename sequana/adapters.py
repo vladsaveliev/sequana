@@ -43,7 +43,7 @@ other tools, it may fail so we can added the missing bits that is::
 import pandas as pd
 import pysam
 from sequana.fasta import FastA
-
+import os
 
 def fasta_fwd_rev_to_columns(file1, file2=None, output_filename=None):
     """Convert reverse and forward adapters (FASTA format) into 2-columns file
@@ -291,7 +291,7 @@ class FindAdaptersFromIndex(object):
                                                               self.sample_names))
         return self.index_mapper.ix[sample_name]
 
-    def get_adapters(self, sample_name):
+    def get_adapters(self, sample_name, include_universal=True):
         indices = self.get_indices(sample_name)
 
         res = {'index1': {}, 'index2': {}}
@@ -300,25 +300,35 @@ class FindAdaptersFromIndex(object):
         res['index1']['fwd'] = self._adapters_fwd.get_adapter_by_index(index1)
         res['index1']['rev'] = self._adapters_rev.get_adapter_by_index(index1)
 
+
         index2 = indices.ix['index2']
         res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index(index2)
         res['index2']['rev'] = self._adapters_rev.get_adapter_by_index(index2)
 
+        if include_universal:
+            res['universal'] = {}
+            res['universal']['fwd'] = self._adapters_fwd.get_adapter_by_name(
+                'Universal_Adapter')
+            res['universal']['rev'] = self._adapters_rev.get_adapter_by_name(
+                'Universal_Adapter')
         return res
 
-    def save_adapters_to_csv(self, sample_name):
-        adapters = self.get_adapters(sample_name)
+    def save_adapters_to_csv(self, sample_name, include_universal=True, output_dir='.'):
+        """Get index1, index2 and uiversal adapter"""
+        adapters = self.get_adapters(sample_name, include_universal=include_universal)
 
-        with open("%s_adapters_fwd.fa" % sample_name) as fout:
-            fout.write(adapters['index1']['fwd'])
-            fout.write(adapters['index2']['fwd'])
+        file_fwd = output_dir + os.sep + "%s_adapters_fwd.fa"% sample_name
+        with open(file_fwd, "w") as fout:
+            if include_universal:
+                fout.write(adapters['universal']['fwd']+"\n")
+            fout.write(adapters['index1']['fwd']+"\n")
+            fout.write(adapters['index2']['fwd']+"\n")
 
-        with open("%s_adapters_rev.fa" % sample_name) as fout:
-            fout.write(adapters['index1']['rev'])
-            fout.write(adapters['index2']['rev'])
+        file_rev = output_dir + os.sep + "%s_adapters_rev.fa" % sample_name
+        with open(file_rev, "w") as fout:
+            if include_universal:
+                fout.write(adapters['universal']['rev']+"\n")
+            fout.write(adapters['index1']['rev']+"\n")
+            fout.write(adapters['index2']['rev']+"\n")
 
-
-
-
-
-
+        return file_fwd, file_rev
