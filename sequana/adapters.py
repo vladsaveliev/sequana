@@ -42,6 +42,7 @@ other tools, it may fail so we can added the missing bits that is::
 """
 import pandas as pd
 import pysam
+from sequana.fasta import FastA
 
 
 def fasta_fwd_rev_to_columns(file1, file2=None, output_filename=None):
@@ -172,6 +173,149 @@ class AdapterDB(object):
         if len(name) == 1:
             name = list(name)[0]
         return name
+
+class AdapterReader(FastA):
+    """We use FastA as our data structure to store adapters
+
+    Header of the FASTA must be of the form::
+
+        Nextera_index_N501|index_dna:N501
+
+    with a *|index_dna:* string followed by the index tag
+
+    .. note:: the universal adapter does not need to have it but is called
+        Universal_Adapter
+
+
+    .. doctest::
+
+        >>> from sequana import sequana_data, AdapterReader
+        >>> ar = AdapterReader(sequana_data("adapters_Nextera_PF1_220616_fwd.fa"))
+        >>> candidate = ar.get_get_adapter_by_index("S505")
+        >>> print(candidate)
+        '>Nextera_index_S505|index_dna:S505
+        AATGATACGGCGACCACCGAGATCTACACGTAAGGAGTCGTCGGCAGCGTC'
+
+
+    """
+    def __init__(self, filename):
+        super(AdapterReader, self).__init__(filename)
+        # TODO check uniqueness of the indices
+
+    def get_adapter_by_sequence(self, sequence):
+        """Return one or several adapters that have the sequence in them
+
+        :param str sequence: a string (ACGT letters)
+        :return: Name and sequence in FASTA format that have the user *sequence*
+            contained in their sequence
+        """
+        adapters = [str(this) for this in self if sequence in this.sequence]
+        if len(adapters) == 0:
+            return None
+        else:
+            return "\n".join(adapters)
+
+    def get_adapter_by_name(self, text):
+        """Return adapter whose name matches the user text
+
+        :param index_name: the unique index name to be found. If several
+            sequence do match, this is an error meaning the fasta file
+            with all adapters is not correctly formatted.
+        :return: the adapter that match the index_name (if any) otherwise
+            returns None
+        """
+        adapters = [str(this) for this in self if text in this.name]
+        if len(adapters) == 0:
+            return None
+        elif len(adapters) == 1:
+            return adapters[0]
+        else:
+            raise ValueError("name %s found several times" % text)
+
+    def get_adapter_by_index(self, index_name):
+        """
+
+        :param index_name: the unique index name to be found. If several
+            sequence do match, this is an error meaning the fasta file
+            with all adapters is not correctly formatted.
+        :return: the adapter that match the index_name (if any) otherwise
+            returns None
+        """
+        """Return FASTA corresponding to the index"""
+        # there should be only one
+        adapters = [str(this) for this in self if index_name in this.name]
+        if len(adapters) == 0:
+            return None
+        elif len(adapters) == 1:
+            return adapters[0]
+        else:
+            raise ValueError("index_name %s found several times" % index_name)
+
+
+class FindAdaptersFromIndex(object):
+    """
+
+    """
+    def __init__(self, index_mapper, adapters='Nextera'):
+        """.. rubric:: Constructor
+
+        :param str index_mapper: filename of a CSV file that has the following
+            header Projet,Index1,Index2,sample name,Index1,Index2
+
+        sample name is the string that starts the filename. From
+        the sample name, get the indices 1 and 2 ann then the corresponding
+        adapters.
+
+        """
+        self.index_mapper = pd.read_csv(index_mapper)[["sample name", 'Index1.1', 'Index2.1']]
+        self.index_mapper.columns = ["sample", "index1", "index2"]
+        self.index_mapper.set_index('sample', inplace=True)
+
+        if adapters == "Nextera":
+            from sequana import sequana_data
+            file1 = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", "data")
+            file2 = sequana_data("adapters_Nextera_PF1_220616_rev.fa", "data")
+
+            self._adapters_fwd = AdapterReader(file1)
+            self._adapters_rev = AdapterReader(file2)
+        else:
+            raise NotImplementedError
+
+    def _get_samples(self):
+        return list(self.index_mapper.index)
+    sample_names = property(_get_samples)
+
+    def get_indices(self, sample_name):
+        if sample_name not in self.index_mapper.index:
+            raise ValueError("%s not valid. Use one of %s" % (sample_name,
+                                                              self.sample_names))
+        return self.index_mapper.ix[sample_name]
+
+    def get_adapters(self, sample_name):
+        indices = self.get_indices(sample_name)
+
+        res = {'index1': {}, 'index2': {}}
+
+        index1 = indices.ix['index1']
+        res['index1']['fwd'] = self._adapters_fwd.get_adapter_by_index(index1)
+        res['index1']['rev'] = self._adapters_rev.get_adapter_by_index(index1)
+
+        index2 = indices.ix['index2']
+        res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index(index2)
+        res['index2']['rev'] = self._adapters_rev.get_adapter_by_index(index2)
+
+        return res
+
+    def save_adapters_to_csv(self, sample_name):
+        adapters = self.get_adapters(sample_name)
+
+        with open("%s_adapters_fwd.fa" % sample_name) as fout:
+            fout.write(adapters['index1']['fwd'])
+            fout.write(adapters['index2']['fwd'])
+
+        with open("%s_adapters_rev.fa" % sample_name) as fout:
+            fout.write(adapters['index1']['rev'])
+            fout.write(adapters['index2']['rev'])
 
 
 
