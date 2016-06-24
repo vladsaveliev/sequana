@@ -4,8 +4,10 @@ import glob
 import sys
 from optparse import OptionParser
 import argparse
-from easydev.console import red, purple, green
+from easydev.console import red, purple, green, blue
 import time
+from sequana.snaketools import FastQFactory
+from sequana.adapters import FindAdaptersFromIndex
 
 from easydev import DevTools
 
@@ -21,6 +23,8 @@ class Tools(object):
         print(red(txt))
     def green(self, txt):
         print(green(txt))
+    def blue(self, txt):
+        print(blue(txt))
     def onweb(self, link):
         from easydev import onweb
         onweb(link)
@@ -117,7 +121,34 @@ Issues: http://github.com/sequana/sequana
                 file. To be used with --init option. If more than two files or not 
                 files ending in fastq.gz are found, an error is raised.""")
 
+        self.add_argument("--adapter-fwd", dest="adapter_fwd", type=str, 
+            help="""A string representing the forward adapter. Can be a file 
+                in FASTA format""")
+        self.add_argument("--adapter-rev", dest="adapter_rev", type=str, 
+            help="""A string representing the forward adapter. Can be a file 
+                in FASTA format""")
+        self.add_argument("--index-mapper", dest="index_mapper", type=str,
+            help="""a CSV file with 3 columns named 'sample name', 'index1','index2' """)
+        self.add_argument("--quality-cutoff", dest="quality_cutoff", type=str,
+            help="""cutoff for single read or paired-end. If single read,
+            provide a number between 0 and 40 e.g., 30 means remove all reads
+            with quality below 30 (te details about the algorithm can be found
+            in sequana documentation. For paired-end, provide a string as 30,30
+            with two numbers separated by a comma (no space)""")
+        self.add_argument("--quality", dest="quality_cutoff", type=str,
+                          help="""cutoff for single read or paired-end. If single read,
+            provide a number between 0 and 40 e.g., 30 means remove all reads
+            with quality below 30 (te details about the algorithm can be found
+            in sequana documentation. For paired-end, provide a string as 30,30
+            with two numbers separated by a comma (no space)""")
 
+        self.add_argument("--cluster", dest="cluster", type=str,
+                          help="""a valid snakemake option dedicated to a cluster.
+                          e.g on LSF cluster --cluster 'qsub -cwd -q<QUEUE> '"""
+                          )
+        self.add_argument("--jobs", dest="jobs", type=int, default=4,
+                          help="""jobs to use on a cluster"""
+                          )
 def main(args=None):
 
     if args is None:
@@ -167,7 +198,6 @@ def main(args=None):
     if options.init and options.info:
         sa.error("ERROR: --init and --info options are mutually exclusive")
 
-
     if options.init:
         # check validity of the pipeline name
         if options.init not in valid_pipelines:
@@ -191,7 +221,6 @@ def main(args=None):
         # and project name. The project name will be the directory name
         #if options.project is None:
         #    options.project = os.path.basename(os.path.abspath(options.input_dir))
-        from sequana.snaketools import FastQFactory
         ff = FastQFactory(options.input_dir + os.sep + "*fastq.gz")
         options.project = ff.tags[0]
         files = glob.glob(options.input_dir + os.sep + "*.fastq.gz")
@@ -216,14 +245,26 @@ def main(args=None):
             raise NotImplementedError("Ambiguous number of fastq greater than 2")
 
     if options.glob:
-        from sequana.snaketools import FastQFactory
+        print('GLOBBING files')
         ff = FastQFactory(options.glob)
-        for tag in ff.tags:
-            options.project = tag
-            options.file1 = ff.get_file1(tag)
-            options.file2 = ff.get_file2(tag)
 
-            sequana_init(options)
+        if options.index_mapper:
+            adapter_finder = FindAdaptersFromIndex(options.index_mapper)
+
+        with open("multirun.sh", "w") as fout:
+            fout.write("#!/usr/sh\n")
+            for tag in ff.tags:
+                options.project = tag
+                options.file1 = ff.get_file1(tag)
+                options.file2 = ff.get_file2(tag)
+                if options.index_mapper:
+                    fwd, rev = adapter_finder.save_adapters_to_csv(tag)
+                    options.adapter_fwd = fwd
+                    options.adapter_rev = rev
+                sequana_init(options)
+                fout.write("cd %s\n" % tag)
+                fout.write("sh run.sh\n")
+
         #Run sequana_init N times changing the files and project each time
         return
 
@@ -241,13 +282,11 @@ def sequana_init(options):
     import sequana.snaketools as sm
     from sequana import Module, SequanaConfig, sequana_data
 
-
     if options.project is None:
         options.project = input(red("No project name provided (use --project). Enter a project name:"))
 
     target_dir = options.project
-
-
+    sa.blue("Creating project '" + target_dir +"'")
     try:
         module = Module(options.init)
     except:
@@ -271,10 +310,8 @@ def sequana_init(options):
         print(purple("Creating %s directory" % options.project))
         sa.mkdir(options.project)
 
-    time.sleep(0.5)
     print("Copying snakefile")
     shutil.copy(module.snakefile, target_dir + os.sep + options.init + ".rules")
-
 
 
     txt = "User command::\n\n"
@@ -299,13 +336,10 @@ def sequana_init(options):
     """
 
     print("Creating README")
-    time.sleep(0.5)
     with open(target_dir + os.sep + "README", "w") as fh:
         fh.write(txt.replace("\x1b[35m","").replace("\x1b[39;49;00m", ""))
 
-
     print("Creating the config file")
-    time.sleep(0.5)
     # Create (if needed) and update the config file
     config_filename = target_dir + os.sep + "config.yaml"
     if os.path.exists(config_filename) is False:
@@ -315,6 +349,7 @@ def sequana_init(options):
     with open(config_filename, "r") as fin:
         config_txt = fin.read()
 
+    #print(options)
     with open(config_filename, "w") as fout:
         from collections import defaultdict
         params = defaultdict(str)
@@ -325,6 +360,7 @@ def sequana_init(options):
         else:
             sa.green("You have not provided any input file. use --file1 or --input-dir")
             sa.green("You will need to edit the config.yaml file")
+
         if options.file2:
             params['file2'] = os.path.abspath(options.file2)
         else:
@@ -335,6 +371,18 @@ def sequana_init(options):
             params['kraken'] = os.path.abspath(options.kraken)
         if options.reference:
             params['reference'] = os.path.abspath(options.reference)
+
+        if options.adapter_fwd:
+            params["adapter_fwd"] = options.adapter_fwd
+            os.rename(options.adapter_fwd, target_dir + os.sep + options.adapter_fwd)
+
+        if options.adapter_rev:
+            params["adapter_rev"] = options.adapter_rev
+            os.rename(options.adapter_rev, target_dir + os.sep + options.adapter_rev)
+
+        if options.quality_cutoff:
+            # TODO handle single read
+            params['quality_cutoff'] = options.quality_cutoff
 
         fout.write(config_txt % params)
 
@@ -356,7 +404,13 @@ def sequana_init(options):
         print("No config file found")
 
     with open(target_dir + os.sep + "runme.sh", "w") as fout:
-        fout.write("#!/usr/sh\nsnakemake -s %s.rules --stats stats.txt -p -j 4" % options.init )
+
+        cmd = " !/usr/sh\n"
+        cmd += "snakemake -s %(project)s.rules --stats stats.txt -p -j %(jobs)s"
+
+        if options.cluster:
+            cmd += ' --cluster "%s"' % options.cluster
+        fout.write(cmd % {'project':options.init , 'jobs':options.jobs})
 
     sa.green("Initialisation of %s succeeded" % target_dir)
     sa.green("Please, go to the project directory ")
@@ -367,6 +421,8 @@ def sequana_init(options):
     sa.green("In case of trouble, please post an issue on https://github.com/sequana/sequana/issue ")
     sa.green("or type sequana --issue and fill a post with the error and the config file (NO DATA PLEASE)")
 
+
+    ## --cluster "qsub -cwd -qQUEUE -V -e -o "
 
 
 
