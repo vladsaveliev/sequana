@@ -727,6 +727,10 @@ class FastQ(object):
                       "be filtered.")
         if tozip is True: self._gzip(output_filename)
 
+    def to_kmer_content(N=7):
+        pass
+
+
 
 # a simple decorator to check whether the data was computed or not.
 # If not, compute it
