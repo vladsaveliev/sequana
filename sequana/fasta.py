@@ -19,30 +19,8 @@
 """Utilities to manipulate FASTQ and Reads
 
 """
-import io
-import time
-import zlib
-from itertools import islice
-import gzip
-import subprocess
-from functools import wraps
-
-import numpy as np
-import pandas as pd
-from easydev import do_profile, Progress
-import pylab
-
-import pysam
-try:
-    from itertools import izip_longest
-except:
-    from itertools import zip_longest as izip_longest
-
-from sequana.fastq import FastQ
 from pysam import FastxFile
 
-# for filter fastq files. see below in FastQ for the usage
-# we want to take 4 lines at a time (assuming there is no empty lines)
 
 __all__ = ["FastA"]
 
@@ -53,8 +31,8 @@ class FastA(object):
 
     """
     def __init__(self, filename, verbose=False):
-        self.fasta = FastxFile(filename)
-        self.N = len([x for x in FastxFile(filename)])
+        self._fasta = FastxFile(filename)
+        self._N = len([x for x in FastxFile(filename)])
 
     def __iter__(self):
         return self
@@ -65,19 +43,35 @@ class FastA(object):
     def next(self): # python 2
         # reads 4 lines
         try:
-            d = next(self.fasta)
+            d = next(self._fasta)
             return d
         except KeyboardInterrupt:
-            # THis should allow developers to break a loop that takes too long
-            # through the read to run forever
-            self.fasta.close()
-            self.fasta = FastxFile(self.fasta.filename)
+            # This should allow developers to break a loop that takes too long
+            # through the reads to run forever
+            self._fasta.close()
+            self._fasta = FastxFile(self._fasta.filename)
         except:
-            self.fasta.close()
-            self.fasta = FastxFile(self.fasta.filename)
+            self._fasta.close()
+            self._fasta = FastxFile(self._fasta.filename)
             raise StopIteration
-
         return d
 
     def __len__(self):
-        return self.N
+        return self._N
+
+    def _get_names(self):
+        return [this.name for this in self]
+    names = property(_get_names)
+
+    def _get_sequences(self):
+        return [this.sequence for this in self]
+    sequences = property(_get_sequences)
+
+    def _get_comment(self):
+        return [this.comment for this in self]
+    comment = property(_get_comment)
+
+
+
+
+
