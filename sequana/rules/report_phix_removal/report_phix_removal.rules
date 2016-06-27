@@ -44,14 +44,14 @@ rule report_phix_removal:
         html += "<h3>Download Fastq without Phix: </h3>\n"
         for this in cfg.DATASET:
             basename = os.path.split(this)[1]
-            name = basename.replace("_001.fastq.gz", ".unmapped.fastq.gz")
+            name = basename.replace("_001.fastq.gz", "_.unmapped.fastq.gz")
             link = "bwa_bam_to_fastq" + os.sep + name
             html += '<br>-- <a href="%s">%s</a>' % (link, name)
 
         html += "<h3>Dowload Fastq with Phix </h3>\n"
         for this in cfg.DATASET:
             basename = os.path.split(this)[1]
-            name = basename.replace("_001.fastq.gz", ".mapped.fastq.gz")
+            name = basename.replace("_001.fastq.gz", "_.mapped.fastq.gz")
             link = "bwa_bam_to_fastq"+ os.sep + name
             html += '<br>-- <a href="%s">%s</a>' % (link, name)
         s.jinja['output'] = html
