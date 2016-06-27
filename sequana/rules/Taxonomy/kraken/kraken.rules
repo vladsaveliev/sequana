@@ -9,8 +9,8 @@ cfg = SequanaConfig(config)
 expected_output = []
 
 
-
-__kraken__outdir = "kraken"
+# note the /
+__kraken__outdir = "kraken/"
 
 
 
