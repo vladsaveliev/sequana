@@ -18,7 +18,7 @@ from .snaketools import Module, ModuleFinder
 # tools
 from .adapters import AdapterReader, FindAdaptersFromIndex
 from .bamtools import BAM, SAMFlags
-from .bedtools import Genomecov
+from .bedtools import GenomeCov
 from .coverage import Coverage
 from .fastq import FastQ, FastQC, Identifier
 from .fasta import FastA
