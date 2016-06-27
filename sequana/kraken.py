@@ -18,18 +18,18 @@
 ##############################################################################
 import os
 
-import pandas as pd
 from easydev import DevTools
 from easydev import execute, TempFile
+
+import pandas as pd
+
 import pylab
 
 from sequana.misc import wget
 from sequana import sequana_config_path
 
 
-
 __all__ = ['KrakenResults', "KrakenPipeline", "KrakenAnalysis"]
-
 
 
 class KrakenResults(object):
@@ -78,6 +78,10 @@ class KrakenResults(object):
                             'family', 'genus', 'species', 'name']
                     return [(self.df.ix[x][rank], rank) for rank in ranks]
             self.tax = Taxonomy()
+
+        # This initialise the data
+        self._parse_data()
+
         self._data_created = False
 
     def get_taxonomy_biokit(self, ids):
@@ -146,18 +150,17 @@ class KrakenResults(object):
         # above, we select only columns 0,2,3  the column are still labelled
         # 0,2,3 in the df
         self._taxons = self._df.groupby(2).size()
-        self._taxons.drop(0, inplace=True)
+        try:
+            self._taxons.drop(0, inplace=True)
+        except:
+            pass # 0 may not be there
         self._taxons.sort_values(ascending=False, inplace=True)
 
         category = self.df.groupby(0).size()
         if 'C' in category.index:
             self.classified = category['C']
-        else:
-            pass
         if 'U' in category.index:
             self.unclassified = category['U']
-        else:
-            pass
 
     def _get_taxons(self):
         try:
@@ -227,7 +230,10 @@ class KrakenResults(object):
                 line = str(self.taxons.ix[index])+"\t"+"\t".join(this.split(';'))
                 line += " " +self.scnames[i]
                 fout.write(line+'\n')
-            fout.write("%s\t%s" % (self.unclassified, "Unclassified"))
+            try:
+                fout.write("%s\t%s" % (self.unclassified, "Unclassified"))
+            except:
+                pass #unclassified may not exists
         self._data_created = True
 
     def plot(self, kind="pie", cmap="copper", threshold=1, radius=0.7, **kargs):
