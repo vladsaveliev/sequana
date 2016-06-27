@@ -156,6 +156,8 @@ Issues: http://github.com/sequana/sequana
 
 
         group = self.add_argument_group("ADAPTER and QUALITY related")
+        group.add_argument("--no-adapters", dest="no_adapters", default=False,
+            action="store_true")
         group.add_argument("--adapter-fwd", dest="adapter_fwd", type=str, 
             help="""A string representing the forward adapter. Can be a file 
                 in FASTA format""")
@@ -280,9 +282,10 @@ options.pipeline
             pass
         elif options.adapters:
             pass
+        elif options.no_adapters is True:
+            pass
         else:
-            if options.force_init is False:
-                sa.error("adapters need to be provided")
+            sa.error("adapters need to be provided (or use --no-adapters")
 
         with open("multirun.sh", "w") as fout:
             fout.write("#!/usr/sh\n")
@@ -301,6 +304,9 @@ options.pipeline
                 fout.write("cd %s\n" % tag)
                 fout.write("sh run.sh\n")
                 fout.write("cd ..\n")
+        if options.no_adapters is True and options.pipeline in ['quality', 'quality_taxon']:
+            print("You did not provide information about adapters. You will have"
+                "to edit the config.yaml file to fill that information")
         #Run sequana_init N times changing the files and project each time
         return
 
@@ -328,6 +334,9 @@ options.pipeline
         module.onweb()
         return
 
+    if options.no_adapters is True and options.pipeline in ['quality', 'quality_taxon']:
+        print("You did not provide information about adapters. You will have"
+            "to edit the config.yaml file to fill that information")
 
 def sequana_init(options):
     sa = Tools(verbose=options.verbose)

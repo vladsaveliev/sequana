@@ -85,7 +85,7 @@ files that contain only 1500 reads. Copy them in a local directory.
 First, run the sequana standalone application to initialise the pipeline
 **quality**::
 
-    sequana --init quality --input-dir .  --project TEST
+    sequana --pipeline quality --input-dir .  --project TEST
 
 This download required file(s) in particular the config file and the pipeline
 itself. This example should work out of the box but you may want to look at the
