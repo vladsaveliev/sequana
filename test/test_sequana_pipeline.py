@@ -37,27 +37,27 @@ class TestPipeline(object):
         try:
             # py3
             with mock.patch('builtins.input', return_value="y"):
-                main.main([self.prog, '--init', "quality"])
+                main.main([self.prog, '--pipeline', "quality", "--force-init"])
 
             with mock.patch('builtins.input', return_value="y"):
                 try:
-                    main.main([self.prog, '--init', "qualitydummy"])
+                    main.main([self.prog, '--pipeline', "qualitydummy"])
                     assert False
                 except:
                     assert True
         except:
             # py2
             with mock.patch('__builtin__.input', return_value="y"):
-                main.main([self.prog, '--init', "quality"])
+                main.main([self.prog, '--pipeline', "quality"])
 
             with mock.patch('__builtin__.input', return_value="y"):
                 try:
-                    main.main([self.prog, '--init', "qualitydummy"])
+                    main.main([self.prog, '--pipeline', "qualitydummy"])
                     assert False
                 except:
                     assert True
 
-        main.main([self.prog, '--init', "quality", "--force-init"])
+        #main.main([self.prog, '--pipeline', "quality", "--force-init"])
 
     def test_run(self):
         pass
@@ -80,17 +80,7 @@ class TestPipeline(object):
 
     def test_mutually_exclusive(self):
         try:
-            main.main([self.prog, '--init', 'quality', '--run', "quality"])
-            assert False
-        except:
-            assert True
-        try:
-            main.main([self.prog, '--init', 'quality', '--info'])
-            assert False
-        except:
-            assert True
-        try:
-            main.main([self.prog, '--info', 'quality', '--run', "quality"])
+            main.main([self.prog, '--pipeline', 'quality', '--info'])
             assert False
         except:
             assert True

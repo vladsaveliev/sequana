@@ -727,8 +727,35 @@ class FastQ(object):
                       "be filtered.")
         if tozip is True: self._gzip(output_filename)
 
-    def to_kmer_content(N=7):
-        pass
+    def to_kmer_content(self, k=7):
+        # Counter is slow if we apply it on each read.
+        # .count is slow as well
+        import collections
+        from sequana.kmer import get_kmer
+        counter = collections.Counter()
+        pb = Progress(len(self))
+        buffer_ = []
+        for i, this in enumerate(self):
+            buffer_.extend(list(get_kmer(this['sequence'], k)))
+            if len(buffer_)>100000:
+                counter += collections.Counter(buffer_)
+                buffer_ = []
+            pb.animate(i)
+        counter += collections.Counter(buffer_)
+
+        import pandas as pd
+        ts = pd.Series(counter)
+        ts.sort_values(inplace=True, ascending=False)
+        
+        return ts
+
+    def to_krona(self, k=7, output_filename="fastq.krona"):
+        ts = self.to_kmer_content(k=k)
+
+        with open(output_filename, "w") as fout:
+            for index, count in ts.items():
+                letters = "\t".join([x for x in index.decode()])
+                fout.write("%s\t" % count + letters + "\n")
 
 
 
@@ -776,7 +803,7 @@ class FastQC(object):
     def __init__(self, filename, max_sample=500000, dotile=False):
         """.. rubric:: constructor
 
-        :param filename: 
+        :param filename:
         :param int max_sample: Large files will npt fit in memory. We therefore
             restrict the numbers of reads to be used for some of the statistics
             to 500,000.  This also reduces the amount of time required to get a
@@ -790,14 +817,12 @@ class FastQC(object):
         # Later we will use pysam to scan the fastq because
         # it iterate quickly while providing the quality already converted
         # However, the FastQ implementation in this module is faster at
-        # computing the lentgth by a factor 3 
+        # computing the lentgth by a factor 3
         self.fastq = FastQ(filename)
         self.N = len(self.fastq)
 
         # Use only max_sample in some of the computation
-        self.max_sample = max_sample
-        if max_sample > self.N:
-            self.max_sample = self.N
+        self.max_sample = min(max_sample, self.N)
 
         self.dotile = dotile
 
@@ -823,7 +848,10 @@ class FastQC(object):
         # could use multiprocessing
         fastq = pysam.FastxFile(self.filename)
         for i, record in enumerate(fastq):
-            self.lengths[i] = len(record.sequence)
+            try:
+                self.lengths[i] = len(record.sequence)
+            except:
+                print(record)
 
             if i < self.max_sample:
                 quality = record.get_quality_array()
@@ -848,7 +876,7 @@ class FastQC(object):
         self.maximum = int(self.lengths.max())
         self.sequences = sequences
         self.nucleotides = self.lengths.sum()
-        self.gc_content = sum(self.gc_list) / float(self.nucleotides)
+        self.gc_content = np.mean(self.gc_list)
 
         try:
             if self.dotile:
@@ -986,7 +1014,7 @@ class FastQC(object):
         # Assuming length of the reads are all equal !
         N = len(self.sequences[0])
         Total = float(len(self.sequences))
-        
+
         Nseq = len(self.sequences)
         from collections import Counter
         data = []
@@ -994,12 +1022,12 @@ class FastQC(object):
             data.append(Counter([self.sequences[i][pos] for i in range(Nseq)]))
 
         df = pd.DataFrame.from_records(data)
-        df /= Total 
+        df /= Total
         if "N" in df.columns:
             df = df[["A", "C", "G", "T", "N"]]
         else:
             df = df[["A", "C", "G", "T"]]
-        return df 
+        return df
 
     def plot_acgt_content(self):
         """Plot histogram of GC content

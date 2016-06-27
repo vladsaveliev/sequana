@@ -21,12 +21,12 @@ Sequana documentation
 What is Sequana ?
 =====================
 
-Sequana is a versatile tool that provides (i) pipelines dedicated to NGS in the form of Snakefiles (Makefile-like with Python syntax) (ii) original tools to help in the creation of such pipelines (.e.g., plotting, statistical analysis of results) (iii) HTML reports and (iv) standalone applications.
+Sequana is a versatile tool that provides (i) pipelines dedicated to NGS in the form of Snakefiles (Makefile-like with Python syntax) but also (ii) original tools to help in the creation of such pipelines (.e.g., plotting, statistical analysis of results), (iii) HTML reports and (iv) standalone applications.
 
-The pipelines available cover quality control (e.g. removing adapters, phix, trimming of 
-bad quality bases) , variant calling, characterisation of the genome coverage,
-and taxonomic classification. See the :ref:`pipelines`  section for more
-information.
+Currently, the pipelines available cover quality control (e.g. adapters removal, 
+phix removal, trimming of bad quality bases), variant calling, characterisation 
+of the genome coverage, and taxonomic classification. See the :ref:`pipelines`  
+section for more information.
 
 Sequana can be used by developers to create new pipelines and by users in the
 form of applications ready for production.

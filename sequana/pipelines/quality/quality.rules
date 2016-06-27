@@ -1,14 +1,11 @@
-
-import sequana
 from sequana import snaketools as sm
-from sequana.snaketools import SequanaConfig, FileFactory
 sm.init("quality.rules", globals())
 
 # This must be defined before the include 
 configfile: "config.yaml"
 
 
-cfg = SequanaConfig(config)
+cfg = sm.SequanaConfig(config)
 
 expected_output = []
 
@@ -19,10 +16,6 @@ config["identify_adapters_input"] = "bwa_bam_to_fastq"
 # Include the cutadapt module
 include: sm.modules['cutadapt']
 expected_output += __cutadapt__output
-
-# Include the identify_adapters module
-#include: sm.modules['identify_adapters']
-#expected_output += __identify_adapters__output
 
 # import fastqc_ dynamic function
 include: fastqc_dynamic("cutadapt", __cutadapt__output)
@@ -65,18 +58,8 @@ rule pipeline_quality:
 
         shell('ln -sf report_phix_removal.html report/pipeline_quality.html')
 
-
 onsuccess:
-    import os
-    print("Workflow finished. Creating stats image")
-    from sequana.snaketools import SnakeMakeStats
-    try:
-        SnakeMakeStats("stats.txt").plot_and_save("report/snakemake_stats.png")
-        shell('rm stats.txt')
-    except:
-        pass
-    print("HTML files and summary results are in ./report directory")
-
+    sm.plot_stats()
 
 
 
