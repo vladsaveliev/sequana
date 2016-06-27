@@ -123,7 +123,7 @@ def test_fastqc():
     qc.boxplot_quality()
     qc.histogram_gc_content()
     GC = mean(qc.gc_list)
-    assert GC>0 and GC<1
+    assert GC>0 and GC<100
     qc.imshow_qualities()
     qc.histogram_sequence_lengths()
     qc.histogram_sequence_coordinates()

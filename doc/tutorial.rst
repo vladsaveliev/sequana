@@ -63,7 +63,7 @@ Initialise the pipeline
 
 :: 
 
-    sequana --init variant_calling --input-dir . --project TUTORIAL
+    sequana --pipeline variant_calling --input-dir . --project TUTORIAL
     cp variant_calling.rules Snakefile # this will not be required in the future
 
 

@@ -141,14 +141,9 @@ class SnakeMakeStats(object):
         s.plot()
 
     """
-    def __init__(self, filename, cfg=None):
+    def __init__(self, filename):
         """.. rubric:: Cosntructor"""
         self.filename = filename
-        self.cfg = cfg
-        if cfg:
-            self.project = self.cfg.PROJECT
-        else:
-            self.project = "."
 
     def _parse_data(self):
         with open(self.filename, 'r') as fin:
@@ -169,9 +164,16 @@ class SnakeMakeStats(object):
         try:pylab.tight_layout()
         except:pass
 
-    def plot_and_save(self, filename="snakemake_stats.png"):
+    def plot_and_save(self, filename="snakemake_stats.png", 
+            output_dir="report"):
         self.plot()
-        pylab.savefig(self.project + os.sep + filename)
+        pylab.savefig(output_dir + os.sep + filename)
+
+def plot_stats(where="report"):
+    print("Workflow pipeline_quality_taxon finished. Creating stats image")
+    try:SnakeMakeStats("%s/stats.txt" % where).plot_and_save()
+    except: print("INFO: Could not fin %s/stats.txt file" % where)
+
 
 
 class ModuleFinder(object):
@@ -713,7 +715,8 @@ class FastQFactory(FileFactory):
 
 
     """
-    def __init__(self, pattern, extension="fastq.gz", strict=True):
+    def __init__(self, pattern, extension="fastq.gz", strict=True,
+                 rstrip_underscore=True):
         """
 
         :param strict: if true, the pattern _R1_ or _R2_ must be found
@@ -738,7 +741,10 @@ class FastQFactory(FileFactory):
             elif strict is True:
                 # Files must have _R1_ and _R2_ 
                 raise ValueError('FastQ filenames must contain _R1_ or _R2_')
-        self.tags = list(set(self.tags)) 
+        self.tags = list(set(self.tags))
+
+        if rstrip_underscore is True:
+            self.tags = [x.split('_')[0] for x in self.tags]
 
     def _get_file(self, tag, rtag):
         assert rtag in ["_R1_", "_R2_"]

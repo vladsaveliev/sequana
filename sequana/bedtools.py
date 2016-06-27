@@ -158,6 +158,31 @@ class Chromosomecov(object):
             #, index=np.arange(start=mid,
             #    stop=(len(rm) + mid)))
 
+    def get_evenness(self, normalise=False):
+        """Return Evenness of the coverage
+
+        :Reference: Konrad Oexle, Journal of Human Genetics 2016, Evaulation 
+            of the evenness score in NGS.
+
+        work before or after normalisation but lead to different results.
+        """
+        if normalise:
+            coverage = self.df['cov'] / self.df['ma']
+        else:
+            coverage = self.df['cov']
+        coverage = coverage.dropna()
+
+        C = round(coverage.mean())
+        D2 = coverage[coverage<C]
+        E = 1 - (len(D2) - sum(D2)/C)/len(D2)
+        return E
+    
+    def get_cv(self):
+        """coefficient variation"""
+        sigma = self.df['cov'].std()
+        mu = self.df['cov'].mean()
+        return sigma/mu
+
     def coverage_scaling(self):
         """Normalize data with moving average of coverage
 
@@ -271,12 +296,12 @@ class Chromosomecov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist(self, fontsize=16, bins=100,filename=None ):
+    def plot_hist(self, fontsize=16, bins=100, filename=None, **hist_kargs):
         """ Barplot of zscore
 
         """
         pylab.clf()
-        self.df["zscore"].hist(grid=True, color="b", bins=100)
+        self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
@@ -284,6 +309,13 @@ class Chromosomecov(object):
             pass
         if filename:
             pylab.savefig(filename)
+
+    def plot_hist_zscore(self, fontsize=16, bins=100, filename=None,
+            **hist_kargs):
+        plot_hist(fontsize, bins, filename, hist_kargs)
+
+    def plot_hist_normalised_coverage(self):
+        raise NotImplementedError
 
     def write_csv(self, filename, start=None, stop=None, header=True):
         """ Write CSV file of the dataframe.
