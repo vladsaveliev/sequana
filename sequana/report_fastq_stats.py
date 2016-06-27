@@ -104,8 +104,6 @@ class FastQStatsReport(BaseReport):
             acgt[2]["data"][key] = thisdata['G']
             acgt[3]["data"][key] = thisdata['T']
 
-            # { "n_reads": 1627, "GC content": 0.45281800009750867}
-
         # First argument is just an Identifier
         data = bar.stacked_bar("Test", "ACGT distribution", acgt)
 
