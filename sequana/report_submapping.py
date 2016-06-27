@@ -17,13 +17,12 @@
 #
 ##############################################################################
 
-# Import -----------------------------------------------------------------------
-
 import os
+
 from reports import HTMLTable
 from sequana.report_main import BaseReport
 
-# Class ------------------------------------------------------------------------
+
 class SubMappingReport(BaseReport):
     """
     """
