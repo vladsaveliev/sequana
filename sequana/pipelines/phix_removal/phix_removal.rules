@@ -60,15 +60,7 @@ rule all:
     version: sequana.version
 
 onsuccess:
-    import os
-    print("Workflow finished. Creating stats image")
-    from sequana.snaketools import SnakeMakeStats
-    try:
-        SnakeMakeStats("stats.txt").plot_and_save("report/snakemake_stats.png")
-        shell('rm stats.txt')
-    except:
-        pass
-    print("HTML files and summary results are in ./report directory")
+    sm.plot_stats()
 
 onerror:
     print("An error occurred. See message above.")
