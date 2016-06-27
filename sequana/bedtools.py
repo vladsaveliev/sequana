@@ -296,12 +296,12 @@ class Chromosomecov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist(self, fontsize=16, bins=100,filename=None ):
+    def plot_hist(self, fontsize=16, bins=100, filename=None, **hist_kargs):
         """ Barplot of zscore
 
         """
         pylab.clf()
-        self.df["zscore"].hist(grid=True, color="b", bins=100)
+        self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
@@ -309,6 +309,13 @@ class Chromosomecov(object):
             pass
         if filename:
             pylab.savefig(filename)
+
+    def plot_hist_zscore(self, fontsize=16, bins=100, filename=None,
+            **hist_kargs):
+        plot_hist(fontsize, bins, filename, hist_kargs)
+
+    def plot_hist_normalised_coverage(self):
+        raise NotImplementedError
 
     def write_csv(self, filename, start=None, stop=None, header=True):
         """ Write CSV file of the dataframe.
