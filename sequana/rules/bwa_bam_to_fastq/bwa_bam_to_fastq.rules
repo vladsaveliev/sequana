@@ -3,7 +3,7 @@
 
 cfg = SequanaConfig(config)
 
-__format = "bwa_bam_to_fastq/%(proj)s_{read}.{tag}.fastq.gz"
+__format = "bwa_bam_to_fastq/%(proj)s_{read}_.{tag}.fastq.gz"
 
 if cfg.paired is True:
     # !! here we use the project name not the samples' names
@@ -42,8 +42,7 @@ rule bwa_bam_to_fastq:
 
         # zip the fastq files
         import glob
-        tozip = glob.glob("%s/*.fastq" % params.wkdir)
-        for filename in tozip:
+        for filename in glob.glob("%s/*.fastq" % params.wkdir):
             shell("pigz -f %s " % filename)
 
 
