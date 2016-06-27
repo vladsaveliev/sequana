@@ -223,6 +223,12 @@ def main(args=None):
         for this in sorted(valid_pipelines):
             print(" - " + this)
         return
+    
+    if options.info: 
+        from sequana import Module
+        module = Module(options.info)
+        module.onweb()
+        return
 
     if options.check_config:
         from sequana import SequanaConfig
@@ -275,7 +281,8 @@ options.pipeline
         elif options.adapters:
             pass
         else:
-            sa.error("adapters need to be provided")
+            if options.force_init is False:
+                sa.error("adapters need to be provided")
 
         with open("multirun.sh", "w") as fout:
             fout.write("#!/usr/sh\n")
@@ -300,15 +307,18 @@ options.pipeline
     # If --input-dir or --glob were not used, we now try to use the --file1 and --file2
     # options. We need to get the project name if not provided
     if options.file1 is None and options.file2 is None:
-        sa.error("You must provide one or two input files using"
-            " --input-dir or --glob or a combo of --file1 and --file2. In "
-            "the later case, you must provide at least --file1 (single-end)")
-        
-    if options.file2 is None:
+        if options.force_init is True:
+            pass
+        else:
+            sa.error("You must provide one or two input files using"
+                " --input-dir or --glob or a combo of --file1 and --file2. In "
+                "the later case, you must provide at least --file1 (single-end)")
+    elif options.file1 and options.file2 is None:
         ff = FastQFactory([options.file1])
-    else:
+        options.project = ff.tags[0]
+    elif options.file1 and options.file2:
         ff = FastQFactory([options.file1, options.file2])
-    options.project = ff.tags[0]
+        options.project = ff.tags[0]
 
     if options.pipeline:
         sequana_init(options)
