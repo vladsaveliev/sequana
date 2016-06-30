@@ -266,7 +266,7 @@ options.pipeline
     if options.adapter_rev and os.path.exists(options.adapter_rev) is False:
         sa.error('Invalid filename provided with --adapter-rev (must exists)')
     if options.adapter_fwd and os.path.exists(options.adapter_fwd) is False:
-        sa.error('Invalid filename provided with --adapter-rev (must exists)')
+        sa.error('Invalid filename provided with --adapter-fwd (must exists)')
 
 
     if options.input_dir:
@@ -408,8 +408,9 @@ options.pipeline)
     sa.print("Creating the config file")
     # Create (if needed) and update the config file
     config_filename = target_dir + os.sep + "config.yaml"
-    if os.path.exists(config_filename) is False or options.force_init:
-        shutil.copy(module.config, target_dir + os.sep + "config.yaml")
+    #if os.path.exists(config_filename) is False or options.force_init:
+    #    shutil.copy(module.config, target_dir + os.sep + "config.yaml")
+    shutil.copy(module.config, target_dir + os.sep + "config.yaml")
 
     # Update the config file if possible
     with open(config_filename, "r") as fin:
