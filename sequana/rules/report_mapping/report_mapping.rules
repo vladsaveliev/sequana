@@ -20,19 +20,19 @@ rule report_mapping:
         from sequana import bedtools
         from sequana import report_mapping
         from sequana import report_chromosome
-        from sequana import report_main
-
-        s = report_main.SequanaReport(snakefile=__snakefile__,
-                directory=params.outdir)
-        s.jinja['description'] = """
-
-        This is the output of variant calling pipeline. This pipeline search
-        variants and provide as an output a vcf file.
-
-        """
-        s.create_report()
-
-        mydata = bedtools.Genomecov(input.bed)
+        #from sequana import report_main
+        #
+        #s = report_main.SequanaReport(snakefile=__snakefile__,
+        #        directory=params.outdir)
+        #s.jinja['description'] = """
+        #
+        #This is the output of variant calling pipeline. This pipeline search
+        #variants and provide as an output a vcf file.
+        #
+        #"""
+        #s.create_report()
+        #
+        #mydata = bedtools.GenomeCov(input.bed)
         
         # Report mapping
         r = report_mapping.MappingReport(directory=params.outdir, 
