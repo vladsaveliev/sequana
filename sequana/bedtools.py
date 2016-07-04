@@ -174,7 +174,7 @@ class ChromosomeCov(object):
             #, index=np.arange(start=mid,
             #    stop=(len(rm) + mid)))
 
-    def get_evenness(self, normalise=False):
+    def get_evenness(self):
         """Return Evenness of the coverage
 
         :Reference: Konrad Oexle, Journal of Human Genetics 2016, Evaulation 
@@ -183,19 +183,18 @@ class ChromosomeCov(object):
         work before or after normalisation but lead to different results.
 
         """
-        if normalise:
-            coverage = self.df['cov'] / self.df['ma']
-        else:
-            coverage = self.df['cov']
-        coverage = coverage.dropna()
+        from sequana.stats import evenness
+        return evenness(self.df['cov'])
 
-        C = round(coverage.mean())
-        D2 = coverage[coverage<C]
-        E = 1 - (len(D2) - sum(D2)/C)/len(D2)
-        return E
-    
     def get_cv(self):
-        """coefficient variation"""
+        """coefficient variation
+
+        defined as sigma / mu 
+
+        To get percentage, you must multiply by 100
+
+        .. note:: should be used for ratio scale data (e.g., non negative only)
+        """
         sigma = self.df['cov'].std()
         mu = self.df['cov'].mean()
         return sigma/mu
@@ -352,6 +351,24 @@ class ChromosomeCov(object):
             print("You must set the file name")
         except KeyError:
             print("Labels doesn't exist in the data frame")
+
+    def plot_gc_vs_coverage(self, bins=None, Nlevels=6, fontsize=20, norm="log",
+        contour=True, **kargs):
+        data = self.df[['cov','gc']].copy()
+        data['gc'] *= 100
+        data = data.dropna()
+        if bins is None:
+            bins = [200, data['gc'].max()-data['gc'].min()+1]
+
+        from biokit import Hist2D
+        h2 = Hist2D(data)
+
+        h2.plot(bins=bins, xlabel="coverage", 
+            ylabel=r'GC content (%)' , 
+            Nlevels=Nlevels, contour=contour, norm=norm, 
+            fontsize=fontsize, **kargs)
+
+
 
 
 class FilteredGenomeCov(object):
