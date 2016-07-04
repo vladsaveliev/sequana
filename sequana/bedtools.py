@@ -91,7 +91,7 @@ class GenomeCov(object):
         """
         gc_dict = gc_content(fasta_file, window_size, circular)
         for chrom in self.chr_list:
-            chrom.df["gc"] = gc_dict["chrom.chrom_name"]
+            chrom.df["gc"] = gc_dict[chrom.chrom_name]
 
 
 class ChromosomeCov(object):

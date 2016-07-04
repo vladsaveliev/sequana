@@ -226,25 +226,32 @@ def bam_get_paired_distance(filename):
 
 
 def gc_content(filename, window_size, circular=False):
+# TODO case when the genome is not circular -> Add NaN at start and stop of
+# the np.arange()
     """ 
     """
     fasta = FastxFile(filename)
+    mid = int(window_size / 2)
     checker = set(["G", "C", "g", "c"])
     chrom_gc_content = dict()
     for chrom in fasta:
+        # Create gc_content array
+        gc_content = np.empty(len(chrom.sequence))
+        gc_content[:] = np.nan
         if circular:
-            mid = int(window_size / 2)
             chrom.sequence = (chrom.sequence[-mid:] + chrom.sequence + 
                     chrom.sequence[:mid])
-        gc_content = np.arange(len(chrom.sequence) - window_size + 1,dtype=int)
+            # Does not shift index of array
+            mid = 0
+        # Count first window content
         counter = Counter(chrom.sequence[0:window_size])
         gc_count = counter["G"] + counter["C"]
-        gc_content[0] = gc_count
+        gc_content[mid] = gc_count
         for i in range(1, len(chrom.sequence) - window_size + 1):
             if chrom.sequence[i - 1] in checker:
                 gc_count -= 1
             if chrom.sequence[i + window_size - 1] in checker:
                 gc_count += 1
-            gc_content[i] = gc_count
+            gc_content[i + mid] = gc_count
         chrom_gc_content[chrom.name] = gc_content / window_size
     return chrom_gc_content
