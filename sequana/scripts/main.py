@@ -28,6 +28,7 @@ import argparse
 from easydev.console import red, purple, green, blue
 from easydev import DevTools
 
+import sequana
 from sequana.snaketools import FastQFactory
 from sequana.adapters import FindAdaptersFromIndex
 
@@ -194,6 +195,11 @@ Issues: http://github.com/sequana/sequana
         group.add_argument("--jobs", dest="jobs", type=int, default=4,
                           help="""jobs to use on a cluster"""
                           )
+        group.add_argument("--forceall", dest="forceall", action='store_true',
+                          help="""add --forceall in the snakemake command"""
+                          )
+
+
 def main(args=None):
 
     if args is None:
@@ -288,9 +294,10 @@ options.pipeline
             sa.error("adapters need to be provided (or use --no-adapters")
 
         with open("multirun.sh", "w") as fout:
+            import sequana
             fout.write("#!/usr/sh\n")
-            fout.write("# generated with sequana version %s with this command\n")
-            fout.write("# %s\n" % sys.argv)
+            fout.write("# generated with sequana version %s with this command\n" % sequana.version)
+            fout.write("# %s\n" % " ".join(sys.argv))
             for tag in ff.tags:
                 sa.print("Found %s project" % tag)
                 options.project = tag
@@ -302,8 +309,10 @@ options.pipeline
                     options.adapter_rev = rev
                 sequana_init(options)
                 fout.write("cd %s\n" % tag)
-                fout.write("sh run.sh\n")
+                fout.write("sh runme.sh &\n")
                 fout.write("cd ..\n")
+                fout.write("echo Starting %s\n" % tag)
+                fout.write("sleep 0.5\n")
         if options.no_adapters is True and options.pipeline in ['quality', 'quality_taxon']:
             print("You did not provide information about adapters. You will have"
                 "to edit the config.yaml file to fill that information")
@@ -483,15 +492,20 @@ options.pipeline)
         print("No config file found")
 
     with open(target_dir + os.sep + "runme.sh", "w") as fout:
-
+        import sequana
         cmd = "#!/usr/sh\n"
         cmd += "# generated with sequana version %s with this command\n"
         cmd += "# %s\n" % sys.argv
         cmd += "snakemake -s %(project)s.rules --stats report/stats.txt -p -j %(jobs)s"
+        if options.forceall:
+            cmd += " --forceall "
 
         if options.cluster:
             cmd += ' --cluster "%s"' % options.cluster
-        fout.write(cmd % {'project':options.pipeline , 'jobs':options.jobs})
+
+        cmd += " 1>run.out 2>run.err"
+        fout.write(cmd % {'project':options.pipeline , 'jobs':options.jobs, 
+			"version": sequana.version})
 
     sa.green("Initialisation of %s succeeded" % target_dir)
     sa.green("Please, go to the project directory ")
