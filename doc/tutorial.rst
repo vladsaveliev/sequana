@@ -96,8 +96,8 @@ Get a snpEff config file and update it
 
 Then you need to initialise a config file for snpEff tool::
 
-    from sequana import SnpEff
-    v = SnpEff("measles.gbk", file)
+    from sequana import snpeff
+    v = snpeff.SnpEff("measles.gbk")
 
 
 Edit the config file **config.yaml** and add the filename *measles.gbk* in the
