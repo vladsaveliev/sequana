@@ -6,7 +6,7 @@ from sequana import bedtools, sequana_data
 
 
 def test_report():
-    mydata = bedtools.Genomecov(sequana_data("test_bedcov.bed"))
+    mydata = bedtools.GenomeCov(sequana_data("test_bedcov.bed"))
     r = MappingReport()
     r.set_data(mydata)
     r.create_report()

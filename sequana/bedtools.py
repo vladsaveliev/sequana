@@ -25,9 +25,10 @@ import pylab
 from biokit.stats import mixture
 
 from sequana import running_median
+from sequana.tools import gc_content
 
 
-class Genomecov(object):
+class GenomeCov(object):
     """Create a dataframe list of BED file provided by bedtools genomecov (-d)
 
 
@@ -36,11 +37,11 @@ class Genomecov(object):
     .. plot::
         :include-source:
 
-        from sequana import Genomecov, sequana_data
+        from sequana import GenomeCov, sequana_data
         filename = sequana_data("test_bedcov.bed", "testing")
 
-        from sequana import Genomecov
-        gencov = Genomecov('exemple.bed')
+        from sequana import GenomeCov
+        gencov = GenomeCov('exemple.bed')
         for chrom in gencov:
             chrom.running_median(n=30001)
             chrom.coverage_scaling()
@@ -48,10 +49,9 @@ class Genomecov(object):
             chrom.plot_coverage()
         gencov[0].plot_coverage()
 
-    Results are stored in a list of :class:`Chromosomecov` named :attr:`chr_list`.
+    Results are stored in a list of :class:`ChromosomeCov` named :attr:`chr_list`.
 
     """
-
     def __init__(self, input_filename=None):
         """.. rubric:: constructor
         
@@ -64,9 +64,9 @@ class Genomecov(object):
             df = pd.read_table(input_filename, header=None)
             df = df.rename(columns={0: "chr", 1: "pos", 2: "cov"})
             df = df.set_index("chr", drop=False)
-            # Create a list of ChrGenomecov for each chromosome present in the
+            # Create a list of ChromosomeCov for each chromosome present in the
             # bedtools.
-            self.chr_list = [Chromosomecov(df.loc[i]) for i in 
+            self.chr_list = [ChromosomeCov(df.loc[i]) for i in 
                     df.index.unique()]
         except IOError as e:
             print("I/0 error({0}): {1}".format(e.errno, e.strerror))
@@ -77,20 +77,36 @@ class Genomecov(object):
     def __iter__(self):
         return self.chr_list.__iter__()
 
+    def compute_gc_content(self, fasta_file, window_size=101, circular=False):
+        """ Compute GC content of genome sequence.
 
-class Chromosomecov(object):
-    """Class used within :class:`Genomecov` to select a chromosome of the 
-    original Genomecov.
+        :param str fasta_file: fasta file name.
+        :param int window_size: size of the sliding window.
+        :param bool circular: if the genome is circular (like bacteria 
+            chromosome)
+
+        Store the results in the :attr:`ChromosomeCov.df` attribute (dataframe) 
+            with a column named *gc*.
+
+        """
+        gc_dict = gc_content(fasta_file, window_size, circular)
+        for chrom in self.chr_list:
+            chrom.df["gc"] = gc_dict[chrom.chrom_name]
+
+
+class ChromosomeCov(object):
+    """Class used within :class:`GenomeCov` to select a chromosome of the 
+    original GenomeCov.
 
     Example:
 
     .. plot::
         :include-source:
 
-        from sequana import Genomecov, sequana_data
+        from sequana import GenomeCov, sequana_data
         filename = sequana_data("test_bedcov.bed", "testing")
 
-        gencov = Genomecov(filename)
+        gencov = GenomeCov(filename)
 
         chrcov = gencov[0]
         chrcov.running_median(n=30001)
@@ -105,7 +121,7 @@ class Chromosomecov(object):
         """.. rubric:: constructor
 
         :param df: dataframe with position for a chromosome used within
-            :class:`Genomecov`. Must contain the following columns:
+            :class:`GenomeCov`. Must contain the following columns:
             ["chr", "pos", "cov"]
 
         """
@@ -165,6 +181,7 @@ class Chromosomecov(object):
             of the evenness score in NGS.
 
         work before or after normalisation but lead to different results.
+
         """
         if normalise:
             coverage = self.df['cov'] / self.df['ma']
@@ -190,6 +207,7 @@ class Chromosomecov(object):
         column named *scale*.
 
         .. note:: Needs to call :meth:`running_median`
+
         """
         try:
             self.df["scale"] =  self.df["cov"] / self.df["rm"]
@@ -210,8 +228,11 @@ class Chromosomecov(object):
     def compute_zscore(self, k=2, step=10):
         """ Compute zscore of coverage.
 
-        :param k: Number gaussian predicted in mixture (default = 2)
-        :param step: (default = 10)
+        :param int k: Number gaussian predicted in mixture (default = 2)
+        :param int step: (default = 10)
+
+        Store the results in the :attr:`df` attribute (dataframe) with a
+        column named *zscore*.
 
         .. note:: needs to call :meth:`coverage_scaling` before hand.
 
@@ -236,10 +257,10 @@ class Chromosomecov(object):
         :param int threshold: on the zscore
         :param int start: lower bound to select a subset of the data
         :param int stop:  upper bound to select a subset of the data
-        :return: a dataframe from :class:`FilteredGenomecov`
+        :return: a dataframe from :class:`FilteredGenomeCov`
         """
         try:
-            return FilteredGenomecov(self.df[start:stop].loc[self.df["zscore"]
+            return FilteredGenomeCov(self.df[start:stop].loc[self.df["zscore"]
                 < threshold])
         except KeyError:
             print("Column zscore is missing in data frame.\n"
@@ -252,10 +273,10 @@ class Chromosomecov(object):
         :param int threshold: on the zscore
         :param int start: lower bound to select a subset of the data
         :param int stop:  upper bound to select a subset of the data
-        :return: a dataframe from :class:`FilteredGenomecov`
+        :return: a dataframe from :class:`FilteredGenomeCov`
         """
         try:
-            return FilteredGenomecov(self.df[start:stop].loc[self.df["zscore"]
+            return FilteredGenomeCov(self.df[start:stop].loc[self.df["zscore"]
                 > threshold])
         except KeyError:
             print("Column zscore is missing in data frame.\n"
@@ -333,9 +354,9 @@ class Chromosomecov(object):
             print("Labels doesn't exist in the data frame")
 
 
-class FilteredGenomecov(object):
-    """Class used within :class:`ChrGenomecov` to select a subset of the 
-    original Genomecov
+class FilteredGenomeCov(object):
+    """Class used within :class:`ChromosomeCov` to select a subset of the 
+    original GenomeCov
 
     :target: developers only
     """
@@ -343,7 +364,7 @@ class FilteredGenomecov(object):
         """ .. rubric:: constructor
 
         :param df: dataframe with filtered position used within
-            :class:`Genomecov`. Must contain the following columns:
+            :class:`GenomeCov`. Must contain the following columns:
             ["pos", "cov", "rm", "zscore"]
 
         """

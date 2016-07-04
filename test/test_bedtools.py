@@ -10,7 +10,7 @@ def test_genomecov():
 
     filename = sequana_data("test_bedcov.bed", "testing")
 
-    mydata = bedtools.Genomecov(filename)
+    mydata = bedtools.GenomeCov(filename)
   
     # This requires to call other method before
     for chrom in mydata:
