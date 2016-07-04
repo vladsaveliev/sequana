@@ -332,3 +332,15 @@ class FindAdaptersFromIndex(object):
             fout.write(adapters['index2']['rev']+"\n")
 
         return file_fwd, file_rev
+
+
+class AdapterRemoval(object):
+    def __init__(self, file1, file2=None, adapter1=None, adapter2=None,
+        quality_cutoff1=30, quality_cutoff2=None):
+
+        self.file1 = file1
+        self.file2 = file2
+        self.qual1 = quality_cutoff1
+        self.qual2 = quality_cutoff2
+        self.adapter1 = adapter1
+        self.adapter2 = adapter2

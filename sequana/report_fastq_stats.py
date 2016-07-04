@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -16,7 +16,6 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-
 import easydev
 import os
 import glob
@@ -75,15 +74,14 @@ class FastQStatsReport(BaseReport):
             except:
                 thisdata= {"A":0, "C":0, "G":0, "T":0, "n_reads":0, "GC content":0}
 
-
             if "R2.unmapped" in filename:
-                key = "R2.unmapped"    
+                key = "R2.unmapped"
             elif "R1.unmapped" in filename:
-                key = "R1.unmapped"    
+                key = "R1.unmapped"
             elif "R1.mapped" in filename:
-                key = "R1.mapped"    
+                key = "R1.mapped"
             elif "R2.mapped" in filename:
-                key = "R2.mapped"    
+                key = "R2.mapped"
             elif "_R1_" in filename:
                 key = "R1"
             elif "_R2_" in filename:
@@ -98,7 +96,7 @@ class FastQStatsReport(BaseReport):
                 dfsum.columns = [key]
             else:
                 dfsum[key] = pd.Series(thisdata)
-            
+
             acgt[0]["data"][key] = thisdata['A']
             acgt[1]["data"][key] = thisdata['C']
             acgt[2]["data"][key] = thisdata['G']
@@ -128,11 +126,8 @@ class FastQStatsReport(BaseReport):
         import shutil
         targets = []
         for source in sources:
-            print(source)
             filename = source.rsplit("/", 1)[1]
-            print(filename)
             target = "report/images/" + filename
-            print(target)
             shutil.copy(source, target)
             targets.append(target.replace("report/", ""))
 

@@ -37,5 +37,5 @@ rule dag:
         d.add_urls()
 
         # Now, create the SVG. Somehow if called dag.svg, this is a conflict
-        shell("dot -Tsvg {output.dot2} -o {output.svg}")
+        shell("dot -Tsvg {output.dot2} -o {output.svg} || true")
 

@@ -9,7 +9,7 @@ Run: snakemake -s Snakefile
 
 import sequana
 from sequana import snaketools as sm
-from sequana.snaketools import SequanaConfig, FileFactory
+from sequana.snaketools import SequanaConfig
 sm.init("variant_calling.rules", globals())
 
 # Import config file -----------------------------------------------------------
@@ -79,3 +79,7 @@ final_output.append(__report_variant__output)
 rule pipeline_variant:
     input:
         final_output
+
+
+onsuccess:
+    sm.plot_stats()

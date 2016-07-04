@@ -28,6 +28,7 @@ import argparse
 from easydev.console import red, purple, green, blue
 from easydev import DevTools
 
+import sequana
 from sequana.snaketools import FastQFactory
 from sequana.adapters import FindAdaptersFromIndex
 
@@ -156,6 +157,8 @@ Issues: http://github.com/sequana/sequana
 
 
         group = self.add_argument_group("ADAPTER and QUALITY related")
+        group.add_argument("--no-adapters", dest="no_adapters", default=False,
+            action="store_true")
         group.add_argument("--adapter-fwd", dest="adapter_fwd", type=str, 
             help="""A string representing the forward adapter. Can be a file 
                 in FASTA format""")
@@ -192,6 +195,11 @@ Issues: http://github.com/sequana/sequana
         group.add_argument("--jobs", dest="jobs", type=int, default=4,
                           help="""jobs to use on a cluster"""
                           )
+        group.add_argument("--forceall", dest="forceall", action='store_true',
+                          help="""add --forceall in the snakemake command"""
+                          )
+
+
 def main(args=None):
 
     if args is None:
@@ -264,7 +272,7 @@ options.pipeline
     if options.adapter_rev and os.path.exists(options.adapter_rev) is False:
         sa.error('Invalid filename provided with --adapter-rev (must exists)')
     if options.adapter_fwd and os.path.exists(options.adapter_fwd) is False:
-        sa.error('Invalid filename provided with --adapter-rev (must exists)')
+        sa.error('Invalid filename provided with --adapter-fwd (must exists)')
 
 
     if options.input_dir:
@@ -280,14 +288,16 @@ options.pipeline
             pass
         elif options.adapters:
             pass
+        elif options.no_adapters is True:
+            pass
         else:
-            if options.force_init is False:
-                sa.error("adapters need to be provided")
+            sa.error("adapters need to be provided (or use --no-adapters")
 
         with open("multirun.sh", "w") as fout:
+            import sequana
             fout.write("#!/usr/sh\n")
-            fout.write("# generated with sequana version %s with this command\n")
-            fout.write("# %s\n" % sys.argv)
+            fout.write("# generated with sequana version %s with this command\n" % sequana.version)
+            fout.write("# %s\n" % " ".join(sys.argv))
             for tag in ff.tags:
                 sa.print("Found %s project" % tag)
                 options.project = tag
@@ -299,8 +309,13 @@ options.pipeline
                     options.adapter_rev = rev
                 sequana_init(options)
                 fout.write("cd %s\n" % tag)
-                fout.write("sh run.sh\n")
+                fout.write("sh runme.sh &\n")
                 fout.write("cd ..\n")
+                fout.write("echo Starting %s\n" % tag)
+                fout.write("sleep 0.5\n")
+        if options.no_adapters is True and options.pipeline in ['quality', 'quality_taxon']:
+            print("You did not provide information about adapters. You will have"
+                "to edit the config.yaml file to fill that information")
         #Run sequana_init N times changing the files and project each time
         return
 
@@ -328,6 +343,9 @@ options.pipeline
         module.onweb()
         return
 
+    if options.no_adapters is True and options.pipeline in ['quality', 'quality_taxon']:
+        print("You did not provide information about adapters. You will have"
+            "to edit the config.yaml file to fill that information")
 
 def sequana_init(options):
     sa = Tools(verbose=options.verbose)
@@ -399,8 +417,9 @@ options.pipeline)
     sa.print("Creating the config file")
     # Create (if needed) and update the config file
     config_filename = target_dir + os.sep + "config.yaml"
-    if os.path.exists(config_filename) is False or options.force_init:
-        shutil.copy(module.config, target_dir + os.sep + "config.yaml")
+    #if os.path.exists(config_filename) is False or options.force_init:
+    #    shutil.copy(module.config, target_dir + os.sep + "config.yaml")
+    shutil.copy(module.config, target_dir + os.sep + "config.yaml")
 
     # Update the config file if possible
     with open(config_filename, "r") as fin:
@@ -473,15 +492,20 @@ options.pipeline)
         print("No config file found")
 
     with open(target_dir + os.sep + "runme.sh", "w") as fout:
-
+        import sequana
         cmd = "#!/usr/sh\n"
         cmd += "# generated with sequana version %s with this command\n"
         cmd += "# %s\n" % sys.argv
         cmd += "snakemake -s %(project)s.rules --stats report/stats.txt -p -j %(jobs)s"
+        if options.forceall:
+            cmd += " --forceall "
 
         if options.cluster:
             cmd += ' --cluster "%s"' % options.cluster
-        fout.write(cmd % {'project':options.pipeline , 'jobs':options.jobs})
+
+        cmd += " 1>run.out 2>run.err"
+        fout.write(cmd % {'project':options.pipeline , 'jobs':options.jobs, 
+			"version": sequana.version})
 
     sa.green("Initialisation of %s succeeded" % target_dir)
     sa.green("Please, go to the project directory ")
