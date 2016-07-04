@@ -33,6 +33,12 @@ def wget(link, output):
         from urllib.request import urlretrieve
     urlretrieve(link, filename=output)
 
+def findpos(seq, chr):
+    N = len(chr)
+    for i, dummy in enumerate(seq):
+        if seq[i:i+N] == chr:
+            yield i
+
 
 def moving_average(data, n):
         """Compute moving average
