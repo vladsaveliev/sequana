@@ -7,10 +7,8 @@ rule create_sequence_dictionary:
     output:
         __create_sequence_dictionary__output
     log:
-        out = cfg.PROJECT + 
-            "/logs/picard_tools/CreateSequenceDictionary/stdout.logs",
-        err = cfg.PROJECT + 
-            "/logs/picard_tools/CreateSequenceDictionary/stderr.logs"
+        out = "logs/picard_tools/CreateSequenceDictionary/stdout.logs",
+        err = "logs/picard_tools/CreateSequenceDictionary/stderr.logs"
     shell:
         """
 	    if [[ -a {output} ]];

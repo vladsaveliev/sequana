@@ -316,10 +316,11 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist(self, fontsize=16, bins=100, filename=None, **hist_kargs):
+    def plot_hist(self, fontsize=16, filename=None, **hist_kargs):
         """ Barplot of zscore
 
         """
+        bins = int(max(self.df["zscore"]) - min(self.df["zscore"]))
         pylab.clf()
         self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
