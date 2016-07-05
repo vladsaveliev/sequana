@@ -5,9 +5,9 @@ rule report_variant:
         vcf = __report_variant__input
     output:
         html = __report_variant__output,
-        csv = cfg.PROJECT + "/report/%s.csv" % cfg.PROJECT
+        csv = "report/%s.csv" % cfg.PROJECT
     params:
-        outdir = cfg.PROJECT + "/report/"
+        outdir = "report/"
     run:
         from sequana import vcf_filter
         from sequana import report_variant
