@@ -320,7 +320,8 @@ class ChromosomeCov(object):
         """ Barplot of zscore
 
         """
-        bins = int(max(self.df["zscore"]) * 3 - min(self.df["zscore"]) * 3)
+        zs_drop_na = self.df["zscore"].dropna()
+        bins = int(max(zs_drop_na) * 3 - min(zs_drop_na) * 3)
         pylab.clf()
         self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
@@ -335,7 +336,8 @@ class ChromosomeCov(object):
         """ Barplot of normalized coverage with gaussian fitting
 
         """
-        bins = int(max(self.df["scale"]) * 100 - min(self.df["scale"]) * 100)
+        nc_drop_na = self.df["scale"].dropna()
+        bins = int(max(nc_drop_na) * 100 - min(nc_drop_na) * 100)
         pylab.clf()
         self.mixture_fitting.plot(bins=bins)
         try:

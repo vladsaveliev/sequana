@@ -29,7 +29,9 @@ def test_genomecov():
         with TempFile(suffix='.png') as fh:
             chrom.plot_coverage(filename=fh.name)
         with TempFile(suffix='.png') as fh:
-            chrom.plot_hist(filename=fh.name)
+            chrom.plot_hist_zscore(filename=fh.name)
+        with TempFile(suffix='.png') as fh:
+            chrom.plot_hist_normalized_coverage(filename=fh.name)
 
         len(chrom)
         print(chrom)
