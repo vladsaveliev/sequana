@@ -1,4 +1,4 @@
-__vcf_filter__output = cfg.PROJECT + "/vcf_filter/%s_filter.vcf" % cfg.PROJECT
+__vcf_filter__output = "vcf_filter/%s_filter.vcf" % cfg.PROJECT
 
 rule vcf_filter:
     input:
