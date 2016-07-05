@@ -1,4 +1,4 @@
-__report_variant__output = cfg.PROJECT + "/report/report_variant.html"
+__report_variant__output = "report/report_variant.html"
 
 rule report_variant:
     input:

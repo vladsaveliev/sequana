@@ -32,7 +32,7 @@ rule report_mapping:
         #"""
         #s.create_report()
         #
-        #mydata = bedtools.GenomeCov(input.bed)
+        mydata = bedtools.GenomeCov(input.bed)
         
         # Report mapping
         r = report_mapping.MappingReport(directory=params.outdir, 

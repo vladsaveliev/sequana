@@ -7,8 +7,8 @@ rule mark_duplicates:
         __mark_duplicates__output
     log:
         out = "logs/picard_tools/MarkDuplicates/stdout.logs",
-        err = "/logs/picard_tools/MarkDuplicates/stderr.logs",
-        metrics = "/logs/picard_tools/MarkDuplicates/%s.metrics" % cfg.PROJECT
+        err = "logs/picard_tools/MarkDuplicates/stderr.logs",
+        metrics = "logs/picard_tools/MarkDuplicates/%s.metrics" % cfg.PROJECT
     params:
         options = config["mark_duplicates"]["options"]
     shell:
