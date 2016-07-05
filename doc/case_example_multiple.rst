@@ -29,19 +29,15 @@ commands together::
 This should work out of the box but some jobs may fail. If so, it will be
 difficult to identify the failed jobs. To help you identifying the jobs, 
 we added some utilities in **sequana** in :class:`sequana.misc.FixFailedProjects`.
+::
 
     from sequana import misc
     fixer = misc.FixFailedProjects()
     fixer()
 
-This will re-generating the a multirun.sh script with only the failed job.
+This will re-generate the multirun.sh script with only the failed job.
 
 
-
-.. note:: For developers, note that although the pipelines are built 
-    with Snakemake and that we could have used the **expand** tool to parallelise
-    the snakemake across all pairs of files, we we decided not to use that feature. 
-    One reason being that this prevents to run a specific rule at will
 
 
 
