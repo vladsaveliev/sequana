@@ -57,12 +57,13 @@ added to your environment as follows (once Anaconda is installed)::
 
 Here is a non exhaustive list of dependencies that should be enough to run the
 current pipelines (version 0.1.4). We split the command on several lines to
-emphasize the standard Anaconda packages and te bioconda ones but you
+emphasize the standard Anaconda packages and the bioconda ones but you
 can use only one::
 
     conda install numpy matplotlib pandas cutadapt pysam pyvcf 
     conda install snakemake biokit bioservices
     conda install bwa bcftools samtools bedtools picard freebayes fastqc
+    conda install kraken krona
 
 
 .. note:: Sequana is not fully compatible with Python 2.7 since a dependency

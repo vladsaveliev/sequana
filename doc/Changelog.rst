@@ -14,6 +14,9 @@ Changelog
     - KrakenDownlad class: download kraken_toydv from sequana/data repository or
       minikraken into a local directotry
     - New method in FastQC to show ACGT content
+    - Genomecov renamed into GenomeCov
+    - Update main script significantly to create multiruns and handle adapters
+    - GC content and plot GC vs coverage added in GenomeCov
 
 * CHANGES:
 
