@@ -320,7 +320,7 @@ class ChromosomeCov(object):
         """ Barplot of zscore
 
         """
-        bins = int(max(self.df["zscore"]) - min(self.df["zscore"]))
+        bins = int(max(self.df["zscore"]) * 3 - min(self.df["zscore"]) * 3)
         pylab.clf()
         self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
