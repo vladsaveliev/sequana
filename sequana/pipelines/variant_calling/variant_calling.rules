@@ -66,7 +66,7 @@ __report_variant__input = __vcf_filter__output
 if config["snpeff"]["do"]: 
     __snpeff__input = __vcf_filter__output
     include: sm.modules["snpeff"]
-    __report_vcf__input = __snpeff__output
+    __report_variant__input = __snpeff__output
 
 # report vcf
 include: sm.modules["report_variant"]
