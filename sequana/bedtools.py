@@ -316,7 +316,7 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist(self, fontsize=16, filename=None, **hist_kargs):
+    def plot_hist_zscore(self, fontsize=16, filename=None, **hist_kargs):
         """ Barplot of zscore
 
         """
@@ -331,12 +331,19 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist_zscore(self, fontsize=16, bins=100, filename=None,
-            **hist_kargs):
-        plot_hist(fontsize, bins, filename, hist_kargs)
+    def plot_hist_normalized_coverage(self, filename=None):
+        """ Barplot of normalized coverage with gaussian fitting
 
-    def plot_hist_normalised_coverage(self):
-        raise NotImplementedError
+        """
+        bins = int(max(self.df["scale"]) * 100 - min(self.df["scale"]) * 100)
+        pylab.clf()
+        self.mixture_fitting.plot(bins=bins)
+        try:
+            pylab.tight_layout()
+        except:
+            pass
+        if filename:
+            pylab.savefig(filename)
 
     def write_csv(self, filename, start=None, stop=None, header=True):
         """ Write CSV file of the dataframe.
