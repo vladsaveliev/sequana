@@ -28,6 +28,9 @@ Issues: http://github.com/sequana/sequana
             required=True, help="""filename of a BED file""")
         self.add_argument("-w", "--window-size", dest="ws", type=int,
             help="""Length of the running median window""", default=1001)
+        self.add_argument('-c', "--chromosome", dest="chromosome", type=int,
+            default=1,
+            help="""Chromosome number (if only one, no need to use)""") 
 
 
 def main(args=None):
@@ -47,6 +50,15 @@ def main(args=None):
     from sequana import Genomecov
     print(options.bedfile)
     gc = Genomecov(options.bedfile)
+
+    print(len(gc.chr_list))
+    if len(gc.chr_list) == 1:
+        gc = gc.chr_list[0]
+    elif options.chromosome < 0 or options.chromosome > len(gc.chr_list):
+        raise ValueError("invalid --chromosome value ; must be in [1-%s]" % len(gc.chr_list)+1)
+    else:
+        gc = gc.chr_list[options.chromosome-1]
+
     gc.running_median(n=options.ws)
     gc.coverage_scaling()
     gc.compute_zscore()
