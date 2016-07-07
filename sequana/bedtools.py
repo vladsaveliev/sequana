@@ -311,10 +311,12 @@ class ChromosomeCov(object):
                 self.best_gaussian["mu"]) * self.df["rm"]
 
         pylab.clf()
+        ax = pylab.gca()
+        ax.set_axis_bgcolor('#eeeeee')
         pylab.xlim(0,self.df["pos"].iloc[-1])
-        p1, = pylab.plot(self.df["cov"], color="b", label="Coverage",
+        p1, = pylab.plot(self.df["cov"], color="k", label="Coverage",
                 linewidth=1)
-        p2, = pylab.plot(self.df["rm"], color="r", linewidth=1,
+        p2, = pylab.plot(self.df["rm"], color="#0099cc", linewidth=1,
                 label="Running median")
         p3, = pylab.plot(high_zcov, linewidth=1, color="r", ls="--",
                 label="Thresholds")
@@ -324,12 +326,14 @@ class ChromosomeCov(object):
                 p3.get_label()], loc="best")
         pylab.xlabel("Position", fontsize=fontsize)
         pylab.ylabel("Coverage", fontsize=fontsize)
+        pylab.grid(True)
         try:
             pylab.tight_layout()
         except:
             pass
         if filename:
             pylab.savefig(filename)
+        
 
     def plot_hist(self, fontsize=16, bins=100, filename=None, **hist_kargs):
         """ Barplot of zscore
@@ -369,6 +373,10 @@ class ChromosomeCov(object):
 
     def plot_gc_vs_coverage(self, bins=None, Nlevels=6, fontsize=20, norm="log",
         contour=True, **kargs):
+
+        if Nlevels is None or Nlevels==0:
+            contour = False
+
         data = self.df[['cov','gc']].copy()
         data['gc'] *= 100
         data = data.dropna()
@@ -378,12 +386,17 @@ class ChromosomeCov(object):
         from biokit import Hist2D
         h2 = Hist2D(data)
 
-        h2.plot(bins=bins, xlabel="coverage", 
-            ylabel=r'GC content (%)' , 
-            Nlevels=Nlevels, contour=contour, norm=norm, 
-            fontsize=fontsize, **kargs)
-
-
+        try:
+            h2.plot(bins=bins, xlabel="coverage", 
+                ylabel=r'GC content (%)' , 
+                Nlevels=Nlevels, contour=contour, norm=norm, 
+                fontsize=fontsize, **kargs)
+        except:
+            h2.plot(bins=bins, xlabel="coverage", 
+                ylabel=r'GC content (%)' , 
+                Nlevels=Nlevels, contour=False, norm=norm, 
+                fontsize=fontsize, **kargs)
+        pylab.ylim([0,100])
 
 
 class FilteredGenomeCov(object):
