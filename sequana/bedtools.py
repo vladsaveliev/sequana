@@ -198,7 +198,7 @@ class ChromosomeCov(object):
         mu = self.df['cov'].mean()
         return sigma/mu
 
-    def coverage_scaling(self):
+    def _coverage_scaling(self):
         """Normalize data with moving average of coverage
 
         Store the results in the :attr:`df` attribute (dataframe) with a
@@ -214,7 +214,8 @@ class ChromosomeCov(object):
             print("Column rm (running median) is missing.\n",
                     self.__doc__)
             return
-        self.df = self.df.replace(np.inf , np.nan)
+        self.df = self.df.replace(np.inf, np.nan)
+        self.df = self.df.replace(-np.inf, np.nan)
 
     def _get_best_gaussian(self, results):
         diff = 100
@@ -225,7 +226,7 @@ class ChromosomeCov(object):
         return {"mu": results.mus[indice], "sigma": results.sigmas[indice]}
 
     def compute_zscore(self, k=2, step=10, use_em=True):
-        """ Compute zscore of coverage.
+        """ Compute zscore of coverage and normalized coverage.
 
         :param int k: Number gaussian predicted in mixture (default = 2)
         :param int step: (default = 10). This parameter is used to speed
@@ -235,10 +236,10 @@ class ChromosomeCov(object):
         Store the results in the :attr:`df` attribute (dataframe) with a
         column named *zscore*.
 
-        .. note:: needs to call :meth:`coverage_scaling` before hand.
+        .. note:: needs to call :meth:`running_median` before hand.
 
         """
-        self.coverage_scaling()
+        self._coverage_scaling()
         if len(self.df) < 100000:
             step = 1
 
@@ -340,11 +341,16 @@ class ChromosomeCov(object):
 
         """
         zs_drop_na = self.df["zscore"].dropna()
+        print()
+        print(max(zs_drop_na), min(zs_drop_na))
+        print()
         bins = int(max(zs_drop_na) * 3 - min(zs_drop_na) * 3)
+        print(bins)
+        print()
         pylab.clf()
         try:
             self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
-        except ValueError:
+        except (ValueError, MemoryError):
             self.df["zscore"].hist(grid=True, bins=50, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
@@ -359,11 +365,12 @@ class ChromosomeCov(object):
 
         """
         nc_drop_na = self.df["scale"].dropna()
-        bins = int(max(nc_drop_na) * 100 - min(nc_drop_na) * 100)
+        print(max(nc_drop_na),  min(nc_drop_na))
+        bins = int(max(nc_drop_na) * 100 - min(nc_drop_na) * 100) 
         pylab.clf()
         try:
             self.mixture_fitting.plot(bins=bins)
-        except ValueError:
+        except (ValueError, MemoryError):
             self.mixture_fitting.plot()
         try:
             pylab.tight_layout()

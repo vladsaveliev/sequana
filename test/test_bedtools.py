@@ -1,10 +1,8 @@
-# Import -----------------------------------------------------------------------
-
 import os
+
 from sequana import bedtools, sequana_data
 from easydev import TempFile
 
-# Test -------------------------------------------------------------------------
 
 def test_genomecov():
 
@@ -14,13 +12,9 @@ def test_genomecov():
   
     # This requires to call other method before
     for chrom in mydata:
-        chrom.coverage_scaling()
-        chrom.compute_zscore()
-
         chrom.moving_average(n=101)
         chrom.running_median(n=101, circular=True)
         chrom.running_median(n=101, circular=False)
-        chrom.coverage_scaling()
 
         chrom.compute_zscore()
         chrom.get_low_coverage()
