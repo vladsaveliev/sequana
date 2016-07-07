@@ -245,7 +245,7 @@ def gc_content(filename, window_size, circular=False):
             mid = 0
         # Count first window content
         counter = Counter(chrom.sequence[0:window_size])
-        gc_count = counter["G"] + counter["C"]
+        gc_count = counter["G"] + counter["C"] + counter['g'] +counter['c']
         gc_content[mid] = gc_count
         for i in range(1, len(chrom.sequence) - window_size + 1):
             if chrom.sequence[i - 1] in checker:
