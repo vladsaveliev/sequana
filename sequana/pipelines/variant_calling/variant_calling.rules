@@ -3,21 +3,19 @@ Author: Dimitri Desvillechabrol
 Affiliation: Institut Pasteur
 Aim: Variant calling
 Data: paired end or single reads
-Run: snakemake -s Snakefile
+Run: snakemake -s variant_calling.rules
 """
-# Import -----------------------------------------------------------------------
+
 
 import sequana
 from sequana import snaketools as sm
 from sequana.snaketools import SequanaConfig
 sm.init("variant_calling.rules", globals())
 
-# Import config file -----------------------------------------------------------
 
 configfile: "config.yaml"
 cfg = SequanaConfig(config)
 
-# Python -----------------------------------------------------------------------
 
 final_output = list()
 
@@ -68,13 +66,12 @@ __report_variant__input = __vcf_filter__output
 if config["snpeff"]["do"]: 
     __snpeff__input = __vcf_filter__output
     include: sm.modules["snpeff"]
-    __report_vcf__input = __snpeff__output
+    __report_variant__input = __snpeff__output
 
 # report vcf
 include: sm.modules["report_variant"]
 final_output.append(__report_variant__output)
 
-# Snakemake --------------------------------------------------------------------
 
 rule pipeline_variant:
     input:

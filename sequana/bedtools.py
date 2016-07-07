@@ -335,12 +335,17 @@ class ChromosomeCov(object):
             pylab.savefig(filename)
         
 
-    def plot_hist(self, fontsize=16, bins=100, filename=None, **hist_kargs):
+    def plot_hist_zscore(self, fontsize=16, filename=None, **hist_kargs):
         """ Barplot of zscore
 
         """
+        zs_drop_na = self.df["zscore"].dropna()
+        bins = int(max(zs_drop_na) * 3 - min(zs_drop_na) * 3)
         pylab.clf()
-        self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
+        try:
+            self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
+        except ValueError:
+            self.df["zscore"].hist(grid=True, bins=50, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
@@ -349,12 +354,23 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist_zscore(self, fontsize=16, bins=100, filename=None,
-            **hist_kargs):
-        plot_hist(fontsize, bins, filename, hist_kargs)
+    def plot_hist_normalized_coverage(self, filename=None):
+        """ Barplot of normalized coverage with gaussian fitting
 
-    def plot_hist_normalised_coverage(self):
-        raise NotImplementedError
+        """
+        nc_drop_na = self.df["scale"].dropna()
+        bins = int(max(nc_drop_na) * 100 - min(nc_drop_na) * 100)
+        pylab.clf()
+        try:
+            self.mixture_fitting.plot(bins=bins)
+        except ValueError:
+            self.mixture_fitting.plot()
+        try:
+            pylab.tight_layout()
+        except:
+            pass
+        if filename:
+            pylab.savefig(filename)
 
     def write_csv(self, filename, start=None, stop=None, header=True):
         """ Write CSV file of the dataframe.

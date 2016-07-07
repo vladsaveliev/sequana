@@ -1,4 +1,4 @@
-__freebayes__output = cfg.PROJECT + "/freebayes/%s.vcf" % cfg.PROJECT
+__freebayes__output = "freebayes/%s.vcf" % cfg.PROJECT
 
 rule freebayes:
     input:
@@ -7,8 +7,8 @@ rule freebayes:
     output:
         vcf = __freebayes__output
     log:
-        out = cfg.PROJECT + "/logs/freebayes/stdout.logs",
-        err = cfg.PROJECT + "/logs/freebayes/stderr.logs"
+        out = "logs/freebayes/stdout.logs",
+        err = "logs/freebayes/stderr.logs"
     params:
         freebayes = config["freebayes"]["options"]
     shell:
