@@ -110,7 +110,6 @@ class ChromosomeCov(object):
 
         chrcov = gencov[0]
         chrcov.running_median(n=30001)
-        chrcov.coverage_scaling()
         chrcov.compute_zscore()
         chrcov.plot_coverage()
 
@@ -207,6 +206,7 @@ class ChromosomeCov(object):
 
         .. note:: Needs to call :meth:`running_median`
 
+
         """
         try:
             self.df["scale"] =  self.df["cov"] / self.df["rm"]
@@ -228,7 +228,9 @@ class ChromosomeCov(object):
         """ Compute zscore of coverage.
 
         :param int k: Number gaussian predicted in mixture (default = 2)
-        :param int step: (default = 10)
+        :param int step: (default = 10). This parameter is used to speed
+            up computation and is ignored if the length of the coverage/sequence
+            is below 100,000
 
         Store the results in the :attr:`df` attribute (dataframe) with a
         column named *zscore*.
@@ -236,21 +238,28 @@ class ChromosomeCov(object):
         .. note:: needs to call :meth:`coverage_scaling` before hand.
 
         """
+        self.coverage_scaling()
+        if len(self.df) < 100000:
+            step = 1
+
+        data = self.df['scale']
+        data = data.replace(0, np.nan)
+        data = data.dropna()
+
         try:
             if use_em:
                 self.mixture_fitting = mixture.EM(
-                    self.df["scale"].dropna()[::step])
+                    data[::step])
                 self.mixture_fitting.estimate(k=k)
             else:
                 self.mixture_fitting = mixture.GaussianMixtureFitting(
-                    self.df["scale"].dropna()[::step],k=k)
+                    data[::step],k=k)
                 self.mixture_fitting.estimate()
         except KeyError:
             print("Column 'scale' is missing in data frame.\n"
                   "You must scale your data with coverage_scaling\n\n",
                   self.__doc__)
             return
-        self.mixture_fitting.estimate()
         self.gaussians = self.mixture_fitting.results
         self.best_gaussian = self._get_best_gaussian(self.mixture_fitting.results)
         self.df["zscore"] = (self.df["scale"] - self.best_gaussian["mu"]) / \
