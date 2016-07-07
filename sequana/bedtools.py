@@ -224,7 +224,7 @@ class ChromosomeCov(object):
                 indice = i
         return {"mu": results.mus[indice], "sigma": results.sigmas[indice]}
 
-    def compute_zscore(self, k=2, step=10):
+    def compute_zscore(self, k=2, step=10, use_em=True):
         """ Compute zscore of coverage.
 
         :param int k: Number gaussian predicted in mixture (default = 2)
@@ -237,8 +237,14 @@ class ChromosomeCov(object):
 
         """
         try:
-            self.mixture_fitting = mixture.GaussianMixtureFitting(
+            if use_em:
+                self.mixture_fitting = mixture.EM(
+                    self.df["scale"].dropna()[::step])
+                self.mixture_fitting.estimate(k=k)
+            else:
+                self.mixture_fitting = mixture.GaussianMixtureFitting(
                     self.df["scale"].dropna()[::step],k=k)
+                self.mixture_fitting.estimate()
         except KeyError:
             print("Column 'scale' is missing in data frame.\n"
                   "You must scale your data with coverage_scaling\n\n",
