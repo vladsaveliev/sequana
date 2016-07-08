@@ -341,17 +341,12 @@ class ChromosomeCov(object):
 
         """
         zs_drop_na = self.df["zscore"].dropna()
-        print()
-        print(max(zs_drop_na), min(zs_drop_na))
-        print()
         bins = int(max(zs_drop_na) * 3 - min(zs_drop_na) * 3)
-        print(bins)
-        print()
         pylab.clf()
         try:
             self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
-        except (ValueError, MemoryError):
-            self.df["zscore"].hist(grid=True, bins=50, **hist_kargs)
+        except ValueError:
+            self.df["zscore"].hist(grid=True, bins=200, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
@@ -365,12 +360,11 @@ class ChromosomeCov(object):
 
         """
         nc_drop_na = self.df["scale"].dropna()
-        print(max(nc_drop_na),  min(nc_drop_na))
         bins = int(max(nc_drop_na) * 100 - min(nc_drop_na) * 100) 
         pylab.clf()
         try:
             self.mixture_fitting.plot(bins=bins)
-        except (ValueError, MemoryError):
+        except ValueError:
             self.mixture_fitting.plot()
         try:
             pylab.tight_layout()
