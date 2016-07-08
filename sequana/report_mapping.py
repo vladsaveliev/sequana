@@ -31,6 +31,16 @@ from sequana.report_main import BaseReport
 class MappingReport(BaseReport):
     """Report dedicated to Mapping
 
+    ::
+
+        from sequana import bedtools, sequana_data
+        from sequana.report_mapping import MappingReport
+        mydata = bedtools.GenomeCov(sequana_data("test_bedcov.bed"))
+
+        r = MappingReport()
+        r.set_data(mydata)
+        r.create_report() 
+
     """
     def __init__(self, directory="report", project="",
             output_filename="report_mapping.html", **kargs):
