@@ -1,0 +1,32 @@
+{% block content %}
+
+  <p>The following picture is clickable and some boxes may have specific report page. </p>
+          <object data="dag.svg" type="image/svg+xml">
+          <img src="dag.svg">
+          </object>
+
+
+        <div id="1">
+        {% if online_link %}
+        <p>This pipeline is documented on the <a href="{{ online_link }}">online documentation</a>
+        The analysis was performed with the following Snakemake and config file:<br>
+        {% else %}
+        <p>The analysis was performed with the following Snakemake and config file:<br>
+        {% endif %}
+        <ul>
+            <li><a href="#1" class="show_hide">Show/hide Snakemake file</a>
+                <div class="slidingDiv">
+                <pre><code class="python">{{ snakefile }}</code></pre>
+                </div>
+            </li>
+            <li>
+                <a href="#2" class="show_hideC">Show/hide config file</a>
+                <div class="slidingDivC">
+                <pre><code class="yaml">{{ config }}</code></pre>
+            </li>
+        </ul>
+        </p>
+    </div>
+
+{% endblock %}
+
