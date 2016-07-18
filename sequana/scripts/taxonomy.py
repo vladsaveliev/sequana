@@ -33,12 +33,14 @@ Issues: http://github.com/sequana/sequana
         self.add_argument("--database", dest="database", type=str,
             help="""Kraken DB """)
         self.add_argument("--output", dest="output", type=str,
-            help="""name of the output HTML file""", default="krona.html")
+            help="""name of the output HTML file""", default="kraken.html")
         self.add_argument("--thread", dest="thread", type=int,
             help="""number of threads to use """, default=4)
         self.add_argument("--show-html", dest="html", 
             action="store_true", 
-            help="""number of threads to use """, default=4)
+            help="""number of threads to use """)
+        self.add_argument("-r", "--report", action="store_true",
+            help="Create a report")
 
 
 def main(args=None):
@@ -56,18 +58,52 @@ def main(args=None):
 
     # We put the import here to make the --help faster
     from sequana import KrakenPipeline
+    from easydev import DevTools
+    devtools = DevTools()
 
     fastq = []
     if options.file1:
         fastq.append(options.file1)
     if options.file2:
         fastq.append(options.file2)
-    k = KrakenPipeline(fastq, options.database, threads=options.thread, 
+
+
+    if options.report is False:
+        k = KrakenPipeline(fastq, options.database, threads=options.thread, 
             output=options.output)
+    else:
+        devtools.mkdir("report")
+        k = KrakenPipeline(fastq, options.database, threads=options.thread, 
+            output="report" + os.sep + options.output)
+
     k.run()
 
     if options.html is True:
         k.show()
+
+    if options.report:
+        # Here we create a simple temporary config file to be read by the Summary
+        # report 
+        from easydev import TempFile
+        config_txt = "samples:\n"
+        config_txt += '    file1: "%s"\n' % options.file1
+        if options.file2:
+            config_txt += '    file2: "%s"\n'% options.file2
+        config_txt += "project: Taxonomic Content\n"
+        config_txt += "kraken:\n"
+        config_txt += "    do: yes\n"
+        config_txt += "    database: %s\n" % options.database
+
+        tf = TempFile()
+        fh = open(tf.name, "w")
+        fh.write(config_txt)
+        fh.close()
+        print(tf.name)
+
+        from sequana.report_summary import SequanaSummary
+        ss = SequanaSummary("report", "summary.html", tf.name)
+        ss.create_report()
+
 
 if __name__ == "__main__":
    import sys
