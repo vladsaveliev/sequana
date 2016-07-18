@@ -31,14 +31,14 @@ rule bwa_bam_to_fastq:
     output:
         __bwa_bam_to_fastq__output,
         stats = "bwa_bam_to_fastq/bwa_mem_stats.json",
-        done = touch("bwa_bam_to_fastq/bwa_bam_to_fastq.done")
+        #done = touch("bwa_bam_to_fastq/bwa_bam_to_fastq.done")
     threads: 2
     message: "Calling bam2fastq and zipping data"
     run:
-        import json
-        from sequana.tools import bam_to_mapped_unmapped_fastq as bam2fastq
-        stats = bam2fastq(input["bam"], output_directory=params.wkdir)
-        json.dump(stats, open(output["stats"], "w"))
+        # save some stats for later
+        from sequana.tools import StatsBAM2Mapped
+        stats = StatsBAM2Mapped(input["bam"], wkdir=params.wkdir)
+        stats.to_json(output["stats"])
 
         # zip the fastq files
         import glob
