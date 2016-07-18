@@ -20,13 +20,13 @@ rule fastqc__%(name)s:
     input:
         %(inputs)s
     output:
-        touch('fastqc_%(name)s/fastqc.done')
+        touch('fastqc__%(name)s/fastqc.done')
     params:
-        wkdir="fastqc_%(name)s",
+        wkdir="fastqc__%(name)s",
         kargs = cfg.config.fastqc.options
     threads: 4
     log:
-        "logs/fastqc_%(name)s.log"
+        "logs/fastqc__%(name)s.log"
     run:
         # if the content of the file is empty, this will fail. We need to
         # touch  a file in such case.
@@ -50,6 +50,18 @@ rule fastqc__%(name)s:
             " {newinput} {params.kargs} > {log}")
         else:
             pass
+
+        # report
+        from sequana import report_fastqc
+        s = report_fastqc.FastQCReport(
+                "fastqc__%(name)s",
+                output_filename="fastqc__%(name)s.html",
+                directory=params.wkdir)
+        s.jinja['main_link'] = 'summary.html'
+        s.create_report()
+
+
+
     '''
 
     from easydev import TempFile
