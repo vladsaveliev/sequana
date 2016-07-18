@@ -22,14 +22,14 @@ if "kraken_input" in config.keys():
     if config["kraken_input"] == "cutadapt":
         __kraken__input = __cutadapt__output[:]
 
-__kraken__output = __kraken__outdir + "/kraken_to_krona.html"
+__kraken__output = __kraken__outdir + "/kraken.html"
 
 rule kraken_to_krona:
     input: __kraken__outdir + "kraken.out.summary"
     output: __kraken__output
     run:
         shell("ktImportText %s -o %s" % (input, output))
-        shell("cp %s %s" % (output, "report/kraken_to_krona.html"))
+        shell("cp %s %s" % (output, "report/kraken.html"))
 
 
 rule kraken_translate:
@@ -37,10 +37,14 @@ rule kraken_translate:
         __kraken__outdir + "kraken.out"
     output:
         summary=__kraken__outdir + "kraken.out.summary",
+        png=__kraken__outdir + "kraken.png",
     run:
         from sequana.kraken import KrakenResults
         k = KrakenResults(input[0])
         k.kraken_to_krona(output_filename=output.summary)
+        df = k.plot(kind='pie')
+        from pylab import savefig
+        savefig(output.png)
 
 
 if cfg.paired:
