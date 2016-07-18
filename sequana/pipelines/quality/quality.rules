@@ -1,65 +1,84 @@
 from sequana import snaketools as sm
 sm.init("quality.rules", globals())
 
-# This must be defined before the include 
-configfile: "config.yaml"
 
-
-cfg = sm.SequanaConfig(config)
-
-expected_output = []
+# ========================================= Include Phix pipeline
 
 include: sm.modules['phix_removal']
-config["adapter_removal_input"] = "bwa_bam_to_fastq"
-config["identify_adapters_input"] = "bwa_bam_to_fastq"
-
-# Include the cutadapt module
-include: sm.modules['cutadapt']
-expected_output += __cutadapt__output
-
-# import fastqc_ dynamic function
-include: fastqc_dynamic("cutadapt", __cutadapt__output)
-include: fastq_stats_dynamic("cutadapt", __cutadapt__output)
 
 
+do_adapter_removal = cfg.config.adapter_removal.do
+
+# reset expected output for the pipeline quality
+expected_output = []
+
+if do_adapter_removal:
+    adapter_removal = cfg.config.adapter_removal.tool
+    trimming = adapter_removal
+    if adapter_removal not in ['cutadapt', "skewer"]:
+        raise ValueError("trimming must be either cutadapt or skewer. Change the config file")
+
+    if adapter_removal == "cutadapt":
+        include: sm.modules[trimming]
+        include: fastqc_dynamic(trimming, __cutadapt__output)
+        include: fastq_stats_dynamic(trimming, __cutadapt__output)
+        expected_output += ['fastqc__cutadapt/fastqc.done']
+        expected_output += ['fastq_stats__cutadapt/fastq_stats.done']
+    elif adapter_removal == "skewer":
+        include: sm.modules[trimming]
+        include: fastqc_dynamic(trimming, __skewer__output)
+        include: fastq_stats_dynamic(trimming, __skewer__output)
+        expected_output += ['fastqc__skewer/fastqc.done']
+        expected_output += ['fastq_stats__skewer/fastq_stats.done']
+
+
+# ======================================= The reports
+
+expected_output.append("logs/pipeline_phix_removal.done")
 
 rule pipeline_quality:
     input:
-        "report/report_phix_removal.html",
         expected_output,
-        fastqc_cutadapt="fastqc_cutadapt/fastqc.done",
-        fastq_stats_cutadapt="fastq_stats_cutadapt/fastq_stats.done"
     output:
         # Used by other workflow that uses this workflow
         touch("logs/pipeline_quality.done")
     run:
-        from sequana import report_cutadapt
         from sequana import report_fastqc
         from sequana import report_fastq_stats
-        s = report_cutadapt.CutAdaptReport(directory="report")
-        s.read_data("logs/cutadapt.txt")
-        s.create_report()
+        if do_adapter_removal:
+            if adapter_removal == "cutadapt":
+                from sequana import report_cutadapt
+                s = report_cutadapt.CutAdaptReport(directory="report")
+                s.read_data("logs/{0}.txt".format(trimming))
+                s.create_report()
+            elif adapter_removal == "skewer":
+                from sequana import report_skewer
+                s = report_skewer.Skewer(directory="report")
+                s.read_data("logs/{0}.txt".format(trimming))
+                s.create_report()
 
-        # Now, the missing FastQC
-        s = report_fastqc.FastQCReport(
-                  "fastqc_cutadapt",
-                  output_filename="fastqc__cutadapt.html",
+            # Now, the missing FastQC
+            s = report_fastqc.FastQCReport(
+                  "fastqc_{0}".format(trimming),
+                  output_filename="fastqc__{0}.html".format(trimming),
                   directory="report")
-        s.jinja['main_link'] = 'report_phix_removal.html'
-        s.create_report()
+            s.jinja['main_link'] = 'report_phix_removal.html'
+            s.create_report()
 
-        # And the missing FastQ
-        s = report_fastq_stats.FastQStatsReport(
-            "fastq_stats_cutadapt",
-            output_filename="fastq_stats__cutadapt.html",
-            directory="report")
-        s.jinja['main_link'] = 'report_phix_removal.html'
-        s.create_report()
+            # And the missing FastQ
+            s = report_fastq_stats.FastQStatsReport(
+                "fastq_stats__{0}".format(trimming),
+                output_filename="fastq_stats__{0}.html".format(trimming),
+                directory="report")
+            s.jinja['main_link'] = 'report_phix_removal.html'
+            s.create_report()
 
         shell('ln -sf report_phix_removal.html report/pipeline_quality.html')
 
 onsuccess:
+    shell("cp %s %s/" % (__snakefile__, "report"))
+    shell("cp config.yaml %s/" % "report")
     sm.plot_stats()
-
-
-
+    from sequana.report_summary import SequanaSummary
+    ss = SequanaSummary("report", "summary.html", snakefile=__snakefile__)
+    ss.create_report()
