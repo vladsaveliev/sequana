@@ -1004,9 +1004,21 @@ class FastQC(object):
     def get_stats(self):
         stats = {"GC content": self.gc_content,
             "n_reads": self.N}
-        for letter in 'ACGT':
+        for letter in 'ACGTN':
             stats[letter] = sum((x.count(letter) for x in self.sequences))
-        return stats
+
+        stats['total bases'] = sum([len(this) for this in self.sequences])
+        stats['mean quality'] = np.mean(self.mean_qualities)
+        stats['average read length'] = np.mean([len(this) for this in self.sequences])
+        stats['min read length'] = np.min([len(this) for this in self.sequences])
+        stats['max read length'] = np.max([len(this) for this in self.sequences])
+
+        # use DataFrame instead of Series to mix types (int/float)
+        ts = pd.DataFrame([stats])
+        cols = ['n_reads', 'A', 'C', 'G', 'T', 'N','total bases' ]
+        ts[cols] = ts[cols].astype(int)
+        ts = ts[cols + ['GC content', 'average read length', 'mean quality']]
+        return ts
 
     @run_info
     def get_actg_content(self):
@@ -1046,3 +1058,37 @@ class FastQC(object):
         pylab.grid(True)
         pylab.xlabel("position (bp)", fontsize=self.fontsize)
         pylab.ylabel("percent", fontsize=self.fontsize)
+
+
+
+class MultiFastQStats(object):
+    def __init__(self):
+       pass
+
+class FastQStats(object):
+    def __init__(self):
+        self.data = {}
+        self.data["GC content"]
+        self.data["n_reads"] = 0
+        for this in 'ACGTN': 
+            self.data[this] = 0
+        stats['total bases'] = 0
+        stats['mean quality'] = None
+        stats['average read length'] = None
+        stats['min read length'] = None
+        stats['max read length'] = None
+
+        """ts = pd.DataFrame([stats])
+        cols = ['n_reads', 'A', 'C', 'G', 'T', 'N','total bases' ]
+        ts[cols] = ts[cols].astype(int)
+        ts = ts[cols + ['GC content', 'average read length', 'mean quality']]
+        return ts"""
+
+
+
+
+
+
+
+
+
