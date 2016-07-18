@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+
+
+
+
+{% if description %}
+    <div class="section" id="Description">
+    <p><b>Sample:</b> {{ project }} </p>
+    <p>{{ description }}</p>
+    </div>
+{% endif %}
+
+<div class="section" id="Input">
+<h2>  <a class="toc-backref" href="#id1">Input</a></h2>
+{{ dataset }}
+{% include 'fastq_stats_samples/R1.html' %}
+{% include 'fastq_stats_samples/R2.html' %}
+</div>
+
+{% if phix %}
+    <div class="section" id="phix">
+    <h2>  <a class="toc-backref" href="#id2">Phix content</a></h2>
+    {{ phix_section }}
+{% endif %}
+
+
+{% if cutadapt %}
+    <div class="section" id="Input">
+    <h2>  <a class="toc-backref" href="#id2">Adapters</a></h2>
+    {{ cutadapt_section }}
+{% endif %}
+
+
+
+
+
+<div class="section" id="Input">
+<h2>  <a class="toc-backref" href="#id2">Taxonomic content</a></h2>
+<a href="../kraken/kraken_to_krona.html"> <img src="{{ kraken_pie }}"></img></a>
+<br>
+<a href="../kraken/kraken_to_krona.html">Details (krona)</a>
+</div>
+
+{% endblock %}
+
