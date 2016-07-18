@@ -453,9 +453,10 @@ class SAMFlags(object):
     256     secondary alignment
     512     not passing filters, such as platform/vendor quality controls
     1024    PCR or optical duplicate
-    2048    supplementary alignme
+    2048    supplementary alignment
     ======= ====================================================================
 
+    :reference: http://samtools.github.io/hts-specs/SAMv1.pdf
     """
     def __init__(self, value=4095):
         self.value = value
@@ -471,7 +472,7 @@ class SAMFlags(object):
             256: "secondary alignment",
             512: "not passing filters, such as platform/vendor quality controls",
             1024: "PCR or optical duplicate",
-            2048: "supplementary alignme"}
+            2048: "supplementary alignment"}
 
     def get_meaning(self):
         """Return all description sorted by bit """
