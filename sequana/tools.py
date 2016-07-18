@@ -20,15 +20,33 @@
 import os
 import string
 import glob
+import json
 
+import pandas as pd
 import numpy as np
 from pysam import FastxFile
 from collections import Counter
 
 from sequana import BAM
+from easydev import precision
+from reports import HTMLTable
 
 
-__all__ = ['bam_to_mapped_unmapped_fastq', "FastqFactory"]
+__all__ = ['StatsBAM2Mapped', 'bam_to_mapped_unmapped_fastq', "FastqFactory"]
+
+
+class DataContainer(dict):
+    def __init__(self, wkdir="."):
+        self.wkdir = wkdir
+
+    def to_json(self, filename):
+        json.dump(self.data, open(filename, "w"))
+
+    def read_json(self, filename):
+        return json.load(open(filename, "r"))
+
+    def to_html(self):
+        pass
 
 
 try:
@@ -44,8 +62,41 @@ def reverse_complement(seq):
     return seq.translate(_translate)[::-1]
 
 
+class StatsBAM2Mapped(DataContainer):
 
-def bam_to_mapped_unmapped_fastq(filename, output_directory=None):
+    def __init__(self, bamfile=None, wkdir=None, verbose=True):
+        super(StatsBAM2Mapped, self).__init__(wkdir=wkdir)
+        if bamfile.endswith(".bam"):
+            self.data = bam_to_mapped_unmapped_fastq(bamfile, wkdir, verbose)
+        elif bamfile.endswith(".json"):
+            self.data = self.read_json(bamfile)
+
+    def to_html(self):
+        data = self.data
+
+        html = "Reads with Phix: %s %%" % precision(data['contamination'], 3)
+
+        # add HTML table 
+        if "R2_mapped" in data.keys():
+            df = pd.DataFrame({
+              'R1': [data['R1_mapped'], data['R1_unmapped']],
+              'R2': [data['R2_mapped'], data['R2_unmapped']]})
+        else:
+            df = pd.DataFrame({
+              'R1': [data['R1_mapped'], data['R1_unmapped']]})
+        df.index = ['mapped', 'unmapped']
+
+        h = HTMLTable(df)
+        html += h.to_html(index=True)
+
+        html += "Unpaired: %s <br>" % data['unpaired']
+        html += "duplicated: %s <br>" % data['duplicated']
+        return html
+
+
+
+
+def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
     """Create mapped and unmapped fastq files from a BAM file
 
     Given a BAM file, create FASTQ with R1/R2 reads mapped and unmapped.
@@ -95,6 +146,7 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None):
     stats['duplicated'] = 0
     stats['unpaired'] = 0
 
+
     unpaired = 0
 
     # if paired, let open other files
@@ -111,8 +163,10 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None):
     # loop through the BAM (make sure it is rewind)
     bam.reset()
 
-    from easydev import Progress
-    pb = Progress(len(bam))
+    if verbose:
+        from easydev import Progress
+        pb = Progress(len(bam))
+
     for i, this in enumerate(bam):
         if this.flag & 256:
             # Unmapped reads are in the BAM file but have no valid assigned
@@ -170,16 +224,22 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None):
 
             if this.is_duplicate:
                 stats['duplicated'] += 1
-        pb.animate(i+1)
+        if verbose:
+            pb.animate(i+1)
 
     if bam.is_paired:
         R2_mapped.close()
         R2_unmapped.close()
-    print("\nNumber of entries in the BAM: %s" % str(i+1))
+    if verbose:
+        print("\nNumber of entries in the BAM: %s" % str(i+1))
     R1_mapped.close()
     R1_unmapped.close()
+
+    _x = stats['R1_mapped']
+    _y = stats['R1_unmapped']
+    stats["contamination"] = _x / float(_x + _y) * 100
+
     return stats
-bam2fastq = bam_to_mapped_unmapped_fastq
 
 
 
