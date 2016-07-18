@@ -52,6 +52,12 @@ $('galleria').galleria({
     overflow: scroll;
 }
 
+.slidingDivStats {
+    padding:20px;
+    margin-top:10px;
+    overflow: auto;
+}
+
 .show_hide {
     display:none;
 }
@@ -70,13 +76,20 @@ $(document).ready(function(){
     $('.show_hideC').click(function(){
     $(".slidingDivC").slideToggle();
     });
+        $(".slidingDivStats").hide();
+        $(".show_hideStats").show();
+    $('.show_hideStats').click(function(){
+    $(".slidingDivStats").slideToggle();
+    });
+        $(".slidingDivDeps").hide();
+        $(".show_hideDeps").show();
+    $('.show_hideDeps').click(function(){
+    $(".slidingDivDeps").slideToggle();
+    });
 
 });
 
 </script>
-
-
-
 </head>
 <body>
 
@@ -85,8 +98,13 @@ $(document).ready(function(){
     <h2 class="subtitle">
         Report created with Sequana ({{ sequana_version }}) and reports ({{ report_version }}).</h2>
     <hr>
+
+    {% if nav_off %}
+
+    {% else %}
     <a href="{{ main_link }}" >Main page</a>
     <hr>
+    {% endif %}
 
       {% block content %}{% endblock %}
 
