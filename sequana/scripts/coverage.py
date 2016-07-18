@@ -39,6 +39,9 @@ Issues: http://github.com/sequana/sequana
         self.add_argument('-r', "--reference", dest="reference", type=str,
             default=None,help="""reference""") 
 
+        self.add_argument('-o', "--circular", dest="circular",
+            default=False, action="store_true", help="""""") 
+
 
 def main(args=None):
 
@@ -72,7 +75,7 @@ def main(args=None):
 
 
     print('Computing running median')
-    gc.running_median(n=options.w_median)
+    gc.running_median(n=options.w_median, circular=options.circular)
     print('Computing zscore')
     gc.compute_zscore()
 
