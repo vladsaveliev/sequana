@@ -601,12 +601,25 @@ class DOTParser(object):
                     name = name.replace(",","")
                     name = name.replace('"',"")
                     name = name.strip()
-                    if "__" in name:
-                        lhs = lhs.replace(name, name.split('__')[0])
-
-                    if name in ['dag', 'conda']:
+                    #if "__" in name:
+                    #    lhs = lhs.replace(name, name.split('__')[0])
+                    if "dataset:" in name:
+                        if ".rules" in name:
+                            index = lhs.split("[")[0]
+                            indices_to_drop.append(index.strip())
+                        else:
+                            filename = lhs.split("dataset:")[1]
+                            lhs = lhs.split("dataset:")[0] #+ "dataset:"
+                            filename = filename.rsplit("/")[-1]
+                            newline = lhs + filename + separator + rhs
+                            fout.write(newline + "\n")
+                    elif name in ['dag', 'conda']:
                         index = lhs.split("[")[0]
                         indices_to_drop.append(index.strip())
+                    elif name.startswith('pipeline'):
+                        newline = lhs + separator + rhs
+                        newline = newline.replace("dashed", "")
+                        fout.write(newline + "\n")
                     elif name in ['all', "bwa_bam_to_fastq"] or "dataset:" in name:
                         # redirect to the main page so nothing to do
                         newline = lhs + separator + rhs
@@ -791,7 +804,8 @@ def init(filename, namespace):
         pass
     else:
         namespace['__snakefile__'] = filename
-
+        namespace['expected_output'] = []
+        namespace['toclean'] = []
 
 
 
