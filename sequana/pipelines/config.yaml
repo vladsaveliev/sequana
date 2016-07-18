@@ -113,7 +113,7 @@ bwa_phix:
 #   - quality: 0 means no trimming, 30 means keep base with quality 
 #       above 30
 #   - m: 20 means discard trimmed reads that are shorter than 20.
-#
+#   - tool: only cutadapt supported for now
 #   ref: http://cutadapt.readthedocs.io/
 #################################################################
 adapter_removal:
