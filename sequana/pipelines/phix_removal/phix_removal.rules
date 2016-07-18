@@ -19,47 +19,73 @@ cfg = SequanaConfig(config)
 
 
 # Optional for testing
-if config['fastq_sampling']['do'] is True:
+if config['fastq_sampling']['do']:
     include: sm.modules['fastq_sampling']
     FILE1 = cfg.BASENAME[0]
     config['samples']['file1'] = "fastq_sampling/%s" % FILE1
     if cfg.paired:
         FILE2 = cfg.BASENAME[1]
         config['samples']['file2'] = "fastq_sampling/%s" % FILE2
+else:
+    sm.message(cfg.BASENAME[0])
+    rule data_input:
+        input : expand("{dataset}" , dataset=cfg.BASENAME)
+    rule data:
+        """Select a sample from raw FastQ files"""
+        input:
+        output: "{dataset}"
 
 
-# Generic include for bwa_mem on the phix reference
+# Generic include of some dynamic modules
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
-include: bwa_mem_dynamic("phix", cfg.DATASET)
-
-# Some specific rules to be included for the phix removal pipeline
-# This will create the mapped and unmapped data in bwa_phix directory
-include: sm.modules['bwa_bam_to_fastq']
-
-# Include the report
-include: sm.modules['report_phix_removal']
-
-# Generic include to run a fastqc and fastq_stats on the raw data
 exec(open(sequana.modules["fastqc"], "r").read())
 exec(open(sequana.modules["fastq_stats"], "r").read())
 
-# Run a fastqc on the raw data and data without phix
-include: fastqc_dynamic("phix", __bwa_bam_to_fastq__output)
+# fastqc and fastq_stats on the samples
 include: fastqc_dynamic("samples", cfg.DATASET)
-
-# Run a fastq_stats run on the following fastq
-include: fastq_stats_dynamic("phix", __bwa_bam_to_fastq__output)
 include: fastq_stats_dynamic("samples", cfg.DATASET)
 
+
+if cfg.config.bwa_phix.do:
+    include: bwa_mem_dynamic("phix", cfg.DATASET)
+    # This will create the mapped and unmapped data in bwa_phix directory
+    include: sm.modules['bwa_bam_to_fastq']
+
+    # Include the report
+    #include: sm.modules['report_phix_removal']
+
+    # Run a fastqc and fastq_stats on the data without phix
+    include: fastqc_dynamic("phix", __bwa_bam_to_fastq__output)
+    include: fastq_stats_dynamic("phix", __bwa_bam_to_fastq__output)
+
+
+
 # Those rules takes a couple of seconds so no need for a cluster
-localrules: dag, conda, all
+include: sm.modules['dag']     # Create DAG file
+include: sm.modules['conda']   # Create requirements.txt(dependencies)
+localrules: dag, conda
 
 
-rule all:
-    input: "report/report_phix_removal.html"
-    version: sequana.version
+
+expected_output += ["fastqc__phix/fastqc.done"]
+expected_output += ["fastqc__samples/fastqc.done"]
+expected_output += ["fastq_stats__samples/fastq_stats.done"]
+expected_output += ["fastq_stats__phix/fastq_stats.done"]
+expected_output += ["report/dag.svg"]
+expected_output += ["report/requirements.txt"]
+
+
+rule pipeline_phix_removal:
+    input: expected_output
+    output: touch('logs/pipeline_phix_removal.done')
 
 onsuccess:
+    shell("cp %s %s/" % (__snakefile__, "report"))
+    shell("cp config.yaml %s/" % "report")
+    sm.plot_stats()
+    from sequana.report_summary import SequanaSummary
+    ss = SequanaSummary("report", "summary.html", snakefile=__snakefile__)
+    ss.create_report()
     sm.plot_stats()
 
 onerror:
