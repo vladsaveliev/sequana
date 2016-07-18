@@ -333,6 +333,7 @@ class ChromosomeCov(object):
             pass
         if filename:
             pylab.savefig(filename)
+
         
 
     def plot_hist_zscore(self, fontsize=16, filename=None, **hist_kargs):
@@ -388,7 +389,7 @@ class ChromosomeCov(object):
             print("Labels doesn't exist in the data frame")
 
     def plot_gc_vs_coverage(self, bins=None, Nlevels=6, fontsize=20, norm="log",
-        contour=True, **kargs):
+            ymin=0, ymax=100, contour=True, **kargs):
 
         if Nlevels is None or Nlevels==0:
             contour = False
@@ -412,7 +413,9 @@ class ChromosomeCov(object):
                 ylabel=r'GC content (%)' , 
                 Nlevels=Nlevels, contour=False, norm=norm, 
                 fontsize=fontsize, **kargs)
-        pylab.ylim([0,100])
+        pylab.ylim([ymin,ymax])
+        corr = self.df[['cov', 'gc']].corr().iloc[0,1]
+        return corr
 
 
 class FilteredGenomeCov(object):
