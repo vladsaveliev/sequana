@@ -367,9 +367,13 @@ class Module(object):
         #TOD: automatic switch
         from easydev import onweb
         if "rules" in self._path:
+            suffix = self.snakefile.split("rules/")[1]
+            suffix = suffix.rsplit("/", 1)[0]
             onweb("http://github.com/sequana/sequana/tree/"
-                  "master/sequana/rules/%s" % self.name)
+                  "master/sequana/rules/%s" % suffix)
         else:
+            suffix = self.snakefile.split("pipelines/")[1]
+            suffix = suffix.rsplit("/", 1)[0]
             onweb("http://github.com/sequana/sequana/tree/"
                   "master/sequana/pipelines/%s" % self.name)
 
