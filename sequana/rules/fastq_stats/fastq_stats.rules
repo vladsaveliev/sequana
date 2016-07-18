@@ -8,7 +8,7 @@ def fastq_stats_dynamic(name, inputs, outputs=[]):
 
     fastq_stats_code = '''
 ff = sm.FileFactory(%(inputs)s)
-__fastq_stats__output = ["fastq_stats_%(name)s/" + x for x in ff.basenames]
+__fastq_stats__output = ["fastq_stats__%(name)s/" + x for x in ff.basenames]
 __fastq_stats__output_json = [x.replace(".fastq.gz", "_fastq_stats.json") for x in __fastq_stats__output]
 __fastq_stats__output_bx = [x.replace(".fastq.gz", "_boxplot.png") for x in __fastq_stats__output]
 __fastq_stats__output_gc = [x.replace(".fastq.gz", "_gc.png") for x in __fastq_stats__output]
@@ -22,7 +22,9 @@ rule fastq_stats__%(name)s:
         json= __fastq_stats__output_json,
         boxplot=__fastq_stats__output_bx,
         gc=__fastq_stats__output_gc,
-        done= touch("fastq_stats_%(name)s/fastq_stats.done")
+        done= touch("fastq_stats__%(name)s/fastq_stats.done")
+    params:
+        wkdir="fastq_stats__%(name)s"
     threads: 4
     run:
         from sequana import FastQC, sequana_data
@@ -41,7 +43,7 @@ rule fastq_stats__%(name)s:
                 fastq.histogram_gc_content()
                 pylab.savefig(output.gc[i])
                 stats = fastq.get_stats()
-                json.dump(stats, open(output.json[i], "w"))
+                stats.to_json(open(output.json[i], "w"))
             else:
                 import shutil
                 from easydev import touch
@@ -50,6 +52,15 @@ rule fastq_stats__%(name)s:
                 shutil.copy(location, output.boxplot[i])
                 # this will be handled inside report_fastq_stats
                 touch(output.json[i])
+
+            from sequana import report_fastq_stats
+            s = report_fastq_stats.FastQStatsReport(
+                  "fastq_stats__%(name)s",
+                  output_filename="fastq_stats__%(name)s.html",
+                  directory=params.wkdir)
+            s.jinja['main_link'] = 'summary.html'
+            s.create_report()
+
 
     '''
     from easydev import TempFile
