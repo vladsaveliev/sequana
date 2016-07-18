@@ -270,9 +270,13 @@ options.pipeline
     if options.kraken and os.path.exists(options.kraken) is False:
         raise ValueError("%s does not exist" % options.kraken)
     if options.adapter_rev and os.path.exists(options.adapter_rev) is False:
-        sa.error('Invalid filename provided with --adapter-rev (must exists)')
+        with open("adapter_rev.fa", "w") as fout:
+            fout.write(">user\n%s" % options.adapter_rev)
+        options.adapter_rev = "adapter_rev.fa"
     if options.adapter_fwd and os.path.exists(options.adapter_fwd) is False:
-        sa.error('Invalid filename provided with --adapter-fwd (must exists)')
+        with open("adapter_fwd.fa", "w") as fout:
+            fout.write(">user\n%s" % options.adapter_fwd)
+        options.adapter_fwd = "adapter_fwd.fa"
 
 
     if options.input_dir:
