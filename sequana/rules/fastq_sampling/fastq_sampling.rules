@@ -2,13 +2,11 @@
 Author: TC
 Affiliation: IP
 Aim: create a sample data set for quick testing
-Type: module
-Input: fastq_raw/{}*gz
-Output: fastq_sampling/{}*gz
+Input: *gz
+Output: fastq_sampling/*gz
 """
 
-#__sequana__fastq_sampling = [":enable", ":N", "samples:glob"]
-#configfile: "config.yaml"
+__sequana__fastq_sampling__requires = [":do", ":N", "samples:file1", "samples:file2"]
 
 
 from sequana.snaketools import SequanaConfig, FileFactory
