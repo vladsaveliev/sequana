@@ -21,7 +21,7 @@
 
 """
 import os
-from sequana.reports.report_main import BaseReport
+from sequana.reporting.report_main import BaseReport
 
 # a utility from external reports package
 from reports import HTMLTable
@@ -52,7 +52,7 @@ class AdapterRemovalReport(BaseReport):
         :param output_filename: name of the final HTML file.
         :param directory: name of the output directory (defaults to report)
 
-        Parameters accepted by :class:`reports.Report` are also accepted.
+        Parameters accepted by :class:`sequana.reporting.Report` are also accepted.
 
         """
         super(AdapterRemovalReport, self).__init__(

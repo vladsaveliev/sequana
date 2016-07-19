@@ -1,5 +1,5 @@
-from sequana.reports.report_main import SequanaReport
-from sequana.reports.report_main import BaseReport    
+from sequana.reporting.report_main import SequanaReport
+from sequana.reporting.report_main import BaseReport    
 
 
 def test_report_base():

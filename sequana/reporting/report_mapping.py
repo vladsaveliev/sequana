@@ -22,7 +22,7 @@ import os
 import pandas as pd
 import pysam
 
-from sequana.reports.report_main import BaseReport
+from sequana.reporting.report_main import BaseReport
 from sequana.bamtools import SAMFlags
 
 from reports import HTMLTable
@@ -34,7 +34,7 @@ class MappingReport(BaseReport):
     ::
 
         from sequana import bedtools, sequana_data
-        from sequana.reports.report_mapping import MappingReport
+        from sequana.reporting.report_mapping import MappingReport
         mydata = bedtools.GenomeCov(sequana_data("test_bedcov.bed"))
 
         r = MappingReport()
