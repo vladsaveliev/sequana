@@ -236,7 +236,8 @@ class KrakenResults(object):
                 pass #unclassified may not exists
         self._data_created = True
 
-    def plot(self, kind="pie", cmap="copper", threshold=1, radius=0.9, **kargs):
+    def plot(self, kind="pie", cmap="copper", threshold=1, radius=0.9,
+                textcolor="red", **kargs):
         """A simple non-interactive plot of taxons
 
         A Krona Javascript output is also available in :meth:`kraken_to_krona`
@@ -284,6 +285,7 @@ class KrakenResults(object):
                 #  large, x-small, small, None, x-large, medium, xx-small,
                 #  smaller, xx-large, larger
                 text.set_size("small")
+                text.set_color(textcolor)
         elif kind == "barh":
             ax = data.plot(kind=kind,  **kargs)
             pylab.xlabel(" percentage ")
