@@ -18,8 +18,8 @@ rule report_mapping:
         import os        
 
         from sequana import bedtools
-        from sequana import report_mapping
-        from sequana import report_chromosome
+        from sequana.reports import report_mapping
+        from sequana.reports import report_chromosome
         #from sequana import report_main
         #
         #s = report_main.SequanaReport(snakefile=__snakefile__,
@@ -43,7 +43,6 @@ rule report_mapping:
         # Report chromosomes
         for chrom in mydata:
             chrom.running_median(n=params.size, circular=params.circular)
-            chrom.coverage_scaling()
             chrom.compute_zscore()
 
             r = report_chromosome.ChromosomeMappingReport(chrom.chrom_name,

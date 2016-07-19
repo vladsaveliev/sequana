@@ -63,9 +63,9 @@ class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana"):
         usage = """Welcome to SEQUANA standalone
 
-            sequana --init phix_removal
-            sequana --init <sequana pipeline>  --file1 A.fastq.gz --project test
-            sequana --init <sequana pipeline>  --input-dir ../
+            sequana --pipeline phix_removal
+            sequana --pipeline <sequana pipeline>  --file1 A.fastq.gz --project test
+            sequana --pipeline <sequana pipeline>  --input-dir ../
             sequana --show-pipelines
             sequana --version
 
@@ -143,7 +143,7 @@ Issues: http://github.com/sequana/sequana
                           help="a glob to find files. You can use wildcards")
         group.add_argument("--project", dest="project", type=str,
             help=""" Fills the *project* field in the config file. To be used
-                with --init option""")
+                with --pipeline option""")
         group.add_argument("--kraken", dest="kraken", type=str,
             help=""" Fills the *kraken* field in the config file. To be used
                 with --init option""")
@@ -209,14 +209,16 @@ def main(args=None):
 
     # If --help or no options provided, show the help
     if len(args) == 1:
+        sa = Tools()
+        sa.error("You must use --pipeline <valid pipeline name>\nuse --show-pipelines or --help for more information")
         user_options.parse_args(["prog", "--help"])
     else:
        options = user_options.parse_args(args[1:])
+    sa = Tools(verbose=options.verbose)
 
     # We put the import here to make the --help faster
     from sequana.snaketools import pipeline_names as valid_pipelines
 
-    sa = Tools(verbose=options.verbose)
 
     # OPTIONS that gives info and exit
     if options.issue:
@@ -295,7 +297,7 @@ options.pipeline
         elif options.no_adapters is True:
             pass
         else:
-            sa.error("adapters need to be provided (or use --no-adapters")
+            sa.error("adapters need to be provided (or use --no-adapters)")
 
         with open("multirun.sh", "w") as fout:
             import sequana
@@ -304,7 +306,8 @@ options.pipeline
             fout.write("# %s\n" % " ".join(sys.argv))
             for tag in ff.tags:
                 sa.print("Found %s project" % tag)
-                options.project = tag
+                if options.project is None:
+                    options.project = tag
                 options.file1 = ff.get_file1(tag)
                 options.file2 = ff.get_file2(tag)
                 if options.index_mapper:
@@ -334,10 +337,12 @@ options.pipeline
                 "the later case, you must provide at least --file1 (single-end)")
     elif options.file1 and options.file2 is None:
         ff = FastQFactory([options.file1])
-        options.project = ff.tags[0]
+        if options.project is None:
+            options.project = ff.tags[0]
     elif options.file1 and options.file2:
         ff = FastQFactory([options.file1, options.file2])
-        options.project = ff.tags[0]
+        if options.project is None:
+            options.project = ff.tags[0]
 
     if options.pipeline:
         sequana_init(options)

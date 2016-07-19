@@ -65,13 +65,15 @@
 
 {# ============================================================= OUTPUT #}
 
+
+{% if output %}
 <div class="section" id="output">
     <h2>  <a class="toc-backref" href="#id2">Output</a></h2>
 
     {{ output }}
 
 </div>
-
+{% endif %}
 
 {# ============================================================  TAXONOMY #}
 {% if cfg['kraken'] and cfg['kraken']['do'] %}
@@ -89,10 +91,12 @@
 
 {# ====================================================================  DAG #}
 
+{% if workflow %}
 <div class="section" id="workflow">
 <h2>  <a class="toc-backref" href="#id2">Workflow</a></h2>
 {% include 'workflow.html' %}
 </div>
+{% endif %}
 
 {# ======================================================== software Details #}
 

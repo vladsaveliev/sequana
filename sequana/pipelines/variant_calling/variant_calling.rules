@@ -83,6 +83,6 @@ onsuccess:
     shell("cp config.yaml %s/" % "report")
     sm.plot_stats()
     from sequana import SequanaSummary
-    ss = SequanaSummary("report", "summary.html", snakefile=__snakefile__)
+    ss = SequanaSummary("report", "summary.html", snakefile=__snakefile__, include_all=False)
     ss.create_report()
 

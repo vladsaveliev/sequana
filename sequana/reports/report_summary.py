@@ -36,7 +36,8 @@ class SequanaSummary(BaseReport):
 
     """
     def __init__(self,  directory="report", output_filename="../report/summary.html",
-                    configfile="report/config.yaml", snakefile=None, workdir=".", **kargs):
+                    configfile="report/config.yaml", snakefile=None,
+                    workdir=".", workflow=True, include_all=True, **kargs):
 
         super(SequanaSummary, self).__init__(
             jinja_filename="summary.html",
@@ -65,6 +66,7 @@ class SequanaSummary(BaseReport):
 
         # The base has a navigation, that we do not want
         self.jinja['nav_off'] = 'True'
+        self.jinja['workflow'] = workflow
 
         if snakefile: self.read_snakefile(snakefile)
 
@@ -73,13 +75,14 @@ class SequanaSummary(BaseReport):
 
 
         # include whatever is relevant
-        self.include_kraken()
-        self.include_phix()
-        self.include_sample_stats()
-        self.include_adapters_stats()
-        self.include_details()
-        self.include_input_links()
-        self.include_output_links()
+        if include_all:
+            self.include_kraken()
+            self.include_phix()
+            self.include_sample_stats()
+            self.include_adapters_stats()
+            self.include_details()
+            self.include_input_links()
+            self.include_output_links()
 
         # this is a dictionary usable within JINJA templates, which may have
         # been chnaged by methods above

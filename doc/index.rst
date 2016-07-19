@@ -39,24 +39,24 @@ Would you like to join us, please let us know on the github website.
 Installation
 #################
 
-
 If you have already installed **Sequana** dependencies, this command
 should install the latest release posted on Pypi website::
 
     pip install sequana --upgrade
 
-If not, be aware that Sequana relies on a few dependencies that needs 
-to be compiled (time consumming and requires proper C compilator). 
-For instance, we use Matplotlib, Pandas, cutadapt but some pipelines 
+If not, be aware that Sequana relies on many dependencies that needs
+to be compiled (is time consumming and requires proper C compilator).
+We use Matplotlib, Pandas, cutadapt but some pipelines
 also require more specific tools (e.g. BWA for read alignment). We therefore
-strongly recommend to use Anaconda and in particular the **bioconda** channel, which can be
+strongly recommend to use `Anaconda <https://anaconda.org/>`_ and in 
+particular the **bioconda** channel, which can be
 added to your environment as follows (once Anaconda is installed)::
 
     conda config --add channels r
     conda config --add channels bioconda
 
 Here is a non exhaustive list of dependencies that should be enough to run the
-current pipelines (version 0.1.4). We split the command on several lines to
+current pipelines. We split the command on several lines to
 emphasize the standard Anaconda packages and the bioconda ones but you
 can use only one::
 
@@ -76,6 +76,9 @@ can use only one::
 Quick start example: the quality pipeline
 #############################################
 
+**Sequana** comes with standalone applications and pipelines in the form of
+Snakefile (`snakemake <https://bitbucket.org/snakemake/snakemake/wiki/Home>`_)
+
 The following example will show how to run the quality control on a pair of FastQ files.
 The data comes from a sequencing (using HiSeq technology) of a
 Measles virus. For testing purposes, you can download :download:`R1
@@ -86,9 +89,10 @@ files that contain only 1500 reads. Copy them in a local directory.
 First, run the sequana standalone application to initialise the pipeline
 **quality**::
 
-    sequana --pipeline quality --input-dir .  --project TEST
+    sequana --pipeline quality --input-dir .  --no-adapters
+    cd Hm2
 
-This download required file(s) in particular the config file and the pipeline
+This command downloads the required file(s) in particular the config file and the pipeline
 itself. This example should work out of the box but you may want to look at the
 configuration file **config.yaml**. For instance, you may want to change the
 reference to the *phix* (by default we use Coliphage_phix174, which is provided in Sequana).
@@ -101,10 +105,17 @@ errors::
 The -p option shows the commands, -j 4 means use 4 threads when possible. Finally, open 
 the report in ./TEST::
 
-    open TEST/report_quality.html
+    open report/summary.html
 
 This will copy the Snakefile locally as well as the corresponding configuration
 file.
+
+
+All relevant HTML files and final FastQ files are stored in **./report**.
+
+There are temporary files that can be removed using this command::
+
+    python cleanup.py
 
 
 User guide and reference

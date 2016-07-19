@@ -2,18 +2,19 @@
 BAM module example
 ====================
 
-Histogram MAPQ
+Plot histogram of MAPQ values contained in a BAM file
 """
-from pylab import *
-
 #################################################
-# ignore warning message for now
+#
 from sequana import BAM, sequana_data
 
 
 #####################################################
-#
+# Get a data set (BAM file) for testing
 from sequana import BAM, sequana_data
-b = BAM(sequana_data('test.bam', "testing"))
+datatest = sequana_data('test.bam', "testing")
+
+####################################################
+# Use :class:`sequana.bamtools.BAM` class to plot the MAPQ historgram 
+b = BAM(datatest)
 b.plot_bar_mapq()
-#show()

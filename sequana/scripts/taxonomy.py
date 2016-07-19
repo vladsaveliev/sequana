@@ -1,12 +1,27 @@
+# -*- coding: utf-8 -*-
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016 - Sequana Development Team
+#
+#  File author(s):
+#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#          <d.desvillechabrol@gmail.com>
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  website: https://github.com/sequana/sequana
+#  documentation: http://sequana.readthedocs.io
+#
+##############################################################################
 import os
 import shutil
 import glob
 import sys
 from optparse import OptionParser
 import argparse
-
-
-
 
 
 class Options(argparse.ArgumentParser):
@@ -39,8 +54,6 @@ Issues: http://github.com/sequana/sequana
         self.add_argument("--show-html", dest="html", 
             action="store_true", 
             help="""number of threads to use """)
-        self.add_argument("-r", "--report", action="store_true",
-            help="Create a report")
 
 
 def main(args=None):
@@ -68,20 +81,17 @@ def main(args=None):
         fastq.append(options.file2)
 
 
-    if options.report is False:
-        k = KrakenPipeline(fastq, options.database, threads=options.thread, 
-            output=options.output)
-    else:
-        devtools.mkdir("report")
-        k = KrakenPipeline(fastq, options.database, threads=options.thread, 
-            output="report" + os.sep + options.output)
+    devtools.mkdir("kraken")
+    k = KrakenPipeline(fastq, options.database, threads=options.thread, 
+           output="kraken" + os.sep + options.output)
 
-    k.run()
+    output_png = "kraken.png"
+    k.run(output_png="kraken/%s" % output_png)
 
     if options.html is True:
         k.show()
 
-    if options.report:
+    if 1==1:
         # Here we create a simple temporary config file to be read by the Summary
         # report 
         from easydev import TempFile
@@ -100,8 +110,11 @@ def main(args=None):
         fh.close()
         print(tf.name)
 
-        from sequana.report_summary import SequanaSummary
-        ss = SequanaSummary("report", "summary.html", tf.name)
+        from sequana import SequanaSummary
+        ss = SequanaSummary("kraken", "summary.html", tf.name, 
+            include_all=False, workflow=False)
+        ss.include_input_links()
+        ss.jinja['kraken_pie'] = output_png
         ss.create_report()
 
 

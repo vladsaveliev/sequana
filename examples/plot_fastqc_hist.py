@@ -1,19 +1,22 @@
 """
-Quality histogram a la fastqc
+Quality histogram a la fastQC
 =================================
 
 
 """
 
 #####################################
-# Description
-
+# Get a data set example 
 from sequana import sequana_data
-from sequana import FastQC
+dataset  = sequana_data("test.fastq", "testing")
 
+
+
+###########################################""
 # Create a FastQC instance
-filename  = sequana_data("test.fastq", "testing")
-qc = FastQC(filename)
+from sequana import FastQC
+qc = FastQC(dataset, verbose=False)
 
+####################################
 # plot the histogram
 qc.boxplot_quality()

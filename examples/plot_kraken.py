@@ -4,11 +4,15 @@ Kraken module example
 
 In **Sequana**, we provide tools to quickly assess the taxonomic content of
 a reads (FastQ). It is based on the Kraken and Krona software. **Sequana**
-bridge the gap and provides a simple interface.  
+bridges the gap between those tools, Kraken databases and a simple interface to
+get a quick taxonomic overview of the FastQ content.
 
 For more information, please see the :mod:`sequana.kraken` module documentation.
-Note that this feature is also part of the :ref:`quality_taxon` pipeline. Besides, 
-a standalone application named **sequana_taxonomy** is available.
+Note that this feature is also part of the :ref:`quality_taxon` pipeline. 
+
+Although we will use the **Sequana** library hereafter, note that there is also
+a standalone application named **sequana_taxonomy**.
+
 """
 ###########################################################
 # Context
