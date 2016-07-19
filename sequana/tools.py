@@ -71,10 +71,10 @@ class StatsBAM2Mapped(DataContainer):
         elif bamfile.endswith(".json"):
             self.data = self.read_json(bamfile)
 
-    def to_html(self):
+    def to_html(self, with_stats=True):
         data = self.data
 
-        html = "Reads with Phix: %s %%" % precision(data['contamination'], 3)
+        html = "Reads with Phix: %s %%<br>" % precision(data['contamination'], 3)
 
         # add HTML table 
         if "R2_mapped" in data.keys():
@@ -86,8 +86,9 @@ class StatsBAM2Mapped(DataContainer):
               'R1': [data['R1_mapped'], data['R1_unmapped']]})
         df.index = ['mapped', 'unmapped']
 
-        h = HTMLTable(df)
-        html += h.to_html(index=True)
+        if with_stats:
+            h = HTMLTable(df)
+            html += h.to_html(index=True)
 
         html += "Unpaired: %s <br>" % data['unpaired']
         html += "duplicated: %s <br>" % data['duplicated']
