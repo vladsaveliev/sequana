@@ -51,13 +51,9 @@ if cfg.config.bwa_phix.do:
     # This will create the mapped and unmapped data in bwa_phix directory
     include: sm.modules['bwa_bam_to_fastq']
 
-    # Include the report
-    #include: sm.modules['report_phix_removal']
-
     # Run a fastqc and fastq_stats on the data without phix
     include: fastqc_dynamic("phix", __bwa_bam_to_fastq__output)
     include: fastq_stats_dynamic("phix", __bwa_bam_to_fastq__output)
-
 
 
 # Those rules takes a couple of seconds so no need for a cluster
@@ -66,18 +62,22 @@ include: sm.modules['conda']   # Create requirements.txt(dependencies)
 localrules: dag, conda
 
 
-
-expected_output += ["fastqc__phix/fastqc.done"]
 expected_output += ["fastqc__samples/fastqc.done"]
 expected_output += ["fastq_stats__samples/fastq_stats.done"]
-expected_output += ["fastq_stats__phix/fastq_stats.done"]
 expected_output += ["report/dag.svg"]
 expected_output += ["report/requirements.txt"]
+
+
+# Phix may be set off in the config
+if cfg.config.bwa_phix.do:
+    expected_output += ["fastqc__phix/fastqc.done"]
+    expected_output += ["fastq_stats__phix/fastq_stats.done"]
 
 
 rule pipeline_phix_removal:
     input: expected_output
     output: touch('logs/pipeline_phix_removal.done')
+
 
 onsuccess:
     shell("cp %s %s/" % (__snakefile__, "report"))

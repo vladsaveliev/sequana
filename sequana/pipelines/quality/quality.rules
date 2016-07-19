@@ -43,37 +43,19 @@ rule pipeline_quality:
         # Used by other workflow that uses this workflow
         touch("logs/pipeline_quality.done")
     run:
-        from sequana import report_fastqc
-        from sequana import report_fastq_stats
+        from sequana.reports import report_fastqc
+        from sequana.reports import report_fastq_stats
         if do_adapter_removal:
             if adapter_removal == "cutadapt":
-                from sequana import report_cutadapt
+                from sequana.reports import report_cutadapt
                 s = report_cutadapt.CutAdaptReport(directory="report")
                 s.read_data("logs/{0}.txt".format(trimming))
                 s.create_report()
             elif adapter_removal == "skewer":
-                from sequana import report_skewer
+                from sequana.reports import report_skewer
                 s = report_skewer.Skewer(directory="report")
                 s.read_data("logs/{0}.txt".format(trimming))
                 s.create_report()
-
-            # Now, the missing FastQC
-            s = report_fastqc.FastQCReport(
-                  "fastqc_{0}".format(trimming),
-                  output_filename="fastqc__{0}.html".format(trimming),
-                  directory="report")
-            s.jinja['main_link'] = 'report_phix_removal.html'
-            s.create_report()
-
-            # And the missing FastQ
-            s = report_fastq_stats.FastQStatsReport(
-                "fastq_stats__{0}".format(trimming),
-                output_filename="fastq_stats__{0}.html".format(trimming),
-                directory="report")
-            s.jinja['main_link'] = 'report_phix_removal.html'
-            s.create_report()
-
-        shell('ln -sf report_phix_removal.html report/pipeline_quality.html')
 
 onsuccess:
     shell("cp %s %s/" % (__snakefile__, "report"))
@@ -81,4 +63,21 @@ onsuccess:
     sm.plot_stats()
     from sequana import SequanaSummary
     ss = SequanaSummary("report", "summary.html", snakefile=__snakefile__)
+    # copy all html
+    ss.copy_html_to_report("*/*html", "report")
+    # copy all images
+    ss.copy_html_to_report("*/images/*png", "report/images")
+
+    if config['adapter_removal']['do']:
+        shell('cp cutadapt/*fastq.gz report/')    
+    else:
+        raise NotImplementedError
+
+    shell('cp -r fastqc_*/ report')
+    shell('rm -f report/*fastqc*.html')
+    shell('rm -f report/temp*.html')
+    shell('cp report/kraken.html report/kraken_to_krona.html')
+    shell('cp report/kraken.html report/kraken_contaminant.html')
+    shell('cp report/kraken.html report/kraken_translate.html')
+    # the summary.html report itself.
     ss.create_report()

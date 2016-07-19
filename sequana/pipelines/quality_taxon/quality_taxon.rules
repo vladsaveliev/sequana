@@ -4,7 +4,6 @@ from sequana.snaketools import SequanaConfig, FileFactory
 sm.init("quality_taxon.rules", globals())
 
 
-
 # Connect the sub-pipelines together
 include: sm.modules['quality']
 
@@ -12,7 +11,14 @@ include: sm.modules['quality']
 # Connect the kraken_contaminant pipeline to the quality pipeline at the output
 # of the cutapdat rule
 if config['kraken']['do']:
-    config["kraken_input"] = "cutadapt"
+    if config['adapter_removal']['do']:
+        config["kraken_input"] = "cutadapt"
+    elif config['bwa_phix']['do']:
+        raise NotImplementedError
+        config["kraken_input"] = "phix"
+    else:
+        raise NotImplementedError
+        config["kraken_input"] = "none"
     include: sm.modules['kraken']
     expected_output.append(__kraken__output)
 
@@ -32,5 +38,23 @@ onsuccess:
     sm.plot_stats()
     from sequana import SequanaSummary
     ss = SequanaSummary("report", "summary.html", snakefile=__snakefile__)
+    # copy all html
+    ss.copy_html_to_report("*/*html")
+    # copy all images
+    ss.copy_images_to_report("*/images/*png")
+    # Copy the data. If adapter removal is on, copy from cutadapt otherwise from
+    # phix ?
+    if config['adapter_removal']['do']:
+        shell('cp cutadapt/*fastq.gz report/')    
+    else:
+        raise NotImplementedError
+
+    shell('cp -r fastqc_*/ report')
+    shell('rm -f report/*fastqc*.html')
+    shell('rm -f report/temp*.html')
+    shell('cp report/kraken.html report/kraken_to_krona.html')
+    shell('cp report/kraken.html report/kraken_contaminant.html')
+    shell('cp report/kraken.html report/kraken_translate.html')
+    # the summary.html report itself.
     ss.create_report()
 
