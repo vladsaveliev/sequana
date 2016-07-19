@@ -410,8 +410,10 @@ options.pipeline)
 
         sh runme.sh
 
+    EDIT THE config.yaml if needed
 
-    EDIT THE config.yaml FILE TO SPECIFIED THE INPUT FILE LOCATION
+    Once finished with success, the report/ directory contains a summary.html 
+    and relevant files (depends on the pipeline).
     """
 
     sa.print("Creating README")
@@ -510,6 +512,24 @@ options.pipeline)
         cmd += " 1>run.out 2>run.err"
         fout.write(cmd % {'project':options.pipeline , 'jobs':options.jobs, 
 			"version": sequana.version})
+
+
+    with open(target_dir + os.sep + "cleanme.py", "w") as fout:
+        fout.write("""
+import glob
+import os
+import shutil
+from easydev import shellcmd
+import time
+
+directories = glob.glob("*")
+
+for this in directories:
+    if os.path.isdir(this) and this not in ['data', 'report']:
+        print('Deleting %s' % this)
+        time.sleep(0.5)
+        shellcmd("rm -rf %s" % this)
+""")
 
     sa.green("Initialisation of %s succeeded" % target_dir)
     sa.green("Please, go to the project directory ")

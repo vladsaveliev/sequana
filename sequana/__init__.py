@@ -31,7 +31,10 @@ from .snpeff import SnpEff
 from .vcf_filter import VCF
 
 # Reports
-from .report_bam import BAMReport
+from sequana.reports.report_bam import BAMReport
+from sequana.reports.report_fastqc import FastQCReport
+from sequana.reports.report_fastq_stats import FastQStatsReport
+from sequana.reports.report_summary import SequanaSummary
 
 # The standalone app
 from . import scripts
