@@ -8,10 +8,16 @@ def fastq_stats_dynamic(name, inputs, outputs=[]):
 
     fastq_stats_code = '''
 ff = sm.FileFactory(%(inputs)s)
-__fastq_stats__output = ["fastq_stats__%(name)s/" + x for x in ff.basenames]
-__fastq_stats__output_json = [x.replace(".fastq.gz", "_fastq_stats.json") for x in __fastq_stats__output]
-__fastq_stats__output_bx = [x.replace(".fastq.gz", "_boxplot.png") for x in __fastq_stats__output]
-__fastq_stats__output_gc = [x.replace(".fastq.gz", "_gc.png") for x in __fastq_stats__output]
+
+outdir = "fastq_stats__%(name)s/" 
+__fastq_stats__output = [outdir + x for x in ff.basenames]
+__fastq_stats__output_json = [x.replace(".fastq.gz", "_fastq_stats.json") 
+        for x in __fastq_stats__output]
+__fastq_stats__output_images = [outdir + "/images/" + x for x in ff.basenames]
+__fastq_stats__output_bx = [x.replace(".fastq.gz", "_boxplot.png")
+        for x in __fastq_stats__output_images]
+__fastq_stats__output_gc = [x.replace(".fastq.gz", "_gc.png") 
+        for x in __fastq_stats__output_images]
 
 
 rule fastq_stats__%(name)s:
@@ -53,12 +59,12 @@ rule fastq_stats__%(name)s:
                 # this will be handled inside report_fastq_stats
                 touch(output.json[i])
 
-            from sequana import report_fastq_stats
-            s = report_fastq_stats.FastQStatsReport(
+            from sequana import FastQStatsReport
+            s = FastQStatsReport(
                   "fastq_stats__%(name)s",
                   output_filename="fastq_stats__%(name)s.html",
                   directory=params.wkdir)
-            s.jinja['main_link'] = 'summary.html'
+            s.jinja['main_link'] = '../report/summary.html'
             s.create_report()
 
 

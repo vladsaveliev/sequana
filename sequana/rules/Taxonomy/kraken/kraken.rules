@@ -21,8 +21,13 @@ if cfg.paired:
 if "kraken_input" in config.keys():
     if config["kraken_input"] == "cutadapt":
         __kraken__input = __cutadapt__output[:]
+    elif config["kraken_input"] == "phix":
+        __kraken__input = [x for x in __bwa_bam_to_fastq__output if "unmapped" in x]
+    else:
+        pass
 
 __kraken__output = __kraken__outdir + "/kraken.html"
+
 
 rule kraken_to_krona:
     input: __kraken__outdir + "kraken.out.summary"

@@ -41,8 +41,6 @@ rule fastqc__%(name)s:
                 newinput.append(this)
             else:
                 pass
-                #with open(output[i], "w") as fh:
-                #    fh.write("No data in {0}".format(output[i]))
 
         if len(newinput):
             shell(
@@ -52,12 +50,12 @@ rule fastqc__%(name)s:
             pass
 
         # report
-        from sequana import report_fastqc
-        s = report_fastqc.FastQCReport(
+        from sequana import FastQCReport
+        s = FastQCReport(
                 "fastqc__%(name)s",
                 output_filename="fastqc__%(name)s.html",
                 directory=params.wkdir)
-        s.jinja['main_link'] = 'summary.html'
+        s.jinja['main_link'] = '../report/summary.html'
         s.create_report()
 
 
