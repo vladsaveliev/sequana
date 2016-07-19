@@ -18,8 +18,8 @@ rule report_mapping:
         import os        
 
         from sequana import bedtools
-        from sequana.reports import report_mapping
-        from sequana.reports import report_chromosome
+        from sequana.reporting import report_mapping
+        from sequana.reporting import report_chromosome
         #from sequana import report_main
         #
         #s = report_main.SequanaReport(snakefile=__snakefile__,
