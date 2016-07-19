@@ -342,7 +342,7 @@ class KrakenPipeline(object):
         self.ka = KrakenAnalysis(fastq, database, threads)
         self.output = output
 
-    def run(self):
+    def run(self, output_png="kraken.png"):
         """Run the analysis using Kraken and create the Krona output"""
 
         # Run Kraken
@@ -351,6 +351,11 @@ class KrakenPipeline(object):
         # Translate kraken output to a format understood by Krona
         kraken_summary = TempFile()
         kr = KrakenResults(self.ka.kraken_output.name)
+
+        df = kr.plot(kind="pie")
+        from pylab import savefig
+        savefig(output_png)
+
         kr.kraken_to_krona(output_filename=kraken_summary.name)
 
         # Transform to Krona
