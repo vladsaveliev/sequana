@@ -5,7 +5,7 @@ Tutorial
 
 Following the introductory example in :ref:`quick_start`, we will look at other pipelines such as
 the taxonomic classification, variant calling and coverage. For completeness,
-reproduce the quality pipeline here below. 
+we reproduce the quality pipeline here below. 
 
 
 The following example will show how to run the quality control on a pair of
