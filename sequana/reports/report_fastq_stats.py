@@ -21,7 +21,7 @@ import os
 import glob
 import json
 
-from .report_main import BaseReport
+from sequana.reports.report_main import BaseReport
 
 # a utility from external reports package
 from reports import HTMLTable
@@ -120,7 +120,8 @@ class FastQStatsReport(BaseReport):
         dfsum = dfsum.ix[['A', 'C', 'G', 'T', 'N', 'GC content', 'n_reads']]
         S = dfsum.ix[['A', 'C', 'G', 'T', 'N']].sum() 
         # FIXME change the json files themselves instead of multiplying by 100
-        dfsum.ix[['A', 'C', 'G', 'T', 'N']] /= (S/100.) 
+        if S.values[0]>0:
+            dfsum.ix[['A', 'C', 'G', 'T', 'N']] /= (S/100.) 
 
         html =""
 
@@ -135,20 +136,10 @@ class FastQStatsReport(BaseReport):
         """
 
 
-        # Assuming in fastq directory, we figure out the HTML files and
-        # create a table accordingly.
-        sources = glob.glob("%s/*png" % self.input_directory)
-        import shutil
-        targets = []
-        for source in sources:
-            filename = source.rsplit("/", 1)[1]
-            from easydev import DevTools
-            DevTools().mkdir("report")
-            DevTools().mkdir("report/images")
-            target = "report/images/" + filename
-            shutil.copy(source, target)
-            targets.append(target.replace("report/", ""))
+        # Copying images into the report/images directory
+        targets = self.copy_images_to_report("%s/images/*png" % self.input_directory)
 
+        # Create table with those images
         from sequana.htmltools import galleria
         html += galleria(targets)
 

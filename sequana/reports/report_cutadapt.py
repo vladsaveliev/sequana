@@ -21,10 +21,10 @@ import easydev
 import os
 import io
 
-from reports import HTMLTable
-from .report_adapter_removal import AdapterRemovalReport
-from .report_main import BaseReport
+from sequana.reports.report_adapter_removal import AdapterRemovalReport
+from sequana.reports.report_main import BaseReport
 
+from reports import HTMLTable
 
 import pandas as pd
 
@@ -45,6 +45,7 @@ class CutAdaptReport(AdapterRemovalReport):
             output_filename=output_filename,
             directory=directory, **kargs)
         self.jinja['title'] = "CutAdapt Report Summary"
+        self.jinja['main_link'] = "summary.html"
 
     def read_data(self, filename):
         self.input_filename = filename

@@ -25,12 +25,13 @@
 """
 import os
 import pandas as pd
-from .report_main import BaseReport
-from .bamtools import  SAMFlags
+from sequana.reports.report_main import BaseReport
+from sequana.bamtools import  SAMFlags
 
 import pylab
 import pysam
 from reports import HTMLTable
+
 
 class BAMReport(BaseReport):
     """Report dedicated to BAM file

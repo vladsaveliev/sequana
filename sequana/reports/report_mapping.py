@@ -16,18 +16,16 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-
-"""Report dedicated to Mapping
-
-"""
+"""Report dedicated to Mapping"""
 import os
 
 import pandas as pd
 import pysam
 
-from reports import HTMLTable
-from sequana.report_main import BaseReport
+from sequana.reports.report_main import BaseReport
 from sequana.bamtools import SAMFlags
+
+from reports import HTMLTable
 
 
 class MappingReport(BaseReport):
@@ -36,7 +34,7 @@ class MappingReport(BaseReport):
     ::
 
         from sequana import bedtools, sequana_data
-        from sequana.report_mapping import MappingReport
+        from sequana.reports.report_mapping import MappingReport
         mydata = bedtools.GenomeCov(sequana_data("test_bedcov.bed"))
 
         r = MappingReport()

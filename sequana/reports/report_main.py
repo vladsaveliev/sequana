@@ -18,6 +18,9 @@
 ##############################################################################
 """Data structure to build reports in a consistent way"""
 import os
+import shutil
+
+
 import easydev
 sepjoin = os.sep.join
 
@@ -121,6 +124,27 @@ class BaseReport(Report):
     def read_configfile(self, configfile):
         with open(configfile, "r") as fin:
             self.jinja['config'] = fin.read()
+
+    def copy_html_to_report(self, pattern):
+        easydev.DevTools().mkdir("report")
+        return self._copy_files(pattern, "report")
+
+    def _copy_files(self, pattern, where="report"):
+        sources = glob.glob(pattern)
+        targets = []
+        for source in sources:
+            filename = source.rsplit("/", 1)[1]
+            target = where + "/" +filename
+            # if files are identical, fails
+            try:shutil.copy(source, target) 
+            except:pass
+            targets.append(target.replace("report/", ""))
+        return targets
+
+    def copy_images_to_report(self, pattern):
+        easydev.DevTools().mkdir("report")
+        easydev.DevTools().mkdir("report/images")
+        return self._copy_files(pattern, "report/images")
 
 
 
