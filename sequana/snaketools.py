@@ -620,6 +620,12 @@ class DOTParser(object):
                     elif name in ['dag', 'conda']:
                         index = lhs.split("[")[0]
                         indices_to_drop.append(index.strip())
+                    elif name.startswith('fastqc__'):
+                        newline = lhs + ' URL="%s/%s.html" target="_parent", ' % (name,name)
+
+                        newline += separator + rhs
+                        newline = newline.replace("dashed", "")
+                        fout.write(newline + "\n")
                     elif name.startswith('pipeline'):
                         newline = lhs + separator + rhs
                         newline = newline.replace("dashed", "")
