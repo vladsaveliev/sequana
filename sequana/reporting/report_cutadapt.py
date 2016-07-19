@@ -21,8 +21,8 @@ import easydev
 import os
 import io
 
-from sequana.reports.report_adapter_removal import AdapterRemovalReport
-from sequana.reports.report_main import BaseReport
+from sequana.reporting.report_adapter_removal import AdapterRemovalReport
+from sequana.reporting.report_main import BaseReport
 
 from reports import HTMLTable
 

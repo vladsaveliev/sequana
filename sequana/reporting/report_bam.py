@@ -25,7 +25,7 @@
 """
 import os
 import pandas as pd
-from sequana.reports.report_main import BaseReport
+from sequana.reporting.report_main import BaseReport
 from sequana.bamtools import  SAMFlags
 
 import pylab

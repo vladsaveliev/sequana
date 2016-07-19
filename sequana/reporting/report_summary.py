@@ -18,7 +18,7 @@
 ##############################################################################
 import os
 
-from sequana.reports.report_main import BaseReport
+from sequana.reporting.report_main import BaseReport
 from easydev import DevTools
 
 import pandas as pd
