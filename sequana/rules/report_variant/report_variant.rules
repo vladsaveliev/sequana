@@ -1,16 +1,16 @@
-__report_variant__output = cfg.PROJECT + "/report/report_variant.html"
+__report_variant__output = "report/report_variant.html"
 
 rule report_variant:
     input:
         vcf = __report_variant__input
     output:
         html = __report_variant__output,
-        csv = cfg.PROJECT + "/report/%s.csv" % cfg.PROJECT
+        csv = "report/%s.csv" % cfg.PROJECT
     params:
-        outdir = cfg.PROJECT + "/report/"
+        outdir = "report/"
     run:
         from sequana import vcf_filter
-        from sequana import report_variant
+        from sequana.reports import report_variant
 
         vcf_record = vcf_filter.VCF(input["vcf"])
 

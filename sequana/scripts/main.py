@@ -270,9 +270,13 @@ options.pipeline
     if options.kraken and os.path.exists(options.kraken) is False:
         raise ValueError("%s does not exist" % options.kraken)
     if options.adapter_rev and os.path.exists(options.adapter_rev) is False:
-        sa.error('Invalid filename provided with --adapter-rev (must exists)')
+        with open("adapter_rev.fa", "w") as fout:
+            fout.write(">user\n%s" % options.adapter_rev)
+        options.adapter_rev = "adapter_rev.fa"
     if options.adapter_fwd and os.path.exists(options.adapter_fwd) is False:
-        sa.error('Invalid filename provided with --adapter-fwd (must exists)')
+        with open("adapter_fwd.fa", "w") as fout:
+            fout.write(">user\n%s" % options.adapter_fwd)
+        options.adapter_fwd = "adapter_fwd.fa"
 
 
     if options.input_dir:
@@ -406,8 +410,10 @@ options.pipeline)
 
         sh runme.sh
 
+    EDIT THE config.yaml if needed
 
-    EDIT THE config.yaml FILE TO SPECIFIED THE INPUT FILE LOCATION
+    Once finished with success, the report/ directory contains a summary.html 
+    and relevant files (depends on the pipeline).
     """
 
     sa.print("Creating README")
@@ -455,11 +461,11 @@ options.pipeline)
 
         if options.file1 and options.adapter_fwd:
             params["adapter_fwd"] = "file:" + options.adapter_fwd
-            os.rename(options.adapter_fwd, target_dir + os.sep + options.adapter_fwd)
+            shutil.copy(options.adapter_fwd, target_dir + os.sep + options.adapter_fwd)
 
         if options.file2  and options.adapter_rev:
             params["adapter_rev"] = "file:" + options.adapter_rev
-            os.rename(options.adapter_rev, target_dir + os.sep + options.adapter_rev)
+            shutil.copy(options.adapter_rev, target_dir + os.sep + options.adapter_rev)
 
         if options.adapters == "universal":
             params["adapter_fwd"] = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCGATGTATCTCGTATGCCGTCTTCTGC"
@@ -506,6 +512,24 @@ options.pipeline)
         cmd += " 1>run.out 2>run.err"
         fout.write(cmd % {'project':options.pipeline , 'jobs':options.jobs, 
 			"version": sequana.version})
+
+
+    with open(target_dir + os.sep + "cleanme.py", "w") as fout:
+        fout.write("""
+import glob
+import os
+import shutil
+from easydev import shellcmd
+import time
+
+directories = glob.glob("*")
+
+for this in directories:
+    if os.path.isdir(this) and this not in ['data', 'report']:
+        print('Deleting %s' % this)
+        time.sleep(0.5)
+        shellcmd("rm -rf %s" % this)
+""")
 
     sa.green("Initialisation of %s succeeded" % target_dir)
     sa.green("Please, go to the project directory ")

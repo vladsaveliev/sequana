@@ -367,9 +367,13 @@ class Module(object):
         #TOD: automatic switch
         from easydev import onweb
         if "rules" in self._path:
+            suffix = self.snakefile.split("rules/")[1]
+            suffix = suffix.rsplit("/", 1)[0]
             onweb("http://github.com/sequana/sequana/tree/"
-                  "master/sequana/rules/%s" % self.name)
+                  "master/sequana/rules/%s" % suffix)
         else:
+            suffix = self.snakefile.split("pipelines/")[1]
+            suffix = suffix.rsplit("/", 1)[0]
             onweb("http://github.com/sequana/sequana/tree/"
                   "master/sequana/pipelines/%s" % self.name)
 
@@ -601,12 +605,31 @@ class DOTParser(object):
                     name = name.replace(",","")
                     name = name.replace('"',"")
                     name = name.strip()
-                    if "__" in name:
-                        lhs = lhs.replace(name, name.split('__')[0])
-
-                    if name in ['dag', 'conda']:
+                    #if "__" in name:
+                    #    lhs = lhs.replace(name, name.split('__')[0])
+                    if "dataset:" in name:
+                        if ".rules" in name:
+                            index = lhs.split("[")[0]
+                            indices_to_drop.append(index.strip())
+                        else:
+                            filename = lhs.split("dataset:")[1]
+                            lhs = lhs.split("dataset:")[0] #+ "dataset:"
+                            filename = filename.rsplit("/")[-1]
+                            newline = lhs + filename + separator + rhs
+                            fout.write(newline + "\n")
+                    elif name in ['dag', 'conda']:
                         index = lhs.split("[")[0]
                         indices_to_drop.append(index.strip())
+                    elif name.startswith('fastqc__'):
+                        newline = lhs + ' URL="%s/%s.html" target="_parent", ' % (name,name)
+
+                        newline += separator + rhs
+                        newline = newline.replace("dashed", "")
+                        fout.write(newline + "\n")
+                    elif name.startswith('pipeline'):
+                        newline = lhs + separator + rhs
+                        newline = newline.replace("dashed", "")
+                        fout.write(newline + "\n")
                     elif name in ['all', "bwa_bam_to_fastq"] or "dataset:" in name:
                         # redirect to the main page so nothing to do
                         newline = lhs + separator + rhs
@@ -791,7 +814,8 @@ def init(filename, namespace):
         pass
     else:
         namespace['__snakefile__'] = filename
-
+        namespace['expected_output'] = []
+        namespace['toclean'] = []
 
 
 

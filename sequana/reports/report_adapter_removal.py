@@ -16,13 +16,12 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-
 """
 
 
 """
 import os
-from .report_main import BaseReport
+from sequana.reports.report_main import BaseReport
 
 # a utility from external reports package
 from reports import HTMLTable
@@ -90,12 +89,13 @@ class AdapterRemovalReport(BaseReport):
         df.ix['Total reads'] = [
                     self.jinja['total_reads'],
                     '(100%)']
-        df.ix['Too short'] = [
+        df.ix['Pairs too short'] = [
                     self.jinja['reads_too_short'],
                     self.jinja['reads_too_short_percent']]
-        df.ix['Kept reads'] = [
+        df.ix['Pairs kept'] = [
                     self.jinja['reads_kept'],
                     self.jinja['reads_kept_percent']]
+        df.to_json("cutadapt/cutadapt_stats1.json")
 
         h = HTMLTable(df)
         html = h.to_html(index=True)
@@ -111,6 +111,8 @@ class AdapterRemovalReport(BaseReport):
             df.ix[name] = [info['Length'], info['Trimmed'],
                 info['Type'], info['Sequence']]
         df.columns = ['Length', 'Trimmed', 'Type', 'Sequence']
+
+        df.to_json("cutadapt/cutadapt_stats2.json")
         h = HTMLTable(df)
         html = h.to_html(index=True)
         self.jinja['adapters'] = html
@@ -121,13 +123,16 @@ class AdapterRemovalReport(BaseReport):
         html = ""
         html += "<div>\n"
         for key in sorted(histograms.keys()):
-            histograms[key].plot(logy=True, lw=2)
-            pylab.title(name)
-            name = key.replace(" ", "_")
-            filename =  self.directory + os.sep + "%s.png" % name
-            pylab.savefig(filename)
-            pylab.grid(True)
-            html += '<img src="%s" width="45%%"></img> ' % ("%s.png" % name)
+            try:
+                histograms[key].plot(logy=True, lw=2, marker="o")
+                pylab.title(name)
+                name = key.replace(" ", "_")
+                filename =  self.directory + os.sep + "%s.png" % name
+                pylab.savefig(filename)
+                pylab.grid(True)
+                html += '<img src="%s" width="45%%"></img> ' % ("%s.png" % name)
+            except:
+                pass
         html += "</div>\n"
 
         self.jinja['cutadapt'] = html

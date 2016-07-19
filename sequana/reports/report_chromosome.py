@@ -25,8 +25,8 @@ import os
 import pandas as pd
 
 from reports import HTMLTable
-from sequana.report_main import BaseReport
-from sequana.report_submapping import SubMappingReport
+from sequana.reports.report_main import BaseReport
+from sequana.reports.report_submapping import SubMappingReport
 
 
 class ChromosomeMappingReport(BaseReport):
@@ -90,16 +90,26 @@ class ChromosomeMappingReport(BaseReport):
                 self.jinja["cov_plot"], low_threshold=self.low_t, 
                 high_threshold=self.high_t)
 
+        # Barplot of normalized coverage with predicted gaussians
+        nc_paragraph = ("Distribution of the normalized coverage with "
+                "predicted Gaussian. The red line should be followed the "
+                "trend of the barplot.")
+        self.jinja["nc_paragraph"] = nc_paragraph
+        self.jinja["nc_plot"] = self.project + "_" + self.mapping.chrom_name + \
+                "_norm_cov_his.png"
+        self.mapping.plot_hist_normalized_coverage(filename=self.directory +
+                os.sep + self.jinja["nc_plot"])
+
         # Barplot of zscore
         bp_paragraph = ("Distribution of the z-score (normalised coverage); "
-                        "You should see a Gaussian distribution centered around 0"
+            "You should see a Gaussian distribution centered around 0. "
             "The estimated parameters are mu={0:.2f} and sigma={1:.2f}.")
         self.jinja["bp_paragraph"] = bp_paragraph.format(
                 self.mapping.best_gaussian["mu"], 
                 self.mapping.best_gaussian["sigma"])
         self.jinja["bp_plot"] =  self.project + \
                 "_" + self.mapping.chrom_name + "_zscore_hist.png"
-        self.mapping.plot_hist(filename= self.directory + os.sep + 
+        self.mapping.plot_hist_zscore(filename=self.directory + os.sep + 
                 self.jinja["bp_plot"])
 
         # Low threshold case

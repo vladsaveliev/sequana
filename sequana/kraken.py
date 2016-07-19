@@ -236,7 +236,8 @@ class KrakenResults(object):
                 pass #unclassified may not exists
         self._data_created = True
 
-    def plot(self, kind="pie", cmap="copper", threshold=1, radius=0.7, **kargs):
+    def plot(self, kind="pie", cmap="copper", threshold=1, radius=0.9,
+                textcolor="red", **kargs):
         """A simple non-interactive plot of taxons
 
         A Krona Javascript output is also available in :meth:`kraken_to_krona`
@@ -263,8 +264,9 @@ class KrakenResults(object):
         df = self.get_taxonomy_biokit(list(self.taxons.index))
         data = self.taxons.copy()
         data = data/data.sum()*100
-        others = data[data<1].sum()
-        data = data[data>1]
+        assert threshold > 0 and threshold < 100
+        others = data[data<threshold].sum()
+        data = data[data>threshold]
 
         names = df.ix[data.index]['name']
         data.index = names.values
@@ -274,12 +276,16 @@ class KrakenResults(object):
         except:
             data.sort(inplace=True)
 
+        pylab.clf()
         if kind == "pie":
             ax = data.plot(kind=kind, cmap=cmap, autopct='%1.1f%%',
-                radius=0.7, **kargs)
+                radius=radius, **kargs)
             pylab.ylabel(" ")
             for text in ax.texts:
-                text.set_size("x-small")
+                #  large, x-small, small, None, x-large, medium, xx-small,
+                #  smaller, xx-large, larger
+                text.set_size("small")
+                text.set_color(textcolor)
         elif kind == "barh":
             ax = data.plot(kind=kind,  **kargs)
             pylab.xlabel(" percentage ")
@@ -336,7 +342,7 @@ class KrakenPipeline(object):
         self.ka = KrakenAnalysis(fastq, database, threads)
         self.output = output
 
-    def run(self, keep_temporary_files=False):
+    def run(self):
         """Run the analysis using Kraken and create the Krona output"""
 
         # Run Kraken

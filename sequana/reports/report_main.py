@@ -18,6 +18,9 @@
 ##############################################################################
 """Data structure to build reports in a consistent way"""
 import os
+import shutil
+
+
 import easydev
 sepjoin = os.sep.join
 
@@ -61,8 +64,8 @@ class BaseReport(Report):
             template_filename=jinja_filename,
             directory=directory,
             extra_css_list=extra_css_list,
-            extra_js_list=extra_js_list,
-            **kargs)
+            extra_js_list=extra_js_list
+            )
 
         # This redefines the default name of the output (index.html) otherwise,
         # several reports will overwrite the default index.html.
@@ -84,6 +87,9 @@ class BaseReport(Report):
         # the menu has a back button that may not always be the index.html
         self.jinja["main_link"] = output_filename
         self.input_filename = "undefined"
+
+        self.jinja['online_link'] = "http://sequana.readthedocs.io/en/latest/pipelines.html"
+
 
         # Another set of data for the HTML is the galleria them
         import shutil
@@ -119,6 +125,27 @@ class BaseReport(Report):
         with open(configfile, "r") as fin:
             self.jinja['config'] = fin.read()
 
+    def copy_html_to_report(self, pattern):
+        easydev.DevTools().mkdir("report")
+        return self._copy_files(pattern, "report")
+
+    def _copy_files(self, pattern, where="report"):
+        sources = glob.glob(pattern)
+        targets = []
+        for source in sources:
+            filename = source.rsplit("/", 1)[1]
+            target = where + "/" +filename
+            # if files are identical, fails
+            try:shutil.copy(source, target) 
+            except:pass
+            targets.append(target.replace("report/", ""))
+        return targets
+
+    def copy_images_to_report(self, pattern):
+        easydev.DevTools().mkdir("report")
+        easydev.DevTools().mkdir("report/images")
+        return self._copy_files(pattern, "report/images")
+
 
 
 class SequanaReport(BaseReport):
@@ -143,15 +170,14 @@ class SequanaReport(BaseReport):
 
 
         """
-
         super(SequanaReport, self).__init__(
             jinja_filename="main/index.html",
             directory=directory,
             output_filename=output_filename,
             **kargs)
 
-        self.read_snakefile(snakefile)
-        self.read_configfile(configfile)
+        if snakefile: self.read_snakefile(snakefile)
+        if configfile: self.read_configfile(configfile)
 
         try:
             from sequana.snaketools import SequanaConfig
@@ -166,7 +192,6 @@ class SequanaReport(BaseReport):
         except:
             pass
 
-        self.jinja['online_link'] = "http://sequana.readthedocs.io/en/latest/pipelines.html"
         self.jinja['snakemake_stats'] = "snakemake_stats.png"
         self.jinja['title'] = "Sequana Report"
 

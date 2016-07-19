@@ -19,6 +19,9 @@ Quality
 
 .. _quality_taxon:
 
+
+.. _pipeline_taxon:
+
 Quality Taxon
 =======================
 

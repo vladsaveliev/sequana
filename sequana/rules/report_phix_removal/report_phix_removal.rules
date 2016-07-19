@@ -1,36 +1,22 @@
-include: sm.modules['dag']     # Create DAG file
-include: sm.modules['conda']   # Create requirements.txt(dependencies)
 
-import sequana.snaketools as sm
-cfg = sm.SequanaConfig.from_dict(config)
-PROJECT = cfg.PROJECT
 
 
 rule report_phix_removal:
     input:
         dag = "report/dag.svg",
         conda = "report/requirements.txt",
-        fastqc_phix = "fastqc_phix/fastqc.done",
-        fastqc_samples = "fastqc_samples/fastqc.done",
-        fastq_stats = "fastq_stats_samples/fastq_stats.done",
-        fastq_phix = "fastq_stats_phix/fastq_stats.done",
+        fastqc_phix = "fastqc__phix/fastqc.done",
+        fastqc_samples = "fastqc__samples/fastqc.done",
+        fastq_stats = "fastq_stats__samples/fastq_stats.done",
+        fastq_phix = "fastq_stats__phix/fastq_stats.done",
     output:
+        touch("logs/pipeline_phix_removal.done"),
         touch("report/report_phix_removal.html"),
-        touch("report/bwa_mem.html"),
-        #touch("report/dag.svg"),
     params:
         outdir = "report"
     run:
-        from sequana import report_main
-        from sequana import report_phix
-        from sequana import report_fastqc
-        from sequana import report_fastq_stats
 
-        # Main page
-        s = report_main.SequanaReport(snakefile=__snakefile__, 
-                    directory=params.outdir,
-                    output_filename="report_phix_removal.html")
-        s.jinja['description'] = """
+        description = """
 
         This is the output of the Phix removal pipeline. This pipeline
         search for a specific contaminant and provide as an output
@@ -40,8 +26,7 @@ rule report_phix_removal:
 
         """
         import os
-        html = ""
-        html += "<h3>Download Fastq without Phix: </h3>\n"
+        '''html = "<h3>Download Fastq without Phix: </h3>\n"
         for this in cfg.DATASET:
             basename = os.path.split(this)[1]
             name = basename.replace("_001.fastq.gz", "_.unmapped.fastq.gz")
@@ -55,47 +40,7 @@ rule report_phix_removal:
             link = "bwa_bam_to_fastq"+ os.sep + name
             html += '<br>-- <a href="%s">%s</a>' % (link, name)
         s.jinja['output'] = html
-
         s.create_report()
+        '''
 
-        # Phix page
-        s = report_phix.PhixReport(output_filename="bwa_mem__phix.html",
-                directory=params.outdir)
-        s.input_filename = "bwa_bam_to_fastq/bwa_mem_stats.json"
-        s.jinja['main_link'] = 'report_phix_removal.html'
-        s.create_report()
 
-        # FastQC page
-        s = report_fastqc.FastQCReport(
-                "fastqc_phix",
-                output_filename="fastqc__phix.html",
-                directory=params.outdir)
-        s.jinja['main_link'] = 'report_phix_removal.html'
-        s.create_report()
-
-        s = report_fastqc.FastQCReport(
-                "fastqc_samples",
-                output_filename="fastqc__samples.html",
-                directory=params.outdir)
-        s.jinja['main_link'] = 'report_phix_removal.html'
-        s.create_report()
-
-        # FastQ stats page
-        s = report_fastq_stats.FastQStatsReport(
-                "fastq_stats_phix",
-                output_filename="fastq_stats__phix.html",
-                directory=params.outdir)
-        s.jinja['main_link'] = 'report_phix_removal.html'
-        s.create_report()
-
-        s = report_fastq_stats.FastQStatsReport(
-                "fastq_stats_samples",
-                output_filename="fastq_stats__samples.html",
-                directory=params.outdir)
-        s.jinja['main_link'] = 'report_phix_removal.html'
-       
-        s.create_report()
-
-        # Copy some files
-        shell("cp %s %s/" % (__snakefile__, params.outdir))
-        shell("cp config.yaml %s/" % params.outdir)

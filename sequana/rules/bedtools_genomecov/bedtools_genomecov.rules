@@ -1,4 +1,4 @@
-__bedtools_genomecov__output = cfg.PROJECT + "/genomecov/%s.bed" % cfg.PROJECT
+__bedtools_genomecov__output = "genomecov/%s.bed" % cfg.PROJECT
 
 rule bedtools_genomecov:
     input:

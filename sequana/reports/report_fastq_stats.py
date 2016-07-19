@@ -21,7 +21,7 @@ import os
 import glob
 import json
 
-from .report_main import BaseReport
+from sequana.reports.report_main import BaseReport
 
 # a utility from external reports package
 from reports import HTMLTable
@@ -70,17 +70,22 @@ class FastQStatsReport(BaseReport):
         for filename in files:
             try:
                 # if the mapped file is empty, the file is empty
-                thisdata = json.load(open(filename))
+                thisdata = pd.read_json(filename)
             except:
-                thisdata= {"A":0, "C":0, "G":0, "T":0, "n_reads":0, "GC content":0}
+                thisdata= pd.DataFrame(
+                    {'A': {0: 0}, 'C': {0: 0}, 'G': {0: 0}, 'GC content': {0: 0},
+                     'N': {0: 0}, 'T': {0: 0}, 'average read length': {0: 0},
+                     'mean quality': {0: 0},
+                     'n_reads': {0: 0},
+                     'total bases': {0: 0}})
 
-            if "R2.unmapped" in filename:
+            if "R2_.unmapped" in filename:
                 key = "R2.unmapped"
-            elif "R1.unmapped" in filename:
+            elif "R1_.unmapped" in filename:
                 key = "R1.unmapped"
-            elif "R1.mapped" in filename:
+            elif "R1_.mapped" in filename:
                 key = "R1.mapped"
-            elif "R2.mapped" in filename:
+            elif "R2_.mapped" in filename:
                 key = "R2.mapped"
             elif "_R1_" in filename:
                 key = "R1"
@@ -90,17 +95,17 @@ class FastQStatsReport(BaseReport):
                 key = "R1"
             elif "_R2." in filename:
                 key = "R2"
+            thisdata.index = [key]
 
             if dfsum is None:
-                dfsum = pd.Series(thisdata).to_frame()
-                dfsum.columns = [key]
+                dfsum = thisdata.copy()
             else:
-                dfsum[key] = pd.Series(thisdata)
+                dfsum = dfsum.append(thisdata)
 
-            acgt[0]["data"][key] = thisdata['A']
-            acgt[1]["data"][key] = thisdata['C']
-            acgt[2]["data"][key] = thisdata['G']
-            acgt[3]["data"][key] = thisdata['T']
+            acgt[0]["data"][key] = thisdata['A'].values[0]
+            acgt[1]["data"][key] = thisdata['C'].values[0]
+            acgt[2]["data"][key] = thisdata['G'].values[0]
+            acgt[3]["data"][key] = thisdata['T'].values[0]
 
         # First argument is just an Identifier
         data = bar.stacked_bar("Test", "ACGT distribution", acgt)
@@ -108,29 +113,33 @@ class FastQStatsReport(BaseReport):
         data += """<script type="text/javascript" src="js/canvasjs.min.js"></script> """
         self.jinja["canvas"] = data
 
+        dfsum["n_reads"] = [str(int(x)) for x in dfsum["n_reads"].values]
+        dfsum["GC content"] = [str(int(x*100)/100.) for x in dfsum["GC content"].values]
+        dfsum = dfsum.T
         dfsum = dfsum[sorted(dfsum.columns)]
-        dfsum = dfsum.ix[['A', 'C', 'G', 'T', 'GC content', 'n_reads']]
-        S = dfsum.ix[['A', 'C', 'G', 'T']].sum()
-        dfsum.ix[['A', 'C', 'G', 'T']] /= S
+        dfsum = dfsum.ix[['A', 'C', 'G', 'T', 'N', 'GC content', 'n_reads']]
+        S = dfsum.ix[['A', 'C', 'G', 'T', 'N']].sum() 
+        # FIXME change the json files themselves instead of multiplying by 100
+        if S.values[0]>0:
+            dfsum.ix[['A', 'C', 'G', 'T', 'N']] /= (S/100.) 
 
-        html = HTMLTable(dfsum).to_html(index=True)
+        html =""
 
+        htmltable = HTMLTable(dfsum).to_html(index=True)
+        # Save the table into a temporary file
+        with open(self.input_directory + "/temp_%s.html" % self.input_directory, "w") as fh:
+            fh.write(htmltable)
+
+        html += htmltable
         html += """
     <div id="chartContainerTest" style="height: 300px; width: 100%;"></div>
         """
 
 
-        # Assuming in fastq directory, we figure out the HTML files and
-        # create a table accordingly.
-        sources = glob.glob("%s/*png" % self.input_directory)
-        import shutil
-        targets = []
-        for source in sources:
-            filename = source.rsplit("/", 1)[1]
-            target = "report/images/" + filename
-            shutil.copy(source, target)
-            targets.append(target.replace("report/", ""))
+        # Copying images into the report/images directory
+        targets = self.copy_images_to_report("%s/images/*png" % self.input_directory)
 
+        # Create table with those images
         from sequana.htmltools import galleria
         html += galleria(targets)
 

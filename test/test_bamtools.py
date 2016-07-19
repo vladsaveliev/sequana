@@ -1,5 +1,5 @@
 from sequana.bamtools import BAM, Alignment, SAMFlags
-from sequana.report_bam import BAMReport
+from sequana.reports.report_bam import BAMReport
 from sequana import sequana_data
 from easydev import TempFile
 

@@ -16,18 +16,15 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-
 import easydev
 import os
 
-
-from .report_main import BaseReport
+from sequana.reports.report_main import BaseReport
 
 # a utility from external reports package
 from reports import HTMLTable
 
 import pandas as pd
-
 
 
 class FastQCReport(BaseReport):
@@ -66,7 +63,7 @@ class FastQCReport(BaseReport):
         # create a table accordingly.
 
         import glob
-        links = glob.glob("%s/*html" % self.input_directory)
+        links = glob.glob("%s/*fastqc.html" % self.input_directory)
 
         names = [filename.rsplit('/',1)[1].split('.html')[0] for filename in links]
 

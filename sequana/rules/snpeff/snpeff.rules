@@ -1,4 +1,4 @@
-__snpeff__output = cfg.PROJECT + "/snpeff/%s.ann.vcf" % cfg.PROJECT
+__snpeff__output = "snpeff/%s.ann.vcf" % cfg.PROJECT
 
 rule snpeff:
     input:
@@ -6,9 +6,9 @@ rule snpeff:
     output:
         ann = __snpeff__output
     log:
-        build_err = cfg.PROJECT + "/logs/snpeff/snpeff_build.err",
-        build_out = cfg.PROJECT + "/logs/snpeff/snpeff_build.out",
-        launch = cfg.PROJECT + "/logs/snpeff/snpeff_launch.err"
+        build_err = "logs/snpeff/snpeff_build.err",
+        build_out = "logs/snpeff/snpeff_build.out",
+        launch = "logs/snpeff/snpeff_launch.err"
     params:
         genome = config["snpeff"]["reference"],
         options = config["snpeff"]["options"]

@@ -99,6 +99,7 @@ fastqc:
 
 
 bwa_phix:
+    do: yes
     reference: Coliphage_phiX174.fa
     index:
         options: '-a is'
@@ -109,24 +110,26 @@ bwa_phix:
 
 #################################################################
 # Quality trimming and adapter removal
-#   quality: 0,0 means no trimming
-#   m: 20 means discard trimmed reads that are shorter than 20.
+#   - quality: 0 means no trimming, 30 means keep base with quality 
+#       above 30
+#   - m: 20 means discard trimmed reads that are shorter than 20.
+#   - tool: only cutadapt supported for now
 #   ref: http://cutadapt.readthedocs.io/
 #################################################################
-cutadapt:
+adapter_removal:
+    do: yes
+    tool: cutadapt
     fwd: "%(adapter_fwd)s"
     rev: "%(adapter_rev)s"
-    m: 20
+    m: 20   # cutoff
+    mode: "g"   # g for 5' adapter, a for 3' and b for both 5'/3'
     quality: "%(quality_cutoff)s"
-    kwargs: ""
-
-alien_trimmer:
-    fwd: adapters_48_PCR-free_FWD.fa
-    rev: adapters_48_PCR-free_REV.fa
+    kwargs: "-O 6 --trim-n"
 
 
 ########################################################### Kraken
 # For taxonomy. Used in quality_taxon pipeline
 kraken:
+    do: yes
     database: "%(kraken)s"
 

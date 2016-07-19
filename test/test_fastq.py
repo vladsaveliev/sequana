@@ -130,9 +130,9 @@ def test_fastqc():
     qc.plot_acgt_content()
 
     stats = qc.get_stats()
-    assert stats['A'] == 6952
-    assert stats['T'] == 6400
-    assert stats['C'] == 6129
-    assert stats['G'] == 5768
+    assert stats['A'][0] == 6952
+    assert stats['T'][0] == 6400
+    assert stats['C'][0] == 6129
+    assert stats['G'][0] == 5768
 
 

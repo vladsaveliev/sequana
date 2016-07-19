@@ -16,15 +16,14 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-
 import os
 import shutil
 
-import pandas as pd
+from sequana.reports.report_main import BaseReport
 
 from reports import HTMLTable
-from sequana.report_main import BaseReport
 
+import pandas as pd
 
 class VariantReport(BaseReport):
     """

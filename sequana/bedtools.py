@@ -110,7 +110,6 @@ class ChromosomeCov(object):
 
         chrcov = gencov[0]
         chrcov.running_median(n=30001)
-        chrcov.coverage_scaling()
         chrcov.compute_zscore()
         chrcov.plot_coverage()
 
@@ -199,13 +198,14 @@ class ChromosomeCov(object):
         mu = self.df['cov'].mean()
         return sigma/mu
 
-    def coverage_scaling(self):
+    def _coverage_scaling(self):
         """Normalize data with moving average of coverage
 
         Store the results in the :attr:`df` attribute (dataframe) with a
         column named *scale*.
 
         .. note:: Needs to call :meth:`running_median`
+
 
         """
         try:
@@ -214,7 +214,8 @@ class ChromosomeCov(object):
             print("Column rm (running median) is missing.\n",
                     self.__doc__)
             return
-        self.df = self.df.replace(np.inf , np.nan)
+        self.df = self.df.replace(np.inf, np.nan)
+        self.df = self.df.replace(-np.inf, np.nan)
 
     def _get_best_gaussian(self, results):
         diff = 100
@@ -224,27 +225,42 @@ class ChromosomeCov(object):
                 indice = i
         return {"mu": results.mus[indice], "sigma": results.sigmas[indice]}
 
-    def compute_zscore(self, k=2, step=10):
-        """ Compute zscore of coverage.
+    def compute_zscore(self, k=2, step=10, use_em=True):
+        """ Compute zscore of coverage and normalized coverage.
 
         :param int k: Number gaussian predicted in mixture (default = 2)
-        :param int step: (default = 10)
+        :param int step: (default = 10). This parameter is used to speed
+            up computation and is ignored if the length of the coverage/sequence
+            is below 100,000
 
         Store the results in the :attr:`df` attribute (dataframe) with a
         column named *zscore*.
 
-        .. note:: needs to call :meth:`coverage_scaling` before hand.
+        .. note:: needs to call :meth:`running_median` before hand.
 
         """
+        self._coverage_scaling()
+        if len(self.df) < 100000:
+            step = 1
+
+        data = self.df['scale']
+        data = data.replace(0, np.nan)
+        data = data.dropna()
+
         try:
-            self.mixture_fitting = mixture.GaussianMixtureFitting(
-                    self.df["scale"].dropna()[::step],k=k)
+            if use_em:
+                self.mixture_fitting = mixture.EM(
+                    data[::step])
+                self.mixture_fitting.estimate(k=k)
+            else:
+                self.mixture_fitting = mixture.GaussianMixtureFitting(
+                    data[::step],k=k)
+                self.mixture_fitting.estimate()
         except KeyError:
             print("Column 'scale' is missing in data frame.\n"
                   "You must scale your data with coverage_scaling\n\n",
                   self.__doc__)
             return
-        self.mixture_fitting.estimate()
         self.gaussians = self.mixture_fitting.results
         self.best_gaussian = self._get_best_gaussian(self.mixture_fitting.results)
         self.df["zscore"] = (self.df["scale"] - self.best_gaussian["mu"]) / \
@@ -296,10 +312,12 @@ class ChromosomeCov(object):
                 self.best_gaussian["mu"]) * self.df["rm"]
 
         pylab.clf()
+        ax = pylab.gca()
+        ax.set_axis_bgcolor('#eeeeee')
         pylab.xlim(0,self.df["pos"].iloc[-1])
-        p1, = pylab.plot(self.df["cov"], color="b", label="Coverage",
+        p1, = pylab.plot(self.df["cov"], color="k", label="Coverage",
                 linewidth=1)
-        p2, = pylab.plot(self.df["rm"], color="r", linewidth=1,
+        p2, = pylab.plot(self.df["rm"], color="#0099cc", linewidth=1,
                 label="Running median")
         p3, = pylab.plot(high_zcov, linewidth=1, color="r", ls="--",
                 label="Thresholds")
@@ -309,6 +327,7 @@ class ChromosomeCov(object):
                 p3.get_label()], loc="best")
         pylab.xlabel("Position", fontsize=fontsize)
         pylab.ylabel("Coverage", fontsize=fontsize)
+        pylab.grid(True)
         try:
             pylab.tight_layout()
         except:
@@ -316,12 +335,19 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist(self, fontsize=16, bins=100, filename=None, **hist_kargs):
+        
+
+    def plot_hist_zscore(self, fontsize=16, filename=None, **hist_kargs):
         """ Barplot of zscore
 
         """
+        zs_drop_na = self.df["zscore"].dropna()
+        bins = int(max(zs_drop_na) * 3 - min(zs_drop_na) * 3)
         pylab.clf()
-        self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
+        try:
+            self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
+        except ValueError:
+            self.df["zscore"].hist(grid=True, bins=200, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
@@ -330,12 +356,23 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist_zscore(self, fontsize=16, bins=100, filename=None,
-            **hist_kargs):
-        plot_hist(fontsize, bins, filename, hist_kargs)
+    def plot_hist_normalized_coverage(self, filename=None):
+        """ Barplot of normalized coverage with gaussian fitting
 
-    def plot_hist_normalised_coverage(self):
-        raise NotImplementedError
+        """
+        nc_drop_na = self.df["scale"].dropna()
+        bins = int(max(nc_drop_na) * 100 - min(nc_drop_na) * 100) 
+        pylab.clf()
+        try:
+            self.mixture_fitting.plot(bins=bins)
+        except ValueError:
+            self.mixture_fitting.plot()
+        try:
+            pylab.tight_layout()
+        except:
+            pass
+        if filename:
+            pylab.savefig(filename)
 
     def write_csv(self, filename, start=None, stop=None, header=True):
         """ Write CSV file of the dataframe.
@@ -353,7 +390,11 @@ class ChromosomeCov(object):
             print("Labels doesn't exist in the data frame")
 
     def plot_gc_vs_coverage(self, bins=None, Nlevels=6, fontsize=20, norm="log",
-        contour=True, **kargs):
+            ymin=0, ymax=100, contour=True, **kargs):
+
+        if Nlevels is None or Nlevels==0:
+            contour = False
+
         data = self.df[['cov','gc']].copy()
         data['gc'] *= 100
         data = data.dropna()
@@ -363,12 +404,19 @@ class ChromosomeCov(object):
         from biokit import Hist2D
         h2 = Hist2D(data)
 
-        h2.plot(bins=bins, xlabel="coverage", 
-            ylabel=r'GC content (%)' , 
-            Nlevels=Nlevels, contour=contour, norm=norm, 
-            fontsize=fontsize, **kargs)
-
-
+        try:
+            h2.plot(bins=bins, xlabel="coverage", 
+                ylabel=r'GC content (%)' , 
+                Nlevels=Nlevels, contour=contour, norm=norm, 
+                fontsize=fontsize, **kargs)
+        except:
+            h2.plot(bins=bins, xlabel="coverage", 
+                ylabel=r'GC content (%)' , 
+                Nlevels=Nlevels, contour=False, norm=norm, 
+                fontsize=fontsize, **kargs)
+        pylab.ylim([ymin,ymax])
+        corr = self.df[['cov', 'gc']].corr().iloc[0,1]
+        return corr
 
 
 class FilteredGenomeCov(object):

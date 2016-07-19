@@ -26,11 +26,21 @@ Issues: http://github.com/sequana/sequana
         # options to fill the config file
         self.add_argument("-b", "--bed", dest="bedfile", type=str,
             required=True, help="""filename of a BED file""")
-        self.add_argument("-w", "--window-size", dest="ws", type=int,
+        self.add_argument("-w", "--window-median", dest="w_median", type=int,
             help="""Length of the running median window""", default=1001)
+        self.add_argument("-g", "--window-gc", dest="w_gc", type=int,
+            help="""Length of the running median window""", default=200)
         self.add_argument('-c', "--chromosome", dest="chromosome", type=int,
             default=1,
             help="""Chromosome number (if only one, no need to use)""") 
+        self.add_argument('-n', "--nlevels", dest="levels", type=int,
+            default=3,
+            help="""Number of levels in the contour""") 
+        self.add_argument('-r', "--reference", dest="reference", type=str,
+            default=None,help="""reference""") 
+
+        self.add_argument('-o', "--circular", dest="circular",
+            default=False, action="store_true", help="""""") 
 
 
 def main(args=None):
@@ -47,9 +57,13 @@ def main(args=None):
         options = user_options.parse_args(args[1:])
 
     # We put the import here to make the --help faster
-    from sequana import Genomecov
-    print(options.bedfile)
-    gc = Genomecov(options.bedfile)
+    from sequana import GenomeCov
+    print("Reading %s" % options.bedfile)
+    gc = GenomeCov(options.bedfile)
+    if options.reference:
+        print('Computing GC content')
+        gc.compute_gc_content(options.reference, options.w_gc)
+
 
     print(len(gc.chr_list))
     if len(gc.chr_list) == 1:
@@ -59,11 +73,19 @@ def main(args=None):
     else:
         gc = gc.chr_list[options.chromosome-1]
 
-    gc.running_median(n=options.ws)
-    gc.coverage_scaling()
+
+    print('Computing running median')
+    gc.running_median(n=options.w_median, circular=options.circular)
+    print('Computing zscore')
     gc.compute_zscore()
+
+    from pylab import show, figure
+
+    figure(1)
     gc.plot_coverage()
-    from pylab import show
+    if options.reference:
+        figure(2)
+        gc.plot_gc_vs_coverage(Nlevels=options.levels, fontsize=20)
     show()
 
 
