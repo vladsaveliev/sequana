@@ -64,9 +64,9 @@ onsuccess:
     from sequana import SequanaSummary
     ss = SequanaSummary("report", "summary.html", snakefile=__snakefile__)
     # copy all html
-    ss.copy_html_to_report("*/*html", "report")
+    ss.copy_html_to_report("*/*html")
     # copy all images
-    ss.copy_html_to_report("*/images/*png", "report/images")
+    ss.copy_html_to_report("*/images/*png" )
 
     if config['adapter_removal']['do']:
         shell('cp cutadapt/*fastq.gz report/')    
@@ -76,8 +76,5 @@ onsuccess:
     shell('cp -r fastqc_*/ report')
     shell('rm -f report/*fastqc*.html')
     shell('rm -f report/temp*.html')
-    shell('cp report/kraken.html report/kraken_to_krona.html')
-    shell('cp report/kraken.html report/kraken_contaminant.html')
-    shell('cp report/kraken.html report/kraken_translate.html')
     # the summary.html report itself.
     ss.create_report()

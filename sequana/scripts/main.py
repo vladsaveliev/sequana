@@ -143,7 +143,7 @@ Issues: http://github.com/sequana/sequana
                           help="a glob to find files. You can use wildcards")
         group.add_argument("--project", dest="project", type=str,
             help=""" Fills the *project* field in the config file. To be used
-                with --init option""")
+                with --pipeline option""")
         group.add_argument("--kraken", dest="kraken", type=str,
             help=""" Fills the *kraken* field in the config file. To be used
                 with --init option""")
@@ -306,7 +306,8 @@ options.pipeline
             fout.write("# %s\n" % " ".join(sys.argv))
             for tag in ff.tags:
                 sa.print("Found %s project" % tag)
-                options.project = tag
+                if options.project is None:
+                    options.project = tag
                 options.file1 = ff.get_file1(tag)
                 options.file2 = ff.get_file2(tag)
                 if options.index_mapper:
@@ -336,10 +337,12 @@ options.pipeline
                 "the later case, you must provide at least --file1 (single-end)")
     elif options.file1 and options.file2 is None:
         ff = FastQFactory([options.file1])
-        options.project = ff.tags[0]
+        if options.project is None:
+            options.project = ff.tags[0]
     elif options.file1 and options.file2:
         ff = FastQFactory([options.file1, options.file2])
-        options.project = ff.tags[0]
+        if options.project is None:
+            options.project = ff.tags[0]
 
     if options.pipeline:
         sequana_init(options)
