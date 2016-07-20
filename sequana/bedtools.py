@@ -339,10 +339,10 @@ class ChromosomeCov(object):
         """ Barplot of zscore
 
         """
-        zs_drop_na = self.df["zscore"].dropna()
-        bins = int(max(zs_drop_na) * 3 - min(zs_drop_na) * 3)
+        zs_drop_na = self.df["zscore"].dropna()  
         pylab.clf()
         try:
+            bins = int(max(zs_drop_na) * 3 - min(zs_drop_na) * 3)
             self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
         except ValueError:
             self.df["zscore"].hist(grid=True, bins=200, **hist_kargs)
@@ -359,9 +359,9 @@ class ChromosomeCov(object):
 
         """
         nc_drop_na = self.df["scale"].dropna()
-        bins = int(max(nc_drop_na) * 100 - min(nc_drop_na) * 100)
         pylab.clf()
         try:
+            bins = int(max(nc_drop_na) * 100 - min(nc_drop_na) * 100)
             self.mixture_fitting.plot(bins=bins)
         except ValueError:
             self.mixture_fitting.plot()
