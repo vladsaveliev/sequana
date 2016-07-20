@@ -95,7 +95,7 @@ fastqc:
 ##################################################################
 bwa_phix:
     do: yes
-    reference: Coliphage_phiX174.fa
+    reference: "phiX174.fa"
     index:
         options: '-a is'
     mem:
