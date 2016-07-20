@@ -1,8 +1,8 @@
-from sequana.report_main import SequanaReport
+from sequana.reporting.report_main import SequanaReport
+from sequana.reporting.report_main import BaseReport    
 
 
 def test_report_base():
-    from sequana.report_main import BaseReport    
     br = BaseReport("main/index.html")
     try:
         br.parse()

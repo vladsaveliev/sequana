@@ -16,13 +16,12 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-
 """
 
 
 """
 import os
-from .report_main import BaseReport
+from sequana.reporting.report_main import BaseReport
 
 # a utility from external reports package
 from reports import HTMLTable
@@ -53,7 +52,7 @@ class AdapterRemovalReport(BaseReport):
         :param output_filename: name of the final HTML file.
         :param directory: name of the output directory (defaults to report)
 
-        Parameters accepted by :class:`reports.Report` are also accepted.
+        Parameters accepted by :class:`sequana.reporting.Report` are also accepted.
 
         """
         super(AdapterRemovalReport, self).__init__(
@@ -96,6 +95,7 @@ class AdapterRemovalReport(BaseReport):
         df.ix['Pairs kept'] = [
                     self.jinja['reads_kept'],
                     self.jinja['reads_kept_percent']]
+        df.to_json("cutadapt/cutadapt_stats1.json")
 
         h = HTMLTable(df)
         html = h.to_html(index=True)
@@ -111,6 +111,8 @@ class AdapterRemovalReport(BaseReport):
             df.ix[name] = [info['Length'], info['Trimmed'],
                 info['Type'], info['Sequence']]
         df.columns = ['Length', 'Trimmed', 'Type', 'Sequence']
+
+        df.to_json("cutadapt/cutadapt_stats2.json")
         h = HTMLTable(df)
         html = h.to_html(index=True)
         self.jinja['adapters'] = html

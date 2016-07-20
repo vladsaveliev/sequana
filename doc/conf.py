@@ -67,10 +67,9 @@ extensions = [
     "numpydoc.numpydoc",
     'easydev.copybutton',
     'matplotlib.sphinxext.plot_directive',
-    'matplotlib.sphinxext.only_directives',
-    ('sphinx.ext.imgmath'  # only available for sphinx >= 1.4
-                  if sphinx.version_info[:2] >= (1, 4)
-                  else 'sphinx.ext.pngmath'),
+    #('sphinx.ext.imgmath'  # only available for sphinx >= 1.4
+    #              if sphinx.version_info[:2] >= (1, 4)
+    #              else 'sphinx.ext.pngmath'),
     'sphinx_gallery.gen_gallery'
     ]
 # note that the numpy directives is buggy. Example: class and init are not recognised as two entities for the autoclass_content=both here below

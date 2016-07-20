@@ -728,6 +728,11 @@ class FastQ(object):
         if tozip is True: self._gzip(output_filename)
 
     def to_kmer_content(self, k=7):
+        """Return a Series with kmer count across all reads
+
+        :param int k: (default to 7-mers)
+
+        """
         # Counter is slow if we apply it on each read.
         # .count is slow as well
         import collections
@@ -746,10 +751,20 @@ class FastQ(object):
         import pandas as pd
         ts = pd.Series(counter)
         ts.sort_values(inplace=True, ascending=False)
-        
+
         return ts
 
     def to_krona(self, k=7, output_filename="fastq.krona"):
+        """Save Krona file with ACGT content within all k-mers
+
+        :param int k: (default to 7-mers)
+
+        Save results in file, which can then be translated into a HTML file
+        using::
+
+            ktImportText fastq.krona 
+
+        """
         ts = self.to_kmer_content(k=k)
 
         with open(output_filename, "w") as fout:
@@ -800,7 +815,7 @@ class FastQC(object):
 
 
     """
-    def __init__(self, filename, max_sample=500000, dotile=False):
+    def __init__(self, filename, max_sample=500000, dotile=False, verbose=True):
         """.. rubric:: constructor
 
         :param filename:
@@ -812,6 +827,7 @@ class FastQC(object):
             nucleotides.
         :param bool dotile: compute more
         """
+        self.verbose = verbose
         self.filename = filename
 
         # Later we will use pysam to scan the fastq because
@@ -867,7 +883,8 @@ class FastQC(object):
             self.gc_list.append(GC/float(self.lengths[i])*100)
             self.N_list.append(record.sequence.count('N'))
 
-            pb.animate(i+1)
+            if self.verbose:
+                pb.animate(i+1)
 
         # other data
         self.qualities = qualities

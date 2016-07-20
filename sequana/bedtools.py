@@ -54,7 +54,7 @@ class GenomeCov(object):
     """
     def __init__(self, input_filename=None):
         """.. rubric:: constructor
-        
+
         :param str input_filename: the input data with results of a bedtools
             genomecov run. This is just a 3-column file. The first column is a
             string, second column is the base postion and third is the coverage.
@@ -66,7 +66,7 @@ class GenomeCov(object):
             df = df.set_index("chr", drop=False)
             # Create a list of ChromosomeCov for each chromosome present in the
             # bedtools.
-            self.chr_list = [ChromosomeCov(df.loc[i]) for i in 
+            self.chr_list = [ChromosomeCov(df.loc[i]) for i in
                     df.index.unique()]
         except IOError as e:
             print("I/0 error({0}): {1}".format(e.errno, e.strerror))
@@ -82,10 +82,10 @@ class GenomeCov(object):
 
         :param str fasta_file: fasta file name.
         :param int window_size: size of the sliding window.
-        :param bool circular: if the genome is circular (like bacteria 
+        :param bool circular: if the genome is circular (like bacteria
             chromosome)
 
-        Store the results in the :attr:`ChromosomeCov.df` attribute (dataframe) 
+        Store the results in the :attr:`ChromosomeCov.df` attribute (dataframe)
             with a column named *gc*.
 
         """
@@ -95,7 +95,7 @@ class GenomeCov(object):
 
 
 class ChromosomeCov(object):
-    """Class used within :class:`GenomeCov` to select a chromosome of the 
+    """Class used within :class:`GenomeCov` to select a chromosome of the
     original GenomeCov.
 
     Example:
@@ -176,7 +176,7 @@ class ChromosomeCov(object):
     def get_evenness(self):
         """Return Evenness of the coverage
 
-        :Reference: Konrad Oexle, Journal of Human Genetics 2016, Evaulation 
+        :Reference: Konrad Oexle, Journal of Human Genetics 2016, Evaulation
             of the evenness score in NGS.
 
         work before or after normalisation but lead to different results.
@@ -188,7 +188,7 @@ class ChromosomeCov(object):
     def get_cv(self):
         """coefficient variation
 
-        defined as sigma / mu 
+        defined as sigma / mu
 
         To get percentage, you must multiply by 100
 
@@ -335,7 +335,7 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-        
+
 
     def plot_hist_zscore(self, fontsize=16, filename=None, **hist_kargs):
         """ Barplot of zscore
@@ -361,7 +361,7 @@ class ChromosomeCov(object):
 
         """
         nc_drop_na = self.df["scale"].dropna()
-        bins = int(max(nc_drop_na) * 100 - min(nc_drop_na) * 100) 
+        bins = int(max(nc_drop_na) * 100 - min(nc_drop_na) * 100)
         pylab.clf()
         try:
             self.mixture_fitting.plot(bins=bins)
@@ -405,14 +405,14 @@ class ChromosomeCov(object):
         h2 = Hist2D(data)
 
         try:
-            h2.plot(bins=bins, xlabel="coverage", 
-                ylabel=r'GC content (%)' , 
-                Nlevels=Nlevels, contour=contour, norm=norm, 
+            h2.plot(bins=bins, xlabel="coverage",
+                ylabel=r'GC content (%)' ,
+                Nlevels=Nlevels, contour=contour, norm=norm,
                 fontsize=fontsize, **kargs)
         except:
-            h2.plot(bins=bins, xlabel="coverage", 
-                ylabel=r'GC content (%)' , 
-                Nlevels=Nlevels, contour=False, norm=norm, 
+            h2.plot(bins=bins, xlabel="coverage",
+                ylabel=r'GC content (%)' ,
+                Nlevels=Nlevels, contour=False, norm=norm,
                 fontsize=fontsize, **kargs)
         pylab.ylim([ymin,ymax])
         corr = self.df[['cov', 'gc']].corr().iloc[0,1]
@@ -420,7 +420,7 @@ class ChromosomeCov(object):
 
 
 class FilteredGenomeCov(object):
-    """Class used within :class:`ChromosomeCov` to select a subset of the 
+    """Class used within :class:`ChromosomeCov` to select a subset of the
     original GenomeCov
 
     :target: developers only

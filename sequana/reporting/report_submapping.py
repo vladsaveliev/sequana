@@ -16,11 +16,11 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-
 import os
 
+from sequana.reporting.report_main import BaseReport
+
 from reports import HTMLTable
-from sequana.report_main import BaseReport
 
 
 class SubMappingReport(BaseReport):

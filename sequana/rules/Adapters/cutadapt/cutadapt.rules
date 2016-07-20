@@ -14,10 +14,9 @@ if len(cfg.DATASET) == 2:
     __cutadapt__output += [prefix + cfg.PROJECT +"_R2_.cutadapt.fastq.gz"]
 
 
-if "adapter_removal_input" in config.keys():
-    if config["adapter_removal_input"] == "bwa_bam_to_fastq":
-        __cutadapt__input = __bwa_bam_to_fastq__output[:]
-        __cutadapt__input = [x for x in __cutadapt__input if "unmapped" in x]
+if cfg.config.bwa_phix.do:
+    __cutadapt__input = __bwa_bam_to_fastq__output[:]
+    __cutadapt__input = [x for x in __cutadapt__input if "unmapped" in x]
 else:
     __cutadapt__input = cfg.DATASET[:]
 
@@ -31,22 +30,24 @@ if len(cfg.DATASET) == 2:
             file1 = __cutadapt__output[0],
             file2 = __cutadapt__output[1],
         params:
-            fwd= cfgca.fwd,
-            rev= cfgca.rev,
-            m= cfgca.m,
-            quality= "%s" % (cfgca.quality),
+            fwd= cfg.config.adapter_removal.fwd,
+            rev= cfg.config.adapter_removal.rev,
+            m= cfg.config.adapter_removal.m,   # cutoff
+            quality= "%s" % (cfg.config.adapter_removal.quality),
             kwargs= cfgca.kwargs,
             mode1 = cfgca.mode,
             mode2 = cfgca.mode.upper()
         log: "logs/cutadapt.txt"
         run:
-            shell("cutadapt -o {output.file1} -p {output.file2}" 
-                        " {input.file1} {input.file2} "
-                        " -{params.mode1} {params.fwd} "
-                        " -{params.mode2} {params.rev} " 
-                        " -m {params.m} "
-                        " -q {params.quality} "
-                        " {params.kwargs} > {log}")
+            cmd = "cutadapt -o {output.file1} -p {output.file2}" 
+            cmd += " {input.file1} {input.file2} "
+            if params.fwd:
+                cmd += " -{params.mode1} {params.fwd} "
+            if params.rev:
+                cmd += " -{params.mode2} {params.rev} " 
+            cmd += " -m {params.m} -q {params.quality} "
+            cmd += " {params.kwargs} > {log}"
+            shell(cmd)
 else:
     rule cutadapt:
         input:
@@ -61,9 +62,9 @@ else:
             mode = cfgca.mode,
         log: "logs/cutadapt.txt"
         run:
-            shell("cutadapt -o {output.file1} "
-                    "     {input.file1}  "
-                    "    -{params.mode} {params.fwd} " 
-                    "    -m {params.m} "
-                    "    -q {params.quality} "
-                    "    {params.kwargs} > {log}")
+            cmd = "cutadapt -o {output.file1} {input.file1}"
+            if params.fwd:
+                cmd += "    -{params.mode} {params.fwd} " 
+            cmd += " -m {params.m} -q {params.quality} "
+            cmd += " {params.kwargs} > {log}"
+            shell(cmd)

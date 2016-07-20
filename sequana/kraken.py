@@ -236,7 +236,8 @@ class KrakenResults(object):
                 pass #unclassified may not exists
         self._data_created = True
 
-    def plot(self, kind="pie", cmap="copper", threshold=1, radius=0.9, **kargs):
+    def plot(self, kind="pie", cmap="copper", threshold=1, radius=0.9,
+                textcolor="red", **kargs):
         """A simple non-interactive plot of taxons
 
         A Krona Javascript output is also available in :meth:`kraken_to_krona`
@@ -284,6 +285,7 @@ class KrakenResults(object):
                 #  large, x-small, small, None, x-large, medium, xx-small,
                 #  smaller, xx-large, larger
                 text.set_size("small")
+                text.set_color(textcolor)
         elif kind == "barh":
             ax = data.plot(kind=kind,  **kargs)
             pylab.xlabel(" percentage ")
@@ -340,7 +342,7 @@ class KrakenPipeline(object):
         self.ka = KrakenAnalysis(fastq, database, threads)
         self.output = output
 
-    def run(self):
+    def run(self, output_png="kraken.png"):
         """Run the analysis using Kraken and create the Krona output"""
 
         # Run Kraken
@@ -349,6 +351,11 @@ class KrakenPipeline(object):
         # Translate kraken output to a format understood by Krona
         kraken_summary = TempFile()
         kr = KrakenResults(self.ka.kraken_output.name)
+
+        df = kr.plot(kind="pie")
+        from pylab import savefig
+        savefig(output_png)
+
         kr.kraken_to_krona(output_filename=kraken_summary.name)
 
         # Transform to Krona

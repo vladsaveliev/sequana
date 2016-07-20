@@ -1,7 +1,7 @@
 import os
 
-from sequana.report_mapping import MappingReport
-from sequana.report_chromosome import ChromosomeMappingReport
+from sequana.reporting.report_mapping import MappingReport
+from sequana.reporting.report_chromosome import ChromosomeMappingReport
 from sequana import bedtools, sequana_data
 
 

@@ -10,7 +10,7 @@ rule report_variant:
         outdir = "report/"
     run:
         from sequana import vcf_filter
-        from sequana import report_variant
+        from sequana.reporting import report_variant
 
         vcf_record = vcf_filter.VCF(input["vcf"])
 

@@ -25,8 +25,8 @@ import os
 import pandas as pd
 
 from reports import HTMLTable
-from sequana.report_main import BaseReport
-from sequana.report_submapping import SubMappingReport
+from sequana.reporting.report_main import BaseReport
+from sequana.reporting.report_submapping import SubMappingReport
 
 
 class ChromosomeMappingReport(BaseReport):
