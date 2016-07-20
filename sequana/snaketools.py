@@ -170,7 +170,7 @@ class SnakeMakeStats(object):
         pylab.savefig(output_dir + os.sep + filename)
 
 def plot_stats(where="report"):
-    print("Workflow pipeline_quality_taxon finished. Creating stats image")
+    print("Workflow finished. Creating stats image")
     try:SnakeMakeStats("%s/stats.txt" % where).plot_and_save()
     except: print("INFO: Could not fin %s/stats.txt file" % where)
 
@@ -809,7 +809,13 @@ def get_cleanup_rules(filename):
 
 
 def init(filename, namespace):
+    """Defines the global variable __snakefile__ inside snakefiles
 
+    If not already defined, __snakefile__ is created to hold the name of the
+    pipeline. We also define two other variables named expected_output and
+    toclean that are empty list by default
+
+    """
     if "__snakefile__" in namespace.keys():
         pass
     else:
