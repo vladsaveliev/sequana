@@ -4,18 +4,19 @@ Changelog
 .. contents::
 
 
-0.1.7 and 0.1.8 - July 2016
+0.1.7 to 0.1.9 - July 2016
 ----------------------------
 
 * NEWS:
 
   - rule data added and used in phix_removal (fastq_sampling + raw data switch)
   - kmer module
+  - sequana_taxonomy standalone
 
 * CHANGES:
 
   - reports are now in ./sequana/reporting
-  - refactoring of report/ directories in all pipelines to make them
+  - MAJOR refactoring of report/ directories in all pipelines to make them
     independent from the temporary analysis, which can then be removed.
 
 * BUGS:
