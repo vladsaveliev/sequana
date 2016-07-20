@@ -70,11 +70,11 @@ class KrakenResults(object):
         else:
             class Taxonomy(object):
                 from sequana import sequana_data # must be local
-                df = pd.read_csv(sequana_data("test_taxon_rtd.csv"), 
+                df = pd.read_csv(sequana_data("test_taxon_rtd.csv"),
                     index_col=0)
                 def get_lineage_and_rank(self, x):
                     # Note that we add the name as well here
-                    ranks = ['kingdom', 'phylum', 'class', 'order', 
+                    ranks = ['kingdom', 'phylum', 'class', 'order',
                             'family', 'genus', 'species', 'name']
                     return [(self.df.ix[x][rank], rank) for rank in ranks]
             self.tax = Taxonomy()
@@ -90,6 +90,7 @@ class KrakenResults(object):
         :param list ids: list of taxons as strings or integers. Could also
             be a single string or a single integer
         :return: a dataframe
+
         .. note:: the first call first loads all taxons in memory and takes a
             few seconds but subsequent calls are much faster
         """
@@ -291,7 +292,7 @@ class KrakenResults(object):
             pylab.xlabel(" percentage ")
 
         return data
-        
+
     def to_js(self, output="krona.html", onweb=False):
         if self._data_created == False:
             self.kraken_to_krona()
@@ -550,7 +551,7 @@ class KrakenDownload(object):
         self.dv.mkdir(dir2)
 
         print("Downloading about 8Gb of data (if not already downloaded) from"
-            " Synapse into %s" % dir1) 
+            " Synapse into %s" % dir1)
 
         from os.path import exists
         filename = dir1 + "ena_list.txt"

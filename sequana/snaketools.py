@@ -664,6 +664,8 @@ def get_tagname(filename):
 class FileFactory(object):
     """
 
+    ::
+
         ff = FileNameFactory("../*")
         ff.dataset
 
