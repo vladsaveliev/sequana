@@ -163,7 +163,7 @@ class ChromosomeCov(object):
         """
         mid = int(n / 2)# in py2/py3 the division (integer or not) has no impact
         cov = list(self.df["cov"])
-        if circular:
+        if circular and n < len(cov):
             cov = cov[-mid:] + cov + cov[:mid]
             rm = running_median.RunningMedian(cov, n).run()
             self.df["rm"] = rm[mid:-mid]

@@ -33,16 +33,18 @@ class ChromosomeMappingReport(BaseReport):
     """Report dedicated to Mapping for one chromosome.
 
     """
-    def __init__(self, chrom, low_threshold=-3, high_threshold=3, 
+    def __init__(self, chrom_index, low_threshold=-3, high_threshold=3, 
             directory="report", project="", **kargs):
         """.. rubric:: constructor
 
         """
-        output_filename = project + "_" + chrom + "_mapping.html"
+        output_filename = "{0}_mapping.chrom{1}.html".format(project, 
+                chrom_index)
         super(ChromosomeMappingReport, self).__init__(
                 jinja_filename="chromosome/index.html",
                 directory=directory, 
                 output_filename=output_filename, **kargs)
+        self.chrom_index = chrom_index
         self.project = project
         self.low_t = low_threshold
         self.high_t = high_threshold
@@ -60,17 +62,17 @@ class ChromosomeMappingReport(BaseReport):
         df = pd.DataFrame()
         formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
         for i in range(0, len(self.mapping), step):
-            name = "{0}_{1}_mapping_{2}".format(self.project, 
-                    self.mapping.chrom_name, i)
+            name = "{0}_mapping_{1}".format(self.project, i)
             stop = i + step
             if stop > len(self.mapping):
                 stop = len(self.mapping)
             name = "{0}_{1}".format(name, stop)
-            link = name + ".html"
+            link = "submapping/{0}.chrom{1}.html".format(name, self.chrom_index)
             r = SubMappingReport(start=i, stop=stop, low_df=low_df,
-                    high_df=high_df, output_filename=name + ".html",
-                    directory=self.directory, low_threshold=self.low_t,
-                    high_threshold=self.high_t)
+                    high_df=high_df, chrom_index=self.chrom_index,
+                    output_filename=name + "chrom%i.html" % self.chrom_index,
+                    directory=self.directory + "/submapping", 
+                    low_threshold=self.low_t, high_threshold=self.high_t)
             r.jinja["main_link"] = "index.html"
             r.set_data(self.mapping)
             r.create_report()
@@ -84,8 +86,8 @@ class ChromosomeMappingReport(BaseReport):
         self.jinja['main_link'] = 'index.html'
 
         # Coverage plot
-        self.jinja["cov_plot"] = self.project + "_" + self.mapping.chrom_name +\
-                "_coverage.png"
+        self.jinja["cov_plot"] = "images/{0}_coverage.chrom{1}.png".format(
+                self.project, self.chrom_index)
         self.mapping.plot_coverage(filename=self.directory + os.sep + 
                 self.jinja["cov_plot"], low_threshold=self.low_t, 
                 high_threshold=self.high_t)
@@ -95,8 +97,8 @@ class ChromosomeMappingReport(BaseReport):
                 "predicted Gaussian. The red line should be followed the "
                 "trend of the barplot.")
         self.jinja["nc_paragraph"] = nc_paragraph
-        self.jinja["nc_plot"] = self.project + "_" + self.mapping.chrom_name + \
-                "_norm_cov_his.png"
+        self.jinja["nc_plot"] = "images/{0}_norm_cov_his.chrom{1}.png".format(
+                self.project, self.chrom_index)
         self.mapping.plot_hist_normalized_coverage(filename=self.directory +
                 os.sep + self.jinja["nc_plot"])
 
@@ -107,8 +109,8 @@ class ChromosomeMappingReport(BaseReport):
         self.jinja["bp_paragraph"] = bp_paragraph.format(
                 self.mapping.best_gaussian["mu"], 
                 self.mapping.best_gaussian["sigma"])
-        self.jinja["bp_plot"] =  self.project + \
-                "_" + self.mapping.chrom_name + "_zscore_hist.png"
+        self.jinja["bp_plot"] = "images/{0}_zscore_hist.chrom{1}.png".format(
+                self.project, self.chrom_index)
         self.mapping.plot_hist_zscore(filename=self.directory + os.sep + 
                 self.jinja["bp_plot"])
 

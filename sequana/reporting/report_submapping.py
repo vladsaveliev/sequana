@@ -26,14 +26,16 @@ from reports import HTMLTable
 class SubMappingReport(BaseReport):
     """
     """
-    def __init__(self, start, stop, low_threshold, high_threshold, 
-            low_df, high_df, directory="report", 
+    def __init__(self, start, stop, chrom_index, low_threshold, high_threshold, 
+            low_df, high_df, directory="report",
             output_filename="submapping.html", **kargs):
         super(SubMappingReport, self).__init__(
                 jinja_filename="submapping/index.html",
-                directory=directory,
+                directory=directory, init_report=False,
                 output_filename=output_filename, **kargs)
         self.jinja['title'] = "Mapping Report [{0},{1}]".format(start, stop)
+        self.jinja['path'] = "../"
+        self.chrom_index = chrom_index
         self.low_df = low_df
         self.high_df = high_df
         self.start = start
@@ -49,10 +51,11 @@ class SubMappingReport(BaseReport):
 
     def parse(self):
         self.mapping.write_csv(self.directory + os.sep +
-                "mapping_{0}_{1}.csv".format(self.start, self.stop), 
-                start=self.start, stop=self.stop, header=False)
-        self.jinja['input_df'] = "'mapping_{0}_{1}.csv'".format(self.start, 
-                self.stop)
+                "mapping_{0}_{1}.{2}.csv".format(self.start, self.stop, 
+                self.chrom_index), start=self.start, stop=self.stop, 
+                header=False)
+        self.jinja['input_df'] = "'mapping_{0}_{1}.{2}.csv'".format(self.start, 
+                self.stop, self.chrom_index)
 
         merge_low_cov = self._get_region(self.low_df)
         self.jinja["low_cov_threshold"] = self.low_t
