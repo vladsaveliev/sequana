@@ -9,10 +9,10 @@ __sequana__bwa_mem = [":samples", "ref", "output", ":kwargs", ":threads"]
 import sequana.snaketools as sm
 cfg = sm.SequanaConfig.from_dict(config)
 
+
 def bwa_mem_dynamic(name, inputs, outputs=[]):
-    
     metadata = {'inputs':inputs, 'name':name, 'project':cfg.PROJECT}
-    
+
     bwa_mem_code = '''
 __bwa_mem_%(name)s__reference = "references_%(name)s/%(project)s.fa"
 __bwa_mem_%(name)s__output = "bwa_mem_%(name)s/%(project)s.sorted.bam"
