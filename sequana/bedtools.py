@@ -161,15 +161,16 @@ class ChromosomeCov(object):
         """
         mid = int(n / 2)# in py2/py3 the division (integer or not) has no impact
         cov = list(self.df["cov"])
-        if circular and n < len(cov):
-            cov = cov[-mid:] + cov + cov[:mid]
-            rm = running_median.RunningMedian(cov, n).run()
-            self.df["rm"] = rm[mid:-mid]
-        else:
-            rm = running_median.RunningMedian(cov, n).run()
-            self.df["rm"] = rm
-            #, index=np.arange(start=mid,
-            #    stop=(len(rm) + mid)))
+        try:
+            if circular and n < len(cov):
+                cov = cov[-mid:] + cov + cov[:mid]
+                rm = running_median.RunningMedian(cov, n).run()
+                self.df["rm"] = rm[mid:-mid]
+            else:
+                rm = running_median.RunningMedian(cov, n).run()
+                self.df["rm"] = rm
+        except (ValueError, IndexError):
+            self.df["rm"] = cov
 
     def get_evenness(self):
         """Return Evenness of the coverage
