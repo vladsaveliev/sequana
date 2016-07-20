@@ -19,6 +19,7 @@ rule report_mapping:
         import os        
 
         from sequana import bedtools
+        from sequana import BAM
         from sequana.reporting import report_mapping
         from sequana.reporting import report_chromosome
         from sequana.reporting import report_main
