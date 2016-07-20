@@ -89,7 +89,7 @@ class RunningMedian:
         rm = RunningMedian(data, 101)
         plot(X, rm.run(), 'r', label="median W=201")
 
-        from sequana.misc import moving_average as ma
+        from sequana.stats import moving_average as ma
         plot(X[100:-100], ma(data, 201), 'g', label="mean W=201")
         grid()
         legend()

@@ -40,11 +40,9 @@ class GenomeCov(object):
         from sequana import GenomeCov, sequana_data
         filename = sequana_data("test_bedcov.bed", "testing")
 
-        from sequana import GenomeCov
-        gencov = GenomeCov('exemple.bed')
+        gencov = GenomeCov(filename)
         for chrom in gencov:
-            chrom.running_median(n=30001)
-            chrom.coverage_scaling()
+            chrom.running_median(n=3001)
             chrom.compute_zscore()
             chrom.plot_coverage()
         gencov[0].plot_coverage()
@@ -109,7 +107,7 @@ class ChromosomeCov(object):
         gencov = GenomeCov(filename)
 
         chrcov = gencov[0]
-        chrcov.running_median(n=30001)
+        chrcov.running_median(n=3001)
         chrcov.compute_zscore()
         chrcov.plot_coverage()
 
@@ -163,7 +161,7 @@ class ChromosomeCov(object):
         """
         mid = int(n / 2)# in py2/py3 the division (integer or not) has no impact
         cov = list(self.df["cov"])
-        if circular and n < len(cov):
+        if circular:
             cov = cov[-mid:] + cov + cov[:mid]
             rm = running_median.RunningMedian(cov, n).run()
             self.df["rm"] = rm[mid:-mid]
