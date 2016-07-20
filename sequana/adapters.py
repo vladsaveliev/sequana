@@ -20,7 +20,7 @@
 
 Adapters removal can be performed by many different tools such as CutAdapt,
 AlienTrimmer, Trimmomatic ... but they tend to use different formats from FASTA
-to text files. Besides, list of adapters are usually in FASTA formats. 
+to text files.
 
 In this module we provide utilities to help building the input files but also
 other tools to e.g. merge several list of adapters making sure there is no
@@ -45,8 +45,9 @@ import pysam
 from sequana.fasta import FastA
 import os
 
+
 def fasta_fwd_rev_to_columns(file1, file2=None, output_filename=None):
-    """Convert reverse and forward adapters (FASTA format) into 2-columns file
+    """From two FASTA files (reverse and forward) adapters, returns 2-columns file
 
     This is useful for some tools related to adapter removal that takes as input
     this kind of fomat
@@ -79,6 +80,14 @@ def fasta_fwd_rev_to_columns(file1, file2=None, output_filename=None):
 
 
 def adapters_to_clean_ngs(input_filename, output_filename="adapters_ngs.txt"):
+    """Convert a FASTA formatted file into adapters_ngs format
+
+    That is a TSV file
+
+    .. warning:: may be removed in the future.
+
+
+    """
     with open(input_filename, 'r') as fh1:
         data1 = fh1.readlines()
 
@@ -96,7 +105,6 @@ def adapters_to_clean_ngs(input_filename, output_filename="adapters_ngs.txt"):
 
 def adapter_removal_parser(filename):
     """Parses output of AdapterRemoval
-
 
     .. doctest::
 
@@ -174,7 +182,8 @@ class AdapterDB(object):
             name = list(name)[0]
         return name
 
-class AdapterReader(FastA):
+
+class AdapterReader(object):
     """We use FastA as our data structure to store adapters
 
     Header of the FASTA must be of the form::
@@ -186,7 +195,6 @@ class AdapterReader(FastA):
     .. note:: the universal adapter does not need to have it but is called
         Universal_Adapter
 
-
     .. doctest::
 
         >>> from sequana import sequana_data, AdapterReader
@@ -196,11 +204,45 @@ class AdapterReader(FastA):
         '>Nextera_index_S505|index_dna:S505
         AATGATACGGCGACCACCGAGATCTACACGTAAGGAGTCGTCGGCAGCGTC'
 
+        >>> len(ar)
+        50
 
     """
     def __init__(self, filename):
-        super(AdapterReader, self).__init__(filename)
-        # TODO check uniqueness of the indices
+        if isinstance(filename, str):
+            # this is not large files so we load in memory all sequences/names and
+            # comments once for all. This has also the adavantage that data can now
+            # be changed on the fly
+            fasta = FastA(filename)
+            self.data = [self._to_read(this) for this in fasta]
+        elif isinstance(filename, AdapterReader):
+            self.data = [self._to_read(this) for this in filename.data]
+        elif isinstance(filename, list):
+            self.data = [self._to_read(this) for this in filename]
+        self.sanity_check()
+
+    def __len__(self):
+        return len(self.data)
+
+    def _get_names(self):
+        return [this.name for this in self.data]
+    names = property(_get_names)
+
+    def _get_seq(self):
+        return [this.sequence for this in self.data]
+    sequences = property(_get_seq)
+
+    def _get_comments(self):
+        return [this.comment for this in self.data]
+    comments = property(_get_comments)
+
+    def sanity_check(self):
+        if len(set(self.names)) != len(self.names):
+            import collections
+            names = [k for k,v in collections.Counter(self.names).items() if v>1]
+            msg = "Found identical names in fasta sequences\n"
+            msg += "Check those names for duplicates %s " % names
+            raise ValueError(msg)
 
     def get_adapter_by_sequence(self, sequence):
         """Return one or several adapters that have the sequence in them
@@ -224,7 +266,7 @@ class AdapterReader(FastA):
         :return: the adapter that match the index_name (if any) otherwise
             returns None
         """
-        adapters = [str(this) for this in self if text in this.name]
+        adapters = [str(this) for this in self.data if text in this.name]
         if len(adapters) == 0:
             return None
         elif len(adapters) == 1:
@@ -243,13 +285,43 @@ class AdapterReader(FastA):
         """
         """Return FASTA corresponding to the index"""
         # there should be only one
-        adapters = [str(this) for this in self if index_name in this.name]
+        adapters = [str(this) for this in self.data if index_name in this.name]
         if len(adapters) == 0:
             return None
         elif len(adapters) == 1:
             return adapters[0]
         else:
             raise ValueError("index_name %s found several times" % index_name)
+
+    def _to_read(self, this):
+        from easydev import AttrDict
+        d = AttrDict()
+        d.sequence = this.sequence
+        d.comment = this.comment
+        d.name = this.name
+        return d
+
+    def __getitem__(self, i):
+        return self.data[i]
+
+    def __eq__(self, other):
+        other = AdapterReader(other)
+        d1 = [(this.name, [this.comment, this.sequence]) for this in self.data]
+        d2 = [(this.name, [this.comment, this.sequence]) for this in other]
+        return d1 == d2
+
+    def reverse(self):
+        """Reverse all sequences internally"""
+        for this in self.data:
+            this.sequence = this.sequence[::-1]
+
+    def to_fasta(self, filename):
+        """Save sequences into fasta file"""
+        with open(filename, "w") as fout:
+            for i, this in enumerate(self.data):
+                if i>0:
+                    fout.write("\n")
+                fout.write(">%s\t%s\n%s" % (this.name, this.comment, this.sequence))
 
 
 class FindAdaptersFromIndex(object):
@@ -267,7 +339,9 @@ class FindAdaptersFromIndex(object):
         adapters.
 
         """
-        self.index_mapper = pd.read_csv(index_mapper)[["sample name", 'Index1.1', 'Index2.1']]
+
+        columns_in = ['sample_name', 'index1', 'index2']
+        self.index_mapper = pd.read_csv(index_mapper, delim_whitespace=True)[columns_in]
         self.index_mapper.columns = ["sample", "index1", "index2"]
         self.index_mapper.set_index('sample', inplace=True)
 
