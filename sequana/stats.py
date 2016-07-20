@@ -1,10 +1,44 @@
+# -*- coding: utf-8 -*-
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016 - Sequana Development Team
+#
+#  File author(s):
+#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#          <d.desvillechabrol@gmail.com>
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  website: https://github.com/sequana/sequana
+#  documentation: http://sequana.readthedocs.io
+#
+##############################################################################
+"""Statistical tools"""
+
 import numpy as np
 import pandas as pd
+
+
+__all__ = ["moving_average", "evenness"] 
+
 
 def moving_average(data, n):
     """Compute moving average
 
-    :param n: window's size.
+    :param n: window's size (odd or even).
+
+    ::
+
+        >>> from sequana.stats import moving_average as ma
+        >>> ma([1,1,1,1,3,3,3,3], 4)
+        array([ 1. ,  1.5,  2. ,  2.5,  3. ])
+
+    .. note:: the final vector does not have the same size as the input 
+        vector. 
+
 
     """
     ret = np.cumsum(data, dtype=float)
