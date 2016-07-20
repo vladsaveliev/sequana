@@ -4,6 +4,25 @@ Changelog
 .. contents::
 
 
+0.1.7 and 0.1.8 - July 2016
+----------------------------
+
+* NEWS:
+
+  - rule data added and used in phix_removal (fastq_sampling + raw data switch)
+  - kmer module
+
+* CHANGES:
+
+  - reports are now in ./sequana/reporting
+  - refactoring of report/ directories in all pipelines to make them
+    independent from the temporary analysis, which can then be removed.
+
+* BUGS:
+
+  - Fix running median issue in bedtools (window size larger than contig size)
+
+
 
 0.1.6 - June 2016
 ---------------------
@@ -11,24 +30,24 @@ Changelog
 
 * NEWS:
 
-    - KrakenDownlad class: download kraken_toydv from sequana/data repository or
-      minikraken into a local directotry
-    - New method in FastQC to show ACGT content
-    - Genomecov renamed into GenomeCov
-    - Update main script significantly to create multiruns and handle adapters
-    - GC content and plot GC vs coverage added in GenomeCov
+  - KrakenDownlad class: download kraken_toydv from sequana/data repository or
+    minikraken into a local directotry
+  - New method in FastQC to show ACGT content
+  - Genomecov renamed into GenomeCov
+  - Update main script significantly to create multiruns and handle adapters
+  - GC content and plot GC vs coverage added in GenomeCov
 
 * CHANGES:
 
-    - sequana_data by default looks into resources/testing directory 
-    - in fastq module: FastQC a bit faster andFastQRandom class removed
-    - add a moving_average function in misc module
+  - sequana_data by default looks into resources/testing directory
+  - in fastq module: FastQC a bit faster andFastQRandom class removed
+  - add a moving_average function in misc module
 
 * BUGS:
 
-    - sequana_data was showing __init__ and __pycache__ as possible data sets
-    - databases: filelist as a list was not implemented
-    - in fastq.FastQ extra_head in gzip mode was missing the last row
+  - sequana_data was showing __init__ and __pycache__ as possible data sets
+  - databases: filelist as a list was not implemented
+  - in fastq.FastQ extra_head in gzip mode was missing the last row
 
 
 
@@ -54,18 +73,18 @@ Changelog
 
 
 
-  
+
 
 0.1.4
 --------
 
   - add gallery in the documentation
   - remove old pipelines/ directory
-  - sequana standlone refactored (--init option added) 
+  - sequana standlone refactored (--init option added)
   - Pipeline quality_taxon added
   - Taxonomy rules included
   - Fix the stats image creation
-  
+
 
 0.1.3
 --------
@@ -84,22 +103,12 @@ Changelog
 0.1.0 April 2006
 ------------------
 
-First functional release.
-
 * NEWS
-  - rules in sequana/rules and pipelines in sequana/pipelines 
-  - standalone tool called sequana to download a Snakefile + config in a local
-    directory for further analysis
+
+  - rules in sequana/rules and pipelines in sequana/pipelines
+  - standalone tool called sequana to download a Snakefile and config file
   - modules for post-analysis: bamtools, vcf_filter, fastq, ....
   - Fully tested (90% coverage) and documented
   - Set of reports
 
-0.0.4 March 2016
--------------------
-
-* NEWS:
-    * split samtools module into bamtools and samtools
-    * add new class :class:`sequana.bamtools.BAMReport`
-* CHANGES
-* BUG FIXES
 
