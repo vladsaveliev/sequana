@@ -27,4 +27,4 @@ def test_distance():
 def test_gc_content():
     from sequana.tools import gc_content
     data = sequana_data('test.fasta', "testing")
-    gc_content("test.fasta", 10)['seq1']
+    gc_content(data, 10)['seq1']

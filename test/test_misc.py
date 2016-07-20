@@ -1,4 +1,4 @@
-from sequana.misc import moving_average
+from sequana.misc import *
 
 
 def findpos():
