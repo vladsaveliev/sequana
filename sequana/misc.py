@@ -44,18 +44,6 @@ def findpos(seq, chr):
             yield i
 
 
-def moving_average(data, n):
-        """Compute moving average
-
-        :param n: window's size.
-
-        """
-        ret = np.cumsum(data, dtype=float)
-        ret[n:] = ret[n:] - ret[:-n]
-        ma = ret[n - 1:] / n
-        return ma
-
-
 class FixFailedProjects(object):
     """Search for projects not finished and create a new script
 
