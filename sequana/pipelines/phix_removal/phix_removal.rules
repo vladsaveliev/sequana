@@ -17,23 +17,7 @@ sm.init("phix_removal.rules", globals())
 configfile: "config.yaml"
 cfg = SequanaConfig(config)
 
-
-# Optional for testing
-if config['fastq_sampling']['do']:
-    include: sm.modules['fastq_sampling']
-    FILE1 = cfg.BASENAME[0]
-    config['samples']['file1'] = "fastq_sampling/%s" % FILE1
-    if cfg.paired:
-        FILE2 = cfg.BASENAME[1]
-        config['samples']['file2'] = "fastq_sampling/%s" % FILE2
-else:
-    sm.message(cfg.BASENAME[0])
-    rule data_input:
-        input : expand("{dataset}" , dataset=cfg.BASENAME)
-    rule data:
-        """Select a sample from raw FastQ files"""
-        input:
-        output: "{dataset}"
+include: sm.modules['data']
 
 
 # Generic include of some dynamic modules

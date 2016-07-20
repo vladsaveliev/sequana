@@ -3,40 +3,34 @@
 
 {% if bam_is_present == true %}
 <div class="section" id="Input">
-    <h2> 1 -  <a class="toc-backref" href="#id1">Input</a></h2>
+    <h2><a class="toc-backref" href="#id1">Input</a></h2>
     <a href=""> </a>
 
     The BAM file contains {{ alignment_count }} fragments/alignments.
 </div>
 
 <div class="section" id="Flags">
-    <h2> 2 -  <a class="toc-backref" href="#id1">Flags</a></h2>
+    <h2><a class="toc-backref" href="#id1">Flags</a></h2>
 
 
     {{ flags_table }}
 
-    <img src="bar_flags.png"> </>
-    <img src="bar_flags_logy.png"> </>
+    <img src="{{ bar_flags  }}"> </>
+    <img src="{{ bar_log_flag }}"> </>
 </div>
 
 <div class="section" id="mapq">
-    <h2> 3 -  <a class="toc-backref" href="#id1">MAPQ</a></h2>
-    <img src="bar_mapq.png"> </>
+    <h2><a class="toc-backref" href="#id1">MAPQ</a></h2>
+    <img src="{{ bar_mapq }}"> </>
 </div>
 
-<div class="section" id="Chromosomes">
-    <h2> 4 -  <a class="toc-backref" href="#id1">Chromosomes</a></h2>
-Sequencing depth analysis of your chromosomes are available in the table.
-
-    {{ list_chromosome }}
-</div>
-{% else %}
-<div class="section" id="Chromosomes">
-    <h2> 1 -  <a class="toc-backref" href="#id1">Chromosomes</a></h2>
-Sequencing depth analysis of your chromosomes are available in the table.
-
-    {{ list_chromosome }}
-</div>
 {% endif %}
+
+<div class="section" id="Chromosomes">
+    <h2><a class="toc-backref" href="#id1">Chromosomes</a></h2>
+Sequencing depth analysis of your chromosomes are available in the table.
+
+    {{ list_chromosome }}
+</div>
 
 {% endblock %}

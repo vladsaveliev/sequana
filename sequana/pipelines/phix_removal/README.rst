@@ -1,22 +1,23 @@
-:Overview: cleanup FastQ raw data from a Phix (known contaminant)
-:Input: FastQ raw data from Illumina Sequencer (either paired or not)
+:Overview: cleanup FastQ raw data from a Phix (known contaminant) using BWA
+:Input: FastQ raw data (paired or single-end)
 :Output: FastQ raw with clean reads (no phix) in ./<PROJECT>/bwa_bam_to_fastq/
-:Config file requirements:
+:Config file requirements:    
     - samples:file1
     - samples:file2
-    - project
-    - bwa_mem:reference
+    - project:
+    - bwa_ref:reference
 
 
 Usage
 ~~~~~~~
 
-::
+Example::
 
-    mkdir analysis
-    cd analysis
-    # EDIT the config.yaml file 
-    snakemake -p --stats stats.txt
+    sequana --pipeline phix_removal --glob "*gz" --project Phix
+    cd Phix
+    snakemake -s phix_removal -p --stats stats.txt
+
+.. note:: Change the config.yaml file if needed 
 
 Requirements
 ~~~~~~~~~~~~~~~~~~

@@ -36,7 +36,7 @@ class BaseReport(Report):
 
     """
     def __init__(self, jinja_filename, directory="report",
-                output_filename="test.html", **kargs):
+                output_filename="test.html", init_report=True, **kargs):
         """.. rubric:: Constructor
 
         :param jinja_template: name of a directory (either local) or
@@ -64,7 +64,8 @@ class BaseReport(Report):
             template_filename=jinja_filename,
             directory=directory,
             extra_css_list=extra_css_list,
-            extra_js_list=extra_js_list
+            extra_js_list=extra_js_list,
+            init_report=init_report
             )
 
         # This redefines the default name of the output (index.html) otherwise,
@@ -92,13 +93,19 @@ class BaseReport(Report):
 
 
         # Another set of data for the HTML is the galleria them
-        import shutil
-        target = directory + "/galleria/themes"
-        try:
-            shutil.copytree(sequana_path + "/sequana/resources/js/galleria/themes",
-                target)
-        except:
-            pass
+        if init_report:
+            import shutil
+            target = directory + "/galleria/themes"
+            try:
+                shutil.copytree(sequana_path + "/sequana/resources/js/galleria/themes",
+                    target)
+            except:
+                pass
+        else:
+            try:
+                os.makedirs(directory)
+            except:
+                pass
 
     def parse(self):
         """populate the :attr:`data` attribute used by the JINJA templates

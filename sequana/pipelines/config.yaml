@@ -12,15 +12,6 @@ samples:
 project: "%(project)s"
 
 
-# if files are required for a pipeline and are within sequana or should
-# be downloaded before the pipeline provide them in this section
-# Note that sequana and url fields are followed by itemised files or links using
-# the front dashes
-requirements:
-    sequana:
-        - Coliphage_phiX174.fa
-    url:
-
 
 # =========================================== For testing only
 # If True, only a subset of the reads (N) are used
@@ -97,10 +88,14 @@ vcf_filter:
 fastqc:
     options: "--nogroup"
 
-
+##################################################################
+# Use by Phix_removal pipeline to remove reads with the 
+# phix found in the bwa_phix:reference section
+#
+##################################################################
 bwa_phix:
     do: yes
-    reference: Coliphage_phiX174.fa
+    reference: "phiX174.fa"
     index:
         options: '-a is'
     mem:

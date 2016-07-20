@@ -19,7 +19,8 @@ files that contain only 1500 reads. Copy them in a local directory.
 Quality pipeline
 ---------------------
 
-.. todo:: WIP
+
+See :ref:`quick_start`
 
 
 Taxonomy

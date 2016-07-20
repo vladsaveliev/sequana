@@ -5,7 +5,8 @@ __report_mapping__output = "report/report_mapping.html"
 rule report_mapping:
     input:
         dag = "report/dag.svg",
-        bed = __report_mapping__input
+        bed = __report_mapping__input,
+        bam = __bwa_mem_ref__output
     output:
         __report_mapping__output
     params:
@@ -18,37 +19,41 @@ rule report_mapping:
         import os        
 
         from sequana import bedtools
+        from sequana import BAM
         from sequana.reporting import report_mapping
         from sequana.reporting import report_chromosome
-        #from sequana import report_main
-        #
-        #s = report_main.SequanaReport(snakefile=__snakefile__,
-        #        directory=params.outdir)
-        #s.jinja['description'] = """
-        #
-        #This is the output of variant calling pipeline. This pipeline search
-        #variants and provide as an output a vcf file.
-        #
-        #"""
-        #s.create_report()
-        #
+        from sequana.reporting import report_main
+        
+        s = report_main.SequanaReport(snakefile=__snakefile__,
+                directory=params.outdir)
+        s.jinja['description'] = """
+        
+        This is the output of variant calling pipeline. This pipeline search
+        variants and provide as an output a vcf file.
+        
+        """
+        s.create_report()
+        
         mydata = bedtools.GenomeCov(input.bed)
+        bam = BAM(input.bam)
         
         # Report mapping
         r = report_mapping.MappingReport(directory=params.outdir, 
             project=cfg.PROJECT)
-        r.set_data(mydata)
+        r.set_data(mydata, bam)
         r.create_report()
             
         # Report chromosomes
+        chrom_index = 1
         for chrom in mydata:
             chrom.running_median(n=params.size, circular=params.circular)
             chrom.compute_zscore()
 
-            r = report_chromosome.ChromosomeMappingReport(chrom.chrom_name,
+            r = report_chromosome.ChromosomeMappingReport(chrom_index,
                 low_threshold=params.low, high_threshold=params.high, 
                 directory=params.outdir, project=cfg.PROJECT)
             r.set_data(chrom)
             r.create_report()
+            chrom_index += 1
 
         shell("cp %s %s/" % (__snakefile__, params.outdir))

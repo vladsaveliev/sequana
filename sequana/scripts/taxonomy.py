@@ -16,6 +16,7 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
+"""Standalone dedicated to taxonomic content (kraken)"""
 import os
 import shutil
 import glob

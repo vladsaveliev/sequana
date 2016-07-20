@@ -95,7 +95,7 @@ First, run the sequana standalone application to initialise the pipeline
 This command downloads the required file(s) in particular the config file and the pipeline
 itself. This example should work out of the box but you may want to look at the
 configuration file **config.yaml**. For instance, you may want to change the
-reference to the *phix* (by default we use Coliphage_phix174, which is provided in Sequana).
+reference to the *phix* (by default we use *phix174.fa*, which is provided in Sequana).
 
 Then, run the pipeline and wait for completion. Check the output for warnings or
 errors::
@@ -132,6 +132,7 @@ User guide and reference
     auto_examples/index
     case_examples
     developers
+    rules
     references
     faqs
     Changelog

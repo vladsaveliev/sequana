@@ -43,8 +43,6 @@ rule pipeline_quality:
         # Used by other workflow that uses this workflow
         touch("logs/pipeline_quality.done")
     run:
-        from sequana.reporting import report_fastqc
-        from sequana.reporting import report_fastq_stats
         if do_adapter_removal:
             if adapter_removal == "cutadapt":
                 from sequana.reporting import report_cutadapt

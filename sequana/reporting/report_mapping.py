@@ -72,21 +72,29 @@ class MappingReport(BaseReport):
             self.jinja['flags_table'] = html
 
             # create the bar plot with flags
+            image_prefix = "images/" + self.project
+            self.jinja["bar_log_flag"] = image_prefix + "_bar_flags_logy.png"
             self.bam.plot_bar_flags(logy=True, filename=self.directory + 
-                    os.sep + "bar_flags_logy.png")
+                    os.sep + self.jinja["bar_log_flag"])
+            self.jinja["bar_flag"] = image_prefix + "_bar_flags.png"
             self.bam.plot_bar_flags(logy=False, filename=self.directory + 
-                    os.sep + "bar_flags.png")
+                    os.sep + self.jinja["bar_flag"])
+            self.jinja["bar_mapq"] = image_prefix + "_bar_mapq.png"
             self.bam.plot_bar_mapq(filename=self.directory + os.sep + 
-                    "bar_mapq.png")
+                    self.jinja["bar_mapq"])
+        # case when bam file is not provided
         except TypeError:
             self.jinja['bam_is_present'] = False
 
+        # create table with links to chromosome reports
         df = pd.DataFrame()
         formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
+        chrom_index = 1
         for chrom in self.chrom_list:
-            link = self.project + "_" + chrom.chrom_name + "_mapping.html"
+            link = "{0}_mapping.chrom{1}.html".format(self.project, chrom_index)
             df = df.append({"chromosome": formatter.format(
                 chrom.chrom_name, link), "size": "{0:,}".format(len(chrom))}, 
                 ignore_index=True)
+            chrom_index += 1
         html = HTMLTable(df)
         self.jinja['list_chromosome'] = html.to_html(index=False)

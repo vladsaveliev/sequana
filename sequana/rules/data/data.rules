@@ -1,0 +1,18 @@
+
+# should be used by any pipelines that relies on input data sets
+# configfile: "config.yaml"
+# cfg = SequanaConfig(config)
+
+if config['fastq_sampling']['do']:
+    include: sm.modules['fastq_sampling']
+    FILE1 = cfg.BASENAME[0]
+    config['samples']['file1'] = "fastq_sampling/%s" % FILE1
+    if cfg.paired:
+        FILE2 = cfg.BASENAME[1]
+        config['samples']['file2'] = "fastq_sampling/%s" % FILE2
+else:
+    rule data_input:
+        input: expand("{dataset}", dataset=cfg.DATASET)
+    rule data:
+        input:
+        output: "{dataset}"
