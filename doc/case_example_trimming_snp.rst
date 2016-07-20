@@ -1,6 +1,8 @@
 Effect of the trimming of SNPs detection
 ===========================================
 
+:Description: 
+
 In this case example, we will take a paired-end data set, and apply the quality
 pipeline using trimming quality (removing bases with quality below 30). Then, we
 will run the variant calling pipeline to (1) perform the mapping on a reference

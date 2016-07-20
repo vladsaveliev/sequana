@@ -132,6 +132,7 @@ User guide and reference
     auto_examples/index
     case_examples
     developers
+    rules
     references
     faqs
     Changelog

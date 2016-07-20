@@ -94,9 +94,9 @@ General tools
 
 Reports
 -----------
-.. automodule:: sequana.reports.report_main
-.. automodule:: sequana.reports.report_bam
-.. automodule:: sequana.reports.report_summary
+.. automodule:: sequana.reporting.report_main
+.. automodule:: sequana.reporting.report_bam
+.. automodule:: sequana.reporting.report_summary
 
 
 Others
