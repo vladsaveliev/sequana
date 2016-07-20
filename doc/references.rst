@@ -13,7 +13,6 @@ Adapters
     :members:
     :undoc-members:
 
-
 BAMTOOLs related
 --------------------
 .. automodule:: sequana.bamtools
@@ -26,15 +25,14 @@ BEDTOOLs related (coverage)
     :members:
     :undoc-members:
 
-Coverage
-------------
+Coverage (theoretical)
+--------------------------
 .. automodule:: sequana.coverage
     :members:
     :undoc-members:
 
 Access to online database (e.g. ENA)
 ----------------------------------------
-
 .. automodule:: sequana.databases
     :members:
     :undoc-members:
@@ -45,6 +43,15 @@ FASTQ module
 .. automodule:: sequana.fastq
     :members:
     :undoc-members:
+
+
+Kmer module
+---------------
+.. automodule:: sequana.kmer
+    :members:
+    :undoc-members:
+
+
 
 Taxonomy related (Kraken - Krona)
 ------------------------------------
@@ -60,11 +67,6 @@ Taxonomy related (Kraken - Krona)
     :members:
     :undoc-members:
 
-VCF module
-------------
-.. automodule:: sequana.vcf_filter
-    :members:
-    :undoc-members:
 
 Phred quality
 ------------------
@@ -81,14 +83,33 @@ Running median
 
 Snakemake module
 -----------------
-
 .. automodule:: sequana.snaketools
+    :members:
+    :undoc-members:
+
+Snpeff module
+-----------------
+.. automodule:: sequana.snpeff
     :members:
     :undoc-members:
 
 General tools
 -----------------
+.. automodule:: sequana.misc
+    :members:
+    :undoc-members:
+
+.. automodule:: sequana.stats
+    :members:
+    :undoc-members:
+
 .. automodule:: sequana.tools
+    :members:
+    :undoc-members:
+
+VCF module
+------------
+.. automodule:: sequana.vcf_filter
     :members:
     :undoc-members:
 
@@ -102,3 +123,22 @@ Reports
 Others
 ---------
 .. automodule:: sequana.resources.data
+
+
+
+Standalone applications
+---------------------------
+
+.. automodule:: sequana.scripts.coverage
+    :members:
+    :undoc-members:
+.. automodule:: sequana.scripts.fastq_head
+    :members:
+    :undoc-members:
+.. automodule:: sequana.scripts.fastq_count
+    :members:
+    :undoc-members:
+.. automodule:: sequana.scripts.taxonomy
+    :members:
+    :undoc-members:
+
