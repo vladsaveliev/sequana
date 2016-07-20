@@ -1,13 +1,14 @@
-:Overview: On top of phix_removal pipeline, remove adapters
-:Input: FastQ raw data from Illumina Sequencer (either paired or not)
+:Overview: Remove phix and adapters rom set of FastQ files
+:Input: FastQ raw data (either paired or single-ended)
 :Output: 
-    - <PROJECT>/cutadapt/<PROJECT>R1.cutadapt.fastq.gz
-    - <PROJECT>/cutadapt/<PROJECT>R2.cutadapt.fastq.gz
+    - report/<PROJECT>_R1_.cutadapt.fastq.gz
+    - report/<PROJECT>_R2_.cutadapt.fastq.gz
 :Config file requirements:
     - samples:file1
     - samples:file2
     - project:
-    - bwa_mem:reference
+    - bwa_phix:reference
+    -
 
 
 Usage
@@ -15,8 +16,9 @@ Usage
 
 ::
 
-    sequana init quality --file1 R1.fastq.gz --file2 R2.fastq.gz
-    python sequana_quality.py
+    sequana --pipeline quality --file1 R1.fastq.gz --file2 R2.fastq.gz --project Quality
+    cd Quality
+    snakemake -s quality -p --stats stats.txt -j 4
 
 
 Requirements
@@ -24,6 +26,7 @@ Requirements
 
 - bwa
 - samtools
+- cutadapt
 
 
 Details
