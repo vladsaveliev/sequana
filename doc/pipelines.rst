@@ -7,20 +7,22 @@ Pipelines
 .. contents::
     :depth: 2
 
+.. _pipeline_phix_removal:
+
 Phix Removal
 ==============
 
+
 .. include:: ../sequana/pipelines/phix_removal/README.rst
+
+.. _pipeline_quality:
 
 Quality
 ==========
 
 .. include:: ../sequana/pipelines/quality/README.rst
 
-.. _quality_taxon:
-
-
-.. _pipeline_taxon:
+.. _pipeline_quality_taxon:
 
 Quality Taxon
 =======================

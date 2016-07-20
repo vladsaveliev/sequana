@@ -296,8 +296,6 @@ options.pipeline
             pass
         elif options.no_adapters is True:
             pass
-        else:
-            sa.error("adapters need to be provided (or use --no-adapters)")
 
         with open("multirun.sh", "w") as fout:
             import sequana
@@ -320,6 +318,7 @@ options.pipeline
                 fout.write("cd ..\n")
                 fout.write("echo Starting %s\n" % tag)
                 fout.write("sleep 0.5\n")
+
         if options.no_adapters is True and options.pipeline in ['quality', 'quality_taxon']:
             print("You did not provide information about adapters. You will have"
                 "to edit the config.yaml file to fill that information")

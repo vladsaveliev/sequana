@@ -79,7 +79,8 @@ class SequanaSummary(BaseReport):
             self.include_kraken()
             self.include_phix()
             self.include_sample_stats()
-            self.include_adapters_stats()
+            try:self.include_adapters_stats()
+            except:pass
             self.include_details()
             self.include_input_links()
             self.include_output_links()

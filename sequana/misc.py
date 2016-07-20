@@ -29,6 +29,7 @@ def wget(link, output):
     :param str output: the output filename
 
     .. warning:: no sanity check of any kind for now
+    .. todo:: move to easydev
     """
     try:
         from urllib import urlretrieve
@@ -42,18 +43,6 @@ def findpos(seq, chr):
     for i, dummy in enumerate(seq):
         if seq[i:i+N] == chr:
             yield i
-
-
-def moving_average(data, n):
-        """Compute moving average
-
-        :param n: window's size.
-
-        """
-        ret = np.cumsum(data, dtype=float)
-        ret[n:] = ret[n:] - ret[:-n]
-        ma = ret[n - 1:] / n
-        return ma
 
 
 class FixFailedProjects(object):

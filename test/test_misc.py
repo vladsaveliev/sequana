@@ -1,6 +1,8 @@
-from sequana.misc import moving_average
+from sequana.misc import *
 
 
-def test_moving_average():
+def findpos():
+    pass
 
-    moving_average([1,2,3,4,2,1,2,4,3,4], 3)
+def wget():
+    pass

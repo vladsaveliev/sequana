@@ -16,7 +16,7 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-
+"""General tools"""
 import os
 import string
 import glob
@@ -95,32 +95,45 @@ class StatsBAM2Mapped(DataContainer):
         return html
 
 
-
-
 def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
     """Create mapped and unmapped fastq files from a BAM file
+
+    :context: given a reference, one or two FastQ files are mapped onto the
+        reference to generate a BAM file. This BAM file is a compressed version
+        of a SAM file, which interpretation should be eased within this
+        function.
+
+    :param filename: input BAM file
+    :param output_directory: where to save the mapped and unmapped files
+    :return: dictionary with number of reads for each file (mapped/unmapped for
+        R1/R2) as well as the mode (paired or not), the number of unpaired
+        reads, and the number of duplicated reads. The unpaired reads should 
+        be zero (sanity check)
 
     Given a BAM file, create FASTQ with R1/R2 reads mapped and unmapped.
     In the paired-end case, 4 files are created.
 
-    The interest of this function is that it does not create intermediate files
-    limiting IO in the process.
+    Note that this function is efficient in that it does not create intermediate 
+    files limiting IO in the process.
 
-    Reads that are not paired or not "proper pair" (neither flag 4 nor flag 8)
-    are ignored
+    :Details: Secondary alignment (flag 256) are dropped so as to remove any 
+        ambiguous alignments. The output dictionary stores "secondary" key to 
+        keep track of the total number of secondary reads that are dropped. If
+        the flag is 256 and the read is unpaired, the key *unpaired* is also
+        incremented.
 
-    Secondary alignment (flag 256) are dropped so as to remove any ambiguous alignments and
-    keep the number of final reads equal to the initial number of reads
+        If the flag is not equal to 256, we first reverse complement reads that 
+        are tagged as *reverse* in the BAM file. Then, reads that are not paired or 
+        not "proper pair" (neither flag 4 nor flag 8) are ignored.
 
-    If R1 is mapped or R2 is mapped then the reads are considered mapped. If
-    both R1 and R2 are unmapped, then reads are unmapped.
+        If R1 is mapped **or** R2 is mapped then the reads are considered mapped. If
+        both R1 and R2 are unmapped, then reads are unmapped.
 
-    Note about chimeric alginment: one is the representative and the other is
-    the supplementary. This flag is not used in this function. Note also that
-    chimeric alignment have same QNAME and flag 4 and 8
+    .. note:: about chimeric alignment: one is the representative and the other is
+        the supplementary. This flag is not used in this function. Note also that
+        chimeric alignment have same QNAME and flag 4 and 8
 
-    .. todo:: comments is currently harcoded and should be removed. comments
-        from the fastq qname are not stored in BAM.
+    .. todo:: comments are missing since there are not stored in the BAM file.
     """
     bam = BAM(filename)
     # figure out if this is paired or unpaired
@@ -131,7 +144,6 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
     stats = collections.defaultdict(int)
     stats['R1_unmapped'] = 0
     stats['R1_mapped'] = 0
-
 
     # figure out where to save the file 
     if output_directory is None:
@@ -147,7 +159,6 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
     stats['duplicated'] = 0
     stats['unpaired'] = 0
 
-
     unpaired = 0
 
     # if paired, let open other files
@@ -160,8 +171,7 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
     else:
         stats['mode'] = "se"
 
-
-    # loop through the BAM (make sure it is rewind)
+    # loop through the BAM (make sure it is rewinded)
     bam.reset()
 
     if verbose:
@@ -178,13 +188,12 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
             # A secondary alignment occurs when a given read could align reasonably well to
             # more than one place. One of the possible reported alignments is termed "primary"
             # and the others will be marked as "secondary".
-            stats['secondary'] +=1 
+            stats['secondary'] += 1
             if this.is_paired is False:
                 stats['unpaired'] += 1
         else:
-            # inpysam, seq is a string and qual a bytes....
+            # in pysam, seq is a string and qual a bytes....
             if this.is_reverse is True:
-                #print("reversed complement entry %s" % i)
                 txt = b"@" + bytes(this.qname, "utf-8") + b"\n"
                 revcomp = reverse_complement(this.seq)
                 txt += bytes(revcomp, "utf-8") + b"\n"
@@ -225,6 +234,7 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
 
             if this.is_duplicate:
                 stats['duplicated'] += 1
+
         if verbose:
             pb.animate(i+1)
 
@@ -246,12 +256,17 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
 
 
 def bam_get_paired_distance(filename):
-    """
-
+    """Return distance between 2 mated-reads 
 
     return position start and end of the paired-end reads that were mapped
-    (both)
+    (both).
 
+    ::
+
+        distances = bam_get_paired_distance(bamfile)
+        hist([x[1]-x[0] for x in distances])
+
+    .. warning:: experimental
     """
 
     b = BAM(filename)
@@ -280,6 +295,9 @@ def bam_get_paired_distance(filename):
                 # the beginnin with a length less than 100
                 print(fragment.reference_start, fragment.reference_end)
                 print(mate.reference_start, mate.reference_end)
+                position1 = -1
+                position2 = -1
+                mode = 3
 
             distances.append((position1, position2, mode))
 
@@ -287,9 +305,17 @@ def bam_get_paired_distance(filename):
 
 
 def gc_content(filename, window_size, circular=False):
-# TODO case when the genome is not circular -> Add NaN at start and stop of
-# the np.arange()
-    """ 
+    """Return GC content for the different sequences found in a FASTA file
+
+    :param filename: fasta formateed file
+    :param window_size: window length used to compute GC content
+    :param circular: set to True if sequences are circular.
+    :return: dictionary with keys as fasta names and values as GC content vecor
+
+    .. todo:: case when the genome is not circular -> Add NaN at start and stop of
+        the np.arange()
+
+
     """
     fasta = FastxFile(filename)
     mid = int(window_size / 2)
