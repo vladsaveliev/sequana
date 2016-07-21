@@ -1,11 +1,11 @@
 Effect of the trimming of SNPs detection
 ===========================================
 
-:Description: 
+:Description: Effect of trimming (or not trimming) on the the SNPs detection.
 
 In this case example, we will take a paired-end data set, and apply the quality
 pipeline using trimming quality (removing bases with quality below 30). Then, we
-will run the variant calling pipeline to (1) perform the mapping on a reference
+will run the variant calling pipeline to perform the mapping on a reference
 and detect SNPs. 
 
 We will repeat this analysis without trimming low quality reads at all. 
@@ -20,7 +20,9 @@ The data
 
 We will use a paired-end data set (MiSeq 250bp). It contains 250,000 reads
 (X2). The organism sequenced is *Bordetella*. As a reference, we use
-the ENA accession *CP010347.1*. 
+the ENA accession *CP010347.1*. The data will be posted later but the original 
+data were generated at Pole Biomics (Institut Pasteur) and named **Tohama-R0_S4_L001_R1_001**
+from which we used only the first 250,000 reads.
 
 Here is a boxplot of the base quality across the reads showing that the quality
 is quite high and falls below 30 after 200 bases.
@@ -33,50 +35,95 @@ is quite high and falls below 30 after 200 bases.
 Quality pipeline
 ------------------
 
-Assuming DATA (fastq.gz files) are in <DIR1> directory, type to create the
+Assuming DATA (fastq.gz files) are in <DIR1> directory, type this command to create the
 **quality** pipeline and config file automatically::
 
-    sequana --pipeline quality --input-dir <DIR1> 
+    sequana --pipeline quality --input-dir <DIR1> --project trimming
 
-Edit the *config.yaml* file and set the project to *trim*. Run the analysis::
+Then go to the project and execute the pipeline::
 
-    snakemake -s variant_calling.rules --stats stats.txt -p -j 4
+    cd trimming
+    snakemake -s quality.rules --stats report/stats.txt -p -j 4 --forceall
 
-The final clean reads are in trim/cutadapt/ (trim_R1.cutadapt.fastq.gz)
 
-Let us refer to this directory as <DIR2>.
+The final cleaned reads are in trimming/report/ (refered to <DIR2> hereafter)
+and named after the project: (`trimming_R1_.cutadapt.fastq.gz` and 
+`trimming_R2_.cutadapt.fastq.gz`). These two files should be used later as 
+the input of the variant_calling pipeline, as shown hereafter.
 
-These files will be the input to the variant pipeline as explained hereafter.
 
-.. seealso:: :ref:`tutorial` section for details
+There is no adapters in the data so in the config file, the adapter sections are
+empty (no forward or reverse adapters). Note, however, that bad quality bases
+below 30 (default) are removed. In order to set the quality to another values, 
+use **sequana** with the `--quality` option
+
+.. seealso:: See the :ref:`tutorial` and :ref:`quick_start` sections for more details.
+
 
 
 Variant analysis
 ------------------
 
+The output of the **quality** pipeline will be the input of the **variant calling**
+pipeline::
+
+    sequana --pipeline variant_calling --input-dir <DIR2> --project variant_trimming
+
+
+Here you need to make sure that the **config.yaml** configuration file 
+has the correct reference. See the :ref:`tutorial` section (variant section).
+
 ::
 
-    sequana --pipeline variant_calling --input-dir <DIR2>
+    reference = "CP010347"
+    from bioservices import EUtils
+    eu = EUtils()
+    data = eu.EFetch(db="nuccore",id=reference, rettype="gbwithparts", 
+        retmode="text")
+    with open("data.gbk", "w") as fout:
+        fout.write(data.decode())
+    from bioservices import ENA
+    ena = ENA()
+    data = ena.get_data(reference', 'fasta')
+    with open("data.fa", "w") as fout:
+        fout.write(data.decode())
+    from sequana import snpeff
+    v = snpeff.SnpEff("data.gbk")
 
-Here you need to make sure you have the correct reference and need to fill the
-config file as explained in :ref:`tutorial` section (variant section).
+Edit the config.yaml to change those sections::
 
-In the config file, set the name of the projct to **variant**.
+    # snpEff parameter
+    snpeff:
+        do: yes
+        reference: "data.gbk"
 
-Run the analysis. Once done, you should have VCF files in
-variant/report/cutadapt.ann.vcf
+    # Bwa parameter for reference mapping
+    bwa_ref:
+        reference: "data.fa"
+
+
+
+
+Run the analysis::
+    
+    cd variant_trimming
+    snakemake -s variant_calling.rules --stats report/stats.txt -p -j 4 --forceall
+
+Once done, you should have VCF files in **variant/report/** named **cutadapt.ann.vcf**
 
 
 No trimming
 -------------
 
-repeat the previous two steps. The only difference is in the quality step to
-change the cutadapt section to prevent the trimming of bad quality bases::
+Repeat the previous two steps. In the first step, change the adapter section
+(cutadapt) to set the quality to zero (this prevents the trimming of bad quality 
+bases)::
 
     cutadapt:
         quality: 0,0
 
-Change the project name to have *notrim* as a tag to the project names.
+Change the project name e.g. *no_trimming* as a tag to the project in the first
+step and *variant_no_trimming*.
 
 
 
@@ -124,8 +171,8 @@ In this figure the LHS (trimming) 294 SNPs were found while in the RHS (no
 trimming)  309  were found. The additional SNPs all have low coverage below 20.
 A third of them have low balance strand.
 
-There is one SNP found in the trim case not found in no_trim. Howeve, it is
-marginal with strand balance of 0.12, depth of 11, fruquence of 0.73 and one of the lowest score  
+There is one SNP found in the trim case not found in no_trim. However, it is
+marginal with strand balance of 0.12, depth of 11, frequence of 0.73 and one of the lowest score  
 
 
 

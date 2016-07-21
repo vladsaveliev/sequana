@@ -16,6 +16,7 @@ Sequana documentation
 :Python version: Python 3.5 although some modules are Python2.7 compatible
 :Source: See  `http://github.com/sequana/sequana <https://github.com/sequana/sequana/>`_.
 :Issues: Please fill a report on `github <https://github.com/sequana/sequana/issues>`_
+:How to cite: http://f1000research.com/posters/5-1767
 
 
 What is Sequana ?
@@ -89,27 +90,29 @@ files that contain only 1500 reads. Copy them in a local directory.
 First, run the sequana standalone application to initialise the pipeline
 **quality**::
 
-    sequana --pipeline quality --input-dir .  --no-adapters
-    cd Hm2
+    sequana --pipeline quality --input-dir . --project TEST
 
 This command downloads the required file(s) in particular the config file and the pipeline
 itself. This example should work out of the box but you may want to look at the
 configuration file **config.yaml**. For instance, you may want to change the
-reference to the *phix* (by default we use *phix174.fa*, which is provided in Sequana).
+reference to the *phix* (by default we use *phix174.fa*, which is provided in Sequana) or
+adapt the adapter_removal section to your needs (cutadapt parameters, in
+particular the forward and reverse list of adapters; None by default).
 
-Then, run the pipeline and wait for completion. Check the output for warnings or
-errors::
+Note that the ``--project`` parameter is optional. If not provided, the project
+name will be the prefix of the FastQ files (before the first underscore).
 
-    snakemake -s Snakefile --stats stats.txt -p -j 4 --forceall
+Then, run the pipeline and wait for completion.::
 
-The -p option shows the commands, -j 4 means use 4 threads when possible. Finally, open 
-the report in ./TEST::
+    cd TEST
+    snakemake -s quality --stats report/stats.txt -p -j 4 --forceall
+
+The -p option shows the commands, -j 4 means use 4 threads when possible. 
+
+Check the output and if there is no errors, you should be able to open the HTML report 
+in ./TEST::
 
     open report/summary.html
-
-This will copy the Snakefile locally as well as the corresponding configuration
-file.
-
 
 All relevant HTML files and final FastQ files are stored in **./report**.
 
@@ -133,6 +136,7 @@ User guide and reference
     case_examples
     developers
     rules
+    applications
     references
     faqs
     Changelog
