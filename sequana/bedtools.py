@@ -18,6 +18,7 @@
 ##############################################################################
 """Utilities for the genome coverage"""
 import os
+import sys
 
 import pandas as pd
 import numpy as np
@@ -160,16 +161,17 @@ class ChromosomeCov(object):
 
         """
         mid = int(n / 2)# in py2/py3 the division (integer or not) has no impact
-        cov = list(self.df["cov"])
-        if circular:
-            cov = cov[-mid:] + cov + cov[:mid]
-            rm = running_median.RunningMedian(cov, n).run()
-            self.df["rm"] = rm[mid:-mid]
-        else:
-            rm = running_median.RunningMedian(cov, n).run()
-            self.df["rm"] = rm
-            #, index=np.arange(start=mid,
-            #    stop=(len(rm) + mid)))
+        cover = list(self.df["cov"])
+        try:
+            if circular:
+                cover = cover[-mid:] + cover + cover[:mid]
+                rm = running_median.RunningMedian(cover, n).run()
+                self.df["rm"] = rm[mid:-mid]
+            else:
+                rm = running_median.RunningMedian(cover, n).run()
+                self.df["rm"] = rm
+        except:
+            self.df["rm"] = self.df["cov"]
 
     def get_evenness(self):
         """Return Evenness of the coverage
@@ -237,32 +239,35 @@ class ChromosomeCov(object):
         .. note:: needs to call :meth:`running_median` before hand.
 
         """
+        # normalize coverage
         self._coverage_scaling()
         if len(self.df) < 100000:
             step = 1
 
+        # remove nan and inf values
         data = self.df['scale']
         data = data.replace(0, np.nan)
         data = data.dropna()
 
-        try:
-            if use_em:
-                self.mixture_fitting = mixture.EM(
-                    data[::step])
-                self.mixture_fitting.estimate(k=k)
-            else:
-                self.mixture_fitting = mixture.GaussianMixtureFitting(
-                    data[::step],k=k)
-                self.mixture_fitting.estimate()
-        except KeyError:
-            print("Column 'scale' is missing in data frame.\n"
-                  "You must scale your data with coverage_scaling\n\n",
-                  self.__doc__)
-            return
+        if data.empty:
+            data = np.full(len(self.df), 1, dtype=int)
+            self.df['scale'] = data
+
+        if use_em:
+            self.mixture_fitting = mixture.EM(
+                data[::step])
+            self.mixture_fitting.estimate(k=k)
+        else:
+            self.mixture_fitting = mixture.GaussianMixtureFitting(
+                data[::step],k=k)
+            self.mixture_fitting.estimate()
+
+        # keep gaussians informations 
         self.gaussians = self.mixture_fitting.results
         self.best_gaussian = self._get_best_gaussian(self.mixture_fitting.results)
         self.df["zscore"] = (self.df["scale"] - self.best_gaussian["mu"]) / \
             self.best_gaussian["sigma"]
+
 
     def get_low_coverage(self, threshold=-3, start=None, stop=None):
         """Keep position with zscore lower than INT and return a data frame.
