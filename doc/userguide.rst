@@ -3,66 +3,158 @@ User Guide
 
 .. contents::
 
-Snakemake tools
-================
+**Sequana** provides standalone applications (e.g. **sequana_coverage**,
+**sequana_taxonomy**) and pipelines in the form of Snakefiles.
 
-We provide so utilities in the :mod:`sequana.snaketools` to be used within
-Snakefile. Although Python code can be added the print command output may
-interfer with the Snakefile interpretation. The :func:`sequana.snaketools.message` is provided to prevent that issue (see example below).
+The :ref:`Tutorial`, :ref:`pipelines`, :ref:`Gallery` and :ref:`case_examples` sections provide many examples on their usage. The standalone applications are usually simpler to use than the pipelines but the underlying code is common and may be used as a library. 
 
+.. The standalone applications all have their own documentation, which can be obtained using  ``--help``. The pipelines documentation can be found in this documentation (e.g., in :ref:`pipelines` section). 
 
-Another feature of Sequana is to provide a set of modules that are independent
-and generic enough. For instance, Snakemake has a nice option to create the dag
-file out of the snakefile. However, one has to then use **dot** command and
-possibly other commands. In Sequana, we also have a dot parser to annotate the
-dot (useful in HTML document for clickable image). The module that takes care of
-that is called ... dag and can be included in Your Snakefile as follows::
-
-    from sequana import snakemake as sm
-
-    sm.message("Include dag rule in this pipeline" )
-
-    include: sm.rules['dag']
-
-Save this example in a file called Snakefile and type::
-
-    snakemake
-
-If the analysis is successful, you can open the report in ::
-
-    report/index.html
-
-If you change the config file or wish to restart, you will need to force the
-analysis to overewrite existing files::
-
-    snakemake --forceall
-
-Or simply delete all files that have been created::
-
-    snakemake cleanup
-
-.. todo:: explain the cleanup module.
+This section will not describe in details all available standalone and pipelines
+available. We'd rather focus on one example (coverage) to show how one can use
+the **sequana** library, or standalone application, or pipeline to get
+information about the coverage of a set of mapped reads onto a reference. 
 
 
-Sequana Toolkit
-====================
+**Sequana** library
+========================
 
-We provide a set of tools to perform post-analysis on standard files (e.g., BAM,
-FastQ, VCF). As an example, we will play here below with a smaple of BAM file:
+**Sequana** is a Python library. It contains many functionalities, which are
+fully documented and available in the :ref:`references` section. We can first
+look at the coverage contained within a BED file using the library. First, we
+need some data. **Sequana** provides some test examples, which can be accessed
+using :func:`~sequana.sequana_data` function. The test case is a virus (about
+18,000 bases)::
+
+    from sequana import sequana_data
+    filename = sequana_data('virus.bed', "data")
+
+
+We can then use the :class:`~sequana.bedtools.GenomeCov` class to read the
+file::
+
+    from sequana import GenomeCov
+    gc = GenomeCov(filename)
+
+Select a chromosome (first one) and compute the running median::
+
+    chrom = gc[0] 
+    chrom.running_median(n=4001, circular=True)
+    chrom.compute_zscore()
+
+and finally plot the coverage together with confidence interval (3 sigma)::
+
+    chrom.plot_coverage()
+
 
 .. plot::
-    :include-source:
 
-    from sequana import sequana_data, BAM
-    b = BAM(sequana_data("test.bam", "testing"))
-    b.plot_bar_mapq()
+    from sequana import sequana_data
+    filename = sequana_data('virus.bed', "data")
+    from sequana import GenomeCov
+    gc = GenomeCov(filename)
+
+    chrom = gc[0]
+    chrom.running_median(n=4001, circular=True)
+    chrom.compute_zscore()
+    chrom.plot_coverage()
 
 
-Sequana Reports
-==================
+This example shows how **Sequana** can be used within a command line interface.
+In this example we read a BED file but other formats can be read (e.g. VCF,
+FastQ, ...). We generally rely on established libraries (e.g. pyVCF, pysam,
+...).
 
-In snakemake, we provide also with different snakefile and standard formats,
-the ability to create or generate reports. Here is a BAM report file::
+The pipelines and standalone applications have few hidden code and most of it is
+part of **Sequana** library. This means that it can be used by other
+tools/library.
+
+**Sequana** standalones
+=========================
+
+The example above is quite useful and we therefore provide a standalone
+application. There are a few standalone applications listed in
+:ref:`applications` section. 
+
+The one related to the coverage example shown above is named
+**sequana_coverage**. If you have a BED file, type::
+
+    sequana_coverage  -b <BEDFILENAME> 
+
+If your organism has a circular DNA, add ``-o``. You can play with the window
+size for the running median using ``-w``.
+
+Using the BED file and reference mentionned in the previous section you should
+obtain the same figure as above.
+
+An additional feature is the report using  ``--show-html`` option.
+
+**Sequana** pipelines
+=======================
+
+In **Sequana**, in addition to the library and standalone applications, we also
+provide a set of pipelines (see :ref:`pipelines` section). The coverage tools
+described so far do not have a dedicated pipeline but is part of a more general
+pipeline called :ref:`pipeline_variant_calling`. Instead of describing in
+details that pipeline, let us explain the way pipelines can be created and run.
+
+Manually
+------------
+
+Pipelines are made of a Snakefile (a Makefile using Python) and an associated
+config file. Pipelines can be downloaded from the **Sequana** 
+`pipeline directory <https://github.com/sequana/sequana/tree/master/sequana/pipelines>`_
+as well as the config file named **config.yaml**.
+
+Copy the pipeline (ending in .rules) and the configuration file in a local
+directory. The config file is a generic template file and some fields must be
+changed. For instance the beginning of the file looks like::
+
+    # list of your input file
+    samples:
+        file1: "%(file1)s"
+        file2: "%(file2)s"
+
+For pipelines that takes FastQ files as inputs, the string **%(file1)s** must be 
+replaced by a valid filename. If you do not have a second file, remove the next
+line (file2). Other similar fields must be filled if required by the pipeline.
+
+Then, a pipeline must be executed using the executable **snakemake**. If you
+choose the **variant_calling** pipeline, the file is executed as follows::
+
+    snakemake -s variant_calling.rules
+
+This will search for the **config.yaml** file locally. One good feature is that
+if you interrupt the pipeline (or if it fails), you can fix the problem and
+re-run the command above without executing the parts of the pipelines that were
+succesfully run. If you want to start from scratch, add ``--forceall`` option::
+
+    snakemake -s variant_calling.rules --forceall
+
+.. seealso:: :ref:`pipelines` section for more information.
+
+Using **sequana** standalone
+------------------------------
+
+An easier way to initialise a pipeline, is to use **sequana** executable. For
+instance for the variant calling::
+
+    sequana --pipeline variant_calling
+
+This will automatically download the pipeline, config file and update the latter
+as much as possible.
+
+.. seealso:: :ref:`applications` section
+
+
+**Sequana** Reports
+=====================
+
+
+Pipelines and standalone make use of internal reporting. Since there are part of
+the **Sequana** library, they can also be usde with your own code. For instance,
+if you have a BAM file, you can use the following code to create a basic
+report::
 
     from sequana import BAM, sequana_data, BAMReport
     b = BAM(sequana_data("test.bam", "testing"))
