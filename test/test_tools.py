@@ -15,8 +15,11 @@ def test_bam2fastq():
 
 
 
-def test_reverse():
+def test_reverse_complement():
     assert reverse_complement("AACCGGTTA") == 'TAACCGGTT'
+def test_reverse():
+    from sequana.tools import reverse
+    assert reverse("AACCGG") == 'GGCCAA'
 
 
 def test_distance():
