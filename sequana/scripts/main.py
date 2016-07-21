@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -73,19 +73,19 @@ class Options(argparse.ArgumentParser):
         will create as many directories as required.
 
         Note that all files must have _R1_ and _R2_ tag in their names.
-        
+
 AUTHORS: Thomas Cokelaer and Dimitri Devilleschabrol
 Documentation: http://sequana.readthedocs.io
 Issues: http://github.com/sequana/sequana
         """
-        description = """DESCRIPTION: the SEQUANA standalone provides tools to 
-        fetch NGS pipelines developped within the SEQUANA porject. The main 
-        option is the --init option that fetches a pipeline and the main config 
-        file (config.yaml). The pipelines are SNAKEFILE and can be executed 
-        with a specific command provided in the README (typically snakemake -s 
+        description = """DESCRIPTION: the SEQUANA standalone provides tools to
+        fetch NGS pipelines developped within the SEQUANA porject. The main
+        option is the --init option that fetches a pipeline and the main config
+        file (config.yaml). The pipelines are SNAKEFILE and can be executed
+        with a specific command provided in the README (typically snakemake -s
         pipeline.rules). For more information, you may use the --info followed
         by a pipeline name. You can also have a look at the online documentation
-        on http://sequana.readthedocs.io or the source code on GitHub at  
+        on http://sequana.readthedocs.io or the source code on GitHub at
         http://github.com/sequana/sequana
         """
 
@@ -99,9 +99,12 @@ Issues: http://github.com/sequana/sequana
         group.add_argument("--quiet", dest="verbose", default=True,
                           action="store_false")
         group.add_argument("--force-init", dest='force_init',
-                action="store_true", 
-                help="""Does not ask for permission to create the files (overwrite 
+                action="store_true",
+                help="""Does not ask for permission to create the files (overwrite
                     existing ones)""")
+        group.add_argument("--redirection", dest="redirection",
+            default=False, action="store_true")
+
         group.add_argument("--issue", dest='issue',
                           action="store_true", help="Open github issue page")
         # Here we can use either --check-config <name> or  justg --check-config
@@ -115,16 +118,16 @@ Issues: http://github.com/sequana/sequana
 
         group = self.add_argument_group("PIPELINES")
         group.add_argument("--pipeline", dest='pipeline', type=str,
-                required=False, 
-                help="""Initialise a pipeline by fetching the corresponding 
-                    snakefile and config file. Required files may also 
-                    be copied in the project directory. Valid Pipelines' names 
-                    can be obtained using --show-pipelines. See also --info 
-                    <pipeline name> for more information about a specific 
+                required=False,
+                help="""Initialise a pipeline by fetching the corresponding
+                    snakefile and config file. Required files may also
+                    be copied in the project directory. Valid Pipelines' names
+                    can be obtained using --show-pipelines. See also --info
+                    <pipeline name> for more information about a specific
                     pipeline. """)
         group.add_argument("--info", dest='info', type=str,
-                required=False, 
-                help="""Given a valid Sequana pipeline, this option opens the 
+                required=False,
+                help="""Given a valid Sequana pipeline, this option opens the
                     the corresponding README on GitHub""")
         group.add_argument("--show-pipelines", dest='show_pipelines',
                 action="store_true", help="print names of the available pipelines")
@@ -133,7 +136,7 @@ Issues: http://github.com/sequana/sequana
 
         group = self.add_argument_group("CONFIGURATION")
         # options to fill the config file
-        group.add_argument("--file1", dest="file1", type=str, 
+        group.add_argument("--file1", dest="file1", type=str,
             help=""" Fills the *samples:file1* field in the config file. To be used
                 with --init option""")
         group.add_argument("--file2", dest="file2", type=str,
@@ -147,23 +150,23 @@ Issues: http://github.com/sequana/sequana
         group.add_argument("--kraken", dest="kraken", type=str,
             help=""" Fills the *kraken* field in the config file. To be used
                 with --init option""")
-        group.add_argument("--reference", dest="reference", type=str, 
+        group.add_argument("--reference", dest="reference", type=str,
             help=""" Fills the *reference* in bwa_ref section. To be used with --init option""")
         group.add_argument("--input-dir", dest="input_dir", type=str,
             help="""Search for a pair (or single) of reads in the directory, and
-                fills automatically the project and file1/file2 fields in the config 
-                file. To be used with --init option. If more than two files or not 
+                fills automatically the project and file1/file2 fields in the config
+                file. To be used with --init option. If more than two files or not
                 files ending in fastq.gz are found, an error is raised.""")
 
 
         group = self.add_argument_group("ADAPTER and QUALITY related")
         group.add_argument("--no-adapters", dest="no_adapters", default=False,
             action="store_true")
-        group.add_argument("--adapter-fwd", dest="adapter_fwd", type=str, 
-            help="""A string representing the forward adapter. Can be a file 
+        group.add_argument("--adapter-fwd", dest="adapter_fwd", type=str,
+            help="""A string representing the forward adapter. Can be a file
                 in FASTA format""")
-        group.add_argument("--adapter-rev", dest="adapter_rev", type=str, 
-            help="""A string representing the forward adapter. Can be a file 
+        group.add_argument("--adapter-rev", dest="adapter_rev", type=str,
+            help="""A string representing the forward adapter. Can be a file
                 in FASTA format""")
         group.add_argument("--index-mapper", dest="index_mapper", type=str,
             help="""a CSV file with 3 columns named 'sample name', 'index1','index2' """)
@@ -185,7 +188,7 @@ Issues: http://github.com/sequana/sequana
             with two numbers separated by a comma (no space)""")
 
         # ====================================================== CLUSTER
-        group = self.add_argument_group("Cluster", 
+        group = self.add_argument_group("Cluster",
             """cluster related (LSF, slurm, ...)
             """)
         group.add_argument("--cluster", dest="cluster", type=str,
@@ -233,8 +236,8 @@ def main(args=None):
         for this in sorted(valid_pipelines):
             print(" - " + this)
         return
-    
-    if options.info: 
+
+    if options.info:
         from sequana import Module
         module = Module(options.info)
         module.onweb()
@@ -345,7 +348,7 @@ options.pipeline
 
     if options.pipeline:
         sequana_init(options)
-    elif options.info: 
+    elif options.info:
         from sequana import Module
         module = Module(options.info)
         module.onweb()
@@ -416,7 +419,7 @@ options.pipeline)
 
     EDIT THE config.yaml if needed
 
-    Once finished with success, the report/ directory contains a summary.html 
+    Once finished with success, the report/ directory contains a summary.html
     and relevant files (depends on the pipeline).
     """
 
@@ -489,14 +492,16 @@ options.pipeline)
         # stop here if the file does not exists
         cfg = SequanaConfig(config_filename)
         if 'requirements' in cfg.config.keys():
-            if "sequana" in cfg.config.requirements.keys():
-                from sequana import sequana_data
-                for filename in cfg.config.requirements.sequana:
-                    sa.print('Copying %s from sequana' % filename)
-                    shutil.copy(sequana_data(filename, "data"), target_dir)
-            if "url" in cfg.config.requirements.keys():
-                for link in cfg.config.requirements.url:
-                    sa.print("This file %s will be needed" % filename)
+            for requirement in cfg.config.requirements:
+                if requirement.startswith('http') is False:
+                    from sequana import sequana_data
+                    sa.print('Copying %s from sequana' % requirement)
+                    shutil.copy(sequana_data(requirement, "data"), target_dir)
+                elif requirement.startswith("http"):
+                    from sequana.misc import wget
+                    sa.print("This file %s will be needed" % requirement)
+                    wget(requirement)
+
     except Exception as err:
         print(err)
         print("No config file found")
@@ -513,9 +518,10 @@ options.pipeline)
         if options.cluster:
             cmd += ' --cluster "%s"' % options.cluster
 
-        cmd += " 1>run.out 2>run.err"
-        fout.write(cmd % {'project':options.pipeline , 'jobs':options.jobs, 
-			"version": sequana.version})
+        if options.redirection:
+            cmd += " 1>run.out 2>run.err"
+        fout.write(cmd % {'project':options.pipeline , 'jobs':options.jobs,
+            "version": sequana.version})
 
 
     with open(target_dir + os.sep + "cleanme.py", "w") as fout:
