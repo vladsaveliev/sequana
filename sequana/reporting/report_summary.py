@@ -56,12 +56,13 @@ class SequanaSummary(BaseReport):
 
         # ============================================ Add the config and pipeline files
         from sequana.snaketools import SequanaConfig
-        self.config = SequanaConfig(configfile)
-        self.jinja['project'] = self.config.PROJECT
-        if self.config.paired:
-            self.jinja['type'] = "Paired-end"
-        else:
-            self.jinja['type'] = "Single-end"
+        if configfile:
+            self.config = SequanaConfig(configfile)
+            self.jinja['project'] = self.config.PROJECT
+            if self.config.paired:
+                self.jinja['type'] = "Paired-end"
+            else:
+                self.jinja['type'] = "Single-end"
 
 
         # The base has a navigation, that we do not want
@@ -87,7 +88,8 @@ class SequanaSummary(BaseReport):
 
         # this is a dictionary usable within JINJA templates, which may have
         # been chnaged by methods above
-        self.jinja['cfg'] = self.config.config
+        if configfile:
+            self.jinja['cfg'] = self.config.config
 
     def include_input_links(self):
         # Links to the datasets

@@ -154,7 +154,6 @@ class BaseReport(Report):
         return self._copy_files(pattern, "report/images")
 
 
-
 class SequanaReport(BaseReport):
     """The main sequana report
 
