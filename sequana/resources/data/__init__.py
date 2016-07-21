@@ -10,7 +10,7 @@ some NGS experiments. The file is small enough that it is provided within
 sequana and its filename (full path) can be retrieved as follows::
 
     from sequana import sequana_data
-    fullpath = sequana_data("Coliphage_phiX174.fa", "data")
+    fullpath = sequana_data("phiX174.fa", "data")
 
 Other files stored in this directory will be documented here.
 
