@@ -26,18 +26,15 @@ In this module we provide utilities to help building the input files but also
 other tools to e.g. merge several list of adapters making sure there is no
 duplicates.
 
-This module may also be used (WIP) by the kraken module to provide a list
-of adapters in FASTA format but with specific annotation. Consider for instance
-this adapter in FASTA format::
+The :class:`AdapterReader` can be used to read a set of adapters in FASTA
+format. 
 
-    >NextFlex_PCR_Free_adapter1   NextFlex_PCR_Free_adapter1
-    GATCGGAAGAGCACACGTCTGAACTCCAGTCACCGATGTATCTCGTATGCCGTCTTCTGCTTG
+::
 
-The name is not standard here. If you want use this FASTA in
-other tools, it may fail so we can added the missing bits that is::
-
-    >NextFlex_PCR_Free_adapter1|kraken:taxid|10000001   NextFlex_PCR_Free_adapter1
-    GATCGGAAGAGCACACGTCTGAACTCCAGTCACCGATGTATCTCGTATGCCGTCTTCTGCTTG
+    from sequana import sequana_data
+    filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", "data")
+    ar = AdapterReader(filename)
+    ar.get_get_adapter_by_index("N501")
 
 """
 import pandas as pd
@@ -138,7 +135,7 @@ class AdapterDB(object):
 
     where id is a number starting with 1000000
 
-    .. warning:: this convention is adopted for now but may change.
+    .. warning:: AdapterDB may be dropped in the future
 
     """
     def __init__(self, filename=None):
@@ -409,6 +406,7 @@ class FindAdaptersFromIndex(object):
 
 
 class AdapterRemoval(object):
+    """Possible data structure for future usage. Not used yet"""
     def __init__(self, file1, file2=None, adapter1=None, adapter2=None,
         quality_cutoff1=30, quality_cutoff2=None):
 
