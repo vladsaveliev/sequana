@@ -3,6 +3,17 @@ Changelog
 
 .. contents::
 
+0.1.10 - July 2016
+----------------------
+
+* NEWS:
+
+* CHANGES:
+
+    - Remove AdapterDB, a draft version that uses Kraken to detect adapters. Not
+      relevant anymore
+    - config.yaml is now in each pipeline to have a simplified version
+
 
 0.1.7 to 0.1.9 - July 2016
 ----------------------------
