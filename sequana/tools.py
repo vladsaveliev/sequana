@@ -32,7 +32,7 @@ from easydev import precision
 from reports import HTMLTable
 
 
-__all__ = ['StatsBAM2Mapped', 'bam_to_mapped_unmapped_fastq', "FastqFactory"]
+__all__ = ['StatsBAM2Mapped', 'bam_to_mapped_unmapped_fastq']
 
 
 class DataContainer(dict):
@@ -60,6 +60,9 @@ except:
 def reverse_complement(seq):
     # use hastag but for now, do it manually
     return seq.translate(_translate)[::-1]
+
+def reverse(seq):
+    return seq[::-1]
 
 
 class StatsBAM2Mapped(DataContainer):

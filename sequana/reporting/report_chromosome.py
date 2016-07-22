@@ -70,7 +70,7 @@ class ChromosomeMappingReport(BaseReport):
             link = "submapping/{0}.chrom{1}.html".format(name, self.chrom_index)
             r = SubMappingReport(start=i, stop=stop, low_df=low_df,
                     high_df=high_df, chrom_index=self.chrom_index,
-                    output_filename=name + "chrom%i.html" % self.chrom_index,
+                    output_filename=name + ".chrom%i.html" % self.chrom_index,
                     directory=self.directory + "/submapping", 
                     low_threshold=self.low_t, high_threshold=self.high_t)
             r.jinja["main_link"] = "index.html"

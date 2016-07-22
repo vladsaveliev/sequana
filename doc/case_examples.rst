@@ -1,3 +1,5 @@
+.. _case_examples:
+
 Case Examples
 ==============
 

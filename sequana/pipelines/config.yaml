@@ -11,6 +11,13 @@ samples:
 
 project: "%(project)s"
 
+# if files are required for a pipeline and are within sequana or should
+# # be downloaded before the pipeline provide them in this section
+# # Note that sequana and url fields are followed by itemised files or links
+# using
+# # the front dashes
+requirements:
+    - phiX174.fa
 
 
 # =========================================== For testing only
