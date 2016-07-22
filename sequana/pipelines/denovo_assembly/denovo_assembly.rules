@@ -1,0 +1,31 @@
+"""
+Author: Dimitri Desvillechabrol
+Affiliation: Institut Pasteur
+Aim: Variant calling
+Data: paired end or single reads
+Run: snakemake -s variant_calling.rules
+"""
+
+import sequana
+from sequana import snaketools as sm
+from sequana.snaketools import SequanaConfig
+sm.init("denovo_assembly.rules", globals())
+
+
+# load config file
+configfile: "config.yaml"
+cfg = SequanaConfig(config)
+
+
+final_output = list()
+
+
+# digital normalization
+
+__digital_norm__input = cfg.DATASET
+include: sm.modules["digital_norm"]
+final_output.append(__digital_norm__output)
+
+rule pipeline_denovo:
+    input:
+        final_output
