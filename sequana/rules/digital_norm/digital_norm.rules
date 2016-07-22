@@ -1,14 +1,14 @@
-__digital_norm__output = ["digital_norm/%s_R1_.dn.fastq", 
-                          "digital_norm/%s_R2_.dn.fastq"]
+__digital_norm__output = ["digital_norm/%s_R1_.dn.fastq.gz" % cfg.PROJECT, 
+                          "digital_norm/%s_R2_.dn.fastq.gz" % cfg.PROJECT]
 
 rule digital_norm:
     input:
         fastq = __digital_norm__input
     output:
         fastq_dn = __digital_norm__output,
-        graph = temp(cfg.PROJECT + "graph.ct")
+        graph = temp("digital_norm/%s_graph.ct" % cfg.PROJECT)
     params:
-        project = cfg.PROJECT
+        project = "digital_norm/%s" % cfg.PROJECT
     shell:
         """
         # concatenate R1 and R2
@@ -17,18 +17,18 @@ rule digital_norm:
         # digital norm
         normalize-by-median.py -p --ksize 20 --cutoff 20 --n_tables 4 \
             --max-tablesize 3e9 --savegraph {output.graph} {params.project}.pe \
-            --output ${project}.pe.keep
+            --output {params.project}.pe.keep
         
         # filter abundance
-        filter-abund.py -V "graph.ct" {params.project}.pe.keep \
+        filter-abund.py -V {output.graph} {params.project}.pe.keep \
             --output {params.project}.pe.filter
 
         # extract paired reads
         extract-paired-reads.py {params.project}.pe.filter \
-            --output-paired {params.project}.dn.pe
+            --output-paired {params.project}.dn.pe \
+            --output-single {params.project}.dn.se
 
         # split paired reads
         split-paired-reads.py {params.project}.dn.pe --gzip \
-            -1 {params.project}_R1_.dn.fastq.gz \
-            -2 {params.project}_R2_.dn.fastq.gz
+            -1 {output.fastq_dn[0]} -2 {output.fastq_dn[1]}
         """
