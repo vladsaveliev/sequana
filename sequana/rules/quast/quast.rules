@@ -1,0 +1,15 @@
+__quast__output = "quast_%(p)s/%(p)s.quast.done" % {"p": cfg.PROJECT}
+
+rule quast:
+    input:
+        fasta = __quast__input
+    output:
+        __quast__output
+    params:
+        options = config["quast"]["options"],
+        directory = "quast_" + cfg.PROJECT
+    shell:
+        """
+        quast.py {params.options} {input.fasta} -o {params.directory}
+        touch {output}
+        """
