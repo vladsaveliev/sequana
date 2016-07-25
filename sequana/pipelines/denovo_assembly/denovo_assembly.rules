@@ -1,9 +1,9 @@
 """
 Author: Dimitri Desvillechabrol
 Affiliation: Institut Pasteur
-Aim: Variant calling
-Data: paired end or single reads
-Run: snakemake -s variant_calling.rules
+Aim: Denovo assembly
+Data: paired end  
+Run: snakemake -s denovo_assembly.rules
 """
 
 import sequana
@@ -17,14 +17,25 @@ configfile: "config.yaml"
 cfg = SequanaConfig(config)
 
 
-final_output = list()
+if config["digital_norm"]["do"]:
+    __digital_norm__input = cfg.DATASET
+    include: sm.modules["digital_norm"]
+    __spades__input = __digital_norm__output
+else:
+    __spades__input = cfg.DATASET
 
+include: sm.modules["spades"]
 
-# digital normalization
+__quast__input = __spades__output
+include: sm.modules["quast"]
 
-__digital_norm__input = cfg.DATASET
-include: sm.modules["digital_norm"]
-final_output.append(__digital_norm__output)
+if config["mapping_evaluation"]["do"]:
+    __bwa_mem_ref__ref_input = __spades__output
+    include: sm.modules["variant_calling"]
+    final_output.append(__quast__output)
+else:
+    final_output = [__spades__output, __quast__output]
+
 
 rule pipeline_denovo:
     input:
