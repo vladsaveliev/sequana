@@ -28,6 +28,7 @@ if config["snpeff"]["do"]:
 
 # Mapping
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
+__bwa_mem_ref__ref_input = config["bwa_ref"]["reference"]
 include: bwa_mem_dynamic("ref", cfg.DATASET)
 __mark_duplicates__input = __bwa_mem_ref__output
 __indel_realigner__input = __bwa_mem_ref__output
