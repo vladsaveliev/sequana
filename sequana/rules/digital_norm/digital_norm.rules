@@ -8,15 +8,17 @@ rule digital_norm:
         fastq_dn = __digital_norm__output,
         graph = temp("digital_norm/%s_graph.ct" % cfg.PROJECT)
     params:
-        project = "digital_norm/%s" % cfg.PROJECT
+        project = "digital_norm/%s" % cfg.PROJECT,
+        options = ["%s %s" % (key, config["options"][key]) 
+                    for key in config["options"]]
     shell:
         """
         # concatenate R1 and R2
         interleave-reads.py {input.fastq} --output {params.project}.pe
 
         # digital norm
-        normalize-by-median.py -p --ksize 20 --cutoff 20 --n_tables 4 \
-            --max-tablesize 3e9 --savegraph {output.graph} {params.project}.pe \
+        normalize-by-median.py --paired {params.options} \
+            --savegraph {output.graph} {params.project}.pe \
             --output {params.project}.pe.keep
         
         # filter abundance
