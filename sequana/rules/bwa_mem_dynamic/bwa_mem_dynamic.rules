@@ -20,7 +20,7 @@ __bwa_mem_%(name)s__output = "bwa_mem_%(name)s/%(project)s.sorted.bam"
 rule bwa_mem__%(name)s:
     input:
         fastq = %(inputs)s,
-        reference = config["bwa_%(name)s"]["reference"]
+        reference = __bwa_mem_%(name)s__ref_input
     output:
         mem = "bwa_mem_%(name)s/%(project)s.bam",
         sort = __bwa_mem_%(name)s__output,
