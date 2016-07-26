@@ -125,6 +125,43 @@ def adapter_removal_parser(filename):
                 results[name] = sequence
     return results
 
+class Adapter():
+    def __init__(self, name, sequence, index="undefined", comment="nocomment"):
+        self._comment = comment
+        self._sequence = sequence
+        self._name = name
+        self._index = index
+
+    def _get_sequence(self):
+        return self._sequence
+    def _set_sequence(self, sequence):
+        self._sequence = sequence
+    sequence = property(_get_sequence, _set_sequence)
+
+    def _get_name(self):
+        return self._name
+    def _set_name(self, name):
+        self._name = name
+    name = property(_get_name, _set_name)
+
+    def _get_index(self):
+        return self._index
+    def _set_index(self, index):
+        self._index = index
+    index = property(_get_index, _set_index)
+
+    def _get_comment(self):
+        return self._comment
+    def _set_comment(self, comment):
+        self._comment = comment
+    comment = property(_get_comment, _set_comment)
+
+    def __str__(self):
+        txt = ">%(name)s|index:%(index)s\t%(comment)s\n"
+        txt+= "%(sequence)s"
+        txt = txt % {"name":self.name, "index":self.index, 
+                "comment":self.comment, "sequence":self.sequence}
+        return txt
 
 
 class AdapterReader(object):
@@ -132,7 +169,7 @@ class AdapterReader(object):
 
     Header of the FASTA must be of the form::
 
-        Nextera_index_N501|index_dna:N501
+        Nextera_index_N501|index_dna:N501 optional comment
 
     with a *|index_dna:* string followed by the index tag
 
@@ -142,8 +179,9 @@ class AdapterReader(object):
     .. doctest::
 
         >>> from sequana import sequana_data, AdapterReader
-        >>> ar = AdapterReader(sequana_data("adapters_Nextera_PF1_220616_fwd.fa"))
-        >>> candidate = ar.get_get_adapter_by_index("S505")
+        >>> filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", "data/adapters")
+        >>> ar = AdapterReader(filename)
+        >>> candidate = ar.get_adapter_by_index("S505")
         >>> print(candidate)
         '>Nextera_index_S505|index_dna:S505
         AATGATACGGCGACCACCGAGATCTACACGTAAGGAGTCGTCGGCAGCGTC'
@@ -248,10 +286,14 @@ class AdapterReader(object):
     def __getitem__(self, i):
         return self.data[i]
 
+    def to_dict(self):
+        d1 = [(this.name, [this.comment, this.sequence]) for this in self.data]
+        return dict(d1)
+
     def __eq__(self, other):
         other = AdapterReader(other)
-        d1 = [(this.name, [this.comment, this.sequence]) for this in self.data]
-        d2 = [(this.name, [this.comment, this.sequence]) for this in other]
+        d1 = self.to_dict()
+        d2 = other.to_dict()
         return d1 == d2
 
     def reverse(self):
@@ -334,7 +376,7 @@ class FindAdaptersFromIndex(object):
                 'Universal_Adapter')
         return res
 
-    def save_adapters_to_csv(self, sample_name, include_universal=True, output_dir='.'):
+    def save_adapters_to_fasta(self, sample_name, include_universal=True, output_dir='.'):
         """Get index1, index2 and uiversal adapter"""
         adapters = self.get_adapters(sample_name, include_universal=include_universal)
 
