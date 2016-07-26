@@ -1,4 +1,4 @@
-__quast__output = "quast_%(p)s/%(p)s.quast.done" % {"p": cfg.PROJECT}
+__quast__output = "quast_%s/report.html" % cfg.PROJECT
 
 rule quast:
     input:
@@ -11,5 +11,4 @@ rule quast:
     shell:
         """
         quast.py {params.options} {input.fasta} -o {params.directory}
-        touch {output}
         """
