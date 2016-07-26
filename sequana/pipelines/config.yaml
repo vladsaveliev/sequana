@@ -131,7 +131,7 @@ adapter_removal:
                 # In cutadapt, the R1 requires -g and R2 requires -G
                 # Here, we use only the small caps and Sequana takes
                 # care of using the small/big caps when it matters
-    quality: "%(quality_cutoff)s"  
+    quality: "30"  
     kwargs: "-O 6 --trim-n"
 
 

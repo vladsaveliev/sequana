@@ -38,23 +38,20 @@ onsuccess:
     sm.plot_stats()
     from sequana import SequanaSummary
     ss = SequanaSummary("report", "summary.html", snakefile=__snakefile__)
-    # copy all html
-    ss.copy_html_to_report("*/*html")
+    # copy all required html
+    ss.copy_html_to_report("*/fastq_*.html")
+    ss.copy_html_to_report("cutadapt/cutadapt.html")
     # copy all images
     ss.copy_images_to_report("*/images/*png")
-    # Copy the data. If adapter removal is on, copy from cutadapt otherwise from
-    # phix ?
+
     if config['adapter_removal']['do']:
         shell('cp cutadapt/*fastq.gz report/')    
     else:
         raise NotImplementedError
 
     shell('cp -r fastqc_*/ report')
-    shell('rm -f report/*fastqc*.html')
-    shell('rm -f report/temp*.html')
     shell('cp report/kraken.html report/kraken_to_krona.html')
     shell('cp report/kraken.html report/kraken_contaminant.html')
     shell('cp report/kraken.html report/kraken_translate.html')
     # the summary.html report itself.
     ss.create_report()
-
