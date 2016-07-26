@@ -53,17 +53,16 @@ def test_adapter_reader():
 
     # try different constructors
     ar1 = AR(data1)
-    ar_same = AR(ar1.data)    # from a list of dictionaries
+    ar_same = AR(ar1._data)    # from a list of dictionaries
     assert ar1 == ar_same
     ar_same = AR(ar1)           # from a AR instance
     assert ar1 == ar_same
 
     # __eq__
-    assert len(ar1) == 54
+    assert len(ar1) == 56
 
     # accessors
     ar1.sequences, ar1.names, ar1.comments
-
 
     ar1.get_adapter_by_sequence("ACGT")
     assert ar1.get_adapter_by_index("dummy") is None
@@ -76,21 +75,13 @@ def test_adapter_reader():
     assert ar1 == ar2
 
 
-
-
-
 def test_find_adapters_from_index_mapper():
     from sequana.adapters import FindAdaptersFromIndex
     ad = FindAdaptersFromIndex(sequana_data("test_index_mapper.csv", "testing"))
     assert ad.get_adapters("C4405-M1-EC1")
     ad.sample_names
 
-
-    fwd, rev = ad.save_adapters_to_csv("C4405-M1-EC1")
+    fwd, rev = ad.save_adapters_to_fasta("C4405-M1-EC1")
     import os
     os.remove(fwd)
     os.remove(rev)
-
-
-
-
