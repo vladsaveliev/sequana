@@ -58,7 +58,7 @@ class MappingReport(BaseReport):
         self.jinja['main_link'] = 'index.html'
         self.jinja['bam_is_present'] = True
 
-        try:
+        if bam:
             self.jinja['alignment_count'] = len(self.bam)
 
             # first, we store the flags
@@ -82,9 +82,6 @@ class MappingReport(BaseReport):
             self.jinja["bar_mapq"] = image_prefix + "_bar_mapq.png"
             self.bam.plot_bar_mapq(filename=self.directory + os.sep + 
                     self.jinja["bar_mapq"])
-        # case when bam file is not provided
-        except TypeError:
-            self.jinja['bam_is_present'] = False
 
         # create table with links to chromosome reports
         formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
