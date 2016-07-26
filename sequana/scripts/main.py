@@ -194,23 +194,30 @@ will fetch the config file automatically from sequana library.""")
             help="""a CSV file with 3 columns named 'sample name', 'index1','index2' """)
         group.add_argument("--adapters", dest="adapters", type=str,
             help="""set to universal_nextera, universal_pcrfree""")
-        group.add_argument("--quality-cutoff", dest="quality_cutoff", type=str,
-                          default="30",
-            help="""cutoff for single read or paired-end. If single read,
-            provide a number between 0 and 40 e.g., 30 means remove all reads
-            with quality below 30 (te details about the algorithm can be found
-            in sequana documentation. For paired-end, provide a string as 30,30
-            with two numbers separated by a comma (no space)""")
-        group.add_argument("--quality", dest="quality_cutoff", type=str,
-                          default="30",
-                          help="""cutoff for single read or paired-end. If single read,
-            provide a number between 0 and 40 e.g., 30 means remove all reads
-            with quality below 30 (te details about the algorithm can be found
-            in sequana documentation. For paired-end, provide a string as 30,30
-            with two numbers separated by a comma (no space)""")
 
         group.add_argument("--config-params", dest="config_params", 
-            type=str, help=""" """)
+            type=str, 
+            help="""Overwrite any field in the config file by using
+                    the following convention. A config file is in YAML format
+                    and has a hierarchy of parametesr. For example:
+
+                    project: tutorial
+                    samples:
+                        file1: R1.fastq.gz
+                        file2: R2.fastq.gz
+                    bwa_phix:
+                        mem:    
+                            threads: 2
+
+                Here we have 3 sections with 1,2,3 levels respectively. On the
+                command line, each level is separated by a : sign and each
+                meter to be changed separated by a comma. So to change the
+                project name and threads inside the bwa_phix section use:
+
+                --config-params project:newname, bwa_phix:mem:threads:4
+                
+                Be aware that when using --config-params, all comments are
+removed.""")
 
         # ====================================================== CLUSTER
         group = self.add_argument_group("Snakemake and cluster related",
@@ -246,9 +253,10 @@ def main(args=None):
         sa = Tools()
         sa.purple("Welcome to Sequana standalone application")
         sa.error("You must use --pipeline <valid pipeline name>\nuse --show-pipelines or --help for more information")
-        user_options.parse_args(["prog", "--help"])
+        return
     else:
-       options = user_options.parse_args(args[1:])
+        options = user_options.parse_args(args[1:])
+
     sa = Tools(verbose=options.verbose)
     sa.purple("Welcome to Sequana standalone application")
 
@@ -500,7 +508,6 @@ def sequana_init(options):
     # - kraken db
     # - reference for the bwa_ref
     # - adapter
-    # - quality_cutoff
     with open(config_filename, "w") as fout:
         from collections import defaultdict
         params = defaultdict(str)
@@ -539,13 +546,6 @@ def sequana_init(options):
         if options.adapters == "universal":
             params["adapter_fwd"] = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCGATGTATCTCGTATGCCGTCTTCTGC"
             params["adapter_rev"] = "TCTAGCCTTCTCGCAGCACATCCCTTTCTCACATCTAGAGCCACCAGCGGCATAGTAA"
-
-        if options.quality_cutoff:
-            # TODO handle single read
-            if options.file2 is None:
-                params['quality_cutoff'] = options.quality_cutoff
-            else:
-                params['quality_cutoff'] = "%s,%s" % (options.quality_cutoff, options.quality_cutoff)
 
         fout.write(config_txt % params)
 
