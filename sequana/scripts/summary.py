@@ -25,9 +25,9 @@ Issues: http://github.com/sequana/sequana
 
         # options to fill the config file
         self.add_argument("-1", "--file1", dest="file1", type=str,
-            required=True, help="""filename of a BED file""")
+            required=True, help="""filename of a FastQ file""")
         self.add_argument("-2", "--file2", dest="file2", type=str,
-            required=False, help="""filename of a BED file""")
+            required=False, help="""filename of a FastQ file""")
         self.add_argument("-n", "--sample", default=500000, type=int)
 
 

@@ -616,8 +616,10 @@ directories = glob.glob("*")
 for this in directories:
     if os.path.isdir(this) and this not in ['logs', 'data', 'report']:
         print('Deleting %s' % this)
-        time.sleep(0.5)
+        time.sleep(0.2)
         shellcmd("rm -rf %s" % this)
+shellcmd("rm -f *rules README runme.sh *fa config.yaml")
+shellcmd("rm -f cleanme.py")
 """)
 
     sa.green("Initialisation of %s succeeded" % target_dir)
