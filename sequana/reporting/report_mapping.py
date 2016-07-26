@@ -58,7 +58,7 @@ class MappingReport(BaseReport):
         self.jinja['main_link'] = 'index.html'
         self.jinja['bam_is_present'] = True
 
-        if bam:
+        if self.bam:
             self.jinja['alignment_count'] = len(self.bam)
 
             # first, we store the flags
