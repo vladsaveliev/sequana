@@ -24,7 +24,7 @@ __all__ = ["Coverage"]
 
 
 class Coverage(object):
-    r"""Utilities related to depth of coverage (DOC)
+    r"""Utilities related to Lander and Waterman theory
 
     We denote :math:`G` the genome length in nucleotides and :math:`L` the read
     length in nucleotides. These two numbers are in principle well defined since
@@ -33,12 +33,15 @@ class Coverage(object):
     The total number of reads sequenced during an experiment is denoted
     :math:`N`. Therefore the total number of nucleotides is simply :math:`NL`.
 
-    The depth of coverage (coverage hereafter) is defined as :
+    The depth of coverage (DOC) at a given nucleotide position is the number of 
+    times that a nucleotide is covered by a mapped read.
+
+    The theoretical fold-coverage is defined as :
 
     .. math:: a = NL/G
 
-    that is the average number of times each nucleotide is sequenced (in the 
-    whole genome). The coverage is often denoted :math:`aX` (e.g., 50X).
+    that is the average number of times each nucleotide is expected to be sequenced (in the 
+    whole genome). The fold-coverage is often denoted :math:`aX` (e.g., 50X).
 
     In the :class:`Coverage` class, :math:`G` and :math:`N` are fixed at 
     the beginning. Then, if one changes :math:`a`, then :math:`N` is updated and
@@ -73,7 +76,7 @@ class Coverage(object):
 
     .. math::  P = 1- \exp^{-NL/G}
 
-    From this equation, we can derive the coverage required to have 
+    From this equation, we can derive the fold-coverage required to have 
     e.g., :math:`E=99\%` of the genome covered:
 
     .. math:: a = log(-1/(E-1)
@@ -165,15 +168,15 @@ class Coverage(object):
         .. math:: \log^{-1/ - M}
 
         So instead of asking the question what is the
-        requested coverage to have 99% of the genome covered, we ask the question what
-        is the requested coverage to have 1% of the genome not covered.
-        This allows us to use :math:`M` values as low as 1e-300 that is coverage 
+        requested fold coverage to have 99% of the genome covered, we ask the question what
+        is the requested fold coverage to have 1% of the genome not covered.
+        This allows us to use :math:`M` values as low as 1e-300 that is a fold coverage 
         as high as 690.
 
 
         :param float M: this is the fraction of the genome not covered by
             any reads (e.g. 0.01 for 1%). See note above.
-        :return: the required coverage
+        :return: the required fold coverage
 
         .. plot::
 
@@ -187,9 +190,9 @@ class Coverage(object):
             pylab.xlabel("Uncovered genome", fontsize=16)
             pylab.grid()
 
-        # The inverse equation is coverage required = [log(-1/(E - 1))]
+        # The inverse equation is required fold coverage = [log(-1/(E - 1))]
         """
-        # What should be the coverage to have 99% of the genome sequenced ?
+        # What should be the fold coverage to have 99% of the genome sequenced ?
         # It is the same question as equating 1-e^{-(NL/G}) == 0.99, we need NL/G = 4.6
         if isinstance(M, float) or isinstance(M, int):
             assert M < 1
@@ -201,7 +204,7 @@ class Coverage(object):
         return np.log(-1/(-M))
 
     def get_mean_number_contigs(self):
-        """Expected number of contigs
+        r"""Expected number of contigs
 
 
         A binomial distribution with parameters :math:`N` and :math:`p`
@@ -237,7 +240,7 @@ class Coverage(object):
         return 100*(1 - math.exp(-self.a))
 
     def get_summary(self):
-        """Return a summary (dictionary) for the current coverage :attr:`a`"""
+        """Return a summary (dictionary) for the current fold coverage :attr:`a`"""
         data = {}
         data['coverage'] = self.a
         data['reads'] = self.N
@@ -249,7 +252,7 @@ class Coverage(object):
         return data
 
     def get_table(self, coverage=None):
-        """Return a summary dataframe for a set of coverage
+        """Return a summary dataframe for a set of fold coverage
 
         :param list coverage: if None, coverage list starts at 0.5 and ends at
             10 with a step of 0.5
