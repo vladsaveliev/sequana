@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -164,7 +164,7 @@ class SnakeMakeStats(object):
         try:pylab.tight_layout()
         except:pass
 
-    def plot_and_save(self, filename="snakemake_stats.png", 
+    def plot_and_save(self, filename="snakemake_stats.png",
             output_dir="report"):
         self.plot()
         pylab.savefig(output_dir + os.sep + filename)
@@ -253,9 +253,12 @@ class Module(object):
         - A **snakemake** file named after the directory with the extension
           **.rules**
         - A **README.rst** file in restructured text format
-        - An optional config file in YAML format named config.yaml. 
-          Although json format is possible, we use YAML throughout 
-          **sequana** for consistency.
+        - An optional config file in YAML format named config.yaml.
+          Although json format is possible, we use YAML throughout
+          **sequana** for consistency. If not found, the config.yaml is
+          taken from the parent directory. Rules do not have any but pipelines
+          do. So if a pipeline does not provide a config.yaml, the one found
+          in ./sequana/sequana/pipelines will be used.
 
     The name of the module is the name of the directory where the files are
     stored. The **Modules** are stored in sequana/rules and sequana/pipelines
@@ -457,7 +460,36 @@ class SequanaConfig(object):
             self.paired = False
 
     def save(self, filename="config.yaml"):
-        pass
+        """Export config into YAML file
+
+        Save the config file into a config file in YAML format.
+        The initial input file is in JSON format
+        """
+        # Assuming two levels at most
+        txt = ""
+        for k1 in sorted(self.config.keys()):
+            v1 = self.config[k1]
+            if isinstance(v1, dict):
+                txt += "%s\n" %  k1
+                for k2, v2 in v1.items():
+                    if isinstance(v2, dict):
+                        txt += "    %s\n" %  k2
+                        for k3,v3 in v2.items():
+                            txt += "        %s: '%s'\n" % (k3, v3)
+                    elif isinstance(v2, list):
+                        txt += "    %s: '%s'\n" % (k2, self.config[k1][k2])
+                    else:
+                        txt += '    %s: "%s"\n' % (k2, v2)
+
+            elif isinstance(v1, list):
+                txt += "%s\n" %  k1
+                for item in self.config[k1]:
+                    txt += "    - %s\n" % item
+            else:
+                txt += '%s: "%s"\n' % (k1, v1)
+            txt += "\n"
+            with open(filename, "w") as fout:
+                fout.write(txt)
 
     def _converts_boolean(self, subdic):
         for key,value in subdic.items():
@@ -686,7 +718,7 @@ class FileFactory(object):
         ".gz"
 
 
-        
+
 
     """
     def __init__(self, pattern):
@@ -764,7 +796,7 @@ class FastQFactory(FileFactory):
             elif '_R2_' in this:
                 self.tags.append(this.split('_R2_', 1)[0])
             elif strict is True:
-                # Files must have _R1_ and _R2_ 
+                # Files must have _R1_ and _R2_
                 raise ValueError('FastQ filenames must contain _R1_ or _R2_')
         self.tags = list(set(self.tags))
 
@@ -782,7 +814,7 @@ class FastQFactory(FileFactory):
         else:
             assert tag in self.tags, 'invalid tag'
 
-        candidates = [realpath for filename, realpath in 
+        candidates = [realpath for filename, realpath in
             zip(self.filenames, self.realpaths) if rtag in filename and filename.startswith(tag)]
 
         if len(candidates) == 0 and rtag == "_R2_":
