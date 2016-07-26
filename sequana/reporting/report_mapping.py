@@ -50,15 +50,17 @@ class MappingReport(BaseReport):
         self.project = project
         self.jinja['title'] = "Mapping Report of {0}".format(project)
 
-    def set_data(self, chrom_list, bam=None):
+    def set_data(self, chrom_list, bam=None, quast=None):
         self.chrom_list = chrom_list
         self.bam = bam
+        self.quast = quast
 
     def parse(self):        
         self.jinja['main_link'] = 'index.html'
-        self.jinja['bam_is_present'] = True
+        
 
         if self.bam:
+            self.jinja['bam_is_present'] = True
             self.jinja['alignment_count'] = len(self.bam)
 
             # first, we store the flags
@@ -83,8 +85,14 @@ class MappingReport(BaseReport):
             self.bam.plot_bar_mapq(filename=self.directory + os.sep + 
                     self.jinja["bar_mapq"])
 
-        # create table with links to chromosome reports
         formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
+        if self.quast:
+            self.jinja['quast_is_present'] = True
+            quast_link = formatter.format("here", self.quast)
+            self.jinja['quast_link'] = "The report provides by quast " + 
+                "is {0}.".format(quast_link)
+        
+        # create table with links to chromosome reports 
         link = "{0}_mapping.chrom{1}.html"
         df = pd.DataFrame([[formatter.format(chrom.chrom_name,
                 link.format(self.project, chrom.chrom_index)),
