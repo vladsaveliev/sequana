@@ -33,24 +33,22 @@ class ChromosomeMappingReport(BaseReport):
     """Report dedicated to Mapping for one chromosome.
 
     """
-    def __init__(self, chrom_index, low_threshold=-3, high_threshold=3, 
+    def __init__(self, mapping, low_threshold=-3, high_threshold=3, 
             directory="report", project="", **kargs):
         """.. rubric:: constructor
 
         """
+        self.mapping = mapping
         output_filename = "{0}_mapping.chrom{1}.html".format(project, 
-                chrom_index)
+                mapping.chrom_index)
         super(ChromosomeMappingReport, self).__init__(
                 jinja_filename="chromosome/index.html",
                 directory=directory, 
                 output_filename=output_filename, **kargs)
-        self.chrom_index = chrom_index
+        self.chrom_index = mapping.chrom_index
         self.project = project
         self.low_t = low_threshold
         self.high_t = high_threshold
-
-    def set_data(self, data):
-        self.mapping = data
 
     def _generate_submapping(self, low_df, high_df):
         i=0
