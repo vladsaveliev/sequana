@@ -133,17 +133,21 @@ class BaseReport(Report):
             self.jinja['config'] = fin.read()
 
     def copy_html_to_report(self, pattern):
-        easydev.DevTools().mkdir("report")
-        return self._copy_files(pattern, "report")
+        easydev.DevTools().mkdir(self.directory)
+        return self._copy_files(pattern, self.directory)
 
-    def _copy_files(self, pattern, where="report"):
+    def _copy_files(self, pattern, where):
         sources = glob.glob(pattern)
         targets = []
         for source in sources:
+            # ignore the report directory itself
+            if source.startswith(self.directory):
+                continue
             filename = source.rsplit("/", 1)[1]
             target = where + "/" +filename
             # if files are identical, fails
-            try:shutil.copy(source, target) 
+            try:
+                shutil.copy(source, target) 
             except:pass
             targets.append(target.replace("report/", ""))
         return targets
