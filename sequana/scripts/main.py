@@ -48,6 +48,11 @@ An alternative is to use a local config file with the field file1 and file2
 already filled. If you use --config with --file1 (and --file2), then the
 pre-filled fields will be overwritten.
 
+The input-dir is the same as --glob except that input-dir takes all gz whereas
+--glob takes a more specific pattern e.g. *AB*fastq.gz
+
+Note that --glob does not allow the --project to be used  (ignored)
+
 This is also true for the --project that replaces project and other parameters
 that are used to fill the config file:
 """
@@ -370,8 +375,8 @@ def main(args=None):
             fout.write("# %s\n" % " ".join(sys.argv))
             for tag in ff.tags:
                 sa.print("Found %s project" % tag)
-                if options.project is None:
-                    options.project = tag
+                #if options.project is None:
+                options.project = tag
                 options.file1 = ff.get_file1(tag)
                 options.file2 = ff.get_file2(tag)
                 if options.index_mapper:
@@ -537,11 +542,11 @@ def sequana_init(options):
 
         if options.file1 and options.adapter_fwd:
             params["adapter_fwd"] = "file:" + options.adapter_fwd
-            shutil.copy(options.adapter_fwd, target_dir + os.sep + options.adapter_fwd)
+            shutil.move(options.adapter_fwd, target_dir + os.sep + options.adapter_fwd)
 
         if options.file2  and options.adapter_rev:
             params["adapter_rev"] = "file:" + options.adapter_rev
-            shutil.copy(options.adapter_rev, target_dir + os.sep + options.adapter_rev)
+            shutil.move(options.adapter_rev, target_dir + os.sep + options.adapter_rev)
 
         if options.adapters == "universal":
             params["adapter_fwd"] = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCGATGTATCTCGTATGCCGTCTTCTGC"
