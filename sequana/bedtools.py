@@ -51,6 +51,7 @@ class GenomeCov(object):
     Results are stored in a list of :class:`ChromosomeCov` named :attr:`chr_list`.
 
     """
+
     def __init__(self, input_filename=None):
         """.. rubric:: constructor
 
@@ -65,8 +66,9 @@ class GenomeCov(object):
             df = df.set_index("chr", drop=False)
             # Create a list of ChromosomeCov for each chromosome present in the
             # bedtools.
-            self.chr_list = [ChromosomeCov(df.loc[i]) for i in
+            self.chr_list = [ChromosomeCov(df.loc[key]) for key in
                     df.index.unique()]
+            ChromosomeCov.count = 0
         except IOError as e:
             print("I/0 error({0}): {1}".format(e.errno, e.strerror))
 
@@ -115,6 +117,8 @@ class ChromosomeCov(object):
     Results are stored in a dataframe named :attr:`df`.
 
     """
+    count = 0
+
     def __init__(self, df=None):
         """.. rubric:: constructor
 
@@ -124,6 +128,8 @@ class ChromosomeCov(object):
 
         """
         # Chromosome position becomes the index
+        ChromosomeCov.count += 1
+        self.chrom_index = ChromosomeCov.count
         self.df = df.set_index("pos", drop=False)
         self.chrom_name = df["chr"].iloc[0]
 
@@ -133,6 +139,15 @@ class ChromosomeCov(object):
     def __len__(self):
         return self.df.__len__()
 
+    def get_size(self):
+        return self.__len__()
+
+    def get_mean_cov(self):
+        return self.df["cov"].mean()
+
+    def get_var_cov(self):
+        return self.df["cov"].var()
+    
     def moving_average(self, n, label="ma"):
         """Compute moving average of reads coverage
 
