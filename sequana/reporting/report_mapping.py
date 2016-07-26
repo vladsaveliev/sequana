@@ -87,14 +87,12 @@ class MappingReport(BaseReport):
             self.jinja['bam_is_present'] = False
 
         # create table with links to chromosome reports
-        df = pd.DataFrame()
         formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
-        chrom_index = 1
-        for chrom in self.chrom_list:
-            link = "{0}_mapping.chrom{1}.html".format(self.project, chrom_index)
-            df = df.append({"chromosome": formatter.format(
-                chrom.chrom_name, link), "size": "{0:,}".format(len(chrom))}, 
-                ignore_index=True)
-            chrom_index += 1
+        link = "{0}_mapping.chrom{1}.html"
+        df = pd.DataFrame([[formatter.format(chrom.chrom_name,
+                link.format(self.project, chrom.chrom_index)),
+                chrom.get_size(), chrom.get_mean_cov(), chrom.get_var_cov()]
+                for chrom in self.chrom_list], columns=["chromosome", "size",
+                "mean_coverage", "variance_coverage"])
         html = HTMLTable(df)
         self.jinja['list_chromosome'] = html.to_html(index=False)
