@@ -1,15 +1,17 @@
 include: sm.modules['dag']     # Create DAG file
 
 __report_mapping__output = "report/report_mapping.html"
+__report_mapping__quast_input = None
 
 rule report_mapping:
     input:
         dag = "report/dag.svg",
         bed = __report_mapping__input,
-        bam = __bwa_mem_ref__output
+        bam = __report_mapping__bam_input, 
     output:
         __report_mapping__output
     params:
+        quast = __report_mapping__quast_input,
         outdir = "report",
         size = config["report_mapping"]["window_size"],
         high = config["report_mapping"]["high_threshold"],
@@ -40,11 +42,10 @@ rule report_mapping:
         # Report mapping
         r = report_mapping.MappingReport(directory=params.outdir,
             project=cfg.PROJECT)
-        r.set_data(mydata, bam)
+        r.set_data(mydata, bam, params.quast)
         r.create_report()
 
         # Report chromosomes
-        chrom_index = 1
         for chrom in mydata:
             chrom.running_median(n=params.size, circular=params.circular)
             chrom.compute_zscore()
@@ -54,6 +55,5 @@ rule report_mapping:
                 directory=params.outdir, project=cfg.PROJECT)
             r.set_data(chrom)
             r.create_report()
-            chrom_index += 1
 
         shell("cp %s %s/" % (__snakefile__, params.outdir))
