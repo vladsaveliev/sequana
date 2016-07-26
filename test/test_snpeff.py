@@ -9,4 +9,8 @@ def test_snpeff():
     mydata = snpeff.SnpEff(reference=sequana_data("test_snpeff_ref.gb"))
     with TempFile() as fh:
         mydata.launch_snpeff(sequana_data("test.vcf"), fh.name)
+    # cleanup
+    import os
+    try:os.remove("snpEff.config")
+    except:pass
 
