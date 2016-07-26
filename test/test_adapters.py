@@ -1,18 +1,18 @@
-from sequana import adapters 
+from sequana import adapters
 from sequana import sequana_data, FastA
 from easydev import TempFile
 
 
 
 def test_fasta_fwd_rev_to_columns():
-    a1 = sequana_data("adapters_netflex_pcr_free_1_fwd.fa", "data")
-    a2 = sequana_data("adapters_netflex_pcr_free_1_rev.fa", "data")
+    a1 = sequana_data("adapters_PCR-free_PF1_220616_fwd.fa", "data/adapters")
+    a2 = sequana_data("adapters_PCR-free_PF1_220616_rev.fa", "data/adapters")
     f1 = FastA(a1)
     f2 = FastA(a2)
     assert f1 == f1
     assert f1 != f2
-    assert len(f1) == 50
-    assert len(f2) == 50
+    assert len(f1) == 49
+    assert len(f2) == 49
 
     with TempFile() as fh:
         adapters.fasta_fwd_rev_to_columns(a1, a2, fh.name)
@@ -26,7 +26,7 @@ def test_fasta_fwd_rev_to_columns():
 
 
 def test_clean_ngs():
-    a1 = sequana_data("adapters_netflex_pcr_free_1_fwd.fa", "data")
+    a1 = sequana_data("adapters_PCR-free_PF1_220616_fwd.fa", "data/adapters")
     with TempFile() as fh:
         adapters.adapters_to_clean_ngs(a1, fh.name)
 
@@ -37,16 +37,6 @@ def test_adapters_removal_parser():
     assert sorted(results.keys()) == ["adapter1", "adapter2"]
 
 
-def test_adapters_db():
-
-    a1 = sequana_data("adapters_netflex_pcr_free_1_fwd.fa", "data")
-    a2 = sequana_data("adapters_netflex_pcr_free_1_rev.fa", "data")
-    db = adapters.AdapterDB(a1)
-    db.load_fasta(a2)
-    assert len(db.df) == 100
-    assert db.get_name(100000070) == "NextFlex_PCR_Free_adapter20_r"
-    db = adapters.AdapterDB()
-    db.load_all()
 
 
 def test_adapter_reader():
@@ -58,8 +48,8 @@ def test_adapter_reader():
         pass
 
 
-    data1 = sequana_data("adapters_Nextera_cutadapt1.6_fwd.fa", "data")
-    data2 = sequana_data("adapters_Nextera_cutadapt1.6_rev.fa", "data")
+    data1 = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", "data/adapters")
+    data2 = sequana_data("adapters_Nextera_PF1_220616_rev.fa", "data/adapters")
 
     # try different constructors
     ar1 = AR(data1)
@@ -69,7 +59,7 @@ def test_adapter_reader():
     assert ar1 == ar_same
 
     # __eq__
-    assert len(ar1) == 48
+    assert len(ar1) == 54
 
     # accessors
     ar1.sequences, ar1.names, ar1.comments
@@ -77,13 +67,13 @@ def test_adapter_reader():
 
     ar1.get_adapter_by_sequence("ACGT")
     assert ar1.get_adapter_by_index("dummy") is None
-    assert ar1.get_adapter_by_name("Nextera_index517")
+    assert ar1.get_adapter_by_name("Nextera_index_N517|index_dna:N517")
 
     ar2 = AR(data2)
     ar2.reverse()
 
     # fails due to S516 ????????
-    #assert ar1 == ar2
+    assert ar1 == ar2
 
 
 
@@ -100,7 +90,7 @@ def test_find_adapters_from_index_mapper():
     import os
     os.remove(fwd)
     os.remove(rev)
-        
+
 
 
 

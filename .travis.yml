@@ -31,7 +31,7 @@ install:
   - pip install easydev>=0.9.21 --upgrade
   - pip install coveralls
   - pip install tabulate
-  - pip install biokit>=0.3.0
+  - pip install biokit>=0.3.2
   - pip install bioservices>=1.4.11
   - conda install cutadapt pysam pyvcf snpEff krona --yes
 

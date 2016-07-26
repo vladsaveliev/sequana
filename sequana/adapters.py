@@ -126,59 +126,6 @@ def adapter_removal_parser(filename):
     return results
 
 
-class AdapterDB(object):
-    """Utility used in Kraken pipeline
-
-    The name of the Fasta should be formatted as::
-
-        >Name|kraken:taxid|id
-
-    where id is a number starting with 1000000
-
-    .. warning:: AdapterDB may be dropped in the future
-
-    """
-    def __init__(self, filename=None):
-
-        self.df = pd.DataFrame(columns=["name", "sequence",
-            "comment", "identifier", "filename"])
-
-        if filename:
-            self.load_fasta(filename)
-
-    def load_all(self):
-        from sequana.resources.data import adapters as dict_adapters
-        from sequana import sequana_data
-        for k,v in dict_adapters.items():
-            self.load_fasta(sequana_data("%s" % v, "data"))
-
-    def load_fasta(self, filename):
-        from sequana.fasta import FastA
-        adapters = FastA(filename)
-        self.records = []
-        for adapter in adapters:
-            identifier = adapter.name.split("|")[2]
-            record = {
-                'name': adapter.name,
-                "sequence": adapter.sequence,
-                "comment":adapter.comment,
-                "identifier":identifier,
-                "filename":filename}
-            self.records.append(record)
-
-        self.df = self.df.append(self.records)
-        self.df.reset_index(drop=True, inplace=True)
-
-        # check that identifiers should be unique
-        if len(self.df) > len(self.df.identifier.unique()):
-            print("Warn: there are duplicated identifiers in the adapters")
-
-    def get_name(self, identifier):
-        name =  self.df[self.df.identifier == str(identifier)].comment
-        if len(name) == 1:
-            name = list(name)[0]
-        return name
-
 
 class AdapterReader(object):
     """We use FastA as our data structure to store adapters
@@ -338,14 +285,17 @@ class FindAdaptersFromIndex(object):
         """
 
         columns_in = ['sample_name', 'index1', 'index2']
-        self.index_mapper = pd.read_csv(index_mapper, delim_whitespace=True)[columns_in]
+        #self.index_mapper = pd.read_csv(index_mapper, delim_whitespace=True)[columns_in]
+        self.index_mapper = pd.read_csv(index_mapper, sep=",")[columns_in]
         self.index_mapper.columns = ["sample", "index1", "index2"]
         self.index_mapper.set_index('sample', inplace=True)
 
         if adapters == "Nextera":
             from sequana import sequana_data
-            file1 = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", "data")
-            file2 = sequana_data("adapters_Nextera_PF1_220616_rev.fa", "data")
+            file1 = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", 
+                "data/adapters")
+            file2 = sequana_data("adapters_Nextera_PF1_220616_rev.fa",
+                "data/adapters")
 
             self._adapters_fwd = AdapterReader(file1)
             self._adapters_rev = AdapterReader(file2)
