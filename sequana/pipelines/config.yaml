@@ -113,7 +113,8 @@ bwa_phix:
 #################################################################
 # Quality trimming and adapter removal
 #   - quality: 0 means no trimming, 30 means keep base with quality 
-#       above 30
+#       above 30. If paired, you may provide two different values
+#       using e.g. "30,32"
 #   - m: 20 means discard trimmed reads that are shorter than 20.
 #   - tool: only cutadapt supported for now
 #   ref: http://cutadapt.readthedocs.io/
@@ -124,8 +125,13 @@ adapter_removal:
     fwd: "%(adapter_fwd)s"
     rev: "%(adapter_rev)s"
     m: 20   # cutoff
-    mode: "g"   # g for 5' adapter, a for 3' and b for both 5'/3'
-    quality: "%(quality_cutoff)s"
+    mode: "g"   # g for 5' adapter, 
+                # a for 3' 
+                # b for both 5'/3'
+                # In cutadapt, the R1 requires -g and R2 requires -G
+                # Here, we use only the small caps and Sequana takes
+                # care of using the small/big caps when it matters
+    quality: "30"  
     kwargs: "-O 6 --trim-n"
 
 

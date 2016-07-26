@@ -20,6 +20,12 @@ requirements:
     - phiX174.fa
 
 
+# GATK is absent in conda because it is not a free software
+# You must set the GATK bin path.
+# gatk_bin: "java -jar /path/to/GenomeAnalysisTK.jar"
+gatk_bin: GenomeAnalysisTK
+
+
 # Bwa parameter for reference mapping
 bwa_ref:
     reference: "%(reference)s"

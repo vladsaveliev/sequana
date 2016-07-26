@@ -30,12 +30,14 @@ from sequana.reporting import report_mapping
 from sequana.reporting import report_chromosome
 from sequana.reporting import report_main
 
+from easydev import shellcmd
+
 class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana_coverage"):
         usage = """Welcome to SEQUANA - Coverage standalone
 
-            sequana_coverage --bed file.bed --window-median 1001
-            sequana_coverage --bed file.bed --window-median 1001 -r <REFERENCE.fa>
+            sequana_coverage --input file.bed --window-median 1001
+            sequana_coverage --input file.bam --window-median 1001 -r <REFERENCE.fa>
 
 AUTHORS: Thomas Cokelaer, Dimitri Desvillechabrol
 Documentation: http://sequana.readthedocs.io
@@ -48,36 +50,49 @@ Issues: http://github.com/sequana/sequana
                 description=description)
 
         # options to fill the config file
-        self.add_argument("-b", "--bed", dest="bedfile", type=str,
-            required=True, help="""filename of a BED file""")
-        self.add_argument('-r', "--reference", dest="reference", type=str,
-            default=None,help="""reference""") 
+        group = self.add_argument_group("Required argument")
+        group.add_argument("-i", "--input", dest="input", type=str,
+            required=True, help="Input file in BED or BAM format")
 
-        self.add_argument("-g", "--window-gc", dest="w_gc", type=int,
-            help="""Length of the running median window""", default=200)
-        self.add_argument('-c', "--chromosome", dest="chromosome", type=int,
+        group = self.add_argument_group("Optional biological arguments")
+        group.add_argument('-c', "--chromosome", dest="chromosome", type=int,
             default=1,
             help="""Chromosome number (if only one, no need to use)""") 
-        self.add_argument('-n', "--nlevels", dest="levels", type=int,
+        group.add_argument('-o', "--circular", dest="circular",
+            default=False, action="store_true", help="""""") 
+
+        group = self.add_argument_group("General")
+        group.add_argument('--show', dest="show", default=False,
+            action='store_true')
+        group.add_argument('--show-html', dest="show_html", default=False,
+            action='store_true')
+        group.add_argument("-q", "--quiet", dest="verbose", 
+            default=True, action="store_false")
+
+        group = self.add_argument_group("GC content related")
+        group.add_argument('-r', "--reference", dest="reference", type=str,
+            default=None,help="""reference""") 
+        group.add_argument("-g", "--window-gc", dest="w_gc", type=int,
+            help="""Length of the running median window""", default=200)
+        group.add_argument('-n', "--nlevels", dest="levels", type=int,
             default=3,
             help="""Number of levels in the contour""") 
-        self.add_argument('--show', dest="show", default=False,
-            action='store_true')
-        self.add_argument('--show-html', dest="show_html", default=False,
-            action='store_true')
 
         #group running median
-        self.add_argument("-w", "--window-median", dest="w_median", type=int,
+        group = self.add_argument_group("Running Median related")
+        group.add_argument("-w", "--window-median", dest="w_median", type=int,
             help="""Length of the running median window""", default=1001)
-        self.add_argument("-L", "--lower-zscore", dest="lower_zscore",
+
+        group.add_argument("-L", "--low-threshold", dest="low_threshold",
             default=-3, type=float,
-            help="lower threshold of the confidence interval")
-        self.add_argument("-H", "--higher-zscore", dest="higher_zscore",
+            help="lower threshold (zscore) of the confidence interval")
+        group.add_argument("-H", "--high-threshold", dest="high_threshold",
+            default=3, type=float,
+            help="higher threshold (zscore) of the confidence interval")
+        group.add_argument("-T", "--threshold", dest="threshold",
             default=3, type=float,
             help="higher threshold of the confidence interval")
 
-        self.add_argument('-o', "--circular", dest="circular",
-            default=False, action="store_true", help="""""") 
 
 
 def main(args=None):
@@ -95,8 +110,21 @@ def main(args=None):
 
     # We put the import here to make the --help faster
     from sequana import GenomeCov
-    print("Reading %s" % options.bedfile)
-    gc = GenomeCov(options.bedfile)
+    if options.verbose:
+        print("Reading %s" % options.input)
+
+    if options.input.endswith(".bam"):
+        bedfile = options.input.replace(".bam", ".bed")
+        if options.verbose:
+            print("Converting BAM into BED file")
+        shellcmd("bedtools genomecov -d -ibam %s > %s" % (options.input, bedfile))
+    elif options.input.endswith(".bed"):
+        bedfile = options.input
+    else:
+        raise ValueError("Input file must be a BAM or BED file")
+
+    gc = GenomeCov(bedfile)
+
     if options.reference:
         print('Computing GC content')
         gc.compute_gc_content(options.reference, options.w_gc)
@@ -108,18 +136,27 @@ def main(args=None):
     else:
         chrom = gc.chr_list[options.chromosome-1]
 
-    print('Computing running median')
+    if options.verbose:
+        print('Computing running median')
+
     chrom.running_median(n=options.w_median, circular=options.circular)
-    print('Computing zscore')
+
+    if options.verbose:
+        print('Computing zscore')
+
     chrom.compute_zscore()
 
     from pylab import show, figure
 
     figure(1)
-    chrom.plot_coverage(low_threshold=options.lower_zscore, high_threshold=options.higher_zscore)
+    chrom.plot_coverage(low_threshold=options.low_threshold,
+        high_threshold=options.high_threshold)
+
+    # With the reference, we can plot others plots such as GC versus coverage
     if options.reference:
         figure(2)
         chrom.plot_gc_vs_coverage(Nlevels=options.levels, fontsize=20)
+
     if options.show:
         show()
 
@@ -132,8 +169,8 @@ def main(args=None):
     # Report chromosomes
     chrom_index = options.chromosome
     r = report_chromosome.ChromosomeMappingReport(chrom_index,
-        low_threshold=options.lower_zscore, 
-        high_threshold=options.higher_zscore,
+        low_threshold=options.low_threshold, 
+        high_threshold=options.high_threshold,
         directory="report", project="coverage")
     r.set_data(chrom)
     r.create_report()

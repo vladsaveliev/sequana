@@ -35,7 +35,7 @@ rule bwa_mem__%(name)s:
         mem = config["bwa_%(name)s"]["mem"]["options"],
         rg = config["bwa_%(name)s"]["mem"]["read_groups"]
     threads:
-        config["bwa_%(name)s"]["mem"]["threads"]
+        int(config["bwa_%(name)s"]["mem"]["threads"])
     shell:
         """
         # Symbolic link of the reference

@@ -8,8 +8,8 @@ testing = lambda x: sequana_data(x, "testing")
 def test_dot_parser():
     s = DOTParser(testing("test_dag.dot"))
     s.add_urls()
-    #try:os.remove("test_dag.ann.dot")
-    #except:pass
+    try:os.remove("test_dag.ann.dot")
+    except:pass
 
 def test_modules():
     assert "dag" in snaketools.modules.keys()
@@ -32,6 +32,8 @@ def test_expanded_snakefile():
     try:
         s = snaketools.ExpandedSnakeFile(filename)
         s.expand()
+        try:os.remove("Snakefile.expanded")
+        except:pass
     except ImportError:
         assert True
     #TODO remove the file just created (Snakefile.expanded)

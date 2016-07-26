@@ -135,3 +135,27 @@ class SnpEff(object):
         with open(output, "wb") as fp:
             proc_ann = sp.Popen(args_ann, stdout=fp)
             proc_ann.wait()
+
+
+
+def download_fasta_and_genbank(identifier, tag):
+    """
+
+    :param identifier: valid identifier to retrieve from NCBI (genbank) and 
+        ENA (fasta)
+    :param tag: name of the filename for the genbank and fasta files.
+    """
+    from bioservices import EUtils
+    eu = EUtils()
+    data = eu.EFetch(db="nuccore",id="K01711.1", rettype="gbwithparts",
+        retmode="text")
+    with open("%s.gbk" %  tag, "w") as fout:
+        fout.write(data.decode())
+
+    from bioservices import ENA
+    ena = ENA()
+    data = ena.get_data('K01711', 'fasta')
+    with open("%s.fa" % tag, "w") as fout:
+        fout.write(data.decode())
+
+

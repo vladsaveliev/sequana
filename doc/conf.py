@@ -56,24 +56,25 @@ from easydev import get_path_sphinx_themes
 
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
+    'sphinx.ext.imgmath',
+    #('sphinx.ext.imgmath'  # only available for sphinx >= 1.4
+    #              if sphinx.version_info[:2] >= (1, 4)
+    #              else 'sphinx.ext.pngmath'),
     'sphinx.ext.coverage',
-    'sphinx.ext.graphviz',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     "numpydoc.numpydoc",
-    'easydev.copybutton',
+    #'easydev.copybutton',
     'matplotlib.sphinxext.plot_directive',
-    #('sphinx.ext.imgmath'  # only available for sphinx >= 1.4
-    #              if sphinx.version_info[:2] >= (1, 4)
-    #              else 'sphinx.ext.pngmath'),
+    'sphinx.ext.autosummary',
     'sphinx_gallery.gen_gallery'
     ]
 # note that the numpy directives is buggy. Example: class and init are not recognised as two entities for the autoclass_content=both here below
 
+math_number_all = False
 
 todo_include_todos=True
 jscopybutton_path = "copybutton.js"

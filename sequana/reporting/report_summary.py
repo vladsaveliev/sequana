@@ -150,8 +150,6 @@ class SequanaSummary(BaseReport):
         if os.path.exists(filename):
             self.devtools.shellcmd("cp %s report/images/kraken_pie.png" % filename)
             self.jinja['kraken_pie'] = "images/kraken_pie.png"
-        else:
-            self.config.config['kraken']['do'] = False
 
     def include_phix(self):
         filename="bwa_bam_to_fastq/bwa_mem_stats.json"

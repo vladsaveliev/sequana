@@ -31,7 +31,26 @@ from easydev import DevTools
 import sequana
 from sequana.snaketools import FastQFactory
 from sequana.adapters import FindAdaptersFromIndex
+import sequana.snaketools as sm
+from sequana import Module, SequanaConfig, sequana_data
 
+
+help_input = """Incorrect combo of parameters.
+
+You must provide one of those combinations:
+
+  - one or two input files using --file1 (and --file2) if file2 provided, file1
+    must be provided
+  - the directory where to find the files with --input-dir
+  - a pattern using --glob surrounded with quotes e.g. "*.fastq.gz"
+
+An alternative is to use a local config file with the field file1 and file2
+already filled. If you use --config with --file1 (and --file2), then the
+pre-filled fields will be overwritten.
+
+This is also true for the --project that replaces project and other parameters
+that are used to fill the config file:
+"""
 
 
 class Tools(object):
@@ -42,30 +61,34 @@ class Tools(object):
     def error(self, txt):
         print(red(txt))
         sys.exit(1)
-    def purple(self, txt):
-        if self.verbose: print(purple(txt))
-    def red(self, txt):
-        if self.verbose: print(red(txt))
-    def green(self, txt):
-        if self.verbose: print(green(txt))
-    def blue(self, txt):
-        if self.verbose: print(blue(txt))
+    def purple(self, txt, force=False):
+        if self.verbose or force is True: 
+            print(purple(txt))
+    def red(self, txt, force=False):
+        if self.verbose or force is True: 
+            print(red(txt))
+    def green(self, txt, force=False):
+        if self.verbose or force is True: 
+            print(green(txt))
+    def blue(self, txt, force=False):
+        if self.verbose or force is True: 
+            print(blue(txt))
     def onweb(self, link):
         from easydev import onweb
         onweb(link)
     def mkdir(self, name):
         self.dv.mkdir(name)
-    def print(self, txt):
-        if self.verbose: print(txt)
+    def print(self, txt, force=False):
+        if self.verbose or force: print(txt)
 
 
 class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana"):
         usage = """Welcome to SEQUANA standalone
 
-            sequana --pipeline phix_removal
-            sequana --pipeline <sequana pipeline>  --file1 A.fastq.gz --project test
-            sequana --pipeline <sequana pipeline>  --input-dir ../
+            sequana --pipeline quality
+            sequana --pipeline quality  --file1 A.fastq.gz --project myname
+            sequana --pipeline variant_calling  --input-dir ../
             sequana --show-pipelines
             sequana --version
 
@@ -88,7 +111,6 @@ Issues: http://github.com/sequana/sequana
         on http://sequana.readthedocs.io or the source code on GitHub at
         http://github.com/sequana/sequana
         """
-
         super(Options, self).__init__(usage=usage, prog=prog,
                 description=description)
 
@@ -98,7 +120,7 @@ Issues: http://github.com/sequana/sequana
                 action="store_true", help="print version")
         group.add_argument("--quiet", dest="verbose", default=True,
                           action="store_false")
-        group.add_argument("--force-init", dest='force_init',
+        group.add_argument("--force", dest='force',
                 action="store_true",
                 help="""Does not ask for permission to create the files (overwrite
                     existing ones)""")
@@ -107,13 +129,6 @@ Issues: http://github.com/sequana/sequana
 
         group.add_argument("--issue", dest='issue',
                           action="store_true", help="Open github issue page")
-        # Here we can use either --check-config <name> or  justg --check-config
-        # So we must use nargs="?" but in such case, the default is stored in
-        # const= so that if one does not use the --check-config, the default is
-        # None but if one use it (without argument), the default is config.yaml
-        group.add_argument("--check-config", dest='check_config',
-                default=None, nargs="?", const="config.yaml" ,
-                help="Check config file (e.g. that files exist or YAML is correct)")
 
 
         group = self.add_argument_group("PIPELINES")
@@ -133,9 +148,16 @@ Issues: http://github.com/sequana/sequana
                 action="store_true", help="print names of the available pipelines")
 
 
-
         group = self.add_argument_group("CONFIGURATION")
         # options to fill the config file
+        group.add_argument('--config', dest="config", type=str,
+            default=None,
+            help="""The default config file can be overwritten with a local file
+(if found) or from a sequana file. For instance, if the quality_taxon module
+directory contains a config file named config_test.yaml, then you can use it
+with this option by just giving the name. Given the pipeline name, this utility
+will fetch the config file automatically from sequana library.""")
+
         group.add_argument("--file1", dest="file1", type=str,
             help=""" Fills the *samples:file1* field in the config file. To be used
                 with --init option""")
@@ -144,6 +166,12 @@ Issues: http://github.com/sequana/sequana
                 with --init option""")
         group.add_argument("--glob", dest="glob", type=str,
                           help="a glob to find files. You can use wildcards")
+        group.add_argument("--input-dir", dest="input_dir", type=str,
+            help="""Search for a pair (or single) of reads in the directory, and
+                fills automatically the project and file1/file2 fields in the config
+                file. To be used with --init option. If more than two files or not
+                files ending in fastq.gz are found, an error is raised.""")
+
         group.add_argument("--project", dest="project", type=str,
             help=""" Fills the *project* field in the config file. To be used
                 with --pipeline option""")
@@ -152,12 +180,6 @@ Issues: http://github.com/sequana/sequana
                 with --init option""")
         group.add_argument("--reference", dest="reference", type=str,
             help=""" Fills the *reference* in bwa_ref section. To be used with --init option""")
-        group.add_argument("--input-dir", dest="input_dir", type=str,
-            help="""Search for a pair (or single) of reads in the directory, and
-                fills automatically the project and file1/file2 fields in the config
-                file. To be used with --init option. If more than two files or not
-                files ending in fastq.gz are found, an error is raised.""")
-
 
         group = self.add_argument_group("ADAPTER and QUALITY related")
         group.add_argument("--no-adapters", dest="no_adapters", default=False,
@@ -172,39 +194,55 @@ Issues: http://github.com/sequana/sequana
             help="""a CSV file with 3 columns named 'sample name', 'index1','index2' """)
         group.add_argument("--adapters", dest="adapters", type=str,
             help="""set to universal_nextera, universal_pcrfree""")
-        group.add_argument("--quality-cutoff", dest="quality_cutoff", type=str,
-                          default="30",
-            help="""cutoff for single read or paired-end. If single read,
-            provide a number between 0 and 40 e.g., 30 means remove all reads
-            with quality below 30 (te details about the algorithm can be found
-            in sequana documentation. For paired-end, provide a string as 30,30
-            with two numbers separated by a comma (no space)""")
-        group.add_argument("--quality", dest="quality_cutoff", type=str,
-                          default="30",
-                          help="""cutoff for single read or paired-end. If single read,
-            provide a number between 0 and 40 e.g., 30 means remove all reads
-            with quality below 30 (te details about the algorithm can be found
-            in sequana documentation. For paired-end, provide a string as 30,30
-            with two numbers separated by a comma (no space)""")
+
+        group.add_argument("--config-params", dest="config_params", 
+            type=str, 
+            help="""Overwrite any field in the config file by using
+                    the following convention. A config file is in YAML format
+                    and has a hierarchy of parametesr. For example:
+
+                    project: tutorial
+                    samples:
+                        file1: R1.fastq.gz
+                        file2: R2.fastq.gz
+                    bwa_phix:
+                        mem:    
+                            threads: 2
+
+                Here we have 3 sections with 1,2,3 levels respectively. On the
+                command line, each level is separated by a : sign and each
+                meter to be changed separated by a comma. So to change the
+                project name and threads inside the bwa_phix section use:
+
+                --config-params project:newname, bwa_phix:mem:threads:4
+                
+                Be aware that when using --config-params, all comments are
+removed.""")
 
         # ====================================================== CLUSTER
-        group = self.add_argument_group("Cluster",
-            """cluster related (LSF, slurm, ...)
+        group = self.add_argument_group("Snakemake and cluster related",
+            """When launching the pipeline, one need to use the snakemake
+command, which is written in the runme.sh file. One can tune that command to
+define the type of cluster command to use
             """)
-        group.add_argument("--cluster", dest="cluster", type=str,
+        group.add_argument("--snakemake-cluster", dest="cluster", type=str,
                           help="""a valid snakemake option dedicated to a cluster.
                           e.g on LSF cluster --cluster 'qsub -cwd -q<QUEUE> '"""
                           )
-        group.add_argument("--jobs", dest="jobs", type=int, default=4,
+        group.add_argument("--snakemake-jobs", dest="jobs", type=int, default=4,
                           help="""jobs to use on a cluster"""
                           )
-        group.add_argument("--forceall", dest="forceall", action='store_true',
+        group.add_argument("--snakemake-forceall", dest="forceall", action='store_true',
                           help="""add --forceall in the snakemake command"""
                           )
 
 
 def main(args=None):
+    """Mostly checking the options provided by the user and then call
+    :func:`sequana_init` function to create the pre-filled config file +
+    snakemake + README +runme.sh in a dedicated project directory.
 
+    """
     if args is None:
         args = sys.argv[:]
 
@@ -213,19 +251,34 @@ def main(args=None):
     # If --help or no options provided, show the help
     if len(args) == 1:
         sa = Tools()
+        sa.purple("Welcome to Sequana standalone application")
         sa.error("You must use --pipeline <valid pipeline name>\nuse --show-pipelines or --help for more information")
-        user_options.parse_args(["prog", "--help"])
+        return
     else:
-       options = user_options.parse_args(args[1:])
+        options = user_options.parse_args(args[1:])
+
     sa = Tools(verbose=options.verbose)
+    sa.purple("Welcome to Sequana standalone application")
 
     # We put the import here to make the --help faster
     from sequana.snaketools import pipeline_names as valid_pipelines
 
+    # Those options are mutually exclusive
+    flag = int("%s%s%s%s%s" % (
+            int(bool(options.issue)),
+            int(bool(options.version)),
+            int(bool(options.info)),
+            int(bool(options.show_pipelines)),
+            int(bool(options.pipeline)),
+            ), 2)
+    if flag not in [1,2,4,8,16]:
+        sa.error("You must use one of --pipeline, --info, "
+            "--show-pipelines, --issue, --version ")
 
     # OPTIONS that gives info and exit
     if options.issue:
-        sa.onweb('https://github.com/sequana/sequana//issues')
+        sa.onweb('https://github.com/sequana/sequana/issues')
+
     if options.version:
         import sequana
         sa.purple("Sequana version %s" % sequana.version)
@@ -243,17 +296,6 @@ def main(args=None):
         module.onweb()
         return
 
-    if options.check_config:
-        from sequana import SequanaConfig
-        cfg = SequanaConfig(options.check_config)
-        # file1 must always be defined
-        if os.path.exists(cfg.config.samples.file1) is False:
-            print(red("%s does not exists. Please edit %s (samples:file1)" %
-(cfg.config.samples.file1, options.check_config)))
-            return
-        sa.purple("The %s looks good" % options.check_config)
-        return
-
     # In all other cases we must have either --pipeline, --run or --info (mutually
     # exclusive
     if options.pipeline and options.info:
@@ -263,17 +305,19 @@ def main(args=None):
         # check validity of the pipeline name
         if options.pipeline not in valid_pipelines:
             txt = "".join([" - %s\n" % this for this in valid_pipelines])
-            sa.error("%s not a valid pipeline name. Use of one:\n" %
-options.pipeline
+            sa.error("%s not a valid pipeline name. Use of one:\n" % options.pipeline
                      + txt)
 
     # If user provides file1 and/or file2, check the files exist
     if options.file1 and os.path.exists(options.file1) is False:
         raise ValueError("%s does not exist" % options.file1)
+
     if options.file2 and os.path.exists(options.file2) is False:
         raise ValueError("%s does not exist" % options.file2)
+
     if options.kraken and os.path.exists(options.kraken) is False:
         raise ValueError("%s does not exist" % options.kraken)
+
     if options.adapter_rev and os.path.exists(options.adapter_rev) is False:
         with open("adapter_rev.fa", "w") as fout:
             fout.write(">user\n%s" % options.adapter_rev)
@@ -283,12 +327,31 @@ options.pipeline
             fout.write(">user\n%s" % options.adapter_fwd)
         options.adapter_fwd = "adapter_fwd.fa"
 
+    # check valid combo of --glob / --fileX --input-dir
+    # the 3 options are mutually exclusive
+    flag = int("%s%s%s%s" % (
+            int(bool(options.input_dir)),
+            int(bool(options.glob)),
+            int(bool(options.file1)),
+            int(bool(options.config)),
+            ), 2)
 
+    # config file has flag 1, others have flag 2,4,8
+    # config file can be used with 2,4,8 so we also add 2+1, 4+1, 8+1
+    if flag not in [1, 2, 4, 8, 3, 5, 9]:
+        sa.error(help_input + "\n\nUse --help for more information")
+
+    if options.project is None:
+        sa.blue("Note that --project was not provided. Will infer project " +\
+                "name from the prefix of the filenames (before first " +\
+                 "underscore)")
+
+    # input_dir is nothing else than a glob to fastq.gz files
     if options.input_dir:
         options.glob = options.input_dir + os.sep + "*fastq.gz"
 
-
     # If a glob is used, we may have multiple project to handle
+    # This is done using the FastQFactory class
     if options.glob:
         ff = FastQFactory(options.glob)
         if options.index_mapper:
@@ -330,13 +393,8 @@ options.pipeline
 
     # If --input-dir or --glob were not used, we now try to use the --file1 and --file2
     # options. We need to get the project name if not provided
-    if options.file1 is None and options.file2 is None:
-        if options.force_init is True:
-            pass
-        else:
-            sa.error("You must provide one or two input files using"
-                " --input-dir or --glob or a combo of --file1 and --file2. In "
-                "the later case, you must provide at least --file1 (single-end)")
+    if options.file1 is None and options.file2 is None and options.config is None:
+        sa.error(help_input)
     elif options.file1 and options.file2 is None:
         ff = FastQFactory([options.file1])
         if options.project is None:
@@ -348,58 +406,48 @@ options.pipeline
 
     if options.pipeline:
         sequana_init(options)
-    elif options.info:
-        from sequana import Module
-        module = Module(options.info)
-        module.onweb()
-        return
 
     if options.no_adapters is True and options.pipeline in ['quality', 'quality_taxon']:
-        print("You did not provide information about adapters. You will have"
+        sa.red("You did not provide information about adapters. You will have"
             "to edit the config.yaml file to fill that information")
+
 
 def sequana_init(options):
     sa = Tools(verbose=options.verbose)
-    import sequana.snaketools as sm
-    from sequana import Module, SequanaConfig, sequana_data
 
     if options.project is None:
-        options.project = input(red("No project name provided (use --project). "
-            "Enter a project name:"))
+        options.project = input(red("No project name provided and could not" + \
+            " infer it (use --project). Enter a project name:"))
 
     target_dir = options.project
-    sa.verbose = True
-    sa.blue("Creating project '" + target_dir +"'")
-    sa.verbose = options.verbose
+    sa.blue("Creating project directory (use --project to overwrite the " + \
+            "inferred value): '" + options.project +"'", force=True)
 
-    try:
-        module = Module(options.pipeline)
-    except:
-        sa.red("Invalid module name provided (%s). " % options.pipeline)
-        sa.print("Valid pipeline names are:")
-        for this in sm.pipeline_names:
-            sa.print(" - %s" % this)
-        sys.exit(1)
+    module = Module(options.pipeline)
 
     # the module exists, so let us now copy the relevant files that is
     # the Snakefile, the config and readme files:
-    if os.path.exists(target_dir):
-        sa.print("Will override the following files if present: %s.rules" %
-options.pipeline)
-        if options.force_init is True:
+    if os.path.exists(options.project):
+        txt = "Will override the following files if present: %s.rules " +\
+              "config.yaml, runme.sh, ..."
+        sa.blue(txt % options.pipeline)
+
+        if options.force is True:
             choice = "y"
         else:
             choice = input(red("Do you want to proceed ? [y]/n:"))
+
         if choice == "n":
             sys.exit(0)
     else:
-        sa.print(purple("Creating %s directory" % options.project))
+        sa.purple("Creating %s directory" % options.project)
         sa.mkdir(options.project)
 
+    # Copying snakefile
     sa.print("Copying snakefile")
     shutil.copy(module.snakefile, target_dir + os.sep + options.pipeline + ".rules")
 
-
+    # Creating README to print on the screen and in a file
     txt = "User command::\n\n"
     txt += "    %s \n\n" % " ".join(sys.argv)
     txt += "You can now run snakemake yourself or type::"
@@ -427,18 +475,39 @@ options.pipeline)
     with open(target_dir + os.sep + "README", "w") as fh:
         fh.write(txt.replace("\x1b[35m","").replace("\x1b[39;49;00m", ""))
 
+    # Creating Config file
     sa.print("Creating the config file")
+
     # Create (if needed) and update the config file
     config_filename = target_dir + os.sep + "config.yaml"
-    #if os.path.exists(config_filename) is False or options.force_init:
-    #    shutil.copy(module.config, target_dir + os.sep + "config.yaml")
-    shutil.copy(module.config, target_dir + os.sep + "config.yaml")
 
-    # Update the config file if possible
+    if options.config:
+        if os.path.exists(options.config):
+            shutil.copy(options.config, config_filename)
+        else:
+            # identify config name from the requested module
+            user_config = module.path + os.sep + options.config
+            if os.path.exists(user_config):
+                shutil.copy(user_config, config_filename)
+            else:
+                txt = "%s does not exists locally or within Sequana "+\
+                      "library (%s pipeline)"
+                raise FileExistsError(txt % (user_config, options.pipeline))
+    else:
+        shutil.copy(module.config, config_filename)
+
+    # Update the config file if possible. first we read back the config file
+    # requested
     with open(config_filename, "r") as fin:
         config_txt = fin.read()
 
-    #print(options)
+    # and save it back filling it with relevant information such as 
+    # - project
+    # - file1 
+    # - file2 
+    # - kraken db
+    # - reference for the bwa_ref
+    # - adapter
     with open(config_filename, "w") as fout:
         from collections import defaultdict
         params = defaultdict(str)
@@ -478,39 +547,49 @@ options.pipeline)
             params["adapter_fwd"] = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCGATGTATCTCGTATGCCGTCTTCTGC"
             params["adapter_rev"] = "TCTAGCCTTCTCGCAGCACATCCCTTTCTCACATCTAGAGCCACCAGCGGCATAGTAA"
 
-        if options.quality_cutoff:
-            # TODO handle single read
-            if options.file2 is None:
-                params['quality_cutoff'] = options.quality_cutoff
-            else:
-                params['quality_cutoff'] = "%s,%s" % (options.quality_cutoff, options.quality_cutoff)
-
         fout.write(config_txt % params)
 
     # figure out from the config file if any files are required
-    try:
-        # stop here if the file does not exists
+    cfg = SequanaConfig(config_filename)
+    if 'requirements' in cfg.config.keys():
+        for requirement in cfg.config.requirements:
+            if requirement.startswith('http') is False:
+                from sequana import sequana_data
+                sa.print('Copying %s from sequana' % requirement)
+                shutil.copy(sequana_data(requirement, "data"), target_dir)
+            elif requirement.startswith("http"):
+                from sequana.misc import wget
+                sa.print("This file %s will be needed" % requirement)
+                wget(requirement)
+
+    # FIXME If invalid, no error raised 
+    if options.config_params:
         cfg = SequanaConfig(config_filename)
-        if 'requirements' in cfg.config.keys():
-            for requirement in cfg.config.requirements:
-                if requirement.startswith('http') is False:
-                    from sequana import sequana_data
-                    sa.print('Copying %s from sequana' % requirement)
-                    shutil.copy(sequana_data(requirement, "data"), target_dir)
-                elif requirement.startswith("http"):
-                    from sequana.misc import wget
-                    sa.print("This file %s will be needed" % requirement)
-                    wget(requirement)
+        params = [this.strip() for this in options.config_params.split(",")]
+        for param in params:
+            if param.count(":") not in [1,2, 3]:
+                txt = "incorrect format following --config-params"
+                txt += "Expected at least one : sign or at most 2 of them"
+                txt += "Config file section such as :\n"
+                txt += "project: tutorial\n"
+                txt += "should be encoded project:tutorial"
+                raise ValueError(txt)
+            if param.count(":") == 1:
+                k,v = param.split(':')
+                cfg.config[k] = v
+            elif param.count(":") == 2:
+                k1,k2,v = param.split(":")
+                cfg.config[k1][k2] = v
+            elif param.count(":") == 3:
+                k1,k2,k3,v = param.split(":")
+                cfg.config[k1][k2][k3] = v
+        cfg.save(config_filename)
 
-    except Exception as err:
-        print(err)
-        print("No config file found")
-
+    # Creating a unique runme.sh file
     with open(target_dir + os.sep + "runme.sh", "w") as fout:
-        import sequana
         cmd = "#!/usr/sh\n"
-        cmd += "# generated with sequana version %s with this command\n"
-        cmd += "# %s\n" % sys.argv
+        cmd += "# generated with sequana version %s with this command:\n" % sequana.version
+        cmd += "# %s\n" % " ".join(sys.argv)
         cmd += "snakemake -s %(project)s.rules --stats report/stats.txt -p -j %(jobs)s"
         if options.forceall:
             cmd += " --forceall "
@@ -535,10 +614,12 @@ import time
 directories = glob.glob("*")
 
 for this in directories:
-    if os.path.isdir(this) and this not in ['data', 'report']:
+    if os.path.isdir(this) and this not in ['logs', 'data', 'report']:
         print('Deleting %s' % this)
-        time.sleep(0.5)
+        time.sleep(0.2)
         shellcmd("rm -rf %s" % this)
+shellcmd("rm -f *rules README runme.sh *fa config.yaml")
+shellcmd("rm -f cleanme.py")
 """)
 
     sa.green("Initialisation of %s succeeded" % target_dir)
@@ -552,6 +633,17 @@ for this in directories:
 
 
     ## --cluster "qsub -cwd -qQUEUE -V -e -o "
+
+
+def check_config(config):
+    from sequana import SequanaConfig
+    cfg = SequanaConfig(config)
+    # file1 must always be defined
+    if os.path.exists(cfg.config.samples.file1) is False:
+        print(red("%s does not exists. Please edit %s (samples:file1)" %
+(cfg.config.samples.file1, check_config)))
+        return
+    sa.purple("The %s looks good" % check_config)
 
 
 
