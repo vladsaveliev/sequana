@@ -470,10 +470,10 @@ class SequanaConfig(object):
         for k1 in sorted(self.config.keys()):
             v1 = self.config[k1]
             if isinstance(v1, dict):
-                txt += "%s\n" %  k1
+                txt += "%s:\n" %  k1
                 for k2, v2 in v1.items():
                     if isinstance(v2, dict):
-                        txt += "    %s\n" %  k2
+                        txt += "    %s:\n" %  k2
                         for k3,v3 in v2.items():
                             txt += "        %s: '%s'\n" % (k3, v3)
                     elif isinstance(v2, list):
@@ -482,7 +482,7 @@ class SequanaConfig(object):
                         txt += '    %s: "%s"\n' % (k2, v2)
 
             elif isinstance(v1, list):
-                txt += "%s\n" %  k1
+                txt += "%s:\n" %  k1
                 for item in self.config[k1]:
                     txt += "    - %s\n" % item
             else:
