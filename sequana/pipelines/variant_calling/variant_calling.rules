@@ -41,6 +41,7 @@ if config["report_mapping"]["do"]:
     
     __report_mapping__input = __bedtools_genomecov__output
     include: sm.modules["report_mapping"]
+    __report_mapping__bam_input = __bwa_mem_ref__output
     final_output.append(__report_mapping__output)
 
 # Mark duplicates
