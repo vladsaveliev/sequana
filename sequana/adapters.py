@@ -125,6 +125,7 @@ def adapter_removal_parser(filename):
                 results[name] = sequence
     return results
 
+
 class Adapter():
     def __init__(self, name, sequence, index="undefined", comment="nocomment"):
         self._comment = comment
@@ -163,6 +164,9 @@ class Adapter():
                 "comment":self.comment, "sequence":self.sequence}
         return txt
 
+    def __repr__(self):
+        return self.__str__()
+
 
 class AdapterReader(object):
     """We use FastA as our data structure to store adapters
@@ -196,26 +200,26 @@ class AdapterReader(object):
             # comments once for all. This has also the adavantage that data can now
             # be changed on the fly
             fasta = FastA(filename)
-            self.data = [self._to_read(this) for this in fasta]
+            self._data = [self._to_read(this) for this in fasta]
         elif isinstance(filename, AdapterReader):
-            self.data = [self._to_read(this) for this in filename.data]
+            self._data = [self._to_read(this) for this in filename._data]
         elif isinstance(filename, list):
-            self.data = [self._to_read(this) for this in filename]
+            self._data = [self._to_read(this) for this in filename]
         self.sanity_check()
 
     def __len__(self):
-        return len(self.data)
+        return len(self._data)
 
     def _get_names(self):
-        return [this.name for this in self.data]
+        return [this.name for this in self._data]
     names = property(_get_names)
 
     def _get_seq(self):
-        return [this.sequence for this in self.data]
+        return [this.sequence for this in self._data]
     sequences = property(_get_seq)
 
     def _get_comments(self):
-        return [this.comment for this in self.data]
+        return [this.comment for this in self._data]
     comments = property(_get_comments)
 
     def sanity_check(self):
@@ -233,11 +237,16 @@ class AdapterReader(object):
         :return: Name and sequence in FASTA format that have the user *sequence*
             contained in their sequence
         """
-        adapters = [str(this) for this in self if sequence in this.sequence]
+        adapters = []
+        for this in self._data:
+            if sequence in this.sequence:
+                this_adapter = Adapter(name=this.name, sequence=this.sequence,
+                    comment=this.comment)
+                adapters.append(this_adapter)
         if len(adapters) == 0:
             return None
         else:
-            return "\n".join(adapters)
+            return adapters
 
     def get_adapter_by_name(self, text):
         """Return adapter whose name matches the user text
@@ -248,7 +257,13 @@ class AdapterReader(object):
         :return: the adapter that match the index_name (if any) otherwise
             returns None
         """
-        adapters = [str(this) for this in self.data if text in this.name]
+        adapters = []
+        for this in self._data:
+            if text in this.name:
+                this_adapter = Adapter(name=this.name, sequence=this.sequence,
+                    comment=this.comment)
+                adapters.append(this_adapter)
+
         if len(adapters) == 0:
             return None
         elif len(adapters) == 1:
@@ -267,7 +282,13 @@ class AdapterReader(object):
         """
         """Return FASTA corresponding to the index"""
         # there should be only one
-        adapters = [str(this) for this in self.data if index_name in this.name]
+        adapters = []
+        for this in self._data:
+            if index_name in this.name:
+                this_adapter = Adapter(name=this.name, sequence=this.sequence,
+                    comment=this.comment)
+                adapters.append(this_adapter)
+
         if len(adapters) == 0:
             return None
         elif len(adapters) == 1:
@@ -284,10 +305,10 @@ class AdapterReader(object):
         return d
 
     def __getitem__(self, i):
-        return self.data[i]
+        return self._data[i]
 
     def to_dict(self):
-        d1 = [(this.name, [this.comment, this.sequence]) for this in self.data]
+        d1 = [(this.name, [this.comment, this.sequence]) for this in self._data]
         return dict(d1)
 
     def __eq__(self, other):
@@ -298,13 +319,13 @@ class AdapterReader(object):
 
     def reverse(self):
         """Reverse all sequences internally"""
-        for this in self.data:
+        for this in self._data:
             this.sequence = this.sequence[::-1]
 
     def to_fasta(self, filename):
         """Save sequences into fasta file"""
         with open(filename, "w") as fout:
-            for i, this in enumerate(self.data):
+            for i, this in enumerate(self._data):
                 if i>0:
                     fout.write("\n")
                 fout.write(">%s\t%s\n%s" % (this.name, this.comment, this.sequence))
@@ -383,16 +404,16 @@ class FindAdaptersFromIndex(object):
         file_fwd = output_dir + os.sep + "%s_adapters_fwd.fa"% sample_name
         with open(file_fwd, "w") as fout:
             if include_universal:
-                fout.write(adapters['universal']['fwd']+"\n")
-            fout.write(adapters['index1']['fwd']+"\n")
-            fout.write(adapters['index2']['fwd']+"\n")
+                fout.write(str(adapters['universal']['fwd'])+"\n")
+            fout.write(str(adapters['index1']['fwd'])+"\n")
+            fout.write(str(adapters['index2']['fwd'])+"\n")
 
         file_rev = output_dir + os.sep + "%s_adapters_rev.fa" % sample_name
         with open(file_rev, "w") as fout:
             if include_universal:
-                fout.write(adapters['universal']['rev']+"\n")
-            fout.write(adapters['index1']['rev']+"\n")
-            fout.write(adapters['index2']['rev']+"\n")
+                fout.write(str(adapters['universal']['rev'])+"\n")
+            fout.write(str(adapters['index1']['rev'])+"\n")
+            fout.write(str(adapters['index2']['rev'])+"\n")
 
         return file_fwd, file_rev
 
