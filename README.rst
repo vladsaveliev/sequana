@@ -17,7 +17,10 @@ SEQUANA
 :Python version: 3.5 (and 2.7 without snakemake)
 :Online documentation: `On readthedocs <http://sequana.readthedocs.org/>`_
 :Issues and bug reports: `On github <https://github.com/sequana/sequana/issues>`_
-:How to Cite: http://f1000research.com/posters/5-1767
+:How to cite: Desvillechabrol D, Bouchier C, Cokelaer T and Kennedy S. Sequana: a set of
+    flexible genomic pipelines for processing and reporting NGS analysis [v1; no peer reviewed]. 
+    `F1000Research 2016, 5:1767 <http://f1000research.com/posters/5-1767>`_ (poster) (doi:
+    10.7490/f1000research.1112656.1)
 
 
 **Sequana** includes a set of pipelines related to NGS (new generation sequencing) including quality control, variant calling, coverage, taxonomy...

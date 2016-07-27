@@ -41,9 +41,9 @@ class TestPipeline(object):
         else:
             raise Exception
 
-    def test_input(self):
+    def _test_input(self):
         filename = sequana_data('virus.bed', 'data')
-        reference = sequana_data('pKM2-eGFP.fa', 'data')
+        reference = sequana_data('tofill.fa', 'data')
         coverage.main([self.prog, '-i', filename, "-o", "-r", reference])
 
 
