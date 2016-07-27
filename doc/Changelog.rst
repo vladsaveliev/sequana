@@ -3,6 +3,14 @@ Changelog
 
 .. contents::
 
+
+* NEWS:
+
+    - sequana can known use single_indexed or multiple_indexed  adapters, which
+      are also provided within sequana (Nextera and PCR free cases)
+    - Release for production (quality_taxon pipeline)
+
+
 0.1.10 - July 2016
 ----------------------
 
