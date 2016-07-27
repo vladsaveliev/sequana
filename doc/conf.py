@@ -56,6 +56,7 @@ from easydev import get_path_sphinx_themes
 
 extensions = [
     'sphinx.ext.autodoc',
+
     ('sphinx.ext.imgmath'  # only available for sphinx >= 1.4
                   if sphinx.version_info[:2] >= (1, 4)
                   else 'sphinx.ext.pngmath'),
