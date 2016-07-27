@@ -198,7 +198,10 @@ will fetch the config file automatically from sequana library.""")
         group.add_argument("--index-mapper", dest="index_mapper", type=str,
             help="""a CSV file with 3 columns named 'sample name', 'index1','index2' """)
         group.add_argument("--adapters", dest="adapters", type=str,
-            help="""set to universal_nextera, universal_pcrfree""")
+            help="""When using --index-mapper, you must also provide the type of 
+                adapters using this parameter. Valid values are either Nextera or PCRFree
+                Corresponding files can be found in github.com/sequana/sequana/resources/data/adapters
+                """)
 
         group.add_argument("--config-params", dest="config_params", 
             type=str, 
@@ -360,6 +363,8 @@ def main(args=None):
     if options.glob:
         ff = FastQFactory(options.glob)
         if options.index_mapper:
+            if options.adapters is None or options.adapters not in ["Nextera", "PCRFree"]:
+                raise ValueError("When using --index-mapper, you must also provide the type of adapters using --adapters (set to Nextera or PCRFree)")
             adapter_finder = FindAdaptersFromIndex(options.index_mapper)
         elif options.adapter_fwd:
             pass
@@ -380,7 +385,7 @@ def main(args=None):
                 options.file1 = ff.get_file1(tag)
                 options.file2 = ff.get_file2(tag)
                 if options.index_mapper:
-                    fwd, rev = adapter_finder.save_adapters_to_csv(tag)
+                    fwd, rev = adapter_finder.save_adapters_to_fasta(tag)
                     options.adapter_fwd = fwd
                     options.adapter_rev = rev
                 sequana_init(options)
@@ -623,8 +628,10 @@ for this in directories:
         print('Deleting %s' % this)
         time.sleep(0.2)
         shellcmd("rm -rf %s" % this)
-shellcmd("rm -f *rules README runme.sh *fa config.yaml")
+shellcmd("rm -f *rules README runme.sh *fa config.yaml snakejob.*")
 shellcmd("rm -f cleanme.py")
+shellcmd("rm -f runme.sh.*")
+shellcmd("rm -rf .snakemake")
 """)
 
     sa.green("Initialisation of %s succeeded" % target_dir)
