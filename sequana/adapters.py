@@ -43,6 +43,7 @@ from sequana.fasta import FastA
 import os
 
 
+
 def fasta_fwd_rev_to_columns(file1, file2=None, output_filename=None):
     """From two FASTA files (reverse and forward) adapters, returns 2-columns file
 
@@ -272,15 +273,15 @@ class AdapterReader(object):
             raise ValueError("name %s found several times" % text)
 
     def get_adapter_by_index(self, index_name):
-        """
+        """Return adapter corresponding to the unique index 
 
         :param index_name: the unique index name to be found. If several
             sequence do match, this is an error meaning the fasta file
             with all adapters is not correctly formatted.
         :return: the adapter that match the index_name (if any) otherwise
             returns None
-        """
-        """Return FASTA corresponding to the index"""
+        
+        Return FASTA corresponding to the index"""
         # there should be only one
         adapters = []
         for this in self._data:
@@ -347,11 +348,18 @@ class FindAdaptersFromIndex(object):
 
         """
 
-        columns_in = ['sample_name', 'index1', 'index2']
         #self.index_mapper = pd.read_csv(index_mapper, delim_whitespace=True)[columns_in]
-        self.index_mapper = pd.read_csv(index_mapper, sep=",")[columns_in]
-        self.index_mapper.columns = ["sample", "index1", "index2"]
-        self.index_mapper.set_index('sample', inplace=True)
+        try:
+            columns_in = ['sample_name', 'index1', 'index2']
+            self.index_mapper = pd.read_csv(index_mapper, sep=",", dtype=str)[columns_in]
+            self.mode = 'multi_index'
+        except:
+            columns_in = ['sample_name', 'index1']
+            self.index_mapper = pd.read_csv(index_mapper, sep=",", dtype=str)[columns_in]
+            self.mode = 'single_index'
+        
+        self.index_mapper.columns = columns_in
+        self.index_mapper.set_index('sample_name', inplace=True)
 
         if adapters == "Nextera":
             from sequana import sequana_data
@@ -359,11 +367,17 @@ class FindAdaptersFromIndex(object):
                 "data/adapters")
             file2 = sequana_data("adapters_Nextera_PF1_220616_rev.fa",
                 "data/adapters")
-
-            self._adapters_fwd = AdapterReader(file1)
-            self._adapters_rev = AdapterReader(file2)
+        elif adapters == "PCRFree":
+            from sequana import sequana_data
+            file1 = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", 
+                "data/adapters")
+            file2 = sequana_data("adapters_Nextera_PF1_220616_rev.fa",
+                "data/adapters")
         else:
-            raise NotImplementedError
+            raise ValueError("Unknown set of adapters. Use Nextera or PCRFree (note the small/big caps)")
+
+        self._adapters_fwd = AdapterReader(file1)
+        self._adapters_rev = AdapterReader(file2)
 
     def _get_samples(self):
         return list(self.index_mapper.index)
@@ -378,16 +392,17 @@ class FindAdaptersFromIndex(object):
     def get_adapters(self, sample_name, include_universal=True):
         indices = self.get_indices(sample_name)
 
-        res = {'index1': {}, 'index2': {}}
+        if self.mode == "single_index" or self.mode == "multi_index":
+            res = {'index1': {}}
+            index1 = "index_dna:" + indices.ix['index1']
+            res['index1']['fwd'] = self._adapters_fwd.get_adapter_by_index(index1)
+            res['index1']['rev'] = self._adapters_rev.get_adapter_by_index(index1)
 
-        index1 = indices.ix['index1']
-        res['index1']['fwd'] = self._adapters_fwd.get_adapter_by_index(index1)
-        res['index1']['rev'] = self._adapters_rev.get_adapter_by_index(index1)
-
-
-        index2 = indices.ix['index2']
-        res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index(index2)
-        res['index2']['rev'] = self._adapters_rev.get_adapter_by_index(index2)
+        if self.mode == "multi_index":
+            res['index2'] = {}
+            index2 = "index_dna:" + indices.ix['index2']
+            res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index(index2)
+            res['index2']['rev'] = self._adapters_rev.get_adapter_by_index(index2)
 
         if include_universal:
             res['universal'] = {}
@@ -406,14 +421,16 @@ class FindAdaptersFromIndex(object):
             if include_universal:
                 fout.write(str(adapters['universal']['fwd'])+"\n")
             fout.write(str(adapters['index1']['fwd'])+"\n")
-            fout.write(str(adapters['index2']['fwd'])+"\n")
+            if self.mode == "multi_index":
+                fout.write(str(adapters['index2']['fwd'])+"\n")
 
         file_rev = output_dir + os.sep + "%s_adapters_rev.fa" % sample_name
         with open(file_rev, "w") as fout:
             if include_universal:
                 fout.write(str(adapters['universal']['rev'])+"\n")
             fout.write(str(adapters['index1']['rev'])+"\n")
-            fout.write(str(adapters['index2']['rev'])+"\n")
+            if self.mode == "multi_index":
+                fout.write(str(adapters['index2']['rev'])+"\n")
 
         return file_fwd, file_rev
 

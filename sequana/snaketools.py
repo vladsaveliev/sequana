@@ -814,8 +814,11 @@ class FastQFactory(FileFactory):
         else:
             assert tag in self.tags, 'invalid tag'
 
+        # Note that the rtag + "_" is to prevent the two following pairs to be counted as one sample:
+        # project-name_1
+        # project-name-bis_1
         candidates = [realpath for filename, realpath in
-            zip(self.filenames, self.realpaths) if rtag in filename and filename.startswith(tag)]
+            zip(self.filenames, self.realpaths) if rtag in filename and filename.startswith(tag+"_")]
 
         if len(candidates) == 0 and rtag == "_R2_":
             # assuming there is no R2
@@ -823,7 +826,8 @@ class FastQFactory(FileFactory):
         elif len(candidates) == 1:
             return candidates[0]
         else:
-            raise ValueError("Did ")
+            print('Found too many candidates: %s ' % candidates)
+            raise ValueError("Files must have the tag _R1_ or _R2_ (%s)" % tag)
 
     def get_file1(self, tag=None):
         return self._get_file(tag, "_R1_")
