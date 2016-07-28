@@ -364,8 +364,11 @@ def main(args=None):
         ff = FastQFactory(options.glob)
         if options.index_mapper:
             if options.adapters is None or options.adapters not in ["Nextera", "PCRFree"]:
-                raise ValueError("When using --index-mapper, you must also provide the type of adapters using --adapters (set to Nextera or PCRFree)")
-            adapter_finder = FindAdaptersFromIndex(options.index_mapper)
+                raise ValueError("When using --index-mapper, you must also " 
+                    "provide the type of adapters using --adapters (set to "
+                    "Nextera or PCRFree)")
+            adapter_finder = FindAdaptersFromIndex(options.index_mapper, 
+                                options.adapters)
         elif options.adapter_fwd:
             pass
         elif options.adapters:
