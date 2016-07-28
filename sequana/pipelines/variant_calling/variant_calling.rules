@@ -26,9 +26,15 @@ from sequana import SnpEff
 if config["snpeff"]["do"]:
     tmp = SnpEff(config["snpeff"]["reference"])
 
-# Mapping
+# mapping
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
-__bwa_mem_ref__ref_input = config["bwa_ref"]["reference"]
+
+# we must check if we are in the case of denovo assembly:
+try:
+    __bwa_mem_ref__ref_input = __spades__output
+except ValueError:
+    __bwa_mem_ref__ref_input = config["bwa_ref"]["reference"]
+
 include: bwa_mem_dynamic("ref", cfg.DATASET)
 __mark_duplicates__input = __bwa_mem_ref__output
 __indel_realigner__input = __bwa_mem_ref__output
@@ -38,10 +44,10 @@ __freebayes__input = __bwa_mem_ref__output
 if config["report_mapping"]["do"]:
     __bedtools_genomecov__input = __bwa_mem_ref__output
     include: sm.modules["bedtools_genomecov"]
-    
+
     __report_mapping__input = __bedtools_genomecov__output
-    include: sm.modules["report_mapping"]
     __report_mapping__bam_input = __bwa_mem_ref__output
+    include: sm.modules["report_mapping"]
     final_output.append(__report_mapping__output)
 
 # Mark duplicates
