@@ -33,8 +33,8 @@ include: sm.modules["quast"]
 
 if config["mapping_evaluation"]["do"]:
     __bwa_mem_ref__ref_input = __spades__output
+    __report_mapping__quast_input = __quast__output
     include: sm.modules["variant_calling"]
-    __report_mapping__quast_input = ".." + os.sep + __quast__output
     final_output.append(__quast__output)
 else:
     final_output = [__spades__output, __quast__output]
