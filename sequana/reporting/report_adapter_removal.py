@@ -122,15 +122,17 @@ class AdapterRemovalReport(BaseReport):
         histograms = self.get_histogram_data()
         html = ""
         html += "<div>\n"
+        from easydev import DevTools
+        DevTools().mkdir("cutadapt/images")
         for key in sorted(histograms.keys()):
             try:
                 histograms[key].plot(logy=True, lw=2, marker="o")
                 pylab.title(name)
                 name = key.replace(" ", "_")
-                filename =  self.directory + os.sep + "%s.png" % name
+                filename =  "cutadapt/images/%s.png" % name
                 pylab.savefig(filename)
                 pylab.grid(True)
-                html += '<img src="%s" width="45%%"></img> ' % ("%s.png" % name)
+                html += '<img src="images/%s.png" width="45%%"></img> ' % (name)
             except:
                 pass
         html += "</div>\n"
