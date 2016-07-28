@@ -89,7 +89,7 @@ class MappingReport(BaseReport):
         if self.quast:
             self.jinja['title'] = "Denovo Report of {0}".format(project)
             self.jinja['quast_is_present'] = True
-            quast_link = formatter.format("here", ".." + os.sep + self.quast)
+            quast_link = formatter.format("here", self.quast)
             self.jinja['quast_link'] = "The report provides by quast " + \
                 "is {0}.".format(quast_link)
         
