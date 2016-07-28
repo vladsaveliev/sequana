@@ -146,7 +146,7 @@ class ChromosomeCov(object):
         return self.df["cov"].mean()
 
     def get_var_coef(self):
-        return np.sqrt(np.self.df["cov"].var()) / self.get_mean_cov()
+        return np.sqrt(self.df["cov"].var()) / self.get_mean_cov()
     
     def moving_average(self, n, label="ma"):
         """Compute moving average of reads coverage
