@@ -43,6 +43,7 @@ from sequana.fasta import FastA
 import os
 
 
+
 def fasta_fwd_rev_to_columns(file1, file2=None, output_filename=None):
     """From two FASTA files (reverse and forward) adapters, returns 2-columns file
 
@@ -126,13 +127,54 @@ def adapter_removal_parser(filename):
     return results
 
 
+class Adapter():
+    def __init__(self, name, sequence, index="undefined", comment="nocomment"):
+        self._comment = comment
+        self._sequence = sequence
+        self._name = name
+        self._index = index
+
+    def _get_sequence(self):
+        return self._sequence
+    def _set_sequence(self, sequence):
+        self._sequence = sequence
+    sequence = property(_get_sequence, _set_sequence)
+
+    def _get_name(self):
+        return self._name
+    def _set_name(self, name):
+        self._name = name
+    name = property(_get_name, _set_name)
+
+    def _get_index(self):
+        return self._index
+    def _set_index(self, index):
+        self._index = index
+    index = property(_get_index, _set_index)
+
+    def _get_comment(self):
+        return self._comment
+    def _set_comment(self, comment):
+        self._comment = comment
+    comment = property(_get_comment, _set_comment)
+
+    def __str__(self):
+        txt = ">%(name)s|index:%(index)s\t%(comment)s\n"
+        txt+= "%(sequence)s"
+        txt = txt % {"name":self.name, "index":self.index, 
+                "comment":self.comment, "sequence":self.sequence}
+        return txt
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class AdapterReader(object):
     """We use FastA as our data structure to store adapters
 
     Header of the FASTA must be of the form::
 
-        Nextera_index_N501|index_dna:N501
+        Nextera_index_N501|index_dna:N501 optional comment
 
     with a *|index_dna:* string followed by the index tag
 
@@ -142,8 +184,9 @@ class AdapterReader(object):
     .. doctest::
 
         >>> from sequana import sequana_data, AdapterReader
-        >>> ar = AdapterReader(sequana_data("adapters_Nextera_PF1_220616_fwd.fa"))
-        >>> candidate = ar.get_get_adapter_by_index("S505")
+        >>> filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", "data/adapters")
+        >>> ar = AdapterReader(filename)
+        >>> candidate = ar.get_adapter_by_index("S505")
         >>> print(candidate)
         '>Nextera_index_S505|index_dna:S505
         AATGATACGGCGACCACCGAGATCTACACGTAAGGAGTCGTCGGCAGCGTC'
@@ -158,26 +201,26 @@ class AdapterReader(object):
             # comments once for all. This has also the adavantage that data can now
             # be changed on the fly
             fasta = FastA(filename)
-            self.data = [self._to_read(this) for this in fasta]
+            self._data = [self._to_read(this) for this in fasta]
         elif isinstance(filename, AdapterReader):
-            self.data = [self._to_read(this) for this in filename.data]
+            self._data = [self._to_read(this) for this in filename._data]
         elif isinstance(filename, list):
-            self.data = [self._to_read(this) for this in filename]
+            self._data = [self._to_read(this) for this in filename]
         self.sanity_check()
 
     def __len__(self):
-        return len(self.data)
+        return len(self._data)
 
     def _get_names(self):
-        return [this.name for this in self.data]
+        return [this.name for this in self._data]
     names = property(_get_names)
 
     def _get_seq(self):
-        return [this.sequence for this in self.data]
+        return [this.sequence for this in self._data]
     sequences = property(_get_seq)
 
     def _get_comments(self):
-        return [this.comment for this in self.data]
+        return [this.comment for this in self._data]
     comments = property(_get_comments)
 
     def sanity_check(self):
@@ -195,11 +238,16 @@ class AdapterReader(object):
         :return: Name and sequence in FASTA format that have the user *sequence*
             contained in their sequence
         """
-        adapters = [str(this) for this in self if sequence in this.sequence]
+        adapters = []
+        for this in self._data:
+            if sequence in this.sequence:
+                this_adapter = Adapter(name=this.name, sequence=this.sequence,
+                    comment=this.comment)
+                adapters.append(this_adapter)
         if len(adapters) == 0:
             return None
         else:
-            return "\n".join(adapters)
+            return adapters
 
     def get_adapter_by_name(self, text):
         """Return adapter whose name matches the user text
@@ -210,7 +258,13 @@ class AdapterReader(object):
         :return: the adapter that match the index_name (if any) otherwise
             returns None
         """
-        adapters = [str(this) for this in self.data if text in this.name]
+        adapters = []
+        for this in self._data:
+            if text in this.name:
+                this_adapter = Adapter(name=this.name, sequence=this.sequence,
+                    comment=this.comment)
+                adapters.append(this_adapter)
+
         if len(adapters) == 0:
             return None
         elif len(adapters) == 1:
@@ -219,17 +273,23 @@ class AdapterReader(object):
             raise ValueError("name %s found several times" % text)
 
     def get_adapter_by_index(self, index_name):
-        """
+        """Return adapter corresponding to the unique index 
 
         :param index_name: the unique index name to be found. If several
             sequence do match, this is an error meaning the fasta file
             with all adapters is not correctly formatted.
         :return: the adapter that match the index_name (if any) otherwise
             returns None
-        """
-        """Return FASTA corresponding to the index"""
+        
+        Return FASTA corresponding to the index"""
         # there should be only one
-        adapters = [str(this) for this in self.data if index_name in this.name]
+        adapters = []
+        for this in self._data:
+            if index_name in this.name:
+                this_adapter = Adapter(name=this.name, sequence=this.sequence,
+                    comment=this.comment)
+                adapters.append(this_adapter)
+
         if len(adapters) == 0:
             return None
         elif len(adapters) == 1:
@@ -246,23 +306,27 @@ class AdapterReader(object):
         return d
 
     def __getitem__(self, i):
-        return self.data[i]
+        return self._data[i]
+
+    def to_dict(self):
+        d1 = [(this.name, [this.comment, this.sequence]) for this in self._data]
+        return dict(d1)
 
     def __eq__(self, other):
         other = AdapterReader(other)
-        d1 = [(this.name, [this.comment, this.sequence]) for this in self.data]
-        d2 = [(this.name, [this.comment, this.sequence]) for this in other]
+        d1 = self.to_dict()
+        d2 = other.to_dict()
         return d1 == d2
 
     def reverse(self):
         """Reverse all sequences internally"""
-        for this in self.data:
+        for this in self._data:
             this.sequence = this.sequence[::-1]
 
     def to_fasta(self, filename):
         """Save sequences into fasta file"""
         with open(filename, "w") as fout:
-            for i, this in enumerate(self.data):
+            for i, this in enumerate(self._data):
                 if i>0:
                     fout.write("\n")
                 fout.write(">%s\t%s\n%s" % (this.name, this.comment, this.sequence))
@@ -284,11 +348,18 @@ class FindAdaptersFromIndex(object):
 
         """
 
-        columns_in = ['sample_name', 'index1', 'index2']
         #self.index_mapper = pd.read_csv(index_mapper, delim_whitespace=True)[columns_in]
-        self.index_mapper = pd.read_csv(index_mapper, sep=",")[columns_in]
-        self.index_mapper.columns = ["sample", "index1", "index2"]
-        self.index_mapper.set_index('sample', inplace=True)
+        try:
+            columns_in = ['sample_name', 'index1', 'index2']
+            self.index_mapper = pd.read_csv(index_mapper, sep=",", dtype=str)[columns_in]
+            self.mode = 'multi_index'
+        except:
+            columns_in = ['sample_name', 'index1']
+            self.index_mapper = pd.read_csv(index_mapper, sep=",", dtype=str)[columns_in]
+            self.mode = 'single_index'
+        
+        self.index_mapper.columns = columns_in
+        self.index_mapper.set_index('sample_name', inplace=True)
 
         if adapters == "Nextera":
             from sequana import sequana_data
@@ -296,11 +367,17 @@ class FindAdaptersFromIndex(object):
                 "data/adapters")
             file2 = sequana_data("adapters_Nextera_PF1_220616_rev.fa",
                 "data/adapters")
-
-            self._adapters_fwd = AdapterReader(file1)
-            self._adapters_rev = AdapterReader(file2)
+        elif adapters == "PCRFree":
+            from sequana import sequana_data
+            file1 = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", 
+                "data/adapters")
+            file2 = sequana_data("adapters_Nextera_PF1_220616_rev.fa",
+                "data/adapters")
         else:
-            raise NotImplementedError
+            raise ValueError("Unknown set of adapters. Use Nextera or PCRFree (note the small/big caps)")
+
+        self._adapters_fwd = AdapterReader(file1)
+        self._adapters_rev = AdapterReader(file2)
 
     def _get_samples(self):
         return list(self.index_mapper.index)
@@ -315,16 +392,17 @@ class FindAdaptersFromIndex(object):
     def get_adapters(self, sample_name, include_universal=True):
         indices = self.get_indices(sample_name)
 
-        res = {'index1': {}, 'index2': {}}
+        if self.mode == "single_index" or self.mode == "multi_index":
+            res = {'index1': {}}
+            index1 = "index_dna:" + indices.ix['index1']
+            res['index1']['fwd'] = self._adapters_fwd.get_adapter_by_index(index1)
+            res['index1']['rev'] = self._adapters_rev.get_adapter_by_index(index1)
 
-        index1 = indices.ix['index1']
-        res['index1']['fwd'] = self._adapters_fwd.get_adapter_by_index(index1)
-        res['index1']['rev'] = self._adapters_rev.get_adapter_by_index(index1)
-
-
-        index2 = indices.ix['index2']
-        res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index(index2)
-        res['index2']['rev'] = self._adapters_rev.get_adapter_by_index(index2)
+        if self.mode == "multi_index":
+            res['index2'] = {}
+            index2 = "index_dna:" + indices.ix['index2']
+            res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index(index2)
+            res['index2']['rev'] = self._adapters_rev.get_adapter_by_index(index2)
 
         if include_universal:
             res['universal'] = {}
@@ -334,23 +412,25 @@ class FindAdaptersFromIndex(object):
                 'Universal_Adapter')
         return res
 
-    def save_adapters_to_csv(self, sample_name, include_universal=True, output_dir='.'):
+    def save_adapters_to_fasta(self, sample_name, include_universal=True, output_dir='.'):
         """Get index1, index2 and uiversal adapter"""
         adapters = self.get_adapters(sample_name, include_universal=include_universal)
 
         file_fwd = output_dir + os.sep + "%s_adapters_fwd.fa"% sample_name
         with open(file_fwd, "w") as fout:
             if include_universal:
-                fout.write(adapters['universal']['fwd']+"\n")
-            fout.write(adapters['index1']['fwd']+"\n")
-            fout.write(adapters['index2']['fwd']+"\n")
+                fout.write(str(adapters['universal']['fwd'])+"\n")
+            fout.write(str(adapters['index1']['fwd'])+"\n")
+            if self.mode == "multi_index":
+                fout.write(str(adapters['index2']['fwd'])+"\n")
 
         file_rev = output_dir + os.sep + "%s_adapters_rev.fa" % sample_name
         with open(file_rev, "w") as fout:
             if include_universal:
-                fout.write(adapters['universal']['rev']+"\n")
-            fout.write(adapters['index1']['rev']+"\n")
-            fout.write(adapters['index2']['rev']+"\n")
+                fout.write(str(adapters['universal']['rev'])+"\n")
+            fout.write(str(adapters['index1']['rev'])+"\n")
+            if self.mode == "multi_index":
+                fout.write(str(adapters['index2']['rev'])+"\n")
 
         return file_fwd, file_rev
 

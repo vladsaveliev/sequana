@@ -16,7 +16,10 @@ Sequana documentation
 :Python version: Python 3.5 although some modules are Python2.7 compatible
 :Source: See  `http://github.com/sequana/sequana <https://github.com/sequana/sequana/>`_.
 :Issues: Please fill a report on `github <https://github.com/sequana/sequana/issues>`_
-:How to cite: http://f1000research.com/posters/5-1767
+:How to cite: Desvillechabrol D, Bouchier C, Cokelaer T and Kennedy S. Sequana: a set of
+    flexible genomic pipelines for processing and reporting NGS analysis [v1; no peer reviewed]. 
+    `F1000Research 2016, 5:1767 <http://f1000research.com/posters/5-1767>`_ (poster) (doi:
+    10.7490/f1000research.1112656.1)
 
 
 What is Sequana ?

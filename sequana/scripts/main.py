@@ -48,6 +48,11 @@ An alternative is to use a local config file with the field file1 and file2
 already filled. If you use --config with --file1 (and --file2), then the
 pre-filled fields will be overwritten.
 
+The input-dir is the same as --glob except that input-dir takes all gz whereas
+--glob takes a more specific pattern e.g. *AB*fastq.gz
+
+Note that --glob does not allow the --project to be used  (ignored)
+
 This is also true for the --project that replaces project and other parameters
 that are used to fill the config file:
 """
@@ -193,7 +198,10 @@ will fetch the config file automatically from sequana library.""")
         group.add_argument("--index-mapper", dest="index_mapper", type=str,
             help="""a CSV file with 3 columns named 'sample name', 'index1','index2' """)
         group.add_argument("--adapters", dest="adapters", type=str,
-            help="""set to universal_nextera, universal_pcrfree""")
+            help="""When using --index-mapper, you must also provide the type of 
+                adapters using this parameter. Valid values are either Nextera or PCRFree
+                Corresponding files can be found in github.com/sequana/sequana/resources/data/adapters
+                """)
 
         group.add_argument("--config-params", dest="config_params", 
             type=str, 
@@ -355,6 +363,8 @@ def main(args=None):
     if options.glob:
         ff = FastQFactory(options.glob)
         if options.index_mapper:
+            if options.adapters is None or options.adapters not in ["Nextera", "PCRFree"]:
+                raise ValueError("When using --index-mapper, you must also provide the type of adapters using --adapters (set to Nextera or PCRFree)")
             adapter_finder = FindAdaptersFromIndex(options.index_mapper)
         elif options.adapter_fwd:
             pass
@@ -370,12 +380,12 @@ def main(args=None):
             fout.write("# %s\n" % " ".join(sys.argv))
             for tag in ff.tags:
                 sa.print("Found %s project" % tag)
-                if options.project is None:
-                    options.project = tag
+                #if options.project is None:
+                options.project = tag
                 options.file1 = ff.get_file1(tag)
                 options.file2 = ff.get_file2(tag)
                 if options.index_mapper:
-                    fwd, rev = adapter_finder.save_adapters_to_csv(tag)
+                    fwd, rev = adapter_finder.save_adapters_to_fasta(tag)
                     options.adapter_fwd = fwd
                     options.adapter_rev = rev
                 sequana_init(options)
@@ -537,11 +547,11 @@ def sequana_init(options):
 
         if options.file1 and options.adapter_fwd:
             params["adapter_fwd"] = "file:" + options.adapter_fwd
-            shutil.copy(options.adapter_fwd, target_dir + os.sep + options.adapter_fwd)
+            shutil.move(options.adapter_fwd, target_dir + os.sep + options.adapter_fwd)
 
         if options.file2  and options.adapter_rev:
             params["adapter_rev"] = "file:" + options.adapter_rev
-            shutil.copy(options.adapter_rev, target_dir + os.sep + options.adapter_rev)
+            shutil.move(options.adapter_rev, target_dir + os.sep + options.adapter_rev)
 
         if options.adapters == "universal":
             params["adapter_fwd"] = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCGATGTATCTCGTATGCCGTCTTCTGC"
@@ -618,8 +628,10 @@ for this in directories:
         print('Deleting %s' % this)
         time.sleep(0.2)
         shellcmd("rm -rf %s" % this)
-shellcmd("rm -f *rules README runme.sh *fa config.yaml")
+shellcmd("rm -f *rules README runme.sh *fa config.yaml snakejob.*")
 shellcmd("rm -f cleanme.py")
+shellcmd("rm -f runme.sh.*")
+shellcmd("rm -rf .snakemake")
 """)
 
     sa.green("Initialisation of %s succeeded" % target_dir)

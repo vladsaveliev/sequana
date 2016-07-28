@@ -93,6 +93,8 @@ class GenomeCov(object):
         gc_dict = gc_content(fasta_file, window_size, circular)
         for chrom in self.chr_list:
             chrom.df["gc"] = gc_dict[chrom.chrom_name]
+            chrom._ws_gc = window_size
+
 
 
 class ChromosomeCov(object):
@@ -418,8 +420,8 @@ class ChromosomeCov(object):
         data['gc'] *= 100
         data = data.dropna()
         if bins is None:
-            bins = [100, int(data['gc'].max()-data['gc'].min()+1)]
-            print(bins)
+            bins = [100, min(int(data['gc'].max()-data['gc'].min()+1),
+                max(5,self._ws_gc-4))]
 
         from biokit import Hist2D
         h2 = Hist2D(data)
