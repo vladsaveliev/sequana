@@ -29,3 +29,6 @@ def test_genomecov():
 
         len(chrom)
         print(chrom)
+        chrom.get_size()
+        chrom.get_mean_cov()
+        chrom.get_var_coef()
