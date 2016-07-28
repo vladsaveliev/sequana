@@ -145,8 +145,8 @@ class ChromosomeCov(object):
     def get_mean_cov(self):
         return self.df["cov"].mean()
 
-    def get_var_cov(self):
-        return self.df["cov"].var()
+    def get_var_coef(self):
+        return np.sqrt(np.self.df["cov"].var()) / self.get_mean_cov()
     
     def moving_average(self, n, label="ma"):
         """Compute moving average of reads coverage
@@ -374,19 +374,17 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist_normalized_coverage(self, filename=None, bins=None):
+    def plot_hist_normalized_coverage(self, filename=None):
         """ Barplot of normalized coverage with gaussian fitting
 
         """
         nc_drop_na = self.df["scale"].dropna()
         pylab.clf()
         try:
-            if bins is not None:
-                raise(ValueError)
             bins = int(max(nc_drop_na) * 100 - min(nc_drop_na) * 100)
             self.mixture_fitting.plot(bins=bins)
         except ValueError:
-            print(bins)
+            bins = 100
             self.mixture_fitting.plot(bins=bins)
         try:
             pylab.tight_layout()
