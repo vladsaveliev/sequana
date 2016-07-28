@@ -28,18 +28,23 @@ else:
 
 include: sm.modules["spades"]
 
-__quast__input = __spades__output
+__quast__input = "%s %s" % (__spades__contigs, __spades__scaffolds)
 include: sm.modules["quast"]
 
 if config["mapping_evaluation"]["do"]:
-    __bwa_mem_ref__ref_input = __spades__output
+    __bwa_mem_ref__ref_input = __spades__contigs
     __report_mapping__quast_input = __quast__output
     include: sm.modules["variant_calling"]
     final_output.append(__quast__output)
 else:
-    final_output = [__spades__output, __quast__output]
+    final_output = [__spades__contigs, __quast__output]
 
 
 rule pipeline_denovo:
     input:
         final_output
+
+onsuccess:
+    shell("cp -r %s report" % __quast__dir)
+    shell("cp %s report" % __spades__contigs)
+    shell("cp %s report" % __spades__scaffolds)
