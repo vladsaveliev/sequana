@@ -87,9 +87,10 @@ class MappingReport(BaseReport):
 
         formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
         if self.quast:
+            self.jinja['title'] = "Denovo Report of {0}".format(project)
             self.jinja['quast_is_present'] = True
-            quast_link = formatter.format("here", self.quast)
-            self.jinja['quast_link'] = "The report provides by quast " + 
+            quast_link = formatter.format("here", ".." + os.sep + self.quast)
+            self.jinja['quast_link'] = "The report provides by quast " + \
                 "is {0}.".format(quast_link)
         
         # create table with links to chromosome reports 
