@@ -1,59 +1,114 @@
 include: sm.modules['dag']     # Create DAG file
 
 __report_mapping__output = "report/report_mapping.html"
-__report_mapping__quast_input = None
 
-rule report_mapping:
-    input:
-        dag = "report/dag.svg",
-        bed = __report_mapping__input,
-        bam = __report_mapping__bam_input, 
-    output:
-        __report_mapping__output
-    params:
-        quast = __report_mapping__quast_input,
-        outdir = "report",
-        size = config["report_mapping"]["window_size"],
-        high = config["report_mapping"]["high_threshold"],
-        low = config["report_mapping"]["low_threshold"],
-        circular = config["report_mapping"]["circular"]
-    run:
-        import os
-
-        from sequana import bedtools
-        from sequana import BAM
-        from sequana.reporting import report_mapping
-        from sequana.reporting import report_chromosome
-        from sequana.reporting import report_main
-
-        s = report_main.SequanaReport(snakefile=__snakefile__,
-                directory=params.outdir)
-        s.jinja['description'] = """
-
-        This is the output of variant calling pipeline. This pipeline search
-        variants and provide as an output a vcf file.
-
-        """
-        s.create_report()
-
-        mydata = bedtools.GenomeCov(input.bed)
-        bam = BAM(input.bam)
-
-        # Report mapping
-        r = report_mapping.MappingReport(directory=params.outdir,
-            project=cfg.PROJECT)
-        r.set_data(mydata, bam, params.quast)
-        r.create_report()
-
-        # Report chromosomes
-        for chrom in mydata:
-            chrom.running_median(n=params.size, circular=params.circular)
-            chrom.compute_zscore()
-
-            r = report_chromosome.ChromosomeMappingReport(chrom_index,
-                low_threshold=params.low, high_threshold=params.high,
-                directory=params.outdir, project=cfg.PROJECT)
-            r.set_data(chrom)
+try:
+    __report_mapping__output = "report/report_denovo.html" 
+    rule report_denovo:
+        input:
+            dag = "report/dag.svg",
+            bed = __report_mapping__input,
+            bam = __report_mapping__bam_input,
+            quast = __report_mapping__quast_input
+        output:
+            __report_mapping__output
+        params:
+            outdir = "report",
+            size = config["report_mapping"]["window_size"],
+            high = config["report_mapping"]["high_threshold"],
+            low = config["report_mapping"]["low_threshold"],
+            circular = config["report_mapping"]["circular"]
+        run:
+            import os
+    
+            from sequana import bedtools
+            from sequana import BAM
+            from sequana.reporting import report_mapping
+            from sequana.reporting import report_chromosome
+            from sequana.reporting import report_main
+    
+            s = report_main.SequanaReport(snakefile=__snakefile__,
+                    directory=params.outdir)
+            s.jinja['description'] = """
+    
+            This is the output of variant calling pipeline. This pipeline search
+            variants and provide as an output a vcf file.
+    
+            """
+            s.create_report()
+    
+            mydata = bedtools.GenomeCov(input.bed)
+            bam = BAM(input.bam)
+    
+            # Report mapping
+            r = report_mapping.MappingReport(directory=params.outdir,
+                project=cfg.PROJECT, output_filename="report_denovo.html")
+            r.set_data(mydata, bam, input.quast)
             r.create_report()
+    
+            # Report chromosomes
+            for chrom in mydata:
+                chrom.running_median(n=params.size, circular=params.circular)
+                chrom.compute_zscore()
+    
+                r = report_chromosome.ChromosomeMappingReport(chrom,
+                    low_threshold=params.low, high_threshold=params.high,
+                    directory=params.outdir, project=cfg.PROJECT)
+                r.create_report()
+    
+            shell("cp %s %s/" % (__snakefile__, params.outdir))
 
-        shell("cp %s %s/" % (__snakefile__, params.outdir))
+except NameError:
+    __report_mapping__output = "report/report_mapping.html"
+    rule report_mapping:
+        input:
+            dag = "report/dag.svg",
+            bed = __report_mapping__input,
+            bam = __report_mapping__bam_input
+        output:
+            __report_mapping__output
+        params:
+            outdir = "report",
+            size = config["report_mapping"]["window_size"],
+            high = config["report_mapping"]["high_threshold"],
+            low = config["report_mapping"]["low_threshold"],
+            circular = config["report_mapping"]["circular"]
+        run:
+            import os
+    
+            from sequana import bedtools
+            from sequana import BAM
+            from sequana.reporting import report_mapping
+            from sequana.reporting import report_chromosome
+            from sequana.reporting import report_main
+    
+            s = report_main.SequanaReport(snakefile=__snakefile__,
+                    directory=params.outdir)
+            s.jinja['description'] = """
+    
+            This is the output of variant calling pipeline. This pipeline search
+            variants and provide as an output a vcf file.
+    
+            """
+            s.create_report()
+    
+            mydata = bedtools.GenomeCov(input.bed)
+            bam = BAM(input.bam)
+    
+            # Report mapping
+            r = report_mapping.MappingReport(directory=params.outdir,
+                project=cfg.PROJECT)
+            r.set_data(mydata, bam)
+            r.create_report()
+    
+            # Report chromosomes
+            for chrom in mydata:
+                chrom.running_median(n=params.size, circular=params.circular)
+                chrom.compute_zscore()
+    
+                r = report_chromosome.ChromosomeMappingReport(chrom,
+                    low_threshold=params.low, high_threshold=params.high,
+                    directory=params.outdir, project=cfg.PROJECT)
+                r.create_report()
+    
+            shell("cp %s %s/" % (__snakefile__, params.outdir))
