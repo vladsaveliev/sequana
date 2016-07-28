@@ -31,7 +31,7 @@ exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
 # we must check if we are in the case of denovo assembly:
 try:
-    __bwa_mem_ref__ref_input = __spades__output
+    __bwa_mem_ref__ref_input = __spades__contigs
 except ValueError:
     __bwa_mem_ref__ref_input = config["bwa_ref"]["reference"]
 
