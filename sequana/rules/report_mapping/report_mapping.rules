@@ -27,6 +27,7 @@ try:
             from sequana.reporting import report_chromosome
             from sequana.reporting import report_main
     
+            
             s = report_main.SequanaReport(snakefile=__snakefile__,
                     directory=params.outdir)
             s.jinja['description'] = """

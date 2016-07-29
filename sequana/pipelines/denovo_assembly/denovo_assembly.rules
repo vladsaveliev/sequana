@@ -28,7 +28,7 @@ else:
 
 include: sm.modules["spades"]
 
-__quast__input = "%s %s" % (__spades__contigs, __spades__scaffolds)
+__quast__input = [__spades__contigs, __spades__scaffolds]
 include: sm.modules["quast"]
 
 if config["mapping_evaluation"]["do"]:
