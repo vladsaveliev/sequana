@@ -81,6 +81,7 @@ mark_duplicates:
 
 report_mapping:
     do: yes
+    k: 2
     circular: yes
     window_size: 1001
     high_threshold: 3

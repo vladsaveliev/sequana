@@ -99,6 +99,6 @@ class MappingReport(BaseReport):
                 link.format(self.project, chrom.chrom_index)),
                 chrom.get_size(), chrom.get_mean_cov(), chrom.get_var_coef()]
                 for chrom in self.chrom_list], columns=["chromosome", "size",
-                "mean_coverage", "variance_coverage"])
+                "mean_coverage", "coef_variation"])
         html = HTMLTable(df)
         self.jinja['list_chromosome'] = html.to_html(index=False)
