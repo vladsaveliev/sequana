@@ -19,6 +19,9 @@
 """Utilities to manipulate FASTQ and Reads
 
 """
+import textwrap
+import os
+
 from pysam import FastxFile
 
 
@@ -71,7 +74,34 @@ class FastA(object):
         return [this.comment for this in self]
     comment = property(_get_comment)
 
+    def format_contigs_denovo(self, project, len_min=500):
+        """ Method to replace NODE with the project name and to generate two
+        fasta files with contigs taller than len_min and contigs smaller than
+        len_min. Contigs names must be with this syntax (default syntax of 
+        spades and velvet):
+            NODE_1_length_524827_cov_9.49275
 
+        :param str project: project name for output and contigs names.
+        :param int cov_min: minimal length of contigs.
 
+        Example:
+        
+            from sequana import FastA
 
+            contigs = FastA("denovo_assembly.fasta")
+            contigs.format_contigs_denovo(project1)
 
+        Results are stored in files project1.ab500.fasta (above cov_min) and
+        project1.bl500.fastai (below cov_min).
+        """
+        with open("{}.ab{}.fasta".format(project, len_min), "w") as ab_out:
+            with open("{}.bl{}.fasta".format(project, len_min), "w") as bl_out: 
+                for contigs in self:
+                    name = contigs.name.split("_")
+                    new_name = ">{}_{} {}\n".format(project, name[1], 
+                            "_".join(name[2:]))
+                    sequence = textwrap.fill(contigs.sequence, width=80) + "\n"
+                    if int(name[3]) < len_min:
+                        bl_out.write(new_name + sequence)
+                    else:
+                        ab_out.write(new_name + sequence)
