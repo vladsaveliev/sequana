@@ -74,7 +74,7 @@ class FastA(object):
         return [this.comment for this in self]
     comment = property(_get_comment)
 
-    def format_contigs_denovo(self, project, len_min=500):
+    def format_contigs_denovo(self, project, output_dir=".", len_min=500):
         """ Method to replace NODE with the project name and to generate two
         fasta files with contigs taller than len_min and contigs smaller than
         len_min. Contigs names must be with this syntax (default syntax of 
@@ -94,8 +94,13 @@ class FastA(object):
         Results are stored in files project1.ab500.fasta (above cov_min) and
         project1.bl500.fastai (below cov_min).
         """
-        with open("{}.ab{}.fasta".format(project, len_min), "w") as ab_out:
-            with open("{}.bl{}.fasta".format(project, len_min), "w") as bl_out: 
+        # check if directory exist
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        basename = output_dir + os.sep + project
+        with open("{}.ab{}.fasta".format(basename, len_min), "w") as ab_out:
+            with open("{}.bl{}.fasta".format(basename, len_min), "w") as bl_out: 
                 for contigs in self:
                     name = contigs.name.split("_")
                     new_name = ">{}_{} {}\n".format(project, name[1], 
