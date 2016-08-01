@@ -82,6 +82,11 @@ Issues: http://github.com/sequana/sequana
         group = self.add_argument_group("Running Median related")
         group.add_argument("-w", "--window-median", dest="w_median", type=int,
             help="""Length of the running median window""", default=1001)
+        
+        group.add_argument("-k", "--mixture-models", dest="k", type=int,
+            help="""Number of mixture models to use (default 2). If DOC is below
+2, k is set to 1). To ignore that behavious set k to the required value""",
+            default=None)
 
         group.add_argument("-L", "--low-threshold", dest="low_threshold",
             default=-3, type=float,
@@ -144,9 +149,18 @@ def main(args=None):
     if options.verbose:
         print('Computing zscore')
 
-    chrom.compute_zscore()
+    DOC = chrom.get_stats()['DOC']
+    if options.k is None and DOC < 8:
+        options.k = 1
+    elif options.k is None:
+        options.k = 2
+    print("DOC: %s " % DOC)
+    print("Number of mixture model %s " % options.k)
 
-    from pylab import show, figure
+
+    chrom.compute_zscore(k=options.k)
+
+    from pylab import show, figure, savefig
 
     figure(1)
     chrom.plot_coverage(low_threshold=options.low_threshold,
@@ -156,6 +170,7 @@ def main(args=None):
     if options.reference:
         figure(2)
         chrom.plot_gc_vs_coverage(Nlevels=options.levels, fontsize=20)
+        savefig("coverage_vs_gc.png")
 
     if options.show:
         show()
@@ -166,8 +181,13 @@ def main(args=None):
     #r.set_data(gc)
     #r.create_report()
 
+    if options.threshold:
+        options.low_threshold = -options.threshold
+        options.high_threshold = options.threshold
+
     # Report chromosomes
     chrom_index = options.chromosome
+    print("Creating report")
     r = report_chromosome.ChromosomeMappingReport(chrom_index,
         low_threshold=options.low_threshold, 
         high_threshold=options.high_threshold,
