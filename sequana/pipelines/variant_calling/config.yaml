@@ -1,6 +1,3 @@
-
-
-
 # =========================================== Sections for the users
 
 # list of your input file
@@ -10,21 +7,6 @@ samples:
 
 
 project: "%(project)s"
-
-# if files are required for a pipeline and are within sequana or should
-# # be downloaded before the pipeline provide them in this section
-# # Note that sequana and url fields are followed by itemised files or links
-# using
-# # the front dashes
-requirements:
-    - phiX174.fa
-
-
-# GATK is absent in conda because it is not a free software
-# You must set the GATK bin path.
-# gatk_bin: "java -jar /path/to/GenomeAnalysisTK.jar"
-gatk_bin: GenomeAnalysisTK
-
 
 # Bwa parameter for reference mapping
 bwa_ref:
@@ -39,8 +21,7 @@ bwa_ref:
         threads: 2 
 
 # snpEff parameter
-#Results filter options:
-#	-fi , -filterInterval: Only analyze changes that intersect with the intervals specified in this file (you may use this option many times)
+# Results filter options:
 #	-no-downstream: Do not show DOWNSTREAM changes
 #	-no-intergenic: Do not show INTERGENIC changes
 #	-no-intron: Do not show INTRON changes
@@ -49,7 +30,7 @@ bwa_ref:
 #	-no EffectType: Do not show 'EffectType'. This option can be used several times.
  
 snpeff:
-    do: yes
+    do: no
     reference:
     options: "-no-downstream -no-upstream"
 
@@ -71,6 +52,7 @@ mark_duplicates:
 
 report_mapping:
     do: yes
+    k: 2
     circular: yes
     window_size: 1001
     high_threshold: 3
@@ -78,7 +60,7 @@ report_mapping:
 
 vcf_filter:
     QUAL: 1000
-    FREQ: 0.7
+    FREQ: 0.8
     INFO:
         DP: '>= 10'
 
