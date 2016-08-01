@@ -126,4 +126,3 @@ vcf_filter:
     FREQ: 0.8               # Alternative allele frequency
     INFO:
         DP: '>= 10'         # Coverage depth per base
-
