@@ -31,8 +31,11 @@ include: sm.modules["spades"]
 __quast__input = [__spades__contigs, __spades__scaffolds]
 include: sm.modules["quast"]
 
-if config["mapping_evaluation"]["do"]:
-    __bwa_mem_ref__ref_input = __spades__contigs
+__format_contigs__input = __spades__contigs
+include: sm.modules["format_contigs"]
+
+if config["do_mapping_evaluation"]:
+    __bwa_mem_ref__ref_input = __format_contigs__output
     __report_mapping__quast_input = __quast__output
     include: sm.modules["variant_calling"]
     final_output.append(__quast__output)
