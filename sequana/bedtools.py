@@ -70,6 +70,11 @@ class GenomeCov(object):
         except IOError as e:
             print("I/0 error({0}): {1}".format(e.errno, e.strerror))
 
+        # Set the link to this instance in each chromosome
+        # useful if one wants to recompute GC content with different window
+        for chrom in self.chr_list:
+            chrom.bed = self
+
     def __getitem__(self, index):
         return self.chr_list[index]
 
@@ -92,7 +97,6 @@ class GenomeCov(object):
         for chrom in self.chr_list:
             chrom.df["gc"] = gc_dict[chrom.chrom_name]
             chrom._ws_gc = window_size
-
 
 
 class ChromosomeCov(object):
@@ -311,6 +315,8 @@ class ChromosomeCov(object):
         the lower and upper  zscore thresholds
 
         """
+        # z = (X/rm - \mu ) / sigma
+
         high_zcov = (high_threshold * self.best_gaussian["sigma"] +
                 self.best_gaussian["mu"]) * self.df["rm"]
         low_zcov = (low_threshold * self.best_gaussian["sigma"] +
@@ -331,8 +337,9 @@ class ChromosomeCov(object):
         pylab.legend([p1, p2, p3], [p1.get_label(), p2.get_label(),
                 p3.get_label()], loc="best")
         pylab.xlabel("Position", fontsize=fontsize)
-        pylab.ylabel("Coverage", fontsize=fontsize)
+        pylab.ylabel("Per-base coverage", fontsize=fontsize)
         pylab.grid(True)
+        pylab.ylim([0, pylab.ylim()[1]])
         try:
             pylab.tight_layout()
         except:
@@ -340,19 +347,19 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-
-
-    def plot_hist_zscore(self, fontsize=16, filename=None, **hist_kargs):
+    def plot_hist_zscore(self, fontsize=16, filename=None, max_z=6, bins=None,
+            **hist_kargs):
         """ Barplot of zscore
 
         """
         zs_drop_na = self.df["zscore"].dropna()  
         pylab.clf()
-        try:
+        if bins is None:
             bins = int(max(zs_drop_na) * 3 - min(zs_drop_na) * 3)
-            self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
-        except ValueError:
-            self.df["zscore"].hist(grid=True, bins=200, **hist_kargs)
+            if bins > 100: bins=100
+            if bins < 10: bins=10
+        bins = pylab.linspace(-max_z,max_z, bins)
+        self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
@@ -361,20 +368,19 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist_normalized_coverage(self, filename=None, bins=None):
+    def plot_hist_normalized_coverage(self, filename=None, bins=None, max_z=4):
         """ Barplot of normalized coverage with gaussian fitting
 
         """
         nc_drop_na = self.df["scale"].dropna()
         pylab.clf()
-        try:
-            if bins is not None:
-                raise(ValueError)
-            bins = int(max(nc_drop_na) * 100 - min(nc_drop_na) * 100)
-            self.mixture_fitting.plot(bins=bins)
-        except ValueError:
-            print(bins)
-            self.mixture_fitting.plot(bins=bins)
+        if bins is None:
+            bins = int(round(nc_drop_na.max() * 7 ))
+            if bins < 10:
+                bins = 10
+        self.mixture_fitting.plot(bins=bins, Xmin=0, Xmax=max_z)
+        pylab.xlim([0,max_z])
+        pylab.xlabel("Normalised per-base coverage")
         try:
             pylab.tight_layout()
         except:
@@ -409,24 +415,56 @@ class ChromosomeCov(object):
         if bins is None:
             bins = [100, min(int(data['gc'].max()-data['gc'].min()+1),
                 max(5,self._ws_gc-4))]
+            bins[0] = max(10, min(bins[0], self.df['cov'].max()))
 
         from biokit import Hist2D
         h2 = Hist2D(data)
 
         try:
-            h2.plot(bins=bins, xlabel="coverage",
+            h2.plot(bins=bins, xlabel="Per-base coverage",
                 ylabel=r'GC content (%)' ,
                 Nlevels=Nlevels, contour=contour, norm=norm,
                 fontsize=fontsize, **kargs)
         except:
-            h2.plot(bins=bins, xlabel="coverage",
+            h2.plot(bins=bins, xlabel="Per-base coverage",
                 ylabel=r'GC content (%)' ,
                 Nlevels=Nlevels, contour=False, norm=norm,
                 fontsize=fontsize, **kargs)
         pylab.ylim([ymin,ymax])
-        corr = self.df[['cov', 'gc']].corr().iloc[0,1]
+        corr = self.get_gc_correlation()
         return corr
 
+    def get_gc_correlation(self):
+        return self.df[['cov', 'gc']].corr().iloc[0,1]
+
+    def get_max_gc_correlation(self, reference):
+        pylab.clf()
+        def func(params):
+            ws = int(round(params[0]))
+            if ws < 10:
+                return 0
+            self.bed.compute_gc_content(reference, ws)
+            corr = self.get_gc_correlation()
+            print(ws, corr)
+            pylab.plot(ws, corr, 'o')
+            return corr
+
+        print("X, correlation\n")
+        from scipy.optimize import fmin
+        res = fmin(func, 200, xtol=1) # guess is 200
+        pylab.xlabel("GC window size")
+        pylab.ylabel("Correlation")
+        return res
+
+    def get_stats(self):
+        stats ={
+            'DOC': self.df['cov'].mean(), 
+            'BOC': sum(self.df['cov'] > 0) / float(len(self.df)) }
+
+        if 'gc' in self.df.columns:
+            stats['GC'] = self.df['gc'].mean() * 100
+
+        return stats
 
 class FilteredGenomeCov(object):
     """Class used within :class:`ChromosomeCov` to select a subset of the
