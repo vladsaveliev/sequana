@@ -1,5 +1,5 @@
 #
-# Config file for Denovo Assembly
+# Config file for Variant Calling
 #
 ##############################################################################
 
@@ -26,7 +26,7 @@ gatk_bin: GenomeAnalysisTK
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bwa
 
 bwa_ref:
-    reference: # Empty for denovo assembly
+    reference: "None"  # Genome of reference
     index:      # Options for bwa index
         options: '-a is'
     mem:        # Options for bwa mem
