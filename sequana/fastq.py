@@ -383,27 +383,43 @@ class FastQ(object):
             tozip = False
         return filename, tozip
 
-    def select_random_reads(self, N, output_filename):
+    def select_random_reads(self, N=None, output_filename="random.fastq"):
         """Select random reads and save in a file
 
         :param int N: number of random unique reads to select
+            should provide a number but a list can be used as well. 
+            You can select random reads for R1, and re-use the returned list as
+            input for the R2 (since pairs must be kept)
         :param str output_filename:
+
+        If you have a pair of files, the same reads must be selected in R1 and
+        R2.::
+
+            f1 = FastQ(file1)
+            selection = f1.select_random_reads(N=1000)
+            f2 = FastQ(file2)
+            f2.select_random_reads(selection)
 
 
         """
         thisN = len(self)
-        if N > thisN:
-            N = thisN
+        if isinstance(N, int):
+            if N > thisN:
+                N = thisN
+            # create random set of reads to pick up
+            cherries = list(range(thisN))
+            np.random.shuffle(cherries)
+            # cast to set for efficient iteration
+            cherries = set(cherries[0:N])
+        elif isinstance(N, set):
+            cherries = N
+        elif isinstance(N, list):
+            cherries = set(N)
 
         fastq = pysam.FastxFile(self.filename)
 
-        # create random set of reads to pick up
-        cherries = list(range(thisN))
-        np.random.shuffle(cherries)
-        # cast to set for efficient iteration
-        cherries = set(cherries[0:N])
 
-        pb = Progress(thisN)
+        pb = Progress(thisN) # since we scan the entire file
         with open(output_filename, "w") as fh:
             for i, read in enumerate(fastq):
                 if i in cherries:
@@ -411,6 +427,7 @@ class FastQ(object):
                 else:
                     pass
                 pb.animate(i+1)
+        return cherries
 
     def split_lines(self, N=100000, gzip=True):
         """Not implemented"""

@@ -62,11 +62,11 @@ def test_adapter_reader():
     assert len(ar1) == 56
 
     # accessors
-    ar1.sequences, ar1.names, ar1.comments
+    ar1.sequences, ar1.identifiers, ar1.comments
 
     ar1.get_adapter_by_sequence("ACGT")
     assert ar1.get_adapter_by_index("dummy") is None
-    assert ar1.get_adapter_by_name("Nextera_index_N517|index_dna:N517")
+    assert ar1.get_adapter_by_identifier("Nextera_index_N517|index_dna:N517")
 
     ar2 = AR(data2)
     ar2.reverse()
@@ -77,7 +77,8 @@ def test_adapter_reader():
 
 def test_find_adapters_from_index_mapper():
     from sequana.adapters import FindAdaptersFromIndex
-    ad = FindAdaptersFromIndex(sequana_data("test_index_mapper.csv", "testing"))
+    ad = FindAdaptersFromIndex(sequana_data("test_index_mapper.csv", "testing"),
+            "Nextera")
     assert ad.get_adapters("C4405-M1-EC1")
     ad.sample_names
 
