@@ -286,8 +286,17 @@ class ChromosomeCov(object):
         # keep gaussians informations 
         self.gaussians = self.mixture_fitting.results
         self.best_gaussian = self._get_best_gaussian(self.mixture_fitting.results)
-        self.df["zscore"] = (self.df["scale"] - self.best_gaussian["mu"]) / \
-            self.best_gaussian["sigma"]
+
+        # warning when sigma is equal to 0
+        if self.best_gaussian["sigma"] == 0:
+            print("WARNING: A problem related to gaussian prediction is "
+                  "detected. Be careful, Sigma is equal to 0.")
+            self.df["zscore"] = np.zeros(len(self.df), dtype=int)
+        else:
+            self.df["zscore"] = (self.df["scale"] - self.best_gaussian["mu"]) / \
+                self.best_gaussian["sigma"]
+
+        
 
 
     def get_low_coverage(self, threshold=-3, start=None, stop=None):
