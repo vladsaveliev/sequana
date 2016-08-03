@@ -1,6 +1,6 @@
 :Overview: Denovo Assembly
 :Input: fastq file from Illumina Sequencing instrument
-:Output: fasta, bam, vcf and html files
+:Output: fasta, vcf and html files
 :Config file requirements:
     - samples:file1
     - samples:file2
