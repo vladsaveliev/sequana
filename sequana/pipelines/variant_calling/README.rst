@@ -5,19 +5,16 @@
     - samples:file1
     - samples:file2
     - project
-    - reference:sequence.fa
+    - reference:reference.fasta
 
 Usage
 ~~~~~~~~~
 
 ::
 
-    mkdir analysis
-    cd analysis
-    # Put all necessary file in directory
-    cp path/to/config.yaml .
-    # Edit the config.yaml file
-    snakemake -p -s path/to/Snakefile
+    sequana --pipeline variant_calling --file1 R1.fastq.gz --file2 R2.fastq.gz --project variant --reference reference.fasta
+    cd variant
+    snakemake -s variant_calling.rules -p --stats stats.txt -j 4
 
 Requirements
 ~~~~~~~~~~~~~~~~
