@@ -84,7 +84,7 @@ final_output.append(__report_variant__output)
 rule pipeline_variant:
     input:
         final_output
-__freebayes__outputu
+
 
 onsuccess:
     shell("cp %s %s/" % (__snakefile__, "report"))
