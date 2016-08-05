@@ -1,5 +1,5 @@
 #
-# Config file for Variant Calling
+# Config file for Denovo Assembly
 #
 ##############################################################################
 
@@ -13,6 +13,9 @@ samples:
 # Project name
 project: "%(project)s"
 
+# Do you want to do mapping evaluation of your assembly ?
+do_mapping_evaluation: yes
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GenomeAnalysisTK
 
 # GATK is absent in conda because it is not a free software
@@ -21,12 +24,44 @@ project: "%(project)s"
 
 gatk_bin: GenomeAnalysisTK
 
-# =========================================== Sections related to variant calling
+# =========================================== Sections related to assembly tools
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Digital normalization
+
+digital_norm:
+    do: yes
+    options:
+        # kmer size to use
+        --ksize: 20
+        # when median k-mer coverage level is above the number the read is not kept
+        --cutoff: 20
+        # number of tables and size of tables. 
+        # memory used is i(n_table * max-tablesize) bytes.
+        --n_tables: 4
+        --max-tablesize: 3e9       
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Spades
+
+spades:
+    threads: 8
+    options: '--careful'
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Quast
+
+quast:
+    options: ''
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Format contigs
+
+format_contigs:
+    length_min: 500
+
+# =========================================== Sections related to mapping evaluation
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bwa
 
 bwa_ref:
-    reference: "%(reference)s"  # Genome of reference
+    reference: # Empty for denovo assembly
     index:      # Options for bwa index
         options: '-a is'
     mem:        # Options for bwa mem

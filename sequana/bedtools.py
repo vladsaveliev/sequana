@@ -51,6 +51,7 @@ class GenomeCov(object):
     Results are stored in a list of :class:`ChromosomeCov` named :attr:`chr_list`.
 
     """
+
     def __init__(self, input_filename=None):
         """.. rubric:: constructor
 
@@ -65,8 +66,9 @@ class GenomeCov(object):
             df = df.set_index("chr", drop=False)
             # Create a list of ChromosomeCov for each chromosome present in the
             # bedtools.
-            self.chr_list = [ChromosomeCov(df.loc[i]) for i in
+            self.chr_list = [ChromosomeCov(df.loc[key]) for key in
                     df.index.unique()]
+            ChromosomeCov.count = 0
         except IOError as e:
             print("I/0 error({0}): {1}".format(e.errno, e.strerror))
 
@@ -121,6 +123,8 @@ class ChromosomeCov(object):
     Results are stored in a dataframe named :attr:`df`.
 
     """
+    count = 0
+
     def __init__(self, df=None):
         """.. rubric:: constructor
 
@@ -130,6 +134,8 @@ class ChromosomeCov(object):
 
         """
         # Chromosome position becomes the index
+        ChromosomeCov.count += 1
+        self.chrom_index = ChromosomeCov.count
         self.df = df.set_index("pos", drop=False)
         self.chrom_name = df["chr"].iloc[0]
 
@@ -139,6 +145,15 @@ class ChromosomeCov(object):
     def __len__(self):
         return self.df.__len__()
 
+    def get_size(self):
+        return self.__len__()
+
+    def get_mean_cov(self):
+        return self.df["cov"].mean()
+
+    def get_var_coef(self):
+        return np.sqrt(self.df["cov"].var()) / self.get_mean_cov()
+    
     def moving_average(self, n, label="ma"):
         """Compute moving average of reads coverage
 
@@ -166,13 +181,14 @@ class ChromosomeCov(object):
         column named *rm*.
 
         """
-        mid = int(n / 2)# in py2/py3 the division (integer or not) has no impact
+        self.mid = int(n / 2)# in py2/py3 the division (integer or not) has no impact
         cover = list(self.df["cov"])
         try:
             if circular:
-                cover = cover[-mid:] + cover + cover[:mid]
+                cover = cover[-self.mid:] + cover + cover[:self.mid]
                 rm = running_median.RunningMedian(cover, n).run()
-                self.df["rm"] = rm[mid:-mid]
+                self.df["rm"] = rm[self.mid:-self.mid]
+                self.mid = None
             else:
                 rm = running_median.RunningMedian(cover, n).run()
                 self.df["rm"] = rm
@@ -247,11 +263,17 @@ class ChromosomeCov(object):
         """
         # normalize coverage
         self._coverage_scaling()
-        if len(self.df) < 100000:
+
+        # remove edge
+        try:
+            data = self.df['scale'][self.mid:-self.mid]
+        except IndexError:
+            data = self.df['scale']
+
+        if len(data) < 100000:
             step = 1
 
         # remove nan and inf values
-        data = self.df['scale']
         data = data.replace(0, np.nan)
         data = data.dropna()
 
@@ -271,8 +293,17 @@ class ChromosomeCov(object):
         # keep gaussians informations 
         self.gaussians = self.mixture_fitting.results
         self.best_gaussian = self._get_best_gaussian(self.mixture_fitting.results)
-        self.df["zscore"] = (self.df["scale"] - self.best_gaussian["mu"]) / \
-            self.best_gaussian["sigma"]
+
+        # warning when sigma is equal to 0
+        if self.best_gaussian["sigma"] == 0:
+            print("WARNING: A problem related to gaussian prediction is "
+                  "detected. Be careful, Sigma is equal to 0.")
+            self.df["zscore"] = np.zeros(len(self.df), dtype=int)
+        else:
+            self.df["zscore"] = (self.df["scale"] - self.best_gaussian["mu"]) / \
+                self.best_gaussian["sigma"]
+
+        
 
 
     def get_low_coverage(self, threshold=-3, start=None, stop=None):
@@ -347,19 +378,28 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist_zscore(self, fontsize=16, filename=None, max_z=6, bins=None,
-            **hist_kargs):
+    def _set_bins(self, df, binwidth):
+        try:
+            bins = np.arange(min(df), max(df) + binwidth, binwidth)
+        except ValueError:
+            bins = 100
+        return bins
+
+    def plot_hist_zscore(self, fontsize=16, filename=None, max_z=6, 
+            binwidth=0.5, **hist_kargs):
         """ Barplot of zscore
 
         """
-        zs_drop_na = self.df["zscore"].dropna()  
+        #zs_drop_na = self.df["zscore"][self.mid:-self.mid].dropna()  
+        #pylab.clf()
+        #bins = self._set_bins(zs_drop_na, binwidth)
         pylab.clf()
-        if bins is None:
-            bins = int(max(zs_drop_na) * 3 - min(zs_drop_na) * 3)
-            if bins > 100: bins=100
-            if bins < 10: bins=10
-        bins = pylab.linspace(-max_z,max_z, bins)
-        self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
+        bins = self._set_bins(self.df["zscore"], binwidth)
+        try:
+            self.df["zscore"][self.mid:-self.mid].hist(grid=True, bins=bins,
+                **hist_kargs)
+        except IndexError:
+            self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
@@ -368,16 +408,16 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist_normalized_coverage(self, filename=None, bins=None, max_z=4):
+    def plot_hist_normalized_coverage(self, filename=None, binwidth=0.1, 
+            max_z=4):
         """ Barplot of normalized coverage with gaussian fitting
 
         """
-        nc_drop_na = self.df["scale"].dropna()
+        #nc_drop_na = self.df["scale"][self.mid:-self.mid].dropna()
+        #pylab.clf()
+        #bins = self._set_bins(nc_drop_na, binwidth)
         pylab.clf()
-        if bins is None:
-            bins = int(round(nc_drop_na.max() * 7 ))
-            if bins < 10:
-                bins = 10
+        bins = self._set_bins(self.df["scale"], binwidth)
         self.mixture_fitting.plot(bins=bins, Xmin=0, Xmax=max_z)
         pylab.xlim([0,max_z])
         pylab.xlabel("Normalised per-base coverage")

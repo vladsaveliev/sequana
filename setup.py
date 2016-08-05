@@ -75,7 +75,7 @@ setup(
         '': ['Snakefile*', '*html', 'README.rst', 'config*.yaml', '*.css', "*.js", 
                 "snpEff.config*", "*.fa", "*.rules"],
         'sequana.rules' : ['*/*.rules', "*/*/*.rules"],
-        'sequana.pipelines' : ['*/*.rules', "*/*/*.rules"],
+        'sequana.pipelines' : ['*/*.rules', "*/*/*.rules", "*/*yaml"],
         'sequana.resources.data' : ['*'],
         'sequana.resources.data.adapters' : ['*'],
         'sequana.resources.images' : ['*'],

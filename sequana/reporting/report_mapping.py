@@ -50,15 +50,17 @@ class MappingReport(BaseReport):
         self.project = project
         self.jinja['title'] = "Mapping Report of {0}".format(project)
 
-    def set_data(self, chrom_list, bam=None):
+    def set_data(self, chrom_list, bam=None, quast=None):
         self.chrom_list = chrom_list
         self.bam = bam
+        self.quast = quast
 
     def parse(self):        
         self.jinja['main_link'] = 'index.html'
-        self.jinja['bam_is_present'] = True
+        
 
-        try:
+        if self.bam:
+            self.jinja['bam_is_present'] = True
             self.jinja['alignment_count'] = len(self.bam)
 
             # first, we store the flags
@@ -82,19 +84,21 @@ class MappingReport(BaseReport):
             self.jinja["bar_mapq"] = image_prefix + "_bar_mapq.png"
             self.bam.plot_bar_mapq(filename=self.directory + os.sep + 
                     self.jinja["bar_mapq"])
-        # case when bam file is not provided
-        except TypeError:
-            self.jinja['bam_is_present'] = False
 
-        # create table with links to chromosome reports
-        df = pd.DataFrame()
         formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
-        chrom_index = 1
-        for chrom in self.chrom_list:
-            link = "{0}_mapping.chrom{1}.html".format(self.project, chrom_index)
-            df = df.append({"chromosome": formatter.format(
-                chrom.chrom_name, link), "size": "{0:,}".format(len(chrom))}, 
-                ignore_index=True)
-            chrom_index += 1
+        if self.quast:
+            self.jinja['title'] = "Denovo Report of {0}".format(self.project)
+            self.jinja['quast_is_present'] = True
+            quast_link = formatter.format("here", self.quast)
+            self.jinja['quast_link'] = "The report provides by quast " + \
+                "is {0}.".format(quast_link)
+        
+        # create table with links to chromosome reports 
+        link = "{0}_mapping.chrom{1}.html"
+        df = pd.DataFrame([[formatter.format(chrom.chrom_name,
+                link.format(self.project, chrom.chrom_index)),
+                chrom.get_size(), chrom.get_mean_cov(), chrom.get_var_coef()]
+                for chrom in self.chrom_list], columns=["chromosome", "size",
+                "mean_coverage", "coef_variation"])
         html = HTMLTable(df)
         self.jinja['list_chromosome'] = html.to_html(index=False)

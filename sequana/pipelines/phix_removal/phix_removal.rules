@@ -31,6 +31,7 @@ include: fastq_stats_dynamic("samples", cfg.DATASET)
 
 
 if cfg.config.bwa_phix.do:
+    __bwa_mem_ref__ref_input = config["bwa_ref"]["reference"]
     include: bwa_mem_dynamic("phix", cfg.DATASET)
     # This will create the mapped and unmapped data in bwa_phix directory
     include: sm.modules['bwa_bam_to_fastq']

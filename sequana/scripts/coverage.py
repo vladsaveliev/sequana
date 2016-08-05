@@ -186,13 +186,11 @@ def main(args=None):
         options.high_threshold = options.threshold
 
     # Report chromosomes
-    chrom_index = options.chromosome
     print("Creating report")
-    r = report_chromosome.ChromosomeMappingReport(chrom_index,
+    r = report_chromosome.ChromosomeMappingReport(chrom,
         low_threshold=options.low_threshold, 
         high_threshold=options.high_threshold,
         directory="report", project="coverage")
-    r.set_data(chrom)
     r.create_report()
     if options.show_html:
         from easydev import onweb

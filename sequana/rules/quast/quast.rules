@@ -1,0 +1,15 @@
+__quast__output = "quast_%s/report.html" % cfg.PROJECT
+__quast__dir = "quast_" + cfg.PROJECT
+
+rule quast:
+    input:
+        fasta = __quast__input
+    output:
+        __quast__output
+    params:
+        options = config["quast"]["options"],
+        directory = __quast__dir
+    shell:
+        """
+        quast.py {params.options} {input.fasta} -o {params.directory}
+        """

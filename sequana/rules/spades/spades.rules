@@ -1,0 +1,24 @@
+__spades__contigs = "spades/%s.contigs.fasta" % cfg.PROJECT
+__spades__scaffolds = "spades/%s.scaffolds.fasta" % cfg.PROJECT
+
+rule spades:
+    input:
+        fastq = __spades__input
+    output:
+        contigs = __spades__contigs,
+        scaffolds = __spades__scaffolds
+    threads:
+        config["spades"]["threads"]
+    params:
+        options = config["spades"]["options"],
+        project = cfg.PROJECT
+    shell:
+        """
+        # spades
+        spades.py -t {threads} {params.options} -1 {input.fastq[0]} \
+            -2 {input.fastq[1]} -o spades
+
+        # rename assembly files
+        mv spades/scaffolds.fasta {output.scaffolds}
+        mv spades/contigs.fasta {output.contigs}
+        """
