@@ -181,17 +181,19 @@ class ChromosomeCov(object):
         column named *rm*.
 
         """
-        self.mid = int(n / 2)# in py2/py3 the division (integer or not) has no impact
+        mid = int(n / 2)# in py2/py3 the division (integer or not) has no impact
+        self.range = [None, None]
         cover = list(self.df["cov"])
         try:
             if circular:
-                cover = cover[-self.mid:] + cover + cover[:self.mid]
+                cover = cover[-mid:] + cover + cover[:mid]
                 rm = running_median.RunningMedian(cover, n).run()
-                self.df["rm"] = rm[self.mid:-self.mid]
-                self.mid = None
+                self.df["rm"] = rm[mid:-mid]         
             else:
                 rm = running_median.RunningMedian(cover, n).run()
                 self.df["rm"] = rm
+                # set up slice for gaussian prediction
+                self.range = [mid, -mid]
         except:
             self.df["rm"] = self.df["cov"]
 
@@ -264,11 +266,7 @@ class ChromosomeCov(object):
         # normalize coverage
         self._coverage_scaling()
 
-        # remove edge
-        try:
-            data = self.df['scale'][self.mid:-self.mid]
-        except IndexError:
-            data = self.df['scale']
+        data = self.df['scale'][self.range[0]:self.range[1]]
 
         if len(data) < 100000:
             step = 1
@@ -390,14 +388,11 @@ class ChromosomeCov(object):
         """ Barplot of zscore
 
         """
-        #zs_drop_na = self.df["zscore"][self.mid:-self.mid].dropna()  
-        #pylab.clf()
-        #bins = self._set_bins(zs_drop_na, binwidth)
         pylab.clf()
         bins = self._set_bins(self.df["zscore"], binwidth)
         try:
-            self.df["zscore"][self.mid:-self.mid].hist(grid=True, bins=bins,
-                **hist_kargs)
+            self.df["zscore"][self.range[0]:self.range[1]].hist(grid=True, 
+                    bins=bins, **hist_kargs)
         except IndexError:
             self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
@@ -413,9 +408,6 @@ class ChromosomeCov(object):
         """ Barplot of normalized coverage with gaussian fitting
 
         """
-        #nc_drop_na = self.df["scale"][self.mid:-self.mid].dropna()
-        #pylab.clf()
-        #bins = self._set_bins(nc_drop_na, binwidth)
         pylab.clf()
         bins = self._set_bins(self.df["scale"], binwidth)
         self.mixture_fitting.plot(bins=bins, Xmin=0, Xmax=max_z)
