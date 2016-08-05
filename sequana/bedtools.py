@@ -181,13 +181,14 @@ class ChromosomeCov(object):
         column named *rm*.
 
         """
-        mid = int(n / 2)# in py2/py3 the division (integer or not) has no impact
+        self.mid = int(n / 2)# in py2/py3 the division (integer or not) has no impact
         cover = list(self.df["cov"])
         try:
             if circular:
-                cover = cover[-mid:] + cover + cover[:mid]
+                cover = cover[-self.mid:] + cover + cover[:self.mid]
                 rm = running_median.RunningMedian(cover, n).run()
-                self.df["rm"] = rm[mid:-mid]
+                self.df["rm"] = rm[self.mid:-self.mid]
+                self.mid = None
             else:
                 rm = running_median.RunningMedian(cover, n).run()
                 self.df["rm"] = rm
@@ -262,11 +263,17 @@ class ChromosomeCov(object):
         """
         # normalize coverage
         self._coverage_scaling()
-        if len(self.df) < 100000:
+
+        # remove edge
+        try:
+            data = self.df['scale'][self.mid:-self.mid]
+        except IndexError:
+            data = self.df['scale']
+
+        if len(data) < 100000:
             step = 1
 
         # remove nan and inf values
-        data = self.df['scale']
         data = data.replace(0, np.nan)
         data = data.dropna()
 
@@ -371,19 +378,28 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist_zscore(self, fontsize=16, filename=None, max_z=6, bins=None,
-            **hist_kargs):
+    def _set_bins(self, df, binwidth):
+        try:
+            bins = np.arange(min(df), max(df) + binwidth, binwidth)
+        except ValueError:
+            bins = 100
+        return bins
+
+    def plot_hist_zscore(self, fontsize=16, filename=None, max_z=6, 
+            binwidth=0.5, **hist_kargs):
         """ Barplot of zscore
 
         """
-        zs_drop_na = self.df["zscore"].dropna()  
+        #zs_drop_na = self.df["zscore"][self.mid:-self.mid].dropna()  
+        #pylab.clf()
+        #bins = self._set_bins(zs_drop_na, binwidth)
         pylab.clf()
-        if bins is None:
-            bins = int(max(zs_drop_na) * 3 - min(zs_drop_na) * 3)
-            if bins > 100: bins=100
-            if bins < 10: bins=10
-        bins = pylab.linspace(-max_z,max_z, bins)
-        self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
+        bins = self._set_bins(self.df["zscore"], binwidth)
+        try:
+            self.df["zscore"][self.mid:-self.mid].hist(grid=True, bins=bins,
+                **hist_kargs)
+        except IndexError:
+            self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
@@ -392,16 +408,16 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist_normalized_coverage(self, filename=None, bins=None, max_z=4):
+    def plot_hist_normalized_coverage(self, filename=None, binwidth=0.1, 
+            max_z=4):
         """ Barplot of normalized coverage with gaussian fitting
 
         """
-        nc_drop_na = self.df["scale"].dropna()
+        #nc_drop_na = self.df["scale"][self.mid:-self.mid].dropna()
+        #pylab.clf()
+        #bins = self._set_bins(nc_drop_na, binwidth)
         pylab.clf()
-        if bins is None:
-            bins = int(round(nc_drop_na.max() * 7 ))
-            if bins < 10:
-                bins = 10
+        bins = self._set_bins(self.df["scale"], binwidth)
         self.mixture_fitting.plot(bins=bins, Xmin=0, Xmax=max_z)
         pylab.xlim([0,max_z])
         pylab.xlabel("Normalised per-base coverage")
