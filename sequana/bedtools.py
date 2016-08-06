@@ -389,12 +389,10 @@ class ChromosomeCov(object):
 
         """
         pylab.clf()
-        bins = self._set_bins(self.df["zscore"], binwidth)
-        try:
-            self.df["zscore"][self.range[0]:self.range[1]].hist(grid=True, 
-                    bins=bins, **hist_kargs)
-        except IndexError:
-            self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
+        bins = self._set_bins(self.df["zscore"][self.range[0]:self.range[1]], 
+                binwidth)
+        self.df["zscore"][self.range[0]:self.range[1]].hist(grid=True, 
+                bins=bins, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
@@ -409,8 +407,10 @@ class ChromosomeCov(object):
 
         """
         pylab.clf()
-        bins = self._set_bins(self.df["scale"], binwidth)
+        bins = self._set_bins(self.df["scale"][self.range[0]:self.range[1]], 
+                binwidth)
         self.mixture_fitting.plot(bins=bins, Xmin=0, Xmax=max_z)
+        pylab.grid(True)
         pylab.xlim([0,max_z])
         pylab.xlabel("Normalised per-base coverage")
         try:
