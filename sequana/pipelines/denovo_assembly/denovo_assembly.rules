@@ -38,7 +38,7 @@ if config["do_mapping_evaluation"]:
     __bwa_mem_ref__ref_input = __format_contigs__output
     __report_mapping__quast_input = __quast__output
     include: sm.modules["variant_calling"]
-    final_output.append(__quast__output)
+    final_output.append(__quast__output, __format_contigs__output)
 else:
     final_output = [__spades__contigs, __quast__output]
 
@@ -48,6 +48,15 @@ rule pipeline_denovo:
         final_output
 
 onsuccess:
+    
+    shell("cp %s %s/" % (__snakefile__, "report"))
+    shell("cp config.yaml %s/" % "report")
+    sm.plot_stats()
+    
+    if config["do_mapping_evaluation"]:
+        shell("cp %s %s" % (__freebayes__output, "report"))
+    
     shell("cp -r %s report" % __quast__dir)
+    shell("cp -r %s report" % __format_contigs__output)
     shell("cp %s report" % __spades__contigs)
     shell("cp %s report" % __spades__scaffolds)
