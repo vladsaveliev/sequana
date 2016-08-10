@@ -32,6 +32,8 @@ from sequana.reporting import report_main
 
 from easydev import shellcmd
 
+from pylab import show, figure, savefig
+
 class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana_coverage"):
         usage = """Welcome to SEQUANA - Coverage standalone
@@ -52,26 +54,36 @@ Issues: http://github.com/sequana/sequana
         # options to fill the config file
         group = self.add_argument_group("Required argument")
         group.add_argument("-i", "--input", dest="input", type=str,
-            required=True, help="Input file in BED or BAM format")
+            help="Input file in BED or BAM format")
 
         group = self.add_argument_group("Optional biological arguments")
         group.add_argument('-c', "--chromosome", dest="chromosome", type=int,
             default=1,
-            help="""Chromosome number (if only one, no need to use)""") 
+            help="""Chromosome number (if only one, no need to use; 
+            default is 1)""") 
         group.add_argument('-o', "--circular", dest="circular",
-            default=False, action="store_true", help="""""") 
+            default=False, action="store_true", 
+            help="""If the DNA of the organism is circular (typically 
+            viruses), set to True""") 
 
         group = self.add_argument_group("General")
         group.add_argument('--show', dest="show", default=False,
-            action='store_true')
+            action='store_true', help="""Show the pictures (matplotlib)""")
         group.add_argument('--show-html', dest="show_html", default=False,
-            action='store_true')
+            action='store_true', 
+            help="""When report is created, you can open
+            the main page automatically with this option""")
         group.add_argument("-q", "--quiet", dest="verbose", 
             default=True, action="store_false")
+        group.add_argument('--no-report', dest="create_report",
+            default=True, action='store_false',
+            help="""Do not create any HTML report""")
 
         group = self.add_argument_group("GC content related")
         group.add_argument('-r', "--reference", dest="reference", type=str,
-            default=None,help="""reference""") 
+            default=None,
+            help="""ENA/NCBI reference. Used to create the coverage
+            versus GC content image""") 
         group.add_argument("-g", "--window-gc", dest="w_gc", type=int,
             help="""Length of the running median window""", default=200)
         group.add_argument('-n', "--nlevels", dest="levels", type=int,
@@ -81,23 +93,29 @@ Issues: http://github.com/sequana/sequana
         #group running median
         group = self.add_argument_group("Running Median related")
         group.add_argument("-w", "--window-median", dest="w_median", type=int,
-            help="""Length of the running median window""", default=1001)
-        
+            help="""Length of the running median window (default 4001)""", default=4001)
+
         group.add_argument("-k", "--mixture-models", dest="k", type=int,
             help="""Number of mixture models to use (default 2). If DOC is below
-2, k is set to 1). To ignore that behavious set k to the required value""",
+            8, k is set to 1). To ignore that behaviour set k to the required value""",
             default=None)
 
         group.add_argument("-L", "--low-threshold", dest="low_threshold",
-            default=-3, type=float,
+            default=-4, type=float,
             help="lower threshold (zscore) of the confidence interval")
         group.add_argument("-H", "--high-threshold", dest="high_threshold",
-            default=3, type=float,
+            default=4, type=float,
             help="higher threshold (zscore) of the confidence interval")
         group.add_argument("-T", "--threshold", dest="threshold",
-            default=3, type=float,
-            help="higher threshold of the confidence interval")
+            default=4, type=float,
+            help="set lower and higher thresholds of the confidence interval")
 
+        group = self.add_argument_group("Download reference")
+        group.add_argument("--download-reference", dest="accession",
+            default=None, type=str)
+        group.add_argument("--database", dest="database",
+            default="ENA", type=str, 
+            choices=["ENA", "EUtils"])
 
 
 def main(args=None):
@@ -112,6 +130,14 @@ def main(args=None):
         user_options.parse_args(["prog", "--help"])
     else:
         options = user_options.parse_args(args[1:])
+
+    if options.accession:
+        print("Download accession %s from %s\n" % 
+            (options.accession, options.database))
+
+        from bioservices.apps import download_fasta as df
+        df.download_fasta(options.accession, method=options.database)
+        return
 
     # We put the import here to make the --help faster
     from sequana import GenomeCov
@@ -128,6 +154,12 @@ def main(args=None):
     else:
         raise ValueError("Input file must be a BAM or BED file")
 
+
+    if divmod(options.w_median, 2)[1] == 0:
+        from easydev.console import red
+        print(red("Error: -w/--window-median option must be set to an odd value"))
+        return
+
     gc = GenomeCov(bedfile)
 
     if options.reference:
@@ -135,11 +167,18 @@ def main(args=None):
         gc.compute_gc_content(options.reference, options.w_gc)
 
     if len(gc.chr_list) == 1:
+        if options.verbose:
+            print("There is only one chromosome")
         chrom = gc.chr_list[0]
     elif options.chromosome < 0 or options.chromosome > len(gc.chr_list):
         raise ValueError("invalid --chromosome value ; must be in [1-%s]" % len(gc.chr_list)+1)
     else:
+        print("There are %s chromosomes. Selected the chromosome %s" % 
+            (len(gc.chr_list), options.chromosome))
         chrom = gc.chr_list[options.chromosome-1]
+
+    if options.verbose:
+        print(chrom)
 
     if options.verbose:
         print('Computing running median')
@@ -149,19 +188,26 @@ def main(args=None):
     if options.verbose:
         print('Computing zscore')
 
-    DOC = chrom.get_stats()['DOC']
+    stats = chrom.get_stats()
+    DOC = stats['DOC']
     if options.k is None and DOC < 8:
         options.k = 1
     elif options.k is None:
         options.k = 2
-    print("DOC: %s " % DOC)
-    print("Number of mixture model %s " % options.k)
 
+    if options.verbose:
+        print("Number of mixture model %s " % options.k)
 
     chrom.compute_zscore(k=options.k)
 
-    from pylab import show, figure, savefig
+    centralness = chrom.get_centralness()
 
+    if options.verbose:
+        print("Centralness (3 sigma): %8.3f" % centralness)
+        print("Evenness: %8.3f" % chrom.get_evenness())
+
+    if options.verbose:
+        print("\n\n")
     figure(1)
     chrom.plot_coverage(low_threshold=options.low_threshold,
         high_threshold=options.high_threshold)
@@ -187,14 +233,15 @@ def main(args=None):
 
     # Report chromosomes
     print("Creating report")
-    r = report_chromosome.ChromosomeMappingReport(chrom,
-        low_threshold=options.low_threshold, 
-        high_threshold=options.high_threshold,
-        directory="report", project="coverage")
-    r.create_report()
-    if options.show_html:
-        from easydev import onweb
-        onweb("report/coverage_mapping.chrom%s.html" % chrom_index)
+    if options.create_report:
+        r = report_chromosome.ChromosomeMappingReport(chrom,
+            low_threshold=options.low_threshold, 
+            high_threshold=options.high_threshold,
+            directory="report", project="coverage")
+        r.create_report()
+        if options.show_html:
+            from easydev import onweb
+            onweb("report/coverage_mapping.chrom%s.html" % options.chromosome)
 
 
 if __name__ == "__main__":
