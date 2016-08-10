@@ -140,7 +140,15 @@ class ChromosomeCov(object):
         self.chrom_name = df["chr"].iloc[0]
 
     def __str__(self):
-        return self.df.__str__()
+        stats = self.get_stats()
+        BOC = stats['BOC']
+        CV = stats['CV']
+        txt = "\nSequencing depth (DOC): %8.2f " % stats['DOC']
+        txt += "\nSequencing depth (median): %8.2f " % stats['median']
+        txt += "\nBreadth of coverage (BOC): %.2f " % BOC
+        txt += "\nGenome coverage standard deviation : %8.2f " % stats['std']
+        txt += "\nGenome coverage coefficient variation : %8.2f " % CV
+        return txt
 
     def __len__(self):
         return self.df.__len__()
@@ -153,8 +161,8 @@ class ChromosomeCov(object):
 
     def get_var_coef(self):
         return np.sqrt(self.df["cov"].var()) / self.get_mean_cov()
-    
-    def moving_average(self, n, label="ma"):
+
+    def moving_average(self, n, circular=False):
         """Compute moving average of reads coverage
 
         :param n: window's size.
@@ -163,12 +171,26 @@ class ChromosomeCov(object):
         column named *ma*.
 
         """
+        N = len(self.df['cov'])
+        assert n < N/2
+        from sequana.stats import moving_average
+
         ret = np.cumsum(np.array(self.df["cov"]), dtype=float)
         ret[n:] = ret[n:] - ret[:-n]
         ma = ret[n - 1:] / n
         mid = int(n / 2)
         self.df["ma"] = pd.Series(ma, index=np.arange(start=mid,
             stop=(len(ma) + mid)))
+
+        if circular:
+            # FIXME: shift of +-1 as compared to non circular case...
+            # shift the data and compute the moving average
+            self.data = list(self.df['cov'].values[N-n:]) +\
+                list(self.df['cov'].values) + \
+                list(self.df['cov'].values[0:n])
+            ma = moving_average(self.data, n)
+            self.ma = ma[n//2+1:-n//2]
+            self.df["ma"] = pd.Series(self.ma, index=self.df['cov'].index)
 
     def running_median(self, n, circular=False):
         """Compute running median of reads coverage
@@ -301,8 +323,18 @@ class ChromosomeCov(object):
             self.df["zscore"] = (self.df["scale"] - self.best_gaussian["mu"]) / \
                 self.best_gaussian["sigma"]
 
-        
+    def get_centralness(self, threshold=3):
+        r"""Proportion of central (normal) genome coverage 
 
+        assuming a 3 sigma normality.
+
+        This is 1 - (number of non normal data) / (total length)
+
+        .. note:: depends slightly on :math:`W` the running median window
+        """
+        l1 = len(self.get_low_coverage(-threshold))
+        l2 = len(self.get_high_coverage(threshold))
+        return 1 - (l1+l2) / float(len(self))
 
     def get_low_coverage(self, threshold=-3, start=None, stop=None):
         """Keep position with zscore lower than INT and return a data frame.
@@ -361,7 +393,8 @@ class ChromosomeCov(object):
                 label="Running median")
         p3, = pylab.plot(high_zcov, linewidth=1, color="r", ls="--",
                 label="Thresholds")
-        p4, = pylab.plot(low_zcov, linewidth=1, color="r", ls="--")
+        p4, = pylab.plot(low_zcov, linewidth=1, color="r", ls="--",
+            label="_nolegend_")
 
         pylab.legend([p1, p2, p3], [p1.get_label(), p2.get_label(),
                 p3.get_label()], loc="best")
@@ -489,10 +522,19 @@ class ChromosomeCov(object):
         return res
 
     def get_stats(self):
+        data = self.df
+
         stats ={
             'DOC': self.df['cov'].mean(), 
+            'std': self.df['cov'].std(),
+            'median': self.df['cov'].median(),
             'BOC': sum(self.df['cov'] > 0) / float(len(self.df)) }
+        stats['CV'] = stats['std'] /  stats['DOC']
+        stats['MAD'] = np.median(abs(data['cov'].median() - data['cov']).dropna())
 
+        if 'scale' in self.df.columns:
+            MAD = np.median(abs(data['scale'].median() - data['scale']).dropna())
+            stats['MAD_normed'] = MAD
         if 'gc' in self.df.columns:
             stats['GC'] = self.df['gc'].mean() * 100
 
