@@ -316,8 +316,10 @@ class Module(object):
     path = property(_get_path, doc="full path to the module directory")
 
     def _get_config(self):
+        # The default config file for that module
         filename = self._get_file("config.yaml")
         if filename is None:
+            # or the sequana default config file
             filename = self._get_file("../config.yaml")
         return filename
     config = property(_get_config,
