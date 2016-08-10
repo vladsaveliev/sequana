@@ -28,6 +28,11 @@
 from bisect import bisect_left, insort
 import numpy as np
 
+try:
+    from blist import blist
+except:
+    print("blist package could not be imported.")
+    blist = list
 
 class RunningMedian:
     """Running median (fast)
@@ -107,14 +112,23 @@ class RunningMedian:
     .. note:: The beginning and end of the running median are irrelevant.
         There are actually equal to the data in our implementation.
 
+    .. note:: using blist instead of list is not always faster. It depends on
+        the width of the window being used. list and blist are equivaltn for W
+        below 20,000 (list is slightly faster). However, for large W, blist
+        has an O(log(n)) complexity while list has a O(n) complexity
+
     """
-    def __init__(self, data, width, container=list):
+    def __init__(self, data, width, container=blist):
         """.. rubric:: constructor
 
         :param data: your data vector
         :param width: running window length
         :param container: a container (defaults to list). Could be a B-tree
-            blist from the blist package
+            blist from the blist package but is 30% slower than a pure list
+
+        scipy in O(n)
+        list in sqrt(n)
+        blist in O(log(n))
 
         """
         if (width % 2) != 1:
@@ -131,7 +145,7 @@ class RunningMedian:
 
         # initialise with first W values and sort the values
         lc = self.container(self.data[:self.W])
-        lc.sort()  # not needed because all values are the same here
+        lc.sort()  # 
 
         mididx = (self.W - 1) // 2
         result = np.empty_like(self.data)
