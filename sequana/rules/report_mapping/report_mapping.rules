@@ -33,8 +33,9 @@ try:
                     directory=params.outdir)
             s.jinja['description'] = """
     
-            This is the output of variant calling pipeline. This pipeline search
-            variants and provide as an output a vcf file.
+            This is the output of denovo assembly. This pipeline generates an
+            assembly with spades. It evaluates the assembly with a remapping
+            of reads on contigs.
     
             """
             s.create_report()

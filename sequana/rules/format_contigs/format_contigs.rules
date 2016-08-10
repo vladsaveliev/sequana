@@ -3,7 +3,7 @@ __format_contigs__output = "format_contigs/%s.ab%i.fasta" % (cfg.PROJECT,
 
 rule format_contigs:
     input:
-        __format_contigs__input
+        contigs = __format_contigs__input
     output:
         __format_contigs__output
     params:
@@ -11,6 +11,6 @@ rule format_contigs:
     run:
         from sequana import FastA
 
-        contigs = FastA(project=input)
+        contigs = FastA(input.contigs)
         contigs.format_contigs_denovo(cfg.PROJECT, output_dir="format_contigs",
             len_min=params.length_min)

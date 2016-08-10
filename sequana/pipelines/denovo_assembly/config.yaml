@@ -110,7 +110,7 @@ mark_duplicates:
 
 report_mapping:
     do: yes
-    k: 2                    # Number of gaussian predicted
+    k: 1                    # Number of gaussian predicted
     circular: no            # If your genome is circular
     window_size: 30001      # Window size for compute the running median
     high_threshold: 4       # Threshold to detect high coverage

@@ -440,8 +440,9 @@ class ChromosomeCov(object):
 
         """
         pylab.clf()
-        bins = self._set_bins(self.df["scale"][self.range[0]:self.range[1]], 
-                binwidth)
+        # if there are a NaN -> can't set up binning 
+        data_scale = self.df["scale"][self.range[0]:self.range[1]].dropna()
+        bins = self._set_bins(data_scale, binwidth)
         self.mixture_fitting.plot(bins=bins, Xmin=0, Xmax=max_z)
         pylab.grid(True)
         pylab.xlim([0,max_z])
