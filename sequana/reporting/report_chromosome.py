@@ -34,7 +34,7 @@ class ChromosomeMappingReport(BaseReport):
 
     """
     def __init__(self, mapping, low_threshold=-3, high_threshold=3, 
-            directory="report", project="", **kargs):
+            directory="report/chromosome", project="", **kargs):
         """.. rubric:: constructor
 
         """
