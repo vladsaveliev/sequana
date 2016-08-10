@@ -1,0 +1,62 @@
+"""
+Author: Dimitri Desvillechabrol
+Affiliation: Institut Pasteur
+Aim: Denovo assembly
+Data: paired end  
+Run: snakemake -s denovo_assembly.rules
+"""
+
+import os
+
+import sequana
+from sequana import snaketools as sm
+from sequana.snaketools import SequanaConfig
+sm.init("denovo_assembly.rules", globals())
+
+
+# load config file
+configfile: "config.yaml"
+cfg = SequanaConfig(config)
+
+
+if config["digital_norm"]["do"]:
+    __digital_norm__input = cfg.DATASET
+    include: sm.modules["digital_norm"]
+    __spades__input = __digital_norm__output
+else:
+    __spades__input = cfg.DATASET
+
+include: sm.modules["spades"]
+
+__quast__input = [__spades__contigs, __spades__scaffolds]
+include: sm.modules["quast"]
+
+__format_contigs__input = __spades__contigs
+include: sm.modules["format_contigs"]
+
+if config["do_mapping_evaluation"]:
+    __bwa_mem_ref__ref_input = __format_contigs__output
+    __report_mapping__quast_input = __quast__output
+    include: sm.modules["variant_calling"]
+    final_output = final_output + [__quast__output, __format_contigs__output]
+else:
+    final_output = [__format_contigs__output, __quast__output]
+
+
+rule pipeline_denovo:
+    input:
+        final_output
+
+onsuccess:
+    
+    shell("cp %s %s/" % (__snakefile__, "report"))
+    shell("cp config.yaml %s/" % "report")
+    sm.plot_stats()
+    
+    if config["do_mapping_evaluation"]:
+        shell("cp %s %s" % (__freebayes__output, "report"))
+    
+    shell("cp -r %s report" % __quast__dir)
+    shell("cp %s report" % __format_contigs__output)
+    shell("cp %s report" % __spades__contigs)
+    shell("cp %s report" % __spades__scaffolds)

@@ -65,8 +65,9 @@ class VCF(vcf.Reader):
         self._reader.seek(0)
         for line in iter(self._reader.readline, ''):
             if line.startswith("#"):
-                self.start_index = self._reader.tell()
+                self._start_index = self._reader.tell()
             else:
+                self._rewind()
                 break
 
     def _strand_rate(self, number1, number2):
@@ -187,7 +188,7 @@ class VCF(vcf.Reader):
         self._rewind()
 
     def _rewind(self):
-        self._reader.seek(self.start_index)
+        self._reader.seek(self._start_index)
         self.reader = (line.strip() for line in self._reader if line.strip())
 
     def to_csv(self, output_filename):

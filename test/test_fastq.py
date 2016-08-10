@@ -40,7 +40,10 @@ def test_fastq_unzipped():
             assert len(ff) == 250
 
         with TempFile() as fh:
-            f.select_random_reads(10, fh.name)
+            selection = f.select_random_reads(10, fh.name)
+            f.select_random_reads(selection, fh.name)
+
+
 
 
 def test_split():

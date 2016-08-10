@@ -81,6 +81,7 @@ mark_duplicates:
 
 report_mapping:
     do: yes
+    k: 2
     circular: yes
     window_size: 1001
     high_threshold: 3
@@ -140,4 +141,25 @@ adapter_removal:
 kraken:
     do: yes
     database: "%(kraken)s"
+
+
+# denovo assembly
+digital_norm:
+    do: yes
+    options:
+        # kmer size to use
+        --ksize: 20
+        # when median k-mer coverage level is above the number the read is not kept
+        --cutoff: 20
+        # number of tables and size of tables. 
+        # memory used is i(n_table * max-tablesize) bytes.
+        --n_tables: 4
+        --max-tablesize: 3e9       
+
+spades:
+    threads: 8
+    options: '--careful'
+
+quast:
+    options: ''
 

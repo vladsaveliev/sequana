@@ -6,7 +6,7 @@
     <h2><a class="toc-backref" href="#id1">Input</a></h2>
     <a href=""> </a>
 
-    The BAM file contains {{ alignment_count }} fragments/alignments.
+    The BAM file contains {{ alignment_count }} fragments/alignments.   
 </div>
 
 <div class="section" id="Flags">
@@ -15,13 +15,22 @@
 
     {{ flags_table }}
 
-    <img src="{{ bar_flags  }}"> </>
-    <img src="{{ bar_log_flag }}"> </>
+    <img src="{{ bar_flag  }}"> </>
+    <img src="{{ bar_log_flag }}"> </> 
 </div>
 
 <div class="section" id="mapq">
     <h2><a class="toc-backref" href="#id1">MAPQ</a></h2>
     <img src="{{ bar_mapq }}"> </>
+</div>
+
+{% endif %}
+
+{% if quast_is_present == true %}
+
+<div class="section" id="mapq">
+    <h2><a class="toc-backref" href="#id1">QUAST</a></h2>
+    {{ quast_link }}
 </div>
 
 {% endif %}

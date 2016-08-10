@@ -95,7 +95,7 @@ class SequanaSummary(BaseReport):
         # Links to the datasets
         html = "<ul>"
         for link, filename in zip(self.config.DATASET, self.config.BASENAME):
-            html += '<li>Download raw data: <a href="file:///%s">%s</a></li>\n' % (link, filename)
+            html += '<li>Download raw data: <a href="%s">%s</a></li>\n' % (link, filename)
         html += "</ul>"
         self.jinja['dataset'] = html
 

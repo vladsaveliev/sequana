@@ -316,8 +316,10 @@ class Module(object):
     path = property(_get_path, doc="full path to the module directory")
 
     def _get_config(self):
+        # The default config file for that module
         filename = self._get_file("config.yaml")
         if filename is None:
+            # or the sequana default config file
             filename = self._get_file("../config.yaml")
         return filename
     config = property(_get_config,
@@ -465,28 +467,53 @@ class SequanaConfig(object):
         Save the config file into a config file in YAML format.
         The initial input file is in JSON format
         """
-        # Assuming two levels at most
+        # Using yaml.dump, the cases with arguments starting with - prevents
+        # yaml.dump to understand that it is a field and so quotes are missing.
+        # So we do it by hand assuming two levels at most
+
+        # We do not put quotes except when we find a space, a % (e.g for
+        # templating with "%(param)s" case, a \\ (e.g. bwa_ref case)
         txt = ""
+        def special(string):
+            if isinstance(string, str) is False:
+                return False
+            if " " in string:
+                return True
+            if "%" in string or "\\" in string:
+                return True
+            return False
+
         for k1 in sorted(self.config.keys()):
             v1 = self.config[k1]
             if isinstance(v1, dict):
-                txt += "%s:\n" %  k1
+                txt += "%s:\n" % k1
                 for k2, v2 in v1.items():
                     if isinstance(v2, dict):
                         txt += "    %s:\n" %  k2
-                        for k3,v3 in v2.items():
-                            txt += "        %s: '%s'\n" % (k3, v3)
+                        for k3, v3 in v2.items():
+                            if special(v3):
+                                txt += "        %s: '%s'\n" % (k3, v3)
+                            else:
+                                txt += "        %s: %s\n" % (k3, v3)
                     elif isinstance(v2, list):
                         txt += "    %s: '%s'\n" % (k2, self.config[k1][k2])
                     else:
-                        txt += '    %s: "%s"\n' % (k2, v2)
-
+                        if special(v2):
+                            txt += '    %s: "%s"\n' % (k2, v2)
+                        else:
+                            txt += '    %s: %s\n' % (k2, v2)
             elif isinstance(v1, list):
                 txt += "%s:\n" %  k1
                 for item in self.config[k1]:
-                    txt += "    - %s\n" % item
+                    if special(item):
+                        txt += "    - '%s'\n" % item
+                    else:
+                        txt += "    - %s\n" % item
             else:
-                txt += '%s: "%s"\n' % (k1, v1)
+                if special(v1):
+                    txt += '%s: %s\n' % (k1, v1)
+                else:
+                    txt += '%s: "%s"\n' % (k1, v1)
             txt += "\n"
             with open(filename, "w") as fout:
                 fout.write(txt)

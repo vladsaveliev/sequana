@@ -62,8 +62,9 @@ setup(
     # pillow, sphinx-gallery and numpydoc are  for the doc only
     # mock is for the test only
     install_requires = ["easydev>=0.9.22", "reports>=0.1.8", "matplotlib",
-        "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.11", "biokit>=0.3.2", 
-        "pysam", "pyVCF", "sphinx-gallery", "mock", "numpydoc", "pillow"],
+        "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.13", "biokit>=0.3.2", 
+        "pysam", "pyVCF", "sphinx-gallery", "mock", "numpydoc", "pillow",
+        "blist"],
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
@@ -75,7 +76,7 @@ setup(
         '': ['Snakefile*', '*html', 'README.rst', 'config*.yaml', '*.css', "*.js", 
                 "snpEff.config*", "*.fa", "*.rules"],
         'sequana.rules' : ['*/*.rules', "*/*/*.rules"],
-        'sequana.pipelines' : ['*/*.rules', "*/*/*.rules"],
+        'sequana.pipelines' : ['*/*.rules', "*/*/*.rules", "*/*yaml"],
         'sequana.resources.data' : ['*'],
         'sequana.resources.data.adapters' : ['*'],
         'sequana.resources.images' : ['*'],
@@ -95,7 +96,8 @@ setup(
            'sequana=sequana.scripts.main:main',
            'sequana_taxonomy=sequana.scripts.taxonomy:main',
            'sequana_coverage=sequana.scripts.coverage:main',
-           'sequana_summary=sequana.scripts.summary:main'
+           'sequana_summary=sequana.scripts.summary:main',
+           'sequana_mapping=sequana.scripts.mapping:main'
         ]
     },
 

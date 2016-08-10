@@ -26,7 +26,7 @@ class TestPipeline(object):
         import shutil
         try:shutil.rmtree("Hm2_test")
         except:pass
-        
+
         try:shutil.rmtree("report")
         except:pass
 

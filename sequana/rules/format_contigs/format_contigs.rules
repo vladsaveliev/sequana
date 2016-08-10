@@ -1,0 +1,16 @@
+__format_contigs__output = "format_contigs/%s.ab%i.fasta" % (cfg.PROJECT, 
+    config["format_contigs"]["length_min"])
+
+rule format_contigs:
+    input:
+        contigs = __format_contigs__input
+    output:
+        __format_contigs__output
+    params:
+        length_min = config["format_contigs"]["length_min"]
+    run:
+        from sequana import FastA
+
+        contigs = FastA(input.contigs)
+        contigs.format_contigs_denovo(cfg.PROJECT, output_dir="format_contigs",
+            len_min=params.length_min)

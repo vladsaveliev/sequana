@@ -51,6 +51,7 @@ class GenomeCov(object):
     Results are stored in a list of :class:`ChromosomeCov` named :attr:`chr_list`.
 
     """
+
     def __init__(self, input_filename=None):
         """.. rubric:: constructor
 
@@ -65,10 +66,16 @@ class GenomeCov(object):
             df = df.set_index("chr", drop=False)
             # Create a list of ChromosomeCov for each chromosome present in the
             # bedtools.
-            self.chr_list = [ChromosomeCov(df.loc[i]) for i in
+            self.chr_list = [ChromosomeCov(df.loc[key]) for key in
                     df.index.unique()]
+            ChromosomeCov.count = 0
         except IOError as e:
             print("I/0 error({0}): {1}".format(e.errno, e.strerror))
+
+        # Set the link to this instance in each chromosome
+        # useful if one wants to recompute GC content with different window
+        for chrom in self.chr_list:
+            chrom.bed = self
 
     def __getitem__(self, index):
         return self.chr_list[index]
@@ -94,7 +101,6 @@ class GenomeCov(object):
             chrom._ws_gc = window_size
 
 
-
 class ChromosomeCov(object):
     """Class used within :class:`GenomeCov` to select a chromosome of the
     original GenomeCov.
@@ -117,6 +123,8 @@ class ChromosomeCov(object):
     Results are stored in a dataframe named :attr:`df`.
 
     """
+    count = 0
+
     def __init__(self, df=None):
         """.. rubric:: constructor
 
@@ -126,16 +134,35 @@ class ChromosomeCov(object):
 
         """
         # Chromosome position becomes the index
+        ChromosomeCov.count += 1
+        self.chrom_index = ChromosomeCov.count
         self.df = df.set_index("pos", drop=False)
         self.chrom_name = df["chr"].iloc[0]
 
     def __str__(self):
-        return self.df.__str__()
+        stats = self.get_stats()
+        BOC = stats['BOC']
+        CV = stats['CV']
+        txt = "\nSequencing depth (DOC): %8.2f " % stats['DOC']
+        txt += "\nSequencing depth (median): %8.2f " % stats['median']
+        txt += "\nBreadth of coverage (BOC): %.2f " % BOC
+        txt += "\nGenome coverage standard deviation : %8.2f " % stats['std']
+        txt += "\nGenome coverage coefficient variation : %8.2f " % CV
+        return txt
 
     def __len__(self):
         return self.df.__len__()
 
-    def moving_average(self, n, label="ma"):
+    def get_size(self):
+        return self.__len__()
+
+    def get_mean_cov(self):
+        return self.df["cov"].mean()
+
+    def get_var_coef(self):
+        return np.sqrt(self.df["cov"].var()) / self.get_mean_cov()
+
+    def moving_average(self, n, circular=False):
         """Compute moving average of reads coverage
 
         :param n: window's size.
@@ -144,12 +171,26 @@ class ChromosomeCov(object):
         column named *ma*.
 
         """
+        N = len(self.df['cov'])
+        assert n < N/2
+        from sequana.stats import moving_average
+
         ret = np.cumsum(np.array(self.df["cov"]), dtype=float)
         ret[n:] = ret[n:] - ret[:-n]
         ma = ret[n - 1:] / n
         mid = int(n / 2)
         self.df["ma"] = pd.Series(ma, index=np.arange(start=mid,
             stop=(len(ma) + mid)))
+
+        if circular:
+            # FIXME: shift of +-1 as compared to non circular case...
+            # shift the data and compute the moving average
+            self.data = list(self.df['cov'].values[N-n:]) +\
+                list(self.df['cov'].values) + \
+                list(self.df['cov'].values[0:n])
+            ma = moving_average(self.data, n)
+            self.ma = ma[n//2+1:-n//2]
+            self.df["ma"] = pd.Series(self.ma, index=self.df['cov'].index)
 
     def running_median(self, n, circular=False):
         """Compute running median of reads coverage
@@ -163,15 +204,18 @@ class ChromosomeCov(object):
 
         """
         mid = int(n / 2)# in py2/py3 the division (integer or not) has no impact
+        self.range = [None, None]
         cover = list(self.df["cov"])
         try:
             if circular:
                 cover = cover[-mid:] + cover + cover[:mid]
                 rm = running_median.RunningMedian(cover, n).run()
-                self.df["rm"] = rm[mid:-mid]
+                self.df["rm"] = rm[mid:-mid]         
             else:
                 rm = running_median.RunningMedian(cover, n).run()
                 self.df["rm"] = rm
+                # set up slice for gaussian prediction
+                self.range = [mid, -mid]
         except:
             self.df["rm"] = self.df["cov"]
 
@@ -243,11 +287,13 @@ class ChromosomeCov(object):
         """
         # normalize coverage
         self._coverage_scaling()
-        if len(self.df) < 100000:
+
+        data = self.df['scale'][self.range[0]:self.range[1]]
+
+        if len(data) < 100000:
             step = 1
 
         # remove nan and inf values
-        data = self.df['scale']
         data = data.replace(0, np.nan)
         data = data.dropna()
 
@@ -267,9 +313,28 @@ class ChromosomeCov(object):
         # keep gaussians informations 
         self.gaussians = self.mixture_fitting.results
         self.best_gaussian = self._get_best_gaussian(self.mixture_fitting.results)
-        self.df["zscore"] = (self.df["scale"] - self.best_gaussian["mu"]) / \
-            self.best_gaussian["sigma"]
 
+        # warning when sigma is equal to 0
+        if self.best_gaussian["sigma"] == 0:
+            print("WARNING: A problem related to gaussian prediction is "
+                  "detected. Be careful, Sigma is equal to 0.")
+            self.df["zscore"] = np.zeros(len(self.df), dtype=int)
+        else:
+            self.df["zscore"] = (self.df["scale"] - self.best_gaussian["mu"]) / \
+                self.best_gaussian["sigma"]
+
+    def get_centralness(self, threshold=3):
+        r"""Proportion of central (normal) genome coverage 
+
+        assuming a 3 sigma normality.
+
+        This is 1 - (number of non normal data) / (total length)
+
+        .. note:: depends slightly on :math:`W` the running median window
+        """
+        l1 = len(self.get_low_coverage(-threshold))
+        l2 = len(self.get_high_coverage(threshold))
+        return 1 - (l1+l2) / float(len(self))
 
     def get_low_coverage(self, threshold=-3, start=None, stop=None):
         """Keep position with zscore lower than INT and return a data frame.
@@ -311,6 +376,8 @@ class ChromosomeCov(object):
         the lower and upper  zscore thresholds
 
         """
+        # z = (X/rm - \mu ) / sigma
+
         high_zcov = (high_threshold * self.best_gaussian["sigma"] +
                 self.best_gaussian["mu"]) * self.df["rm"]
         low_zcov = (low_threshold * self.best_gaussian["sigma"] +
@@ -326,13 +393,15 @@ class ChromosomeCov(object):
                 label="Running median")
         p3, = pylab.plot(high_zcov, linewidth=1, color="r", ls="--",
                 label="Thresholds")
-        p4, = pylab.plot(low_zcov, linewidth=1, color="r", ls="--")
+        p4, = pylab.plot(low_zcov, linewidth=1, color="r", ls="--",
+            label="_nolegend_")
 
         pylab.legend([p1, p2, p3], [p1.get_label(), p2.get_label(),
                 p3.get_label()], loc="best")
         pylab.xlabel("Position", fontsize=fontsize)
-        pylab.ylabel("Coverage", fontsize=fontsize)
+        pylab.ylabel("Per-base coverage", fontsize=fontsize)
         pylab.grid(True)
+        pylab.ylim([0, pylab.ylim()[1]])
         try:
             pylab.tight_layout()
         except:
@@ -340,19 +409,23 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
+    def _set_bins(self, df, binwidth):
+        try:
+            bins = np.arange(min(df), max(df) + binwidth, binwidth)
+        except ValueError:
+            bins = 100
+        return bins
 
-
-    def plot_hist_zscore(self, fontsize=16, filename=None, **hist_kargs):
+    def plot_hist_zscore(self, fontsize=16, filename=None, max_z=6, 
+            binwidth=0.5, **hist_kargs):
         """ Barplot of zscore
 
         """
-        zs_drop_na = self.df["zscore"].dropna()  
         pylab.clf()
-        try:
-            bins = int(max(zs_drop_na) * 3 - min(zs_drop_na) * 3)
-            self.df["zscore"].hist(grid=True, bins=bins, **hist_kargs)
-        except ValueError:
-            self.df["zscore"].hist(grid=True, bins=200, **hist_kargs)
+        bins = self._set_bins(self.df["zscore"][self.range[0]:self.range[1]], 
+                binwidth)
+        self.df["zscore"][self.range[0]:self.range[1]].hist(grid=True, 
+                bins=bins, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
@@ -361,20 +434,19 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist_normalized_coverage(self, filename=None, bins=None):
+    def plot_hist_normalized_coverage(self, filename=None, binwidth=0.1, 
+            max_z=4):
         """ Barplot of normalized coverage with gaussian fitting
 
         """
-        nc_drop_na = self.df["scale"].dropna()
         pylab.clf()
-        try:
-            if bins is not None:
-                raise(ValueError)
-            bins = int(max(nc_drop_na) * 100 - min(nc_drop_na) * 100)
-            self.mixture_fitting.plot(bins=bins)
-        except ValueError:
-            print(bins)
-            self.mixture_fitting.plot(bins=bins)
+        # if there are a NaN -> can't set up binning 
+        data_scale = self.df["scale"][self.range[0]:self.range[1]].dropna()
+        bins = self._set_bins(data_scale, binwidth)
+        self.mixture_fitting.plot(bins=bins, Xmin=0, Xmax=max_z)
+        pylab.grid(True)
+        pylab.xlim([0,max_z])
+        pylab.xlabel("Normalised per-base coverage")
         try:
             pylab.tight_layout()
         except:
@@ -409,24 +481,65 @@ class ChromosomeCov(object):
         if bins is None:
             bins = [100, min(int(data['gc'].max()-data['gc'].min()+1),
                 max(5,self._ws_gc-4))]
+            bins[0] = max(10, min(bins[0], self.df['cov'].max()))
 
         from biokit import Hist2D
         h2 = Hist2D(data)
 
         try:
-            h2.plot(bins=bins, xlabel="coverage",
+            h2.plot(bins=bins, xlabel="Per-base coverage",
                 ylabel=r'GC content (%)' ,
                 Nlevels=Nlevels, contour=contour, norm=norm,
                 fontsize=fontsize, **kargs)
         except:
-            h2.plot(bins=bins, xlabel="coverage",
+            h2.plot(bins=bins, xlabel="Per-base coverage",
                 ylabel=r'GC content (%)' ,
                 Nlevels=Nlevels, contour=False, norm=norm,
                 fontsize=fontsize, **kargs)
         pylab.ylim([ymin,ymax])
-        corr = self.df[['cov', 'gc']].corr().iloc[0,1]
+        corr = self.get_gc_correlation()
         return corr
 
+    def get_gc_correlation(self):
+        return self.df[['cov', 'gc']].corr().iloc[0,1]
+
+    def get_max_gc_correlation(self, reference):
+        pylab.clf()
+        def func(params):
+            ws = int(round(params[0]))
+            if ws < 10:
+                return 0
+            self.bed.compute_gc_content(reference, ws)
+            corr = self.get_gc_correlation()
+            print(ws, corr)
+            pylab.plot(ws, corr, 'o')
+            return corr
+
+        print("X, correlation\n")
+        from scipy.optimize import fmin
+        res = fmin(func, 200, xtol=1) # guess is 200
+        pylab.xlabel("GC window size")
+        pylab.ylabel("Correlation")
+        return res
+
+    def get_stats(self):
+        data = self.df
+
+        stats ={
+            'DOC': self.df['cov'].mean(), 
+            'std': self.df['cov'].std(),
+            'median': self.df['cov'].median(),
+            'BOC': sum(self.df['cov'] > 0) / float(len(self.df)) }
+        stats['CV'] = stats['std'] /  stats['DOC']
+        stats['MAD'] = np.median(abs(data['cov'].median() - data['cov']).dropna())
+
+        if 'scale' in self.df.columns:
+            MAD = np.median(abs(data['scale'].median() - data['scale']).dropna())
+            stats['MAD_normed'] = MAD
+        if 'gc' in self.df.columns:
+            stats['GC'] = self.df['gc'].mean() * 100
+
+        return stats
 
 class FilteredGenomeCov(object):
     """Class used within :class:`ChromosomeCov` to select a subset of the
