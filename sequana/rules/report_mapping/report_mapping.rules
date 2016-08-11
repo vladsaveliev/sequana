@@ -55,8 +55,7 @@ try:
     
                 r = report_chromosome.ChromosomeMappingReport(chrom,
                     low_threshold=params.low, high_threshold=params.high,
-                    directory=params.outdir + "/chromosome", 
-                    project=cfg.PROJECT, )
+                    directory=params.outdir, project=cfg.PROJECT)
                 r.create_report()
     
             shell("cp %s %s/" % (__snakefile__, params.outdir))
@@ -113,8 +112,7 @@ except NameError:
     
                 r = report_chromosome.ChromosomeMappingReport(chrom,
                     low_threshold=params.low, high_threshold=params.high,
-                    directory=params.outdir + "/chromosome", 
-                    project=cfg.PROJECT)
+                    directory=params.outdir, project=cfg.PROJECT)
                 r.create_report()
     
             shell("cp %s %s/" % (__snakefile__, params.outdir))
