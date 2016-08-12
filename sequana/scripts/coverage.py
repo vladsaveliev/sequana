@@ -173,7 +173,7 @@ def main(args=None):
     elif options.chromosome < 0 or options.chromosome > len(gc.chr_list):
         raise ValueError("invalid --chromosome value ; must be in [1-%s]" % len(gc.chr_list)+1)
     else:
-        print("There are %s chromosomes. Selected the chromosome %s" % 
+        print("There are %s chromosomes/contigs. Selected the chromosome %s" % 
             (len(gc.chr_list), options.chromosome))
         chrom = gc.chr_list[options.chromosome-1]
 
@@ -203,8 +203,11 @@ def main(args=None):
     centralness = chrom.get_centralness()
 
     if options.verbose:
-        print("Centralness (3 sigma): %8.3f" % centralness)
+        res = chrom._get_best_gaussian()
+        print("sigma and mu of the central distribution: mu=%s, sigma=%s" %
+(round(res["mu"],3), round(res['sigma'],3)))
         print("Evenness: %8.3f" % chrom.get_evenness())
+        print("Centralness (3 sigma): %f" % round(centralness,3))
 
     if options.verbose:
         print("\n\n")
@@ -239,6 +242,7 @@ def main(args=None):
             high_threshold=options.high_threshold,
             directory="report", project="coverage")
         r.create_report()
+        print("Report created. See ./report directory content and look for the HTML file. You can also use --show-html option")
         if options.show_html:
             from easydev import onweb
             onweb("report/coverage_mapping.chrom%s.html" % options.chromosome)
