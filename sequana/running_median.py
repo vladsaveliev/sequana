@@ -28,11 +28,16 @@
 from bisect import bisect_left, insort
 import numpy as np
 
-try:
-    from blist import blist
-except:
-    print("blist package could not be imported.")
-    blist = list
+# blist seems to be unstable on older systems/platforms so we use list by
+# default for now. Be aware that on recent systems blist exhibits a log(W)
+# complexity that is better than list complexity. Note, however that there is an
+# overhead so the list is faster for W<20,000
+
+#try:
+#    from blist import blist
+#except:
+#    print("blist package could not be imported.")
+#    blist = list
 
 class RunningMedian:
     """Running median (fast)
@@ -118,13 +123,14 @@ class RunningMedian:
         has an O(log(n)) complexity while list has a O(n) complexity
 
     """
-    def __init__(self, data, width, container=blist):
+    def __init__(self, data, width, container=list):
         """.. rubric:: constructor
 
         :param data: your data vector
         :param width: running window length
         :param container: a container (defaults to list). Could be a B-tree
             blist from the blist package but is 30% slower than a pure list
+            for W < 20,000
 
         scipy in O(n)
         list in sqrt(n)
