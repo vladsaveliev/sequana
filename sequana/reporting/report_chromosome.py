@@ -34,7 +34,7 @@ class ChromosomeMappingReport(BaseReport):
 
     """
     def __init__(self, mapping, low_threshold=-3, high_threshold=3, 
-            directory="report/chromosome", project="", **kargs):
+            directory="report", project="", **kargs):
         """.. rubric:: constructor
 
         """
@@ -43,9 +43,8 @@ class ChromosomeMappingReport(BaseReport):
                 mapping.chrom_index)
         super(ChromosomeMappingReport, self).__init__(
                 jinja_filename="chromosome/index.html",
-                directory=directory, init_report=False,
+                directory=directory,
                 output_filename=output_filename, **kargs)
-        self.jinja['path'] = "../"
         self.chrom_index = mapping.chrom_index
         self.project = project
         self.low_t = low_threshold
@@ -66,11 +65,11 @@ class ChromosomeMappingReport(BaseReport):
             if stop > len(self.mapping):
                 stop = len(self.mapping)
             name = "{0}_{1}".format(name, stop)
-            link = "../submapping/{0}.chrom{1}.html".format(name, self.chrom_index)
+            link = "submapping/{0}.chrom{1}.html".format(name, self.chrom_index)
             r = SubMappingReport(start=i, stop=stop, low_df=low_df,
                     high_df=high_df, chrom_index=self.chrom_index,
                     output_filename=name + ".chrom%i.html" % self.chrom_index,
-                    directory=self.directory + "/../submapping", 
+                    directory=self.directory + "/submapping", 
                     low_threshold=self.low_t, high_threshold=self.high_t)
             r.jinja["main_link"] = "index.html"
             r.set_data(self.mapping)
@@ -85,7 +84,7 @@ class ChromosomeMappingReport(BaseReport):
         self.jinja['main_link'] = 'index.html'
 
         # Coverage plot
-        self.jinja["cov_plot"] = "../images/{0}_coverage.chrom{1}.png".format(
+        self.jinja["cov_plot"] = "images/{0}_coverage.chrom{1}.png".format(
                 self.project, self.chrom_index)
         self.mapping.plot_coverage(filename=self.directory + os.sep + 
                 self.jinja["cov_plot"], low_threshold=self.low_t, 
@@ -96,7 +95,7 @@ class ChromosomeMappingReport(BaseReport):
                 "predicted Gaussian. The red line should be followed the "
                 "trend of the barplot.")
         self.jinja["nc_paragraph"] = nc_paragraph
-        self.jinja["nc_plot"] = "../images/{0}_norm_cov_his.chrom{1}.png".format(
+        self.jinja["nc_plot"] = "images/{0}_norm_cov_his.chrom{1}.png".format(
                 self.project, self.chrom_index)
         self.mapping.plot_hist_normalized_coverage(filename=self.directory +
                 os.sep + self.jinja["nc_plot"])
@@ -108,7 +107,7 @@ class ChromosomeMappingReport(BaseReport):
         self.jinja["bp_paragraph"] = bp_paragraph.format(
                 self.mapping.best_gaussian["mu"], 
                 self.mapping.best_gaussian["sigma"])
-        self.jinja["bp_plot"] = "../images/{0}_zscore_hist.chrom{1}.png".format(
+        self.jinja["bp_plot"] = "images/{0}_zscore_hist.chrom{1}.png".format(
                 self.project, self.chrom_index)
         self.mapping.plot_hist_zscore(filename=self.directory + os.sep + 
                 self.jinja["bp_plot"])

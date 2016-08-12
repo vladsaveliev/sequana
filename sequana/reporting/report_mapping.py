@@ -94,7 +94,7 @@ class MappingReport(BaseReport):
                 "is {0}.".format(quast_link)
         
         # create table with links to chromosome reports 
-        link = "chromosome/{0}_mapping.chrom{1}.html"
+        link = "{0}_mapping.chrom{1}.html"
         df = pd.DataFrame([[formatter.format(chrom.chrom_name,
                 link.format(self.project, chrom.chrom_index)),
                 chrom.get_size(), chrom.get_mean_cov(), chrom.get_var_coef()]
