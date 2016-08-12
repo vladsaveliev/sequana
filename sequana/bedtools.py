@@ -263,12 +263,9 @@ class ChromosomeCov(object):
         self.df = self.df.replace(np.inf, np.nan)
         self.df = self.df.replace(-np.inf, np.nan)
 
-    def _get_best_gaussian(self, results):
-        diff = 100
-        for i, value in enumerate(results.mus):
-            if abs(value - 1) < diff:
-                diff = abs(value - 1)
-                indice = i
+    def _get_best_gaussian(self):
+        results = self.mixture_fitting.results
+        indice = np.argmax(results.pis)
         return {"mu": results.mus[indice], "sigma": results.sigmas[indice]}
 
     def compute_zscore(self, k=2, step=10, use_em=True):
@@ -312,7 +309,7 @@ class ChromosomeCov(object):
 
         # keep gaussians informations 
         self.gaussians = self.mixture_fitting.results
-        self.best_gaussian = self._get_best_gaussian(self.mixture_fitting.results)
+        self.best_gaussian = self._get_best_gaussian()
 
         # warning when sigma is equal to 0
         if self.best_gaussian["sigma"] == 0:
