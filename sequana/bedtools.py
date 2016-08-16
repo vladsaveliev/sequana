@@ -143,7 +143,8 @@ class ChromosomeCov(object):
         stats = self.get_stats()
         BOC = stats['BOC']
         CV = stats['CV']
-        txt = "\nSequencing depth (DOC): %8.2f " % stats['DOC']
+        txt = "\nGenome length: %s" % int(len(self.df))
+        txt += "\nSequencing depth (DOC): %8.2f " % stats['DOC']
         txt += "\nSequencing depth (median): %8.2f " % stats['median']
         txt += "\nBreadth of coverage (BOC): %.2f " % BOC
         txt += "\nGenome coverage standard deviation : %8.2f " % stats['std']
@@ -538,6 +539,7 @@ class ChromosomeCov(object):
 
         return stats
 
+
 class FilteredGenomeCov(object):
     """Class used within :class:`ChromosomeCov` to select a subset of the
     original GenomeCov
@@ -563,14 +565,21 @@ class FilteredGenomeCov(object):
     def _merge_row(self, start, stop):
         chrom = self.df["chr"][start]
         cov = np.mean(self.df["cov"].loc[start:stop])
+        max_cov = np.max(self.df["cov"].loc[start:stop])
         rm = np.mean(self.df["rm"].loc[start:stop])
         zscore = np.mean(self.df["zscore"].loc[start:stop])
+        max_zscore = self.df["zscore"].loc[start:stop].max()
         size = stop - start + 1
         return {"chr": chrom, "start": start, "stop": stop + 1, "size": size,
-                "mean_cov": cov, "mean_rm": rm, "mean_zscore": zscore}
+                "mean_cov": cov, "mean_rm": rm, "mean_zscore": zscore,
+                "max_zscore":max_zscore, "max_cov":max_cov}
 
     def merge_region(self, threshold, zscore_label="zscore"):
         """Merge position side by side of a data frame.
+
+        Uses a double threshold method. 
+
+        :param threshold: the high threshold (standard one), not the low one.
 
         .. todo:: to be documented
         """
