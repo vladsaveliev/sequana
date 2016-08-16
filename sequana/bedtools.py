@@ -583,7 +583,8 @@ class FilteredGenomeCov(object):
 
         .. todo:: to be documented
         """
-        flag = False
+        region_start = None
+        region_stop = None
         start = 1
         stop = 1
         prev = 1
@@ -598,17 +599,23 @@ class FilteredGenomeCov(object):
             if stop - 1 == prev:
                 prev = stop
             else:
-                if flag:
-                    merge_df = merge_df.append(self._merge_row(start, prev),
-                        ignore_index=True)
+                if region_start:
+                    merge_df = merge_df.append(self._merge_row(region_start, 
+                        region_stop), ignore_index=True)
                     flag = False
+                    region_start = None
                 start = stop
                 prev = stop
             if abs(zscore) > abs(threshold):
-                flag = True
+                if not region_start:
+                    region_start = pos
+                    region_stop = pos
+                else:
+                    region_stop = pos
 
-        if start < stop and flag:
-            merge_df = merge_df.append(self._merge_row(start, prev),
-                    ignore_index=True)
+
+        if start < stop and region_start:
+            merge_df = merge_df.append(self._merge_row(region_start, 
+                region_stop), ignore_index=True)
         return merge_df
 
