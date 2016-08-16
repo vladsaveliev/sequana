@@ -593,7 +593,6 @@ class FilteredGenomeCov(object):
                 if region_start:
                     merge_df = merge_df.append(self._merge_row(region_start, 
                         region_stop), ignore_index=True)
-                    flag = False
                     region_start = None
                 start = stop
                 prev = stop
@@ -603,7 +602,6 @@ class FilteredGenomeCov(object):
                     region_stop = pos
                 else:
                     region_stop = pos
-
 
         if start < stop and region_start:
             merge_df = merge_df.append(self._merge_row(region_start, 
