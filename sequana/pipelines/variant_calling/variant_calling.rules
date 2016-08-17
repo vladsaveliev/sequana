@@ -19,21 +19,23 @@ cfg = SequanaConfig(config)
 
 final_output = list()
 
-# Generate data directory
-
-from sequana import SnpEff
-
-if config["snpeff"]["do"]:
-    tmp = SnpEff(config["snpeff"]["reference"])
-
 # mapping
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
 # we must check if we are in the case of denovo assembly:
 try:
-    __spades__contigs
+    __bwa_mem_ref__ref_input
 except NameError:
     __bwa_mem_ref__ref_input = config["bwa_ref"]["reference"]
+
+# Generate data directory for snpEff
+from sequana import SnpEff
+
+if config["snpeff"]["do"]:
+    tmp = SnpEff(config["snpeff"]["reference"])
+    __bwa_mem_ref__ref_input = tmp.add_locus_in_fasta(cfg.PROJECT +
+        ".cor.fasta")
+
 
 include: bwa_mem_dynamic("ref", cfg.DATASET)
 __mark_duplicates__input = __bwa_mem_ref__output
@@ -65,16 +67,17 @@ if config["indel_realigner"]["do"]:
 # Variant calling
 include: sm.modules["freebayes"]
 
-# VCF filter
-__vcf_filter__input = __freebayes__output
-include: sm.modules["vcf_filter"]
-__report_variant__input = __vcf_filter__output
-
 # snpEff
 if config["snpeff"]["do"]: 
-    __snpeff__input = __vcf_filter__output
+    __snpeff__input = __freebayes__output
     include: sm.modules["snpeff"]
-    __report_variant__input = __snpeff__output
+    __vcf_filter__input = __snpeff__output
+else:
+    __vcf_filter__input = __freebayes__output
+
+# VCF filter
+include: sm.modules["vcf_filter"]
+__report_variant__input = __vcf_filter__output
 
 # report vcf
 include: sm.modules["report_variant"]
