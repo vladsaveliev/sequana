@@ -83,6 +83,10 @@ class ChromosomeMappingReport(BaseReport):
                 self.mapping.chrom_name)
         self.jinja['main_link'] = 'index.html'
 
+
+        df = pd.Series(self.mapping.get_stats()).to_frame()
+        self.jinja["nc_stats"] = HTMLTable(df).to_html(index=True)
+
         # Coverage plot
         self.jinja["cov_plot"] = "images/{0}_coverage.chrom{1}.png".format(
                 self.project, self.chrom_index)

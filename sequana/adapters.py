@@ -349,7 +349,6 @@ class FindAdaptersFromIndex(object):
         adapters.
 
         """
-
         #self.index_mapper = pd.read_csv(index_mapper, delim_whitespace=True)[columns_in]
         try:
             columns_in = ['sample_name', 'index1', 'index2']
@@ -359,7 +358,7 @@ class FindAdaptersFromIndex(object):
             columns_in = ['sample_name', 'index1']
             self.index_mapper = pd.read_csv(index_mapper, sep=",", dtype=str)[columns_in]
             self.mode = 'single_index'
-        
+
         self.index_mapper.columns = columns_in
         self.index_mapper.set_index('sample_name', inplace=True)
 
@@ -391,7 +390,9 @@ class FindAdaptersFromIndex(object):
                                                               self.sample_names))
         return self.index_mapper.ix[sample_name]
 
-    def get_adapters(self, sample_name, include_universal=True):
+    def get_adapters(self, sample_name, include_universal=True,
+            include_transposase=True):
+
         indices = self.get_indices(sample_name)
 
         if self.mode == "single_index" or self.mode == "multi_index":
@@ -414,6 +415,58 @@ class FindAdaptersFromIndex(object):
                 'Universal_Adapter')
             res['universal']['rev'] = self._adapters_rev.get_adapter_by_identifier(
                 'Universal_Adapter')
+
+        if include_transposase:
+            res['transposase'] = {}
+            res['transposase']['fwd'] = self._adapters_fwd.get_adapter_by_identifier(
+                'transposase')
+            res['transposase']['rev'] = self._adapters_rev.get_adapter_by_identifier(
+                'transposase')
+
+
+        return res
+
+    def save_adapters_to_fasta(self, sample_name, include_universal=True, output_dir='.'):
+        """Get index1, index2 and uiversal adapter"""
+        adapters = self.get_adapters(sample_name, include_universal=include_universal)
+
+        file_fwd = output_dir + os.sep + "%s_adapters_fwd.fa"% sample_name
+        with open(file_fwd, "w") as fout:
+            if include_transposase:
+                fout.write(str(adapters['transposase']['fwd'])+"\n")
+
+            if include_universal:
+                fout.write(str(adapters['universal']['fwd'])+"\n")
+
+            fout.write(str(adapters['index1']['fwd'])+"\n")
+            if self.mode == "multi_index":
+                fout.write(str(adapters['index2']['fwd'])+"\n")
+
+        file_rev = output_dir + os.sep + "%s_adapters_rev.fa" % sample_name
+        with open(file_rev, "w") as fout:
+            if include_transposase:
+                fout.write(str(adapters['transposase']['rev'])+"\n")
+            if include_universal:
+                fout.write(str(adapters['universal']['rev'])+"\n")
+            fout.write(str(adapters['index1']['rev'])+"\n")
+            if self.mode == "multi_index":
+                fout.write(str(adapters['index2']['rev'])+"\n")
+
+        return file_fwd, file_rev
+
+
+class AdapterRemoval(object):
+    """Possible data structure for future usage. Not used yet"""
+    def __init__(self, file1, file2=None, adapter1=None, adapter2=None,
+        quality_cutoff1=30, quality_cutoff2=None):
+
+        self.file1 = file1
+        self.file2 = file2
+        self.qual1 = quality_cutoff1
+        self.qual2 = quality_cutoff2
+        self.adapter1 = adapter1
+        self.adapter2 = adapter2
+
         return res
 
     def save_adapters_to_fasta(self, sample_name, include_universal=True, output_dir='.'):

@@ -155,6 +155,8 @@ def main(args=None):
         raise ValueError("Input file must be a BAM or BED file")
 
 
+
+
     if divmod(options.w_median, 2)[1] == 0:
         from easydev.console import red
         print(red("Error: -w/--window-median option must be set to an odd value"))
@@ -200,14 +202,18 @@ def main(args=None):
 
     chrom.compute_zscore(k=options.k)
 
-    centralness = chrom.get_centralness()
+    centralness = chrom.get_centralness(3)
+    centralness4 = chrom.get_centralness(4)
+    c3 = chrom.get_centralness(3)
+    c4 = chrom.get_centralness(4)
 
     if options.verbose:
         res = chrom._get_best_gaussian()
         print("sigma and mu of the central distribution: mu=%s, sigma=%s" %
 (round(res["mu"],3), round(res['sigma'],3)))
         print("Evenness: %8.3f" % chrom.get_evenness())
-        print("Centralness (3 sigma): %f" % round(centralness,3))
+        print("Centralness (3 sigma): %f" % round(c3,3))
+        print("Centralness (4 sigma): %f" % round(c4,4))
 
     if options.verbose:
         print("\n\n")
