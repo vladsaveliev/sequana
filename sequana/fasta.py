@@ -19,7 +19,6 @@
 """Utilities to manipulate FASTQ and Reads
 
 """
-import textwrap
 import os
 
 from pysam import FastxFile
@@ -74,39 +73,40 @@ class FastA(object):
         return [this.comment for this in self]
     comment = property(_get_comment)
 
-    def format_contigs_denovo(self, project, output_dir=".", len_min=500):
-        """ Method to replace NODE with the project name and to generate two
-        fasta files with contigs taller than len_min and contigs smaller than
-        len_min. Contigs names must be with this syntax (default syntax of 
-        spades and velvet):
-            NODE_1_length_524827_cov_9.49275
+    def format_contigs_denovo(self, output_file, len_min=500):
+        """ Method to replace NODE with the project name and remove contigs
+        with a length lower than len_min.
 
-        :param str project: project name for output and contigs names.
-        :param int cov_min: minimal length of contigs.
+        :param str output_file: output file name.
+        :param int len_min: minimal length of contigs.
 
         Example:
         
             from sequana import FastA
 
             contigs = FastA("denovo_assembly.fasta")
-            contigs.format_contigs_denovo(project1)
+            contigs.format_contigs_denovo("path/to/file.fasta", len_min=500)
 
-        Results are stored in files project1.ab500.fasta (above cov_min) and
-        project1.bl500.fastai (below cov_min).
+        Results are stored in "path/to/file.fasta".
         """
+        # catch basename of file without extension
+        project = os.path.basename(output_file).split(".")[0]
         # check if directory exist
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+        output_dir = os.path.dirname(output_file)
+        try:
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+        except FileNotFoundError:
+            pass
 
-        basename = output_dir + os.sep + project
-        with open("{}.ab{}.fasta".format(basename, len_min), "w") as ab_out:
-            with open("{}.bl{}.fasta".format(basename, len_min), "w") as bl_out: 
-                for contigs in self:
-                    name = contigs.name.split("_")
-                    new_name = ">{}_{} {}\n".format(project, name[1], 
-                            "_".join(name[2:]))
-                    sequence = textwrap.fill(contigs.sequence, width=80) + "\n"
-                    if int(name[3]) < len_min:
-                        bl_out.write(new_name + sequence)
-                    else:
-                        ab_out.write(new_name + sequence)
+        n = 1
+        with open(output_file, "w") as fp:
+            for contigs in self:
+                if len(contigs.sequence) < len_min:
+                    break
+                name = ">{}_{} {}\n".format(project, n, contigs.name)
+                sequence = "\n".join([contigs.sequence[i:min(i+80, 
+                    len(contigs.sequence))] for i in range(0, 
+                    len(contigs.sequence), 80)]) + "\n"
+                fp.write(name + sequence)
+                n += 1
