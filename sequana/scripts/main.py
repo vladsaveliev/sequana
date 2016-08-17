@@ -205,7 +205,7 @@ will fetch the config file automatically from sequana library.""")
 
         group.add_argument("--config-params", dest="config_params", 
             type=str, 
-            help="""Overwrite any field in the config file by using
+            help=r"""Overwrite any field in the config file by using
                     the following convention. A config file is in YAML format
                     and has a hierarchy of parametesr. For example:
 
@@ -360,6 +360,21 @@ def main(args=None):
 
     # If a glob is used, we may have multiple project to handle
     # This is done using the FastQFactory class
+
+    # for --glob or --file1/file2 cases
+    def _get_adap(filename):
+        return sequana_data(filename, "data/adapters")
+
+    if options.adapters and not options.index_mapper:
+        if options.adapters == "Nextera":
+            options.adapter_fwd = _get_adap("adapters_Nextera_PF1_220616_fwd.fa")
+            options.adapter_rev = _get_adap("adapters_Nextera_PF1_220616_rev.fa")
+        elif options.adapters == "PCRFree":
+            options.adapter_fwd = _get_adap('adapters_PCR-free_PF1_220616_fwd.fa')
+            options.adapter_rev = _get_adap('adapters_PCR-free_PF1_220616_rev.fa')
+        else:
+            raise ValueError("the type of adapters must be Nextera or PCRFree")
+
     if options.glob:
         ff = FastQFactory(options.glob)
         if options.index_mapper:
