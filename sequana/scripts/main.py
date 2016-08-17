@@ -565,11 +565,13 @@ def sequana_init(options):
 
         if options.file1 and options.adapter_fwd:
             params["adapter_fwd"] = "file:" + options.adapter_fwd
-            shutil.move(options.adapter_fwd, target_dir + os.sep + options.adapter_fwd)
+            #shutil.move(options.adapter_fwd, target_dir + os.sep + options.adapter_fwd)
+            shutil.copy(options.adapter_fwd, target_dir + os.sep )
 
         if options.file2  and options.adapter_rev:
             params["adapter_rev"] = "file:" + options.adapter_rev
-            shutil.move(options.adapter_rev, target_dir + os.sep + options.adapter_rev)
+            #shutil.move(options.adapter_rev, target_dir + os.sep + options.adapter_rev)
+            shutil.copy(options.adapter_rev, target_dir + os.sep)
 
         if options.adapters == "universal":
             params["adapter_fwd"] = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCGATGTATCTCGTATGCCGTCTTCTGC"
