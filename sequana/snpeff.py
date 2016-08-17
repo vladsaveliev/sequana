@@ -159,9 +159,24 @@ class SnpEff(object):
 
     def add_locus_in_fasta(self, fasta, output_file):
         """ Add locus of annotation file in description line of fasta file.
+
+        :param str fasta: input fasta file where you want to add locus.
+        :param str output_file: output file.
+        
+        It returns file name that contains locus in sequences ids.
         """
         fasta = FastA(fasta)
         seq = self._get_seq_ids()
+
+        if fasta[0].name == seq[0]:
+            print("Files have same sequence id.")
+            return fasta
+
+        # check if both files have same number of contigs
+        if len(fasta) != len(seq):
+            print("fasta and annotation files don't have the same number of "
+                  "contigs.")
+            sys.exit(1)
  
         # check if directory exist
         output_dir = os.path.dirname(output_file)
@@ -170,12 +185,6 @@ class SnpEff(object):
                 os.makedirs(output_dir)
         except FileNotFoundError:
             pass
-        
-        # check if both files have same number of contigs
-        if len(fasta) != len(seq):
-            print("fasta and annotation files don't have the same number of "
-                  "contigs.")
-            sys.exit(1)
 
         with open(output_file, "w") as fp:
             # write fasta with seqid of annotation file
@@ -187,6 +196,7 @@ class SnpEff(object):
                     for i in range(0, size, 80)]) + "\n"
                 contigs = seq_id + sequence
                 fp.write(contigs)
+        return output_file
 
 
 def download_fasta_and_genbank(identifier, tag):
