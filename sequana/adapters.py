@@ -263,7 +263,7 @@ class AdapterReader(object):
                 adapters.append(this_adapter)
 
         if len(adapters) == 0:
-            raise ValueError("No matching identifier found")
+            raise ValueError("No matching identifier found with this pattern: %s" % text)
         elif len(adapters) == 1:
             return adapters[0]
         else:
@@ -418,15 +418,20 @@ class FindAdaptersFromIndex(object):
 
         if include_transposase:
             res['transposase'] = {}
-            res['transposase']['fwd'] = self._adapters_fwd.get_adapter_by_identifier(
-                'transposase')
-            res['transposase']['rev'] = self._adapters_rev.get_adapter_by_identifier(
-                'transposase')
+            res['transposase']['fwd'] = str(self._adapters_fwd.get_adapter_by_identifier(
+                'Nextera_transposase_seq_1'))
+            res['transposase']['fwd'] += "\n" + str(self._adapters_fwd.get_adapter_by_identifier(
+                'Nextera_transposase_seq_2'))
+            res['transposase']['rev'] = str(self._adapters_rev.get_adapter_by_identifier(
+                'Nextera_transposase_seq_1'))
+            res['transposase']['rev'] += "\n"+str(self._adapters_rev.get_adapter_by_identifier(
+                'Nextera_transposase_seq_1'))
 
 
         return res
 
-    def save_adapters_to_fasta(self, sample_name, include_universal=True, output_dir='.'):
+    def save_adapters_to_fasta(self, sample_name, include_universal=True,
+            include_transposase=True, output_dir='.'):
         """Get index1, index2 and uiversal adapter"""
         adapters = self.get_adapters(sample_name, include_universal=include_universal)
 
