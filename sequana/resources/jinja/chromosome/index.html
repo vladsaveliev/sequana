@@ -30,6 +30,26 @@ Interactive plots are available in the following table. Note that the whole
     {{ list_submapping }}
 </div>
 
+
+<div class="section" id="Basic stats">
+    <h2> 2 - <a class="toc-backref" href="#id1">Basic stats</a></h2>
+The following table gives some basic statistics about the genome coverage. Here
+are some definitions used:
+<ul>
+<li>BOC: breadth of coverage, that is proportion is percent of the genome
+covered by at least one read. Values below 1 indicates the presence of deleted
+regions.</li>
+<li>CV: the coefficient of variation</li>
+<li>DOC: the sequencing depth (Depth of Coverage), that is the avearge of the
+genome coverage shown here above</li>
+<li>MAD: median of the absolute median deviation median(|X-median(X)|)</li>
+<li>std: standard deviation</li>
+</ul>
+<br>    
+{{ nc_stats }}
+</div>
+
+
 <div class="section" id="Normalized coverage">
     <h2> 2 - <a class="toc-backref" href="#id1">Normalized coverage</a></h2>
     {{ nc_paragraph }}
