@@ -9,29 +9,33 @@ import argparse
 
 class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana_summary"):
-        usage = """Welcome to SEQUANA - Coverage standalone
+        usage = """Welcome to SEQUANA - Summary standalone
 
-            sequana_summary --bed file.bed --window-size 1001
+            sequana_summary --file file.fastq 
+            sequana_summary --glob "file*.fastq"
 
 AUTHORS: Thomas Cokelaer, Dimitri Desvillechabrol
 Documentation: http://sequana.readthedocs.io
 Issues: http://github.com/sequana/sequana
         """
         description = """DESCRIPTION:
+
+        prints basic stats about a set of input files
         """
 
         super(Options, self).__init__(usage=usage, prog=prog,
                 description=description)
 
         # options to fill the config file
-        self.add_argument("-1", "--file1", dest="file1", type=str,
-            required=True, help="""filename of a FastQ file""")
-        self.add_argument("-2", "--file2", dest="file2", type=str,
+        self.add_argument("-f", "--file", dest="file", type=str,
             required=False, help="""filename of a FastQ file""")
+        self.add_argument("-g", "--glob", dest="glob", type=str,
+            required=False, help="""a glob/pattern of files. Must use quotes
+                e.g. "*.fastq.gz" """)
         self.add_argument("-n", "--sample", default=500000, type=int)
 
 
-def get_stats(filename, sample=500000):
+def get_fastq_stats(filename, sample=500000):
     from sequana import FastQC
     ff = FastQC(filename, max_sample=sample)
     stats = ff.get_stats()
@@ -52,22 +56,24 @@ def main(args=None):
         options = user_options.parse_args(args[1:])
 
     # We put the import here to make the --help faster
-    if options.file1 and not options.file2:
-        stats = get_stats(options.file1, options.sample)
-        print()
-        for name in stats.columns:
-            print("%s: %s" % (name, stats[name].values[0]))
-    elif options.file1 and options.file2:
-        from easydev import MultiProcessing
-        mc = MultiProcessing(2)
-        mc.add_job(get_stats, options.file1, options.sample)
-        mc.add_job(get_stats, options.file2, options.sample)
-        mc.run()
-        df = mc.results[0]
-        df = df.append(mc.results[1])
+    if options.file:
+        options.glob = options.file
 
-        print()
-        print(df)
+    from easydev import MultiProcessing
+    mc = MultiProcessing(4)
+    filenames = glob.glob(options.glob)
+    for filename in filenames:
+        mc.add_job(get_fastq_stats, filename, options.sample)
+    mc.run()
+    for i, this in enumerate(filenames):
+        if i == 0:
+            df = mc.results[0]
+        else:
+            df = df.append(mc.results[i])
+    df.index = filenames
+
+    print()
+    print(df)
 
 
 if __name__ == "__main__":
