@@ -10,6 +10,7 @@ Changelog
 * NEWS:
 
    - sequana_summary standalone
+   - sequana_mapping standalone
 
 * BUG FIXES:
 
