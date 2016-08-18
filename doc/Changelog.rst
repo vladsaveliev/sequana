@@ -4,23 +4,39 @@ Changelog
 .. contents::
 
 
+0.1.11
+----------
+
 * NEWS:
 
-    - sequana can known use single_indexed or multiple_indexed  adapters, which
-      are also provided within sequana (Nextera and PCR free cases)
-    - Release for production (quality_taxon pipeline)
+   - sequana_summary standalone
+   - sequana_mapping standalone
+
+* BUG FIXES:
+
+   - cutadapt report handles single-end tables
+
+* CHANGES:
+
+    - sequana_standalone: final version with stats
+
 
 
 0.1.10 - July 2016
 ----------------------
 
 * NEWS:
+    - sequana_coverage standalone
+    - de-novo pipeline 
 
 * CHANGES:
 
     - Remove AdapterDB, a draft version that uses Kraken to detect adapters. Not
       relevant anymore
     - config.yaml is now in each pipeline to have a simplified version
+    - sequana can known use single_indexed or multiple_indexed  adapters, which
+      are also provided within sequana (Nextera and PCR free cases)
+    - Release for production (quality_taxon pipeline)
 
 
 0.1.7 to 0.1.9 - July 2016

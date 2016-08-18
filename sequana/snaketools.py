@@ -827,8 +827,8 @@ class FastQFactory(FileFactory):
                 raise ValueError('FastQ filenames must contain _R1_ or _R2_')
         self.tags = list(set(self.tags))
 
-        if rstrip_underscore is True:
-            self.tags = [x.split('_')[0] for x in self.tags]
+        #if rstrip_underscore is True:
+        #    self.tags = [x.split('_')[0] for x in self.tags]
 
     def _get_file(self, tag, rtag):
         assert rtag in ["_R1_", "_R2_"]

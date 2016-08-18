@@ -63,9 +63,6 @@ class AdapterRemovalReport(BaseReport):
         # Here, we defined default values from what is expected from the Jinja
         # template in share/templates/adapter_removal
 
-        # generic: is it paired on single ?
-        self.jinja['mode'] = 'unknown'
-
         # some stats
         self.jinja['total_reads'] = None
         self.jinja["total_reads_percent"] = None
@@ -83,18 +80,37 @@ class AdapterRemovalReport(BaseReport):
     def create_report(self, onweb=False):
 
         self.parse()
-        # Create a Table with stats
         df = pd.DataFrame()
+
+        if self.mode == "pe":
+            prefix = "paired_"
+        else:
+            prefix = ""
+
         df = pd.DataFrame({'Number of reads': [], 'percent': []})
-        df.ix['Total reads'] = [
-                    self.jinja['total_reads'],
+        df.ix['Total paired reads'] = [
+                    self.jinja['%stotal_reads' % prefix],
                     '(100%)']
+        if self.mode == "pe":
+            df.ix['Read1 with adapters'] = [
+                    self.jinja['%sreads1_with_adapters' % prefix],
+                    self.jinja['%sreads1_with_adapters_percent'% prefix]]
+            df.ix['Read2 with adapters'] = [
+                    self.jinja['%sreads2_with_adapters' % prefix],
+                    self.jinja['%sreads2_with_adapters_percent'% prefix]]
+        else:
+            df.ix['Pairs with adapters'] = [
+                    self.jinja['%sreads_with_adapters' % prefix],
+                    self.jinja['%sreads_with_adapters_percent'% prefix]]
         df.ix['Pairs too short'] = [
-                    self.jinja['reads_too_short'],
-                    self.jinja['reads_too_short_percent']]
+                    self.jinja['%sreads_too_short' % prefix],
+                    self.jinja['%sreads_too_short_percent'% prefix]]
         df.ix['Pairs kept'] = [
-                    self.jinja['reads_kept'],
-                    self.jinja['reads_kept_percent']]
+                    self.jinja['%sreads_kept' % prefix],
+                    self.jinja['%sreads_kept_percent' % prefix]]
+        if self.mode != "pe":
+            df.index = [this.replace("paired", "").replace("Pairs", "Reads") for this in df.index]
+
         df.to_json("cutadapt/cutadapt_stats1.json")
 
         h = HTMLTable(df)
