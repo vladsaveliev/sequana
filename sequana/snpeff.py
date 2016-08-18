@@ -165,19 +165,15 @@ class SnpEff(object):
         
         It returns file name that contains locus in sequences ids.
         """
-        fasta = FastA(fasta)
-        seq = self._get_seq_ids()
-
-        if fasta[0].name == seq[0]:
-            print("Files have same sequence id.")
-            return fasta
+        fasta_record = FastA(fasta)
+        ids_list = self._get_seq_ids()
 
         # check if both files have same number of contigs
-        if len(fasta) != len(seq):
+        if len(fasta_record) != len(ids_list):
             print("fasta and annotation files don't have the same number of "
                   "contigs.")
             sys.exit(1)
- 
+
         # check if directory exist
         output_dir = os.path.dirname(output_file)
         try:
@@ -186,17 +182,20 @@ class SnpEff(object):
         except FileNotFoundError:
             pass
 
+        if fasta_record.names[0] == ids_list[0]:
+            print("Files have same sequence id.")
+            os.symlink(fasta, output_file)
+            return
+
         with open(output_file, "w") as fp:
             # write fasta with seqid of annotation file
-            for n in range(len(fasta)):
-                seq_id = ">{0} {1}\n".format(seq[n], fasta.names[n])
-                size = len(fasta.sequences[n])
-                seq = fasta.sequences[n]
-                sequence = "\n".join([seq[i:min(i+80, size)]
-                    for i in range(0, size, 80)]) + "\n"
+            for n in range(len(fasta_record)):
+                seq_id = ">{0} {1}\n".format(ids_list[n], fasta_record.names[n])
+                seq = fasta_record.sequences[n]
+                sequence = "\n".join([seq[i:min(i+80, len(seq))]
+                    for i in range(0, len(seq), 80)]) + "\n"
                 contigs = seq_id + sequence
                 fp.write(contigs)
-        return output_file
 
 
 def download_fasta_and_genbank(identifier, tag):
