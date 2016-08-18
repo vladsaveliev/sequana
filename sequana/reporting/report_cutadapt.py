@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -70,9 +70,11 @@ class CutAdaptReport(AdapterRemovalReport):
             #tobefound.append(('total_basepairs_processed', 'Total basepairs processed:'))
             #tobefound.append(('total_basepairs_filtred', 'Total written (filtered):'))
         else:
-            tobefound.append(('total_reads', 'Total read pairs processed:'))
-            tobefound.append(('reads_too_short', 'Pairs that were too short:'))
-            tobefound.append(('reads_kept', 'Pairs written (passing filters):'))
+            tobefound.append(('paired_total_reads', 'Total read pairs processed:'))
+            tobefound.append(('paired_reads1_with_adapters', '  Read 1 with adapter:'))
+            tobefound.append(('paired_reads2_with_adapters', '  Read 2 with adapter:'))
+            tobefound.append(('paired_reads_too_short', 'Pairs that were too short'))
+            tobefound.append(('paired_reads_kept', 'Pairs written (passing filters):'))
 
         return tobefound
 
@@ -133,7 +135,7 @@ class CutAdaptReport(AdapterRemovalReport):
 
 
     def get_histogram_data(self):
-        """In cutadapt logs, an adapter section contains 
+        """In cutadapt logs, an adapter section contains
         an histogram of matches that starts with a header
         and ends with a blank line
         """
@@ -147,7 +149,7 @@ class CutAdaptReport(AdapterRemovalReport):
             dfs = {}
 
             for this in data:
-                # while we have not found a new adapter histogram section, 
+                # while we have not found a new adapter histogram section,
                 # we keep going
                 if this.startswith("==="):
                     if 'read: Adapter' in this:
@@ -171,10 +173,10 @@ class CutAdaptReport(AdapterRemovalReport):
                     current_hist += this
                 elif scanning_histogram is True and len(this.strip()) == 0:
                     # we found the end of the histogram
-                    # save all data 
+                    # save all data
                     self.dd = current_hist
                     df = pd.read_csv(io.StringIO(current_hist), sep='\t')
-                    
+
                     dfs[name] = df.set_index("length")
                     #reinitiate the variables
                     current_hist = header
