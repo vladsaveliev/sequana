@@ -6,10 +6,12 @@ Data: paired end or single reads
 Run: snakemake -s variant_calling.rules
 """
 
+import time
 
 import sequana
 from sequana import snaketools as sm
 from sequana.snaketools import SequanaConfig
+from sequana import SnpEff
 sm.init("variant_calling.rules", globals())
 
 
@@ -28,14 +30,12 @@ try:
 except NameError:
     __bwa_mem_ref__ref_input = config["bwa_ref"]["reference"]
 
-# Generate data directory for snpEff
-from sequana import SnpEff
-
+# Generate data directory for SnpEff
 if config["snpeff"]["do"]:
     tmp = SnpEff(config["snpeff"]["reference"])
-    __bwa_mem_ref__ref_input = tmp.add_locus_in_fasta(cfg.PROJECT +
-        ".cor.fasta")
-
+    __add_locus_in_fasta__fasta_input = __bwa_mem_ref__ref_input
+    include: sm.modules["add_locus_in_fasta"]
+    __bwa_mem_ref__ref_input = __add_locus_in_fasta__output
 
 include: bwa_mem_dynamic("ref", cfg.DATASET)
 __mark_duplicates__input = __bwa_mem_ref__output
@@ -94,3 +94,4 @@ onsuccess:
     shell("cp config.yaml %s/" % "report")
     sm.plot_stats()
     shell("cp %s %s" % (__freebayes__output, "report"))
+    shell("cp %s %s" % (__vcf_filter__output, "report"))
