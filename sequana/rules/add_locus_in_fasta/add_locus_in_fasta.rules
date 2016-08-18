@@ -1,0 +1,14 @@
+__add_locus_in_fasta__output = "add_locus_in_fasta/%s.cr.fasta" % cfg.PROJECT
+
+rule add_locus_in_fasta:
+    input:
+        fasta = __add_locus_in_fasta__fasta_input,
+        ann = config["snpeff"]["reference"]
+    output:
+        fasta = __add_locus_in_fasta__output
+    run:
+        from sequana import SnpEff
+        
+        
+        snpeff = SnpEff(reference=input.ann)
+        snpeff.add_locus_in_fasta(input.fasta, output.fasta)
