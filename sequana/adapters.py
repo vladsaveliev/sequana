@@ -362,6 +362,7 @@ class FindAdaptersFromIndex(object):
         self.index_mapper.columns = columns_in
         self.index_mapper.set_index('sample_name', inplace=True)
 
+        self.adapters = adapters
         if adapters == "Nextera":
             from sequana import sequana_data
             file1 = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", 
@@ -416,7 +417,7 @@ class FindAdaptersFromIndex(object):
             res['universal']['rev'] = self._adapters_rev.get_adapter_by_identifier(
                 'Universal_Adapter')
 
-        if include_transposase:
+        if include_transposase and self.adapters == "Nextera":
             res['transposase'] = {}
             res['transposase']['fwd'] = str(self._adapters_fwd.get_adapter_by_identifier(
                 'Nextera_transposase_seq_1'))
@@ -437,7 +438,7 @@ class FindAdaptersFromIndex(object):
 
         file_fwd = output_dir + os.sep + "%s_adapters_fwd.fa"% sample_name
         with open(file_fwd, "w") as fout:
-            if include_transposase:
+            if include_transposase and self.adapters == "Nextera":
                 fout.write(str(adapters['transposase']['fwd'])+"\n")
 
             if include_universal:
@@ -449,7 +450,7 @@ class FindAdaptersFromIndex(object):
 
         file_rev = output_dir + os.sep + "%s_adapters_rev.fa" % sample_name
         with open(file_rev, "w") as fout:
-            if include_transposase:
+            if include_transposase and self.adapters == "Nextera":
                 fout.write(str(adapters['transposase']['rev'])+"\n")
             if include_universal:
                 fout.write(str(adapters['universal']['rev'])+"\n")

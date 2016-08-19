@@ -101,7 +101,7 @@ class SequanaSummary(BaseReport):
 
     def include_output_links(self):
         html = "<ul>"
-        if self.config.config['adapter_removal']['do']:
+        if "adapter_removal" in self.config.config.keys() and self.config.config['adapter_removal']['do']:
             if len(self.config.BASENAME) == 2:
                 name = "%s_R1_.cutadapt.fastq.gz" % (self.config.PROJECT)
                 html += '<li>Download cleaned data: <a href="%s">%s</a></li>\n' % (name, name)

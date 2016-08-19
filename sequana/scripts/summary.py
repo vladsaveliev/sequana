@@ -11,8 +11,9 @@ class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana_summary"):
         usage = """Welcome to SEQUANA - Summary standalone
 
-            sequana_summary --file file.fastq 
+            sequana_summary --file file.fastq.gz
             sequana_summary --glob "file*.fastq"
+            sequana_summary --glob "file*.bed"
 
 AUTHORS: Thomas Cokelaer, Dimitri Desvillechabrol
 Documentation: http://sequana.readthedocs.io
@@ -20,7 +21,13 @@ Issues: http://github.com/sequana/sequana
         """
         description = """DESCRIPTION:
 
-        prints basic stats about a set of input files
+        prints basic stats about a set of input files.
+
+        THe format of the input files must be homogeneous with one of the
+        following extensions:
+
+            - fastq or fastq.gz
+            - bed (coverage BED files)
         """
 
         super(Options, self).__init__(usage=usage, prog=prog,
@@ -28,21 +35,36 @@ Issues: http://github.com/sequana/sequana
 
         # options to fill the config file
         self.add_argument("-f", "--file", dest="file", type=str,
-            required=False, help="""filename of a FastQ file""")
+            required=False, help="""one filename (either FastQ or BED file; see
+                DESCRIPTION)""")
         self.add_argument("-g", "--glob", dest="glob", type=str,
             required=False, help="""a glob/pattern of files. Must use quotes
-                e.g. "*.fastq.gz" """)
-        self.add_argument("-n", "--sample", default=500000, type=int)
+                e.g. "*.fastq.gz" (See --file or DESCRIPTION for details)""")
+        self.add_argument("-n", "--sample", default=1000000000000000, type=int,
+            help="""If input FastQ files, analyse entire file. You may restrict
+                analysis to set of reads""")
+        self.add_argument("-t", "--thread", default=4, type=int, 
+            help="""Several files may be processed in parallel. By default 4
+                threads are used""")
 
 
-def get_fastq_stats(filename, sample=500000):
+def get_fastq_stats(filename, sample=1e16):
     from sequana import FastQC
-    ff = FastQC(filename, max_sample=sample)
+    ff = FastQC(filename, max_sample=sample, verbose=False)
     stats = ff.get_stats()
     return stats
 
 
+def get_bed_stats(filename):
+    from sequana import GenomeCov
+    import pandas as pd
+    bed = GenomeCov(filename)
+    stats = bed.get_stats()
+    df = pd.DataFrame(stats).T
+    return df
+
 def main(args=None):
+    import pandas as pd
 
     if args is None:
         args = sys.argv[:]
@@ -60,21 +82,59 @@ def main(args=None):
         options.glob = options.file
 
     from easydev import MultiProcessing
-    mc = MultiProcessing(4)
-    filenames = glob.glob(options.glob)
-    for filename in filenames:
-        mc.add_job(get_fastq_stats, filename, options.sample)
+    from sequana.snaketools import FileFactory
+
+    ff = FileFactory(options.glob)
+    assert len(set(ff.extensions)) == 1, "Input files must have the same extensions"
+    extension = ff.all_extensions[0]
+
+    print("Found %s files:" % len(ff.realpaths))
+    for this in ff.realpaths:
+        print(" - " + this)
+
+
+    mc = MultiProcessing(options.thread, progress=True)
+    if extension in ["fastq", "fastq.gz"]:
+        for filename in ff.realpaths:
+            mc.add_job(get_fastq_stats, filename, options.sample)
+
+    elif extension.endswith("bed"):
+        for filename in ff.realpaths:
+            mc.add_job(get_bed_stats, filename)
+
     mc.run()
-    for i, this in enumerate(filenames):
+
+    results = {}
+    for i, this in enumerate(ff.filenames):
         if i == 0:
             df = mc.results[0]
+            df.index.name = this
         else:
-            df = df.append(mc.results[i])
-    df.index = filenames
+            other = mc.results[i]
+            other.index.name = this
+            df = df.append(other)
+
+        # For the bed files only
+        results[this] = mc.results[i]
+
+
+    # For FastQ only
+    try:df.index = ff.filenames
+    except:pass
+
+
+    # For the bed files only
+    try:
+        p = pd.Panel(results)
+        df = p.swapaxes(0,2).swapaxes(1,2).to_frame()
+    except Exception as err:
+        print(err)
+
+
 
     print()
     print(df)
-
+    return df
 
 if __name__ == "__main__":
    import sys
