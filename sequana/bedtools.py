@@ -60,8 +60,9 @@ class GenomeCov(object):
             string, second column is the base postion and third is the coverage.
 
         """
+
+        df = pd.read_table(input_filename, header=None)
         try:
-            df = pd.read_table(input_filename, header=None)
             df = df.rename(columns={0: "chr", 1: "pos", 2: "cov"})
             df = df.set_index("chr", drop=False)
             # Create a list of ChromosomeCov for each chromosome present in the
@@ -99,6 +100,12 @@ class GenomeCov(object):
         for chrom in self.chr_list:
             chrom.df["gc"] = gc_dict[chrom.chrom_name]
             chrom._ws_gc = window_size
+
+    def get_stats(self):
+        stats = {}
+        for chrom in self.chr_list:
+            stats[chrom.chrom_name] = chrom.get_stats()
+        return stats
 
 
 class ChromosomeCov(object):
@@ -211,7 +218,7 @@ class ChromosomeCov(object):
             if circular:
                 cover = cover[-mid:] + cover + cover[:mid]
                 rm = running_median.RunningMedian(cover, n).run()
-                self.df["rm"] = rm[mid:-mid]         
+                self.df["rm"] = rm[mid:-mid]
             else:
                 rm = running_median.RunningMedian(cover, n).run()
                 self.df["rm"] = rm
@@ -308,7 +315,7 @@ class ChromosomeCov(object):
                 data[::step],k=k)
             self.mixture_fitting.estimate()
 
-        # keep gaussians informations 
+        # keep gaussians informations
         self.gaussians = self.mixture_fitting.results
         self.best_gaussian = self._get_best_gaussian()
 
@@ -322,7 +329,7 @@ class ChromosomeCov(object):
                 self.best_gaussian["sigma"]
 
     def get_centralness(self, threshold=3):
-        r"""Proportion of central (normal) genome coverage 
+        r"""Proportion of central (normal) genome coverage
 
         assuming a 3 sigma normality.
 
@@ -414,15 +421,15 @@ class ChromosomeCov(object):
             bins = 100
         return bins
 
-    def plot_hist_zscore(self, fontsize=16, filename=None, max_z=6, 
+    def plot_hist_zscore(self, fontsize=16, filename=None, max_z=6,
             binwidth=0.5, **hist_kargs):
         """ Barplot of zscore
 
         """
         pylab.clf()
-        bins = self._set_bins(self.df["zscore"][self.range[0]:self.range[1]], 
+        bins = self._set_bins(self.df["zscore"][self.range[0]:self.range[1]],
                 binwidth)
-        self.df["zscore"][self.range[0]:self.range[1]].hist(grid=True, 
+        self.df["zscore"][self.range[0]:self.range[1]].hist(grid=True,
                 bins=bins, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
@@ -432,13 +439,13 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist_normalized_coverage(self, filename=None, binwidth=0.1, 
+    def plot_hist_normalized_coverage(self, filename=None, binwidth=0.1,
             max_z=4):
         """ Barplot of normalized coverage with gaussian fitting
 
         """
         pylab.clf()
-        # if there are a NaN -> can't set up binning 
+        # if there are a NaN -> can't set up binning
         data_scale = self.df["scale"][self.range[0]:self.range[1]].dropna()
         bins = self._set_bins(data_scale, binwidth)
         self.mixture_fitting.plot(bins=bins, Xmin=0, Xmax=max_z)
@@ -524,7 +531,7 @@ class ChromosomeCov(object):
         data = self.df
 
         stats ={
-            'DOC': self.df['cov'].mean(), 
+            'DOC': self.df['cov'].mean(),
             'std': self.df['cov'].std(),
             'median': self.df['cov'].median(),
             'BOC': sum(self.df['cov'] > 0) / float(len(self.df)) }
@@ -577,7 +584,7 @@ class FilteredGenomeCov(object):
     def merge_region(self, threshold, zscore_label="zscore"):
         """Merge position side by side of a data frame.
 
-        Uses a double threshold method. 
+        Uses a double threshold method.
 
         :param threshold: the high threshold (standard one), not the low one.
 
@@ -600,7 +607,7 @@ class FilteredGenomeCov(object):
                 prev = stop
             else:
                 if region_start:
-                    merge_df = merge_df.append(self._merge_row(region_start, 
+                    merge_df = merge_df.append(self._merge_row(region_start,
                         region_stop), ignore_index=True)
                     region_start = None
                 start = stop
@@ -613,7 +620,7 @@ class FilteredGenomeCov(object):
                     region_stop = pos
 
         if start < stop and region_start:
-            merge_df = merge_df.append(self._merge_row(region_start, 
+            merge_df = merge_df.append(self._merge_row(region_start,
                 region_stop), ignore_index=True)
         return merge_df
 
