@@ -70,8 +70,14 @@ onsuccess:
     sm.plot_stats()
     from sequana import SequanaSummary
     ss = SequanaSummary("report", "summary.html", snakefile=__snakefile__)
+
+    ss.copy_html_to_report("*/fastq_*.html")
+    ss.copy_images_to_report("*/images/*png")
+    shell('cp -r fastqc_*/ report')
+
     ss.create_report()
-    sm.plot_stats()
+
+    
 
 onerror:
     print("An error occurred. See message above.")
