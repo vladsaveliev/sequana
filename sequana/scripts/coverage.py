@@ -16,7 +16,7 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-"""Standalone application dedicated to coverage"""
+""".. rubric:: Standalone application dedicated to coverage"""
 import os
 import shutil
 import glob
