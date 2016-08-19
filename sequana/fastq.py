@@ -876,7 +876,8 @@ class FastQC(object):
         self.N_list = []
 
         self.identifiers = []
-        pb = Progress(self.N)
+        if self.verbose:
+            pb = Progress(self.N)
 
         # could use multiprocessing
         fastq = pysam.FastxFile(self.filename)
