@@ -73,7 +73,7 @@ class MappingReport(BaseReport):
                     "<li>Reads unmapped: {0}</li>\n".format(df.loc[4]) +
                     "<li>Reads with supplementary alignment (hard clipped): "
                     "{0}</li>\n".format(df.loc[2048]) +
-                    "<li>Reads duplicated:  </li>"
+                    "<li>Reads duplicated: {0}</li>".format(df.loc[1024]) +
                     "</ul>\n")
             self.jinja["summary_bam"] = html
             
