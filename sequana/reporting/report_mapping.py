@@ -61,25 +61,39 @@ class MappingReport(BaseReport):
 
         if self.bam:
             self.jinja['bam_is_present'] = True
-            self.jinja['alignment_count'] = len(self.bam)
 
             # first, we store the flags
             df = self.bam.get_flags_as_df().sum()
-            df = df.to_frame()
-            df.columns = ['counter']
-            sf = SAMFlags()
-            df['meaning'] = sf.get_meaning()
-            df = df[['meaning', 'counter']]
-            html = HTMLTable(df).to_html(index=True)
-            self.jinja['flags_table'] = html
+            nb_mapped_read = len(self.bam) - (df.loc[4] + df.loc[256] +
+                    df.loc[2048])
+            html = ("<ul>\n"
+                    "<li>Reads mapped: {0}</li>\n".format(nb_mapped_read) +
+                    "<li>Reads mapped in a proper pair: {0}</li>\n".format(
+                        df.loc[2]) +
+                    "<li>Reads unmapped: {0}</li>\n".format(df.loc[4]) +
+                    "<li>Reads with supplementary alignment (hard clipped): "
+                    "{0}</li>\n".format(df.loc[2048]) +
+                    "<li>Reads duplicated:  </li>"
+                    "</ul>\n")
+            self.jinja["summary_bam"] = html
+            
+
+            # create table of flags summary
+            #df = df.to_frame()
+            #df.columns = ['counter']
+            #sf = SAMFlags()
+            #df['meaning'] = sf.get_meaning()
+            #df = df[['meaning', 'counter']]
+            #html = HTMLTable(df).to_html(index=True)
+            #self.jinja['flags_table'] = html
 
             # create the bar plot with flags
             image_prefix = "images/" + self.project
             self.jinja["bar_log_flag"] = image_prefix + "_bar_flags_logy.png"
-            self.bam.plot_bar_flags(logy=True, filename=self.directory + 
+            self.bam.plot_bar_flags(logy=True, filename=self.directory +
                     os.sep + self.jinja["bar_log_flag"])
             self.jinja["bar_flag"] = image_prefix + "_bar_flags.png"
-            self.bam.plot_bar_flags(logy=False, filename=self.directory + 
+            self.bam.plot_bar_flags(logy=False, filename=self.directory +
                     os.sep + self.jinja["bar_flag"])
             self.jinja["bar_mapq"] = image_prefix + "_bar_mapq.png"
             self.bam.plot_bar_mapq(filename=self.directory + os.sep + 
