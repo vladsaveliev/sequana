@@ -42,21 +42,25 @@ __mark_duplicates__input = __bwa_mem_ref__output
 __indel_realigner__input = __bwa_mem_ref__output
 __freebayes__input = __bwa_mem_ref__output
 
+# Mark duplicates
+if config["mark_duplicates"]["do"]:
+    include: sm.modules["mark_duplicates"]
+    __indel_realigner__input = __mark_duplicates__output
+    __freebayes__input = __mark_duplicates__output
+
 # Mapping report
 if config["report_mapping"]["do"]:
     __bedtools_genomecov__input = __bwa_mem_ref__output
     include: sm.modules["bedtools_genomecov"]
 
     __report_mapping__input = __bedtools_genomecov__output
-    __report_mapping__bam_input = __bwa_mem_ref__output
+    try:
+        __report_mapping__bam_input = __mark_duplicates__output
+    except NameError:
+        __report_mapping__bam_input = __bwa_mem_ref__output
+
     include: sm.modules["report_mapping"]
     final_output.append(__report_mapping__output)
-
-# Mark duplicates
-if config["mark_duplicates"]["do"]:
-    include: sm.modules["mark_duplicates"]
-    __indel_realigner__input = __mark_duplicates__output
-    __freebayes__input = __mark_duplicates__output
     
 # Indel realigner
 if config["indel_realigner"]["do"]:
