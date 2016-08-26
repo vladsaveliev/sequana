@@ -19,15 +19,21 @@
 """Utilities for the genome coverage"""
 import os
 import sys
+import subprocess as sp
+if sys.version_info[0] < 3: 
+    from StringIO import StringIO
+else:
+    from io import StringIO
 
 import pandas as pd
 import numpy as np
 import pylab
+from Bio import SeqIO
 from biokit.stats import mixture
 
 from sequana import running_median
 from sequana.tools import gc_content
-
+from easydev import TempFile
 
 class GenomeCov(object):
     """Create a dataframe list of BED file provided by bedtools genomecov (-d)
@@ -341,40 +347,22 @@ class ChromosomeCov(object):
         l2 = len(self.get_high_coverage(threshold))
         return 1 - (l1+l2) / float(len(self))
 
-    def get_low_coverage(self, threshold=-3, start=None, stop=None):
+    def get_roi(self, first_thr=3, second_thr=1.5):
         """Keep position with zscore lower than INT and return a data frame.
 
-        :param int threshold: on the zscore
-        :param int start: lower bound to select a subset of the data
-        :param int stop:  upper bound to select a subset of the data
+        :param int first_thr: principal threshold on zscore
+        :param int second_thr: secondary threshold on zscore
         :return: a dataframe from :class:`FilteredGenomeCov`
         """
         try:
-            return FilteredGenomeCov(self.df[start:stop].loc[self.df["zscore"]
-                < threshold])
+            return FilteredGenomeCov(self.df.loc[abs(self.df["zscore"]) > 
+                second_thr], first_thr)
         except KeyError:
             print("Column zscore is missing in data frame.\n"
                   "You must run compute_zscore before get low coverage.\n\n",
-                  self.__doc__)
+                  self.__doc__) 
 
-    def get_high_coverage(self, threshold=3, start=None, stop=None):
-        """Keep position with zscore higher than INT and return a data frame.
-
-        :param int threshold: on the zscore
-        :param int start: lower bound to select a subset of the data
-        :param int stop:  upper bound to select a subset of the data
-        :return: a dataframe from :class:`FilteredGenomeCov`
-        """
-        try:
-            return FilteredGenomeCov(self.df[start:stop].loc[self.df["zscore"]
-                > threshold])
-        except KeyError:
-            print("Column zscore is missing in data frame.\n"
-                  "You must run compute_zscore before get low coverage.\n\n",
-                    self.__doc__)
-
-    def plot_coverage(self, fontsize=16, filename=None,
-            low_threshold=-3, high_threshold=3):
+    def plot_coverage(self, filename=None, threshold=3, fontsize=16):
         """ Plot coverage as a function of base position.
 
         In addition, the running median and coverage confidence corresponding to
@@ -383,9 +371,9 @@ class ChromosomeCov(object):
         """
         # z = (X/rm - \mu ) / sigma
 
-        high_zcov = (high_threshold * self.best_gaussian["sigma"] +
+        high_zcov = (threshold * self.best_gaussian["sigma"] +
                 self.best_gaussian["mu"]) * self.df["rm"]
-        low_zcov = (low_threshold * self.best_gaussian["sigma"] +
+        low_zcov = (-threshold * self.best_gaussian["sigma"] +
                 self.best_gaussian["mu"]) * self.df["rm"]
 
         pylab.clf()
@@ -553,7 +541,7 @@ class FilteredGenomeCov(object):
 
     :target: developers only
     """
-    def __init__(self, df):
+    def __init__(self, df, threshold=3):
         """ .. rubric:: constructor
 
         :param df: dataframe with filtered position used within
@@ -561,7 +549,7 @@ class FilteredGenomeCov(object):
             ["pos", "cov", "rm", "zscore"]
 
         """
-        self.df = df
+        self.df = self._merge_region(df, threshold=threshold)
 
     def __str__(self):
         return self.df.__str__()
@@ -569,19 +557,19 @@ class FilteredGenomeCov(object):
     def __len__(self):
         return self.df.__len__()
 
-    def _merge_row(self, start, stop):
-        chrom = self.df["chr"][start]
-        cov = np.mean(self.df["cov"].loc[start:stop])
-        max_cov = np.max(self.df["cov"].loc[start:stop])
-        rm = np.mean(self.df["rm"].loc[start:stop])
-        zscore = np.mean(self.df["zscore"].loc[start:stop])
-        max_zscore = self.df["zscore"].loc[start:stop].max()
+    def _merge_row(self, df, start, stop):
+        chrom = df["chr"][start]
+        cov = np.mean(df["cov"].loc[start:stop])
+        max_cov = np.max(df["cov"].loc[start:stop])
+        rm = np.mean(df["rm"].loc[start:stop])
+        zscore = np.mean(df["zscore"].loc[start:stop])
+        max_zscore = df["zscore"].loc[start:stop].max()
         size = stop - start + 1
-        return {"chr": chrom, "start": start, "stop": stop + 1, "size": size,
+        return {"chr": chrom, "start": start, "end": stop + 1, "size": size,
                 "mean_cov": cov, "mean_rm": rm, "mean_zscore": zscore,
                 "max_zscore":max_zscore, "max_cov":max_cov}
 
-    def merge_region(self, threshold, zscore_label="zscore"):
+    def _merge_region(self, df, threshold, zscore_label="zscore"):
         """Merge position side by side of a data frame.
 
         Uses a double threshold method.
@@ -596,23 +584,19 @@ class FilteredGenomeCov(object):
         stop = 1
         prev = 1
 
-        merge_df = pd.DataFrame(columns=["chr", "start", "stop", "size",
-            "mean_cov", "mean_rm", "mean_zscore"])
-        int_column = ["start", "stop", "size"]
-        merge_df[int_column] = merge_df[int_column].astype(int)
-
-        for pos, zscore in zip(self.df["pos"], self.df[zscore_label]):
+        merge_df = []
+        for pos, zscore in zip(df["pos"], df[zscore_label]):
             stop = pos
             if stop - 1 == prev:
                 prev = stop
             else:
                 if region_start:
-                    merge_df = merge_df.append(self._merge_row(region_start,
-                        region_stop), ignore_index=True)
+                    merge_df.append(self._merge_row(df, region_start,
+                        region_stop))
                     region_start = None
                 start = stop
                 prev = stop
-            if abs(zscore) > abs(threshold):
+            if abs(zscore) > threshold:
                 if not region_start:
                     region_start = pos
                     region_stop = pos
@@ -620,7 +604,142 @@ class FilteredGenomeCov(object):
                     region_stop = pos
 
         if start < stop and region_start:
-            merge_df = merge_df.append(self._merge_row(region_start,
-                region_stop), ignore_index=True)
+            merge_df.append(self._merge_row(df, region_start,region_stop))
+
+        merge_df = pd.DataFrame(merge_df, columns=["chr", "start", "end", "size",
+            "mean_cov", "mean_rm", "mean_zscore"])
+        int_column = ["start", "end", "size"]
+        merge_df[int_column] = merge_df[int_column].astype(int)
         return merge_df
 
+    def get_low_roi(self):
+        return self.df.loc[self.df["mean_zscore"] < 0]
+
+    def get_high_roi(self):
+        return self.df.loc[self.df["mean_zscore"] > 0]
+
+    def write_bed_file(self, output_file):
+        output_dir = os.path.dirname(output_file)
+        try:
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+        except FileNotFoundError:
+            pass
+
+        self.df.to_csv(output_file, sep="\t", header=False, index=False)
+
+    def _bedtools_intersect_proc(self, bed_cov, bed_ann):
+        """Execute bedtools intersect and return result in a data frame.
+        """
+        # run bedtools intersect
+        bed_arg = ["bedtools", "intersect", "-wb", "-wa", "-a", bed_cov, "-b", 
+                bed_ann]
+        bed_proc = sp.Popen(bed_arg, stdout=sp.PIPE)
+        bed_string = bed_proc.communicate()[0]
+       
+        # convert binary to data frame
+        bed_string = bed_string.decode('utf-8')
+        df = pd.read_csv(StringIO(bed_string), sep="\t", header=None,names=[ 
+            "chr", "start", "end", "size", "mean_cov", "mean_rm", "mean_zscore",
+            "x", "gene_start", "gene_end", "type", "name", "strand", "product"])
+        # remove chr name provide by annotation bed file
+        df = df.drop("x", 1)
+        return df
+
+    def bedtools_intersect(self, bed_ann):
+        """Concatenate filtered region and annotation bed with bedtools 
+        intersect. Annotation bed are done with the :class:`BedConverter`.
+
+        :param str bed_ann: input data with results of :class:`BedConverter`.
+        :param str bed_cov: input data with results of 
+            :class:`FilteredGenomeCov`. In default, it create a temporary file
+            with results.
+
+        Results are stored in data frame named :attr:`df`.
+        """
+        if len(self.df.columns) > 8:
+            print("You have already done the bedtools intersect. Results are "
+                  "stored in data frame named :attr:`df`. If you redo the "
+                  "bedtools intersect, your results will be wrong. You must "
+                  "reextract ROIs to redo the bedtools intersect.")
+            sys.exit(0)
+        with TempFile(suffix='.bed') as fh:
+            self.write_bed_file(fh.name)
+            self.df = self._bedtools_intersect_proc(fh.name, bed_ann)
+
+
+class BedConverter(object):
+    """Class which convert genbank/gff as bedfile. This class need bedtools.
+
+    requires: biopython and bedtools
+
+    Example:
+
+        from sequana import bedtools
+
+        bed = bedtools.BedConverter("file.gbk", "genbank")
+        bed.write_bed_file("file.bed")
+    """
+
+    _feature_set = {"gene", "source", "misc_feature", "regulatory"}
+
+    def __init__(self, input_filename, file_format=None):
+        """.. rubric:: constructor
+
+        :param str input_filename: annotation file in genbank or gff format.
+        """
+        if file_format:
+            self.file_format = file_format
+        else:
+            #TODO
+            pass
+
+        if file_format == "genbank":
+            self.df = pd.DataFrame(self._genbank_to_bed(input_filename), 
+                    columns=["chrom", "start", "end", "type", "name", "strand",
+                    "product"])
+
+    def _get_genbank_feature(self, chrom_name, feature):
+        dico = {}
+        dico["chrom"] = chrom_name
+        dico["type"] = feature.type
+        dico["start"] = feature.location.start.position
+        dico["end"] = feature.location.end.position
+        try:
+            dico["name"] = feature.qualifiers["gene"][0]
+        except KeyError:
+            try:
+                dico["name"] = feature.qualifiers["locus_tag"][0]
+            except KeyError:
+                dico["name"] = "None"
+        if feature.strand < 0:
+            dico["strand"] = "-"
+        else:
+            dico["strand"] = "+"
+        try:
+            dico["product"] = feature.qualifiers['note'][0]
+        except KeyError:
+            try:
+                dico["product"] = feature.qualifiers['operon'][0]
+            except KeyError:
+                dico["product"] = "None"
+        return dico
+
+    def _genbank_to_bed(self, input_filename):
+        feature_list = []
+        for record in SeqIO.parse(open(input_filename, "r"), "genbank"):
+           sub_list = [self._get_genbank_feature(record.name, feature) 
+                   for feature in record.features
+                   if feature.type not in BedConverter._feature_set]
+           feature_list += sub_list
+        return feature_list
+
+    def write_bed_file(self, output_file):
+        output_dir = os.path.dirname(output_file)
+        try:
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+        except FileNotFoundError:
+            pass
+
+        self.df.to_csv(output_file, sep="\t", header=False, index=False)

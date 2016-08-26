@@ -34,13 +34,13 @@ class SnpEff(object):
     """ Python wrapper to launch snpEff.
 
     """
-    extension = {"-genbank": ".gbk", "-gff3": ".gff", "-gtf22": ".gtf"}
-    def __init__(self, reference, file_format=None, stdout=None, stderr=None):
+    extension = {"genbank": ".gbk", "gff": ".gff", "gtf": ".gtf"}
+    def __init__(self, reference, file_format="", stdout=None, stderr=None):
         """
 
         :param vcf_filename: the input vcf file.
         :param reference: annotation reference.
-        :param file_format: format of your file. ('-genbank'/'-gff3'/'-gtf22')
+        :param file_format: format of your file. ('genbank'/'gff3'/'gtf22')
         """
         self.reference = reference
         self.ref_name = reference.split("/")[-1]
@@ -49,6 +49,8 @@ class SnpEff(object):
             self._get_snpeff_config()
         if not file_format:
             self._check_format()
+        else:
+            self.file_format = file_format
         # Check if reference is a file
         if os.path.exists(reference):
             if not os.path.exists("data" + os.sep + self.ref_name + os.sep +
@@ -76,13 +78,13 @@ class SnpEff(object):
         with open(self.reference, "r") as fp:
             first_line = fp.readline()
             if first_line.startswith('LOCUS'):
-                self.file_format = "-genbank"
+                self.file_format = "genbank"
                 # set regex for genbank file
                 self.regex = re.compile("^LOCUS\s+([^\s]+)")
-            elif re.search('##gff-version +3', first_line):
-                self.file_format = "-gff3"
+            elif re.search('gff-version', first_line):
+                self.file_format = "gff"
             elif first_line.startswith('#!'):
-                self.file_format = "-gtf22"
+                self.file_format = "gtf"
             else:
                 print("The format can not be determined, please relaunch " 
                       "the script with the file_format argument")
@@ -121,10 +123,10 @@ class SnpEff(object):
         
         try:
             with open(stdout, "wb") as out, open(stderr, "wb") as err:
-                snp_build = sp.Popen(["snpEff", "build", self.file_format,
+                snp_build = sp.Popen(["snpEff", "build", "-" + self.file_format,
                     self.ref_name], stderr=err, stdout=out)
         except TypeError:
-            snp_build = sp.Popen(["snpEff", "build", self.file_format, 
+            snp_build = sp.Popen(["snpEff", "build", "-" + self.file_format, 
                 self.ref_name], stderr=None, stdout=None)
         snp_build.wait()
         rc = snp_build.returncode
@@ -145,7 +147,7 @@ class SnpEff(object):
 
     def _get_seq_ids(self):
         # genbank case
-        if self.file_format == "-genbank":
+        if self.file_format == "genbank":
             with open(self.reference, "r") as fp:
                 seq = [self.regex.search(line).group(1) for line in fp 
                         if self.regex.search(line)]
@@ -162,8 +164,6 @@ class SnpEff(object):
 
         :param str fasta: input fasta file where you want to add locus.
         :param str output_file: output file.
-        
-        It returns file name that contains locus in sequences ids.
         """
         fasta_record = FastA(fasta)
         ids_list = self._get_seq_ids()

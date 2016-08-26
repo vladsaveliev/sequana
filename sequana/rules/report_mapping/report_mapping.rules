@@ -15,8 +15,8 @@ try:
             outdir = "report",
             k = config["report_mapping"]["k"],
             size = config["report_mapping"]["window_size"],
-            high = config["report_mapping"]["high_threshold"],
-            low = config["report_mapping"]["low_threshold"],
+            first = config["report_mapping"]["first_threshold"],
+            second = config["report_mapping"]["second_threshold"],
             circular = config["report_mapping"]["circular"]
         run:
             import os
@@ -54,7 +54,7 @@ try:
                 chrom.compute_zscore(k=params.k)
     
                 r = report_chromosome.ChromosomeMappingReport(chrom,
-                    low_threshold=params.low, high_threshold=params.high,
+                    first_thr=params.first, second_thr=params.second,
                     directory=params.outdir, project=cfg.PROJECT)
                 r.create_report()
     
@@ -73,9 +73,11 @@ except NameError:
             outdir = "report",
             k = config["report_mapping"]["k"],
             size = config["report_mapping"]["window_size"],
-            high = config["report_mapping"]["high_threshold"],
-            low = config["report_mapping"]["low_threshold"],
-            circular = config["report_mapping"]["circular"]
+            first = config["report_mapping"]["first_threshold"],
+            second = config["report_mapping"]["second_threshold"],
+            circular = config["report_mapping"]["circular"],
+            ann_file = __report_mapping__ann,
+            ann_fmt = __report_mapping__ann_format
         run:
             import os
     
@@ -98,7 +100,13 @@ except NameError:
 
             mydata = bedtools.GenomeCov(input.bed)
             bam = BAM(input.bam)
-    
+            
+            ann_bed = ""
+            if params.ann_file:
+                ann_bed = params.outdir + "tmp.ann.bed"
+                bed = bedtools.BedConverter(params.ann_file, params.ann_fmt)
+                bed.write_bed_file(ann_bed)
+            
             # Report mapping
             r = report_mapping.MappingReport(directory=params.outdir,
                 project=cfg.PROJECT)
@@ -111,8 +119,8 @@ except NameError:
                 chrom.compute_zscore(k=params.k)
     
                 r = report_chromosome.ChromosomeMappingReport(chrom,
-                    low_threshold=params.low, high_threshold=params.high,
-                    directory=params.outdir, project=cfg.PROJECT)
+                    first_thr=params.first, second_thr=params.second,
+                    directory=params.outdir, project=cfg.PROJECT, ann=ann_bed)
                 r.create_report()
     
             shell("cp %s %s/" % (__snakefile__, params.outdir))
