@@ -717,12 +717,15 @@ class BedConverter(object):
         else:
             dico["strand"] = "+"
         try:
-            dico["product"] = feature.qualifiers['note'][0]
+            dico["product"] = feature.qualifiers["product"][0]
         except KeyError:
             try:
-                dico["product"] = feature.qualifiers['operon'][0]
+                dico["product"] = feature.qualifiers['note'][0]
             except KeyError:
-                dico["product"] = "None"
+                try:
+                    dico["product"] = feature.qualifiers['operon'][0]
+                except KeyError:
+                    dico["product"] = "None"
         return dico
 
     def _genbank_to_bed(self, input_filename):
