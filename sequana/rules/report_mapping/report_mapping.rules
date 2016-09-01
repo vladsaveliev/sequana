@@ -40,7 +40,8 @@ rule report_mapping:
 
         mydata = bedtools.GenomeCov(input.bed)
         bam = BAM(input.bam)
-        features = genbank_features_parser(input.ann)
+        if features:
+            features = genbank_features_parser(input.ann)
         
         # Report mapping
         r = report_mapping.MappingReport(directory=params.outdir,
