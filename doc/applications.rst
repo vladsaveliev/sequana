@@ -32,6 +32,14 @@ sequana_coverage
     over represtented genomic regions.
 
 
+sequana_summary
+------------------
+
+:Description: Prints basic statistics about a set of NGS input files. Currently
+    handles Fastq (gzipped or not) or BED files (coverage).
+
+
+
 sequana_taxonomy
 --------------------
 

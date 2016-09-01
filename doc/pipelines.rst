@@ -9,6 +9,16 @@ Pipelines
 
 .. _pipeline_phix_removal:
 
+
+
+.. _denovo_assembly_pipeline:
+
+denovo_assembly
+====================
+
+.. include:: ../sequana/pipelines/denovo_assembly/README.rst
+
+
 Phix Removal
 ==============
 
@@ -36,5 +46,6 @@ Variant Calling
 =================
 
 .. include:: ../sequana/pipelines/variant_calling/README.rst
+
 
 

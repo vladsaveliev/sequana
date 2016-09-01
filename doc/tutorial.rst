@@ -4,8 +4,7 @@ Tutorial
 ==========
 
 Following the introductory example in :ref:`quick_start`, we will look at other pipelines such as
-the taxonomic classification, variant calling and coverage. For completeness,
-we reproduce the quality pipeline here below.
+the taxonomic classification, variant calling and coverage. 
 
 
 The following example will show how to run the quality control on a pair of
@@ -74,6 +73,7 @@ Go to the project directory
 Get the genbank reference
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
 Assuming the reference is **K01711.1** (Measles virus), we first need to fetch
 the genbank file rfom NCBI::
 
@@ -93,6 +93,16 @@ We will also get the FASTA from ENA::
     with open("measles.fa", "w") as fout:
         fout.write(data.decode())
 
+
+New in v0.10
+~~~~~~~~~~~~~~~~
+
+Assuming the genbank and reference have the same name, you can simply
+type::
+
+    from sequana.snpeff import download_fasta_and_genbank
+    download_fasta_and_genbank("K01711", "measles")
+
 Get a snpEff config file and update it
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -101,6 +111,8 @@ Then you need to initialise a config file for snpEff tool::
     from sequana import snpeff
     v = snpeff.SnpEff("measles.gbk")
 
+Update the snpeff config file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Edit the config file **config.yaml** and add the filename *measles.gbk* in the
 snpEff section::
