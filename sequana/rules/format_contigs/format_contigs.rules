@@ -11,5 +11,5 @@ rule format_contigs:
         from sequana import FastA
 
         contigs = FastA(input.contigs)
-        contigs.format_contigs_denovo(cfg.PROJECT, output_file=output.contigs,
+        contigs.format_contigs_denovo(output_file=output.contigs,
             len_min=params.length_min)
