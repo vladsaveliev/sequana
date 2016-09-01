@@ -33,7 +33,7 @@ class ChromosomeMappingReport(BaseReport):
     """Report dedicated to Mapping for one chromosome.
 
     """
-    def __init__(self, mapping, first_thr, second_thr, features,
+    def __init__(self, mapping, first_thr, second_thr, features=None,
             directory="report", project="", **kargs):
         """.. rubric:: constructor
 

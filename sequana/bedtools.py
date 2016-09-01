@@ -342,7 +342,7 @@ class ChromosomeCov(object):
         l2 = len(self.get_high_coverage(threshold))
         return 1 - (l1+l2) / float(len(self))
 
-    def get_roi(self, first_thr=3, second_thr=1.5, feature_list=None):
+    def get_roi(self, first_thr=3, second_thr=1.5, features=None):
         """Keep position with zscore lower than INT and return a data frame.
 
         :param int first_thr: principal threshold on zscore
@@ -350,9 +350,9 @@ class ChromosomeCov(object):
         :return: a dataframe from :class:`FilteredGenomeCov`
         """
         try:
-            if feature_list:
+            if features:
                 return FilteredGenomeCov(self.df.loc[abs(self.df["zscore"]) > 
-                    second_thr], first_thr, feature_list[self.chrom_name])
+                    second_thr], first_thr, features[self.chrom_name])
             else:
                 return FilteredGenomeCov(self.df.loc[abs(self.df["zscore"]) > 
                     second_thr], first_thr)
