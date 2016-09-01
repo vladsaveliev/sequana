@@ -18,7 +18,7 @@ metainfo = {
     'license' : 'new BSD',
     'download_url' : ['http://pypi.python.org/pypi/sequana'],
     'url' : ["http://github.com/sequana/"],
-    'description': "Put a short description here" ,
+    'description': "A set of standalone application and pipelines dedicated to NGS (new generation sequencing) analysis" ,
     'platforms' : ['Linux', 'Unix', 'MacOsX', 'Windows'],
     'keywords' : [''],
     'classifiers' : [
