@@ -1,0 +1,8 @@
+- gatk (genomeAnalysisTK)
+- picard (picard-tools)
+- bedtools
+- bwa
+- freebayes
+- snpEff
+- samtools
+
