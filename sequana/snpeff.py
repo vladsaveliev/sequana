@@ -207,14 +207,14 @@ def download_fasta_and_genbank(identifier, tag):
     """
     from bioservices import EUtils
     eu = EUtils()
-    data = eu.EFetch(db="nuccore",id="K01711.1", rettype="gbwithparts",
+    data = eu.EFetch(db="nuccore",id=identifier, rettype="gbwithparts",
         retmode="text")
     with open("%s.gbk" %  tag, "w") as fout:
         fout.write(data.decode())
 
     from bioservices import ENA
     ena = ENA()
-    data = ena.get_data('K01711', 'fasta')
+    data = ena.get_data(identifier, 'fasta')
     with open("%s.fa" % tag, "w") as fout:
         fout.write(data.decode())
 
