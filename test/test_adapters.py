@@ -30,6 +30,11 @@ def test_clean_ngs():
     with TempFile() as fh:
         adapters.adapters_to_clean_ngs(a1, fh.name)
 
+def test_adapter():
+    a1 = adapters.Adapter("test", "ACGT", "comment")
+    a2 = adapters.Adapter("test", "ACGT", "comment")
+    assert a1 == a2
+
 
 def test_adapters_removal_parser():
     data = sequana_data("test_adapter_removal_output.txt", "testing")
