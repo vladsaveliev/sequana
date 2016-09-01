@@ -297,8 +297,8 @@ def main(args=None):
             print(" - " + this)
         return
 
+    from sequana import Module
     if options.info:
-        from sequana import Module
         module = Module(options.info)
         module.onweb()
         return
@@ -314,6 +314,12 @@ def main(args=None):
             txt = "".join([" - %s\n" % this for this in valid_pipelines])
             sa.error("%s not a valid pipeline name. Use of one:\n" % options.pipeline
                      + txt)
+
+    # pipeline should be defined now
+    Module("dag").check("warning")
+    Module(options.pipeline).check("warning")
+
+
 
     # If user provides file1 and/or file2, check the files exist
     if options.file1 and os.path.exists(options.file1) is False:
