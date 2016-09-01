@@ -1,5 +1,4 @@
-__format_contigs__output = "format_contigs/%s.format.fasta" % (cfg.PROJECT, 
-    config["format_contigs"]["length_min"])
+__format_contigs__output = "format_contigs/%s.format.fasta" % (cfg.PROJECT)
 
 rule format_contigs:
     input:
