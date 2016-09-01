@@ -162,6 +162,10 @@ directory contains a config file named config_test.yaml, then you can use it
 with this option by just giving the name. Given the pipeline name, this utility
 will fetch the config file automatically from sequana library.""")
 
+        group.add_argument("--get-config", dest="get_config", type=str,
+                help=("Get config of a pipeline and copy it in the current " 
+                      "directory"))
+
         group.add_argument("--file1", dest="file1", type=str,
             help=""" Fills the *samples:file1* field in the config file. To be used
                 with --init option""")
@@ -271,14 +275,15 @@ def main(args=None):
     from sequana.snaketools import pipeline_names as valid_pipelines
 
     # Those options are mutually exclusive
-    flag = int("%s%s%s%s%s" % (
+    flag = int("%s%s%s%s%s%s" % (
             int(bool(options.issue)),
             int(bool(options.version)),
             int(bool(options.info)),
             int(bool(options.show_pipelines)),
             int(bool(options.pipeline)),
+            int(bool(options.get_config))
             ), 2)
-    if flag not in [1,2,4,8,16]:
+    if flag not in [1,2,4,8,16,32]:
         sa.error("You must use one of --pipeline, --info, "
             "--show-pipelines, --issue, --version ")
 
@@ -314,6 +319,21 @@ def main(args=None):
             txt = "".join([" - %s\n" % this for this in valid_pipelines])
             sa.error("%s not a valid pipeline name. Use of one:\n" % options.pipeline
                      + txt)
+
+    if options.get_config:
+        if options.get_config not in valid_pipelines:
+            txt = "".join([" - %s\n" % this for this in valid_pipelines])
+            sa.error("%s not a valid pipeline name. Use of one:\n" % options.pipeline
+                     + txt)
+        else:
+            from sequana import Module
+            config_path = Module(options.get_config).config
+            shutil.copy(config_path, ".")
+            msg = ("The config file from pipeline {0} is copied in the current "
+                    "working directory.")
+            print(msg.format(options.get_config))
+            return
+
 
     # If user provides file1 and/or file2, check the files exist
     if options.file1 and os.path.exists(options.file1) is False:
