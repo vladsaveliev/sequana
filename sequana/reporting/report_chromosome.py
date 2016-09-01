@@ -33,7 +33,7 @@ class ChromosomeMappingReport(BaseReport):
     """Report dedicated to Mapping for one chromosome.
 
     """
-    def __init__(self, mapping, first_thr, second_thr, ann,
+    def __init__(self, mapping, first_thr, second_thr, features,
             directory="report", project="", **kargs):
         """.. rubric:: constructor
 
@@ -49,7 +49,7 @@ class ChromosomeMappingReport(BaseReport):
         self.project = project
         self.first_thr = first_thr
         self.second_thr = second_thr
-        self.ann = ann
+        self.features = features
 
     def _generate_submapping(self, high_roi, low_roi):
         i=0
@@ -117,9 +117,8 @@ class ChromosomeMappingReport(BaseReport):
                 self.jinja["bp_plot"])
 
         # get region of interest
-        roi = self.mapping.get_roi(self.first_thr, self.second_thr)
-        if self.ann:
-            roi.bedtools_intersect(self.ann)
+        roi = self.mapping.get_roi(self.first_thr, self.second_thr, 
+                self.features)
 
         # Low threshold case
         low_roi = roi.get_low_roi()

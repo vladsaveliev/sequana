@@ -184,6 +184,8 @@ class SnpEff(object):
 
         if fasta_record.names[0] == ids_list[0]:
             print("Files have same sequence id.")
+            if os.path.isfile(output_file): 
+                os.remove(output_file)
             os.symlink(os.path.realpath(fasta), output_file)
             return
 

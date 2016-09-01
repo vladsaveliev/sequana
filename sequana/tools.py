@@ -21,6 +21,7 @@ import os
 import string
 import glob
 import json
+import re
 
 import pandas as pd
 import numpy as np
@@ -310,7 +311,7 @@ def bam_get_paired_distance(filename):
 def gc_content(filename, window_size, circular=False):
     """Return GC content for the different sequences found in a FASTA file
 
-    :param filename: fasta formateed file
+    :param filename: fasta formated file
     :param window_size: window length used to compute GC content
     :param circular: set to True if sequences are circular.
     :return: dictionary with keys as fasta names and values as GC content vecor
@@ -345,3 +346,69 @@ def gc_content(filename, window_size, circular=False):
             gc_content[i + mid] = gc_count
         chrom_gc_content[chrom.name] = gc_content / window_size
     return chrom_gc_content
+
+
+def genbank_features_parser(input_filename):
+    """ Return dictionary with features contains inside a genbank file.
+
+    :param str input_filename: genbank formated file
+    """
+    new_feature = {}
+    records = {}
+    feature_list = []
+    feature_field = False
+
+    with open(input_filename, "r") as fp:
+        for line in fp:
+            # pass header and sequence fields
+            if not feature_field:
+                # get contig/chrom name
+                if line.startswith("LOCUS"):
+                    name = line.split()[1]
+                elif line.startswith("FEATURE"):
+                    feature_field = True
+            
+            else:
+                # if feature field is finished
+                if line.startswith("ORIGIN"):
+                    feature_field = False
+                    records[name] = feature_list
+                    feature_list = []
+                    continue
+                
+                # if there are a word in qualifier indent (feature type)
+                # maybe we need to infer the size of indentation ???
+                if line[0:20].split():
+                    if new_feature:
+                        feature_list.append(new_feature)
+                    split_line = line.split()
+                    t = split_line[0]
+                    # Handle :
+                    #complement(order(1449596..1449640,1449647..1450684,
+                    #1450695..1450700))
+                    positions = split_line[1]
+                    if positions[0].isalpha():
+                        while not line[:-1].endswith(")"):
+                            line = next(fp)
+                            positions += line
+                    pos = [int(n) for n in re.findall("\d+", positions)]
+                    # Handle complement(join(3773333..3774355,3774357..3774431))
+                    start = pos[0]
+                    end = pos[-1]
+                    strand = "-" if split_line[1].startswith("c") else "+"
+                    new_feature = {"type": t, "gene_start": start, 
+                            "gene_end": end, "strand": strand}
+
+                # recover qualifier bound with feature
+                else:
+                    quali_line = line.strip().replace('"', '')
+                    if quali_line.startswith("/") and "=" in quali_line:
+                        qualifier = quali_line.split("=")
+                        key = qualifier[0][1:]
+                        new_feature[key] = qualifier[1]
+                    else:
+                        if key == "translation":
+                            new_feature[key] += quali_line
+                        else:
+                            new_feature[key] += " " + quali_line
+    return records
