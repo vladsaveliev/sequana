@@ -48,6 +48,7 @@ def test_get_tagname():
 def test_module():
     m = snaketools.Module('dag')
     m.description
+    m.overview
 
 
 def test_valid_config():
