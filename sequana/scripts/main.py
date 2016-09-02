@@ -32,7 +32,7 @@ import sequana
 from sequana.snaketools import FastQFactory
 from sequana.adapters import FindAdaptersFromIndex
 import sequana.snaketools as sm
-from sequana import Module, SequanaConfig, sequana_data
+from sequana import SequanaConfig, sequana_data
 
 
 help_input = """Incorrect combo of parameters.
@@ -293,6 +293,7 @@ def main(args=None):
 
     if options.show_pipelines:
         from sequana.misc import textwrap
+        from sequana.snaketools import Module
         sa.purple("Valid pipeline names:")
         for this in sorted(valid_pipelines):
             m = Module(this)
@@ -301,6 +302,7 @@ def main(args=None):
         return
 
     if options.info:
+        from sequana.misc import textwrap
         module = Module(options.info)
         module.onweb()
         return
@@ -318,6 +320,7 @@ def main(args=None):
                      + txt)
 
     # pipeline should be defined now
+    from sequana.misc import textwrap
     Module("dag").check("warning")
     Module(options.pipeline).check("warning")
 
@@ -456,6 +459,7 @@ def main(args=None):
 
 
 def sequana_init(options):
+    from sequana.misc import textwrap
     sa = Tools(verbose=options.verbose)
 
     if options.project is None:
