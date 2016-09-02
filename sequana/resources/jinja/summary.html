@@ -5,16 +5,18 @@
 
     <div class="section" id="Description">
     <p><b>Sample:</b> {{ project }} <br>
-    <b>Type:</b> {{ type }} </p>
-    {% if description %}
-    <p>{{ description }}</p>
-    {% endif %}
+    <b>Type:</b> {{ type }} <br>
+    <b>Pipeline:</b> {{ pipeline_name }} </p>
     </div>
 
 <div class="section" id="input">
     <h2> Input
-    <div style="float:right"><a href="fastq_stats__samples.html">| Details </a></div>
-    <div style="float:right"><a href="fastqc__samples/fastqc__samples.html">| FastQC </a></div>
+    <div style="float:right">
+        <a href="fastq_stats__samples.html" title="Jump to more statistics">| Details </a>
+    </div>
+    <div style="float:right"><a href="fastqc__samples/fastqc__samples.html"
+        title="Jump to original FastQC reports on the input data">| FastQC </a>
+    </div>
     </h2>
 
     {{ dataset }}
@@ -39,8 +41,12 @@
 {% if cfg['bwa_phix'] and cfg['bwa_phix']['do'] == True %}
     <div class="section" id="phix">
     <h2>  <a class="toc-backref" href="#id2">Phix content</a>
-    <div style="float:right"><a href="fastq_stats__phix.html">| Details </a></div>
-    <div style="float:right"><a href="fastqc__phix/fastqc__phix.html">| FastQC </a></div>
+    <div style="float:right"><a href="fastq_stats__phix.html"
+        title="Jump to more statistics">| Details </a>
+    </div>
+    <div style="float:right"><a href="fastqc__phix/fastqc__phix.html"
+        title="Jump to original FastQC reports on the data without Phix">| FastQC </a>
+    </div>
     </h2>
    {{ phix_section }}
     <p>Reads statistics after/before Phix removal (mapped means with Phix)</p>
