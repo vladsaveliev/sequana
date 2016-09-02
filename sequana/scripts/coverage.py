@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -23,6 +23,7 @@ import glob
 import sys
 from optparse import OptionParser
 import argparse
+from argparse import RawTextHelpFormatter
 
 
 from sequana import bedtools
@@ -34,88 +35,114 @@ from easydev import shellcmd
 
 from pylab import show, figure, savefig
 
+from easydev.console import purple
+
+# http://stackoverflow.com/questions/18462610/argumentparser-epilog-and-description-formatting-in-conjunction-with-argumentdef
+class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
+    pass
+
+
 class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana_coverage"):
-        usage = """Welcome to SEQUANA - Coverage standalone
+        usage = purple("""\nWelcome to SEQUANA -- Coverage standalone
 
-            sequana_coverage --input file.bed --window-median 1001
-            sequana_coverage --input file.bam --window-median 1001 -r <REFERENCE.fa>
+    sequana_coverage --input file.bed --window-median 1001
+    sequana_coverage --input file.bam --window-median 1001 -r <REFERENCE.fa>
+        """)
+
+        epilog = purple("""
+----
 
 AUTHORS: Thomas Cokelaer, Dimitri Desvillechabrol
 Documentation: http://sequana.readthedocs.io
 Issues: http://github.com/sequana/sequana
-        """
+        """)
+
         description = """DESCRIPTION:
         """
 
         super(Options, self).__init__(usage=usage, prog=prog,
-                description=description)
+                description=description, epilog=epilog,
+                formatter_class=CustomFormatter)
 
         # options to fill the config file
         group = self.add_argument_group("Required argument")
         group.add_argument("-i", "--input", dest="input", type=str,
-            help="Input file in BED or BAM format")
+            help=("Input file in BED or BAM format. If a BAM file is "
+                 "provided, it will be converted locally to a BED file "
+                 "using genomecov, which must be installed."))
 
         group = self.add_argument_group("Optional biological arguments")
         group.add_argument('-c', "--chromosome", dest="chromosome", type=int,
             default=1,
-            help="""Chromosome number (if only one, no need to use; 
-            default is 1)""") 
+            help=(  "Chromosome number (if only one, no need to use: the first"
+                    "and only chromosome is chosen automatically). Default is "
+                    "first chromosome found in the BED file"))
         group.add_argument('-o', "--circular", dest="circular",
-            default=False, action="store_true", 
-            help="""If the DNA of the organism is circular (typically 
-            viruses), set to True""") 
+            default=False, action="store_true",
+            help="""If the DNA of the organism is circular (typically
+            viruses or bacteria), set to True""")
 
         group = self.add_argument_group("General")
         group.add_argument('--show', dest="show", default=False,
             action='store_true', help="""Show the pictures (matplotlib)""")
         group.add_argument('--show-html', dest="show_html", default=False,
-            action='store_true', 
+            action='store_true',
             help="""When report is created, you can open
-            the main page automatically with this option""")
-        group.add_argument("-q", "--quiet", dest="verbose", 
+            the main page automatically with this option (default is False)""")
+        group.add_argument("-q", "--quiet", dest="verbose",
             default=True, action="store_false")
         group.add_argument('--no-report', dest="create_report",
             default=True, action='store_false',
             help="""Do not create any HTML report""")
 
+        # Group related to GC content
         group = self.add_argument_group("GC content related")
         group.add_argument('-r', "--reference", dest="reference", type=str,
             default=None,
-            help="""ENA/NCBI reference. Used to create the coverage
-            versus GC content image""") 
+            help="""If available, you can provide a reference (ENA/NCBI). It
+                 must have the same length as the one used to create the
+                 BAM or BED file. If provided, it is used to create the
+                 coverage versus GC content image""")
         group.add_argument("-g", "--window-gc", dest="w_gc", type=int,
-            help="""Length of the running median window""", default=200)
+            help="""Length of the running window to compute the GC content""", default=200)
         group.add_argument('-n', "--nlevels", dest="levels", type=int,
-            default=3,
-            help="""Number of levels in the contour""") 
+            default=3, help="""Number of levels in the contour""")
 
         #group running median
         group = self.add_argument_group("Running Median related")
         group.add_argument("-w", "--window-median", dest="w_median", type=int,
-            help="""Length of the running median window (default 4001)""", default=4001)
+            help="""Length of the running median window (default 4001,
+                 recommended for viruses).  For long genome, 20001
+                 or 30001 is recommended but larger windows may be
+                 useful in the presence of long deleted regions.""",
+            default=4001)
 
         group.add_argument("-k", "--mixture-models", dest="k", type=int,
-            help="""Number of mixture models to use (default 2). If DOC is below
-            8, k is set to 1). To ignore that behaviour set k to the required value""",
+            help="""Number of mixture models to use (default 2, although if sequencing
+        depth is below 8, k is set to 1 automatically). To ignore that behaviour
+        set k to the required value""",
             default=None)
 
         group.add_argument("-L", "--low-threshold", dest="low_threshold",
-            default=-4, type=float,
-            help="lower threshold (zscore) of the confidence interval")
+            default=None, type=float,
+            help=("lower threshold (zscore) of the confidence interval. "
+                "Overwrite value given by --threshold/-T"))
         group.add_argument("-H", "--high-threshold", dest="high_threshold",
-            default=4, type=float,
-            help="higher threshold (zscore) of the confidence interval")
+            default=None, type=float,
+            help=("higher threshold (zscore) of the confidence interval. "
+                "Overwrite value given by --threshold/-T"))
         group.add_argument("-T", "--threshold", dest="threshold",
             default=4, type=float,
-            help="set lower and higher thresholds of the confidence interval")
+            help="""set lower and higher thresholds of the confidence interval.""")
 
         group = self.add_argument_group("Download reference")
         group.add_argument("--download-reference", dest="accession",
             default=None, type=str)
         group.add_argument("--database", dest="database",
-            default="ENA", type=str, 
-            choices=["ENA", "EUtils"])
+            default="ENA", type=str,
+            choices=["ENA", "EUtils"],
+            help="Download the reference from one of these database (default ENA)")
 
 
 def main(args=None):
@@ -132,7 +159,7 @@ def main(args=None):
         options = user_options.parse_args(args[1:])
 
     if options.accession:
-        print("Download accession %s from %s\n" % 
+        print("Download accession %s from %s\n" %
             (options.accession, options.database))
 
         from bioservices.apps import download_fasta as df
@@ -154,9 +181,6 @@ def main(args=None):
     else:
         raise ValueError("Input file must be a BAM or BED file")
 
-
-
-
     if divmod(options.w_median, 2)[1] == 0:
         from easydev.console import red
         print(red("Error: -w/--window-median option must be set to an odd value"))
@@ -175,7 +199,7 @@ def main(args=None):
     elif options.chromosome < 0 or options.chromosome > len(gc.chr_list):
         raise ValueError("invalid --chromosome value ; must be in [1-%s]" % len(gc.chr_list)+1)
     else:
-        print("There are %s chromosomes/contigs. Selected the chromosome %s" % 
+        print("There are %s chromosomes/contigs. Selected the chromosome %s" %
             (len(gc.chr_list), options.chromosome))
         chrom = gc.chr_list[options.chromosome-1]
 
@@ -217,8 +241,11 @@ def main(args=None):
 
     if options.verbose:
         print("\n\n")
+
+
     figure(1)
-    chrom.plot_coverage(low_threshold=options.low_threshold,
+    chrom.plot_coverage(threshold=options.threshold, 
+        low_threshold=options.low_threshold,
         high_threshold=options.high_threshold)
 
     # With the reference, we can plot others plots such as GC versus coverage
@@ -236,16 +263,11 @@ def main(args=None):
     #r.set_data(gc)
     #r.create_report()
 
-    if options.threshold:
-        options.low_threshold = -options.threshold
-        options.high_threshold = options.threshold
-
     # Report chromosomes
     print("Creating report")
     if options.create_report:
         r = report_chromosome.ChromosomeMappingReport(chrom,
-            low_threshold=options.low_threshold, 
-            high_threshold=options.high_threshold,
+            options.threshold,1.5,
             directory="report", project="coverage")
         r.create_report()
         print("Report created. See ./report directory content and look for the HTML file. You can also use --show-html option")

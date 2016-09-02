@@ -30,9 +30,9 @@ from sequana.tools import gc_content
 from sequana.tools import genbank_features_parser
 from easydev import TempFile
 
+
 class GenomeCov(object):
     """Create a dataframe list of BED file provided by bedtools genomecov (-d)
-
 
     Example:
 
@@ -61,7 +61,6 @@ class GenomeCov(object):
             string, second column is the base postion and third is the coverage.
 
         """
-
         df = pd.read_table(input_filename, header=None)
         try:
             df = df.rename(columns={0: "chr", 1: "pos", 2: "cov"})
@@ -338,9 +337,9 @@ class ChromosomeCov(object):
 
         .. note:: depends slightly on :math:`W` the running median window
         """
-        l1 = len(self.get_low_coverage(-threshold))
-        l2 = len(self.get_high_coverage(threshold))
-        return 1 - (l1+l2) / float(len(self))
+        filtered = self.get_roi(threshold)
+
+        return 1 - len(filtered) / float(len(self))
 
     def get_roi(self, first_thr=3, second_thr=1.5, features=None):
         """Keep position with zscore lower than INT and return a data frame.
@@ -361,18 +360,35 @@ class ChromosomeCov(object):
                   "You must run compute_zscore before get low coverage.\n\n",
                   self.__doc__) 
 
-    def plot_coverage(self, filename=None, threshold=3, fontsize=16):
+    def plot_coverage(self, filename=None, threshold=3, fontsize=16,
+        low_threshold=None, high_threshold=None):
         """ Plot coverage as a function of base position.
+
+        :param filename:
+        :param threshold:
+        :param low_threshold: negative threshold
+        :param high_threshold: positive threshold
 
         In addition, the running median and coverage confidence corresponding to
         the lower and upper  zscore thresholds
 
         """
         # z = (X/rm - \mu ) / sigma
+        if low_threshold is None:
+            low_threshold = -threshold
 
-        high_zcov = (threshold * self.best_gaussian["sigma"] +
+        if high_threshold is None:
+            high_threshold = threshold
+
+        if low_threshold >= 0:
+            raise ValueError("--low-threshold must be negative")
+        if high_threshold <=0:
+            raise ValueError("--high-threshold must be positive")
+
+
+        high_zcov = (high_threshold * self.best_gaussian["sigma"] +
                 self.best_gaussian["mu"]) * self.df["rm"]
-        low_zcov = (-threshold * self.best_gaussian["sigma"] +
+        low_zcov = (low_threshold * self.best_gaussian["sigma"] +
                 self.best_gaussian["mu"]) * self.df["rm"]
 
         pylab.clf()
