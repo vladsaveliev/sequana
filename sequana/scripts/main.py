@@ -292,13 +292,17 @@ def main(args=None):
         return
 
     if options.show_pipelines:
+        from sequana import Module
+        from sequana.misc import textwrap
         sa.purple("Valid pipeline names:")
         for this in sorted(valid_pipelines):
-            print(" - " + this)
+            m = Module(this)
+            sa.green(" - " + this)
+            print(textwrap(m.overview, indent=8))
         return
 
-    from sequana import Module
     if options.info:
+        from sequana import Module
         module = Module(options.info)
         module.onweb()
         return
