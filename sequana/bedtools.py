@@ -630,7 +630,7 @@ class FilteredGenomeCov(object):
             except StopIteration:
                 msg = ("Features types ({0}) are not present in the annotation "
                        "file. Please change what types you want")
-                sys.exit(0)
+                return region_ann
         # merge regions and annotations
         for region in region_list:
             while feature["gene_end"] <= region["start"]:
