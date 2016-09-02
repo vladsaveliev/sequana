@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -50,7 +50,7 @@ Interesting commands::
 """
 
 
-__all__ = ['BAM','Alignment', 'SAMFlags'] 
+__all__ = ['BAM','Alignment', 'SAMFlags']
 
 # simple decorator ro rewind the BAM file
 from functools import wraps
@@ -70,13 +70,12 @@ class BAM(pysam.AlignmentFile):
     This is built on top of pysam package and provides functions to retrieve
     useful information or plot various statistical analysis.
 
-    This BAM class can also read a SAM file but some functionalities will not
-    work. Besides, you need to create new instances each time a method is
-    called. This is inherent to pysam implementation. Python2.7 and 3.5 also
-    behave differently and we would recommend the Python 3.5 version. For instance,
+    The interest of this BAM class is that it will rewind the file each time you
+    want to access to the data. Note also that Python2.7 and 3.5 behave differently 
+    and we would recommend the Python 3.5 version. For instance,
     :meth:`to_fastq` would work only with Python 3.5.
 
-    We provide a test file in Sequana to create a BAM instance:
+    We provide a test file in Sequana:
 
     .. doctest::
 
@@ -88,10 +87,9 @@ class BAM(pysam.AlignmentFile):
 
     .. note:: Once you loop over this data structure,  you must call
         :meth`reset` to rewind the loop. The methods implemented in this data
-        structure takes care of that for you thanks to a decorator called seek.
-        So if you want to call an iterator yourself you must use the
-        :meth:`reset` method yourself. In particular, if you want to use the
-        next() funtion.
+        structure take care of that for you thanks to a decorator called seek.
+        If you want to use the next() funtion, call rest() to make sure you 
+        start at the beginning.
 
 
     """
@@ -125,7 +123,7 @@ class BAM(pysam.AlignmentFile):
         # If is is a SAM file, the rewind does not work and calling it again wil
         # return 0. This may give us a hint that it is a SAM file
         self.reset()
-        self.N = sum(1 for _ in self) 
+        self.N = sum(1 for _ in self)
         self.reset()
 
         # Figure out if the data is paired-end or not
@@ -204,9 +202,9 @@ class BAM(pysam.AlignmentFile):
         N1 = len(list(self.iter_unmapped_reads()))
         N2 = len(list(self.iter_mapped_reads()))
 
-        d['total_reads'] = N1 + N2 
-        d['mapped_reads'] = N2 
-        d['unmapped_reads'] = N1 
+        d['total_reads'] = N1 + N2
+        d['mapped_reads'] = N2
+        d['unmapped_reads'] = N1
         d['contamination [%]'] = float(d['mapped_reads']) / float(N1+N2)
         d['contamination [%]'] *= 100
         return d
@@ -215,7 +213,7 @@ class BAM(pysam.AlignmentFile):
         """Return a dictionary with full stats about the BAM file
 
         ::
-        
+
             >>> from sequana import BAM, sequana_data
             >>> b = BAM(sequana_data("test.bam", "testing"))
             >>> df = b.get_full_stats_as_df()
@@ -343,7 +341,7 @@ class BAM(pysam.AlignmentFile):
 
         """
         df = self.get_mapq_as_df()
-        df.plot(kind='hist', bins=range(0,df.max().values[0]+1), legend=False, 
+        df.plot(kind='hist', bins=range(0,df.max().values[0]+1), legend=False,
             grid=True, logy=True)
         pylab.xlabel("MAPQ", fontsize=fontsize)
         try:
@@ -353,6 +351,30 @@ class BAM(pysam.AlignmentFile):
             pass
         if filename:
             pylab.savefig(filename)
+
+    @seek
+    def get_gc_content(self):
+        """Return GC content for all reads (mapped or not)"""
+        data = [(f.seq.count("C") + f.seq.count('G')) / len(f.seq)*100. for f in self]
+        return data
+
+    @seek
+    def get_length_count(self):
+        """Return counter of all fragment length"""
+        data = [this.rlen for this in b]
+        return collections.Counter(data)
+
+    def plot_gc_content(self, fontsize=16):
+        """plot GC content histogram"""
+        data = self.get_gc_content()
+        X = pylab.array(range(100))
+        pylab.hist(data, X, normed=True)
+        pylab.grid()
+        mu = pylab.mean(data)
+        sigma = pylab.std(data)
+        pylab.plot(X, pylab.normpdf(X, mu, sigma), lw=2, color="r", ls="--")
+        pylab.xlabel("GC content", fontsize=16)
+
 
 
 class Alignment(object):

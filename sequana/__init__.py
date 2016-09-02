@@ -16,7 +16,7 @@ from .snaketools import Module, ModuleFinder
 
 
 # tools
-from .adapters import AdapterReader, FindAdaptersFromIndex
+from .adapters import AdapterReader, FindAdaptersFromIndex, Adapter
 from .bamtools import BAM, SAMFlags
 from .bedtools import GenomeCov
 from .coverage import Coverage
@@ -40,17 +40,17 @@ from sequana.reporting.report_summary import SequanaSummary
 from . import scripts
 
 
-def sequana_data(filename=None, where="testing"):
+def sequana_data(filename=None, where=None):
     """Simple utilities to retrieve data sets from gdsctools/share directory"""
     import os
     import easydev
     import glob
     sequana_path = easydev.get_package_location('sequana')
     sharedir = os.sep.join([sequana_path , "sequana", 'resources'])
-
+    directories = ['data', 'testing', 'data/adapters']
 
     if filename is None:
-        for thisdir in ['data', 'testing']:
+        for thisdir in directories:
             print('From %s directory:' % thisdir)
             for filename in glob.glob(sharedir + "/%s/*" % thisdir):
                 filename = os.path.split(filename)[1]
@@ -64,11 +64,19 @@ def sequana_data(filename=None, where="testing"):
     if where:
         filename = os.sep.join([sharedir, where, filename])
     else:
-        filename = os.sep.join([sharedir, filename])
+        def _get_valid_file(filename, directory):
+            filename = os.sep.join([sharedir, directory, filename])
+            if os.path.exists(filename) is False:
+                return False
+            else:
+                return filename
 
-    if os.path.exists(filename) is False:
-        raise Exception('unknown file %s. Type sequana_data() to get a list of valid names' % filename)
-
+        # try to introspect the different directories
+        # return filename if found otherwise raise error
+        for thisdir in directories:
+            if _get_valid_file(filename, thisdir):
+                return _get_valid_file(filename, thisdir)
+        raise Exception("unknown file %s. Type sequana_data() to get a list of valid names" % filename)
 
     return filename
 

@@ -8,7 +8,7 @@ Coverage module example
 #
 from sequana import GenomeCov
 from sequana import sequana_data
-bedfile = sequana_data("virus.bed", "data")
+bedfile = sequana_data("JB409847.bed", "data")
 ################################################
 # Reading input BED file
 gc = GenomeCov(bedfile)
@@ -20,7 +20,7 @@ chrom = gc[0]
 
 ##########################################################
 # Compute running median and zscore
-chrom.running_median(n=4001, circular=True)
+chrom.running_median(n=5001, circular=True)
 chrom.compute_zscore()
 
 ######################################"##################

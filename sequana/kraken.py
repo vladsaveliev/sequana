@@ -28,8 +28,9 @@ import pylab
 from sequana.misc import wget
 from sequana import sequana_config_path
 
+from easydev import md5
 
-__all__ = ['KrakenResults', "KrakenPipeline", "KrakenAnalysis"]
+__all__ = ['KrakenResults', "KrakenPipeline", "KrakenAnalysis", "KrakenDownload"]
 
 
 class KrakenResults(object):
@@ -501,6 +502,7 @@ class KrakenDownload(object):
         """Download the kraken DB toy example from sequana_data into
         .config/sequana directory
 
+        Checks the md5 checksums. About 32Mb of data
         """
         dv = DevTools()
         base = sequana_config_path + os.sep + "kraken_toydb"
@@ -512,13 +514,29 @@ class KrakenDownload(object):
 
         # download only if required
         if verbose:
-            print("Downloadind the database")
-        wget(baseurl + "kraken_toydb/database.idx", base + os.sep + "database.idx")
-        wget(baseurl + "kraken_toydb/database.kdb", base + os.sep + "database.kdb")
-        wget(baseurl + "kraken_toydb/taxonomy/names.dmp",
-             taxondir +  os.sep + "names.dmp")
-        wget(baseurl + "kraken_toydb/taxonomy/nodes.dmp",
-            taxondir + os.sep + "nodes.dmp")
+            print("Downloading the database into %s" % base)
+
+        md5sums = [
+            "28661f8baf0514105b0c6957bec0fc6e",
+            "97a39d44ed86cadea470352d6f69748d",
+            "d91a0fcbbc0f4bbac918755b6400dea6",
+            "c8bae69565af2170ece194925b5fdeb9"]
+        filenames = [
+            "database.idx",
+            "database.kdb",
+            "taxonomy/names.dmp",
+            "taxonomy/nodes.dmp"]
+
+        for filename, md5sum in zip(filenames, md5sums):
+            url = baseurl + "kraken_toydb/%s" % filename
+            filename = base + os.sep + filename
+            if os.path.exists(filename) and md5(filename) == md5sum:
+                if verbose:
+                    print("%s already present" % filename)
+            else:
+                print("Downloading %s" % url)
+                wget(url, filename)
+
 
     def _download_minikraken(self, verbose=True):
         dv = DevTools()
@@ -528,8 +546,13 @@ class KrakenDownload(object):
         dv.mkdir(taxondir)
         if verbose:
             print("Downloading minikraken (4Gb)")
-        wget("https://ccb.jhu.edu/software/kraken/dl/minikraken.tgz",
-             base + os.sep + "minikraken.tgz")
+
+        filename = base + os.sep + "minikraken.tgz"
+        if os.path.exists(filename) and md5(filename) == "30eab12118158d0b31718106785195e2":
+            if verbose:
+                print("%s already present" % filename)
+        else:
+            wget("https://ccb.jhu.edu/software/kraken/dl/minikraken.tgz", filename)
         # unzipping. requires tar and gzip
 
     def _download_from_synapse(self, synid, target_dir):

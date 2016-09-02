@@ -302,8 +302,8 @@ def main(args=None):
             print(" - " + this)
         return
 
+    from sequana import Module
     if options.info:
-        from sequana import Module
         module = Module(options.info)
         module.onweb()
         return
@@ -333,6 +333,11 @@ def main(args=None):
                     "working directory.")
             print(msg.format(options.get_config))
             return
+
+    # pipeline should be defined now
+    Module("dag").check("warning")
+    Module(options.pipeline).check("warning")
+
 
 
     # If user provides file1 and/or file2, check the files exist
