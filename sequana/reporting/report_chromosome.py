@@ -33,7 +33,7 @@ class ChromosomeMappingReport(BaseReport):
     """Report dedicated to Mapping for one chromosome.
 
     """
-    def __init__(self, mapping, low_threshold=-3, high_threshold=3, 
+    def __init__(self, mapping, first_thr, second_thr, features=None,
             directory="report", project="", **kargs):
         """.. rubric:: constructor
 
@@ -47,10 +47,11 @@ class ChromosomeMappingReport(BaseReport):
                 output_filename=output_filename, **kargs)
         self.chrom_index = mapping.chrom_index
         self.project = project
-        self.low_t = low_threshold
-        self.high_t = high_threshold
+        self.first_thr = first_thr
+        self.second_thr = second_thr
+        self.features = features
 
-    def _generate_submapping(self, low_df, high_df):
+    def _generate_submapping(self, high_roi, low_roi):
         i=0
         while True:
             i += 1
@@ -66,11 +67,11 @@ class ChromosomeMappingReport(BaseReport):
                 stop = len(self.mapping)
             name = "{0}_{1}".format(name, stop)
             link = "submapping/{0}.chrom{1}.html".format(name, self.chrom_index)
-            r = SubMappingReport(start=i, stop=stop, low_df=low_df,
-                    high_df=high_df, chrom_index=self.chrom_index,
+            r = SubMappingReport(start=i, stop=stop, high_roi=high_roi, 
+                    low_roi=low_roi, chrom_index=self.chrom_index,
                     output_filename=name + ".chrom%i.html" % self.chrom_index,
                     directory=self.directory + "/submapping", 
-                    low_threshold=self.low_t, high_threshold=self.high_t)
+                    first_thr=self.first_thr, second_thr=self.second_thr)
             r.jinja["main_link"] = "index.html"
             r.set_data(self.mapping)
             r.create_report()
@@ -83,7 +84,7 @@ class ChromosomeMappingReport(BaseReport):
                 self.mapping.chrom_name)
         self.jinja['main_link'] = 'index.html'
 
-
+        # Stats of chromosome
         df = pd.Series(self.mapping.get_stats()).to_frame()
         self.jinja["nc_stats"] = HTMLTable(df).to_html(index=True)
 
@@ -91,8 +92,7 @@ class ChromosomeMappingReport(BaseReport):
         self.jinja["cov_plot"] = "images/{0}_coverage.chrom{1}.png".format(
                 self.project, self.chrom_index)
         self.mapping.plot_coverage(filename=self.directory + os.sep + 
-                self.jinja["cov_plot"], low_threshold=self.low_t, 
-                high_threshold=self.high_t)
+                self.jinja["cov_plot"], threshold=self.first_thr)
 
         # Barplot of normalized coverage with predicted gaussians
         nc_paragraph = ("Distribution of the normalized coverage with "
@@ -116,31 +116,33 @@ class ChromosomeMappingReport(BaseReport):
         self.mapping.plot_hist_zscore(filename=self.directory + os.sep + 
                 self.jinja["bp_plot"])
 
+        # get region of interest
+        roi = self.mapping.get_roi(self.first_thr, self.second_thr, 
+                self.features)
+
         # Low threshold case
+        low_roi = roi.get_low_roi()
         low_cov_paragraph = ("Regions with a z-score lower than {0:.2f} and at "
             "least one base with a z-score lower than {1:.2f} are detected as "
             "low coverage region. Thus, there are {2} low coverage regions")
-        low_cov_df = self.mapping.get_low_coverage(self.low_t / 2)
-        merge_low_cov = low_cov_df.merge_region(self.low_t)
-        self.jinja["lc_paragraph"] = low_cov_paragraph.format(self.low_t / 2,
-                self.low_t, len(merge_low_cov))
-        html = HTMLTable(merge_low_cov)
+        self.jinja["lc_paragraph"] = low_cov_paragraph.format(-self.second_thr,
+                -self.first_thr, len(low_roi))
+        html = HTMLTable(low_roi)
         html.add_bgcolor("size")
         self.jinja['low_coverage'] = html.to_html(index=False)
 
         # High threshold case
+        high_roi = roi.get_high_roi()
         high_cov_paragraph = ("Regions with a z-score higher than {0:.2f} and at "
             "least one base with a z-score higher than {1:.2f} are detected as "
             "high coverage region. Thus, there are {2} high coverage regions")
-        high_cov_df = self.mapping.get_high_coverage(self.high_t / 2)
-        merge_high_cov = high_cov_df.merge_region(self.high_t)
-        self.jinja['hc_paragraph'] = high_cov_paragraph.format(self.high_t / 2, 
-                self.high_t, len(merge_high_cov))
-        html = HTMLTable(merge_high_cov)
+        self.jinja['hc_paragraph'] = high_cov_paragraph.format(self.second_thr,
+                self.first_thr, len(high_roi))
+        html = HTMLTable(high_roi)
         html.add_bgcolor("size")
         self.jinja['high_coverage'] = html.to_html(index=False)
 
         # Sub mapping with javascript
-        df = self._generate_submapping(merge_low_cov, merge_high_cov)
+        df = self._generate_submapping(high_roi, low_roi)
         html = HTMLTable(df)
         self.jinja['list_submapping'] = html.to_html(index=False) 

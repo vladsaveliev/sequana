@@ -13,5 +13,5 @@ def test_report():
     for chrom in mydata:
         chrom.running_median(n=501, circular=False)
         chrom.compute_zscore()
-        r = ChromosomeMappingReport(chrom)
+        r = ChromosomeMappingReport(chrom, 3, 1.5)
         r.create_report()
