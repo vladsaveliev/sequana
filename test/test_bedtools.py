@@ -1,12 +1,14 @@
 import os
 
 from sequana import bedtools, sequana_data
+from sequana.tools import genbank_features_parser
 from easydev import TempFile
 
 
 def test_genomecov():
 
     filename = sequana_data("test_bedcov.bed", "testing")
+    features = genbank_features_parser(sequana_data("test_snpeff_ref.gb"))
 
     mydata = bedtools.GenomeCov(filename)
   
@@ -17,9 +19,7 @@ def test_genomecov():
         chrom.running_median(n=501, circular=False)
 
         chrom.compute_zscore()
-        chrom.get_low_coverage()
-        high_cov = chrom.get_high_coverage()
-        high_cov.merge_region(3)
+        roi = chrom.get_roi(features=features)
         with TempFile(suffix='.png') as fh:
             chrom.plot_coverage(filename=fh.name)
         with TempFile(suffix='.png') as fh:
