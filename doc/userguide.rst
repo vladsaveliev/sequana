@@ -4,16 +4,17 @@ User Guide
 .. contents::
 
 **Sequana** provides standalone applications (e.g. **sequana_coverage**,
-**sequana_taxonomy**) and pipelines in the form of Snakefiles.
+**sequana_taxonomy**) and pipelines in the form of Snakefiles. Although the standalone
+applications are usually simpler, they do not have all features or flexibilities offered by the
+pipelines. Most of the underlying code is common and may be used as a library.
 
-The :ref:`Tutorial`, :ref:`pipelines`, :ref:`Gallery` and :ref:`case_examples` sections provide many examples on their usage. The standalone applications are usually simpler to use than the pipelines but the underlying code is common and may be used as a library. 
+The :ref:`Tutorial`, :ref:`pipelines`, :ref:`Gallery` and :ref:`case_examples` sections provide many examples on their usage. 
 
-.. The standalone applications all have their own documentation, which can be obtained using  ``--help``. The pipelines documentation can be found in this documentation (e.g., in :ref:`pipelines` section). 
 
-This section will not describe in details all available standalone and pipelines
-available. We'd rather focus on one example (coverage) to show how one can use
-the **sequana** library, or standalone application, or pipeline to get
-information about the coverage of a set of mapped reads onto a reference. 
+This section will not describe all available standalone and pipelines.
+We will focus on one example (coverage) to show how one can use
+the **Sequana** library, or standalone application, or pipeline to get
+information about the coverage of a set of mapped reads onto a reference.
 
 
 **Sequana** library
@@ -27,7 +28,7 @@ using :func:`~sequana.sequana_data` function. The test case is a virus (about
 18,000 bases)::
 
     from sequana import sequana_data
-    filename = sequana_data('virus.bed', "data")
+    filename = sequana_data('JB409847.bed', "data")
 
 
 We can then use the :class:`~sequana.bedtools.GenomeCov` class to read the
@@ -39,7 +40,7 @@ file::
 Select a chromosome (first one) and compute the running median::
 
     chrom = gc[0] 
-    chrom.running_median(n=4001, circular=True)
+    chrom.running_median(n=5001, circular=True)
     chrom.compute_zscore()
 
 and finally plot the coverage together with confidence interval (3 sigma)::
@@ -60,14 +61,9 @@ and finally plot the coverage together with confidence interval (3 sigma)::
     chrom.plot_coverage()
 
 
-This example shows how **Sequana** can be used within a command line interface.
-In this example we read a BED file but other formats can be read (e.g. VCF,
-FastQ, ...). We generally rely on established libraries (e.g. pyVCF, pysam,
-...).
+This example shows how **Sequana** can be used from a command line interface.
 
-The pipelines and standalone applications have few hidden code and most of it is
-part of **Sequana** library. This means that it can be used by other
-tools/library.
+Many more functionalities are available. The reference guide should help you.
 
 **Sequana** standalones
 =========================
@@ -79,7 +75,7 @@ application. There are a few standalone applications listed in
 The one related to the coverage example shown above is named
 **sequana_coverage**. If you have a BED file, type::
 
-    sequana_coverage  -b <BEDFILENAME> 
+    sequana_coverage  -i <BEDFILENAME> 
 
 If your organism has a circular DNA, add ``-o``. You can play with the window
 size for the running median using ``-w``.
@@ -152,7 +148,7 @@ as much as possible.
 
 
 Pipelines and standalone make use of internal reporting. Since there are part of
-the **Sequana** library, they can also be usde with your own code. For instance,
+the **Sequana** library, they can also be used with your own code. For instance,
 if you have a BAM file, you can use the following code to create a basic
 report::
 

@@ -19,12 +19,7 @@ Usage
 Requirements
 ~~~~~~~~~~~~~~~~
 
-- Bedtools
-- BWA
-- Freebayes
-- GenomeAnalysisTK
-- Picard-tools
-- Samtools
-- snpEff
+.. include:: ../sequana/pipelines/variant_calling/requirements.txt
+
 
 .. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/variant_calling/variant_calling_dag.png

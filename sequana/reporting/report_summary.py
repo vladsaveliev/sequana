@@ -52,10 +52,10 @@ class SequanaSummary(BaseReport):
 
         self.title = "Summary Report"
         self.jinja['title'] = "Summary report"
-        #self.jinja['description'] = "<b>Description:</b>"
 
         # ============================================ Add the config and pipeline files
         from sequana.snaketools import SequanaConfig
+        from sequana.snaketools import Module
         if configfile:
             self.config = SequanaConfig(configfile)
             self.jinja['project'] = self.config.PROJECT
@@ -63,7 +63,11 @@ class SequanaSummary(BaseReport):
                 self.jinja['type'] = "Paired-end"
             else:
                 self.jinja['type'] = "Single-end"
+            pipeline_name = snakefile.split(".rules")[0]
+            url = "http://sequana.readthedocs.io/en/master/pipelines.html#" + pipeline_name
 
+            self.jinja["pipeline_name"] = '<a href="%s"> %s</a>' % (url,pipeline_name.title())
+            self.jinja["pipeline_name"] += " -- <i>[%s]</i>" % Module(pipeline_name).overview
 
         # The base has a navigation, that we do not want
         self.jinja['nav_off'] = 'True'
@@ -101,7 +105,7 @@ class SequanaSummary(BaseReport):
 
     def include_output_links(self):
         html = "<ul>"
-        if self.config.config['adapter_removal']['do']:
+        if "adapter_removal" in self.config.config.keys() and self.config.config['adapter_removal']['do']:
             if len(self.config.BASENAME) == 2:
                 name = "%s_R1_.cutadapt.fastq.gz" % (self.config.PROJECT)
                 html += '<li>Download cleaned data: <a href="%s">%s</a></li>\n' % (name, name)

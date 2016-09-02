@@ -16,7 +16,7 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-"""Adapters
+"""Utilities to manipulate adapters
 
 Adapters removal can be performed by many different tools such as CutAdapt,
 AlienTrimmer, Trimmomatic ... but they tend to use different formats from FASTA
@@ -26,22 +26,19 @@ In this module we provide utilities to help building the input files but also
 other tools to e.g. merge several list of adapters making sure there is no
 duplicates.
 
-The :class:`AdapterReader` can be used to read a set of adapters in FASTA
-format. 
+We also store list of adapters in FASTA format, which can be read using 
+the :class:`AdapterReader`::
 
-::
-
-    from sequana import sequana_data
-    filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", "data")
+    from sequana import sequana_data, AdapterReader
+    filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa")
     ar = AdapterReader(filename)
-    ar.get_get_adapter_by_index("N501")
+    ar.get_adapter_by_index("N501")
 
 """
 import pandas as pd
 import pysam
 from sequana.fasta import FastA
 import os
-
 
 
 def fasta_fwd_rev_to_columns(file1, file2=None, output_filename=None):
@@ -128,6 +125,15 @@ def adapter_removal_parser(filename):
 
 
 class Adapter():
+    """Class to store one adapter
+
+    An adapter is just a sequence from a FASTA file. It contains
+    an identifier, a sequence and possibly a comment.
+
+    .. warning:: the identifier is the FASTA identifier. It must start with a
+        ">" character followed by the identifier. This is different from an
+        index. 
+    """
     def __init__(self, identifier, sequence, comment="nocomment"):
         self._comment = comment
         self._sequence = sequence
@@ -137,19 +143,22 @@ class Adapter():
         return self._sequence
     def _set_sequence(self, sequence):
         self._sequence = sequence
-    sequence = property(_get_sequence, _set_sequence)
+    sequence = property(_get_sequence, _set_sequence, 
+        doc="R/W adapter's sequence")
 
     def _get_identifier(self):
         return self._identifier
     def _set_identifier(self, identifier):
         self._identifier = identifier
-    identifier = property(_get_identifier, _set_identifier)
+    identifier = property(_get_identifier, _set_identifier, 
+        doc="R/W adapter's identifier")
 
     def _get_comment(self):
         return self._comment
     def _set_comment(self, comment):
         self._comment = comment
-    comment = property(_get_comment, _set_comment)
+    comment = property(_get_comment, _set_comment, 
+        doc="R/W adapter's identifier")
 
     def __str__(self):
         if self.comment is None:
@@ -157,7 +166,7 @@ class Adapter():
         else:
             txt = ">%(identifier)s\t%(comment)s\n"
         txt+= "%(sequence)s"
-        
+ 
         txt = txt % {"identifier":self.identifier,
                 "comment":self.comment, "sequence":self.sequence}
         return txt
@@ -165,9 +174,18 @@ class Adapter():
     def __repr__(self):
         return self.__str__()
 
+    def __eq__(self, other):
+        if self._comment != other.comment:
+            return False
+        if self._identifier != other.identifier:
+            return False
+        if self._sequence.upper() != other.sequence.upper():
+            return False
+        return True
+
 
 class AdapterReader(object):
-    """We use FastA as our data structure to store adapters
+    """We use FASTA as our data structure to store adapters
 
     Header of the FASTA must be of the form::
 
@@ -176,21 +194,21 @@ class AdapterReader(object):
     In the FASTA identifier, the part after the pipe that contains the index_dna field
     will be used to identify the index of the adapter and must be found.
 
-    .. note:: the universal adapter does not need to have it but is called
-        Universal_Adapter
+    .. note:: the universal adapter does not need to have it but must be called
+        *Universal_Adapter*
 
     .. doctest::
 
         >>> from sequana import sequana_data, AdapterReader
-        >>> filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", "data/adapters")
+        >>> filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa")
         >>> ar = AdapterReader(filename)
-        >>> candidate = ar.get_adapter_by_index("S505")
+        >>> candidate = ar.get_adapter_by_index("index_dna:S505")
         >>> print(candidate)
-        '>Nextera_index_S505|index_dna:S505
-        AATGATACGGCGACCACCGAGATCTACACGTAAGGAGTCGTCGGCAGCGTC'
+        >Nextera_index_S505|index_dna:S505
+        AATGATACGGCGACCACCGAGATCTACACGTAAGGAGTCGTCGGCAGCGTC
 
         >>> len(ar)
-        50
+        56
 
     """
     def __init__(self, filename):
@@ -221,6 +239,7 @@ class AdapterReader(object):
     comments = property(_get_comments)
 
     def sanity_check(self):
+        """Check that all identifiers are unique"""
         if len(set(self.identifiers)) != len(self.identifiers):
             import collections
             identifiers = [k for k,v in collections.Counter(self.identifiers).items() if v>1]
@@ -275,10 +294,17 @@ class AdapterReader(object):
         :param index_name: the unique index name to be found. If several
             sequence do match, this is an error meaning the fasta file
             with all adapters is not correctly formatted.
-        :return: the adapter that match the index_name (if any) otherwise
-            returns None
-        
-        Return FASTA corresponding to the index"""
+        :return: an instance of :class:`Adapter` if index_name match an adapter, 
+            returns None otherwise
+
+        ::
+
+            from sequana import sequana_data, AdapterReader
+            filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa")
+            ar = AdapterReader(filename)
+            ar.get_adapter_by_identifier("index_dna:N712")
+
+        """
         # there should be only one
         adapters = []
         for this in self._data:
@@ -321,9 +347,39 @@ class AdapterReader(object):
         return d1 == d2
 
     def reverse(self):
-        """Reverse all sequences internally"""
+        """Reverse all sequences inplace
+
+        .. doctest::
+
+            >>> from sequana import sequana_data, AdapterReader
+            >>> filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa")
+            >>> filename2 = sequana_data("adapters_Nextera_PF1_220616_rev.fa")
+            >>> ar = AdapterReader(filename)
+            >>> ar2 = AdapterReader(filename2)
+            >>> ar.reverse()
+            >>> ar == ar2
+            True
+
+        """
         for this in self._data:
             this.sequence = this.sequence[::-1]
+
+    def reverse_complement(self):
+        """Reverse-complement all sequences inplace
+
+        ::
+
+            >>> from sequana import sequana_data, AdapterReader
+            >>> filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa")
+            >>> ar = AdapterReader(filename)
+            >>> ar.reverse_complement()
+            >>> ar.to_fasta()
+
+        """
+        # no need for a fast implementation (less than 1000 short reads)
+        from sequana.sequence import DNA
+        for this in self._data:
+            this.sequence = DNA(this.sequence).get_reverse_complement()
 
     def to_fasta(self, filename):
         """Save sequences into fasta file"""
@@ -335,18 +391,26 @@ class AdapterReader(object):
 
 
 class FindAdaptersFromIndex(object):
-    """
+    """Used to identify one or two indices from an IndexMapper structure
+
+    An IndexMapper structure is just a CSV file that stores
+    the mapping between a sample name and one or two indices.
+
+    The columns are project, index1, index2 and sample_name. 
+
+    Used by sequana main script top build the adapter files for multi-sample
+    projects. 
 
     """
     def __init__(self, index_mapper, adapters):
         """.. rubric:: Constructor
 
         :param str index_mapper: filename of a CSV file that has the following
-            header Projet,Index1,Index2,sample name,Index1,Index2
+            header projet,index1,index2,sample_name (index2 is optional)
 
         sample name is the string that starts the filename. From
-        the sample name, get the indices 1 and 2 ann then the corresponding
-        adapters.
+        the sample name, get the indices 1 and 2 and then the corresponding
+        adapter.
 
         """
         #self.index_mapper = pd.read_csv(index_mapper, delim_whitespace=True)[columns_in]
@@ -362,6 +426,7 @@ class FindAdaptersFromIndex(object):
         self.index_mapper.columns = columns_in
         self.index_mapper.set_index('sample_name', inplace=True)
 
+        self.adapters = adapters
         if adapters == "Nextera":
             from sequana import sequana_data
             file1 = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", 
@@ -416,7 +481,7 @@ class FindAdaptersFromIndex(object):
             res['universal']['rev'] = self._adapters_rev.get_adapter_by_identifier(
                 'Universal_Adapter')
 
-        if include_transposase:
+        if include_transposase and self.adapters == "Nextera":
             res['transposase'] = {}
             res['transposase']['fwd'] = str(self._adapters_fwd.get_adapter_by_identifier(
                 'Nextera_transposase_seq_1'))
@@ -437,7 +502,7 @@ class FindAdaptersFromIndex(object):
 
         file_fwd = output_dir + os.sep + "%s_adapters_fwd.fa"% sample_name
         with open(file_fwd, "w") as fout:
-            if include_transposase:
+            if include_transposase and self.adapters == "Nextera":
                 fout.write(str(adapters['transposase']['fwd'])+"\n")
 
             if include_universal:
@@ -449,7 +514,7 @@ class FindAdaptersFromIndex(object):
 
         file_rev = output_dir + os.sep + "%s_adapters_rev.fa" % sample_name
         with open(file_rev, "w") as fout:
-            if include_transposase:
+            if include_transposase and self.adapters == "Nextera":
                 fout.write(str(adapters['transposase']['rev'])+"\n")
             if include_universal:
                 fout.write(str(adapters['universal']['rev'])+"\n")

@@ -240,7 +240,7 @@ class ModuleFinder(object):
             return False
         return True
 
-    def ispipeline(self, name):
+    def is_pipeline(self, name):
         return self._type[name] == "pipeline"
 
 
@@ -259,6 +259,7 @@ class Module(object):
           taken from the parent directory. Rules do not have any but pipelines
           do. So if a pipeline does not provide a config.yaml, the one found
           in ./sequana/sequana/pipelines will be used.
+        - a **requirements.txt**
 
     The name of the module is the name of the directory where the files are
     stored. The **Modules** are stored in sequana/rules and sequana/pipelines
@@ -292,15 +293,28 @@ class Module(object):
     def __init__(self, name):
         self._mf = ModuleFinder()
         self._mf.isvalid(name)
-        self._path = self._mf._paths[name]
+        if name not in self._mf.names:
+            raise ValueError("""Sequana error: unknown rule or pipeline. Check
+the source code at:
+
+    https://github.com/sequana/sequana/tree/develop/sequana/pipelines and 
+    https://github.com/sequana/sequana/tree/develop/sequana/rules 
+
+or open a Python shell and type::
+
+    import sequana
+    sequana.modules.keys()""")
+        else:
+            self._path = self._mf._paths[name]
         self._name = name
 
         # could look into ./rules or ./pipelines
         self._snakefile = None
         self._description = None
+        self._requirements = None
 
-    def ispipeline(self):
-        return self._mf.ispipeline(self._name)
+    def is_pipeline(self):
+        return self._mf.is_pipeline(self._name)
 
     def _get_file(self, name):
         filename = self._path + os.sep + name
@@ -330,6 +344,18 @@ class Module(object):
     readme = property(_get_readme,
         doc="full path to the README file of the module")
 
+    def _get_overview(self):
+        result = "no information. For developers: please fix the pipeline "
+        result += "README.rst file by adding an :Overview: field"
+        for this in self.description.split("\n"):
+            if this.startswith(':Overview:'):
+                try:
+                    result = this.split(":Overview:")[1].strip()
+                except:
+                    result += "Bad format in :Overview: field"
+        return result 
+    overview = property(_get_overview)
+
     def _get_snakefile(self):
         if self._snakefile is not None:
             return self._snakefile
@@ -349,6 +375,65 @@ class Module(object):
     def _get_name(self):
         return self._name
     name = property(_get_name, doc="name of the module")
+
+    def _get_requirements(self):
+        if self._requirements is not None:
+            return self._requirements
+        if self._get_file("requirements.txt"):
+            self._requirements = self._get_file("requirements.txt")
+            return self._requirements
+    requirements = property(_get_requirements, doc="list of requirements")
+
+    def is_executable(self, verbose=False):
+        if self.requirements is None:
+            return True
+
+        executable = True
+        import easydev
+
+        # reads the file and interpret it to figure out the executables/packages
+        # and pipelines required
+        pipelines = []
+        with open(self.requirements, "r") as fh:
+            data = fh.read()
+            datalist = [this.strip() for this in data.split("\n")
+                                        if this.strip() not in [""]]
+            reqlist = []
+            for this in datalist:
+                if this.startswith('-'):
+                    req = this.split("-")[1].split()[0].strip()
+                    if req.startswith("["):
+                        req = req.replace("[", "")
+                        req = req.replace("]", "")
+                        pipelines.append(req)
+                    else:
+                        reqlist.append(req)
+
+        # Check the pipelines independently
+        for pipeline in pipelines:
+            Module(pipeline).check()
+
+        for req in reqlist:
+            # It is either a Python package or an executable
+            try:
+                output = easydev.shellcmd("which %s" % req)
+                if verbose: print("%s executable" % req)
+            except:
+                # is this a Python code ?
+                if len(easydev.get_dependencies(req)) == 0:
+                    if verbose: print("%s not found !!" % req)
+                    executable = False
+                else:
+                    if verbose: print("%s python package" % req)
+        return executable
+
+    def check(self, mode="warning"):
+        if self.is_executable(verbose=False):
+            return
+        else:
+            print("Some executable or Python packages are not available:\n")
+            self.is_executable(verbose=True)
+            print("Some functionalities may not work ")
 
     def _get_description(self):
         try:
@@ -395,7 +480,7 @@ def _get_modules_snakefiles():
 modules = _get_modules_snakefiles()
 
 #: list of pipeline names found in the list of modules
-pipeline_names = [m for m in modules if Module(m).ispipeline()]
+pipeline_names = [m for m in modules if Module(m).is_pipeline()]
 
 
 class SequanaConfig(object):

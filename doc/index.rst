@@ -25,14 +25,14 @@ Sequana documentation
 What is Sequana ?
 =====================
 
-Sequana is a versatile tool that provides (i) pipelines dedicated to NGS in the form of Snakefiles (Makefile-like with Python syntax) but also (ii) original tools to help in the creation of such pipelines (.e.g., plotting, statistical analysis of results), (iii) HTML reports and (iv) standalone applications.
+**Sequana** is a versatile tool that provides (i) pipelines dedicated to NGS in the form of Snakefiles (Makefile-like with Python syntax) but also (ii) original tools to help in the creation of such pipelines (e.g., plotting, statistical analysis of results), (iii) HTML reports and (iv) standalone applications.
 
 Currently, the pipelines available cover quality control (e.g. adapters removal, 
 phix removal, trimming of bad quality bases), variant calling, characterisation 
-of the genome coverage, and taxonomic classification. See the :ref:`pipelines`  
+of the genome coverage, and taxonomic classification, de-novo assembly. See the :ref:`pipelines`  
 section for more information.
 
-Sequana can be used by developers to create new pipelines and by users in the
+**Sequana** can be used by developers to create new pipelines and by users in the
 form of applications ready for production.
 
 
@@ -49,10 +49,10 @@ should install the latest release posted on Pypi website::
     pip install sequana --upgrade
 
 If not, be aware that Sequana relies on many dependencies that needs
-to be compiled (is time consumming and requires proper C compilator).
-We use Matplotlib, Pandas, cutadapt but some pipelines
-also require more specific tools (e.g. BWA for read alignment). We therefore
-strongly recommend to use `Anaconda <https://anaconda.org/>`_ and in 
+to be compiled (i.e., it is time consumming and requires proper C compilator).
+For example, we use Matplotlib, Pandas, cutadapt that are Python libraries. 
+However, many pipelines rely on third-party software such as BWA, Spades,...
+In practice, we do use use `Anaconda <https://anaconda.org/>`_ and in 
 particular the **bioconda** channel, which can be
 added to your environment as follows (once Anaconda is installed)::
 
@@ -61,16 +61,15 @@ added to your environment as follows (once Anaconda is installed)::
 
 Here is a non exhaustive list of dependencies that should be enough to run the
 current pipelines. We split the command on several lines to
-emphasize the standard Anaconda packages and the bioconda ones but you
-can use only one::
+emphasize but you can also install everything in one go::
 
-    conda install numpy matplotlib pandas cutadapt pysam pyvcf 
-    conda install snakemake biokit bioservices
+    conda install numpy matplotlib pandas cutadapt pysam pyvcf snpeff
+    conda install snakemake biokit bioservices spades khmer quast
     conda install bwa bcftools samtools bedtools picard freebayes fastqc
-    conda install kraken krona
+    conda install kraken krona scipy  graphviz
 
 
-.. note:: Sequana is not fully compatible with Python 2.7 since a dependency
+.. note:: **Sequana** is not fully compatible with Python 2.7 since a dependency
     (Snakemake) is only available for Python 3.5. However, many core
     functionalities would work under Python 2.7 
 
@@ -95,15 +94,19 @@ First, run the sequana standalone application to initialise the pipeline
 
     sequana --pipeline quality --input-dir . --project TEST
 
-This command downloads the required file(s) in particular the config file and the pipeline
-itself. This example should work out of the box but you may want to look at the
+This command downloads the required configuration file(s) in particular 
+the config file and the pipeline itself. This example should work out of 
+the box but you may want to look at the
 configuration file **config.yaml**. For instance, you may want to change the
 reference to the *phix* (by default we use *phix174.fa*, which is provided in Sequana) or
-adapt the adapter_removal section to your needs (cutadapt parameters, in
+change the adapter_removal section to your needs (cutadapt parameters, in
 particular the forward and reverse list of adapters; None by default).
 
 Note that the ``--project`` parameter is optional. If not provided, the project
-name will be the prefix of the FastQ files (before the first underscore).
+name will be the prefix of the FastQ files (before the _R?_ pattern). 
+
+.. warning:: If ``--project`` is provided, the input directory must contain only one sample.
+   otherwise, the name of each sample is the same
 
 Then, run the pipeline and wait for completion.::
 

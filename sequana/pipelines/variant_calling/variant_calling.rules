@@ -6,10 +6,12 @@ Data: paired end or single reads
 Run: snakemake -s variant_calling.rules
 """
 
+import time
 
 import sequana
 from sequana import snaketools as sm
 from sequana.snaketools import SequanaConfig
+from sequana import SnpEff
 sm.init("variant_calling.rules", globals())
 
 
@@ -19,26 +21,32 @@ cfg = SequanaConfig(config)
 
 final_output = list()
 
-# Generate data directory
-
-from sequana import SnpEff
-
-if config["snpeff"]["do"]:
-    tmp = SnpEff(config["snpeff"]["reference"])
-
 # mapping
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
 # we must check if we are in the case of denovo assembly:
 try:
-    __spades__contigs
+    __bwa_mem_ref__ref_input
 except NameError:
     __bwa_mem_ref__ref_input = config["bwa_ref"]["reference"]
+
+# Generate data directory for SnpEff
+if config["snpeff"]["do"]:
+    tmp = SnpEff(config["snpeff"]["reference"])
+    __add_locus_in_fasta__fasta_input = __bwa_mem_ref__ref_input
+    include: sm.modules["add_locus_in_fasta"]
+    __bwa_mem_ref__ref_input = __add_locus_in_fasta__output
 
 include: bwa_mem_dynamic("ref", cfg.DATASET)
 __mark_duplicates__input = __bwa_mem_ref__output
 __indel_realigner__input = __bwa_mem_ref__output
 __freebayes__input = __bwa_mem_ref__output
+
+# Mark duplicates
+if config["mark_duplicates"]["do"]:
+    include: sm.modules["mark_duplicates"]
+    __indel_realigner__input = __mark_duplicates__output
+    __freebayes__input = __mark_duplicates__output
 
 # Mapping report
 if config["report_mapping"]["do"]:
@@ -46,15 +54,13 @@ if config["report_mapping"]["do"]:
     include: sm.modules["bedtools_genomecov"]
 
     __report_mapping__input = __bedtools_genomecov__output
-    __report_mapping__bam_input = __bwa_mem_ref__output
+    try:
+        __report_mapping__bam_input = __mark_duplicates__output
+    except NameError:
+        __report_mapping__bam_input = __bwa_mem_ref__output
+
     include: sm.modules["report_mapping"]
     final_output.append(__report_mapping__output)
-
-# Mark duplicates
-if config["mark_duplicates"]["do"]:
-    include: sm.modules["mark_duplicates"]
-    __indel_realigner__input = __mark_duplicates__output
-    __freebayes__input = __mark_duplicates__output
     
 # Indel realigner
 if config["indel_realigner"]["do"]:
@@ -65,16 +71,17 @@ if config["indel_realigner"]["do"]:
 # Variant calling
 include: sm.modules["freebayes"]
 
-# VCF filter
-__vcf_filter__input = __freebayes__output
-include: sm.modules["vcf_filter"]
-__report_variant__input = __vcf_filter__output
-
 # snpEff
 if config["snpeff"]["do"]: 
-    __snpeff__input = __vcf_filter__output
+    __snpeff__input = __freebayes__output
     include: sm.modules["snpeff"]
-    __report_variant__input = __snpeff__output
+    __vcf_filter__input = __snpeff__output
+else:
+    __vcf_filter__input = __freebayes__output
+
+# VCF filter
+include: sm.modules["vcf_filter"]
+__report_variant__input = __vcf_filter__output
 
 # report vcf
 include: sm.modules["report_variant"]
@@ -91,3 +98,4 @@ onsuccess:
     shell("cp config.yaml %s/" % "report")
     sm.plot_stats()
     shell("cp %s %s" % (__freebayes__output, "report"))
+    shell("cp %s %s" % (__vcf_filter__output, "report"))

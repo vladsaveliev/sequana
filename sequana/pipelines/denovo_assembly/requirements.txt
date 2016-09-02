@@ -1,0 +1,4 @@
+- khmer
+- quast
+- spades
+- [variant_calling]

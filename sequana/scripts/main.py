@@ -100,7 +100,6 @@ class Options(argparse.ArgumentParser):
         If you have lots of paired-end, use a --glob without --project ; This
         will create as many directories as required.
 
-        Note that all files must have _R1_ and _R2_ tag in their names.
 
 AUTHORS: Thomas Cokelaer and Dimitri Devilleschabrol
 Documentation: http://sequana.readthedocs.io
@@ -293,13 +292,15 @@ def main(args=None):
         return
 
     if options.show_pipelines:
+        from sequana.misc import textwrap
         sa.purple("Valid pipeline names:")
         for this in sorted(valid_pipelines):
-            print(" - " + this)
+            m = Module(this)
+            sa.green(" - " + this)
+            print(textwrap(m.overview, indent=8))
         return
 
     if options.info:
-        from sequana import Module
         module = Module(options.info)
         module.onweb()
         return
@@ -315,6 +316,12 @@ def main(args=None):
             txt = "".join([" - %s\n" % this for this in valid_pipelines])
             sa.error("%s not a valid pipeline name. Use of one:\n" % options.pipeline
                      + txt)
+
+    # pipeline should be defined now
+    Module("dag").check("warning")
+    Module(options.pipeline).check("warning")
+
+
 
     # If user provides file1 and/or file2, check the files exist
     if options.file1 and os.path.exists(options.file1) is False:
@@ -377,6 +384,11 @@ def main(args=None):
 
     if options.glob:
         ff = FastQFactory(options.glob)
+        if options.verbose:
+            print("Found %s projects/samples " % len(ff.tags))
+        if len(ff.tags) > 1 and options.project:
+            raise ValueError("""--project can be used with --input/--glob if there is only one project. """)
+
         if options.index_mapper:
             if options.adapters is None or options.adapters not in ["Nextera", "PCRFree"]:
                 raise ValueError("When using --index-mapper, you must also " 
@@ -399,7 +411,10 @@ def main(args=None):
             for tag in ff.tags:
                 sa.print("Found %s project" % tag)
                 #if options.project is None:
-                options.project = tag
+                if len(ff.tags) == 1 and options.project is not None:
+                    pass
+                else:
+                    options.project = tag
                 options.file1 = ff.get_file1(tag)
                 options.file2 = ff.get_file2(tag)
                 if options.index_mapper:

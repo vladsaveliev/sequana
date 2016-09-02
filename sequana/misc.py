@@ -22,6 +22,15 @@ import glob
 import numpy as np
 
 
+def textwrap(text, width=80, indent=0):
+    if indent == 0:
+        indent = ""
+    else:
+        indent = " " * indent
+    data = [indent + text[i*width:(i+1)*width:] for i in range(len(text)//width + 1)]
+    return "\n".join(data)
+
+
 def wget(link, output):
     """Retrieve a file from internet.
 

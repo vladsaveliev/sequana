@@ -138,6 +138,12 @@ Standalone applications
 .. automodule:: sequana.scripts.fastq_count
     :members:
     :undoc-members:
+.. automodule:: sequana.scripts.mapping
+    :members:
+    :undoc-members:
+.. automodule:: sequana.scripts.summary
+    :members:
+    :undoc-members:
 .. automodule:: sequana.scripts.taxonomy
     :members:
     :undoc-members:
