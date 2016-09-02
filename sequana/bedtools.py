@@ -632,10 +632,12 @@ class FilteredGenomeCov(object):
                        "file. Please change what types you want")
                 sys.exit(0)
         # merge regions and annotations
-        print(feature)
         for region in region_list:
             while feature["gene_end"] <= region["start"]:
-                feature = next(iter_feature)
+                try:
+                    feature = next(iter_feature)
+                except:
+                    break
             while feature["gene_start"] < region["end"]:
                 # put locus_tag in gene field if gene doesn't exist
                 try: 
@@ -654,7 +656,10 @@ class FilteredGenomeCov(object):
                     except:
                         feature["product"] = "None"
                 region_ann.append(dict(region, **feature))
-                feature = next(iter_feature)
+                try:
+                    feature = next(iter_feature)
+                except StopIteration:
+                    break
         return region_ann
 
     def _dict_to_df(self, region_list, annotation):
