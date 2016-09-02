@@ -254,6 +254,10 @@ def main(args=None):
     snakemake + README +runme.sh in a dedicated project directory.
 
     """
+    # these imports must be local
+    from sequana.misc import textwrap
+    from sequana.snaketools import Module
+
     if args is None:
         args = sys.argv[:]
 
@@ -297,8 +301,6 @@ def main(args=None):
         return
 
     if options.show_pipelines:
-        from sequana.misc import textwrap
-        from sequana.snaketools import Module
         sa.purple("Valid pipeline names:")
         for this in sorted(valid_pipelines):
             m = Module(this)
@@ -307,7 +309,6 @@ def main(args=None):
         return
 
     if options.info:
-        from sequana.misc import textwrap
         module = Module(options.info)
         module.onweb()
         return
@@ -330,7 +331,6 @@ def main(args=None):
             sa.error("%s not a valid pipeline name. Use of one:\n" % options.pipeline
                      + txt)
         else:
-            from sequana import Module
             config_path = Module(options.get_config).config
             shutil.copy(config_path, ".")
             msg = ("The config file from pipeline {0} is copied in the current "
@@ -339,7 +339,6 @@ def main(args=None):
             return
 
     # pipeline should be defined now
-    from sequana.misc import textwrap
     Module("dag").check("warning")
     Module(options.pipeline).check("warning")
 
@@ -479,6 +478,7 @@ def main(args=None):
 
 def sequana_init(options):
     from sequana.misc import textwrap
+    from sequana import Module
     sa = Tools(verbose=options.verbose)
 
     if options.project is None:
