@@ -33,7 +33,10 @@ def test_bam():
         from sequana import FastQ
         ff = FastQ(fh.name)
         len(ff) == len(s)
-    
+
+    s.get_gc_content()
+    s.get_length_count()
+    s.plot_gc_content()
 
 
 def test_alignment():

@@ -361,7 +361,8 @@ class BAM(pysam.AlignmentFile):
     @seek
     def get_length_count(self):
         """Return counter of all fragment length"""
-        data = [this.rlen for this in b]
+        import collections
+        data = [this.rlen for this in self]
         return collections.Counter(data)
 
     def plot_gc_content(self, fontsize=16):
