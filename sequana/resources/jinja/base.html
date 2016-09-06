@@ -110,6 +110,13 @@ $(document).ready(function(){
 
       <hr/>
 
+   {%if standalone_command %}
+    command used:<br> 
+    <pre>
+    {{ standalone_command }}
+    </pre>
+    {% endif %}
+
     <div class="footer">
        <div class="logo">
             <!-- put some images here -->
