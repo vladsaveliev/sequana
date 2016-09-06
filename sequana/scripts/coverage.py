@@ -186,7 +186,14 @@ def main(args=None):
         print(red("Error: -w/--window-median option must be set to an odd value"))
         return
 
-    gc = GenomeCov(bedfile)
+    if options.low_threshold is None:
+        options.low_threshold = -options.threshold
+
+    if options.high_threshold is None:
+        options.high_threshold = options.threshold
+
+    gc = GenomeCov(bedfile, options.low_threshold, options.high_threshold, 
+            0.5, 0.5)
 
     if options.reference:
         print('Computing GC content')
@@ -211,9 +218,6 @@ def main(args=None):
 
     chrom.running_median(n=options.w_median, circular=options.circular)
 
-    if options.verbose:
-        print('Computing zscore')
-
     stats = chrom.get_stats()
     DOC = stats['DOC']
     if options.k is None and DOC < 8:
@@ -223,13 +227,26 @@ def main(args=None):
 
     if options.verbose:
         print("Number of mixture model %s " % options.k)
+        print('Computing zscore')
+    chrom.compute_zscore(k=options.k, verbose=options.verbose)
 
-    chrom.compute_zscore(k=options.k)
+    if options.verbose:
+        print("Computing centralness")
 
-    centralness = chrom.get_centralness(3)
-    centralness4 = chrom.get_centralness(4)
-    c3 = chrom.get_centralness(3)
-    c4 = chrom.get_centralness(4)
+    # Let us save the thresholds first and then change it to compute centralness
+    thresholds = chrom.thresholds.copy()
+
+    chrom.thresholds.low = -3
+    chrom.thresholds.high = 3
+    c3 = chrom.get_centralness()
+
+    chrom.thresholds.low = -4
+    chrom.thresholds.high = 4
+    c4 = chrom.get_centralness()
+    chrom.thresholds = thresholds.copy()   # Get back to the original values
+
+    if options.verbose:
+        print(chrom.thresholds)
 
     if options.verbose:
         res = chrom._get_best_gaussian()
@@ -244,9 +261,7 @@ def main(args=None):
 
 
     figure(1)
-    chrom.plot_coverage(threshold=options.threshold, 
-        low_threshold=options.low_threshold,
-        high_threshold=options.high_threshold)
+    chrom.plot_coverage()
 
     # With the reference, we can plot others plots such as GC versus coverage
     if options.reference:
@@ -257,18 +272,19 @@ def main(args=None):
     if options.show:
         show()
 
-    # Report mapping
-    #r = report_mapping.MappingReport(directory="report",
-    #    project="coverage")
-    #r.set_data(gc)
-    #r.create_report()
-
     # Report chromosomes
-    print("Creating report")
+    if options.verbose:
+        print("Creating report")
+
     if options.create_report:
         r = report_chromosome.ChromosomeMappingReport(chrom,
-            options.threshold,1.5,
             directory="report", project="coverage")
+        if options.reference:
+            from snakemake import shell
+            shell("cp coverage_vs_gc.png report/images")
+            r.jinja['coverage_vs_gc'] = """<img src="images/coverage_vs_gc.png">"""
+
+        r.jinja['standalone_command'] = " ".join(sys.argv)
         r.create_report()
         print("Report created. See ./report directory content and look for the HTML file. You can also use --show-html option")
         if options.show_html:
