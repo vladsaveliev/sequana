@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -26,7 +26,7 @@ from reports import HTMLTable
 class SubMappingReport(BaseReport):
     """
     """
-    def __init__(self, start, stop, chrom_index, first_thr, second_thr, 
+    def __init__(self, start, stop, chrom_index, thresholds,
             high_roi, low_roi, directory="report",
             output_filename="submapping.html", **kargs):
         super(SubMappingReport, self).__init__(
@@ -40,8 +40,7 @@ class SubMappingReport(BaseReport):
         self.low_roi = low_roi
         self.start = start
         self.stop = stop
-        self.first_thr = first_thr
-        self.second_thr = second_thr
+        self.thresholds = thresholds
 
     def set_data(self, data):
         self.mapping = data
@@ -51,23 +50,23 @@ class SubMappingReport(BaseReport):
 
     def parse(self):
         self.mapping.write_csv(self.directory + os.sep +
-                "mapping_{0}_{1}.{2}.csv".format(self.start, self.stop, 
-                self.chrom_index), start=self.start, stop=self.stop, 
+                "mapping_{0}_{1}.{2}.csv".format(self.start, self.stop,
+                self.chrom_index), start=self.start, stop=self.stop,
                 header=False)
-        self.jinja['input_df'] = "'mapping_{0}_{1}.{2}.csv'".format(self.start, 
+        self.jinja['input_df'] = "'mapping_{0}_{1}.{2}.csv'".format(self.start,
                 self.stop, self.chrom_index)
 
         merge_low_cov = self._get_region(self.low_roi)
-        self.jinja["low_cov_threshold"] = -self.first_thr
-        self.jinja["low_cov_threshold_2"] = -self.second_thr
+        self.jinja["low_cov_threshold"] = -self.thresholds.low
+        self.jinja["low_cov_threshold_2"] = -self.thresholds.low2
         self.jinja["nb_low_region"] = len(merge_low_cov)
         html = HTMLTable(merge_low_cov)
         html.add_bgcolor("size")
         self.jinja['low_coverage'] = html.to_html(index=False)
-        
+
         merge_high_cov = self._get_region(self.high_roi)
-        self.jinja["high_cov_threshold"] = self.first_thr
-        self.jinja["high_cov_threshold_2"] = self.second_thr
+        self.jinja["high_cov_threshold"] = self.thresholds.high
+        self.jinja["high_cov_threshold_2"] = self.thresholds.high2
         self.jinja["nb_high_region"] = len(merge_high_cov)
         html = HTMLTable(merge_high_cov)
         html.add_bgcolor("size")

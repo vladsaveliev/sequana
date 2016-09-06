@@ -57,7 +57,6 @@ class MappingReport(BaseReport):
 
     def parse(self):        
         self.jinja['main_link'] = 'index.html'
-        
 
         if self.bam:
             self.jinja['bam_is_present'] = True
@@ -76,7 +75,6 @@ class MappingReport(BaseReport):
                     "</ul>\n")
             self.jinja["summary_bam"] = html.format(nb_mapped_read, df.loc[2],
                     df.loc[4], df.loc[2048], df.loc[1024])
-            
 
             # create table of flags summary
             #df = df.to_frame()
