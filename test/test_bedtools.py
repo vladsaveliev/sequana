@@ -5,13 +5,52 @@ from sequana.tools import genbank_features_parser
 from easydev import TempFile
 
 
+def test_threshold():
+    t = bedtools.DoubleThresholds(-5,5)
+    assert t.low == -5
+    assert t.high == 5
+    assert t.low2 == -2.5
+    t = bedtools.DoubleThresholds(-4, 3)
+    assert t.low == -4
+    assert t.high == 3
+
+    t = bedtools.DoubleThresholds(-8,8)
+    t.ldtr = 0.25
+    t.hdtr = 0.25
+    assert t.low2 == -2
+    assert t.high2 == 2
+    print(t)
+
+
+    t.ldtr = 0.5
+    t.hdtr = 0.5
+    t.low = -3
+    t.high = 3
+    assert t.low2 == -1.5
+    assert t.high2 == 1.5
+
+    try:
+        t = bedtools.DoubleThresholds(3, 4)
+        assert False
+    except:
+        assert True
+    try:
+        t = bedtools.DoubleThresholds(3, -4)
+        assert False
+    except:
+        assert True
+
 def test_genomecov():
 
     filename = sequana_data("test_bedcov.bed", "testing")
     features = genbank_features_parser(sequana_data("test_snpeff_ref.gb"))
 
     mydata = bedtools.GenomeCov(filename)
-  
+
+
+    # a getter for the first chromosome
+    mydata[0]
+
     # This requires to call other method before
     for chrom in mydata:
         chrom.moving_average(n=501)
@@ -32,3 +71,26 @@ def test_genomecov():
         chrom.get_size()
         chrom.get_mean_cov()
         chrom.get_var_coef()
+
+def test_gc_content():
+    bed = sequana_data('JB409847.bed')
+    fasta = sequana_data('JB409847.fasta')
+    cov = bedtools.GenomeCov(bed)
+    cov.compute_gc_content(fasta)
+    cov.get_stats()
+    ch = cov[0]
+    ch.moving_average(4001, circular=True)
+    ch.running_median(4001,circular=True)
+    ch.compute_zscore()
+
+    ch.get_evenness()
+    ch.get_cv()
+    ch.get_centralness()
+    ch.plot_gc_vs_coverage()
+
+    from easydev import TempFile
+    with TempFile() as fh:
+        ch.write_csv(fh.name)
+
+
+    ch.get_max_gc_correlation(fasta)

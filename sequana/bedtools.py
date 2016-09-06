@@ -44,39 +44,45 @@ class DoubleThresholds(object):
 
         self._ldtr = ldtr
         self._hdtr = hdtr
-        self.high = high
-        self.low = low
+        self._high = high
+        self._low = low
 
     def _get_ldtr(self):
         return self._ldtr
     def _set_ldtr(self, ldtr):
         self._ldtr = ldtr
-        self.low2 = self.low * self._ldtr
+        self._low2 = self._low * self._ldtr
     ldtr = property(_get_ldtr, _set_ldtr)
 
     def _get_hdtr(self):
         return self._hdtr
     def _set_hdtr(self, hdtr):
         self._hdtr = hdtr
-        self.high2 = self.high * self._hdtr
+        self._high2 = self._high * self._hdtr
     hdtr = property(_get_hdtr, _set_hdtr)
 
-    def _get_threshold(self):
-        return self._threshold
-    def _set_threshold(self, value):
-        assert value > 0
-        self._threshold = value
-        self.high = value
-        self.low = -value
-        self.low2 = self.low * self.ldtr
-        self.high2 = self.high * self.hdtr
-    threshold = property(_get_threshold,_set_threshold)
+    def _get_low(self):
+        return self._low
+    def _set_low(self, value):
+        assert value < 0.
+        self._low = value
+        self._low2 = self._low * self._ldtr
+    low = property(_get_low,_set_low)
+
+    def _get_high(self):
+        return self._high
+    def _set_high(self, value):
+        assert value > 0.
+        self._high = value
+        self._high2 = self._high * self._ldtr
+    high = property(_get_high,_set_high)
 
     def _get_low2(self):
-        return self.low * self._ldtr
+        return self._low * self._ldtr
     low2 = property(_get_low2)
+
     def _get_high2(self):
-        return self.high * self._hdtr
+        return self._high * self._hdtr
     high2 = property(_get_high2)
 
     def copy(self):
@@ -591,22 +597,25 @@ class ChromosomeCov(object):
 
     def get_max_gc_correlation(self, reference):
         pylab.clf()
+        corrs = []
+        wss = []
         def func(params):
             ws = int(round(params[0]))
             if ws < 10:
                 return 0
             self.bed.compute_gc_content(reference, ws)
             corr = self.get_gc_correlation()
-            print(ws, corr)
-            pylab.plot(ws, corr, 'o')
+            corrs.append(corr)
+            wss.append(ws)
             return corr
 
-        print("X, correlation\n")
         from scipy.optimize import fmin
-        res = fmin(func, 200, xtol=1) # guess is 200
+        res = fmin(func, 100, xtol=1, disp=False) # guess is 200
+        pylab.plot(wss, corrs, "o")
         pylab.xlabel("GC window size")
         pylab.ylabel("Correlation")
-        return res
+        pylab.grid()
+        return res[0]
 
     def get_stats(self):
         data = self.df

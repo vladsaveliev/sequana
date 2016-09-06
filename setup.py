@@ -62,7 +62,7 @@ setup(
     # pillow, sphinx-gallery and numpydoc are  for the doc only
     # mock is for the test only
     install_requires = ["easydev>=0.9.22", "reports>=0.1.8", "matplotlib",
-        "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.13", "biokit>=0.3.2", 
+        "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14", "biokit>=0.3.2", 
         "pysam", "pyVCF", "sphinx-gallery", "mock", "numpydoc", "pillow",
         "blist"],
 
