@@ -4,6 +4,8 @@
 Applications (standalone)
 ============================
 
+.. contents::
+
 
 sequana
 ---------
@@ -22,14 +24,14 @@ Valid pipelines can be found using::
 
     sequana --show-pipelines
 
-There aer many more options and documentation can be obtained using ``--help``
-option.
+There are many more options and documentation. Please use the ``--help``
+option for more information.
 
 sequana_coverage
 --------------------
 
 :Description: Show coverage and interval of confidence to identify under and
-    over represtented genomic regions.
+    over represented genomic regions.
 
 
 sequana_summary

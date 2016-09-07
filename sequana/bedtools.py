@@ -17,8 +17,6 @@
 #
 ##############################################################################
 """Utilities for the genome coverage"""
-import os
-import sys
 
 import pandas as pd
 import numpy as np
@@ -28,8 +26,9 @@ from biokit.stats import mixture
 from sequana import running_median
 from sequana.tools import gc_content
 from sequana.tools import genbank_features_parser
-from easydev import TempFile
 
+
+__all__ = ["GenomeCov", "ChromosomeCov"]
 
 class DoubleThresholds(object):
     def __init__(self, low=-3, high=3,

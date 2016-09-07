@@ -4,6 +4,13 @@
 Pipelines
 ##############
 
+This sections provides a summary of the official Sequana pipelines. Note that quality_taxon
+re-uses quality, which itself uses phe phix_removal pipeline.
+
+Each pipeline can be automatically downloaded (with its config file) using::
+
+    sequana --pipeline <name> --file1 <FILE1> --file2 <FILE2>
+
 .. contents::
     :depth: 2
 

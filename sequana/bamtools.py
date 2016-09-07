@@ -80,15 +80,15 @@ class BAM(pysam.AlignmentFile):
     .. doctest::
 
         >>> from sequana import BAM, sequana_data
-        >>> b = BAM(sequana_data("test.bam", "testing"))
+        >>> b = BAM(sequana_data("test.bam"))
         >>> len(b)
         1000
 
 
     .. note:: Once you loop over this data structure,  you must call
-        :meth`reset` to rewind the loop. The methods implemented in this data
+        :meth:`reset` to rewind the loop. The methods implemented in this data
         structure take care of that for you thanks to a decorator called seek.
-        If you want to use the next() funtion, call rest() to make sure you 
+        If you want to use the :meth:`next` funtion, call :meth:`reset` to make sure you
         start at the beginning.
 
 
@@ -162,7 +162,6 @@ class BAM(pysam.AlignmentFile):
     def get_flags(self):
         """Return flags of all reads as a list
 
-
         .. seealso:: :meth:`get_flags_as_df`, :class:`SAMFlags`"""
         flags = [s.flag for s in self]
         return flags
@@ -212,10 +211,13 @@ class BAM(pysam.AlignmentFile):
     def get_full_stats_as_df(self):
         """Return a dictionary with full stats about the BAM file
 
+        The index of the dataframe contains the flags. The column contains
+        the counts.
+
         ::
 
             >>> from sequana import BAM, sequana_data
-            >>> b = BAM(sequana_data("test.bam", "testing"))
+            >>> b = BAM(sequana_data("test.bam"))
             >>> df = b.get_full_stats_as_df()
             >>> df.query("description=='average quality'")
             36.9
@@ -254,7 +256,7 @@ class BAM(pysam.AlignmentFile):
         .. doctest::
 
             >>> from sequana import BAM, sequana_data
-            >>> b = BAM(sequana_data('test.bam', "testing"))
+            >>> b = BAM(sequana_data('test.bam'))
             >>> df = b.get_flags_as_df()
             >>> df.sum()
             1       1000
@@ -312,10 +314,30 @@ class BAM(pysam.AlignmentFile):
 
         .. warning:: to be tested
         .. todo:: comments from original reads ?
+
+
+        Method 1 (bedtools)::
+
+            bedtools bamtofastq -i JB409847.bam  -fq test1.fastq
+
+        Method2 (samtools)::
+
+            samtools bam2fq JB409847.bam > test2.fastq
+
+        Method3 (sequana)::
+
+            from sequana import BAM
+            BAM(filename)
+            BAM.to_fastq("test3.fastq")
+
+        Note that the samtools method removes duplicated reads so the output is
+        not identical to method 1 or 3.
+
         """
         with open(filename, "w") as fh:
             for i, this in enumerate(self):
-                read = this.qname + "\t" + "???\n"
+                # FIXME what about comments
+                read = this.qname
                 read += this.seq + "\n"
                 read += "+\n"
                 read += this.qual + "\n"
@@ -354,19 +376,32 @@ class BAM(pysam.AlignmentFile):
 
     @seek
     def get_gc_content(self):
-        """Return GC content for all reads (mapped or not)"""
+        """Return GC content for all reads (mapped or not)
+
+        .. seealso:: :meth:`plot_gc_content`
+
+        """
         data = [(f.seq.count("C") + f.seq.count('G')) / len(f.seq)*100. for f in self]
         return data
 
     @seek
     def get_length_count(self):
-        """Return counter of all fragment length"""
+        """Return counter of all fragment lengths"""
         import collections
         data = [this.rlen for this in self]
         return collections.Counter(data)
 
     def plot_gc_content(self, fontsize=16):
-        """plot GC content histogram"""
+        """plot GC content histogram
+
+        .. plot::
+            :include-source:
+
+            from sequana import BAM, sequana_data
+            b = BAM(sequana_data('test.bam'))
+            b.plot_gc_content()
+
+        """
         data = self.get_gc_content()
         X = pylab.array(range(100))
         pylab.hist(data, X, normed=True)
@@ -381,14 +416,14 @@ class BAM(pysam.AlignmentFile):
 class Alignment(object):
     """Helper class to retrieve info about Alignment
 
-    Takes an alignment as read by :class:`BAM` and provide simplified version
+    Takes an alignment as read by :class:`BAM` and provides a simplified version
     of pysam.Alignment class.
 
     ::
 
         >>> from sequana.bamtools import Alignment
         >>> from sequana import BAM, sequana_data
-        >>> b = BAM(sequana_data("test.bam", "testing"))
+        >>> b = BAM(sequana_data("test.bam"))
         >>> segment = next(b)
         >>> align = Alignment(segment)
         >>> align.as_dict()

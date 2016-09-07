@@ -63,6 +63,16 @@ def get_bed_stats(filename):
     df = pd.DataFrame(stats).T
     return df
 
+
+def get_bam_stats(filename):
+    from sequana import BAM
+    import pandas as pd
+    bam = BAM(filename)
+    stats = bam.get_stats()
+    df = pd.Series(stats).to_frame().T
+    return df
+
+
 def main(args=None):
     import pandas as pd
 
@@ -101,6 +111,10 @@ def main(args=None):
     elif extension.endswith("bed"):
         for filename in ff.realpaths:
             mc.add_job(get_bed_stats, filename)
+
+    elif extension.endswith("bam"):
+        for filename in ff.realpaths:
+            mc.add_job(get_bam_stats, filename)
 
     mc.run()
 

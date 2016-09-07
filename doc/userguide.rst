@@ -3,15 +3,15 @@ User Guide
 
 .. contents::
 
-**Sequana** provides standalone applications (e.g. **sequana_coverage**,
+**Sequana** provides standalone applications (e.g., **sequana_coverage**,
 **sequana_taxonomy**) and pipelines in the form of Snakefiles. Although the standalone
 applications are usually simpler, they do not have all features or flexibilities offered by the
-pipelines. Most of the underlying code is common and may be used as a library.
+pipelines.
 
 The :ref:`Tutorial`, :ref:`pipelines`, :ref:`Gallery` and :ref:`case_examples` sections provide many examples on their usage. 
 
 
-This section will not describe all available standalone and pipelines.
+This section will not describe all available standalones and pipelines.
 We will focus on one example (coverage) to show how one can use
 the **Sequana** library, or standalone application, or pipeline to get
 information about the coverage of a set of mapped reads onto a reference.
@@ -28,7 +28,7 @@ using :func:`~sequana.sequana_data` function. The test case is a virus (about
 18,000 bases)::
 
     from sequana import sequana_data
-    filename = sequana_data('JB409847.bed', "data")
+    filename = sequana_data('JB409847.bed')
 
 
 We can then use the :class:`~sequana.bedtools.GenomeCov` class to read the
@@ -51,7 +51,7 @@ and finally plot the coverage together with confidence interval (3 sigma)::
 .. plot::
 
     from sequana import sequana_data
-    filename = sequana_data('virus.bed', "data")
+    filename = sequana_data('JB409847.bed')
     from sequana import GenomeCov
     gc = GenomeCov(filename)
 

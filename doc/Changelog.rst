@@ -9,6 +9,7 @@ Changelog
 
 * NEWS:
 
+   - add a docker
    - sequana_summary standalone
    - sequana_mapping standalone
    - Module has an overview field
