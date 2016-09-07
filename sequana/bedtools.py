@@ -28,9 +28,30 @@ from sequana.tools import gc_content
 from sequana.tools import genbank_features_parser
 
 
-__all__ = ["GenomeCov", "ChromosomeCov"]
+__all__ = ["GenomeCov", "ChromosomeCov", "DoubleThresholds"]
+
 
 class DoubleThresholds(object):
+    """Simple structure to handle the double threshold for negative and positive sides
+
+    Used yb GenomeCov and related classes.
+
+    ::
+
+        dt = DoubleThresholds(-3,4,0.5,0.5)
+
+    This means the low threshold is -3 while the high threshold is 4. The two
+    following values must be between 0 and 1 and are used to define the value of
+    the double threshold set to half the value of th the main threshold by default.
+
+    Internally, the main thresholds are stored in the low and high attributes.
+    The secondary thresholds are derived from the main thresholds and the
+    two ratios. The ratios are named ldtr and hdtr for low double threshold ratio
+    and high double threshold ration. The secondary thresholds are denoted low2 and
+    high2 are are update automatically if low, high, ldtr or hdtr are changed.
+
+
+    """
     def __init__(self, low=-3, high=3,
             ldtr=0.5, hdtr=0.5):
 
@@ -98,7 +119,13 @@ class DoubleThresholds(object):
 
 
 class GenomeCov(object):
-    """Create a dataframe list of BED file provided by bedtools genomecov (-d)
+    """Create a dataframe to hold data from a BED file generated with bedtools genomecov (-d)
+
+
+    This class can be used to plot the coverage resulting from a mapping, which
+    is stored in BED format. The BEDf file may contain several chromosomes.
+    There are handled independently and accessible as a list of :class:`ChromosomeCov`
+    instances.
 
     Example:
 
@@ -106,11 +133,13 @@ class GenomeCov(object):
         :include-source:
 
         from sequana import GenomeCov, sequana_data
-        filename = sequana_data("test_bedcov.bed", "testing")
+
+        gencov = GenomeCov(sequana_data('JB409847.bed'))
+        gencov.compute_gc_content(sequana_data("JB409847.fasta"))
 
         gencov = GenomeCov(filename)
         for chrom in gencov:
-            chrom.running_median(n=3001)
+            chrom.running_median(n=3001, circular=True)
             chrom.compute_zscore()
             chrom.plot_coverage()
         gencov[0].plot_coverage()
@@ -125,7 +154,18 @@ class GenomeCov(object):
 
         :param str input_filename: the input data with results of a bedtools
             genomecov run. This is just a 3-column file. The first column is a
-            string, second column is the base postion and third is the coverage.
+            string (chromosome), second column is the base postion and third
+            is the coverage.
+        :param float low_threshold: threshold used to identify under-covered genomic
+            region of interest (ROI). Must be negative
+        :param float high_threshold: threshold used to identify over-covered genomic
+            region of interest (ROI). Must be positive
+        :param float ldtr: fraction of the low_threshold to be used to define
+            the intermediate threshold in the double threshold method. Must be
+            between 0 and 1.
+        :param float rdtr: fraction of the low_threshold to be used to define
+            the intermediate threshold in the double threshold method. Must be
+            between 0 and 1.
 
         """
         self.thresholds = DoubleThresholds(low_threshold, high_threshold, 
@@ -172,6 +212,14 @@ class GenomeCov(object):
             chrom._ws_gc = window_size
 
     def get_stats(self):
+        """Return basic statistics for each chromosome
+
+        :return: dictionary with chromosome names as keys
+            and statistics as values.
+
+
+        .. seealso:: :class:`ChromosomeCov`.
+        """
         stats = {}
         for chrom in self.chr_list:
             stats[chrom.chrom_name] = chrom.get_stats()
@@ -179,8 +227,7 @@ class GenomeCov(object):
 
 
 class ChromosomeCov(object):
-    """Class used within :class:`GenomeCov` to select a chromosome of the
-    original GenomeCov.
+    """Factory to manipulate coverage and extract region of interests.
 
     Example:
 
@@ -188,17 +235,23 @@ class ChromosomeCov(object):
         :include-source:
 
         from sequana import GenomeCov, sequana_data
-        filename = sequana_data("test_bedcov.bed", "testing")
+        filename = sequana_data("virus.bed")
 
         gencov = GenomeCov(filename)
+        gencov.compute_gc
 
         chrcov = gencov[0]
         chrcov.running_median(n=3001)
         chrcov.compute_zscore()
         chrcov.plot_coverage()
 
-    Results are stored in a dataframe named :attr:`df`.
+        df = chrcov.get_roi().get_high_roi()
 
+    The *df* variable contains a dataframe with high region of interests (over
+    covered)
+
+
+    .. seealso:: sequana_coverage standalone application
     """
     count = 0
 
@@ -208,6 +261,8 @@ class ChromosomeCov(object):
         :param df: dataframe with position for a chromosome used within
             :class:`GenomeCov`. Must contain the following columns:
             ["chr", "pos", "cov"]
+        :param thresholds: a data structure :class:`DoubleThresholds` that holds
+            the double threshold values.
 
         """
         # Chromosome position becomes the index
@@ -247,9 +302,10 @@ class ChromosomeCov(object):
         return np.sqrt(self.df["cov"].var()) / self.get_mean_cov()
 
     def moving_average(self, n, circular=False):
-        """Compute moving average of reads coverage
+        """Compute moving average of the genome coverage
 
-        :param n: window's size.
+        :param n: window's size. Must be odd
+        :param bool circular: is the chromosome circular or not
 
         Store the results in the :attr:`df` attribute (dataframe) with a
         column named *ma*.
@@ -277,7 +333,7 @@ class ChromosomeCov(object):
             self.df["ma"] = pd.Series(self.ma, index=self.df['cov'].index)
 
     def running_median(self, n, circular=False):
-        """Compute running median of reads coverage
+        """Compute running median of genome coverage
 
         :param int n: window's size.
         :param bool circular: if a mapping is circular (e.g. bacteria
@@ -316,13 +372,12 @@ class ChromosomeCov(object):
         return evenness(self.df['cov'])
 
     def get_cv(self):
-        """coefficient variation
+        """Return the coefficient variation
 
-        defined as sigma / mu
+        The coefficient of variation (CV) is defined as sigma / mu
 
-        To get percentage, you must multiply by 100
+        To get percentage, you must multiply by 100.
 
-        .. note:: should be used for ratio scale data (e.g., non negative only)
         """
         sigma = self.df['cov'].std()
         mu = self.df['cov'].mean()
@@ -426,21 +481,21 @@ class ChromosomeCov(object):
     def get_centralness(self):
         r"""Proportion of central (normal) genome coverage
 
-        assuming a 3 sigma normality.
-
         This is 1 - (number of non normal data) / (total length)
 
+        .. note:: depends on the thresholds attribute being used.
         .. note:: depends slightly on :math:`W` the running median window
         """
         filtered = self.get_roi()
         return 1 - len(filtered) / float(len(self))
 
     def get_roi(self, features=None):
-        """Keep position with zscore lower than INT and return a data frame.
+        """Keep positions with zscore outside of the thresholds range
 
-        :param int first_thr: principal threshold on zscore
-        :param int second_thr: secondary threshold on zscore
+        :param features:
         :return: a dataframe from :class:`FilteredGenomeCov`
+
+        .. note:: depends on the :attr:`thresholds` low and high values.
         """
 
         try:
@@ -466,6 +521,7 @@ class ChromosomeCov(object):
         In addition, the running median and coverage confidence corresponding to
         the lower and upper  zscore thresholds
 
+        .. note:: uses the thresholds attribute.
         """
         # z = (X/rm - \mu ) / sigma
 
@@ -509,7 +565,7 @@ class ChromosomeCov(object):
 
     def plot_hist_zscore(self, fontsize=16, filename=None, max_z=6,
             binwidth=0.5, **hist_kargs):
-        """ Barplot of zscore
+        """ Barplot of the zscore values
 
         """
         pylab.clf()
@@ -527,7 +583,7 @@ class ChromosomeCov(object):
 
     def plot_hist_normalized_coverage(self, filename=None, binwidth=0.1,
             max_z=4):
-        """ Barplot of normalized coverage with gaussian fitting
+        """ Barplot of the normalized coverage with gaussian fitting
 
         """
         pylab.clf()
@@ -592,9 +648,22 @@ class ChromosomeCov(object):
         return corr
 
     def get_gc_correlation(self):
+        """Return the correlation between the coverage and GC content
+
+        The GC content is the one computed in :meth:`GenomeCov.compute_gc_content`
+        (default window size is 101)
+
+        """
         return self.df[['cov', 'gc']].corr().iloc[0,1]
 
     def get_max_gc_correlation(self, reference):
+        """Plot correlation between coverage and GC content by varying the GC window
+
+         The GC content uses a moving window of size W. This parameter affects
+         the correlation bewteen coverage and GC. This function find the *optimal*
+         window length.
+
+        """
         pylab.clf()
         corrs = []
         wss = []
@@ -617,6 +686,7 @@ class ChromosomeCov(object):
         return res[0]
 
     def get_stats(self):
+        """Return basic stats about the coverage data"""
         data = self.df
 
         stats ={
