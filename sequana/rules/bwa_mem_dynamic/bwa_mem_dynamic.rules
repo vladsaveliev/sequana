@@ -9,6 +9,13 @@ __sequana__bwa_mem = [":samples", "ref", "output", ":kwargs", ":threads"]
 import sequana.snaketools as sm
 cfg = sm.SequanaConfig.from_dict(config)
 
+try:
+    shell("which pbwa") # for IP cluster
+except:
+    shell("which bwa")
+else:
+    raise ValueError("You must install bwa")
+
 
 def bwa_mem_dynamic(name, inputs, outputs=[]):
     metadata = {'inputs':inputs, 'name':name, 'project':cfg.PROJECT}
