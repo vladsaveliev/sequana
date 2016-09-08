@@ -65,8 +65,6 @@ except:
     snakemake = MockSnakeMake()
 
 
-
-
 class ExpandedSnakeFile(object):
     """Read a Snakefile and its dependencies (include) and create single file
 
@@ -511,24 +509,31 @@ class SequanaConfig(object):
     This will transform back the "True" into True
 
     """
-    def __init__(self, data, test_requirements=True, converts_none_to_str=True):
+    def __init__(self, data=None, test_requirements=True,
+        converts_none_to_str=True, mode="NGS"):
         """Could be a json or a yaml
 
         :param str filename: filename to a config file in json or yaml format.
+
+        mode NGS means the following fields are expected: project, sample,
+        file1, file2
         """
-        if isinstance(data, str):
+        if data is None:
+            config = None
+            self.config = AttrDict()
+            mode = "others"
+        elif isinstance(data, str):
             config = load_configfile(data)
             self.config = AttrDict(**config)
         else:
             self.config = AttrDict(**data)
 
-        if converts_none_to_str:
-            #
+        if converts_none_to_str and mode == "NGS":
             self._set_none_to_empty_string(self.config)
 
         self._converts_boolean(self.config)
 
-        if test_requirements:
+        if test_requirements and mode == "NGS":
             requirements = ["samples", "samples:file1", "samples:file2", "project"]
             # converts to dictionary ?
             for this in requirements:
@@ -536,15 +541,16 @@ class SequanaConfig(object):
                 assert this in self.config.keys(),\
                     "Your config must contain %s" % this
 
-        self.PROJECT = self.config.project
-        self.DATASET = self.get_dataset_as_list()
-        self.ff = FileFactory(self.DATASET)
-        self.BASENAME = self.ff.basenames
-        self.FILENAME = self.ff.filenames
-        if len(self.DATASET) == 2:
-            self.paired = True
-        else:
-            self.paired = False
+        if mode == "NGS":
+            self.PROJECT = self.config.project
+            self.DATASET = self.get_dataset_as_list()
+            self.ff = FileFactory(self.DATASET)
+            self.BASENAME = self.ff.basenames
+            self.FILENAME = self.ff.filenames
+            if len(self.DATASET) == 2:
+                self.paired = True
+            else:
+                self.paired = False
 
     def save(self, filename="config.yaml"):
         """Export config into YAML file
