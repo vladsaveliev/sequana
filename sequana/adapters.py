@@ -477,7 +477,7 @@ class FindAdaptersFromIndex(object):
 
         if self.mode == "multi_index":
             res['index2'] = {}
-            index2 = "index_dna:" + indices.ix['index2']
+            index2 = "index_dna:" + str(indices.ix['index2'])
             #index2 =  indices.ix['index2']
             res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index(index2)
             res['index2']['rev'] = self._adapters_rev.get_adapter_by_index(index2)
