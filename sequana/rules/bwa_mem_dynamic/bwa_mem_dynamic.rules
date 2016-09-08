@@ -15,8 +15,6 @@ try:
 except:
     shell("which bwa")
     bwa_exe = "bwa"
-else:
-    raise ValueError("You must install bwa")
 
 
 def bwa_mem_dynamic(name, inputs, outputs=[]):
