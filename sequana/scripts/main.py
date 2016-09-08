@@ -320,9 +320,10 @@ def main(args=None):
             sa.error("%s not a valid pipeline name. Use of one:\n" % options.pipeline
                      + txt)
 
+    # copy locally the request config file from a specific pipeline
     if flag == 3: #--get-config and --pipeline used
         module = Module(options.pipeline)
-        copy_config_from_sequana(module, options.get_config)
+        copy_config_from_sequana(module, options.get_config, options.get_config)
         return
 
 
@@ -464,12 +465,12 @@ def main(args=None):
             "to edit the config.yaml file to fill that information")
 
 
-def copy_config_from_sequana(module, filename="config.yaml"):
+def copy_config_from_sequana(module, source="config.yaml", target="config.yaml"):
     # identify config name from the requested module
-    user_config = module.path + os.sep + filename
+    user_config = module.path + os.sep + source
     if os.path.exists(user_config):
-        shutil.copy(user_config, filename)
-        txt = "copied %s from sequana %s pipeline" % (filename, module.name)
+        shutil.copy(user_config, target)
+        txt = "copied %s from sequana %s pipeline" % (source, module.name)
     else:
         txt = "%s does not exists locally or within Sequana "+\
               "library (%s pipeline)"
@@ -552,7 +553,7 @@ def sequana_init(options):
         if os.path.exists(options.config):
             shutil.copy(options.config, config_filename)
         else: # or a sequana config file in the module path ?
-            copy_config_from_sequana(module, options.config)
+            copy_config_from_sequana(module, options.config, config_filename)
     else:
         shutil.copy(module.config, config_filename)
 
