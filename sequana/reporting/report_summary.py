@@ -17,6 +17,7 @@
 #
 ##############################################################################
 import os
+import glob
 
 from sequana.reporting.report_main import BaseReport
 from easydev import DevTools
@@ -99,7 +100,7 @@ class SequanaSummary(BaseReport):
         # Links to the datasets
         html = "<ul>"
         for link, filename in zip(self.config.DATASET, self.config.BASENAME):
-            html += '<li>Download raw data: <a href="%s">%s</a></li>\n' % (link, filename)
+            html += '<li>Raw data: <a href="%s">%s</a></li>\n' % (link, filename)
         html += "</ul>"
         self.jinja['dataset'] = html
 
@@ -115,8 +116,14 @@ class SequanaSummary(BaseReport):
                 name = "%s_R1_.cutadapt.fastq.gz" % (self.config.PROJECT)
                 html += '<li>Download cleaned data: <a href="%s">%s</a></li>\n' % (name, name)
         elif self.config.config['bwa_phix']['do']:
-            pass
-
+            if len(self.config.BASENAME) == 2:
+                name = "%s_R1_.unmapped.fastq.gz" % (self.config.PROJECT)
+                html += '<li>Download cleaned data: <a href="%s">%s</a></li>\n' % (name, name)
+                name = "%s_R2_.unmapped.fastq.gz" % (self.config.PROJECT)
+                html += '<li>Download cleaned data: <a href="%s">%s</a></li>\n' % (name, name)
+            elif len(self.config.BASENAME) == 1:
+                name = "%s_R1_.unmapped.fastq.gz" % (self.config.PROJECT)
+                html += '<li>Download cleaned data: <a href="%s">%s</a></li>\n' % (name, name)
 
         html += "</ul>"
         self.jinja['output'] = html
@@ -138,11 +145,10 @@ class SequanaSummary(BaseReport):
         self.jinja['cutadapt_stats1'] = html
 
     def include_sample_stats(self):
-        filename="fastq_stats__samples/temp_fastq_stats__samples.html"
+        filename = "fastq_stats__samples/temp_fastq_stats__samples.html"
         self.jinja['sample_stats'] = open(filename, "r").read()
 
         # find an image
-        import glob
         filenames = glob.glob("report/images/%s_*_R1_*boxplot*png" % self.config.PROJECT)
         if len(filenames):
             self.jinja['sample_image_r1'] = filenames[0]

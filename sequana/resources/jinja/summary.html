@@ -21,8 +21,9 @@
 
     {{ dataset }}
 
+    <p>Here are some basic statistics about the raw data. The A, C, G, T, N rows
+    report the percentage of each bases in the overall sequences</p>
     <div>{{ sample_stats }} </div>
-    <br>
     <div>
     {% if sample_image_r1 %}
     <div style="float:left; width:49%">
@@ -49,7 +50,9 @@
     </div>
     </h2>
    {{ phix_section }}
-    <p>Reads statistics after/before Phix removal (mapped means with Phix)</p>
+    <p>Reads statistics after/before Phix removal (mapped means wiith Phix).</p>
+    <p>The A, C, G, T, N rows report the percentage of each bases in the overall sequences</p>
+
    {{ phix_stats }}
     </div>
 {% endif %}
@@ -64,7 +67,8 @@
     <div style="float:right"><a href="fastqc__cutadapt/fastqc__cutadapt.html">| FastQC</a></div>
 
     </h2>
-    <p>Reads statistics after trimming and adapter removal</p>
+    <p>Reads statistics after trimming and adapter removal. Again, the A, C, G, T, N rows
+    report the percentage of each bases in the overall sequences</p>
     {{ cutadapt_stats1 }}
     {{ cutadapt_stats2 }}
 {% endif %}
