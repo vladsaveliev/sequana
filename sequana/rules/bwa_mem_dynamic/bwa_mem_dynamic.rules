@@ -7,13 +7,14 @@ input:
 __sequana__bwa_mem = [":samples", "ref", "output", ":kwargs", ":threads"]
 
 import sequana.snaketools as sm
+from easydev import shellcmd
 cfg = sm.SequanaConfig.from_dict(config)
 
 try:
-    shell("which pbwa") # for IP cluster
+    ret = shellcmd("which pbwa") # for IP cluster
     bwa_exe = "pbwa"
 except:
-    shell("which bwa")
+    ret = shellcmd("which bwa")
     bwa_exe = "bwa"
 
 
