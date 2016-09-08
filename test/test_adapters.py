@@ -24,11 +24,11 @@ def test_fasta_fwd_rev_to_columns():
         adapters.fasta_fwd_rev_to_columns(a1, None)
 
 
-
 def test_clean_ngs():
     a1 = sequana_data("adapters_PCR-free_PF1_220616_fwd.fa", "data/adapters")
     with TempFile() as fh:
         adapters.adapters_to_clean_ngs(a1, fh.name)
+
 
 def test_adapter():
     a1 = adapters.Adapter("test", "ACGT", "comment")
@@ -42,8 +42,6 @@ def test_adapters_removal_parser():
     assert sorted(results.keys()) == ["adapter1", "adapter2"]
 
 
-
-
 def test_adapter_reader():
     from sequana.adapters import AdapterReader as AR
     data = sequana_data("adapters_with_duplicates.fa", "testing")
@@ -55,6 +53,7 @@ def test_adapter_reader():
 
     data1 = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", "data/adapters")
     data2 = sequana_data("adapters_Nextera_PF1_220616_rev.fa", "data/adapters")
+    data3 = sequana_data("adapters_Nextera_PF1_220616_revcomp.fa", "data/adapters")
 
     # try different constructors
     ar1 = AR(data1)
@@ -75,9 +74,13 @@ def test_adapter_reader():
 
     ar2 = AR(data2)
     ar2.reverse()
-
     # fails due to S516 ????????
     assert ar1 == ar2
+
+    ar3 = AR(data3)
+    ar3.reverse_complement()
+    assert ar1 == ar3
+
 
 
 def test_find_adapters_from_index_mapper():
