@@ -56,5 +56,5 @@ onsuccess:
     # the summary.html report itself.
     summary.create_report()
 
-    ss.touch("finished", "w")
+    ss.touch("finished")
 

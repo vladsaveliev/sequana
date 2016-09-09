@@ -37,7 +37,7 @@ install:
 
 # # command to run tests, e.g. python setup.py test
 script:
-  - python setup.py nosetests -s --with-coverage --cover-package sequana
+  - python setup.py nosetests --with-coverage --cover-package sequana
 
 after_success:
   coveralls
