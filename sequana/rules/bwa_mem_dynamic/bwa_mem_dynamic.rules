@@ -10,13 +10,15 @@ import sequana.snaketools as sm
 from easydev import shellcmd
 cfg = sm.SequanaConfig.from_dict(config)
 
-try:
+"""try:
     ret = shellcmd("which pbwa") # for IP cluster
     bwa_exe = "pbwa"
 except:
     ret = shellcmd("which bwa")
     bwa_exe = "bwa"
+"""
 
+bwa_exe = "bwa"
 
 def bwa_mem_dynamic(name, inputs, outputs=[]):
     metadata = {'inputs':inputs, 'name':name, 'project':cfg.PROJECT}
