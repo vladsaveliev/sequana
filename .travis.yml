@@ -32,12 +32,12 @@ install:
   - pip install coveralls
   - pip install tabulate
   - pip install biokit>=0.3.2
-  - pip install bioservices>=1.4.11
+  - pip install bioservices --upgrade
   - conda install cutadapt pysam pyvcf snpEff krona --yes
 
 # # command to run tests, e.g. python setup.py test
 script:
-  - python setup.py nosetests --with-coverage --cover-package sequana
+  - python setup.py nosetests -s --with-coverage --cover-package sequana
 
 after_success:
   coveralls
