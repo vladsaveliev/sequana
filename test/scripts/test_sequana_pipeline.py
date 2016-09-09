@@ -3,6 +3,8 @@ from nose.plugins.attrib import attr
 import mock
 from sequana import sequana_data
 
+
+@attr("skip")
 class TestPipeline(object):
 
     @classmethod
