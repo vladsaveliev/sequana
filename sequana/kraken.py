@@ -264,13 +264,18 @@ class KrakenResults(object):
         # This may have already been called but maybe not. This is not time
         # consuming, so we call it again here
         df = self.get_taxonomy_biokit(list(self.taxons.index))
+        df.ix[-1] = ["Unclassified"] * 8
         data = self.taxons.copy()
+
+        data.ix[-1] = self.unclassified
+
         data = data/data.sum()*100
         assert threshold > 0 and threshold < 100
         others = data[data<threshold].sum()
         data = data[data>threshold]
-
         names = df.ix[data.index]['name']
+
+
         data.index = names.values
         data.ix['others'] = others
         try:
@@ -278,6 +283,8 @@ class KrakenResults(object):
         except:
             data.sort(inplace=True)
 
+        # text may be long so, let us increase the figsize a little bit
+        pylab.figure(figsize=(10,8))
         pylab.clf()
         if kind == "pie":
             ax = data.plot(kind=kind, cmap=cmap, autopct='%1.1f%%',
