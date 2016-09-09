@@ -45,7 +45,7 @@ from os.path import isdir
 
 from easydev import get_package_location as gpl
 from easydev import load_configfile, AttrDict
-
+from easydev.tools import touch
 import pandas as pd
 import pylab
 
@@ -63,6 +63,8 @@ except:
         def Workflow(self, filename):
             raise ImportError
     snakemake = MockSnakeMake()
+
+
 
 
 class ExpandedSnakeFile(object):
