@@ -3,7 +3,7 @@ from nose.plugins.attrib import attr
 from sequana import sequana_data
 
 
-
+@attr("skip")
 class TestPipeline(object):
 
     @classmethod
@@ -11,7 +11,6 @@ class TestPipeline(object):
         """This method is run once for each class before any tests are run"""
         klass.prog = "sequana_summary"
         klass.params = {'prog': klass.prog}
-
 
     def _test_version(self):
         summary.main([self.prog, '--version'])
