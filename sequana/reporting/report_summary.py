@@ -64,11 +64,15 @@ class SequanaSummary(BaseReport):
                 self.jinja['type'] = "Paired-end"
             else:
                 self.jinja['type'] = "Single-end"
-            pipeline_name = snakefile.split(".rules")[0]
-            url = "http://sequana.readthedocs.io/en/master/pipelines.html#" + pipeline_name
 
-            self.jinja["pipeline_name"] = '<a href="%s"> %s</a>' % (url,pipeline_name.title())
-            self.jinja["pipeline_name"] += " -- <i>[%s]</i>" % Module(pipeline_name).overview
+            try:
+                pipeline_name = snakefile.split(".rules")[0]
+                url = "http://sequana.readthedocs.io/en/master/pipelines.html#" + pipeline_name
+                self.jinja["pipeline_name"] = '<a href="%s"> %s</a>' % (url,pipeline_name.title())
+                self.jinja["pipeline_name"] += " -- <i>[%s]</i>" % Module(pipeline_name).overview
+            except:
+                # for the standalone apps
+                pass
 
         # The base has a navigation, that we do not want
         self.jinja['nav_off'] = 'True'
