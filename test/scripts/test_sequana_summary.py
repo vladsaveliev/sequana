@@ -2,6 +2,8 @@ from sequana.scripts import summary
 from nose.plugins.attrib import attr
 from sequana import sequana_data
 
+
+
 class TestPipeline(object):
 
     @classmethod
@@ -10,12 +12,6 @@ class TestPipeline(object):
         klass.prog = "sequana_summary"
         klass.params = {'prog': klass.prog}
 
-    def setUp(self):
-        """This method is run once before _each_ test method is executed"""
-        pass
-    def teardown(self):
-        """This method is run once after _each_ test method is executed"""
-        pass
 
     def _test_version(self):
         summary.main([self.prog, '--version'])
