@@ -5,12 +5,14 @@ from sequana import sequana_data
 @attr("skip")
 class TestPipeline(object):
 
+    @attr("skip")
     @classmethod
     def setup_class(klass):
         """This method is run once for each class before any tests are run"""
         klass.prog = "sequana_coverage"
         klass.params = {'prog': klass.prog}
 
+    @attr("skip")
     @classmethod
     def teardown_class(klass):
         """This method is run once for each class _after_ all tests are run"""
@@ -24,9 +26,11 @@ class TestPipeline(object):
         except:pass
 
 
+    @attr("skip")
     def setUp(self):
         """This method is run once before _each_ test method is executed"""
         pass
+    @attr("skip")
     def teardown(self):
         """This method is run once after _each_ test method is executed"""
 
