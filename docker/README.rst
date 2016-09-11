@@ -8,7 +8,6 @@ Build the image::
     cd sequana/docker
     sudo docker  build  -t="sequana" .
 
-
 Run the image::
 
     sudo docker run -i -t -entrypoint='/root' sequana

@@ -4,6 +4,7 @@ import mock
 from sequana import sequana_data
 
 
+@attr('skip')
 class TestPipeline(object):
 
     @classmethod
