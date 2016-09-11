@@ -2,7 +2,6 @@ from sequana.scripts import coverage
 from nose.plugins.attrib import attr
 from sequana import sequana_data
 
-@attr("skip")
 class TestPipeline(object):
 
     @classmethod
@@ -22,13 +21,6 @@ class TestPipeline(object):
         except:pass
         try:os.remove('config.yaml')
         except:pass
-
-
-    def setUp(self):
-        """This method is run once before _each_ test method is executed"""
-        pass
-    def teardown(self):
-        """This method is run once after _each_ test method is executed"""
 
     def _test_version(self):
         coverage.main([self.prog, '--version'])

@@ -4,7 +4,6 @@ import mock
 from sequana import sequana_data
 
 
-@attr("skip")
 class TestPipeline(object):
 
     @classmethod
@@ -32,11 +31,6 @@ class TestPipeline(object):
         try:shutil.rmtree("report")
         except:pass
 
-    def setUp(self):
-        """This method is run once before _each_ test method is executed"""
-
-    def teardown(self):
-        """This method is run once after _each_ test method is executed"""
 
     def test_version(self):
         main.main([self.prog, '--version'])
