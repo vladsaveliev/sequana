@@ -16,7 +16,7 @@ Sequencing depth report about the chromosome {{chrom_name}} of the project {{pro
     with an unusual depth coverage and are showed below.-->
 
 <div class="section" id="Coverage">
-    <h2> 1 -  <a class="toc-backref" href="#id1">Coverage</a></h2>
+    <h2><a class="toc-backref" href="#id1">Coverage</a></h2>
     <div>
     The graphics shows the coverage as function of the position in the genome.
 
@@ -27,12 +27,13 @@ Sequencing depth report about the chromosome {{chrom_name}} of the project {{pro
 <div class="section" id="Submapping list"> 
 Interactive plots are available in the following table. Note that the whole
     reference is split into sub-regions (500,000 bp length at max).
+
     {{ list_submapping }}
 </div>
 
 
 <div class="section" id="Basic stats">
-    <h2> 2 - <a class="toc-backref" href="#id1">Basic stats</a></h2>
+    <h2><a class="toc-backref" href="#id1">Basic stats</a></h2>
 The following table gives some basic statistics about the genome coverage. Here
 are some definitions used:
 <ul>
@@ -51,7 +52,7 @@ genome coverage shown here above</li>
 
 
 <div class="section" id="Normalized coverage">
-    <h2> 2 - <a class="toc-backref" href="#id1">Normalized coverage</a></h2>
+    <h2><a class="toc-backref" href="#id1">Normalized coverage</a></h2>
     {{ nc_paragraph }}
     <div>
         <img src={{ nc_plot }}> </>
@@ -59,21 +60,30 @@ genome coverage shown here above</li>
 </div>
 
 <div class="section" id="Z-Score distribution">
-    <h2> 3 - <a class="toc-backref" href="#id1">Z-Score distribution</a></h2>
+    <h2><a class="toc-backref" href="#id1">Z-Score distribution</a></h2>
     {{ bp_paragraph }}
 <div>    
     <img src={{ bp_plot }}> </>
 </div>
 </div>
 
+<h2><a class="toc-backref" href="#id1">Regions of Interest</a></h2>
+Running median is the median computed along the genome using a sliding window.
+The following tables give regions of interest detected by sequana. Here is some captions:
+<ul>
+    <li>mean_cov: the average of coverage</li>
+    <li>mean_rm: the average of running median</li>
+    <li>mean_zscore: the average of zscore</li>
+</ul>
+
 <div class="section" id="Low coverage region">
-    <h2> 4 - <a class="toc-backref" href="#id1">Low coverage region</a></h2>
+    <h3><a class="toc-backref" href="#id1">Low coverage region</a></h3>
     {{ lc_paragraph }}
     {{ low_coverage }}
 </div>
 
 <div class="section" id="High coverage region">
-    <h2> 5 - <a class="toc-backref" href="#id1">High coverage region</a></h2>
+    <h3><a class="toc-backref" href="#id1">High coverage region</a></h3>
     {{ hc_paragraph }}
     {{ high_coverage }}
 </div>

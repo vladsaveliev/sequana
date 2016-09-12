@@ -33,7 +33,8 @@ rule report_mapping:
         s.jinja['description'] = """
 
         This is the output of variant calling pipeline. This pipeline search
-        variants and provide as an output a vcf file.
+        variants and provide as an output a vcf file. If a Genbank file is
+        available, the variants will be annotated using snpeff.
 
         """
         s.create_report()
