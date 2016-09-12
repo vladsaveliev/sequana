@@ -5,8 +5,8 @@ from nose.plugins.attrib import attr
 
 def test_krona_merger():
 
-    k1 = KronaMerger(sequana_data("test_krona_k1.tsv", "testing"))
-    k2 = KronaMerger(sequana_data("test_krona_k2.tsv", "testing"))
+    k1 = KronaMerger(sequana_data("test_krona_k1.tsv"))
+    k2 = KronaMerger(sequana_data("test_krona_k2.tsv"))
     k1 += k2
  
     with TempFile(suffix='.tsv') as fh:
