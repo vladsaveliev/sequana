@@ -157,6 +157,10 @@ class BaseReport(Report):
         easydev.DevTools().mkdir("report/images")
         return self._copy_files(pattern, "report/images")
 
+    def onweb(self):
+        from easydev import onweb
+        onweb(self.directory + os.sep + self.filename)
+
 
 class SequanaReport(BaseReport):
     """The main sequana report

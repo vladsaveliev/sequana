@@ -39,8 +39,12 @@ if len(cfg.DATASET) == 2:
             mode2 = cfgca.mode.upper()
         log: "logs/cutadapt.txt"
         run:
-            cmd = "cutadapt -o {output.file1} -p {output.file2}" 
-            cmd += " {input.file1} {input.file2} "
+            executable = cfgca.tool # could be cutadapt or atropos
+            cmd = "%s -o {output.file1} -p {output.file2}" % executable
+            if cfgca.tool == "atropos":
+                cmd += " -pe1 {input.file1} -pe2 {input.file2} --progress bar"
+            else:
+                cmd += " {input.file1} {input.file2} "
             if params.fwd:
                 cmd += " -{params.mode1} {params.fwd} "
             if params.rev:
@@ -62,7 +66,8 @@ else:
             mode = cfgca.mode,
         log: "logs/cutadapt.txt"
         run:
-            cmd = "cutadapt -o {output.file1} {input.file1}"
+            executable = cfg.adapter_removal.tool # could be cutadapt or atropos
+            cmd = "%s -o {output.file1} {input.file1}" % executable
             if params.fwd:
                 cmd += "    -{params.mode} {params.fwd} " 
             cmd += " -m {params.m} -q {params.quality} "

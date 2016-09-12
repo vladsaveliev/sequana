@@ -371,18 +371,24 @@ class AdapterReader(object):
 
             >>> from sequana import sequana_data, AdapterReader
             >>> filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa")
+            >>> filename = sequana_data("adapters_Nextera_PF1_220616_revcomp.fa")
             >>> ar = AdapterReader(filename)
             >>> ar.reverse_complement()
             >>> ar.to_fasta()
+            >>> ar == ar2
 
         """
         # no need for a fast implementation (less than 1000 short reads)
         from sequana.sequence import DNA
         for this in self._data:
-            this.sequence = DNA(this.sequence).get_reverse_complement()
+            this.sequence = DNA(this.sequence[:]).get_reverse_complement()
 
     def to_fasta(self, filename):
-        """Save sequences into fasta file"""
+        """Save sequences into fasta file
+
+        .. todo:: if no comment, currently None is written. Would be better to
+            simply skip it
+        """
         with open(filename, "w") as fout:
             for i, this in enumerate(self._data):
                 if i>0:
@@ -402,7 +408,7 @@ class FindAdaptersFromIndex(object):
     projects. 
 
     """
-    def __init__(self, index_mapper, adapters):
+    def __init__(self, index_mapper, adapters, mode="revcomp"):
         """.. rubric:: Constructor
 
         :param str index_mapper: filename of a CSV file that has the following
@@ -413,6 +419,8 @@ class FindAdaptersFromIndex(object):
         adapter.
 
         """
+        if mode != "revcomp":
+            raise ValueError("only mode revcomp implemented. ")
         #self.index_mapper = pd.read_csv(index_mapper, delim_whitespace=True)[columns_in]
         try:
             columns_in = ['sample_name', 'index1', 'index2']
@@ -431,19 +439,19 @@ class FindAdaptersFromIndex(object):
             from sequana import sequana_data
             file1 = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", 
                 "data/adapters")
-            file2 = sequana_data("adapters_Nextera_PF1_220616_rev.fa",
+            file2 = sequana_data("adapters_Nextera_PF1_220616_revcomp.fa",
                 "data/adapters")
         elif adapters == "PCRFree":
             from sequana import sequana_data
             file1 = sequana_data("adapters_PCR-free_PF1_220616_fwd.fa", 
                 "data/adapters")
-            file2 = sequana_data("adapters_PCR-free_PF1_220616_rev.fa",
+            file2 = sequana_data("adapters_PCR-free_PF1_220616_revcomp.fa",
                 "data/adapters")
         else:
             raise ValueError("Unknown set of adapters. Use Nextera or PCRFree (note the small/big caps)")
 
         self._adapters_fwd = AdapterReader(file1)
-        self._adapters_rev = AdapterReader(file2)
+        self._adapters_rev = AdapterReader(file2)  # !!! revcomp
 
     def _get_samples(self):
         return list(self.index_mapper.index)
@@ -469,7 +477,7 @@ class FindAdaptersFromIndex(object):
 
         if self.mode == "multi_index":
             res['index2'] = {}
-            index2 = "index_dna:" + indices.ix['index2']
+            index2 = "index_dna:" + str(indices.ix['index2'])
             #index2 =  indices.ix['index2']
             res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index(index2)
             res['index2']['rev'] = self._adapters_rev.get_adapter_by_index(index2)
@@ -512,7 +520,7 @@ class FindAdaptersFromIndex(object):
             if self.mode == "multi_index":
                 fout.write(str(adapters['index2']['fwd'])+"\n")
 
-        file_rev = output_dir + os.sep + "%s_adapters_rev.fa" % sample_name
+        file_rev = output_dir + os.sep + "%s_adapters_revcomp.fa" % sample_name
         with open(file_rev, "w") as fout:
             if include_transposase and self.adapters == "Nextera":
                 fout.write(str(adapters['transposase']['rev'])+"\n")
@@ -536,8 +544,6 @@ class AdapterRemoval(object):
         self.qual2 = quality_cutoff2
         self.adapter1 = adapter1
         self.adapter2 = adapter2
-
-        return res
 
     def save_adapters_to_fasta(self, sample_name, include_universal=True, output_dir='.'):
         """Get index1, index2 and uiversal adapter"""

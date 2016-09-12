@@ -2,7 +2,10 @@ from sequana.scripts import main
 from nose.plugins.attrib import attr
 import mock
 from sequana import sequana_data
+import os
 
+
+@attr('skip')
 class TestPipeline(object):
 
     @classmethod
@@ -14,10 +17,6 @@ class TestPipeline(object):
     @classmethod
     def teardown_class(klass):
         """This method is run once for each class _after_ all tests are run"""
-        import os
-        # local nosetests execution
-        #try:os.remove('README')
-        #except:pass
         try:os.remove('quality.rules')
         except:pass
         try:os.remove('config.yaml')
@@ -30,19 +29,12 @@ class TestPipeline(object):
         try:shutil.rmtree("report")
         except:pass
 
-    def setUp(self):
-        """This method is run once before _each_ test method is executed"""
-
-    def teardown(self):
-        """This method is run once after _each_ test method is executed"""
-
     def test_version(self):
         main.main([self.prog, '--version'])
 
     def test_init(self):
         try:
             # py3
-
             with mock.patch('builtins.input', return_value="y"):
                 try:
                     main.main([self.prog, '--pipeline', "qualitydummy"])
@@ -60,7 +52,6 @@ class TestPipeline(object):
                     assert False
                 except:
                     assert True
-
 
     def test_run(self):
         pass
@@ -88,12 +79,10 @@ class TestPipeline(object):
         except:
             assert True
 
-
     def test_input(self):
         file1 = sequana_data('Hm2_GTGAAA_L005_R1_001.fastq.gz', 'data')
         file2 = sequana_data('Hm2_GTGAAA_L005_R2_001.fastq.gz', 'data')
         main.main([self.prog, "--pipeline", "quality", "--file1", file1, "--file2", file2, "--project", "Hm2_test"])
-        
 
 
 

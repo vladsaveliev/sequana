@@ -7,8 +7,18 @@ input:
 __sequana__bwa_mem = [":samples", "ref", "output", ":kwargs", ":threads"]
 
 import sequana.snaketools as sm
+from easydev import shellcmd
 cfg = sm.SequanaConfig.from_dict(config)
 
+"""try:
+    ret = shellcmd("which pbwa") # for IP cluster
+    bwa_exe = "pbwa"
+except:
+    ret = shellcmd("which bwa")
+    bwa_exe = "bwa"
+"""
+
+bwa_exe = "bwa"
 
 def bwa_mem_dynamic(name, inputs, outputs=[]):
     metadata = {'inputs':inputs, 'name':name, 'project':cfg.PROJECT}
@@ -33,7 +43,8 @@ rule bwa_mem__%(name)s:
     params:
         index = config["bwa_%(name)s"]["index"]["options"],
         mem = config["bwa_%(name)s"]["mem"]["options"],
-        rg = config["bwa_%(name)s"]["mem"]["read_groups"]
+        rg = config["bwa_%(name)s"]["mem"]["read_groups"],
+        bwa_exe = bwa_exe
     threads:
         int(config["bwa_%(name)s"]["mem"]["threads"])
     shell:
@@ -51,7 +62,7 @@ rule bwa_mem__%(name)s:
         samtools faidx {output.reference}
 
         # Mapping
-        (bwa mem -t {threads} -R {params.rg} {params.mem} \
+        ({params.bwa_exe} mem -t {threads} -R {params.rg} {params.mem} \
         {output.reference} {input.fastq} | \
         samtools view -Sbh -> {output.mem}) 2> {log.mem}
  

@@ -137,3 +137,13 @@ Run the pipeline
 ::
 
     snakemake -s variant_calling.rules --stats stats.txt -p -j 4 --forceall
+
+
+De novo
+-------------
+
+
+.. todo:: documentation to be done
+
+    sequana --pipeline denovo_assembly --input-dir . --project denovo_test
+

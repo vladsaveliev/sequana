@@ -17,8 +17,6 @@
 #
 ##############################################################################
 """Utilities for the genome coverage"""
-import os
-import sys
 
 import pandas as pd
 import numpy as np
@@ -28,11 +26,106 @@ from biokit.stats import mixture
 from sequana import running_median
 from sequana.tools import gc_content
 from sequana.tools import genbank_features_parser
-from easydev import TempFile
+
+
+__all__ = ["GenomeCov", "ChromosomeCov", "DoubleThresholds"]
+
+
+class DoubleThresholds(object):
+    """Simple structure to handle the double threshold for negative and positive sides
+
+    Used yb GenomeCov and related classes.
+
+    ::
+
+        dt = DoubleThresholds(-3,4,0.5,0.5)
+
+    This means the low threshold is -3 while the high threshold is 4. The two
+    following values must be between 0 and 1 and are used to define the value of
+    the double threshold set to half the value of th the main threshold by default.
+
+    Internally, the main thresholds are stored in the low and high attributes.
+    The secondary thresholds are derived from the main thresholds and the
+    two ratios. The ratios are named ldtr and hdtr for low double threshold ratio
+    and high double threshold ration. The secondary thresholds are denoted low2 and
+    high2 are are update automatically if low, high, ldtr or hdtr are changed.
+
+
+    """
+    def __init__(self, low=-3, high=3,
+            ldtr=0.5, hdtr=0.5):
+
+        assert ldtr>=0. and ldtr<=1.,\
+            "ldrt parameter (low double threshold ratio) must be in [0,1]"
+        assert hdtr>=0. and hdtr<=1.,\
+            "hdrt parameter (high double threshold ratio) must be in [0,1]"
+        assert low < 0, "low threshold must be negative"
+        assert high > 0, "high threshold must be positive"
+
+        self._ldtr = ldtr
+        self._hdtr = hdtr
+        self._high = high
+        self._low = low
+
+    def _get_ldtr(self):
+        return self._ldtr
+    def _set_ldtr(self, ldtr):
+        self._ldtr = ldtr
+        self._low2 = self._low * self._ldtr
+    ldtr = property(_get_ldtr, _set_ldtr)
+
+    def _get_hdtr(self):
+        return self._hdtr
+    def _set_hdtr(self, hdtr):
+        self._hdtr = hdtr
+        self._high2 = self._high * self._hdtr
+    hdtr = property(_get_hdtr, _set_hdtr)
+
+    def _get_low(self):
+        return self._low
+    def _set_low(self, value):
+        assert value < 0.
+        self._low = value
+        self._low2 = self._low * self._ldtr
+    low = property(_get_low,_set_low)
+
+    def _get_high(self):
+        return self._high
+    def _set_high(self, value):
+        assert value > 0.
+        self._high = value
+        self._high2 = self._high * self._ldtr
+    high = property(_get_high,_set_high)
+
+    def _get_low2(self):
+        return self._low * self._ldtr
+    low2 = property(_get_low2)
+
+    def _get_high2(self):
+        return self._high * self._hdtr
+    high2 = property(_get_high2)
+
+    def copy(self):
+        thresholds = DoubleThresholds(self.low, self.high, 
+            self.ldtr, self.hdtr)
+        return thresholds
+
+    def __str__(self):
+        txt = "Low threshold: %s\n" % self.low
+        txt += "High threshold: %s\n" % self.high
+        txt += "double-low threshold: %s\n" % self.low2
+        txt += "double-high threshold: %s" % self.high2
+        return txt
+
 
 class GenomeCov(object):
-    """Create a dataframe list of BED file provided by bedtools genomecov (-d)
+    """Create a dataframe to hold data from a BED file generated with bedtools genomecov (-d)
 
+
+    This class can be used to plot the coverage resulting from a mapping, which
+    is stored in BED format. The BEDf file may contain several chromosomes.
+    There are handled independently and accessible as a list of :class:`ChromosomeCov`
+    instances.
 
     Example:
 
@@ -40,11 +133,13 @@ class GenomeCov(object):
         :include-source:
 
         from sequana import GenomeCov, sequana_data
-        filename = sequana_data("test_bedcov.bed", "testing")
+
+        gencov = GenomeCov(sequana_data('JB409847.bed'))
+        gencov.compute_gc_content(sequana_data("JB409847.fasta"))
 
         gencov = GenomeCov(filename)
         for chrom in gencov:
-            chrom.running_median(n=3001)
+            chrom.running_median(n=3001, circular=True)
             chrom.compute_zscore()
             chrom.plot_coverage()
         gencov[0].plot_coverage()
@@ -53,14 +148,28 @@ class GenomeCov(object):
 
     """
 
-    def __init__(self, input_filename=None):
+    def __init__(self, input_filename=None,
+        low_threshold=-3, high_threshold=3, ldtr=0.5, hdtr=0.5):
         """.. rubric:: constructor
 
         :param str input_filename: the input data with results of a bedtools
             genomecov run. This is just a 3-column file. The first column is a
-            string, second column is the base postion and third is the coverage.
+            string (chromosome), second column is the base postion and third
+            is the coverage.
+        :param float low_threshold: threshold used to identify under-covered genomic
+            region of interest (ROI). Must be negative
+        :param float high_threshold: threshold used to identify over-covered genomic
+            region of interest (ROI). Must be positive
+        :param float ldtr: fraction of the low_threshold to be used to define
+            the intermediate threshold in the double threshold method. Must be
+            between 0 and 1.
+        :param float rdtr: fraction of the low_threshold to be used to define
+            the intermediate threshold in the double threshold method. Must be
+            between 0 and 1.
 
         """
+        self.thresholds = DoubleThresholds(low_threshold, high_threshold, 
+            ldtr, hdtr)
 
         df = pd.read_table(input_filename, header=None)
         try:
@@ -68,7 +177,7 @@ class GenomeCov(object):
             df = df.set_index("chr", drop=False)
             # Create a list of ChromosomeCov for each chromosome present in the
             # bedtools.
-            self.chr_list = [ChromosomeCov(df.loc[key]) for key in
+            self.chr_list = [ChromosomeCov(df.loc[key], self.thresholds) for key in
                     df.index.unique()]
             ChromosomeCov.count = 0
         except IOError as e:
@@ -103,6 +212,14 @@ class GenomeCov(object):
             chrom._ws_gc = window_size
 
     def get_stats(self):
+        """Return basic statistics for each chromosome
+
+        :return: dictionary with chromosome names as keys
+            and statistics as values.
+
+
+        .. seealso:: :class:`ChromosomeCov`.
+        """
         stats = {}
         for chrom in self.chr_list:
             stats[chrom.chrom_name] = chrom.get_stats()
@@ -110,8 +227,7 @@ class GenomeCov(object):
 
 
 class ChromosomeCov(object):
-    """Class used within :class:`GenomeCov` to select a chromosome of the
-    original GenomeCov.
+    """Factory to manipulate coverage and extract region of interests.
 
     Example:
 
@@ -119,26 +235,34 @@ class ChromosomeCov(object):
         :include-source:
 
         from sequana import GenomeCov, sequana_data
-        filename = sequana_data("test_bedcov.bed", "testing")
+        filename = sequana_data("virus.bed")
 
         gencov = GenomeCov(filename)
+        gencov.compute_gc
 
         chrcov = gencov[0]
         chrcov.running_median(n=3001)
         chrcov.compute_zscore()
         chrcov.plot_coverage()
 
-    Results are stored in a dataframe named :attr:`df`.
+        df = chrcov.get_roi().get_high_roi()
 
+    The *df* variable contains a dataframe with high region of interests (over
+    covered)
+
+
+    .. seealso:: sequana_coverage standalone application
     """
     count = 0
 
-    def __init__(self, df=None):
+    def __init__(self, df=None, thresholds=None):
         """.. rubric:: constructor
 
         :param df: dataframe with position for a chromosome used within
             :class:`GenomeCov`. Must contain the following columns:
             ["chr", "pos", "cov"]
+        :param thresholds: a data structure :class:`DoubleThresholds` that holds
+            the double threshold values.
 
         """
         # Chromosome position becomes the index
@@ -146,6 +270,12 @@ class ChromosomeCov(object):
         self.chrom_index = ChromosomeCov.count
         self.df = df.set_index("pos", drop=False)
         self.chrom_name = df["chr"].iloc[0]
+
+        try:
+            self.thresholds = thresholds.copy()
+        except:
+            self.thresholds = DoubleThresholds()
+
 
     def __str__(self):
         stats = self.get_stats()
@@ -172,9 +302,10 @@ class ChromosomeCov(object):
         return np.sqrt(self.df["cov"].var()) / self.get_mean_cov()
 
     def moving_average(self, n, circular=False):
-        """Compute moving average of reads coverage
+        """Compute moving average of the genome coverage
 
-        :param n: window's size.
+        :param n: window's size. Must be odd
+        :param bool circular: is the chromosome circular or not
 
         Store the results in the :attr:`df` attribute (dataframe) with a
         column named *ma*.
@@ -202,7 +333,7 @@ class ChromosomeCov(object):
             self.df["ma"] = pd.Series(self.ma, index=self.df['cov'].index)
 
     def running_median(self, n, circular=False):
-        """Compute running median of reads coverage
+        """Compute running median of genome coverage
 
         :param int n: window's size.
         :param bool circular: if a mapping is circular (e.g. bacteria
@@ -241,13 +372,12 @@ class ChromosomeCov(object):
         return evenness(self.df['cov'])
 
     def get_cv(self):
-        """coefficient variation
+        """Return the coefficient variation
 
-        defined as sigma / mu
+        The coefficient of variation (CV) is defined as sigma / mu
 
-        To get percentage, you must multiply by 100
+        To get percentage, you must multiply by 100.
 
-        .. note:: should be used for ratio scale data (e.g., non negative only)
         """
         sigma = self.df['cov'].std()
         mu = self.df['cov'].mean()
@@ -277,7 +407,7 @@ class ChromosomeCov(object):
         indice = np.argmax(results.pis)
         return {"mu": results.mus[indice], "sigma": results.sigmas[indice]}
 
-    def compute_zscore(self, k=2, step=10, use_em=True):
+    def compute_zscore(self, k=2, step=10, use_em=True, verbose=True):
         """ Compute zscore of coverage and normalized coverage.
 
         :param int k: Number gaussian predicted in mixture (default = 2)
@@ -329,50 +459,75 @@ class ChromosomeCov(object):
             self.df["zscore"] = (self.df["scale"] - self.best_gaussian["mu"]) / \
                 self.best_gaussian["sigma"]
 
-    def get_centralness(self, threshold=3):
-        r"""Proportion of central (normal) genome coverage
+        # Naive checking that the 
+        if k == 2:
+            mus = self.gaussians['mus']
+            sigmas = self.gaussians["sigmas"]
 
-        assuming a 3 sigma normality.
+            index0 = mus.index(self.best_gaussian["mu"])
+            if index0 == 0:
+                mu1 = mus[1]
+                s0 = sigmas[0]
+                mu0 = mus[0]
+            else:
+                mu1 = mus[0]
+                s0 = sigmas[1]
+                mu0 = mus[1]
+            if abs(mu0-mu1) < s0:
+                if verbose:
+                    print("Warning: k=2 but note that |mu0-mu1| < sigma0. ",
+                        "k=1 could be a better choice") 
+
+    def get_centralness(self):
+        r"""Proportion of central (normal) genome coverage
 
         This is 1 - (number of non normal data) / (total length)
 
+        .. note:: depends on the thresholds attribute being used.
         .. note:: depends slightly on :math:`W` the running median window
         """
-        l1 = len(self.get_low_coverage(-threshold))
-        l2 = len(self.get_high_coverage(threshold))
-        return 1 - (l1+l2) / float(len(self))
+        filtered = self.get_roi()
+        return 1 - len(filtered) / float(len(self))
 
-    def get_roi(self, first_thr=3, second_thr=1.5, features=None):
-        """Keep position with zscore lower than INT and return a data frame.
+    def get_roi(self, features=None):
+        """Keep positions with zscore outside of the thresholds range
 
-        :param int first_thr: principal threshold on zscore
-        :param int second_thr: secondary threshold on zscore
+        :param features:
         :return: a dataframe from :class:`FilteredGenomeCov`
+
+        .. note:: depends on the :attr:`thresholds` low and high values.
         """
+
         try:
+            second_high = self.thresholds.high2
+            second_low = self.thresholds.low2
+            query = "zscore > @second_high or zscore < @second_low"
+
             if features:
-                return FilteredGenomeCov(self.df.loc[abs(self.df["zscore"]) > 
-                    second_thr], first_thr, features[self.chrom_name])
+                return FilteredGenomeCov(self.df.query(query), self.thresholds, 
+                    features[self.chrom_name])
             else:
-                return FilteredGenomeCov(self.df.loc[abs(self.df["zscore"]) > 
-                    second_thr], first_thr)
+                return FilteredGenomeCov(self.df.query(query), self.thresholds)
         except KeyError:
             print("Column zscore is missing in data frame.\n"
                   "You must run compute_zscore before get low coverage.\n\n",
                   self.__doc__) 
 
-    def plot_coverage(self, filename=None, threshold=3, fontsize=16):
+    def plot_coverage(self, filename=None, fontsize=16):
         """ Plot coverage as a function of base position.
+
+        :param filename:
 
         In addition, the running median and coverage confidence corresponding to
         the lower and upper  zscore thresholds
 
+        .. note:: uses the thresholds attribute.
         """
         # z = (X/rm - \mu ) / sigma
 
-        high_zcov = (threshold * self.best_gaussian["sigma"] +
+        high_zcov = (self.thresholds.high * self.best_gaussian["sigma"] +
                 self.best_gaussian["mu"]) * self.df["rm"]
-        low_zcov = (-threshold * self.best_gaussian["sigma"] +
+        low_zcov = (self.thresholds.low * self.best_gaussian["sigma"] +
                 self.best_gaussian["mu"]) * self.df["rm"]
 
         pylab.clf()
@@ -410,7 +565,7 @@ class ChromosomeCov(object):
 
     def plot_hist_zscore(self, fontsize=16, filename=None, max_z=6,
             binwidth=0.5, **hist_kargs):
-        """ Barplot of zscore
+        """ Barplot of the zscore values
 
         """
         pylab.clf()
@@ -428,7 +583,7 @@ class ChromosomeCov(object):
 
     def plot_hist_normalized_coverage(self, filename=None, binwidth=0.1,
             max_z=4):
-        """ Barplot of normalized coverage with gaussian fitting
+        """ Barplot of the normalized coverage with gaussian fitting
 
         """
         pylab.clf()
@@ -493,28 +648,45 @@ class ChromosomeCov(object):
         return corr
 
     def get_gc_correlation(self):
+        """Return the correlation between the coverage and GC content
+
+        The GC content is the one computed in :meth:`GenomeCov.compute_gc_content`
+        (default window size is 101)
+
+        """
         return self.df[['cov', 'gc']].corr().iloc[0,1]
 
     def get_max_gc_correlation(self, reference):
+        """Plot correlation between coverage and GC content by varying the GC window
+
+         The GC content uses a moving window of size W. This parameter affects
+         the correlation bewteen coverage and GC. This function find the *optimal*
+         window length.
+
+        """
         pylab.clf()
+        corrs = []
+        wss = []
         def func(params):
             ws = int(round(params[0]))
             if ws < 10:
                 return 0
             self.bed.compute_gc_content(reference, ws)
             corr = self.get_gc_correlation()
-            print(ws, corr)
-            pylab.plot(ws, corr, 'o')
+            corrs.append(corr)
+            wss.append(ws)
             return corr
 
-        print("X, correlation\n")
         from scipy.optimize import fmin
-        res = fmin(func, 200, xtol=1) # guess is 200
+        res = fmin(func, 100, xtol=1, disp=False) # guess is 200
+        pylab.plot(wss, corrs, "o")
         pylab.xlabel("GC window size")
         pylab.ylabel("Correlation")
-        return res
+        pylab.grid()
+        return res[0]
 
     def get_stats(self):
+        """Return basic stats about the coverage data"""
         data = self.df
 
         stats ={
@@ -541,13 +713,13 @@ class FilteredGenomeCov(object):
     :target: developers only
     """
     _feature_wanted = {"CDS"}
-    def __init__(self, df, threshold=3, feature_list=None):
+    def __init__(self, df, threshold, feature_list=None):
         """ .. rubric:: constructor
 
         :param df: dataframe with filtered position used within
             :class:`GenomeCov`. Must contain the following columns:
             ["pos", "cov", "rm", "zscore"]
-        :param int threshold: size 
+        :param int threshold: a :class:`~sequana.bedtools.DoubleThresholds` instance.
 
         """
         region_list = self._merge_region(df, threshold=threshold)
@@ -567,7 +739,10 @@ class FilteredGenomeCov(object):
         max_cov = np.max(df["cov"].loc[start:stop])
         rm = np.mean(df["rm"].loc[start:stop])
         zscore = np.mean(df["zscore"].loc[start:stop])
-        max_zscore = df["zscore"].loc[start:stop].max()
+        if zscore >= 0 :
+            max_zscore = df["zscore"].loc[start:stop].max()
+        else:
+            max_zscore = df["zscore"].loc[start:stop].min()
         size = stop - start + 1
         return {"chr": chrom, "start": start, "end": stop + 1, "size": size,
                 "mean_cov": cov, "mean_rm": rm, "mean_zscore": zscore,
@@ -604,7 +779,14 @@ class FilteredGenomeCov(object):
                 start = stop
                 prev = stop
                 region_zscore = zscore
-            if abs(zscore) > threshold:
+
+            if zscore >0 and  zscore> threshold.high:
+                if not region_start:
+                    region_start = pos
+                    region_stop = pos
+                else:
+                    region_stop = pos
+            elif zscore <0 and zscore<threshold.low:
                 if not region_start:
                     region_start = pos
                     region_stop = pos
@@ -667,11 +849,11 @@ class FilteredGenomeCov(object):
         """
         if annotation:
             colnames = ["chr", "start", "end", "size", "mean_cov", "mean_rm", 
-                    "mean_zscore", "gene_start", "gene_end", "type", "gene", 
+                    "mean_zscore", "max_zscore", "gene_start", "gene_end", "type", "gene", 
                     "strand", "product"]
         else:
             colnames = ["chr", "start", "end", "size", "mean_cov", "mean_rm",
-                    "mean_zscore"]
+                    "mean_zscore", "max_zscore"]
         merge_df = pd.DataFrame(region_list, columns=colnames)
         int_column = ["start", "end", "size"]
         merge_df[int_column] = merge_df[int_column].astype(int)
@@ -683,8 +865,8 @@ class FilteredGenomeCov(object):
         return merge_df
 
     def get_low_roi(self):
-        return self.df.loc[self.df["mean_zscore"] < 0]
+        return self.df.loc[self.df["max_zscore"] < 0]
 
     def get_high_roi(self):
-        return self.df.loc[self.df["mean_zscore"] > 0]
+        return self.df.loc[self.df["max_zscore"] >= 0]
 
