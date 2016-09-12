@@ -325,9 +325,6 @@ or open a Python shell and type::
         txt = "Rule **" + self.name + "**:\n" + self.description
         return txt
 
-    def __repr__(self):
-        pass
-
     def _get_path(self):
         return self._path
     path = property(_get_path, doc="full path to the module directory")
@@ -346,6 +343,18 @@ or open a Python shell and type::
         return self._get_file("README.rst")
     readme = property(_get_readme,
         doc="full path to the README file of the module")
+
+    def _get_overview(self):
+        result = "no information. For developers: please fix the pipeline "
+        result += "README.rst file by adding an :Overview: field"
+        for this in self.description.split("\n"):
+            if this.startswith(':Overview:'):
+                try:
+                    result = this.split(":Overview:")[1].strip()
+                except:
+                    result += "Bad format in :Overview: field"
+        return result 
+    overview = property(_get_overview)
 
     def _get_snakefile(self):
         if self._snakefile is not None:

@@ -1,14 +1,13 @@
-:Overview: Remove phix and adapters rom set of FastQ files
-:Input: FastQ raw data (either paired or single-ended)
+:Overview: Remove phix and adapters from set of FastQ files (single end or paired end). Adapter removal is performed with cutadapt and phix removal with BWA-mem and Sequana.
+:Input: 1 or 2 FastQ raw data file(s)
 :Output: 
     - report/<PROJECT>_R1_.cutadapt.fastq.gz
-    - report/<PROJECT>_R2_.cutadapt.fastq.gz
+    - report/<PROJECT>_R2_.cutadapt.fastq.gz (optional)
 :Config file requirements:
     - samples:file1
-    - samples:file2
-    - project:
+    - samples:file2 (optional)
+    - project: 
     - bwa_phix:reference
-    -
 
 
 Usage

@@ -52,10 +52,10 @@ class SequanaSummary(BaseReport):
 
         self.title = "Summary Report"
         self.jinja['title'] = "Summary report"
-        #self.jinja['description'] = "<b>Description:</b>"
 
         # ============================================ Add the config and pipeline files
         from sequana.snaketools import SequanaConfig
+        from sequana.snaketools import Module
         if configfile:
             self.config = SequanaConfig(configfile)
             self.jinja['project'] = self.config.PROJECT
@@ -63,7 +63,11 @@ class SequanaSummary(BaseReport):
                 self.jinja['type'] = "Paired-end"
             else:
                 self.jinja['type'] = "Single-end"
+            pipeline_name = snakefile.split(".rules")[0]
+            url = "http://sequana.readthedocs.io/en/master/pipelines.html#" + pipeline_name
 
+            self.jinja["pipeline_name"] = '<a href="%s"> %s</a>' % (url,pipeline_name.title())
+            self.jinja["pipeline_name"] += " -- <i>[%s]</i>" % Module(pipeline_name).overview
 
         # The base has a navigation, that we do not want
         self.jinja['nav_off'] = 'True'

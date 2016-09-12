@@ -11,10 +11,12 @@ Changelog
 
    - sequana_summary standalone
    - sequana_mapping standalone
+   - Module has an overview field
 
 * BUG FIXES:
 
-   - cutadapt report handles single-end tables
+   - cutadapt report handles single-end tables. Fix the reverse complement
+     adapter files for the paired-end case
 
 * CHANGES:
 

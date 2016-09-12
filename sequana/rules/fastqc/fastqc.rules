@@ -55,7 +55,7 @@ rule fastqc__%(name)s:
                 "fastqc__%(name)s",
                 output_filename="fastqc__%(name)s.html",
                 directory=params.wkdir)
-        s.jinja['main_link'] = '../report/summary.html'
+        s.jinja['main_link'] = '../summary.html'
         s.create_report()
 
 
