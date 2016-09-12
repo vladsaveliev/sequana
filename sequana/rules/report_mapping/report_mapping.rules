@@ -14,8 +14,8 @@ rule report_mapping:
         outdir = "report",
         k = config["report_mapping"]["k"],
         size = config["report_mapping"]["window_size"],
-        first = config["report_mapping"]["first_threshold"],
-        second = config["report_mapping"]["second_threshold"],
+        high = config["report_mapping"]["high_threshold"],
+        low = config["report_mapping"]["low_threshold"],
         circular = config["report_mapping"]["circular"]
     run:
         import os
@@ -39,7 +39,8 @@ rule report_mapping:
         """
         s.create_report()
 
-        mydata = bedtools.GenomeCov(input.bed)
+        mydata = bedtools.GenomeCov(input.bed, low_threshold=params.low,
+            high_threshold=params.high)
         bam = BAM(input.bam)
         features = genbank_features_parser(input.ann) if input.ann else None
         
@@ -55,7 +56,6 @@ rule report_mapping:
             chrom.compute_zscore(k=params.k)
 
             r = report_chromosome.ChromosomeMappingReport(chrom,
-                    first_thr=params.first, second_thr=params.second,
                     directory=params.outdir, project=cfg.PROJECT, 
                     features=features)
             r.create_report()

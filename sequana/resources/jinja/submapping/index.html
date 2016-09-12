@@ -93,6 +93,7 @@ The following tables give regions of interest detected by sequana. Here is some 
     <li>mean_cov: the average of coverage</li>
     <li>mean_rm: the average of running median</li>
     <li>mean_zscore: the average of zscore</li>
+    <li>max_zscore: the higher zscore contains in the region</li>
 </ul>
 
 
@@ -101,6 +102,7 @@ The following tables give regions of interest detected by sequana. Here is some 
 Region with a zscore lower than {{ low_cov_threshold_2 }} and at least one base
 with a zscore lower than {{ low_cov_threshold }} are detected as low 
 coverage region. Thus, there are {{ nb_low_region }} low coverage regions.
+
     {{ low_coverage }}
 </div>
 
@@ -109,6 +111,7 @@ coverage region. Thus, there are {{ nb_low_region }} low coverage regions.
 Region with a zscore higher than {{ high_cov_threshold_2 }} and at least on base
  with a zscore higher than {{ high_cov_threshold }} are detected as high 
 coverage region. Thus, there are {{ nb_high_region }} high coverage regions.
+
     {{ high_coverage }}
 </div>
 

@@ -84,6 +84,7 @@ The following tables give regions of interest detected by sequana. Here is some 
     <li>mean_cov: the average of coverage</li>
     <li>mean_rm: the average of running median</li>
     <li>mean_zscore: the average of zscore</li>
+    <li>max_zscore: the higher zscore contains in the region</li>
 </ul>
 
 <div class="section" id="Low coverage region">
@@ -101,7 +102,7 @@ The following tables give regions of interest detected by sequana. Here is some 
 
 {% if coverage_vs_gc %}
 <div class="section">
-    <h2> 6 - Coverage versus GC</h2>
+    <h2>Coverage versus GC</h2>
     {{ coverage_vs_gc }}
 </div>
 {% endif %}
