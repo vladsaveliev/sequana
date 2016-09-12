@@ -16,7 +16,6 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-
 """Report dedicated to Mapping for one chromosome.
 
 """
@@ -33,8 +32,8 @@ class ChromosomeMappingReport(BaseReport):
     """Report dedicated to Mapping for one chromosome.
 
     """
-    def __init__(self, mapping, low_threshold=-3, high_threshold=3, 
-            directory="report", project="", **kargs):
+    def __init__(self, mapping, features=None,
+            directory="report", project="", verbose=True, **kargs):
         """.. rubric:: constructor
 
         """
@@ -47,31 +46,42 @@ class ChromosomeMappingReport(BaseReport):
                 output_filename=output_filename, **kargs)
         self.chrom_index = mapping.chrom_index
         self.project = project
-        self.low_t = low_threshold
-        self.high_t = high_threshold
+        self.features = features
+        self._max_window = 500000
+        self.jinja['chrom_name'] = self.mapping.chrom_name
+        self.verbose = verbose
 
-    def _generate_submapping(self, low_df, high_df):
+    def _get_step(self):
         i=0
         while True:
             i += 1
-            if len(self.mapping) / i < 500000:
+            if len(self.mapping) / i < self._max_window:
                 step = int(len(self.mapping) / i) + 1
                 break
+
+        return self._max_window
+        return step
+
+    def _generate_submapping(self, high_roi, low_roi):
+        step = self._get_step()
+
         df = pd.DataFrame()
         formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
         for i in range(0, len(self.mapping), step):
+            if self.verbose:
+                print("Generating sub mapping {}".format(i))
             name = "{0}_mapping_{1}".format(self.project, i)
             stop = i + step
             if stop > len(self.mapping):
                 stop = len(self.mapping)
             name = "{0}_{1}".format(name, stop)
             link = "submapping/{0}.chrom{1}.html".format(name, self.chrom_index)
-            r = SubMappingReport(start=i, stop=stop, low_df=low_df,
-                    high_df=high_df, chrom_index=self.chrom_index,
+            r = SubMappingReport(start=i, stop=stop, high_roi=high_roi, 
+                    low_roi=low_roi, chrom_index=self.chrom_index,
                     output_filename=name + ".chrom%i.html" % self.chrom_index,
                     directory=self.directory + "/submapping", 
-                    low_threshold=self.low_t, high_threshold=self.high_t)
-            r.jinja["main_link"] = "index.html"
+                    thresholds=self.mapping.thresholds)
+            r.jinja["main_link"] = self.filename
             r.set_data(self.mapping)
             r.create_report()
             df = df.append({"name": formatter.format(name, link)}, 
@@ -81,20 +91,27 @@ class ChromosomeMappingReport(BaseReport):
     def parse(self):
         self.jinja['title'] = "Mapping Report of {0}".format(
                 self.mapping.chrom_name)
-        self.jinja['main_link'] = 'index.html'
+        self.jinja['nav_off'] = True
 
-
+        # Stats of chromosome
+        if self.verbose:
+            print("Creating stats")
         df = pd.Series(self.mapping.get_stats()).to_frame()
-        self.jinja["nc_stats"] = HTMLTable(df).to_html(index=True)
+        df.index.name = "Metric"
+        df = df.reset_index()
+        self.jinja["nc_stats"] = HTMLTable(df).to_html(index=False, header=True)
 
         # Coverage plot
+        if self.verbose:
+            print("Creating coverage plot")
         self.jinja["cov_plot"] = "images/{0}_coverage.chrom{1}.png".format(
                 self.project, self.chrom_index)
         self.mapping.plot_coverage(filename=self.directory + os.sep + 
-                self.jinja["cov_plot"], low_threshold=self.low_t, 
-                high_threshold=self.high_t)
+                self.jinja["cov_plot"])
 
         # Barplot of normalized coverage with predicted gaussians
+        if self.verbose:
+            print("Creating zscore plots")
         nc_paragraph = ("Distribution of the normalized coverage with "
                 "predicted Gaussian. The red line should be followed the "
                 "trend of the barplot.")
@@ -116,31 +133,51 @@ class ChromosomeMappingReport(BaseReport):
         self.mapping.plot_hist_zscore(filename=self.directory + os.sep + 
                 self.jinja["bp_plot"])
 
+        # get region of interest
+        roi = self.mapping.get_roi(self.features)
+
         # Low threshold case
+        low_roi = roi.get_low_roi()
         low_cov_paragraph = ("Regions with a z-score lower than {0:.2f} and at "
             "least one base with a z-score lower than {1:.2f} are detected as "
             "low coverage region. Thus, there are {2} low coverage regions")
-        low_cov_df = self.mapping.get_low_coverage(self.low_t / 2)
-        merge_low_cov = low_cov_df.merge_region(self.low_t)
-        self.jinja["lc_paragraph"] = low_cov_paragraph.format(self.low_t / 2,
-                self.low_t, len(merge_low_cov))
-        html = HTMLTable(merge_low_cov)
+        self.jinja["lc_paragraph"] = low_cov_paragraph.format(
+                    self.mapping.thresholds.low2,
+                    self.mapping.thresholds.low, len(low_roi))
+        html = HTMLTable(low_roi)
         html.add_bgcolor("size")
+
+        # Create a link for each row on the start position to jump directly to a
+        # sub mapping page.
+        step = self._get_step()
+        def get_link(pos):
+            start = divmod(pos, step)[0]
+            name = "{0}_mapping_{1}".format(self.project, start*step)
+            stop = (start + 1)  * step
+            if stop > len(self.mapping):
+                stop = len(self.mapping)
+            name = "{0}_{1}".format(name, stop)
+            link = "submapping/{0}.chrom{1}.html".format(name, self.chrom_index)
+            formatter = '<a target="_blank" href={0}>{1}</a>'
+            return formatter.format(link, pos)
+        html.df["start"] = html.df["start"].apply(lambda x: get_link(x))
+
         self.jinja['low_coverage'] = html.to_html(index=False)
 
         # High threshold case
+        high_roi = roi.get_high_roi()
         high_cov_paragraph = ("Regions with a z-score higher than {0:.2f} and at "
             "least one base with a z-score higher than {1:.2f} are detected as "
             "high coverage region. Thus, there are {2} high coverage regions")
-        high_cov_df = self.mapping.get_high_coverage(self.high_t / 2)
-        merge_high_cov = high_cov_df.merge_region(self.high_t)
-        self.jinja['hc_paragraph'] = high_cov_paragraph.format(self.high_t / 2, 
-                self.high_t, len(merge_high_cov))
-        html = HTMLTable(merge_high_cov)
+        self.jinja['hc_paragraph'] = high_cov_paragraph.format(
+                self.mapping.thresholds.high2,
+                self.mapping.thresholds.high, len(high_roi))
+        html = HTMLTable(high_roi)
         html.add_bgcolor("size")
+        html.df["start"] = html.df["start"].apply(lambda x: get_link(x))
         self.jinja['high_coverage'] = html.to_html(index=False)
 
         # Sub mapping with javascript
-        df = self._generate_submapping(merge_low_cov, merge_high_cov)
+        df = self._generate_submapping(high_roi, low_roi)
         html = HTMLTable(df)
         self.jinja['list_submapping'] = html.to_html(index=False) 

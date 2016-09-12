@@ -57,7 +57,6 @@ class MappingReport(BaseReport):
 
     def parse(self):        
         self.jinja['main_link'] = 'index.html'
-        
 
         if self.bam:
             self.jinja['bam_is_present'] = True
@@ -67,16 +66,15 @@ class MappingReport(BaseReport):
             nb_mapped_read = len(self.bam) - (df.loc[4] + df.loc[256] +
                     df.loc[2048])
             html = ("<ul>\n"
-                    "<li>Reads mapped: {0}</li>\n".format(nb_mapped_read) +
-                    "<li>Reads mapped in a proper pair: {0}</li>\n".format(
-                        df.loc[2]) +
-                    "<li>Reads unmapped: {0}</li>\n".format(df.loc[4]) +
+                    "<li>Reads mapped: {0}</li>\n"
+                    "<li>Reads mapped in a proper pair: {1}</li>\n"
+                    "<li>Reads unmapped: {2}</li>\n"
                     "<li>Reads with supplementary alignment (hard clipped): "
-                    "{0}</li>\n".format(df.loc[2048]) +
-                    "<li>Reads duplicated: {0}</li>".format(df.loc[1024]) +
+                    "{3}</li>\n"
+                    "<li>Reads duplicated: {4}</li>\n"
                     "</ul>\n")
-            self.jinja["summary_bam"] = html
-            
+            self.jinja["summary_bam"] = html.format(nb_mapped_read, df.loc[2],
+                    df.loc[4], df.loc[2048], df.loc[1024])
 
             # create table of flags summary
             #df = df.to_frame()

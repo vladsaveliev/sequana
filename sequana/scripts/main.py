@@ -32,7 +32,7 @@ import sequana
 from sequana.snaketools import FastQFactory
 from sequana.adapters import FindAdaptersFromIndex
 import sequana.snaketools as sm
-from sequana import Module, SequanaConfig, sequana_data
+from sequana import SequanaConfig, sequana_data
 
 
 help_input = """Incorrect combo of parameters.
@@ -162,6 +162,10 @@ directory contains a config file named config_test.yaml, then you can use it
 with this option by just giving the name. Given the pipeline name, this utility
 will fetch the config file automatically from sequana library.""")
 
+        group.add_argument("--get-config", dest="get_config", type=str,
+                help=("Get config of a pipeline and copy it in the current " 
+                      "directory"))
+
         group.add_argument("--file1", dest="file1", type=str,
             help=""" Fills the *samples:file1* field in the config file. To be used
                 with --init option""")
@@ -250,6 +254,10 @@ def main(args=None):
     snakemake + README +runme.sh in a dedicated project directory.
 
     """
+    # these imports must be local
+    from sequana.misc import textwrap
+    from sequana.snaketools import Module
+
     if args is None:
         args = sys.argv[:]
 
@@ -271,16 +279,17 @@ def main(args=None):
     from sequana.snaketools import pipeline_names as valid_pipelines
 
     # Those options are mutually exclusive
-    flag = int("%s%s%s%s%s" % (
+    flag = int("%s%s%s%s%s%s" % (
             int(bool(options.issue)),
             int(bool(options.version)),
             int(bool(options.info)),
             int(bool(options.show_pipelines)),
             int(bool(options.pipeline)),
+            int(bool(options.get_config))
             ), 2)
-    if flag not in [1,2,4,8,16]:
+    if flag not in [1,2,4,8,16,3]:
         sa.error("You must use one of --pipeline, --info, "
-            "--show-pipelines, --issue, --version ")
+            "--show-pipelines, --issue, --version")
 
     # OPTIONS that gives info and exit
     if options.issue:
@@ -292,7 +301,6 @@ def main(args=None):
         return
 
     if options.show_pipelines:
-        from sequana.misc import textwrap
         sa.purple("Valid pipeline names:")
         for this in sorted(valid_pipelines):
             m = Module(this)
@@ -305,17 +313,19 @@ def main(args=None):
         module.onweb()
         return
 
-    # In all other cases we must have either --pipeline, --run or --info (mutually
-    # exclusive
-    if options.pipeline and options.info:
-        sa.error("ERROR: --pipeline and --info options are mutually exclusive")
-
     if options.pipeline:
         # check validity of the pipeline name
         if options.pipeline not in valid_pipelines:
             txt = "".join([" - %s\n" % this for this in valid_pipelines])
             sa.error("%s not a valid pipeline name. Use of one:\n" % options.pipeline
                      + txt)
+
+    # copy locally the request config file from a specific pipeline
+    if flag == 3: #--get-config and --pipeline used
+        module = Module(options.pipeline)
+        copy_config_from_sequana(module, options.get_config, options.get_config)
+        return
+
 
     # pipeline should be defined now
     Module("dag").check("warning")
@@ -455,7 +465,21 @@ def main(args=None):
             "to edit the config.yaml file to fill that information")
 
 
+def copy_config_from_sequana(module, source="config.yaml", target="config.yaml"):
+    # identify config name from the requested module
+    user_config = module.path + os.sep + source
+    if os.path.exists(user_config):
+        shutil.copy(user_config, target)
+        txt = "copied %s from sequana %s pipeline" % (source, module.name)
+    else:
+        txt = "%s does not exists locally or within Sequana "+\
+              "library (%s pipeline)"
+    print(txt)
+
+
 def sequana_init(options):
+    from sequana.misc import textwrap
+    from sequana import Module
     sa = Tools(verbose=options.verbose)
 
     if options.project is None:
@@ -525,17 +549,11 @@ def sequana_init(options):
     config_filename = target_dir + os.sep + "config.yaml"
 
     if options.config:
+        # full existing path
         if os.path.exists(options.config):
             shutil.copy(options.config, config_filename)
-        else:
-            # identify config name from the requested module
-            user_config = module.path + os.sep + options.config
-            if os.path.exists(user_config):
-                shutil.copy(user_config, config_filename)
-            else:
-                txt = "%s does not exists locally or within Sequana "+\
-                      "library (%s pipeline)"
-                raise FileExistsError(txt % (user_config, options.pipeline))
+        else: # or a sequana config file in the module path ?
+            copy_config_from_sequana(module, options.config, config_filename)
     else:
         shutil.copy(module.config, config_filename)
 

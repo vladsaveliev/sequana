@@ -47,6 +47,7 @@ bwa_ref:
 snpeff:
     do: no
     reference:
+    format: ""      # format of your annotation file (genbank/gff)
     options: "-no-downstream -no-upstream"
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bedtools genomecov
@@ -75,11 +76,11 @@ mark_duplicates:
 
 report_mapping:
     do: yes
-    k: 2                    # Number of gaussian predicted
-    circular: no            # If your genome is circular
-    window_size: 30001      # Window size for compute the running median
-    high_threshold: 4       # Threshold to detect high coverage
-    low_threshold: -4       # Threshold to detect low coverage
+    k: 2                      # Number of gaussian predicted
+    circular: no              # If your genome is circular
+    window_size: 30001        # Window size for compute the running median
+    first_threshold: 4        # Primary threshold to detect high/low coverage regions 
+    second_threshold: 2       # Secondary threshold to detect high/low coverage regions
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ VCF filter (dedicated to freebayes)
 

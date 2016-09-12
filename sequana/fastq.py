@@ -1095,7 +1095,6 @@ class FastQC(object):
         pylab.ylabel("percent", fontsize=self.fontsize)
 
 
-
 class MultiFastQStats(object):
     def __init__(self):
        pass

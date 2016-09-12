@@ -1,8 +1,10 @@
 from sequana import sequana_data
 from sequana import snpeff
 from easydev import TempFile
+from nose.plugins.attrib import attr
 
 
+@attr("skip")
 def test_snpeff():
 
     # a custom refrence

@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -38,23 +38,23 @@ class Options(argparse.ArgumentParser):
 
         We provide a DB called toydb. It contains only a few
         measles viruses. Its size is only 32Mb and should be used for testing
-        and examples only. 
+        and examples only.
 
         Another database is the so-called minikraken provided by Kraken's
         authors. It is about 4Gb and contains viruses and bacteria only.
 
-        A third database is built with Sequana and is about 8Gb. it can be
+        A third database is built with Sequana and is about 8Gb. It is
         stored on Synapse website and you will need an account (synapse.org).
-        It contains viruses, bacteria, homo sapiens, fungi, 
-        
+        It contains about 22,000 species: viruses, bacteria, homo sapiens, fungi,
+
         Each DB can be downloaded using:
 
             sequana_taxonomy --download toydb
 
         Then, you need to use this kind of command:
 
-            sequana_taxonomy --file1 R1.fastq --file2 R2.fastq 
-                --database /home/user/.config/sequana/kraken_toydb 
+            sequana_taxonomy --file1 R1.fastq --file2 R2.fastq
+                --database /home/user/.config/sequana/kraken_toydb
                 --show-html --thread 4
 
 AUTHORS: Thomas Cokelaer
@@ -73,21 +73,23 @@ Issues: http://github.com/sequana/sequana
         self.add_argument("--file2", dest="file2", type=str,
             help="""R2 fastq file (zipped) """)
         self.add_argument("--database", dest="database", type=str,
+            choices=["sequana_db1", "toydb", "minikraken"],
             help="""Path to a valid Kraken database. If you do not hae any, use
                 --download option""")
-        self.add_argument("--output", dest="output", type=str,
-            help="""name of the output HTML file""", default="kraken.html")
+        self.add_argument("--output-directory", dest="directory", type=str,
+            help="""name of the output directory""", default="taxonomy")
         self.add_argument("--thread", dest="thread", type=int,
             help="""number of threads to use """, default=4)
-        self.add_argument("--show-html", dest="html", 
-            action="store_true", 
-            help="""Results are stored in report/ directory and results are 
+        self.add_argument("--show-html", dest="html",
+            action="store_true",
+            help="""Results are stored in report/ directory and results are
                 not shown by default""")
         self.add_argument("--download", dest="download", type=str,
-            default=None,
-            help="""download an official sequana DB (minikraken, toydb,
-                sequana_db1). The database are stored in a dedicated Sequana
-                directory, which path depends on your system""")
+            default=None, choices=["sequana_db1", "toydb", "minikraken"],
+            help="""download an official sequana DB. The sequana_db1 is stored
+                in a dedicated Synapse page (www.synapse.org). minikraken 
+                is donwload from the kraken's author page, and toydb from
+                sequana github.""")
 
 
 def main(args=None):
@@ -119,30 +121,41 @@ def main(args=None):
 
     fastq = []
     if options.file1:
+        devtools.check_exists(options.file1)
         fastq.append(options.file1)
     if options.file2:
+        devtools.check_exists(options.file2)
         fastq.append(options.file2)
 
-    #if options.database not in valid_db:
-    #    raise ValueError("DB to use must be one of %s" % valid_db)
-
-    #if options.database == "minikraken":
-    #    options.database == "minikraken_2014208"
+    devtools.mkdir(options.directory)
 
 
-    devtools.mkdir("kraken")
+    from sequana import sequana_config_path as scfg
+    if os.path.exists(options.database): # local DB ?
+        pass
+    elif options.database == "toydb":
+        options.database = "kraken_toydb"
+    elif options.database == "minikraken":
+        options.database = "minikraken_20141208"
+
+    if os.path.exists(scfg + os.sep + options.database): # in Sequana path
+        options.database = scfg + os.sep + options.database
+    else:
+        msg = "Invalid database name (%s). Neither found locally "
+        msg += "or in the sequana path %s; Use the --download option"
+        raise ValueError(msg % (options.database, scfg))
+
+
+    # if DB exists locally, use it otherwise add the sequana path
     k = KrakenPipeline(fastq, options.database, threads=options.thread, 
-           output="kraken" + os.sep + options.output)
+        output=options.directory + os.sep + "kraken.html")
 
     output_png = "kraken.png"
-    k.run(output_png="kraken/%s" % output_png)
-
-    if options.html is True:
-        k.show()
+    k.run(output_png=options.directory +os.sep + "/%s" % output_png)
 
     if 1==1:
         # Here we create a simple temporary config file to be read by the Summary
-        # report 
+        # report
         from easydev import TempFile
         config_txt = "samples:\n"
         config_txt += '    file1: "%s"\n' % options.file1
@@ -157,14 +170,16 @@ def main(args=None):
         fh = open(tf.name, "w")
         fh.write(config_txt)
         fh.close()
-        print(tf.name)
 
         from sequana import SequanaSummary
-        ss = SequanaSummary("kraken", "summary.html", tf.name, 
+        ss = SequanaSummary(options.directory, "summary.html", tf.name,
             include_all=False, workflow=False)
         ss.include_input_links()
         ss.jinja['kraken_pie'] = output_png
         ss.create_report()
+    
+    if options.html is True:
+        ss.onweb()
 
 
 if __name__ == "__main__":

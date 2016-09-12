@@ -19,24 +19,34 @@ configfile: "config.yaml"
 cfg = SequanaConfig(config)
 
 
-final_output = list()
+final_output = []
 
-# mapping
+# If annotation file is not provided
+__report_mapping__ann = None
+__report_mapping__ann_format = None
+
+
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
 # we must check if we are in the case of denovo assembly:
 try:
     __bwa_mem_ref__ref_input
+    __report_mapping__quast_input = __quast__output
 except NameError:
     __bwa_mem_ref__ref_input = config["bwa_ref"]["reference"]
+    __report_mapping__quast_input = []
 
-# Generate data directory for SnpEff
+# Generate data directory for SnpEff and annotation file for coverage
 if config["snpeff"]["do"]:
     tmp = SnpEff(config["snpeff"]["reference"])
     __add_locus_in_fasta__fasta_input = __bwa_mem_ref__ref_input
     include: sm.modules["add_locus_in_fasta"]
     __bwa_mem_ref__ref_input = __add_locus_in_fasta__output
+    __report_mapping__ann_input = config["snpeff"]["reference"]
+else:
+    __report_mapping__ann_input = []
 
+# Mapping
 include: bwa_mem_dynamic("ref", cfg.DATASET)
 __mark_duplicates__input = __bwa_mem_ref__output
 __indel_realigner__input = __bwa_mem_ref__output

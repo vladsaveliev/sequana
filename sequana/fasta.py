@@ -74,8 +74,8 @@ class FastA(object):
     comment = property(_get_comment)
 
     def format_contigs_denovo(self, output_file, len_min=500):
-        """ Method to replace NODE with the project name and remove contigs
-        with a length lower than len_min.
+        """Replace NODE with the project name and remove contigs with a length 
+        lower than len_min.
 
         :param str output_file: output file name.
         :param int len_min: minimal length of contigs.

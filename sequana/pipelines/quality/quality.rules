@@ -15,11 +15,12 @@ expected_output = []
 if do_adapter_removal:
     adapter_removal = cfg.config.adapter_removal.tool
     trimming = adapter_removal
-    if adapter_removal not in ['cutadapt', "skewer"]:
-        raise ValueError("trimming must be either cutadapt or skewer. Change the config file")
+    if adapter_removal not in ['cutadapt', "skewer", "atropos"]:
+        raise ValueError("trimming must be either cutadapt/atropos or skewer. ",
+            "Change the config file")
 
-    if adapter_removal == "cutadapt":
-        include: sm.modules[trimming]
+    if adapter_removal in ["cutadapt", "atropos"] :
+        include: sm.modules["cutadapt"]
         include: fastqc_dynamic(trimming, __cutadapt__output)
         include: fastq_stats_dynamic(trimming, __cutadapt__output)
         expected_output += ['fastqc__cutadapt/fastqc.done']
@@ -44,10 +45,10 @@ rule pipeline_quality:
         touch("logs/pipeline_quality.done")
     run:
         if do_adapter_removal:
-            if adapter_removal == "cutadapt":
+            if adapter_removal in ["cutadapt", "atropos"]:
                 from sequana.reporting import report_cutadapt
                 s = report_cutadapt.CutAdaptReport(directory="report")
-                s.read_data("logs/{0}.txt".format(trimming))
+                s.read_data("logs/{0}.txt".format("cutadapt"))
                 s.create_report()
             elif adapter_removal == "skewer":
                 from sequana.reporting import report_skewer
