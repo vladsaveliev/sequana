@@ -79,8 +79,8 @@ report_mapping:
     k: 2                      # Number of gaussian predicted
     circular: no              # If your genome is circular
     window_size: 30001        # Window size for compute the running median
-    first_threshold: 4        # Primary threshold to detect high/low coverage regions 
-    second_threshold: 2       # Secondary threshold to detect high/low coverage regions
+    high_threshold: 4         # Threshold to detect high coverage regions 
+    low_threshold: -4         # Threshold to detect low coverage regions
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ VCF filter (dedicated to freebayes)
 
