@@ -76,7 +76,7 @@ onsuccess:
     shell('cp -r fastqc_*/ report')
 
     ss.create_report()
-    ss.touch("finished")
+    sm.touch("finished")
 
 
 onerror:
