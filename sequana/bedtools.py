@@ -560,8 +560,10 @@ class ChromosomeCov(object):
         try:
             bins = np.arange(min(df), max(df) + binwidth, binwidth)
         except ValueError:
-            bins = 100
-        return bins
+            return 100
+        if bins.any():
+            return bins
+        return 100
 
     def plot_hist_zscore(self, fontsize=16, filename=None, max_z=6,
             binwidth=0.5, **hist_kargs):
