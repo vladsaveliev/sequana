@@ -67,16 +67,16 @@ class Tools(object):
         print(red(txt))
         sys.exit(1)
     def purple(self, txt, force=False):
-        if self.verbose or force is True: 
+        if self.verbose or force is True:
             print(purple(txt))
     def red(self, txt, force=False):
-        if self.verbose or force is True: 
+        if self.verbose or force is True:
             print(red(txt))
     def green(self, txt, force=False):
-        if self.verbose or force is True: 
+        if self.verbose or force is True:
             print(green(txt))
     def blue(self, txt, force=False):
-        if self.verbose or force is True: 
+        if self.verbose or force is True:
             print(blue(txt))
     def onweb(self, link):
         from easydev import onweb
@@ -91,14 +91,27 @@ class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana"):
         usage = """Welcome to SEQUANA standalone
 
-            sequana --pipeline quality
-            sequana --pipeline quality  --file1 A.fastq.gz --project myname
-            sequana --pipeline variant_calling  --input-dir ../
-            sequana --show-pipelines
-            sequana --version
+        Provide a valid pipeline name:
 
-        If you have lots of paired-end, use a --glob without --project ; This
-        will create as many directories as required.
+            sequana --pipeline quality
+
+        Valid names can be retrieved using :
+
+            sequana --show-pipelines
+
+        You must provide one or 2 filenames:
+
+            sequana --pipeline quality  --file1 A.fastq.gz --project myname
+
+        You may use --input-dir or --glob to help you especially if you have
+        multiple samples:
+
+            sequana --pipeline variant_calling  --input-dir ../
+
+        If multiple samples are found, sub-directories are created for each
+        sample. In such case, for adapters a index-mapper file that maps adapter
+        to index can be used.
+
 
 
 AUTHORS: Thomas Cokelaer and Dimitri Devilleschabrol
@@ -164,9 +177,52 @@ will fetch the config file automatically from sequana library.""")
 
         group.add_argument("--get-config", dest="get_config", default=False,
                 action="store_true",
-                help=("Get config of a pipeline and copy it in the current " 
+                help=("Get config of a pipeline and copy it in the current "
                       "directory"))
+        group.add_argument("--config-params", dest="config_params",
+            type=str,
+            help=r"""Overwrite any field in the config file by using
+                    the following convention. A config file is in YAML format
+                    and has a hierarchy of parametesr. For example:
 
+                    project: tutorial
+                    samples:
+                        file1: R1.fastq.gz
+                        file2: R2.fastq.gz
+                    bwa_phix:
+                        mem:
+                            threads: 2
+
+                Here we have 3 sections with 1,2,3 levels respectively. On the
+                command line, each level is separated by a : sign and each
+                meter to be changed separated by a comma. So to change the
+                project name and threads inside the bwa_phix section use:
+
+                --config-params project:newname, bwa_phix:mem:threads:4
+
+                Be aware that when using --config-params, all comments are
+removed.""")
+
+        # ====================================================== CLUSTER
+        group = self.add_argument_group("Snakemake and cluster related",
+            """When launching the pipeline, one need to use the snakemake
+command, which is written in the runme.sh file. One can tune that command to
+define the type of cluster command to use
+            """)
+        group.add_argument("--snakemake-cluster", dest="cluster", type=str,
+                          help="""a valid snakemake option dedicated to a cluster.
+                          e.g on LSF cluster --cluster 'qsub -cwd -q<QUEUE> '"""
+                          )
+        group.add_argument("--snakemake-jobs", dest="jobs", type=int, default=4,
+                          help="""jobs to use on a cluster"""
+                          )
+        group.add_argument("--snakemake-forceall", dest="forceall", action='store_true',
+                          help="""add --forceall in the snakemake command"""
+                          )
+
+
+
+        group = self.add_argument_group("INPUT FILES")
         group.add_argument("--file1", dest="file1", type=str,
             help=""" Fills the *samples:file1* field in the config file. To be used
                 with --init option""")
@@ -181,6 +237,7 @@ will fetch the config file automatically from sequana library.""")
                 file. To be used with --init option. If more than two files or not
                 files ending in fastq.gz are found, an error is raised.""")
 
+        group.add_argument_group("SPECIFIC")
         group.add_argument("--project", dest="project", type=str,
             help=""" Fills the *project* field in the config file. To be used
                 with --pipeline option""")
@@ -202,52 +259,10 @@ will fetch the config file automatically from sequana library.""")
         group.add_argument("--index-mapper", dest="index_mapper", type=str,
             help="""a CSV file with 3 columns named 'sample name', 'index1','index2' """)
         group.add_argument("--adapters", dest="adapters", type=str,
-            help="""When using --index-mapper, you must also provide the type of 
+            help="""When using --index-mapper, you must also provide the type of
                 adapters using this parameter. Valid values are either Nextera or PCRFree
                 Corresponding files can be found in github.com/sequana/sequana/resources/data/adapters
                 """)
-
-        group.add_argument("--config-params", dest="config_params", 
-            type=str, 
-            help=r"""Overwrite any field in the config file by using
-                    the following convention. A config file is in YAML format
-                    and has a hierarchy of parametesr. For example:
-
-                    project: tutorial
-                    samples:
-                        file1: R1.fastq.gz
-                        file2: R2.fastq.gz
-                    bwa_phix:
-                        mem:    
-                            threads: 2
-
-                Here we have 3 sections with 1,2,3 levels respectively. On the
-                command line, each level is separated by a : sign and each
-                meter to be changed separated by a comma. So to change the
-                project name and threads inside the bwa_phix section use:
-
-                --config-params project:newname, bwa_phix:mem:threads:4
-                
-                Be aware that when using --config-params, all comments are
-removed.""")
-
-        # ====================================================== CLUSTER
-        group = self.add_argument_group("Snakemake and cluster related",
-            """When launching the pipeline, one need to use the snakemake
-command, which is written in the runme.sh file. One can tune that command to
-define the type of cluster command to use
-            """)
-        group.add_argument("--snakemake-cluster", dest="cluster", type=str,
-                          help="""a valid snakemake option dedicated to a cluster.
-                          e.g on LSF cluster --cluster 'qsub -cwd -q<QUEUE> '"""
-                          )
-        group.add_argument("--snakemake-jobs", dest="jobs", type=int, default=4,
-                          help="""jobs to use on a cluster"""
-                          )
-        group.add_argument("--snakemake-forceall", dest="forceall", action='store_true',
-                          help="""add --forceall in the snakemake command"""
-                          )
-
 
 def main(args=None):
     """Mostly checking the options provided by the user and then call
@@ -402,10 +417,10 @@ def main(args=None):
 
         if options.index_mapper:
             if options.adapters is None or options.adapters not in ["Nextera", "PCRFree"]:
-                raise ValueError("When using --index-mapper, you must also " 
+                raise ValueError("When using --index-mapper, you must also "
                     "provide the type of adapters using --adapters (set to "
                     "Nextera or PCRFree)")
-            adapter_finder = FindAdaptersFromIndex(options.index_mapper, 
+            adapter_finder = FindAdaptersFromIndex(options.index_mapper,
                                 options.adapters)
         elif options.adapter_fwd:
             pass
@@ -563,10 +578,10 @@ def sequana_init(options):
     with open(config_filename, "r") as fin:
         config_txt = fin.read()
 
-    # and save it back filling it with relevant information such as 
+    # and save it back filling it with relevant information such as
     # - project
-    # - file1 
-    # - file2 
+    # - file1
+    # - file2
     # - kraken db
     # - reference for the bwa_ref
     # - adapter
@@ -632,7 +647,7 @@ def sequana_init(options):
                 sa.print("This file %s will be needed" % requirement)
                 wget(requirement)
 
-    # FIXME If invalid, no error raised 
+    # FIXME If invalid, no error raised
     if options.config_params:
         cfg = SequanaConfig(config_filename)
         params = [this.strip() for this in options.config_params.split(",")]
