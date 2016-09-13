@@ -431,7 +431,7 @@ def main(args=None):
 
         with open("multirun.sh", "w") as fout:
             import sequana
-            fout.write("#!/usr/sh\n")
+            fout.write("#!/bin/sh\n")
             fout.write("# generated with sequana version %s with this command\n" % sequana.version)
             fout.write("# %s\n" % " ".join(sys.argv))
             for tag in ff.tags:
