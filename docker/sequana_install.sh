@@ -30,7 +30,7 @@ conda install kraken krona scipy  graphviz -y
 conda install ipython -y
 
 # Finally, Sequana release itself
-pip install sequana==0.1.10
+pip install sequana==0.1.11
 
 #git clone https://github.com/sequana/sequana
 
