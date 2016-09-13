@@ -55,6 +55,5 @@ onsuccess:
     shell('cp report/kraken.html report/kraken_translate.html')
     # the summary.html report itself.
     summary.create_report()
-
     ss.touch("finished")
 

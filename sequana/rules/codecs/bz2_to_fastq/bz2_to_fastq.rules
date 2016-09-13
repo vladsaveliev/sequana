@@ -1,0 +1,5 @@
+rule bz2_to_fastq:
+    input: "{dataset}.bz2"
+    output: "{dataset}"
+    run:
+        shell("pbunzip2 {input}")

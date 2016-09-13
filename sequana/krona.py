@@ -75,7 +75,7 @@ class KronaMerger(collections.Counter):
         assert output_filename.endswith('.tsv')
         labels = []
         counts = []
-        for k,count in self.items():
+        for k, count in self.items():
             labels.append(k)
             counts.append(count)
         df = pd.DataFrame({'label':labels, 'count':counts})

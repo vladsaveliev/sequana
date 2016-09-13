@@ -3,6 +3,18 @@ Changelog
 
 .. contents::
 
+0.1.12
+-----------
+
+* BUGS:
+
+   - Fix bug in cutadapt pipeline when there is no adapters. Force a dummy
+     adapters (XXX) otherwise trimming is performed on read1 only
+
+* NEWS:
+
+    - compressor rule and script available.
+
 
 0.1.11
 ----------
@@ -29,8 +41,9 @@ Changelog
 ----------------------
 
 * NEWS:
+
     - sequana_coverage standalone
-    - de-novo pipeline 
+    - de-novo pipeline
 
 * CHANGES:
 

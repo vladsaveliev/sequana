@@ -1,0 +1,5 @@
+rule fastq_to_bz2:
+    input: "{dataset}"
+    output: "{dataset}.bz2"
+    run:
+        shell("pbzip2 {input}")

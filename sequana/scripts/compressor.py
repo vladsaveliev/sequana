@@ -20,7 +20,6 @@
 import os
 import sys
 import shutil
-import glob
 import sys
 from optparse import OptionParser
 import argparse
@@ -28,13 +27,33 @@ import argparse
 from snakemake import shell
 from easydev import TempFile 
 
+
 class Options(argparse.ArgumentParser):
-    def  __init__(self, prog="sequana_taxonomy"):
-        usage = """Welcome to SEQUANA - Compression standalone
+    def  __init__(self, prog="sequana_compressor"):
+        usage = """Welcome to SEQUANA - Fastq compression standalone
+
+    This standalone fetches recursively all files in a given format (--from)
+    and transform them into another format (--to)
+
+    Supported files must have one of the following extension:
+    
+        - fastq
+        - fastq.gz
+        - fastq.bz2
+
+    The underlying compression tools used are pigz and pbzip2, which must be
+    installed.
+
+    sequana_compressor --from fastq.gz --to fastq.bz2
+    sequana_compressor --from fastq --to fastq.bz2
+    sequana_compressor --from fastq.gz --to fastq
+    sequana_compressor --from fastq.bz2 --to fastq
+
 
 AUTHORS: Thomas Cokelaer
 Documentation: http://sequana.readthedocs.io
 Issues: http://github.com/sequana/sequana
+
         """
         description = """DESCRIPTION:
         """

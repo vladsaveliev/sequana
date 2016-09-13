@@ -52,8 +52,7 @@ class DoubleThresholds(object):
 
 
     """
-    def __init__(self, low=-3, high=3,
-            ldtr=0.5, hdtr=0.5):
+    def __init__(self, low=-3, high=3, ldtr=0.5, hdtr=0.5):
 
         assert ldtr>=0. and ldtr<=1.,\
             "ldrt parameter (low double threshold ratio) must be in [0,1]"

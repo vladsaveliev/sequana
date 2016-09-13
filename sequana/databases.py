@@ -142,7 +142,7 @@ class ENADownload(object):
         # Now, let us convert the ENA accession to NCBI GI number once for all.
         # We can fetch only at max 200 identifiers:
         print("Fetching %s identifiers from NCBI" % len(identifiers))
-        Nbaskets = math.ceil(len(identifiers)/200.)
+        Nbaskets = int(math.ceil(len(identifiers)/200.))
         results = {}
         from easydev import split_into_chunks
         for chunk in split_into_chunks(identifiers, Nbaskets):
