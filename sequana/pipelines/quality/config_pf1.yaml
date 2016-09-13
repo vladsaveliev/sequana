@@ -1,4 +1,9 @@
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 1bde52921f93a43ef6f09e259ce610e4dec7a3bf
 # =========================================== Sections for the users
 
 # list of your input file
@@ -17,6 +22,10 @@ project: "%(project)s"
 requirements:
     - phiX174.fa
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1bde52921f93a43ef6f09e259ce610e4dec7a3bf
 # =========================================== For testing only
 # If True, only a subset of the reads (N) are used
 
@@ -26,6 +35,11 @@ fastq_sampling:
 
 # =========================================== Sections related to external tools
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 1bde52921f93a43ef6f09e259ce610e4dec7a3bf
 fastqc:
     options: "--nogroup"
 
