@@ -162,7 +162,8 @@ directory contains a config file named config_test.yaml, then you can use it
 with this option by just giving the name. Given the pipeline name, this utility
 will fetch the config file automatically from sequana library.""")
 
-        group.add_argument("--get-config", dest="get_config", type=str,
+        group.add_argument("--get-config", dest="get_config", default=False,
+                action="store_true",
                 help=("Get config of a pipeline and copy it in the current " 
                       "directory"))
 
@@ -323,7 +324,7 @@ def main(args=None):
     # copy locally the request config file from a specific pipeline
     if flag == 3: #--get-config and --pipeline used
         module = Module(options.pipeline)
-        copy_config_from_sequana(module, options.get_config, options.get_config)
+        copy_config_from_sequana(module)
         return
 
 
