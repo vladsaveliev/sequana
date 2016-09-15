@@ -18,6 +18,7 @@
 ##############################################################################
 import os
 import glob
+import json
 
 from sequana.reporting.report_main import BaseReport
 from easydev import DevTools
@@ -100,6 +101,9 @@ class SequanaSummary(BaseReport):
         if configfile:
             self.jinja['cfg'] = self.config.config
 
+        with open("%s/summary.json" % directory, "w") as fh:
+            json.dump(self.jinja, fh, indent=4)
+
     def include_input_links(self):
         # Links to the datasets
         html = "<ul>"
@@ -144,6 +148,7 @@ class SequanaSummary(BaseReport):
 
         from reports import HTMLTable
         df = pd.read_json("cutadapt/cutadapt_stats1.json")
+        self.jinja["cutadapt_stats1_json"] = df.to_json()
         h = HTMLTable(df)
         html = h.to_html(index=True)
         self.jinja['cutadapt_stats1'] = html
@@ -151,6 +156,12 @@ class SequanaSummary(BaseReport):
     def include_sample_stats(self):
         filename = "fastq_stats__samples/temp_fastq_stats__samples.html"
         self.jinja['sample_stats'] = open(filename, "r").read()
+
+        # FIXME: more robust name required
+        filename = "report/%s_R1_001_fastq_stats.json" % self.config.PROJECT
+        print(filename)
+        df = pd.read_json(filename)
+        self.jinja["sample_stats__samples_json"] = df.to_json()
 
         # find an image
         filenames = glob.glob("report/images/%s_*_R1_*boxplot*png" % self.config.PROJECT)
@@ -171,6 +182,9 @@ class SequanaSummary(BaseReport):
             from sequana import tools
             stats = tools.StatsBAM2Mapped(filename)
             self.jinja['phix_section'] = stats.to_html(with_stats=False)
+            self.jinja['phix_section'] = stats.to_html(with_stats=False)
+
+            self.jinja['phix_section_json'] = stats.data
 
         # include html pages with some stats
         filename = "fastq_stats__phix/temp_fastq_stats__phix.html"
