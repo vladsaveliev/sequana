@@ -15,8 +15,6 @@ def stacked_bar(tag, title, datalist):
         }
     }
     """
-    
-
     dataitems = ""
     for item in datalist:
         datatext = []
@@ -25,7 +23,7 @@ def stacked_bar(tag, title, datalist):
         datatext = ",\n        ".join(datatext)
 
         params = {
-            "name": item['name'], 
+            "name": item['name'],
             "datatext": datatext}
 
         dataitems += """
@@ -76,11 +74,58 @@ chart.render();
 """
     return script % metadata
 
-#<script type="text/javascript" src="js/canvasjs.min.js"></script></head>
-#<body>
-#  <div id="chartContainer" style="height: 300px; width: 100%;">
-#  </div>
-#</body>
-#</html>
 
+class CanvasBar(object):
+    def __init__(self, data, title="", tag="", xlabel="",
+        ylabel_max_length=20, **kargs):
+
+        self.title = title
+        self.tag = tag
+
+        if isinstance(data, dict):
+            dataitems = "["
+            for label, value in data.items():
+                dataitems += '{y:%s,label:"%s"},' % (value, label)
+            dataitems += "]"
+        else:
+            raise NotImplementedError
+
+        self.metadata = {
+            "dataitems": dataitems,
+            "title": self.title,
+            "xlabel":xlabel,
+            "tag": self.tag}
+
+    def to_html(self):
+        script = """
+    var chart = new CanvasJS.Chart("chartContainer%(tag)s",
+    {
+      theme: "theme2",
+      title:{
+        text: "%(title)s"
+      },
+      animationEnabled: true,
+      axisY:{
+        title: "%(xlabel)s"
+      },
+      legend :{
+        horizontalAlign: 'center',
+        verticalAlign: 'bottom'
+      },
+      toolTip: {
+        shared: true
+      },
+      data:[
+      {
+          type: "bar",
+          dataPoints: %(dataitems)s
+      },
+      ]
+    });
+
+chart.render();
+
+"""
+        return script % self.metadata
+#<div id="chartContainer%(tag)s" style="height: 300px; width: 100%%;">
 
