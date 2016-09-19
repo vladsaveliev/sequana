@@ -70,7 +70,7 @@ class SequanaMultipleSummary(BaseReport):
 
 
     """
-    def __init__(self, pattern="**/summary.json", **kargs):
+    def __init__(self, pattern="**/summary.json", verbose=True, **kargs):
 
         super(SequanaMultipleSummary, self).__init__(
             jinja_filename="multi_summary.html",
@@ -78,6 +78,7 @@ class SequanaMultipleSummary(BaseReport):
             output_filename="multi_summary.html",
             **kargs)
 
+        self.verbose = verbose
         workdir = "."
         self.jinja['title'] = "Sequana multiple summary" 
         self.env.loader.searchpath.extend([workdir])
@@ -85,6 +86,9 @@ class SequanaMultipleSummary(BaseReport):
 
         self.filenames = list(glob.iglob(pattern))
         self.summaries = [ReadSummary(filename) for filename in self.filenames]
+
+        if self.verbose:
+            print("Found %s projects/samples/ directories" % len(self.summaries))
 
         # The base has a navigation, that we do not want
         self.jinja['nav_off'] = 'True'

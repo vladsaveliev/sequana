@@ -5,6 +5,7 @@ import sys
 from optparse import OptionParser
 import argparse
 
+import pandas as pd
 
 
 class Options(argparse.ArgumentParser):
@@ -34,6 +35,9 @@ Issues: http://github.com/sequana/sequana
                 description=description)
 
         # options to fill the config file
+        self.add_argument("-m", "--multiple", action="store_true", default=False)
+        self.add_argument("-q", "--quiet", action="store_true", default=False)
+
         self.add_argument("-f", "--file", dest="file", type=str,
             required=False, help="""one filename (either FastQ or BED file; see
                 DESCRIPTION)""")
@@ -74,18 +78,30 @@ def get_bam_stats(filename):
 
 
 def main(args=None):
-    import pandas as pd
 
     if args is None:
         args = sys.argv[:]
 
     user_options = Options(prog="sequana")
 
+
+    print("the usage of the summary tool may change significantly in the future")
+
     # If --help or no options provided, show the help
     if len(args) == 1:
         user_options.parse_args(["prog", "--help"])
     else:
         options = user_options.parse_args(args[1:])
+    options.verbose = not options.quiet
+
+
+    if options.multiple is True:
+        from sequana.reporting.report_multiple_summary import SequanaMultipleSummary
+        sms = SequanaMultipleSummary(verbose=options.verbose)
+        sms.create_report()
+        if options.verbose:
+            print("Done. ")
+        sys.exit(0)
 
     # We put the import here to make the --help faster
     if options.file:
