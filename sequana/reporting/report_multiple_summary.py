@@ -84,7 +84,7 @@ class SequanaMultipleSummary(BaseReport):
         self.env.loader.searchpath.extend([workdir])
         self.devtools = DevTools()
 
-        self.filenames = list(glob.iglob(pattern))
+        self.filenames = list(glob.iglob(pattern, recursive=True))
         self.summaries = [ReadSummary(filename) for filename in self.filenames]
 
         if self.verbose:
@@ -153,9 +153,10 @@ class SequanaMultipleSummary(BaseReport):
         remove also the filename itself.
         """
         projects = self.get_projects()
-        filenames = [x.split('/')[0] for x in self.filenames]
-        filenames = [x + " (%s)" % y for x,y in zip(projects, filenames)] 
-        return filenames
+        if len(projects) == set(projects):
+            return projects
+        else:
+            return self.filenames
 
     def get_gc_content_samples(self):
         return [x.get_fastq_stats_samples()['GC content']["0"] for x in self.summaries]

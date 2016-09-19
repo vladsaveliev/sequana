@@ -97,7 +97,10 @@ def main(args=None):
 
     if options.multiple is True:
         from sequana.reporting.report_multiple_summary import SequanaMultipleSummary
-        sms = SequanaMultipleSummary(verbose=options.verbose)
+        if options.glob:
+            sms = SequanaMultipleSummary(pattern=options.glob, verbose=options.verbose)
+        else:
+            sms = SequanaMultipleSummary(verbose=options.verbose)
         sms.create_report()
         if options.verbose:
             print("Done. ")
