@@ -26,6 +26,7 @@ before_install:
 
 
 install:
+  - echo $TRAVIS_PYTHON_VERSION
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy matplotlib nose pandas coverage numexpr xlrd cython
   # use pip to get latest version
   - pip install easydev>=0.9.21 --upgrade
