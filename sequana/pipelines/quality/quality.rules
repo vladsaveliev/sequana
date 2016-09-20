@@ -76,3 +76,7 @@ onsuccess:
     shell('cp -r fastqc_*/ report')
     # the summary.html report itself.
     ss.create_report()
+
+
+    sm.touch("finished")
+

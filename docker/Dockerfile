@@ -4,17 +4,14 @@ FROM ubuntu:16.04
 MAINTAINER Thomas Cokelaer
 
 
-#ENTRYPOINT ["/home/sequana"]
-#CMD ["sequana --help"]
-#EXPOSE 8100
-
-
-
-
-
-
-# Just copy the installation scripts and execute it
+# Instructions after ADD are not cached
 ADD sequana_install.sh /
 RUN /bin/bash /sequana_install.sh
 
-ENV HOME /home/sequana
+# the source is done in the previous RUN command
+# RUN source conda/bin/activate
+CMD ["sequana_coverage"]
+
+
+
+

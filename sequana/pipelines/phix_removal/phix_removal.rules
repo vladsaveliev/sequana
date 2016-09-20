@@ -76,8 +76,8 @@ onsuccess:
     shell('cp -r fastqc_*/ report')
 
     ss.create_report()
+    sm.touch("finished")
 
-    
 
 onerror:
     print("An error occurred. See message above.")

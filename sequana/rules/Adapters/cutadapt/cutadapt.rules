@@ -23,7 +23,7 @@ else:
 
 if len(cfg.DATASET) == 2:
     rule cutadapt:
-        input: 
+        input:
             file1 = __cutadapt__input[0],
             file2 = __cutadapt__input[1]
         output:
@@ -45,10 +45,16 @@ if len(cfg.DATASET) == 2:
                 cmd += " -pe1 {input.file1} -pe2 {input.file2} --progress bar"
             else:
                 cmd += " {input.file1} {input.file2} "
+
             if params.fwd:
                 cmd += " -{params.mode1} {params.fwd} "
+            else:
+                cmd += " -{params.mode1} XXXX "
             if params.rev:
-                cmd += " -{params.mode2} {params.rev} " 
+                cmd += " -{params.mode2} {params.rev} "
+            else:
+                cmd += " -{params.mode2} XXXX "
+
             cmd += " -m {params.m} -q {params.quality} "
             cmd += " {params.kwargs} > {log}"
             shell(cmd)
@@ -69,7 +75,9 @@ else:
             executable = cfg.adapter_removal.tool # could be cutadapt or atropos
             cmd = "%s -o {output.file1} {input.file1}" % executable
             if params.fwd:
-                cmd += "    -{params.mode} {params.fwd} " 
+                cmd += "    -{params.mode} {params.fwd} "
+            else:
+                cmd += "    -{params.mode} XXXX "
             cmd += " -m {params.m} -q {params.quality} "
             cmd += " {params.kwargs} > {log}"
             shell(cmd)

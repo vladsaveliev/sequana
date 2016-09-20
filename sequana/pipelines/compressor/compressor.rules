@@ -1,0 +1,52 @@
+import glob
+from sequana import SequanaConfig
+import sequana.snaketools as ss
+
+cfg = SequanaConfig(config, mode="others").config
+
+
+target = ""  # by default no extension after .fastq
+
+# What do we want to convert ?
+if cfg.compressor.source == "fastq.gz":
+    include: ss.modules["gz_to_fastq"]
+    if cfg.compressor.target == "fastq.bz2":
+        include: ss.modules["fastq_to_bz2"]
+        target = ".bz2"
+elif cfg.compressor.source == "fastq.bz2":
+    include: ss.modules["bz2_to_fastq"]
+    if cfg.compressor.target == "fastq.gz":
+        include: ss.modules["fastq_to_gz"]
+        target = ".gz"
+elif cfg.compressor.source == "fastq":
+    if cfg.compressor.target == "fastq.gz":
+        include: ss.modules["fastq_to_gz"]
+        target = ".gz"
+    if cfg.compressor.target == "fastq.bz2":
+        include: ss.modules["fastq_to_bz2"]
+        target = ".bz2"
+
+# The input files
+if cfg.compressor.recursive is True:
+    input_filenames = list(glob.iglob("**/*.%s" % cfg.compressor.source,  recursive=True))
+else:
+    input_filenames = list(glob.iglob("*.%s" % cfg.compressor.source))
+fastq = [x.replace(".bz2", "").replace(".gz","") for x in input_filenames]
+
+# Some information printed
+try:
+    if cfg.compressor.verbose:
+        ss.message("Found %s files to process" % len(fastq))
+except:
+    pass
+
+rule all:
+    input: expand("{dataset}{extension}", dataset=fastq, extension=target)
+
+
+
+
+
+
+
+

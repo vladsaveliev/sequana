@@ -52,8 +52,7 @@ class DoubleThresholds(object):
 
 
     """
-    def __init__(self, low=-3, high=3,
-            ldtr=0.5, hdtr=0.5):
+    def __init__(self, low=-3, high=3, ldtr=0.5, hdtr=0.5):
 
         assert ldtr>=0. and ldtr<=1.,\
             "ldrt parameter (low double threshold ratio) must be in [0,1]"
@@ -560,8 +559,10 @@ class ChromosomeCov(object):
         try:
             bins = np.arange(min(df), max(df) + binwidth, binwidth)
         except ValueError:
-            bins = 100
-        return bins
+            return 100
+        if bins.any():
+            return bins
+        return 100
 
     def plot_hist_zscore(self, fontsize=16, filename=None, max_z=6,
             binwidth=0.5, **hist_kargs):
@@ -858,6 +859,7 @@ class FilteredGenomeCov(object):
         int_column = ["start", "end", "size"]
         merge_df[int_column] = merge_df[int_column].astype(int)
         if annotation:
+            merge_df.rename(columns = {"gene": "gene_name"}, inplace=True)
             # maybe let the user set what he wants
             return merge_df.loc[merge_df["type"].isin(
                 FilteredGenomeCov._feature_wanted)]

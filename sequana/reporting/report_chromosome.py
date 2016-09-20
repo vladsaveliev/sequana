@@ -144,8 +144,9 @@ class ChromosomeMappingReport(BaseReport):
         self.jinja["lc_paragraph"] = low_cov_paragraph.format(
                     self.mapping.thresholds.low2,
                     self.mapping.thresholds.low, len(low_roi))
-        html = HTMLTable(low_roi)
-        html.add_bgcolor("size")
+
+        # Save information relatd to the low ROIs
+        html = self.htmltable(low_roi, "low_coverage", bgcolors=["size"])
 
         # Create a link for each row on the start position to jump directly to a
         # sub mapping page.
@@ -160,11 +161,12 @@ class ChromosomeMappingReport(BaseReport):
             link = "submapping/{0}.chrom{1}.html".format(name, self.chrom_index)
             formatter = '<a target="_blank" href={0}>{1}</a>'
             return formatter.format(link, pos)
+        html.to_csv()
+        html.to_json()
         html.df["start"] = html.df["start"].apply(lambda x: get_link(x))
+        self.jinja[html.name] = html.to_html()
 
-        self.jinja['low_coverage'] = html.to_html(index=False)
-
-        # High threshold case
+        # Save information relatd to the high ROIs
         high_roi = roi.get_high_roi()
         high_cov_paragraph = ("Regions with a z-score higher than {0:.2f} and at "
             "least one base with a z-score higher than {1:.2f} are detected as "
@@ -172,10 +174,13 @@ class ChromosomeMappingReport(BaseReport):
         self.jinja['hc_paragraph'] = high_cov_paragraph.format(
                 self.mapping.thresholds.high2,
                 self.mapping.thresholds.high, len(high_roi))
-        html = HTMLTable(high_roi)
-        html.add_bgcolor("size")
+
+        html = self.htmltable(high_roi, "high_coverage", bgcolors=["size"])
+        html.to_csv()
+        html.to_json()
         html.df["start"] = html.df["start"].apply(lambda x: get_link(x))
-        self.jinja['high_coverage'] = html.to_html(index=False)
+        self.jinja[html.name] = html.to_html()
+
 
         # Sub mapping with javascript
         df = self._generate_submapping(high_roi, low_roi)

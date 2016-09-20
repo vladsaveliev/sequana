@@ -8,7 +8,7 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 1
-_MICRO               = 11
+_MICRO               = 12
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -93,6 +93,8 @@ setup(
         'console_scripts':[
            'fastq_head=sequana.scripts.fastq_head:main',
            'fastq_count=sequana.scripts.fastq_count:main',
+           'sequana_fastq_head=sequana.scripts.fastq_head:main',
+           'sequana_fastq_count=sequana.scripts.fastq_count:main',
            'sequana=sequana.scripts.main:main',
            'sequana_taxonomy=sequana.scripts.taxonomy:main',
            'sequana_coverage=sequana.scripts.coverage:main',

@@ -1,0 +1,5 @@
+rule gz_to_fastq:
+    input: "{dataset}.gz"
+    output: "{dataset}"
+    run:
+        shell("unpigz {input}")

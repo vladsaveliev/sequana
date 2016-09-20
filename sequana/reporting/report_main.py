@@ -161,6 +161,30 @@ class BaseReport(Report):
         from easydev import onweb
         onweb(self.directory + os.sep + self.filename)
 
+    def htmltable(self, df, tablename, bgcolors=[]):
+        from reports import HTMLTable
+        class SequanaHTMLTable(HTMLTable):
+            def __init__(self, df, tablename, directory, bgcolors=[]):
+                super(SequanaHTMLTable, self).__init__(df, tablename)
+                self.directory = directory
+                _basename = self.directory + os.sep + self.name
+                self.csv_filename = _basename + ".csv"
+                self.json_filename = _basename + ".json"
+                self.bgcolors = bgcolors
+            def to_html(self, index=False):
+                local_html = HTMLTable(self.df.copy())
+                for color in self.bgcolors:
+                    local_html.add_bgcolor(color)
+                html = local_html.to_html(index=index)
+                pattern = '<div>%s <p>Download the CSV <a href="%s">file</a> </p> </div>' 
+                return pattern % (html, self.name + ".csv")
+            def to_csv(self, index=False, header=True):
+                self.df.to_csv(self.csv_filename, sep=",", index=index, header=True)
+            def to_json(self, filename=None):
+                pass
+        html = SequanaHTMLTable(df, tablename, self.directory, bgcolors)
+        return html
+
 
 class SequanaReport(BaseReport):
     """The main sequana report
