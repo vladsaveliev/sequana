@@ -14,7 +14,7 @@ before_install:
     - export PATH=$HOME/miniconda/bin:$PATH
     - export PATH=$HOME/miniconda2/bin:$PATH
     - hash -r
-    #- conda update --yes conda
+    - conda update --yes conda
     - conda config --add channels r
     - conda config --add channels bioconda
     # are not specific to using mini
@@ -29,7 +29,7 @@ install:
   - echo $TRAVIS_PYTHON_VERSION
   # sept 2016 the enum34 is installed with conda update but is conflicting with
   # py35 so we remove it. If not installed, error so redirect in out and err
-  #- conda remove enum34 1>out 2>err
+  - conda remove enum34 1>out 2>err
   - conda install --yes numpy
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy
   - conda install --yes python=$TRAVIS_PYTHON_VERSION matplotlib 
