@@ -27,7 +27,7 @@ before_install:
 
 install:
   - echo $TRAVIS_PYTHON_VERSION
-  - conda info numpy
+  - conda remove enum34
   - conda install --yes numpy
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy
   - conda install --yes python=$TRAVIS_PYTHON_VERSION matplotlib 
