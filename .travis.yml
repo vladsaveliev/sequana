@@ -33,8 +33,9 @@ install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numexpr 
   - conda install --yes python=$TRAVIS_PYTHON_VERSION xlrd
   - conda install --yes python=$TRAVIS_PYTHON_VERSION cython
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pyqt
+  #- conda install --yes python=$TRAVIS_PYTHON_VERSION pyqt
   # use pip to get latest version
+  - pip install PyQt4
   - pip install easydev>=0.9.21 --upgrade
   - pip install coveralls
   - pip install tabulate
