@@ -71,7 +71,7 @@ install everything in one go)::
     conda install numpy matplotlib pandas cutadapt pysam pyvcf snpeff
     conda install snakemake biokit bioservices spades khmer
     conda install bwa bcftools samtools bedtools picard freebayes fastqc
-    conda install kraken krona scipy  graphviz
+    conda install kraken krona scipy graphviz
 
 
 .. note:: we ported quast to python 3.5 but this is not yet in bioconda. One an
