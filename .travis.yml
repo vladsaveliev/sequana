@@ -35,7 +35,7 @@ install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION cython
   #- conda install --yes python=$TRAVIS_PYTHON_VERSION pyqt
   # use pip to get latest version
-  - pip install PyQt4
+  - pip install https://www.riverbankcomputing.com/static/Downloads/PyQt4/PyQt4_gpl_x11-4.12.dev1608130632.tar.gz
   - pip install easydev>=0.9.21 --upgrade
   - pip install coveralls
   - pip install tabulate
