@@ -97,6 +97,9 @@ __report_variant__input = __vcf_filter__output
 include: sm.modules["report_variant"]
 final_output.append(__report_variant__output)
 
+include: sm.modules['conda'] # Create requirements.txt(dependencies)
+final_output.append("report/requirements.txt")
+
 
 rule pipeline_variant:
     input:
