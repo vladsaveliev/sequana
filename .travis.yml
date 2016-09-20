@@ -27,7 +27,8 @@ before_install:
 
 install:
   - echo $TRAVIS_PYTHON_VERSION
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy matplotlib 
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION matplotlib 
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pandas
   - conda install --yes python=$TRAVIS_PYTHON_VERSION coverage
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numexpr 

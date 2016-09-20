@@ -55,4 +55,7 @@ Variant Calling
 .. include:: ../sequana/pipelines/variant_calling/README.rst
 
 
+Compressor
+============
 
+.. include:: ../sequana/pipelines/compressor/README.rst
