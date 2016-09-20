@@ -3,7 +3,7 @@ from nose.plugins.attrib import attr
 from sequana import sequana_data
 import os
 
-
+@attr("skip")
 def test_compressor():
     prog = "sequana_compressor"
     compressor.main(["sequana_compressor", '--version'])
