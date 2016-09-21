@@ -163,3 +163,8 @@ spades:
 quast:
     options: ''
 
+compressor:
+    source: fastq.gz
+    target: fastq.bz2
+
+

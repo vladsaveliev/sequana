@@ -27,12 +27,18 @@ elif cfg.compressor.source == "fastq":
         target = ".bz2"
 
 # The input files
-input_filenames = list(glob.iglob("**/*.%s" % cfg.compressor.source, 
-    recursive=cfg.compressor.recursive))
+if cfg.compressor.recursive is True:
+    input_filenames = list(glob.iglob("**/*.%s" % cfg.compressor.source,  recursive=True))
+else:
+    input_filenames = list(glob.iglob("*.%s" % cfg.compressor.source))
 fastq = [x.replace(".bz2", "").replace(".gz","") for x in input_filenames]
 
-ss.message("Found %s files to process" % len(fastq))
-
+# Some information printed
+try:
+    if cfg.compressor.verbose:
+        ss.message("Found %s files to process" % len(fastq))
+except:
+    pass
 
 rule all:
     input: expand("{dataset}{extension}", dataset=fastq, extension=target)

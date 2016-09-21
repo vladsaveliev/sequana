@@ -69,10 +69,13 @@ current pipelines (commands are split on several lines but you can also
 install everything in one go)::
 
     conda install numpy matplotlib pandas cutadapt pysam pyvcf snpeff
-    conda install snakemake biokit bioservices spades khmer quast
+    conda install snakemake biokit bioservices spades khmer
     conda install bwa bcftools samtools bedtools picard freebayes fastqc
-    conda install kraken krona scipy  graphviz
+    conda install kraken krona scipy graphviz
 
+
+.. note:: we ported quast to python 3.5 but this is not yet in bioconda. One an
+   install it from the quast github (required by denovo pipeline only)
 
 .. note:: **Sequana** is not fully compatible with Python 2.7 since a dependency
     (Snakemake) is only available for Python 3.5. However, many core
