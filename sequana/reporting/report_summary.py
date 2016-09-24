@@ -160,6 +160,7 @@ class SequanaSummary(BaseReport):
         # FIXME: more robust name required
         filename = "report/%s_R1_001_fastq_stats.json" % self.config.PROJECT
         print(filename)
+        return
         df = pd.read_json(filename)
         self.jinja["sample_stats__samples_json"] = df.to_json()
 

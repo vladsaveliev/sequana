@@ -14,7 +14,8 @@ Changelog
 * NEWS:
 
     - compressor rule and script available.
-
+    - coverage annotation
+    - multiple_summary draft
 
 0.1.11
 ----------
