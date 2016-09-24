@@ -6,7 +6,14 @@ import os
 #@attr("skip")
 def test_compressor():
     prog = "sequana_compressor"
-    compressor.main(["sequana_compressor", '--version'])
+    try:
+        compressor.main(["sequana_compressor", '--version'])
+        assert False
+    except SystemExit:
+        pass
+    else:
+        raise Exception
+
     try:
         compressor.main([prog, '--help'])
         assert False
@@ -32,10 +39,9 @@ def test_compressor():
 
     cwd = os.path.abspath(os.curdir)
     os.chdir("/tmp")
-    compressor.main([prog, "--source", "fastq.gz", "--target", "fastq.bz2",
-"--quiet"])
+    compressor.main([prog, "--source", "fastq.gz", "--target", "fastq.bz2", "--quiet"])
     compressor.main([prog, "--source", "fastq.bz2", "--target", "fastq.gz",
-        "--recursive"])
+"--recursive", "--quiet"])
     fh.delete()
 
 

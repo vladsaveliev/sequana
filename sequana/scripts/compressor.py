@@ -86,6 +86,10 @@ def main(args=None):
     else:
        options = user_options.parse_args(args[1:])
 
+    if options.version:
+        import sequana
+        print(sequana.version)
+        sys.exit()
     # valid codecs:
     valid_combos = [
         ("fastq", "fastq.gz"),
