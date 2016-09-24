@@ -1,12 +1,13 @@
 cd /home/sequana
 
 apt-get update
-apt-get install wget -y 
+apt-get install wget -y
 apt-get install bzip2 -y
 apt-get -y install gcc # required to compile the cython code
 apt-get install libxtst6 -y
 apt-get install -y python-qt4
 apt-get install git -y
+apt-get install vim -y
 
 apt-get install libpng-dev -y
 apt-get install zlib1g-dev -y
@@ -15,9 +16,9 @@ apt-get install xvfb -y
 
 wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
 chmod 755 Miniconda3-latest-Linux-x86_64.sh
-./Miniconda3-latest-Linux-x86_64.sh -b -f -p miniconda3
+./Miniconda3-latest-Linux-x86_64.sh -b -f -p /home/sequana/miniconda3
 
-source miniconda3/bin/activate
+source /home/sequana/miniconda3/bin/activate
 
 conda config --add channels r
 conda config --add channels bioconda
@@ -30,14 +31,15 @@ conda install kraken krona scipy  graphviz -y
 conda install ipython -y
 
 # Finally, Sequana release itself
-pip install sequana==0.1.11
+pip install sequana==0.1.12
 
 #git clone https://github.com/sequana/sequana
 
 #
-cp miniconda3/lib/python3.5/site-packages/sequana/resources/data/Hm2_GTGAAA_L005_R* .
-cp miniconda3/lib/python3.5/site-packages/sequana/resources/data/virus.bed  .
+cp /home/sequana/miniconda3/lib/python3.5/site-packages/sequana/resources/data/Hm2_GTGAAA_L005_R* .
+cp /home/sequana/miniconda3/lib/python3.5/site-packages/sequana/resources/data/virus.bed  .
 
-# test
-# sequana_coverage --input virus.bed
-# sequana --pipeline quality --file1 --file2
+# change matplotlibrc to switch QtAgg to Agg
+cp /home/sequana/miniconda3/lib/python3.5/site-packages/matplotlib/mpl-data/matplotlibrc .
+sed -i -e 's/Qt4Agg/Agg/'g matplotlibrc
+
