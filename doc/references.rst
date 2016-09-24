@@ -7,6 +7,8 @@ References
 .. contents::
 
 
+.. include:: test.py
+
 Adapters
 ---------------
 .. automodule:: sequana.adapters
