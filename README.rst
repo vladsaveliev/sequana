@@ -14,7 +14,7 @@ SEQUANA
     :target: http://sequana.readthedocs.org/en/latest/?badge=master
     :alt: Documentation Status
 
-.. imae:: https://images.microbadger.com/badges/image/cokelaer/sequana.svg
+.. image:: https://images.microbadger.com/badges/image/cokelaer/sequana.svg
     :target: https://microbadger.com/images/cokelaer/sequana
     :alt: Docker info
 
