@@ -14,16 +14,6 @@ SEQUANA
     :target: http://sequana.readthedocs.org/en/latest/?badge=master
     :alt: Documentation Status
 
-Docker image:
-
-.. image:: https://images.microbadger.com/badges/image/cokelaer/sequana.svg
-    :target: https://microbadger.com/images/cokelaer/sequana
-    :alt: Docker info
-
-.. image:: https://images.microbadger.com/badges/version/cokelaer/sequana.svg
-    :target: https://microbadger.com/images/cokelaer/sequana
-    :alt: Docker hub
-
 :Python version: 3.5 (and 2.7 without snakemake)
 :Online documentation: `On readthedocs <http://sequana.readthedocs.org/>`_
 :Issues and bug reports: `On github <https://github.com/sequana/sequana/issues>`_
@@ -38,6 +28,17 @@ Docker image:
 **Please see the** `documentation <http://sequana.readthedocs.org>`_ for an
 up-to-date status and documentation.
 
+
+Docker images (experimental):
+-------------------------------
+
+.. image:: https://images.microbadger.com/badges/image/cokelaer/sequana.svg
+    :target: https://microbadger.com/images/cokelaer/sequana
+    :alt: Docker info
+
+.. image:: https://images.microbadger.com/badges/version/cokelaer/sequana.svg
+    :target: https://microbadger.com/images/cokelaer/sequana
+    :alt: Docker hub
 
 
 
