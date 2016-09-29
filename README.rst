@@ -14,6 +14,11 @@ SEQUANA
     :target: http://sequana.readthedocs.org/en/latest/?badge=master
     :alt: Documentation Status
 
+.. imae:: https://images.microbadger.com/badges/image/cokelaer/sequana.svg
+    :target: https://microbadger.com/images/cokelaer/sequana
+    :alt: Docker info
+
+
 :Python version: 3.5 (and 2.7 without snakemake)
 :Online documentation: `On readthedocs <http://sequana.readthedocs.org/>`_
 :Issues and bug reports: `On github <https://github.com/sequana/sequana/issues>`_
