@@ -131,15 +131,15 @@ def main(args=None):
 
 
     from sequana import sequana_config_path as scfg
-    if os.path.exists(options.database): # local DB ?
-        pass
-    elif options.database == "toydb":
+    if options.database == "toydb":
         options.database = "kraken_toydb"
     elif options.database == "minikraken":
         options.database = "minikraken_20141208"
 
     if os.path.exists(scfg + os.sep + options.database): # in Sequana path
         options.database = scfg + os.sep + options.database
+    elif os.path.exists(scfg + os.sep + options.database): # in Sequana path
+        pass
     else:
         msg = "Invalid database name (%s). Neither found locally "
         msg += "or in the sequana path %s; Use the --download option"
