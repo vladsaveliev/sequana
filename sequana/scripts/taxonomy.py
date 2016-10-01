@@ -73,8 +73,8 @@ Issues: http://github.com/sequana/sequana
         self.add_argument("--file2", dest="file2", type=str,
             help="""R2 fastq file (zipped) """)
         self.add_argument("--database", dest="database", type=str,
-            choices=["sequana_db1", "toydb", "minikraken"],
-            help="""Path to a valid Kraken database. If you do not hae any, use
+            #choices=["sequana_db1", "toydb", "minikraken"],
+            help="""Path to a valid Kraken database. If you do not have any, use
                 --download option""")
         self.add_argument("--output-directory", dest="directory", type=str,
             help="""name of the output directory""", default="taxonomy")
