@@ -35,7 +35,7 @@ class Options(argparse.ArgumentParser, SequanaOptions):
         usage = """Welcome to SEQUANA - Fastq compression standalone
 
     This standalone fetches recursively all files in a given format (--source)
-    and transform them into another format (--to)
+    and transform them into another format (--target)
 
     Supported files must have one of the following extension:
 
