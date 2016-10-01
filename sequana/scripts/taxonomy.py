@@ -138,7 +138,7 @@ def main(args=None):
 
     if os.path.exists(scfg + os.sep + options.database): # in Sequana path
         options.database = scfg + os.sep + options.database
-    elif os.path.exists(scfg + os.sep + options.database): # in Sequana path
+    elif os.path.exists(options.database): # local database
         pass
     else:
         msg = "Invalid database name (%s). Neither found locally "
