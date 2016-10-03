@@ -78,6 +78,7 @@ class ChromosomeMappingReport(BaseReport):
             link = "submapping/{0}.chrom{1}.html".format(name, self.chrom_index)
             r = SubMappingReport(start=i, stop=stop, high_roi=high_roi, 
                     low_roi=low_roi, chrom_index=self.chrom_index,
+                    chrom_name=self.mapping.chrom_name,
                     output_filename=name + ".chrom%i.html" % self.chrom_index,
                     directory=self.directory + "/submapping", 
                     thresholds=self.mapping.thresholds)
