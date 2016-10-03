@@ -159,13 +159,13 @@ class VCF(vcf.Reader):
                 cds_effect = annotation[3]
                 prot_effect = ""
             ann_dict = {"CDS_position": cds_effect[2:],
-                        "annotation": effect_type,
+                        "effect_type": effect_type,
                         "codon_change": annotation[2],
                         "gene_name": annotation[5],
                         "mutation_type": annotation[1],
                         "prot_effect": prot_effect[2:],
                         "prot_size": annotation[4],
-                        "putative_impact": effect_lvl}
+                        "effect_impact": effect_lvl}
             line_dict = dict(line_dict, **ann_dict)
         except KeyError:
             pass
@@ -178,9 +178,9 @@ class VCF(vcf.Reader):
         self.df = pd.DataFrame.from_records(dict_list)
         cols = self.df.columns.tolist()
         try:
-            self.df = self.df[[cols[3], cols[10], cols[14], cols[1], cols[5], 
-                    cols[7], cols[15], cols[6], cols[2], cols[9], cols[13],
-                    cols[8], cols[0], cols[4], cols[11], cols[12]]]
+            self.df = self.df[[cols[2], cols[10], cols[14], cols[1], cols[4], 
+                    cols[7], cols[15], cols[6], cols[5], cols[9], cols[13],
+                    cols[8], cols[0], cols[3], cols[11], cols[12]]]
         except (ValueError, IndexError):
             if cols:
                 self.df = self.df[[cols[1], cols[5], cols[6], cols[0], cols[2],
