@@ -1,16 +1,22 @@
-# instructions to use dreamtools inside a Fedora docker (22)
-
+# Sequana docker builder
 FROM ubuntu:16.04
-MAINTAINER Thomas Cokelaer
+MAINTAINER Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
 
+# Setup home environment
+RUN useradd sequana
+RUN mkdir /home/sequana && chown -R sequana: /home/sequana
+RUN echo $HOME
 
 # Instructions after ADD are not cached
-ADD sequana_install.sh /
-RUN /bin/bash /sequana_install.sh
+ADD sequana_install.sh .
+RUN /bin/bash sequana_install.sh
 
-# the source is done in the previous RUN command
-# RUN source conda/bin/activate
-CMD ["sequana_coverage"]
+WORKDIR /home/sequana
+
+
+ENV PATH $PATH:/home/sequana/miniconda3/bin
+ENV MATPLOTLIBRC=/home/sequana
+CMD ["/bin/bash"]
 
 
 

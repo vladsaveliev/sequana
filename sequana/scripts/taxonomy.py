@@ -73,8 +73,8 @@ Issues: http://github.com/sequana/sequana
         self.add_argument("--file2", dest="file2", type=str,
             help="""R2 fastq file (zipped) """)
         self.add_argument("--database", dest="database", type=str,
-            choices=["sequana_db1", "toydb", "minikraken"],
-            help="""Path to a valid Kraken database. If you do not hae any, use
+            #choices=["sequana_db1", "toydb", "minikraken"],
+            help="""Path to a valid Kraken database. If you do not have any, use
                 --download option""")
         self.add_argument("--output-directory", dest="directory", type=str,
             help="""name of the output directory""", default="taxonomy")
@@ -131,15 +131,15 @@ def main(args=None):
 
 
     from sequana import sequana_config_path as scfg
-    if os.path.exists(options.database): # local DB ?
-        pass
-    elif options.database == "toydb":
+    if options.database == "toydb":
         options.database = "kraken_toydb"
     elif options.database == "minikraken":
         options.database = "minikraken_20141208"
 
     if os.path.exists(scfg + os.sep + options.database): # in Sequana path
         options.database = scfg + os.sep + options.database
+    elif os.path.exists(options.database): # local database
+        pass
     else:
         msg = "Invalid database name (%s). Neither found locally "
         msg += "or in the sequana path %s; Use the --download option"

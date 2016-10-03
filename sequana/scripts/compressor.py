@@ -35,7 +35,7 @@ class Options(argparse.ArgumentParser, SequanaOptions):
         usage = """Welcome to SEQUANA - Fastq compression standalone
 
     This standalone fetches recursively all files in a given format (--source)
-    and transform them into another format (--to)
+    and transform them into another format (--target)
 
     Supported files must have one of the following extension:
 
@@ -86,6 +86,10 @@ def main(args=None):
     else:
        options = user_options.parse_args(args[1:])
 
+    if options.version:
+        import sequana
+        print(sequana.version)
+        sys.exit()
     # valid codecs:
     valid_combos = [
         ("fastq", "fastq.gz"),

@@ -29,6 +29,17 @@ SEQUANA
 up-to-date status and documentation.
 
 
+Docker images (experimental):
+-------------------------------
+
+.. image:: https://images.microbadger.com/badges/image/cokelaer/sequana.svg
+    :target: https://microbadger.com/images/cokelaer/sequana
+    :alt: Docker info
+
+.. image:: https://images.microbadger.com/badges/version/cokelaer/sequana.svg
+    :target: https://microbadger.com/images/cokelaer/sequana
+    :alt: Docker hub
+
 
 
 

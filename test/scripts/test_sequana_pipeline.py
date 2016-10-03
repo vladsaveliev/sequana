@@ -5,7 +5,7 @@ from sequana import sequana_data
 import os
 
 
-@attr('skip')
+#@attr('skip')
 class TestPipeline(object):
 
     @classmethod
