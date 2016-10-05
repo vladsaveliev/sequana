@@ -4,15 +4,19 @@ For end-users
 ----------------
 
 We will demonstrate the usage of the docker using the sequana_coverage
-standalone. This application requires a BED file as input. An example is
-available within the source code: https://raw.githubusercontent.com/sequana/sequana/master/sequana/resources/data/JB409847.bed)
-
+standalone. Other applications and the entire sequana library are also
+available.
 
 A docker image is provided on `hub.docker <https://hub.docker.com/r/cokelaer/sequana/>`_.
 
 We assume you have install docker on your system. First, get the docker image using::
 
     git pull cokelaer/sequana
+
+Let us rename it into *sequana*::
+
+    docker tag cokelaer/sequana sequana
+    sudo docker rmi cokelaer/sequana
 
 You can then enter into the image as follows::
 
