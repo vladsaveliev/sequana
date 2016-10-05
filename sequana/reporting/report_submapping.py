@@ -26,14 +26,15 @@ from reports import HTMLTable
 class SubMappingReport(BaseReport):
     """
     """
-    def __init__(self, start, stop, chrom_index, thresholds,
+    def __init__(self, start, stop, chrom_index, chrom_name, thresholds,
             high_roi, low_roi, directory="report",
             output_filename="submapping.html", **kargs):
         super(SubMappingReport, self).__init__(
                 jinja_filename="submapping/index.html",
                 directory=directory, init_report=False,
                 output_filename=output_filename, **kargs)
-        self.jinja['title'] = "Mapping Report [{0},{1}]".format(start, stop)
+        self.jinja['title'] = "Mapping Report of {0} [{1},{2}]".format(
+                chrom_name, start, stop)
         self.jinja['path'] = "../"
         self.chrom_index = chrom_index
         self.high_roi = high_roi

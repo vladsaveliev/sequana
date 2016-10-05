@@ -112,3 +112,5 @@ onsuccess:
     sm.plot_stats()
     shell("cp %s %s" % (__freebayes__output, "report"))
     shell("cp %s %s" % (__vcf_filter__output, "report"))
+    if config["snpeff"]["do"]:
+        shell("cp %s %s" % ("snpEff_summary.html", "report"))
