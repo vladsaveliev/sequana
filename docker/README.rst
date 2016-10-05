@@ -9,9 +9,18 @@ available.
 
 A docker image is provided on `hub.docker <https://hub.docker.com/r/cokelaer/sequana/>`_.
 
-We assume you have install docker on your system. First, get the docker image using::
+We assume you have install docker on your system. 
 
-    git pull cokelaer/sequana
+
+You would then need a login on hub.docker.com 
+
+Then, type::
+
+    docker login
+
+This will allow you to obtain the sequana docker image using::
+
+    docker pull cokelaer/sequana
 
 Let us rename it into *sequana*::
 
@@ -33,15 +42,9 @@ practical if you have your own files or want to open the HTML page stored in
 
     exit
 
-and do it the proper way. You need to tell docker where is your data on your
-local machine. Let us say your data is in */home/user/mydatapath*. Start the docker as
+and do it the proper way. Go to a working directory and start the docker image again as
 follows::
 
-    docker run -v /home/user/mydatapath:/home/sequana/data -it sequana
-
-An alternative is to go to your local directory and type::
-
-    cd  /home/user/mydatapath
     docker run -v $PWD:/home/sequana/data -it sequana
 
 This should start the docker image again but you should now have a *./data*
