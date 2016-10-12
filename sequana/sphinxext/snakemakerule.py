@@ -63,9 +63,13 @@ def setup(app):
         from docutils import core
         from docutils.writers.html4css1 import Writer
         w = Writer()
-        res = core.publish_parts(node.rule_docstring, writer=w)['html_body']
-        self.body.append('<div class="snakemake">' + res + '</div>' )
-        node.children = []
+        try:
+            res = core.publish_parts(node.rule_docstring, writer=w)['html_body']
+            self.body.append('<div class="snakemake">' + res + '</div>' )
+            node.children = []
+        except:
+            self.body.append('<div class="snakemake"> no docstring </div>' )
+
 
     def depart_perform(self, node):
         node.children = []

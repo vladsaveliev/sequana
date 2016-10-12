@@ -32,5 +32,13 @@ codecs
 gz_to_fastq
 --------------
 .. snakemakerule:: gz_to_fastq
+bz2_to_fastq
+-------------
+.. snakemakerule:: bz2_to_fastq
+
+.. snakemakerule:: dsrc_to_fastq
+.. snakemakerule:: fastq_to_gz
+.. snakemakerule:: fastq_to_bz2
+.. snakemakerule:: fastq_to_dsrc
 
 
