@@ -13,7 +13,7 @@ name, here e.g. *data*)::
 
 
 .. contents::
-    :depth: 2
+    :depth: 3
 
 data
 ==============
@@ -27,5 +27,10 @@ fastqc
 .. include:: ../sequana/rules/fastqc/README.rst
 
 
+codecs
+===========
+gz_to_fastq
+--------------
+.. snakemakerule:: gz_to_fastq
 
 
