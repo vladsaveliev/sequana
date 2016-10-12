@@ -64,12 +64,15 @@ Issues: http://github.com/sequana/sequana
 
         # options to fill the config file
         self.add_argument("--source", dest="source", type=str,
-            help="""fastq, fastq.gz, fastq.bz2""")
+            help="""fastq, fastq.gz, fastq.bz2, fastq.dscr""")
         self.add_argument("--target", dest="target", type=str,
-            help="""fastq, fastq.gz, fastq.bz2 """)
+            help="""fastq, fastq.gz, fastq.bz2, fastq.dscr """)
         self.add_argument("--recursive", dest="recursive",
             default=False,
             action="store_true", help="""recursive search""")
+        self.add_argument("--verbose", dest="verbose",
+            default=False,
+            action="store_true", help="""verbosity""")
         self.add_version(self)
         self.add_quiet(self)
 
@@ -94,10 +97,15 @@ def main(args=None):
     valid_combos = [
         ("fastq", "fastq.gz"),
         ("fastq", "fastq.bz2"),
+        ("fastq", "fastq.dscr"),
+
         ("fastq.gz", "fastq"),
+        ("fastq.gz", "fastq.bz2"),
+        ("fastq.gz", "fastq.dsrc"),
+
         ("fastq.bz2", "fastq"),
         ("fastq.bz2", "fastq.gz"),
-        ("fastq.gz", "fastq.bz2")]
+        ("fastq.bz2", "fastq.dsrc")]
 
     # Create the config file
     temp = TempFile(suffix=".yaml")
@@ -113,6 +121,7 @@ def main(args=None):
 
     if options.verbose:
         cmd = "snakemake -s %s  --configfile %s -j 4 -p" % (rule, temp.name)
+        print(cmd)
     else:
         cmd = "snakemake -s %s  --configfile %s -j 4 -q" % (rule, temp.name)
     shell(cmd)
