@@ -54,8 +54,19 @@ fastq related: fastq_count
 
 :Description: count number of reads and lines
 
-fastq related: fastq_head
+fastq related: fastq_head 
 -----------------------------
 
 :Description: Extract head of a fastq files (zipped or not)
+
+
+sequana_compressor
+---------------------
+
+:Description: converts fastq into a *gz* or *bz2* or *dscr* format. Conversely,
+    can decompress or even convert from one compressed format to another one.
+    Recursivit is allowed and thanks to snakemake pipeline used behind the scene, it
+    works on a cluster and in parallel mode. See::
+
+        sequana_compressor --help
 

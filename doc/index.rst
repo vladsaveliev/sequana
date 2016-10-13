@@ -28,13 +28,13 @@ What is Sequana ?
 **Sequana** is a versatile tool that provides
 
 #. A Python library dedicated to NGS analysis (e.g., tools to visualise standard NGS formats).
-#. A set of :ref:`pipelines <Pipelines>` dedicated to NGS in the form of Snakefiles (Makefile-like with Python syntax).
+#. A set of :ref:`pipelines <Pipelines>` dedicated to NGS in the form of Snakefiles (Makefile-like with Python syntax based on snakemake framework).
 #. Original tools to help in the creation of such pipelines including HTML reports.
 #. :ref:`Standalone applications.<applications>`
 
-Currently, the pipelines available cover quality control (e.g. adapters removal, 
+Currently, the available pipelines cover quality control (e.g. adapters removal, 
 phix removal, trimming of bad quality bases), variant calling, characterisation 
-of the genome coverage, axonomic classification, de-novo assembly. See the :ref:`pipelines`
+of the genome coverage, taxonomic classification, de-novo assembly. See the :ref:`pipelines`
 section for more information.
 
 **Sequana** can be used by developers to create new pipelines and by users in the
@@ -64,18 +64,24 @@ added to your environment as follows (once Anaconda is installed)::
     conda config --add channels r
     conda config --add channels bioconda
 
-Here is a non exhaustive list of dependencies that should be enough to run the
-current pipelines (commands are split on several lines but you can also
+Some packages musts be installed::
+
+    conda install numpy matplotlib pandas snakemake graphviz scipy
+
+Then, depending on the pipelines on standalone applications you want to use
+you will need to install other packages. Here is a non exhaustive list 
+of dependencies that should be enough to run the most of the current 
+pipelines (commands are split on several lines but you can also
 install everything in one go)::
 
-    conda install numpy matplotlib pandas cutadapt pysam pyvcf snpeff
-    conda install snakemake biokit bioservices spades khmer
+    conda install pysam pyvcf snpeff biokit bioservices spades khmer
     conda install bwa bcftools samtools bedtools picard freebayes fastqc
-    conda install kraken krona scipy graphviz
+    conda install kraken krona 
 
 
-.. note:: we ported quast to python 3.5 but this is not yet in bioconda. One an
-   install it from the quast github (required by denovo pipeline only)
+.. note:: we ported quast to python 3.5 but this is not yet in bioconda. One can
+   install it from the quast github (required by denovo pipeline only) (sept
+    2016)
 
 .. note:: **Sequana** is not fully compatible with Python 2.7 since a dependency
     (Snakemake) is only available for Python 3.5. However, many core

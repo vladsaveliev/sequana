@@ -27,7 +27,6 @@ fastqc
 .. include:: ../sequana/rules/fastqc/README.rst
 
 
-
 codecs
 ===========
 The following rules are used by the :ref:`pipeline_compressor` standalone
