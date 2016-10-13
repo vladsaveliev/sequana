@@ -18,6 +18,11 @@ except:
 
 
 rule dag:
+    """DAG
+
+    :param filename: input dot file to be parsed
+
+    """
     input: 
         filename = __dag__input
     output:

@@ -1,0 +1,27 @@
+"""fastq.dsrc to fastq codec
+
+.. author:: Thomas Cokelaer, 2016
+"""
+
+
+rule dsrc_to_fastq:
+    """Convert fastq.dsrc files to fastq files
+
+    Description:
+        Takes a fastq.dsrc file as input (wildcard dataset) and decompress the file
+        with **dsrc** executable. 
+
+    :param input: fastq.bz2 files
+    :return: fastq files
+    :third-party executables: dsrc (http://sun.aei.polsl.pl/dsrc/download.html)
+
+    Config requirements:
+        - threads (number)
+    """
+    input: "{dataset}.dsrc"
+    output: "{dataset}"
+    threads: 4
+    params: "-m2"
+    run:
+        shell("dsrc d -t{threads} {params} {input} {output}")
+        shell("rm -f {input}")

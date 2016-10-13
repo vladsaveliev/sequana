@@ -1,4 +1,25 @@
+"""fastq.gz to fastq codec
+
+.. author:: Thomas Cokelaer, 2016
+"""
+
+
 rule gz_to_fastq:
+    """Convert fastq.gz files to fastq files
+
+    Description:
+        Takes a fastq file as input (wildcard dataset) an zip the file
+        with pigz executable. pigz/unpigz by default uses the number
+	of available threads.
+
+    :param input: fastq.gz files
+    :return: fastq files
+    :third-party executables: unpigz (conda install pigz)
+
+    Config requirements:
+        - threads (number)
+
+    """
     input: "{dataset}.gz"
     output: "{dataset}"
     run:
