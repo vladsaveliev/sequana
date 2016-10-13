@@ -35,7 +35,6 @@ else:
     target = "" # by default no extension
 
 
-
 # The input files can be look for recursively or not
 if cfg.compressor.recursive is True:
     input_filenames = list(glob.iglob("**/*.%s" % cfg.compressor.source,  recursive=True))
@@ -44,6 +43,7 @@ else:
 
 # We want the basename without the compression extension
 fastq = [x.replace(".bz2", "").replace(".gz","").replace(".dsrc", "") for x in input_filenames]
+
 
 # Some information
 try:
@@ -56,9 +56,9 @@ except:
 rule all:
     input: expand("{dataset}{extension}", dataset=fastq, extension=target)
 
-
-
-
+onsuccess:
+    shell("rm -f snakejob*.sh.e*")
+    shell("rm -f snakejob*.sh.o*")
 
 
 

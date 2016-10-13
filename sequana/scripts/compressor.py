@@ -111,8 +111,8 @@ def main(args=None):
         ("fastq.bz2", "fastq.gz"),
         ("fastq.bz2", "fastq.dsrc")]
 
-    # Create the config file
-    temp = TempFile(suffix=".yaml")
+    # Create the config file locally i
+    temp = tempfile.NamedTemporaryFile(suffix=".yaml", dir=".", delete=False)
     fh = open(temp.name, "w")
     fh.write("compressor:\n")
     fh.write("    source: %s\n" %options.source)
@@ -132,7 +132,12 @@ def main(args=None):
         cmd = 'snakemake -s %s  --configfile %s -j %s -p --cluster "%s"' % \
             (rule, temp.name, options.cores, options.cluster)
     shell(cmd)
-    temp.delete()
+
+    try:
+        temp._closer.delete = True
+    except:
+        temp.delete = True
+    temp.close()
 
 if __name__ == "__main__":
    import sys
