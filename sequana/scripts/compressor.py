@@ -73,6 +73,12 @@ Issues: http://github.com/sequana/sequana
         self.add_argument("--verbose", dest="verbose",
             default=False,
             action="store_true", help="""verbosity""")
+        self.add_argument("--threads", dest="threads",
+            default=4,
+            help="""number of threads to use per core (4)""")
+        self.add_argument("--cores", dest="cores",
+            default=4,
+            help="""number of cores to use at most (4) """)
         self.add_version(self)
         self.add_quiet(self)
 
@@ -113,6 +119,7 @@ def main(args=None):
     fh.write("compressor:\n")
     fh.write("    source: %s\n" %options.source)
     fh.write("    target: %s\n" % options.target)
+    fh.write("    threads: %s\n" % options.threads)
     fh.write("    recursive: %s\n" % options.recursive)
     fh.write("    verbose: %s\n" % options.verbose)
     fh.close() # essential to close it because snakemake will try to use seek()
@@ -120,10 +127,12 @@ def main(args=None):
     rule = Module("compressor").path + os.sep +  "compressor.rules"
 
     if options.verbose:
-        cmd = "snakemake -s %s  --configfile %s -j 4 -p" % (rule, temp.name)
+        cmd = "snakemake -s %s  --configfile %s -j %s -p" % \
+            (rule, temp.name, options.cores)
         print(cmd)
     else:
-        cmd = "snakemake -s %s  --configfile %s -j 4 -q" % (rule, temp.name)
+        cmd = "snakemake -s %s  --configfile %s -j %s -q" % \
+            (rule, temp.name, options.cores)
     shell(cmd)
     temp.delete()
 
