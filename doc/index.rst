@@ -81,7 +81,7 @@ install everything in one go)::
 
 .. note:: we ported quast to python 3.5 but this is not yet in bioconda. One can
    install it from the quast github (required by denovo pipeline only) (sept
-    2016)
+   2016)
 
 .. note:: **Sequana** is not fully compatible with Python 2.7 since a dependency
     (Snakemake) is only available for Python 3.5. However, many core

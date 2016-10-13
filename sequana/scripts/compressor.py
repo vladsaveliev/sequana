@@ -70,9 +70,6 @@ Issues: http://github.com/sequana/sequana
         self.add_argument("--recursive", dest="recursive",
             default=False,
             action="store_true", help="""recursive search""")
-        self.add_argument("--verbose", dest="verbose",
-            default=False,
-            action="store_true", help="""verbosity""")
         self.add_argument("--threads", dest="threads",
             default=4,
             help="""number of threads to use per core (4)""")
@@ -80,7 +77,8 @@ Issues: http://github.com/sequana/sequana
             default=4,
             help="""number of cores to use at most (4) """)
         self.add_version(self)
-        self.add_quiet(self)
+        self.add_verbose(self)
+        self.add_cluster(self)
 
 def main(args=None):
 
@@ -127,12 +125,12 @@ def main(args=None):
     rule = Module("compressor").path + os.sep +  "compressor.rules"
 
     if options.verbose:
-        cmd = "snakemake -s %s  --configfile %s -j %s -p" % \
-            (rule, temp.name, options.cores)
+        cmd = "snakemake -s %s  --configfile %s -j %s -p --cluster %s" % \
+            (rule, temp.name, options.cores, options.cluster)
         print(cmd)
     else:
-        cmd = "snakemake -s %s  --configfile %s -j %s -q" % \
-            (rule, temp.name, options.cores)
+        cmd = "snakemake -s %s  --configfile %s -j %s -q --cluster %s" % \
+            (rule, temp.name, options.cores, options.cluster)
     shell(cmd)
     temp.delete()
 

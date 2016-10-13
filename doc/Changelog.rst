@@ -3,6 +3,14 @@ Changelog
 
 .. contents::
 
+0.1.13
+-----------
+
+* NEWS:
+
+    - compressor: includes dsrc format in addition to bz2 and gz
+
+
 0.1.12
 -----------
 

@@ -33,3 +33,5 @@ pipeline.
 
 
 .. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/denovo_assembly/denovo_dag.png
+
+
