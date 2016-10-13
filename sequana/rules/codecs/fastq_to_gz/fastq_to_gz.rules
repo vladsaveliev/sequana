@@ -9,18 +9,14 @@ rule fastq_to_gz:
     Description:
         Takes a fastq file as input (wildcard dataset) an zip the file
         with pigz executable. pigz/unpigz by default uses the number
-	of available threads.
+        of available threads.
 
     :param input: fastq files
     :return: fastq.gz files
     :third-party executables: unpigz (conda install pigz)
 
-    Config requirements:
-        - threads (number)
-
     """
     input: "{dataset}"
     output: "{dataset}.gz"
-    threads: config["compressor"]["threads"]
     run:
         shell("pigz {input}")

@@ -13,14 +13,15 @@ rule dsrc_to_fastq:
 
     :param input: fastq.bz2 files
     :return: fastq files
-    :third-party executables: dsrc (http://sun.aei.polsl.pl/dsrc/download.html)
+    :third-party executables: dsrc (v2) (http://sun.aei.polsl.pl/dsrc/download.html)
 
     Config requirements:
-        - threads (number)
+        - compressor:threads [integer]
+
     """
     input: "{dataset}.dsrc"
     output: "{dataset}"
-    threads: 4
+    threads: config["compressor"]["threads"]
     params: "-m2"
     run:
         shell("dsrc d -t{threads} {params} {input} {output}")

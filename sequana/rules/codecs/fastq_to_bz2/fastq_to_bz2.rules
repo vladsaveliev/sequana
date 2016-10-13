@@ -10,16 +10,13 @@ rule fastq_to_bz2:
     Description:
         Takes a fastq file as input (wildcard dataset) and bzip2 the file
         with pbzip executable. pbzip2/pbunzip2 by default uses the number
-	of available threads.
+        of available threads.
 
     :param input: fastq files
     :return: fastq.bz2 files
     :third-party executables: pbzip2
 
-    Config requirements:
-        - threads (number)
-
-"""
+    """
 
     input: "{dataset}"
     output: "{dataset}.bz2"

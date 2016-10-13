@@ -16,12 +16,12 @@ rule fastq_to_dsrc:
     :third-party executables: dsrc (http://sun.aei.polsl.pl/dsrc/download.html)
 
     Config requirements:
-        - threads (number)
+        - compressor:threads [integer]
     """
     input: "{dataset}"
     output: "{dataset}.dsrc"
     params: "-m2"
-    threads: 4
+    threads: config["compressor"]["threads"]
     run:
         shell("dsrc c -t{threads} {params} {input} {output}")
         shell("rm -f {input}")
