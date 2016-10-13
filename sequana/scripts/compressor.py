@@ -113,8 +113,8 @@ def main(args=None):
         ("fastq.bz2", "fastq.dsrc")]
 
     if (options.source, options.target) not in valid_combos:
-        raise ValueError("--target and --source combo not valid. Must be in one
-of fastq, fastq.gz, fastq.bz2 or fastq.dsrc")
+        raise ValueError("""--target and --source combo not valid. 
+Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
 
 
     # Create the config file locally i
