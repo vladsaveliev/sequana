@@ -25,7 +25,8 @@ from optparse import OptionParser
 import argparse
 
 from snakemake import shell
-from easydev import TempFile 
+#from easydev import TempFile 
+import tempfile
 
 from sequana.scripts.tools import SequanaOptions
 
@@ -110,6 +111,11 @@ def main(args=None):
         ("fastq.bz2", "fastq"),
         ("fastq.bz2", "fastq.gz"),
         ("fastq.bz2", "fastq.dsrc")]
+
+    if (options.source, options.target) not in valid_combos:
+        raise ValueError("--target and --source combo not valid. Must be in one
+of fastq, fastq.gz, fastq.bz2 or fastq.dsrc")
+
 
     # Create the config file locally i
     temp = tempfile.NamedTemporaryFile(suffix=".yaml", dir=".", delete=False)
