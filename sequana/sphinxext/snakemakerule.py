@@ -1,23 +1,51 @@
-# -*- coding: utf-8 -*-
-r"""
-    sphinx.ext.inheritance_diagram
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# coding: utf-8 -*-
+"""snakemakerule
 
-    Defines a docutils directive for inserting simple docstring extracting from 
-    a snakemake rule (from sequana project).
+Defines a docutils directive for inserting simple docstring extracting from 
+a snakemake rule (from sequana project).
 
-    .. snakemakerule: test
+::
+
+    .. snakemakerule: dag
+
+The name must be a valid sequana rule in the rules directory accesible via the
+:class:`sequana.snaketools.Module` class
 
 """
-
-from __future__ import absolute_import, print_function
-from six import class_types
 import re
 from docutils.parsers.rst import  directives
 from docutils import nodes
-
+from docutils.nodes import Body, Element
 
 def get_rule_doc(name):
+    """Decode and return lines of the docstring(s) for the object."""
+    try:
+        from sequana import Module
+        rule = Module(name)
+        filename = rule.path + "/%s.rules" %  name
+        data = open(filename, "r").read()
+    except ValueError:
+        # a local file ?
+        data = open(name, "r").read()
+
+    # Try to identify the rule and therefore possible docstring
+    start = data.find("rule %s:" % name)
+    data = data[start:]
+    if start == -1:
+        return "no docstring found for %s " % name
+
+    start = max(data.find("'''"),  data.find('"""'))
+    if start == -1:
+        return "no docstring found for %s " % name
+    end = max(data[start+3:].find("'''"),  data[start+3:].find('"""'))
+    if end == -1:
+        return "no end of docstring found for %s " % name
+
+    docstring = data[start+3:end]
+    return docstring
+
+
+def get_rule_doc_snakemake(name):
     """Decode and return lines of the docstring(s) for the object."""
     from sequana import Module
     import snakemake
@@ -26,9 +54,6 @@ def get_rule_doc(name):
     wf.include(rule.path + "/%s.rules" % name)
     docstring = list(wf.rules)[0].docstring
     return docstring
-
-
-from docutils.nodes import Body, Element
 
 
 class snakemake_base(Body, Element):
@@ -67,7 +92,8 @@ def setup(app):
             res = core.publish_parts(node.rule_docstring, writer=w)['html_body']
             self.body.append('<div class="snakemake">' + res + '</div>' )
             node.children = []
-        except:
+        except Exception as err:
+            print(err)
             self.body.append('<div class="snakemake"> no docstring </div>' )
 
 
