@@ -125,11 +125,11 @@ def main(args=None):
     rule = Module("compressor").path + os.sep +  "compressor.rules"
 
     if options.verbose:
-        cmd = "snakemake -s %s  --configfile %s -j %s -p --cluster %s" % \
+        cmd = 'snakemake -s %s  --configfile %s -j %s -p --cluster "%s"' % \
             (rule, temp.name, options.cores, options.cluster)
         print(cmd)
     else:
-        cmd = "snakemake -s %s  --configfile %s -j %s -q --cluster %s" % \
+        cmd = 'snakemake -s %s  --configfile %s -j %s -p --cluster "%s"' % \
             (rule, temp.name, options.cores, options.cluster)
     shell(cmd)
     temp.delete()
