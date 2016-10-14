@@ -12,3 +12,9 @@ class SequanaOptions(object):
     def add_quiet(self, this):
         this.add_argument("--quiet", dest='verbose',
             action="store_false", help="set verbosity off")
+    def add_cluster(self, this):
+        this.add_argument("--snakemake-cluster", dest="cluster", 
+            type=str,
+            help="""a valid snakemake option dedicated to a
+                cluster.  e.g on LSF cluster --cluster 'qsub -cwd -q<QUEUE> '""")
+

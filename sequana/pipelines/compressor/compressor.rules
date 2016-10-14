@@ -1,51 +1,64 @@
+"""compressor pipeline
+
+This pipeline should not be used as a snakemake pipeline. Instead, please
+use sequana_compressor standalone, which has its own documentation.
+
+In brief, a config file must be provided. Rules in rules/codecs are used.
+
+"""
 import glob
 from sequana import SequanaConfig
 import sequana.snaketools as ss
 
+# mode "others" means: do not check presence of samples/projects fields
 cfg = SequanaConfig(config, mode="others").config
 
-
-target = ""  # by default no extension after .fastq
-
-# What do we want to convert ?
+# What do we want to convert from ?
 if cfg.compressor.source == "fastq.gz":
     include: ss.modules["gz_to_fastq"]
-    if cfg.compressor.target == "fastq.bz2":
-        include: ss.modules["fastq_to_bz2"]
-        target = ".bz2"
 elif cfg.compressor.source == "fastq.bz2":
     include: ss.modules["bz2_to_fastq"]
-    if cfg.compressor.target == "fastq.gz":
-        include: ss.modules["fastq_to_gz"]
-        target = ".gz"
-elif cfg.compressor.source == "fastq":
-    if cfg.compressor.target == "fastq.gz":
-        include: ss.modules["fastq_to_gz"]
-        target = ".gz"
-    if cfg.compressor.target == "fastq.bz2":
-        include: ss.modules["fastq_to_bz2"]
-        target = ".bz2"
+elif cfg.compressor.source == "fastq.dsrc":
+    include: ss.modules["dsrc_to_fastq"]
 
-# The input files
+# Which format for the output ?
+if cfg.compressor.target == "fastq.bz2":
+    include: ss.modules["fastq_to_bz2"]
+    target = ".bz2"
+elif cfg.compressor.target == "fastq.gz":
+    include: ss.modules["fastq_to_gz"]
+    target = ".gz"
+elif cfg.compressor.target == "fastq.dsrc":
+    include: ss.modules["fastq_to_dsrc"]
+    target = ".dsrc"
+else:
+    target = "" # by default no extension
+
+
+# The input files can be look for recursively or not
 if cfg.compressor.recursive is True:
     input_filenames = list(glob.iglob("**/*.%s" % cfg.compressor.source,  recursive=True))
 else:
     input_filenames = list(glob.iglob("*.%s" % cfg.compressor.source))
-fastq = [x.replace(".bz2", "").replace(".gz","") for x in input_filenames]
 
-# Some information printed
+# We want the basename without the compression extension
+fastq = [x.replace(".bz2", "").replace(".gz","").replace(".dsrc", "") for x in input_filenames]
+
+
+# Some information
 try:
     if cfg.compressor.verbose:
         ss.message("Found %s files to process" % len(fastq))
 except:
     pass
 
+# Finally, the input files to feed to the relevant rules
 rule all:
     input: expand("{dataset}{extension}", dataset=fastq, extension=target)
 
-
-
-
+onsuccess:
+    shell("rm -f snakejob*.sh.e*")
+    shell("rm -f snakejob*.sh.o*")
 
 
 

@@ -32,7 +32,8 @@ split gzipped file::
 AlienTrimmer
 -------------------
 
-    time java jar /home/cokelaer/Downloads/AlienTrimmer_0.4.0/src/AlienTrimmer.jar  -cf adapters.fa -cr adapters_rev.fa -if SRR031714_1.fastq -ir SRR031
-714_2.fastq -of output_alientrim1.fastq -or output_alientrim2.fastq -os output_alientrim_excluded.fast
+::
+
+    time java jar /home/cokelaer/Downloads/AlienTrimmer_0.4.0/src/AlienTrimmer.jar  -cf adapters.fa -cr adapters_rev.fa -if SRR031714_1.fastq -ir SRR031714_2.fastq -of output_alientrim1.fastq -or output_alientrim2.fastq -os output_alientrim_excluded.fast
     # DONE
 

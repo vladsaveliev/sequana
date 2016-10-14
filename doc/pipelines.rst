@@ -4,8 +4,8 @@
 Pipelines
 ##############
 
-This sections provides a summary of the official Sequana pipelines. Note that quality_taxon
-re-uses quality, which itself uses phe phix_removal pipeline.
+This sections provides a summary of the official Sequana pipelines, which are all based on snakemake.
+Note that quality_taxon re-uses quality, which itself uses phe phix_removal pipeline.
 
 Each pipeline can be automatically downloaded (with its config file) using::
 
@@ -54,6 +54,8 @@ Variant Calling
 
 .. include:: ../sequana/pipelines/variant_calling/README.rst
 
+
+.. _pipeline_compressor:
 
 Compressor
 ============

@@ -44,6 +44,8 @@ def test_compressor():
         # https://travis-ci.org/sequana/sequana/builds/162466158
         compressor.main([prog, "--source", "fastq.gz", "--target", "fastq.bz2", "--quiet"])
         compressor.main([prog, "--source", "fastq.bz2", "--target", "fastq.gz","--recursive", "--quiet"])
+        compressor.main([prog, "--source", "fastq.gz", "--target", "fastq.dsrc","--recursive", "--quiet"])
+        compressor.main([prog, "--source", "fastq.dsrc", "--target", "fastq.gz","--recursive", "--quiet"])
     except:
         pass
     fh.delete()

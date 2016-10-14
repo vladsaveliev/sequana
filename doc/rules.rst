@@ -13,7 +13,7 @@ name, here e.g. *data*)::
 
 
 .. contents::
-    :depth: 2
+    :depth: 3
 
 data
 ==============
@@ -25,6 +25,41 @@ fastqc
 ==========
 
 .. include:: ../sequana/rules/fastqc/README.rst
+
+
+codecs
+===========
+The following rules are used by the :ref:`pipeline_compressor` standalone
+application.
+
+gz_to_fastq
+--------------
+.. snakemakerule:: gz_to_fastq
+
+bz2_to_fastq
+-------------
+.. snakemakerule:: bz2_to_fastq
+
+dsrc_to_fastq
+--------------
+
+.. snakemakerule:: dsrc_to_fastq
+
+fastq_to_gz
+--------------
+.. snakemakerule:: fastq_to_gz
+
+fastq_to_bz2
+-------------
+.. snakemakerule:: fastq_to_bz2
+
+fastq_to_dsrc
+---------------
+.. snakemakerule:: fastq_to_dsrc
+
+bwa_mem
+===========
+.. snakemakerule:: bwa_mem_dynamic
 
 
 

@@ -231,3 +231,18 @@ div.body .jcarousel-pagination a.active {
 p.sphx-glr-horizontal {
     margin-top: 2em;
 }
+
+
+div.snakemake {
+    border-style: solid;
+    border-width: 1px 1px 1px 1px;
+    border-color: black;
+    border-radius: 2px;
+    padding: 1em;
+    background: #7eb8dd;
+}
+
+
+
+
+

@@ -133,8 +133,11 @@ class GenomeCov(object):
 
         from sequana import GenomeCov, sequana_data
 
-        gencov = GenomeCov(sequana_data('JB409847.bed'))
-        gencov.compute_gc_content(sequana_data("JB409847.fasta"))
+        filename = sequana_data('JB409847.bed')
+        reference = sequana_data("JB409847.fasta")
+
+        gencov = GenomeCov(filename)
+        gencov.compute_gc_content(reference)
 
         gencov = GenomeCov(filename)
         for chrom in gencov:
@@ -237,7 +240,6 @@ class ChromosomeCov(object):
         filename = sequana_data("virus.bed")
 
         gencov = GenomeCov(filename)
-        gencov.compute_gc
 
         chrcov = gencov[0]
         chrcov.running_median(n=3001)

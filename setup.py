@@ -8,7 +8,7 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 1
-_MICRO               = 12
+_MICRO               = 13
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -63,7 +63,7 @@ setup(
     # mock is for the test only
     install_requires = ["easydev>=0.9.22", "reports>=0.1.8", "matplotlib",
         "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14", "biokit>=0.3.2", 
-        "pysam", "pyVCF", "sphinx-gallery", "mock", "numpydoc", "pillow",
+        "pysam", "pyVCF", "docutils", "sphinx-gallery", "mock", "numpydoc", "pillow",
         "blist"],
 
     # here below '': pattern means include that pattern in all packages
