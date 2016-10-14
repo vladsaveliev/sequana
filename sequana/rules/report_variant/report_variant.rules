@@ -1,13 +1,24 @@
-__report_variant__output = "report/report_variant.html"
-
 rule report_variant:
+    """
+    Create a HTML report of detected variants.
+    
+    Required input:
+        __report_variant__input: vcf file
+
+    Required output:
+        __report_variant__html_output: html file
+        __report_variant__csv_output: csv file
+
+    Contributors:
+        Sequana consortium
+    """
     input:
         vcf = __report_variant__input
     output:
-        html = __report_variant__output,
-        csv = "report/%s.csv" % cfg.PROJECT
+        html = __report_variant__html_output,
+        csv = __report_variant__csv_output
     params:
-        outdir = "report/"
+        outdir = __report_variant__directory
     run:
         from sequana import vcf_filter
         from sequana.reporting import report_variant

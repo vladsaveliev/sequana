@@ -1,9 +1,27 @@
-include: sm.modules['dag']     # Create DAG file
-
-__report_mapping__output = "report/report_mapping.html"
 rule report_mapping:
+    """
+    Create a HTML report of sequencing coverage after bam processing. This 
+    report is dedicated for variant calling and de novo assembly pipeline.
+
+    Required input:
+        __report_mapping__input: bed file from bedtools genomecov
+        __report_mapping__bam_input: bam file
+        __report_mapping__quast_input: html file from quast (optional*)
+        __report_mapping__ann_input: genbank annotation file (optional*)
+
+    Required output:
+        __report_mapping__output: html file
+
+    Required parameter:
+        __report_mapping__directory: report directory
+
+    Contributors:
+        Sequana consortium
+
+    *: If you don't need the optional input. You must set the variable as an
+       empty list. (i.e.:  __report_mapping__quast_input = []
+    """
     input:
-        dag = "report/dag.svg",
         bed = __report_mapping__input,
         bam = __report_mapping__bam_input,
         quast = __report_mapping__quast_input,
@@ -11,7 +29,8 @@ rule report_mapping:
     output:
         __report_mapping__output
     params:
-        outdir = "report",
+        outdir = __report_mapping__directory,
+        project = __report_mapping__project,
         k = config["report_mapping"]["k"],
         size = config["report_mapping"]["window_size"],
         high = config["report_mapping"]["high_threshold"],
@@ -56,8 +75,8 @@ rule report_mapping:
             chrom.compute_zscore(k=params.k)
 
             r = report_chromosome.ChromosomeMappingReport(chrom,
-                    directory=params.outdir, project=cfg.PROJECT, 
+                    directory=params.outdir, project=params.project, 
                     features=features)
             r.create_report()
 
-        shell("cp %s %s/" % (__snakefile__, params.outdir))
+        

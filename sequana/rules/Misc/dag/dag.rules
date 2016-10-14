@@ -21,9 +21,9 @@ rule dag:
     input: 
         filename = __dag__input
     output:
-        dot  = temp("dag.dot"),
-        dot2 = temp("dag.ann.dot"),
-        svg  = "report/dag.svg"
+        dot  = temp(__dag__output + "dag.dot"),
+        dot2 = temp(__dag__output + "dag.ann.dot"),
+        svg  = __dag__output + "dag.svg"
     message: """
     -- Creating DAG in a dot file and save into report/dag.svg
     """

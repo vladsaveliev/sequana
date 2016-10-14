@@ -1,9 +1,21 @@
-__create_sequence_dictionary__output = \
-    __bwa_mem_ref__reference.split(".fa")[0] + ".dict"
-
 rule create_sequence_dictionary:
+    """
+    In the last version of GATK, sequence dictionnary of the reference is no 
+    longer automatically generated. It's necessary to run GATK tools. This rule
+    creates the necessary dictionnary with picard-tools. The output must have
+    ".dict" extension.
+
+    Required input:
+        __create_sequence_dictionary__input: reference fasta file
+
+    Required output:
+        __create_sequence_dictionary__output: dict file with ".dict" extension.
+
+    Contributors:
+        Sequana consortium
+    """
     input:
-        ref = __bwa_mem_ref__reference
+        ref = __create_sequence_dictionary__reference
     output:
         __create_sequence_dictionary__output
     log:

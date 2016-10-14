@@ -1,7 +1,18 @@
-__digital_norm__output = ["digital_norm/%s_R1_.dn.fastq.gz" % cfg.PROJECT, 
-                          "digital_norm/%s_R2_.dn.fastq.gz" % cfg.PROJECT]
+rule digital_normalisation:
+    """
+    Assembly is very hard with ultra-deep sequencing data. Digital normalisation 
+    is a method to normalise coverage of a sample without reference. 
+    It provides as good or better results than assembling the unnormalised data. 
+   
+    Required input:
+        __bedtools_genomecov__input: list of paired fastq files
 
-rule digital_norm:
+    Required output:
+        __bedtools_genomecov__output: list of paired fastq files
+
+    Contributors:
+        Sequana consortium
+    """
     input:
         fastq = __digital_norm__input
     output:

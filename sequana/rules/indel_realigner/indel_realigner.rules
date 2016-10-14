@@ -1,13 +1,32 @@
-__indel_realigner__output = "indel_realigner/%s.bam" % cfg.PROJECT
-
 rule indel_realigner:
+    """ Performs local realignment around indels to correct errors made by 
+    genome aligners. It identifies regions where alignments may 
+    potentially be improved, then realigns the reads in these regions.
+
+    Required input:
+        __indel_realigner__input: sorted bam file
+        __indel_realigner__reference: fasta file
+        __indel_realigner__ref_dict: reference dictionnary
+
+    Required output:
+        __indel_realigner__output: bam file
+        __indel_realigner__intervals: intervals file. Must have ".intervals" 
+            extension.
+
+    Required parameter:
+        config["gatk_bin"]: path of the gatk bin
+        (default: "java -jar /path/to/GenomeAnalysisTK.jar" )
+
+    Contributors:
+        Sequana consortium
+    """
     input:
         bam = __indel_realigner__input,
-        ref = __bwa_mem_ref__reference,
-        ref_dict = __create_sequence_dictionary__output
+        ref = __indel_realigner__reference,
+        ref_dict = __indel_realigner__ref_dict
     output:
         bam = __indel_realigner__output,
-        intervals = "indel_realigner/%s.intervals" % cfg.PROJECT
+        intervals = __indel_realigner__intervals
     log:
         out = "logs/gatk/IndelRealigner/stdout.logs",
         err = "logs/gatk/IndelRealigner/stderr.logs"
@@ -15,8 +34,6 @@ rule indel_realigner:
         gatk = config["gatk_bin"]
     shell:
         """
-        samtools index {input.bam}
-
         {params.gatk} -T RealignerTargetCreator -R {input.ref} \
         -I {input.bam} -o {output.intervals} > {log.out} 2> {log.err}
 
