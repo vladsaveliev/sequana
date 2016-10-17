@@ -102,7 +102,7 @@ def main(args=None):
     valid_combos = [
         ("fastq", "fastq.gz"),
         ("fastq", "fastq.bz2"),
-        ("fastq", "fastq.dscr"),
+        ("fastq", "fastq.dsrc"),
 
         ("fastq.gz", "fastq"),
         ("fastq.gz", "fastq.bz2"),
@@ -110,7 +110,13 @@ def main(args=None):
 
         ("fastq.bz2", "fastq"),
         ("fastq.bz2", "fastq.gz"),
-        ("fastq.bz2", "fastq.dsrc")]
+        ("fastq.bz2", "fastq.dsrc"),
+
+        ("fastq.dsrc", "fastq"),
+        ("fastq.dsrc", "fastq.gz"),
+        ("fastq.dsrc", "fastq.bz2"),
+
+		]
 
     if (options.source, options.target) not in valid_combos:
         raise ValueError("""--target and --source combo not valid. 
@@ -130,19 +136,29 @@ Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
     from sequana import Module
     rule = Module("compressor").path + os.sep +  "compressor.rules"
 
+    if options.cluster:
+        cluster = '--cluster "%s"' % options.cluster
+    else:
+        cluster = ""
+
     if options.verbose:
-        cmd = 'snakemake -s %s  --configfile %s -j %s -p --cluster "%s"' % \
-            (rule, temp.name, options.cores, options.cluster)
+        cmd = 'snakemake -s %s  --configfile %s -j %s -p %s' % \
+            (rule, temp.name, options.cores, cluster)
         print(cmd)
     else:
-        cmd = 'snakemake -s %s  --configfile %s -j %s -p --cluster "%s"' % \
-            (rule, temp.name, options.cores, options.cluster)
+        cmd = 'snakemake -s %s  --configfile %s -j %s -p %s' % \
+            (rule, temp.name, options.cores, cluster)
     shell(cmd)
 
     try:
         temp._closer.delete = True
     except:
         temp.delete = True
+
+    try:
+        temp.delete = True
+    except:
+        pass
     temp.close()
 
 if __name__ == "__main__":
