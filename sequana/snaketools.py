@@ -141,9 +141,10 @@ class SnakeMakeStats(object):
         s.plot()
 
     """
-    def __init__(self, filename):
+    def __init__(self, filename, N=1):
         """.. rubric:: Cosntructor"""
         self.filename = filename
+        self.N = N
 
     def _parse_data(self):
         with open(self.filename, 'r') as fin:
@@ -154,8 +155,8 @@ class SnakeMakeStats(object):
         """Create the barplot from the stats file"""
         pylab.clf()
         df = pd.DataFrame(self._parse_data()['rules'])
-        ts = df.ix['mean-runtime']
-        ts['total'] = self._parse_data()['total_runtime']
+        ts = df.ix['mean-runtime'] 
+        ts['total'] = self._parse_data()['total_runtime'] / float(self.N)
         ts.sort_values(inplace=True)
 
         ts.plot.barh(fontsize=fontsize)
@@ -165,14 +166,18 @@ class SnakeMakeStats(object):
         except:pass
 
     def plot_and_save(self, filename="snakemake_stats.png",
-            output_dir="report"):
+            outputdir="report"):
         self.plot()
-        pylab.savefig(output_dir + os.sep + filename)
+        pylab.savefig(outputdir + os.sep + filename)
 
-def plot_stats(where="report"):
+def plot_stats(inputdir=".", outputdir=".", filename="snakemake_stats.png", N=1):
     print("Workflow finished. Creating stats image")
-    try:SnakeMakeStats("%s/stats.txt" % where).plot_and_save()
-    except: print("INFO: Could not fin %s/stats.txt file" % where)
+    try:
+        SnakeMakeStats("%s/stats.txt" % inputdir, N=N).plot_and_save(
+            outputdir=outputdir, filename=filename)
+    except Exception as err: 
+        print(err)
+        print("INFO: Could not process %s/stats.txt file" % inputdir)
 
 
 
