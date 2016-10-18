@@ -1,39 +1,22 @@
 
-
-
-cfg = SequanaConfig(config)
-
-__format = "bwa_bam_to_fastq/%(proj)s_{read}_.{tag}.fastq.gz"
-
-if cfg.paired is True:
-    # !! here we use the project name not the samples' names
-    __bwa_bam_to_fastq__output = expand(
-        __format % {'proj':cfg.PROJECT},
-        read=["R1", "R2"], tag=["mapped", "unmapped"])
-else:
-    __bwa_bam_to_fastq__output = expand(
-        __format % {'proj':cfg.PROJECT},
-        read=["R1"], tag=["mapped", "unmapped"])
-
-
-__input_dir = 'bwa_mem_phix'
-
-
 rule bwa_bam_to_fastq:
+    """Converts mapped BAM into fastq
+
+
+    """
     message: """
     -- Extracting the fastq from the BAM/SAM files
     -- information saved in {log}
     """
     input:
-        bam = "%s/%s.bam" % (__input_dir, cfg.PROJECT),
+        bam = __bwa_bam_to_fastq__input
+        # "%s/%s.bam" % (__input_dir, cfg.PROJECT),
     params:
-        wkdir = "bwa_bam_to_fastq"
+        wkdir = __bwa_bam_to_fastq__wkdir
     output:
-        __bwa_bam_to_fastq__output,
-        stats = "bwa_bam_to_fastq/bwa_mem_stats.json",
-        #done = touch("bwa_bam_to_fastq/bwa_bam_to_fastq.done")
+        fastq = __bwa_bam_to_fastq__fastq_output,
+        stats = __bwa_bam_to_fastq__stats_output
     threads: 2
-    message: "Calling bam2fastq and zipping data"
     run:
         # save some stats for later
         from sequana.tools import StatsBAM2Mapped

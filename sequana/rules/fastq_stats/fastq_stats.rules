@@ -1,72 +1,62 @@
 
 
+def fastq_stats_dynamic(name, project):
 
-
-def fastq_stats_dynamic(name, inputs, outputs=[]):
-
-    metadata = {'inputs':inputs, 'name':name, 'project':cfg.PROJECT}
+    metadata = {'name':name, 'project': project, 
+        "pipeline": cfg.config.pipeline_name}
 
     fastq_stats_code = '''
-ff = sm.FileFactory(%(inputs)s)
-
-outdir = "fastq_stats__%(name)s/" 
-__fastq_stats__output = [outdir + x for x in ff.basenames]
-__fastq_stats__output_json = [x.replace(".fastq.gz", "_fastq_stats.json") 
-        for x in __fastq_stats__output]
-__fastq_stats__output_images = [outdir + "/images/" + x for x in ff.basenames]
-__fastq_stats__output_bx = [x.replace(".fastq.gz", "_boxplot.png")
-        for x in __fastq_stats__output_images]
-__fastq_stats__output_gc = [x.replace(".fastq.gz", "_gc.png") 
-        for x in __fastq_stats__output_images]
-
-
-rule fastq_stats__%(name)s:
-    """Calls FastQC on each input datasets + those in bwa_phix directory"""
+rule fastq_stats_%(name)s:
+    """Analyse fastq to extract basic stats"""
     input:
-        %(inputs)s
+        fastq = __fastq_stats_%(name)s__input_fastq
     output:
-        json= __fastq_stats__output_json,
-        boxplot=__fastq_stats__output_bx,
-        gc=__fastq_stats__output_gc,
-        done= touch("fastq_stats__%(name)s/fastq_stats.done")
+        done    = touch(__fastq_stats_%(name)s__output_done)
     params:
-        wkdir="fastq_stats__%(name)s"
+        wkdir = __fastq_stats_%(name)s__wkdir,
     threads: 4
     run:
         from sequana import FastQC, sequana_data
-        import json
         import pylab
         pylab.ioff()
 
-        for i in range(len(input)):
-            fastq = FastQC(input[i], max_sample=100000)
+        ff = sm.FileFactory(input.fastq)
+
+        for i, filename in enumerate(ff.realpaths):
+            # The ouput files
+            formatter = lambda x: params.wkdir + "/" + x
+            output_gc = formatter(ff.filenames[i] + "_gc.png")
+            output_boxplot = formatter(ff.filenames[i] + "_boxplot.png")
+            output_json = formatter(ff.filenames[i] + ".json")
+
+            fastq = FastQC(filename, max_sample=100000)
             if len(fastq.fastq) != 0:
                 pylab.clf()
                 fastq.boxplot_quality()
-                pylab.savefig(output.boxplot[i])
+                pylab.savefig(output_boxplot)
 
                 pylab.clf()
                 fastq.histogram_gc_content()
-                pylab.savefig(output.gc[i])
+                pylab.savefig(output_gc)
+
                 stats = fastq.get_stats()
-                stats.to_json(open(output.json[i], "w"))
+                stats.to_json(output_json)
             else:
                 import shutil
                 from easydev import touch
                 location = sequana_data("no_data.jpg", "images")
-                shutil.copy(location, output.gc[i])
-                shutil.copy(location, output.boxplot[i])
+                shutil.copy(location, output_gc)
+                shutil.copy(location, output_boxplot)
                 # this will be handled inside report_fastq_stats
-                touch(output.json[i])
+                touch(output_json)
 
-            from sequana import FastQStatsReport
+            from sequana.reporting.report_fastq_stats import FastQStatsReport
             s = FastQStatsReport(
-                  "fastq_stats__%(name)s",
-                  output_filename="fastq_stats__%(name)s.html",
+                  params.wkdir,
+                  output_filename="fastq_stats_%(name)s.html",
                   directory=params.wkdir)
-            s.jinja['main_link'] = '../report/summary.html'
+            s.jinja['main_link'] = '../summary.html'
             s.create_report()
-
 
     '''
     from easydev import TempFile

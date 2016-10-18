@@ -5,13 +5,10 @@ input:
     fastq -> list with your fastq.gz (R1, R2)
     ref -> reference's fastq file
 """
-__sequana__bwa_mem = [":samples", "ref", "output", ":kwargs", ":threads"]
 
-import sequana.snaketools as sm
+"""
 from easydev import shellcmd
-cfg = sm.SequanaConfig.from_dict(config)
-
-"""try:
+try:
     ret = shellcmd("which pbwa") # for IP cluster
     bwa_exe = "pbwa"
 except:
@@ -25,7 +22,7 @@ def bwa_mem_dynamic(name, project):
     metadata = {'name':name, 'project':project}
 
     bwa_mem_code = '''
-rule bwa_mem__%(name)s:
+rule bwa_mem_%(name)s:
     input:
         fastq = __bwa_mem_%(name)s__input,
         reference = __bwa_mem_%(name)s__ref_input
@@ -38,12 +35,12 @@ rule bwa_mem__%(name)s:
         index = "%(project)s/logs/bwa_mem_%(name)s/bwa_index.logs",
         sort = "%(project)s/logs/bwa_mem_%(name)s/samtools_sort.logs"
     params:
-        index = config["bwa_%(name)s"]["index"]["options"],
-        mem = config["bwa_%(name)s"]["mem"]["options"],
-        rg = config["bwa_%(name)s"]["mem"]["read_groups"],
+        index = config["bwa_mem_%(name)s"]["index"]["options"],
+        mem = config["bwa_mem_%(name)s"]["mem"]["options"],
+        rg = config["bwa_mem_%(name)s"]["mem"]["read_groups"],
         bwa_exe = bwa_exe
     threads:
-        int(config["bwa_%(name)s"]["mem"]["threads"])
+        int(config["bwa_mem_%(name)s"]["mem"]["threads"])
     shell:
         """
         # Symbolic link of the reference

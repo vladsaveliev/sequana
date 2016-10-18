@@ -1,49 +1,19 @@
-import sequana
-from sequana import snaketools as sm
-from sequana.snaketools import SequanaConfig, FileFactory
-
-# This must be defined before the include
-configfile: "config.yaml"
-
-cfg = SequanaConfig(config)
-expected_output = []
-
-
-# note the /
-__kraken__outdir = "kraken/"
-
-
-
-__kraken__input = [cfg.DATASET[0]]
-if cfg.paired:
-    __kraken__input += [cfg.DATASET[1]]
-
-if "kraken_input" in config.keys():
-    if config["kraken_input"] == "cutadapt":
-        __kraken__input = __cutadapt__output[:]
-    elif config["kraken_input"] == "phix":
-        __kraken__input = [x for x in __bwa_bam_to_fastq__output if "unmapped" in x]
-    else:
-        pass
-
-__kraken__output = __kraken__outdir + "/kraken.html"
 
 
 rule kraken_to_krona:
-    input: __kraken__outdir + "kraken.out.summary"
-    output: __kraken__output
+    input: __kraken__output_wkdir + "/kraken.out.summary"
+    output: __kraken__output_html
     run:
         shell("ktImportText %s -o %s" % (input, output))
-        shell("cp %s %s" % (output, "report/kraken.html"))
 
 
 rule kraken_translate:
-    input:
-        __kraken__outdir + "kraken.out"
+    input: __kraken__output
     output:
-        summary=__kraken__outdir + "kraken.out.summary",
-        png=__kraken__outdir + "kraken.png",
+        summary = __kraken__output_wkdir + "/kraken.out.summary",
+        png = __kraken__output_wkdir + "/kraken.png",
     run:
+        print(input[0])
         from sequana.kraken import KrakenResults
         k = KrakenResults(input[0])
         k.kraken_to_krona(output_filename=output.summary)
@@ -52,36 +22,36 @@ rule kraken_translate:
         savefig(output.png)
 
 
-if cfg.paired:
-    rule kraken_contaminant:
-        input:
-            file1=__kraken__input[0],
-            file2=__kraken__input[1]
-        output:
-            classified=__kraken__outdir + "kraken_classified.fasta",
-            unclassified=__kraken__outdir + "kraken_unclassified.fasta",
-            kraken=__kraken__outdir + "kraken.out"
-        params:
-            database = config['kraken']['database']
-        threads: 4
-        run:
-            shell("kraken -db {params.database}  {input.file1} {input.file2} --threads {threads}  --classified-out {output.classified} --unclassified-out {output.unclassified} --paired --out {output.kraken}")
-else:
-    rule kraken_contaminant:
-        input:
-            file1=__kraken__input[0]
-        output:
-            classified=__kraken__outdir + "/kraken_classified.fasta",
-            unclassified=__kraken__outdir + "/kraken_unclassified.fasta",
-            kraken=__kraken__outdir + "kraken.out"
-        params:
-            database = config['kraken']['database']
-        threads: 4
-        run:
-            shell("kraken -db {params.database} {input.file1} "
+rule kraken:
+    """Kraken 
+
+    Input:
+        __kraken__input
+    Output:
+
+    Config:
+        config['kraken']['database']
+
+    """
+    input: __kraken__input
+    output:
+        classified = __kraken__output_wkdir + "/kraken_classified.fastq",
+        unclassified = __kraken__output_wkdir + "/kraken_unclassified.fastq",
+        kraken = __kraken__output
+    params:
+        database = config['kraken']['database']
+    threads: 4
+    run:
+        if len(input) == 1:
+            shell("kraken -db {params.database} {input[0]} "
                 " --threads {threads} --classified-out "
                 " {output.classified} --unclassified-out {output.unclassified}"
                 " --out {output.kraken}")
+        elif len(input) == 2:
+            shell("kraken -db {params.database}  {input[0]} {input[1]} "
+                " --threads {threads}  --classified-out {output.classified} "
+                " --unclassified-out {output.unclassified} --paired "
+                "--out {output.kraken}")
 
 
 
