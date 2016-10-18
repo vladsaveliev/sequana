@@ -64,14 +64,13 @@ class FastQCReport(BaseReport):
 
         import glob
         links = glob.glob("%s/*fastqc.html" % self.input_directory)
-
         names = [filename.rsplit('/',1)[1].split('.html')[0] for filename in links]
 
         df = pd.DataFrame({"names": names})
         df.sort_values(by='names')
 
-        formatter = '<a target="_blank" alt={1} href="../{0}">{1}</a>'
-        df["names"] = [formatter.format(link, name) for link,name in zip(links, names)]
+        formatter = '<a target="_blank" alt={1} href="{0}.html">{1}</a>'
+        df["names"] = [formatter.format(link, name) for link,name in zip(names, names)]
 
         h = HTMLTable(df)
         html = h.to_html(index=True)

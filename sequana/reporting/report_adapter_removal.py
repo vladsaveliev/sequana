@@ -39,7 +39,7 @@ class AdapterRemovalReport(BaseReport):
     This class defines a minimal set of information to be provided
 
     """
-    def __init__(self, 
+    def __init__(self,
             output_filename="adapter_removal.html", 
             directory="report",
             overwrite=False, **kargs):
@@ -111,7 +111,7 @@ class AdapterRemovalReport(BaseReport):
         if self.mode != "pe":
             df.index = [this.replace("paired", "").replace("Pairs", "Reads") for this in df.index]
 
-        df.to_json("cutadapt/cutadapt_stats1.json")
+        df.to_json(self.sample_name + "/cutadapt/cutadapt_stats1.json")
 
         h = HTMLTable(df)
         html = h.to_html(index=True)
@@ -128,7 +128,7 @@ class AdapterRemovalReport(BaseReport):
                 info['Type'], info['Sequence']]
         df.columns = ['Length', 'Trimmed', 'Type', 'Sequence']
 
-        df.to_json("cutadapt/cutadapt_stats2.json")
+        df.to_json(self.sample_name + "/cutadapt/cutadapt_stats2.json")
         h = HTMLTable(df)
         html = h.to_html(index=True)
         self.jinja['adapters'] = html

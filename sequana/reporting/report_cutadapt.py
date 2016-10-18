@@ -32,7 +32,7 @@ import pandas as pd
 
 class CutAdaptReport(AdapterRemovalReport):
 
-    def __init__(self, output_filename="cutadapt.html",
+    def __init__(self, proj, output_filename="cutadapt.html",
                  directory="report", **kargs):
         """.. rubric:: Constructor
 
@@ -46,6 +46,7 @@ class CutAdaptReport(AdapterRemovalReport):
             directory=directory, **kargs)
         self.jinja['title'] = "CutAdapt Report Summary"
         self.jinja['main_link'] = "summary.html"
+        self.sample_name = proj
 
     def read_data(self, filename):
         self.input_filename = filename
@@ -80,7 +81,6 @@ class CutAdaptReport(AdapterRemovalReport):
 
     def parse(self):
         d = {}
-
         # output
         tobefound = self._get_data_tobefound()
         adapters = []
