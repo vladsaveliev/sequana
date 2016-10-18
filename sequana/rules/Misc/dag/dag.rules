@@ -9,13 +9,6 @@ Changelog:
 
 """
 
-try:
-    # pipelines must have __snakefile__ variable defined
-    __dag__input = __snakefile__
-except:
-    __dag__input = "Snakefile"
-
-
 
 rule dag:
     """DAG
@@ -26,9 +19,9 @@ rule dag:
     input: 
         filename = __dag__input
     output:
-        dot  = temp(__dag__output + "dag.dot"),
-        dot2 = temp(__dag__output + "dag.ann.dot"),
-        svg  = __dag__output + "dag.svg"
+        dot  = temp("dag.dot"),
+        dot2 = temp("dag.ann.dot"),
+        svg  = __dag__output
     message: """
     -- Creating DAG in a dot file and save into report/dag.svg
     """
@@ -42,5 +35,6 @@ rule dag:
         d.add_urls()
 
         # Now, create the SVG. Somehow if called dag.svg, this is a conflict
+        # hence the || true 
         shell("dot -Tsvg {output.dot2} -o {output.svg} || true")
 
