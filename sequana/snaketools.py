@@ -495,8 +495,8 @@ class SequanaConfig(object):
 
     ::
 
-        >>> vc = SequanaConfig(config)
-        >>> config.e == 1
+        >>> sc = SequanaConfig(config)
+        >>> sc.config.pattern == "*.fastq.gz"
         True
 
     Input files should be stored into::
@@ -689,6 +689,22 @@ class SequanaConfig(object):
                         # actually a key here
                         assert item in self.config.keys()
 
+    def get(self, field, default=None, cfg=None):
+        if cfg is None:
+            cfg = self.config
+        if ":" in field:
+            level1, level2 = field.split(":",1)
+            if level1 not in cfg.keys():
+                raise ValueError("first level key (%s) not found " % level1)
+            print("Found :")
+            return self.get(level2, default=default, cfg=cfg[level1])
+        else:
+            if isinstance(cfg, dict) and field in cfg.keys():
+                return cfg[field]
+            else:
+                return default
+
+
 
 def sequana_check_config(config, globs):
     s = SequanaConfig.from_dict(config)
@@ -800,18 +816,13 @@ class DOTParser(object):
                         fout.write(newline + "\n")
 
 
-def get_tagname(filename):
+def __get_tagname(filename):
     """Given a fullpath name, remove extension and prefix and return the name
 
-    ::
+    .. deprecated:: 
 
-        test.txt
-        test.txt.gz
-        dir/test.txt
-        dir/test.txt.gz
-
-    all return "test"
     """
+    raise ValueError("deprecated")
     import os
     # This should always work
     name = os.path.split(filename)[1].split('.', 1)[0]
@@ -975,8 +986,10 @@ def init(filename, namespace):
     """Defines the global variable __snakefile__ inside snakefiles
 
     If not already defined, __snakefile__ is created to hold the name of the
-    pipeline. We also define two other variables named expected_output and
-    toclean that are empty list by default
+    pipeline. We also define initialise these variables :
+
+        * expected_output as an empty list
+        * toclean as an empty  list
 
     """
     if "__snakefile__" in namespace.keys():
