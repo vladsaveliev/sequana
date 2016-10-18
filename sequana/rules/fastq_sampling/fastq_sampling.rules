@@ -6,28 +6,25 @@ Input: *gz
 Output: fastq_sampling/*gz
 """
 
-__sequana__fastq_sampling__requires = [":do", ":N", "samples:file1", "samples:file2"]
 
 
-from sequana.snaketools import SequanaConfig, FileFactory
-cfg = SequanaConfig.from_dict(config)
-ff = FileFactory(cfg.DATASET)
-
-
-rule fastq_sampling_input:
-    input : expand("fastq_sampling/{dataset}" , dataset=ff.basenames)
+#rule fastq_sampling_input:
+#    input : expand("fastq_sampling/{dataset}" , dataset=ff.basenames)
 
 
 rule fastq_sampling:
     """Select a sample from raw FastQ files"""
-    input: "%s/{dataset}" % ff.pathname
-    output: "fastq_sampling/{dataset}"
-    params: N = config["fastq_sampling"]['N']
+    input: __fastq_sampling__input_fastq
+    output: __fastq_sampling__output_fastq
+    params:
+        N = config["fastq_sampling"]['N']
     message: "fastq_sampling extracting %s reads" % config['fastq_sampling']['N']
     run:
-        shell("fastq_head {input} {params.N} {output}")
-        if "R1" in output:
+        for i,o in zip(input, output):
+            shell("fastq_head %s {params.N} %s" % (i,o))
+
+        """if "R1" in output:
             config['samples']['file1'] = output
         elif "R2" in output:
             config['samples']['file2'] = output
-
+        """
