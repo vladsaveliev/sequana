@@ -1,14 +1,26 @@
-__quast__output = "quast_%s/report.html" % cfg.PROJECT
-__quast__dir = "quast_" + cfg.PROJECT
-
 rule quast:
+    """ Quast calculates metrics to evaluate and to compare different de novo
+    assembly. It provides a HTML file.
+
+    Required input:
+        __quast__input: list of fasta files
+
+    Required output:
+        __quast__output: html file
+
+    Required parameters:
+        __quast__outdir: output directory
+
+    Contributors:
+        Sequana consortium
+    """
     input:
         fasta = __quast__input
     output:
         __quast__output
     params:
         options = config["quast"]["options"],
-        directory = __quast__dir
+        directory = __quast__outdir
     shell:
         """
         quast.py {params.options} {input.fasta} -o {params.directory}

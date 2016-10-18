@@ -1,7 +1,7 @@
-__spades__contigs = "spades/%s.contigs.fasta" % cfg.PROJECT
-__spades__scaffolds = "spades/%s.scaffolds.fasta" % cfg.PROJECT
-
 rule spades:
+    """ Spade is a de novo assembler designed for small genomes like bacteria 
+    or fungi. This rule works only with paired-end files.
+    """
     input:
         fastq = __spades__input
     output:
@@ -11,7 +11,7 @@ rule spades:
         config["spades"]["threads"]
     params:
         options = config["spades"]["options"],
-        project = cfg.PROJECT
+        outdir = __spades__outdir
     shell:
         """
         # spades

@@ -14,6 +14,13 @@ rule report_mapping:
 
     Required parameter:
         __report_mapping__directory: report directory
+        config["report_mapping"]["k"]: number of gaussians predicted in the 
+                gaussian pool.
+        config["report_mapping"]["window_size"]: windows size for running median.
+                This integer must be an odd number.
+        config["report_mapping"]["high_threshold"]: high zscore threshold
+        config["report_mapping"]["low_threshold"]: low zscore threshold
+        config["report_mapping"]["circular"]: boolean if the genome is circular
 
     Contributors:
         Sequana consortium
@@ -65,7 +72,7 @@ rule report_mapping:
         
         # Report mapping
         r = report_mapping.MappingReport(directory=params.outdir,
-            project=cfg.PROJECT)
+            project=params.project)
         r.set_data(mydata, bam, input.quast)
         r.create_report()
 
