@@ -13,7 +13,6 @@ rule kraken_translate:
         summary = __kraken__output_wkdir + "/kraken.out.summary",
         png = __kraken__output_wkdir + "/kraken.png",
     run:
-        print(input[0])
         from sequana.kraken import KrakenResults
         k = KrakenResults(input[0])
         k.kraken_to_krona(output_filename=output.summary)
