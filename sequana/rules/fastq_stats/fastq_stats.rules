@@ -24,10 +24,10 @@ rule fastq_stats_%(name)s:
 
         for i, filename in enumerate(ff.realpaths):
             # The ouput files
-            formatter = lambda x: params.wkdir + "/" + x
-            output_gc = formatter(ff.filenames[i] + "_gc.png")
-            output_boxplot = formatter(ff.filenames[i] + "_boxplot.png")
-            output_json = formatter(ff.filenames[i] + ".json")
+            formatter = lambda x: params.wkdir + "/" + x.replace(".fastq.gz","")
+            output_gc = formatter(ff.basenames[i] + "_gc.png")
+            output_boxplot = formatter(ff.basenames[i] + "_boxplot.png")
+            output_json = formatter(ff.basenames[i] + ".json")
 
             fastq = FastQC(filename, max_sample=100000)
             if len(fastq.fastq) != 0:
