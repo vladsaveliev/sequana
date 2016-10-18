@@ -88,7 +88,7 @@ install everything in one go)::
     functionalities would work under Python 2.7 
 
 .. note:: we also provide a docker file with release 0.11 of Sequana pre-installed.
-    Please see https://github.com/sequana/sequana/docker
+    Please see https://github.com/sequana/sequana/tree/master/docker
 
 .. _quick_start:
 

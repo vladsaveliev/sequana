@@ -21,6 +21,10 @@ data
 .. include:: ../sequana/rules/data/README.rst
 
 
+kraken contaminant
+=====================
+.. snakemakerule:: kraken
+
 fastqc
 ==========
 
