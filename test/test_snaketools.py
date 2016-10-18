@@ -1,5 +1,5 @@
 from sequana import snaketools, sequana_data
-from sequana.snaketools import get_tagname, DOTParser
+from sequana.snaketools import DOTParser
 import os
 
 
@@ -39,10 +39,6 @@ def test_expanded_snakefile():
     #TODO remove the file just created (Snakefile.expanded)
 
 
-def test_get_tagname():
-    assert get_tagname("test") == "test"
-    assert get_tagname("test.txt") == "test"
-    assert get_tagname("prefix/test.txt") == "test"
 
 
 def test_module():
