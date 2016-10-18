@@ -1,47 +1,56 @@
 rule digital_normalisation:
-    """
-    Assembly is very hard with ultra-deep sequencing data. Digital normalisation 
-    is a method to normalise coverage of a sample without reference. 
-    It provides as good or better results than assembling the unnormalised data. 
+    """ Assembly is very hard with ultra-deep sequencing data. Digital 
+    normalisation is a method to normalise coverage of a sample without 
+    reference. It provides as good or better results than assembling the 
+    unnormalised data. 
    
     Required input:
-        __bedtools_genomecov__input: list of paired fastq files
+        __digital_normalisation__input: list of paired fastq files
 
     Required output:
-        __bedtools_genomecov__output: list of paired fastq files
+        __digital_normalisation__output: list of paired fastq files
+
+    Required parameters:
+        __digital_normalisation__outdir: output directory
 
     Contributors:
         Sequana consortium
     """
     input:
-        fastq = __digital_norm__input
+        fastq = __digital_normalisation__input
     output:
-        fastq_dn = __digital_norm__output,
-        graph = temp("digital_norm/%s_graph.ct" % cfg.PROJECT)
+        fastq_dn = __digital_normalisation__output,
+        graph = temp(__digital_normalisation__outdir + "/graph.ct")
     params:
-        project = "digital_norm/%s" % cfg.PROJECT,
-        options = " ".join(["%s %s" % (key, config["digital_norm"]["options"][key]) 
-                    for key in config["digital_norm"]["options"]])
+        outdir = __digital_normalisation__outdir,
+        ksize = config["digital_normalisation"]["ksize"],
+        cutoff = config["digital_normalisation"]["cutoff"],
+        n_table = config["digital_normalisation"]["n_table"],
+        max_ts = config["digital_normalisation"]["max-tablesize"],
+        options = config["digital_normalisation"]["options"]
+    threads:
+        config["digital_normalisation"]["threads"]
     shell:
         """
         # concatenate R1 and R2
-        interleave-reads.py {input.fastq} --output {params.project}.pe
+        interleave-reads.py {input.fastq} --output {params.outdir}.pe
 
         # digital norm
-        normalize-by-median.py --paired {params.options} \
-            --savegraph {output.graph} {params.project}.pe \
-            --output {params.project}.pe.keep
+        normalize-by-median.py --paired --ksize {params.outdir} --cutoff \
+            {params.cutoff} --n_table {params.n_table} --max_ts {params.max_ts}\
+            --options {params.options} --savegraph {output.graph} \
+            {params.outdir}.pe \ --output {params.outdir}.pe.keep
         
         # filter abundance
-        filter-abund.py -V {output.graph} {params.project}.pe.keep \
-            --output {params.project}.pe.filter
+        filter-abund.py -V {output.graph} {params.outdir}.pe.keep \
+            --output {params.outdir}.pe.filter
 
         # extract paired reads
-        extract-paired-reads.py {params.project}.pe.filter \
-            --output-paired {params.project}.dn.pe \
-            --output-single {params.project}.dn.se
+        extract-paired-reads.py {params.outdir}.pe.filter \
+            --output-paired {params.outdir}.dn.pe \
+            --output-single {params.outdir}.dn.se
 
         # split paired reads
-        split-paired-reads.py {params.project}.dn.pe --gzip \
+        split-paired-reads.py {params.outdir}.dn.pe --gzip \
             -1 {output.fastq_dn[0]} -2 {output.fastq_dn[1]}
         """

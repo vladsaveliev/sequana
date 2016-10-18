@@ -146,15 +146,10 @@ try:
 except NameError:
     final_output.append(__report_variant__html_output)
 
-#__conda__output = report_dir + "requirements.txt"
-#include: sm.modules["conda"] # Create requirements.txt(dependencies)
-#__dag__output = report_dir
-#include: sm.modules["dag"]
-#try:
-#    final_output.extend([expand(__dag__output + "dag.svg", sample=ff_dict), 
-#                        expand(__conda__output, sample=ff_dict)])
-#except NameError:
-#    final_output.extend([__dag__output + "dag.svg", __conda__output])
+
+include: sm.modules["conda"] # Create requirements.txt(dependencies)
+include: sm.modules["dag"]
+final_output.extend(["requirements.txt", "dag.svg"])
 
 
 rule pipeline_variant:
@@ -171,9 +166,9 @@ onsuccess:
     report_dir_format = "%(proj)s/%(proj)s_report_vc/"
     for proj in projects:
         report_dir = report_dir_format % {"proj": proj}
-        print(report_dir)
         shell("cp %s %s/" % (__snakefile__, report_dir))
-        shell("cp %s %s/" % (__snakefile__, report_dir))
+        shell("cp %s %s/" % ("requirements.txt", report_dir))
+        shell("cp %s %s/" % ("dag.svg", report_dir))
         shell("cp config.yaml %s/" % report_dir)
         shell("cp %s %s" % (proj + "/freebayes/*vcf", report_dir))
         shell("cp %s %s" % (proj + "/vcf_filter/*vcf", report_dir))

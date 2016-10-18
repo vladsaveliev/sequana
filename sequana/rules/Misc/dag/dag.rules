@@ -26,15 +26,15 @@ rule dag:
     input: 
         filename = __dag__input
     output:
-        dot  = temp(__dag__output + "dag.dot"),
-        dot2 = temp(__dag__output + "dag.ann.dot"),
-        svg  = __dag__output + "dag.svg"
+        dot  = temp("dag.dot"),
+        dot2 = temp("dag.ann.dot"),
+        svg  = "dag.svg"
     message: """
     -- Creating DAG in a dot file and save into report/dag.svg
     """
     run:
         # Create the dot file (graphviz) using snakemake
-        shell("snakemake -s {input.filename} --dag > {output.dot}")
+        shell("snakemake -s {input.filename} --rulegraph > {output.dot}")
 
         # Annotate the dag with URLs 
         from sequana.snaketools import DOTParser

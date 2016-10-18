@@ -18,27 +18,55 @@ sm.init("denovo_assembly.rules", globals())
 configfile: "config.yaml"
 cfg = SequanaConfig(config)
 
+project = cfg.PROJECT
+if not project:
+    project = sm.FastQFactory(cfg.DATASET).tags[0]
 
-if config["digital_norm"]["do"]:
-    __digital_norm__input = cfg.DATASET
+try:
+    # recovers differents samples in directory
+    glob_dir = config["input_directory"] + "/*fastq.gz"
+    ff = sm.FastQFactory(glob_dir)
+    ff_dict = {tag: [ff.get_file1(tag), ff.get_file2(tag)] if ff.get_file2(tag) 
+                else [ff.get_file1(tag)] for tag in ff.tags}
+    # set basename for output of all rules
+    basename = "{sample}/%s/{sample}"
+    outdir = "{sample}/%s/"
+    project = "{sample}"
+    # first input must be function to recover complete file name
+    __digital_normalisation__input = lambda wildcards: ff_dict[wildcards.sample] 
+except (TypeError, KeyError):
+    basename = project + "/%s/" + project
+    outdir = project + "/%s/"
+    __bwa_mem_ref__input = cfg.DATASET
+
+if config["digital_normalisation"]["do"]:
+    __digital_normalisation__output = [ basename % ("digital_normalisation") \
+            + "_R%i_.dn.fastq.gz" % i for i in (1,2) ]
+    __digital_normalisation__outdir = project + "/digital_normalisation/"
     include: sm.modules["digital_norm"]
-    __spades__input = __digital_norm__output
+    __spades__input = __digital_normalisation__output
 else:
-    __spades__input = cfg.DATASET
+    __spades__input = __digital_normalisation__input
 
+__spades__outdir = outdir % "spades"
+__spades__contigs = basename % ("spades") + ".fasta"
+__spades__scaffolds = basename % ("spades") + ".fasta"
 include: sm.modules["spades"]
 
 __quast__input = [__spades__contigs, __spades__scaffolds]
+__quast__outdir = project + "/quast_" + project
+__quast__output = __quast__outdir + "/report.html"
 include: sm.modules["quast"]
 
 __format_contigs__input = __spades__contigs
+__format_contigs__output = basename % ("format_contigs") + ".fasta"
 include: sm.modules["format_contigs"]
 
 if config["do_mapping_evaluation"]:
     __bwa_mem_ref__ref_input = __format_contigs__output
     __report_mapping__quast_input = __quast__output
     include: sm.modules["variant_calling"]
-    final_output = final_output + [__quast__output, __format_contigs__output]
+    final_output += [__quast__output, __format_contigs__output])
 else:
     final_output = [__format_contigs__output, __quast__output]
 
