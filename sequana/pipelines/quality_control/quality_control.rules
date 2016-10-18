@@ -26,15 +26,15 @@ exec(open(sequana.modules["fastq_stats"], "r").read())
 # first input rule must be included in the try/except
 # recovers differents samples in directory
 try:
-    glob_dir = config["input_directory"] + "/test*fastq.gz"
+    glob_dir = config["input_directory"] + "/" + cfg.get('pattern', "*.fastq.gz")
     ff = sm.FastQFactory(glob_dir)
-except:
+except Exception as err:    
     ff = sm.FastQFactory(cfg.DATASET)
 
 ff_dict = {tag: [ff.get_file1(tag), ff.get_file2(tag)] if ff.get_file2(tag) 
             else [ff.get_file1(tag)] for tag in ff.tags}
 
-if len(ff.tags)==1 and cfg.PROJECT:
+if len(ff.tags) == 1 and cfg.PROJECT:
     project = cfg.PROJECT
     basename = cfg.PROJECT + "/%s/{sample}" 
 else:
@@ -42,25 +42,18 @@ else:
     basename = "{sample}/%s/{sample}"
 
 
-"""if cfg.config.fastq_sampling.do:
-    try:
-        ff_dict
-        __fastq_sampling__input = lambda wildcards: ff_dict[wildcards.sample]
-    except NameError:
-        #__fastq_sampling__input =  lambda wildcards: 
-        __fastq_sampling__output = expand(project + "/fastq_sampling/{sample}", sample=ff.basenames)
-    include: sm.modules['fastq_sampling']
-"""
+__rawdata__input = lambda wildcards: ff_dict[wildcards.sample]
 
-
-__data__input = lambda wildcards: ff_dict[wildcards.sample] 
-
-#__fastq_sampling__input = __data__input
-#__fastq_sampling__output = "{sample}/fastq_sampling/{sample}" + ".fastq.gz"
-#include: sm.modules['fastq_sampling']
-#ff = sm.FastQFactory("*/fastq_sampling/*.fastq.gz")
-#ff_dict = {tag: [ff.get_file1(tag), ff.get_file2(tag)] if ff.get_file2(tag) 
-#        else [ff.get_file1(tag)] for tag in ff.tags}
+if cfg.config.fastq_sampling.do is True:
+    __fastq_sampling__input_fastq = __rawdata__input
+    __fastq_sampling__output_fastq = ["fastq_sampling/{sample}._R1_.fastq.gz",
+        "fastq_sampling/{sample}._R2_.fastq.gz"]
+    include: sm.modules["fastq_sampling"]
+    new_ff_dict = dict([((k,["fastq_sampling/" + x.rsplit("/",1)[1] for x in v]))
+        for k,v in ff_dict.items()])
+    __data__input = __fastq_sampling__output_fastq
+else:
+    __data__input = __rawdata__input
 
 
 # FASTQC on input data set
@@ -184,11 +177,13 @@ if cfg.config.kraken.do:
     include: sm.modules['kraken']
     expected_output.append(expand(__kraken__output_html, sample=ff_dict))
 
+# include overall dag file
 __dag__input = __snakefile__
 __dag__output = "dag.svg"
 include: sm.modules['dag']
 expected_output.extend(["dag.svg"])
 
+# Include rule graph for each sample
 __rulegraph__input = __snakefile__
 __rulegraph__output = "rulegraph.svg"
 include: sm.modules['rulegraph']
@@ -201,7 +196,7 @@ include: sm.modules['conda']   # Create requirements.txt(dependencies)
 expected_output.extend([__conda__output])
 
 # Those rules takes a couple of seconds so no need for a cluster
-localrules: dag, conda
+localrules: dag, conda, rulegraph
 
 
 rule pipeline_quality_control:
@@ -214,7 +209,6 @@ onsuccess:
     # Create plots about stats
     sm.plot_stats(N=len(ff_dict))
 
-    # files to remove
     # Main directory
     report_dir_format = "%(proj)s/%(proj)s_report_qc/"
     for proj in ff_dict.keys():
@@ -237,10 +231,13 @@ onsuccess:
             shell('cp -r %s/kraken/ %s' % (proj, report_dir))
         shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
         shell('cp -r %s/fastq_stats*/ %s' % (proj, report_dir))
+        shell('cp -r %s/bwa_bam_to_fastq/ %s' % (proj, report_dir))
+        shell('rm -f %s/bwa_bam_to_fastq/*fastq ' % (report_dir))
 
         # Copy the fastq files 
         if cfg.config.adapter_removal.do:
-            shell('cp -r %s/cutadapt/*fastq.gz %s' % (proj, report_dir))
+            shell('cp -r %s/cutadapt %s' % (proj, report_dir))
+            shell('mv  %s/cutadapt/*fastq.gz %s' % (report_dir, report_dir))
         elif cfg.config.bwa_mem_phix.do:
             shell('cp -r %s/bwa_bam_to_fastq/*unmapped* %s' % (proj, report_dir))
 
@@ -252,7 +249,6 @@ onsuccess:
         summary.create_report()
     garbage = ['snakemake_stats.png',  "rulegraph.svg", "requirements.txt"]
     for filename in garbage:
-        print(filename)
         import os
         try: os.remove(filename)
         except:pass

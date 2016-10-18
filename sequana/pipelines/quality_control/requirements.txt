@@ -1,0 +1,8 @@
+Requirements
+~~~~~~~~~~~~~~~~~~
+
+- bwa
+- samtools
+- kraken
+- krona
+
