@@ -31,7 +31,6 @@ Here is an overview (see details here below)
     sequana.snaketools.SnakeMakeStats
     sequana.snaketools.SequanaConfig
     sequana.snaketools.get_cleanup_rules
-    sequana.snaketools.get_tagname
     sequana.snaketools.message
     sequana.snaketools.modules
 
@@ -541,7 +540,7 @@ class SequanaConfig(object):
         self._converts_boolean(self.config)
 
         if test_requirements and mode == "NGS":
-            requirements = ["samples", "samples:file1", "samples:file2", "project"]
+            requirements = ["samples", "samples:file1", "samples:file2"]
             # converts to dictionary ?
             for this in requirements:
                 this = this.split(":")[0]
@@ -549,7 +548,6 @@ class SequanaConfig(object):
                     "Your config must contain %s" % this
 
         if mode == "NGS":
-            self.PROJECT = self.config.project
             self.DATASET = self.get_dataset_as_list()
             self.ff = FileFactory(self.DATASET)
             self.BASENAME = self.ff.basenames
@@ -703,6 +701,58 @@ class SequanaConfig(object):
                 return cfg[field]
             else:
                 return default
+
+
+class PipelineManager(object):
+    def __init__(self, name, config, pattern="*.fastq.gz"):
+
+        cfg = SequanaConfig(config)
+        cfg.config.pipeline_name = name
+        self.config = cfg.config
+        self.paired = cfg.paired
+        #self.cfg = cfg
+        config = self.config
+
+        try:
+            # Keep cfg.config.input_directory without default so that it
+            # fails if there is no input_directory provided
+            glob_dir = cfg.config.input_directory + "/" + cfg.get('pattern', pattern)
+            self.ff = FastQFactory(glob_dir)
+        except:
+            self.ff = FastQFactory(cfg.DATASET)
+
+        ff = self.ff  # an alias
+        self.samples = {tag: [ff.get_file1(tag), ff.get_file2(tag)] if ff.get_file2(tag)
+            else [ff.get_file1(tag)] for tag in ff.tags}
+
+        if len(ff.tags) == 0:
+            raise ValueError("""Could not find fastq.gz files with valid format
+(NAME_R1_<SUFFIX>.fastq.gz where <SUFFIX> is optional""")
+        elif len(ff.tags) == 1:
+            self.mode = "nowc"
+            self.sample = ff.tags[0]
+            self.basename = self.sample + "/%s/"+ self.sample
+        else:
+            self.mode = "wc"
+            self.sample = "{sample}"
+            self.basename = "{sample}/%s/{sample}"
+
+    def getname(self, rulename, prefix=None):
+        if prefix is None:
+            prefix = ""
+        return self.basename % rulename +  prefix
+
+    def getwkdir(self, rulename):
+        return self.sample + "/" + rulename
+
+    def getrawdata(self):
+        if self.mode == "nowc":
+            return self.ff.basenames
+        else:
+            return lambda wildcards: self.samples[wildcards.sample]
+
+
+
 
 
 
