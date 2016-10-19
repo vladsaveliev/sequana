@@ -116,11 +116,13 @@ class SequanaSummary(BaseReport):
         html = "<ul>"
         filenames = glob.glob(self.directory+"/*fastq.gz")
         from sequana.snaketools import FastQFactory
-        ff = FastQFactory(filenames)
-        for filename in ff.basenames:
-            html += '<li>Download cleaned data: <a href="%s">%s</a></li>\n' % (filename, filename)
-        html += "</ul>"
-        self.jinja['output'] = html
+        if len(filenames):
+            ff = FastQFactory(filenames)
+            for filename in ff.basenames:
+                html += '<li>Download cleaned data: <a href="%s">%s</a></li>\n' % (filename, 
+                    filename)
+            html += "</ul>"
+            self.jinja['output'] = html
 
     def include_details(self):
         self.jinja['snakemake_stats'] = "snakemake_stats.png"
@@ -132,12 +134,13 @@ class SequanaSummary(BaseReport):
         except:
             self.config.config['adapter_removal']['do'] = False
 
-        from reports import HTMLTable
-        df = pd.read_json(self.directory + "/cutadapt/cutadapt_stats1.json")
-        self.jinja["cutadapt_stats1_json"] = df.to_json()
-        h = HTMLTable(df)
-        html = h.to_html(index=True)
-        self.jinja['cutadapt_stats1'] = html
+        if self.config.config["adapter_removal"]['do']:
+            from reports import HTMLTable
+            df = pd.read_json(self.directory + "/cutadapt/cutadapt_stats1.json")
+            self.jinja["cutadapt_stats1_json"] = df.to_json()
+            h = HTMLTable(df)
+            html = h.to_html(index=True)
+            self.jinja['cutadapt_stats1'] = html
 
     def include_sample_stats(self):
         filename = self.directory + "/fastq_stats_samples/temp.html"

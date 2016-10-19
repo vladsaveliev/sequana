@@ -7,11 +7,6 @@ Output: fastq_sampling/*gz
 """
 
 
-
-#rule fastq_sampling_input:
-#    input : expand("fastq_sampling/{dataset}" , dataset=ff.basenames)
-
-
 rule fastq_sampling:
     """Select a sample from raw FastQ files"""
     input: __fastq_sampling__input_fastq
