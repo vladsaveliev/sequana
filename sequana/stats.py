@@ -67,3 +67,4 @@ def evenness(data):
         
         return 1. - (len(D2) - sum(D2) / C) / len(coverage)
 
+vcf_filter.VCF._filter_line

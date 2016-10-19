@@ -28,7 +28,7 @@ gatk_bin: GenomeAnalysisTK
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bwa
 
-bwa_ref:
+bwa_mem_ref:
     reference: "%(reference)s"  # Genome of reference
     index:      # Options for bwa index
         options: '-a is'
