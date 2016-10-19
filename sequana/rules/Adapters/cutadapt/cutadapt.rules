@@ -1,51 +1,49 @@
 
 
+rule cutadapt:
+    input:
+        fastq = __cutadapt__input_fastq
+    output:
+        fastq = __cutadapt__output,
+    params:
+        fwd = __cutadapt__fwd,
+        rev = __cutadapt__rev,
+        m = config['adapter_removal']['m'],   # cutoff
+        quality = config['adapter_removal']['quality'],
+        kwargs = __cutadapt__options,
+        mode = __cutadapt__mode,
+        wkdir = __cutadapt__wkdir
+    log: __cutadapt__log
+    run:
+        executable = config['adapter_removal']['tool'] # could be cutadapt or atropos
 
-if len(cfg.DATASET) == 2:
-    rule cutadapt:
-        input:
-            fastq = __cutadapt__input_fastq
-        output:
-            fastq = __cutadapt__output,
-        params:
-            fwd= cfg.config.adapter_removal.fwd,
-            rev= cfg.config.adapter_removal.rev,
-            m= cfg.config.adapter_removal.m,   # cutoff
-            quality= "%s" % (cfg.config.adapter_removal.quality),
-            kwargs = __cutadapt__options,
-            mode = __cutadapt__mode,
-            wkdir = __cutadapt__wkdir
-        log: __cutadapt__log
-        run:
-            executable = cfg.config.adapter_removal.tool # could be cutadapt or atropos
-
-            if len(input.fastq) == 2:
-                cmd = "%s -o {output.fastq[0]} -p {output.fastq[1]}" % executable
-                if executable == "atropos":
-                    cmd += " -pe1 {input.fastq[0]} -pe2 {input.fastq[1]} --progress bar"
-                else:
-                    cmd += " {input.fastq[0]} {input.fastq[1]} "
-
-                mode2 = params.mode.upper()
-
-                if params.fwd:
-                    cmd += " -{params.mode} {params.fwd} "
-                else:
-                    cmd += " -{params.mode} XXXX "
-                if params.rev:
-                    cmd += " -%s {params.rev} " % mode2
-                else:
-                    cmd += " -%s XXXX " % mode2
-
-                cmd += " -m {params.m} -q {params.quality} "
-                cmd += " {params.kwargs} > {log}"
-                shell(cmd)
+        if len(input.fastq) == 2:
+            cmd = "%s -o {output.fastq[0]} -p {output.fastq[1]}" % executable
+            if executable == "atropos":
+                cmd += " -pe1 {input.fastq[0]} -pe2 {input.fastq[1]} --progress bar"
             else:
-                cmd = "%s -o {output.fastq[0]} {input.fastq[0]}" % executable
-                if params.fwd:
-                    cmd += "    -{params.mode} {params.fwd} "
-                else:
-                    cmd += "    -{params.mode} XXXX "
-                cmd += " -m {params.m} -q {params.quality} "
-                cmd += " {params.kwargs} > {log}"
-                shell(cmd)
+                cmd += " {input.fastq[0]} {input.fastq[1]} "
+
+            mode2 = params.mode.upper()
+
+            if params.fwd:
+                cmd += " -{params.mode} {params.fwd} "
+            else:
+                cmd += " -{params.mode} XXXX "
+            if params.rev:
+                cmd += " -%s {params.rev} " % mode2
+            else:
+                cmd += " -%s XXXX " % mode2
+
+            cmd += " -m {params.m} -q {params.quality} "
+            cmd += " {params.kwargs} > {log}"
+            shell(cmd)
+        else:
+            cmd = "%s -o {output.fastq[0]} {input.fastq[0]}" % executable
+            if params.fwd:
+                cmd += "    -{params.mode} {params.fwd} "
+            else:
+                cmd += "    -{params.mode} XXXX "
+            cmd += " -m {params.m} -q {params.quality} "
+            cmd += " {params.kwargs} > {log}"
+            shell(cmd)

@@ -10,7 +10,6 @@ rule bwa_bam_to_fastq:
     """
     input:
         bam = __bwa_bam_to_fastq__input
-        # "%s/%s.bam" % (__input_dir, cfg.PROJECT),
     params:
         wkdir = __bwa_bam_to_fastq__wkdir
     output:

@@ -2,8 +2,7 @@
 
 def fastq_stats_dynamic(name, project):
 
-    metadata = {'name':name, 'project': project, 
-        "pipeline": cfg.config.pipeline_name}
+    metadata = {'name':name, 'project': project}
 
     fastq_stats_code = '''
 rule fastq_stats_%(name)s:

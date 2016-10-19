@@ -1,17 +1,15 @@
 
 
 input_directory: "."
-#pattern: "test*fastq.gz"
+patter: "*.fastq.gz"
 
 # =========================================== Sections for the users
 
 # list of your input file
 samples:
-    file1: "test1_R1_001.fastq.gz"
-    file2: "test1_R2_001.fastq.gz"
+    file1: "Hm2_GTGAAA_L004_R1_001.fastq.gz"
+    file2: "Hm2_GTGAAA_L004_R2_001.fastq.gz"
 
-
-project: "Hm2_GTGAAA_L004"
 
 # if files are required for a pipeline and are within sequana or should
 # # be downloaded before the pipeline provide them in this section

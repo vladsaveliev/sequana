@@ -5,8 +5,7 @@
 
 
 def fastqc_dynamic(name, project):
-    metadata = {'name':name, 'project':project, 
-        "pipeline_name":cfg.config.pipeline_name}
+    metadata = {'name':name, 'project':project}
     fastqc_code = '''
 
 rule fastqc_%(name)s:
@@ -18,7 +17,7 @@ rule fastqc_%(name)s:
         touch(__fastqc_%(name)s__output_done)
     params:
         wkdir = __fastqc_%(name)s__wkdir,
-        kargs = cfg.config.fastqc.options
+        kargs = config['fastqc']['options']
     threads: 4
     log:
         fastqc = "%(project)s/logs/fastqc_%(name)s/fastqc.log",
