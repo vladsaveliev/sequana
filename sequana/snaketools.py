@@ -737,17 +737,20 @@ class PipelineManager(object):
             self.sample = "{sample}"
             self.basename = "{sample}/%s/{sample}"
 
-    def getname(self, rulename, prefix=None):
-        if prefix is None:
+    def getname(self, rulename, suffix=None):
+        if suffix is None:
             prefix = ""
-        return self.basename % rulename +  prefix
+        return self.basename % rulename + suffix
+
+    def getreportdir(self, acronym):
+        return self.sample + "/report_" + acronym + "_" + self.sample + "/"
 
     def getwkdir(self, rulename):
         return self.sample + "/" + rulename
 
     def getrawdata(self):
         if self.mode == "nowc":
-            return self.ff.basenames
+            return self.ff.realpaths
         else:
             return lambda wildcards: self.samples[wildcards.sample]
 
