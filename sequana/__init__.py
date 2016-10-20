@@ -9,13 +9,15 @@ from easydev import CustomConfig
 configuration = CustomConfig("sequana", verbose=False)
 sequana_config_path = configuration.user_config_dir
 
+# This must be import before all other modules (sequana_data function)
+from .datatools import sequana_data
+
 # snakemake related
 from .snaketools import modules
 from .snaketools import SequanaConfig
-from .snaketools import Module, ModuleFinder
+from .snaketools import Module, ModuleFinder, FastQFactory
 
-
-# tools
+# various utilities for IO/data analysis
 from .adapters import AdapterReader, FindAdaptersFromIndex, Adapter
 from .bamtools import BAM, SAMFlags
 from .bedtools import GenomeCov
@@ -39,44 +41,4 @@ from sequana.reporting.report_summary import SequanaSummary
 # The standalone app
 from . import scripts
 
-
-def sequana_data(filename=None, where=None):
-    """Simple utilities to retrieve data sets from gdsctools/share directory"""
-    import os
-    import easydev
-    import glob
-    sequana_path = easydev.get_package_location('sequana')
-    sharedir = os.sep.join([sequana_path , "sequana", 'resources'])
-    directories = ['data', 'testing', 'data/adapters']
-
-    if filename is None:
-        for thisdir in directories:
-            print('From %s directory:' % thisdir)
-            for filename in glob.glob(sharedir + "/%s/*" % thisdir):
-                filename = os.path.split(filename)[1]
-                to_ignore = ["__init__.py", "__pycache__"]
-                if filename.endswith('.pyc') or filename in to_ignore:
-                    pass
-                else:
-                    print(' - sequana("%s", "%s")' % (os.path.split(filename)[1], thisdir))
-        raise ValueError("Choose a valid file from the list above")
-    # in the code one may use / or \ 
-    if where:
-        filename = os.sep.join([sharedir, where, filename])
-    else:
-        def _get_valid_file(filename, directory):
-            filename = os.sep.join([sharedir, directory, filename])
-            if os.path.exists(filename) is False:
-                return False
-            else:
-                return filename
-
-        # try to introspect the different directories
-        # return filename if found otherwise raise error
-        for thisdir in directories:
-            if _get_valid_file(filename, thisdir):
-                return _get_valid_file(filename, thisdir)
-        raise Exception("unknown file %s. Type sequana_data() to get a list of valid names" % filename)
-
-    return filename
 
