@@ -37,33 +37,30 @@ Here is an overview (see details here below)
 
 """
 import os
-import sys
 import json
 import glob
-from os.path import isdir
 
 from easydev import get_package_location as gpl
 from easydev import load_configfile, AttrDict
-from easydev.tools import touch
 import pandas as pd
 import pylab
 
 
-#__all__ = ["SequanaConfig"]
+# __all__ = ["SequanaConfig"]
 
 try:
     # This is for python2.7
     import snakemake
 except:
     print("Snakemake must be installed. Available for Python3 only")
+
     class MockSnakeMake(object):
         def __init__(self):
             pass
+
         def Workflow(self, filename):
             raise ImportError
     snakemake = MockSnakeMake()
-
-
 
 
 class ExpandedSnakeFile(object):
@@ -154,30 +151,33 @@ class SnakeMakeStats(object):
         """Create the barplot from the stats file"""
         pylab.clf()
         df = pd.DataFrame(self._parse_data()['rules'])
-        ts = df.ix['mean-runtime'] 
+        ts = df.ix['mean-runtime']
         ts['total'] = self._parse_data()['total_runtime'] / float(self.N)
         ts.sort_values(inplace=True)
 
         ts.plot.barh(fontsize=fontsize)
         pylab.grid(True)
         pylab.xlabel("Seconds (s)", fontsize=fontsize)
-        try:pylab.tight_layout()
-        except:pass
+        try:
+            pylab.tight_layout()
+        except:
+            pass
 
     def plot_and_save(self, filename="snakemake_stats.png",
-            outputdir="report"):
+                      outputdir="report"):
         self.plot()
         pylab.savefig(outputdir + os.sep + filename)
 
-def plot_stats(inputdir=".", outputdir=".", filename="snakemake_stats.png", N=1):
+
+def plot_stats(inputdir=".", outputdir=".",
+               filename="snakemake_stats.png", N=1):
     print("Workflow finished. Creating stats image")
     try:
         SnakeMakeStats("%s/stats.txt" % inputdir, N=N).plot_and_save(
             outputdir=outputdir, filename=filename)
-    except Exception as err: 
+    except Exception as err:
         print(err)
         print("INFO: Could not process %s/stats.txt file" % inputdir)
-
 
 
 class ModuleFinder(object):
@@ -209,21 +209,21 @@ class ModuleFinder(object):
     def _add_names(self, path):
         sepjoin = os.sep.join
         fullpath = sepjoin([gpl("sequana"), "sequana", path])
-        # just an alias
-        isdir_alias = lambda x: isdir(sepjoin([fullpath, x]))
 
         fullpaths = self._iglob(fullpath)
         for this in fullpaths:
             whatever, module_name, filename = this.rsplit(os.sep, 2)
             if module_name in self._paths.keys():
-                raise ValueError("Found duplicated name %s. Overwrites previous rule " % module_name)
+                raise ValueError("Found duplicated name %s. "
+                                 "Overwrites previous rule " % module_name)
             self._paths[module_name] = whatever + os.sep + module_name
             self._type[module_name] = path[:-1]
 
     def _iglob(self, path, extension="rules"):
         try:
             from glob import iglob
-            matches = list(iglob("%s/**/*.%s" % (path, extension), recursive=True))
+            matches = list(iglob("%s/**/*.%s" % (path, extension),
+                                 recursive=True))
         except:
             # iglob use recursivity with ** only in py3.5 (snakemake)
             import fnmatch
@@ -236,7 +236,7 @@ class ModuleFinder(object):
 
     def _get_names(self):
         return sorted(list(self._paths.keys()))
-    names= property(_get_names, doc="list of existing module names")
+    names = property(_get_names, doc="list of existing module names")
 
     def isvalid(self, name):
         """Check that a name is an existing and valid module"""
@@ -301,8 +301,8 @@ class Module(object):
             raise ValueError("""Sequana error: unknown rule or pipeline. Check
 the source code at:
 
-    https://github.com/sequana/sequana/tree/develop/sequana/pipelines and 
-    https://github.com/sequana/sequana/tree/develop/sequana/rules 
+    https://github.com/sequana/sequana/tree/develop/sequana/pipelines and
+    https://github.com/sequana/sequana/tree/develop/sequana/rules
 
 or open a Python shell and type::
 
@@ -341,12 +341,12 @@ or open a Python shell and type::
             filename = self._get_file("../config.yaml")
         return filename
     config = property(_get_config,
-        doc="full path to the config file of the module")
+                      doc="full path to the config file of the module")
 
     def _get_readme(self):
         return self._get_file("README.rst")
     readme = property(_get_readme,
-        doc="full path to the README file of the module")
+                      doc="full path to the README file of the module")
 
     def _get_overview(self):
         result = "no information. For developers: please fix the pipeline "
@@ -357,7 +357,7 @@ or open a Python shell and type::
                     result = this.split(":Overview:")[1].strip()
                 except:
                     result += "Bad format in :Overview: field"
-        return result 
+        return result
     overview = property(_get_overview)
 
     def _get_snakefile(self):
@@ -374,7 +374,7 @@ or open a Python shell and type::
             print("//Snakefile for %s not found" % self.name)
         return self._snakefile
     snakefile = property(_get_snakefile,
-        doc="full path to the Snakefile file of the module")
+                         doc="full path to the Snakefile file of the module")
 
     def _get_name(self):
         return self._name
@@ -395,13 +395,13 @@ or open a Python shell and type::
         executable = True
         import easydev
 
-        # reads the file and interpret it to figure out the executables/packages
-        # and pipelines required
+        # reads the file and interpret it to figure out the
+        # executables/packages and pipelines required
         pipelines = []
         with open(self.requirements, "r") as fh:
             data = fh.read()
             datalist = [this.strip() for this in data.split("\n")
-                                        if this.strip() not in [""]]
+                        if this.strip() not in [""]]
             reqlist = []
             for this in datalist:
                 if this.startswith('-'):
@@ -420,15 +420,18 @@ or open a Python shell and type::
         for req in reqlist:
             # It is either a Python package or an executable
             try:
-                output = easydev.shellcmd("which %s" % req)
-                if verbose: print("%s executable" % req)
+                easydev.shellcmd("which %s" % req)
+                if verbose:
+                    print("%s executable" % req)
             except:
                 # is this a Python code ?
                 if len(easydev.get_dependencies(req)) == 0:
-                    if verbose: print("%s not found !!" % req)
+                    if verbose:
+                        print("%s not found !!" % req)
                     executable = False
                 else:
-                    if verbose: print("%s python package" % req)
+                    if verbose:
+                        print("%s python package" % req)
         return executable
 
     def check(self, mode="warning"):
@@ -447,18 +450,14 @@ or open a Python shell and type::
                 self._description = "no description"
         return self._description
     description = property(_get_description,
-        doc="""Content of the README file associated with the module.
-
-::
-
-    from sequana import Module
-    m = Module('dag')
-    print(m.description)
-
-""")
+                           doc=("Content of the README file associated with "
+                                "the module.\n\n::\n"
+                                "   from sequana import Module\n"
+                                "   m = Module('dag')\n"
+                                "   print(m.description)\n"))
 
     def onweb(self):
-        #TOD: automatic switch
+        # TOD: automatic switch
         from easydev import onweb
         if "rules" in self._path:
             suffix = self.snakefile.split("rules/")[1]
@@ -470,7 +469,6 @@ or open a Python shell and type::
             suffix = suffix.rsplit("/", 1)[0]
             onweb("http://github.com/sequana/sequana/tree/"
                   "master/sequana/pipelines/%s" % self.name)
-
 
 
 def _get_modules_snakefiles():
@@ -516,7 +514,7 @@ class SequanaConfig(object):
 
     """
     def __init__(self, data=None, test_requirements=True,
-        converts_none_to_str=True, mode="NGS"):
+                 converts_none_to_str=True, mode="NGS"):
         """Could be a json or a yaml
 
         :param str filename: filename to a config file in json or yaml format.
@@ -570,6 +568,7 @@ class SequanaConfig(object):
         # We do not put quotes except when we find a space, a % (e.g for
         # templating with "%(param)s" case, a \\ (e.g. bwa_ref case)
         txt = ""
+
         def special(string):
             if isinstance(string, str) is False:
                 return False
@@ -585,7 +584,7 @@ class SequanaConfig(object):
                 txt += "%s:\n" % k1
                 for k2, v2 in v1.items():
                     if isinstance(v2, dict):
-                        txt += "    %s:\n" %  k2
+                        txt += "    %s:\n" % k2
                         for k3, v3 in v2.items():
                             if special(v3):
                                 txt += "        %s: '%s'\n" % (k3, v3)
@@ -599,7 +598,7 @@ class SequanaConfig(object):
                         else:
                             txt += '    %s: %s\n' % (k2, v2)
             elif isinstance(v1, list):
-                txt += "%s:\n" %  k1
+                txt += "%s:\n" % k1
                 for item in self.config[k1]:
                     if special(item):
                         txt += "    - '%s'\n" % item
@@ -615,7 +614,7 @@ class SequanaConfig(object):
                 fout.write(txt)
 
     def _converts_boolean(self, subdic):
-        for key,value in subdic.items():
+        for key, value in subdic.items():
             if isinstance(value, dict):
                 subdic[key] = self._converts_boolean(value)
             else:
@@ -627,7 +626,7 @@ class SequanaConfig(object):
 
     def _set_none_to_empty_string(self, subdic):
         # recursively set parameter (None) to ""
-        for key,value in subdic.items():
+        for key, value in subdic.items():
             if isinstance(value, dict):
                 subdic[key] = self._set_none_to_empty_string(value)
             else:
@@ -667,7 +666,6 @@ class SequanaConfig(object):
 
         """
         dd = requirements_dict
-        correct = True
 
         # check that each field request is present
         for k, vlist in dd.items():
@@ -677,11 +675,11 @@ class SequanaConfig(object):
             else:
                 for item in vlist:
                     # with : , this means a sub field field
-                    if item.startswith(":") and item.count(":")==1:
+                    if item.startswith(":") and item.count(":") == 1:
                         assert item[1:] in self.config[k].keys()
-                    elif item.count(":")>1:
+                    elif item.count(":") > 1:
                         raise NotImplementedError(
-                        "2 hierarchy checks in config not implemented ")
+                            "2 hierarchy checks in config not implemented ")
                     else:
                         # without : , this means a normal field so item is
                         # actually a key here
@@ -691,7 +689,7 @@ class SequanaConfig(object):
         if cfg is None:
             cfg = self.config
         if ":" in field:
-            level1, level2 = field.split(":",1)
+            level1, level2 = field.split(":", 1)
             if level1 not in cfg.keys():
                 raise ValueError("first level key (%s) not found " % level1)
             print("Found :")
@@ -710,28 +708,31 @@ class PipelineManager(object):
         cfg.config.pipeline_name = name
         self.config = cfg.config
         self.paired = cfg.paired
-        #self.cfg = cfg
+        # self.cfg = cfg
         config = self.config
 
         try:
             # Keep cfg.config.input_directory without default so that it
             # fails if there is no input_directory provided
-            glob_dir = cfg.config.input_directory + "/" + cfg.get('pattern', pattern)
+            glob_dir = cfg.config.input_directory + "/" + cfg.get('pattern',
+                                                                  pattern)
             self.ff = FastQFactory(glob_dir)
         except:
             self.ff = FastQFactory(cfg.DATASET)
 
         ff = self.ff  # an alias
-        self.samples = {tag: [ff.get_file1(tag), ff.get_file2(tag)] if ff.get_file2(tag)
-            else [ff.get_file1(tag)] for tag in ff.tags}
+        self.samples = {tag: [ff.get_file1(tag), ff.get_file2(tag)]
+                        if ff.get_file2(tag) else [ff.get_file1(tag)]
+                        for tag in ff.tags}
 
         if len(ff.tags) == 0:
-            raise ValueError("""Could not find fastq.gz files with valid format
-(NAME_R1_<SUFFIX>.fastq.gz where <SUFFIX> is optional""")
+            raise ValueError("Could not find fastq.gz files with valid format "
+                             "(NAME_R1_<SUFFIX>.fastq.gz where <SUFFIX> is "
+                             "optional")
         elif len(ff.tags) == 1:
             self.mode = "nowc"
             self.sample = ff.tags[0]
-            self.basename = self.sample + "/%s/"+ self.sample
+            self.basename = self.sample + "/%s/" + self.sample
         else:
             self.mode = "wc"
             self.sample = "{sample}"
@@ -739,7 +740,7 @@ class PipelineManager(object):
 
     def getname(self, rulename, suffix=None):
         if suffix is None:
-            prefix = ""
+            suffix = ""
         return self.basename % rulename + suffix
 
     def getreportdir(self, acronym):
@@ -755,16 +756,11 @@ class PipelineManager(object):
             return lambda wildcards: self.samples[wildcards.sample]
 
 
-
-
-
-
 def sequana_check_config(config, globs):
     s = SequanaConfig.from_dict(config)
-    dic = dict([ (k,v) for k,v in globs.items()
-                    if k.startswith("__sequana__")])
+    dic = dict([(k, v) for k, v in globs.items()
+                if k.startswith("__sequana__")])
     s.check(dic)
-
 
 
 def message(mes):
@@ -800,7 +796,8 @@ class DOTParser(object):
     def add_urls(self, output_filename=None):
         """Create a new dot file with clickable links.
 
-        So far all boxes are clickable even though a HTML report is not created.
+        So far all boxes are clickable even though a HTML report is not
+        created.
 
         .. todo:: introspect the modules to figure out if a report is
             available or not
@@ -828,18 +825,18 @@ class DOTParser(object):
                     separator = "color ="
                     lhs, rhs = line.split(separator)
                     name = lhs.split("label =")[1]
-                    name = name.replace(",","")
-                    name = name.replace('"',"")
+                    name = name.replace(",", "")
+                    name = name.replace('"', "")
                     name = name.strip()
-                    #if "__" in name:
-                    #    lhs = lhs.replace(name, name.split('__')[0])
+                    # if "__" in name:
+                    #     lhs = lhs.replace(name, name.split('__')[0])
                     if "dataset:" in name:
                         if ".rules" in name:
                             index = lhs.split("[")[0]
                             indices_to_drop.append(index.strip())
                         else:
                             filename = lhs.split("dataset:")[1]
-                            lhs = lhs.split("dataset:")[0] #+ "dataset:"
+                            lhs = lhs.split("dataset:")[0]  # + "dataset:"
                             filename = filename.rsplit("/")[-1]
                             newline = lhs + filename + separator + rhs
                             fout.write(newline + "\n")
@@ -847,7 +844,8 @@ class DOTParser(object):
                         index = lhs.split("[")[0]
                         indices_to_drop.append(index.strip())
                     elif name.startswith('fastqc__'):
-                        newline = lhs + ' URL="%s/%s.html" target="_parent", ' % (name,name)
+                        newline = lhs + (' URL="%s/%s.html"'
+                                         ' target="_parent", ') % (name, name)
 
                         newline += separator + rhs
                         newline = newline.replace("dashed", "")
@@ -856,14 +854,16 @@ class DOTParser(object):
                         newline = lhs + separator + rhs
                         newline = newline.replace("dashed", "")
                         fout.write(newline + "\n")
-                    elif name in ['all', "bwa_bam_to_fastq"] or "dataset:" in name:
+                    elif name in ['all', "bwa_bam_to_fastq"] \
+                            or "dataset:" in name:
                         # redirect to the main page so nothing to do
                         newline = lhs + separator + rhs
                         newline = newline.replace("dashed", "")
                         fout.write(newline + "\n")
                     else:
                         # redirect to another report
-                        newline = lhs + ' URL="%s.html" target="_parent", ' % name
+                        newline = lhs + (' URL="%s.html"'
+                                         ' target="_parent", ') % name
                         newline += separator + rhs
                         newline = newline.replace("dashed", "")
                         fout.write(newline + "\n")
@@ -872,7 +872,7 @@ class DOTParser(object):
 def __get_tagname(filename):
     """Given a fullpath name, remove extension and prefix and return the name
 
-    .. deprecated:: 
+    .. deprecated::
 
     """
     raise ValueError("deprecated")
@@ -951,7 +951,8 @@ class FileFactory(object):
     extensions = property(_get_extensions)
 
     def _get_all_extensions(self):
-        filenames = [this.split('.', 1)[1] if "." in this else "" for this in self.basenames]
+        filenames = [this.split('.', 1)[1] if "." in this else ""
+                     for this in self.basenames]
         return filenames
     all_extensions = property(_get_all_extensions)
 
@@ -967,15 +968,17 @@ class FastQFactory(FileFactory):
 
         :param strict: if true, the pattern _R1_ or _R2_ must be found
         """
-        super(FastQFactory,self).__init__(pattern)
+        super(FastQFactory, self).__init__(pattern)
 
         if len(self.filenames) == 0:
-            raise ValueError("No files found with the requested pattern (%s)" % pattern)
+            raise ValueError("No files found with the requested pattern (%s)"
+                             % pattern)
 
         # Check the extension of each file (fastq.gz by default)
         for this in self.all_extensions:
             assert this.endswith(extension), \
-                "Expecting file with %s extension. Found %s" % (extension, this)
+                "Expecting file with %s extension. Found %s" % (extension,
+                                                                this)
 
         # identify a possible tag
         self.tags = []
@@ -989,8 +992,8 @@ class FastQFactory(FileFactory):
                 raise ValueError('FastQ filenames must contain _R1_ or _R2_')
         self.tags = list(set(self.tags))
 
-        #if rstrip_underscore is True:
-        #    self.tags = [x.split('_')[0] for x in self.tags]
+        # if rstrip_underscore is True:
+        #     self.tags = [x.split('_')[0] for x in self.tags]
 
     def _get_file(self, tag, rtag):
         assert rtag in ["_R1_", "_R2_"]
@@ -998,16 +1001,19 @@ class FastQFactory(FileFactory):
         if tag is None:
             if len(self.tags) == 1:
                 tag = self.tags[0]
-            elif len(self.tags) >1:
-                raise ValueError("Ambiguous tag. You must provide one (sequana.FastQFactory)")
+            elif len(self.tags) > 1:
+                raise ValueError("Ambiguous tag. You must provide one "
+                                 "(sequana.FastQFactory)")
         else:
             assert tag in self.tags, 'invalid tag'
 
-        # Note that the rtag + "_" is to prevent the two following pairs to be counted as one sample:
+        # Note that the rtag + "_" is to prevent the two following pairs to
+        # be counted as one sample:
         # project-name_1
         # project-name-bis_1
         candidates = [realpath for filename, realpath in
-            zip(self.filenames, self.realpaths) if rtag in filename and filename.startswith(tag+"_")]
+                      zip(self.filenames, self.realpaths)
+                      if rtag in filename and filename.startswith(tag+"_")]
 
         if len(candidates) == 0 and rtag == "_R2_":
             # assuming there is no R2
@@ -1026,13 +1032,14 @@ class FastQFactory(FileFactory):
 
 
 def get_cleanup_rules(filename):
-    """Scan a Snakefile and its inclusion and returns rules ending in _cleanup"""
+    """Scan a Snakefile and its inclusion and returns rules ending in
+    _cleanup
+    """
     s = snakemake.Workflow(filename)
     s.include(filename)
-    names = [rule.name for rule in list(s.rules) if rule.name.endswith('_cleanup')]
+    names = [rule.name for rule in list(s.rules)
+             if rule.name.endswith('_cleanup')]
     return names
-
-
 
 
 def init(filename, namespace):
@@ -1051,9 +1058,3 @@ def init(filename, namespace):
         namespace['__snakefile__'] = filename
         namespace['expected_output'] = []
         namespace['toclean'] = []
-
-
-
-
-
-

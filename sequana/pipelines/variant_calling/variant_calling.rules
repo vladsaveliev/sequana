@@ -97,7 +97,8 @@ if config["report_mapping"]["do"]:
         __report_mapping__bam_input = __mark_duplicates__output
     except NameError:
         __report_mapping__bam_input = __bwa_mem_ref__sort_output
-    __report_mapping__project = manager.sample
+    __report_mapping__manager = manager
+    __report_mapping__sample = manager.sample
     __report_mapping__directory = report_dir
     __report_mapping__output = report_dir + "report_mapping.html"
     include: sm.modules["report_mapping"]
