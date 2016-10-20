@@ -191,12 +191,13 @@ class SequanaReport(BaseReport):
 
 
     """
-    def __init__(self, snakefile="Snakefile", configfile="config.yaml",
-                 stats="stats.txt", directory="report",
-                output_filename="index.html",  **kargs):
+    def __init__(self, manager, sample, snakefile="Snakefile",
+                 stats="stats.txt", directory="report", 
+                 output_filename="index.html",  **kargs):
         """.. rubric:: constructor
 
-
+        :param manager: manager class of the config file
+        :param str sample: sample name
         :param str snakefile: the filename of the snakefile
         :param str configfile: the name of the snakemake config file
         :param str stats: where to save the stats
@@ -208,23 +209,20 @@ class SequanaReport(BaseReport):
 
 
         """
-        super(SequanaReport, self).__init__(
-            jinja_filename="main/index.html",
-            directory=directory,
-            output_filename=output_filename,
-            **kargs)
+        super(SequanaReport, self).__init__(jinja_filename="main/index.html",
+                                            directory=directory,
+                                            output_filename=output_filename,
+                                            **kargs)
 
         if snakefile: self.read_snakefile(snakefile)
-        if configfile: self.read_configfile(configfile)
 
         try:
-            from sequana.snaketools import SequanaConfig
-            config = SequanaConfig(configfile)
-            self.jinja['project'] = config.PROJECT
+            self.jinja['project'] = sample 
 
             html = ""
-            for link, filename in zip(config.DATASET, config.BASENAME):
-                html += '<li><a href="../%s">%s</a></li>\n' % (link, filename)
+            for link in manager.samples[sample]:
+                filename = link.split("/")[-1]
+                html += '<li><a href="%s">%s</a></li>\n' % (link, filename)
                 html += "</ul>"
                 self.jinja['dataset'] = html
         except:
@@ -235,14 +233,3 @@ class SequanaReport(BaseReport):
 
     def parse(self):
         pass
-
-
-
-
-
-
-
-
-
-
-
