@@ -1,9 +1,9 @@
 rule digital_normalisation:
-    """ Assembly is very hard with ultra-deep sequencing data. Digital 
-    normalisation is a method to normalise coverage of a sample without 
-    reference. It provides as good or better results than assembling the 
-    unnormalised data. 
-   
+    """ Assembly is very hard with ultra-deep sequencing data. Digital
+    normalisation is a method to normalise coverage of a sample without
+    reference. It provides as good or better results than assembling the
+    unnormalised data.
+
     Required input:
         __digital_normalisation__input: list of paired fastq files
 
@@ -41,7 +41,7 @@ rule digital_normalisation:
             --max-tablesize {params.max_ts} {params.options} \
             --savegraph {output.graph} {params.outdir}.pe \
             --output {params.outdir}.pe.keep
-        
+
         # filter abundance
         filter-abund.py --threads {threads} -V {output.graph} \
             {params.outdir}.pe.keep --output {params.outdir}.pe.filter
