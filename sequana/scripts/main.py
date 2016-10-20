@@ -672,7 +672,7 @@ def sequana_init(options):
             "version": sequana.version})
 
 
-    with open(target_dir + os.sep + "cleanme.py", "w") as fout:
+    with open(target_dir + os.sep + "cleanup.py", "w") as fout:
         fout.write("""
 import glob
 import os
@@ -683,13 +683,12 @@ import time
 directories = glob.glob("*")
 
 for this in directories:
-    if os.path.isdir(this) and this not in ['logs', 'data', 'report']:
+    if os.path.isdir(this) and this not in ['logs'] and 'report' not in this:
         print('Deleting %s' % this)
         time.sleep(0.2)
         shellcmd("rm -rf %s" % this)
-shellcmd("rm -f *rules README runme.sh *fa config.yaml snakejob.*")
-shellcmd("rm -f cleanme.py")
-shellcmd("rm -f runme.sh.*")
+shellcmd("rm -f  README config.yaml snakejob.*")
+shellcmd("rm -f cleanup.py")
 shellcmd("rm -rf .snakemake")
 """)
 

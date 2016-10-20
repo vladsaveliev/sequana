@@ -754,12 +754,7 @@ class PipelineManager(object):
             return lambda wildcards: self.samples[wildcards.sample]
 
 
-<<<<<<< HEAD
 
-
-
-=======
->>>>>>> 10c26e360c38d2b1ae411bbdf4893f6a4b9d6a79
 def sequana_check_config(config, globs):
     s = SequanaConfig.from_dict(config)
     dic = dict([(k, v) for k, v in globs.items()
