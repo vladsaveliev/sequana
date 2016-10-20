@@ -540,7 +540,7 @@ class SequanaConfig(object):
         self._converts_boolean(self.config)
 
         if test_requirements and mode == "NGS":
-            requirements = ["samples", "samples:file1", "samples:file2"]
+            requirements = ["input_directory", "samples", "samples:file1", "samples:file2"]
             # converts to dictionary ?
             for this in requirements:
                 this = this.split(":")[0]
@@ -711,7 +711,6 @@ class PipelineManager(object):
         self.config = cfg.config
         self.paired = cfg.paired
         #self.cfg = cfg
-        config = self.config
 
         try:
             # Keep cfg.config.input_directory without default so that it
@@ -750,7 +749,6 @@ class PipelineManager(object):
             return self.ff.basenames
         else:
             return lambda wildcards: self.samples[wildcards.sample]
-
 
 
 
@@ -985,6 +983,8 @@ class FastQFactory(FileFactory):
                 # Files must have _R1_ and _R2_
                 raise ValueError('FastQ filenames must contain _R1_ or _R2_')
         self.tags = list(set(self.tags))
+
+        self.short_tags = [x.split("_")[0] for x in self.tags]
 
         #if rstrip_underscore is True:
         #    self.tags = [x.split('_')[0] for x in self.tags]
