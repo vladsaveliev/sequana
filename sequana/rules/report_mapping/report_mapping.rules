@@ -1,6 +1,6 @@
 rule report_mapping:
     """
-    Create a HTML report of sequencing coverage after bam processing. This 
+    Create a HTML report of sequencing coverage after bam processing. This
     report is dedicated for variant calling and de novo assembly pipeline.
 
     Required input:
@@ -14,10 +14,10 @@ rule report_mapping:
 
     Required parameter:
         __report_mapping__directory: report directory
-        config["report_mapping"]["k"]: number of gaussians predicted in the 
+        config["report_mapping"]["k"]: number of gaussians predicted in the
                 gaussian pool.
-        config["report_mapping"]["window_size"]: windows size for running median.
-                This integer must be an odd number.
+        config["report_mapping"]["window_size"]: windows size for running
+                median. This integer must be an odd number.
         config["report_mapping"]["high_threshold"]: high zscore threshold
         config["report_mapping"]["low_threshold"]: low zscore threshold
         config["report_mapping"]["circular"]: boolean if the genome is circular
@@ -26,7 +26,7 @@ rule report_mapping:
         Sequana consortium
 
     *: If you don't need the optional input. You must set the variable as an
-       empty list. (i.e.:  __report_mapping__quast_input = []
+       empty list. (i.e.:  __report_mapping__quast_input = [])
     """
     input:
         bed = __report_mapping__input,
@@ -55,7 +55,7 @@ rule report_mapping:
 
 
         s = report_main.SequanaReport(snakefile=__snakefile__,
-                directory=params.outdir)
+                                      directory=params.outdir)
         s.jinja['description'] = """
 
         This is the output of variant calling pipeline. This pipeline search
@@ -66,13 +66,13 @@ rule report_mapping:
         s.create_report()
 
         mydata = bedtools.GenomeCov(input.bed, low_threshold=params.low,
-            high_threshold=params.high)
+                                    high_threshold=params.high)
         bam = BAM(input.bam)
         features = genbank_features_parser(input.ann) if input.ann else None
-        
+
         # Report mapping
         r = report_mapping.MappingReport(directory=params.outdir,
-            project=params.project)
+                                         project=params.project)
         r.set_data(mydata, bam, input.quast)
         r.create_report()
 
@@ -81,9 +81,7 @@ rule report_mapping:
             chrom.running_median(n=params.size, circular=params.circular)
             chrom.compute_zscore(k=params.k)
 
-            r = report_chromosome.ChromosomeMappingReport(chrom,
-                    directory=params.outdir, project=params.project, 
+            r = report_chromosome.ChromosomeMappingReport(
+                    chrom, directory=params.outdir, project=params.project,
                     features=features)
             r.create_report()
-
-        
