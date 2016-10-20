@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -80,7 +80,7 @@ class StatsBAM2Mapped(DataContainer):
 
         html = "Reads with Phix: %s %%<br>" % precision(data['contamination'], 3)
 
-        # add HTML table 
+        # add HTML table
         if "R2_mapped" in data.keys():
             df = pd.DataFrame({
               'R1': [data['R1_mapped'], data['R1_unmapped']],
@@ -111,23 +111,23 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
     :param output_directory: where to save the mapped and unmapped files
     :return: dictionary with number of reads for each file (mapped/unmapped for
         R1/R2) as well as the mode (paired or not), the number of unpaired
-        reads, and the number of duplicated reads. The unpaired reads should 
+        reads, and the number of duplicated reads. The unpaired reads should
         be zero (sanity check)
 
     Given a BAM file, create FASTQ with R1/R2 reads mapped and unmapped.
     In the paired-end case, 4 files are created.
 
-    Note that this function is efficient in that it does not create intermediate 
+    Note that this function is efficient in that it does not create intermediate
     files limiting IO in the process.
 
-    :Details: Secondary alignment (flag 256) are dropped so as to remove any 
-        ambiguous alignments. The output dictionary stores "secondary" key to 
+    :Details: Secondary alignment (flag 256) are dropped so as to remove any
+        ambiguous alignments. The output dictionary stores "secondary" key to
         keep track of the total number of secondary reads that are dropped. If
         the flag is 256 and the read is unpaired, the key *unpaired* is also
         incremented.
 
-        If the flag is not equal to 256, we first reverse complement reads that 
-        are tagged as *reverse* in the BAM file. Then, reads that are not paired or 
+        If the flag is not equal to 256, we first reverse complement reads that
+        are tagged as *reverse* in the BAM file. Then, reads that are not paired or
         not "proper pair" (neither flag 4 nor flag 8) are ignored.
 
         If R1 is mapped **or** R2 is mapped then the reads are considered mapped. If
@@ -149,7 +149,7 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
     stats['R1_unmapped'] = 0
     stats['R1_mapped'] = 0
 
-    # figure out where to save the file 
+    # figure out where to save the file
     if output_directory is None:
         pass
     else:
@@ -260,7 +260,7 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
 
 
 def bam_get_paired_distance(filename):
-    """Return distance between 2 mated-reads 
+    """Return distance between 2 mated-reads
 
     return position start and end of the paired-end reads that were mapped
     (both).
@@ -294,8 +294,8 @@ def bam_get_paired_distance(filename):
                 mode = 2
             else: # if both are not reversed, what does that mean.
                 # On Hm2, this is the case for 4 pairs out of 1622
-                # This seems to be a special case for fragment ends exactly 
-                # at the end of the reference and mate starts exactly at 
+                # This seems to be a special case for fragment ends exactly
+                # at the end of the reference and mate starts exactly at
                 # the beginnin with a length less than 100
                 print(fragment.reference_start, fragment.reference_end)
                 print(mate.reference_start, mate.reference_end)
@@ -330,7 +330,7 @@ def gc_content(filename, window_size, circular=False):
         gc_content = np.empty(len(chrom.sequence))
         gc_content[:] = np.nan
         if circular:
-            chrom.sequence = (chrom.sequence[-mid:] + chrom.sequence + 
+            chrom.sequence = (chrom.sequence[-mid:] + chrom.sequence +
                     chrom.sequence[:mid])
             # Does not shift index of array
             mid = 0
@@ -367,7 +367,7 @@ def genbank_features_parser(input_filename):
                     name = line.split()[1]
                 elif line.startswith("FEATURE"):
                     feature_field = True
-            
+
             else:
                 # if feature field is finished
                 if line.startswith("ORIGIN"):
@@ -375,7 +375,7 @@ def genbank_features_parser(input_filename):
                     records[name] = feature_list
                     feature_list = []
                     continue
-                
+
                 # if there are a word in qualifier indent (feature type)
                 # maybe we need to infer the size of indentation ???
                 if line[0:20].split():
@@ -396,7 +396,7 @@ def genbank_features_parser(input_filename):
                     start = pos[0]
                     end = pos[-1]
                     strand = "-" if split_line[1].startswith("c") else "+"
-                    new_feature = {"type": t, "gene_start": start, 
+                    new_feature = {"type": t, "gene_start": start,
                             "gene_end": end, "strand": strand}
 
                 # recover qualifier bound with feature
