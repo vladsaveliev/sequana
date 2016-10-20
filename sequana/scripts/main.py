@@ -429,18 +429,7 @@ def main(args=None):
         elif options.no_adapters is True:
             pass
 
-        with open("multirun.sh", "w") as fout:
-            import sequana
-            fout.write("#!/bin/sh\n")
-            fout.write("# generated with sequana version %s with this command\n" % sequana.version)
-            fout.write("# %s\n" % " ".join(sys.argv))
             for tag in ff.tags:
-                sa.print("Found %s project" % tag)
-                #if options.project is None:
-                if len(ff.tags) == 1 and options.project is not None:
-                    pass
-                else:
-                    options.project = tag
                 options.file1 = ff.get_file1(tag)
                 options.file2 = ff.get_file2(tag)
                 if options.index_mapper:
@@ -448,11 +437,6 @@ def main(args=None):
                     options.adapter_fwd = fwd
                     options.adapter_rev = rev
                 sequana_init(options)
-                fout.write("cd %s\n" % tag)
-                fout.write("sh runme.sh &\n")
-                fout.write("cd ..\n")
-                fout.write("echo Starting %s\n" % tag)
-                fout.write("sleep 0.5\n")
 
         if options.no_adapters is True and options.pipeline in ['quality', 'quality_taxon']:
             print("You did not provide information about adapters. You will have"
@@ -722,15 +706,6 @@ shellcmd("rm -rf .snakemake")
     ## --cluster "qsub -cwd -qQUEUE -V -e -o "
 
 
-def check_config(config):
-    from sequana import SequanaConfig
-    cfg = SequanaConfig(config)
-    # file1 must always be defined
-    if os.path.exists(cfg.config.samples.file1) is False:
-        print(red("%s does not exists. Please edit %s (samples:file1)" %
-(cfg.config.samples.file1, check_config)))
-        return
-    sa.purple("The %s looks good" % check_config)
 
 
 

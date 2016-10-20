@@ -11,9 +11,11 @@ def test_dot_parser():
     try:os.remove("test_dag.ann.dot")
     except:pass
 
+
 def test_modules():
     assert "dag" in snaketools.modules.keys()
     assert snaketools.modules['dag'].endswith("dag.rules")
+
 
 def test_getcleanup_rules():
     filename =  snaketools.modules['fastq_sampling']
@@ -22,23 +24,11 @@ def test_getcleanup_rules():
     except:
         pass
 
+
 def test_snakemake_stats():
     # this is created using snakemake with the option "--stats stats.txt"
     s = snaketools.SnakeMakeStats(testing("test_snakemake_stats.txt"))
     s.plot()
-
-def test_expanded_snakefile():
-    filename = snaketools.modules['dag']
-    try:
-        s = snaketools.ExpandedSnakeFile(filename)
-        s.expand()
-        try:os.remove("Snakefile.expanded")
-        except:pass
-    except ImportError:
-        assert True
-    #TODO remove the file just created (Snakefile.expanded)
-
-
 
 
 def test_module():
@@ -48,7 +38,7 @@ def test_module():
 
 
 def test_valid_config():
-    s = snaketools.Module("phix_removal")
+    s = snaketools.Module("quality_control")
     config = snaketools.SequanaConfig(s.config)
 
 

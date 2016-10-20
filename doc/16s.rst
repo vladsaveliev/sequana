@@ -18,3 +18,18 @@ U1492R  GGTTACCTTGTTACGACTT
 
 Primer to be removed
 https://biomysteries.wordpress.com/2014/10/31/16s-rrna-and-the-strategy-used-in-bacterial-identification/
+
+
+General information about the sequencer.
+=========================================
+
+:MiSeq:
+    - all samples are stored in the same directory
+    - indices are not in the filename
+    - design file in Illumina format
+
+:HiSeq:
+    - Demultiplexed with Casava. One sample per directory
+    - Index in the filename
+    - design file in home-maed format (see adapters and expdesign modules)
+

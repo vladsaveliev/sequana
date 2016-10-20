@@ -44,7 +44,7 @@ class TestPipeline(object):
         except:
             # py2
             with mock.patch('__builtin__.input', return_value="y"):
-                main.main([self.prog, '--pipeline', "quality"])
+                main.main([self.prog, '--pipeline', "quality_control"])
 
             with mock.patch('__builtin__.input', return_value="y"):
                 try:
@@ -82,7 +82,8 @@ class TestPipeline(object):
     def test_input(self):
         file1 = sequana_data('Hm2_GTGAAA_L005_R1_001.fastq.gz', 'data')
         file2 = sequana_data('Hm2_GTGAAA_L005_R2_001.fastq.gz', 'data')
-        main.main([self.prog, "--pipeline", "quality", "--file1", file1, "--file2", file2, "--project", "Hm2_test"])
+        main.main([self.prog, "--pipeline", "quality_control", "--file1", 
+                  file1, "--file2", file2, "--project", "Hm2_test"])
 
 
 
