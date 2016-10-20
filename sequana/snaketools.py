@@ -24,7 +24,6 @@ Here is an overview (see details here below)
     :nosignatures:
 
     sequana.snaketools.DOTParser
-    sequana.snaketools.ExpandedSnakeFile
     sequana.snaketools.Module
     sequana.snaketools.ModuleFinder
     sequana.snaketools.SnakeMakeProfile
@@ -66,7 +65,7 @@ except:
 
 
 
-class ExpandedSnakeFile(object):
+class _ExpandedSnakeFile(object):
     """Read a Snakefile and its dependencies (include) and create single file
 
     **Motivation**
