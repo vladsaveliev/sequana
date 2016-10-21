@@ -30,7 +30,7 @@ from easydev import DevTools
 
 import sequana
 from sequana.snaketools import FastQFactory
-from sequana.adapters import FindAdaptersFromIndex
+from sequana.adapters import FindAdaptersFromIndex, AdapterReader
 import sequana.snaketools as sm
 from sequana import SequanaConfig, sequana_data
 
@@ -51,10 +51,7 @@ pre-filled fields will be overwritten.
 The input-dir is the same as --glob except that input-dir takes all gz whereas
 --glob takes a more specific pattern e.g. *AB*fastq.gz
 
-Note that --glob does not allow the --project to be used  (ignored)
 
-This is also true for the --project that replaces project and other parameters
-that are used to fill the config file:
 """
 
 
@@ -101,7 +98,7 @@ class Options(argparse.ArgumentParser):
 
         You must provide one or 2 filenames:
 
-            sequana --pipeline quality  --file1 A.fastq.gz --project myname
+            sequana --pipeline quality  --file1 A.fastq.gz
 
         You may use --input-dir or --glob to help you especially if you have
         multiple samples:
@@ -109,7 +106,7 @@ class Options(argparse.ArgumentParser):
             sequana --pipeline variant_calling  --input-dir ../
 
         If multiple samples are found, sub-directories are created for each
-        sample. In such case, for adapters a index-mapper file that maps adapter
+        sample. In such case, for adapters a design file that maps adapter
         to index can be used.
 
 
@@ -133,11 +130,11 @@ Issues: http://github.com/sequana/sequana
 
         group = self.add_argument_group('GENERAL')
 
-        group.add_argument("--version", dest='version',
+        group.add_argument("-v", "--version", dest='version',
                 action="store_true", help="print version")
-        group.add_argument("--quiet", dest="verbose", default=True,
+        group.add_argument("-q", "--quiet", dest="verbose", default=True,
                           action="store_false")
-        group.add_argument("--force", dest='force',
+        group.add_argument("-f", "--force", dest='force',
                 action="store_true",
                 help="""Does not ask for permission to create the files (overwrite
                     existing ones)""")
@@ -185,11 +182,10 @@ will fetch the config file automatically from sequana library.""")
                     the following convention. A config file is in YAML format
                     and has a hierarchy of parametesr. For example:
 
-                    project: tutorial
                     samples:
                         file1: R1.fastq.gz
                         file2: R2.fastq.gz
-                    bwa_phix:
+                    bwa_mem_phix:
                         mem:
                             threads: 2
 
@@ -198,7 +194,7 @@ will fetch the config file automatically from sequana library.""")
                 meter to be changed separated by a comma. So to change the
                 project name and threads inside the bwa_phix section use:
 
-                --config-params project:newname, bwa_phix:mem:threads:4
+                --config-params project:newname, bwa_mem_phix:mem:threads:4
 
                 Be aware that when using --config-params, all comments are
 removed.""")
@@ -220,49 +216,47 @@ define the type of cluster command to use
                           help="""add --forceall in the snakemake command"""
                           )
 
-
-
         group = self.add_argument_group("INPUT FILES")
-        group.add_argument("--file1", dest="file1", type=str,
+        group.add_argument("-1", "--file1", dest="file1", type=str,
             help=""" Fills the *samples:file1* field in the config file. To be used
                 with --init option""")
-        group.add_argument("--file2", dest="file2", type=str,
+        group.add_argument("-2", "--file2", dest="file2", type=str,
             help=""" Fills the *samples:file2* field in the config file. To be used
                 with --init option""")
-        group.add_argument("--glob", dest="glob", type=str,
-                          help="a glob to find files. You can use wildcards")
-        group.add_argument("--input-dir", dest="input_dir", type=str,
+        group.add_argument("--pattern", dest="pattern", type=str,
+            default="*.fastq.gz",
+            help="a pattern to find files. You can use wildcards")
+        group.add_argument("-i", "--input-directory", dest="input_directory", type=str,
+            default=None,
             help="""Search for a pair (or single) of reads in the directory, and
                 fills automatically the project and file1/file2 fields in the config
                 file. To be used with --init option. If more than two files or not
                 files ending in fastq.gz are found, an error is raised.""")
+        group.add_argument("-o", "--output-directory", dest="target_dir", type=str,
+            default="analysis",
+            help="directory where to create files and store results")
 
         group.add_argument_group("SPECIFIC")
-        group.add_argument("--project", dest="project", type=str,
-            help=""" Fills the *project* field in the config file. To be used
-                with --pipeline option""")
-        group.add_argument("--kraken", dest="kraken", type=str,
-            help=""" Fills the *kraken* field in the config file. To be used
-                with --init option""")
         group.add_argument("--reference", dest="reference", type=str,
             help=""" Fills the *reference* in bwa_ref section. To be used with --init option""")
 
-        group = self.add_argument_group("ADAPTER and QUALITY related")
-        group.add_argument("--no-adapters", dest="no_adapters", default=False,
-            action="store_true")
+        group = self.add_argument_group("QUALITY_CONTROL Pipeline")
         group.add_argument("--adapter-fwd", dest="adapter_fwd", type=str,
             help="""A string representing the forward adapter. Can be a file
                 in FASTA format""")
         group.add_argument("--adapter-rev", dest="adapter_rev", type=str,
             help="""A string representing the forward adapter. Can be a file
                 in FASTA format""")
-        group.add_argument("--index-mapper", dest="index_mapper", type=str,
+        group.add_argument("--design", dest="design", type=str,
             help="""a CSV file with 3 columns named 'sample name', 'index1','index2' """)
-        group.add_argument("--adapters", dest="adapters", type=str,
-            help="""When using --index-mapper, you must also provide the type of
+        group.add_argument("--adapters", dest="adapters", type=str, default="",
+            help="""When using --design, you must also provide the type of
                 adapters using this parameter. Valid values are either Nextera or PCRFree
                 Corresponding files can be found in github.com/sequana/sequana/resources/data/adapters
                 """)
+        group.add_argument("--kraken", dest="kraken", type=str,
+            help=""" Fills the *kraken* field in the config file. To be used
+                with --init option""")
 
 def main(args=None):
     """Mostly checking the options provided by the user and then call
@@ -283,7 +277,8 @@ def main(args=None):
     if len(args) == 1:
         sa = Tools()
         sa.purple("Welcome to Sequana standalone application")
-        sa.error("You must use --pipeline <valid pipeline name>\nuse --show-pipelines or --help for more information")
+        sa.error("You must use --pipeline <valid pipeline name>\nuse "
+                 "--show-pipelines or --help for more information")
         return
     else:
         options = user_options.parse_args(args[1:])
@@ -305,7 +300,7 @@ def main(args=None):
             ), 2)
     if flag not in [1,2,4,8,16,3]:
         sa.error("You must use one of --pipeline, --info, "
-            "--show-pipelines, --issue, --version")
+            "--show-pipelines, --issue, --version, --get-config")
 
     # OPTIONS that gives info and exit
     if options.issue:
@@ -342,12 +337,9 @@ def main(args=None):
         copy_config_from_sequana(module)
         return
 
-
-    # pipeline should be defined now
+    # pipeline should be defined by now. Let us start the real work here
     Module("dag").check("warning")
     Module(options.pipeline).check("warning")
-
-
 
     # If user provides file1 and/or file2, check the files exist
     if options.file1 and os.path.exists(options.file1) is False:
@@ -359,21 +351,14 @@ def main(args=None):
     if options.kraken and os.path.exists(options.kraken) is False:
         raise ValueError("%s does not exist" % options.kraken)
 
-    if options.adapter_rev and os.path.exists(options.adapter_rev) is False:
-        with open("adapter_rev.fa", "w") as fout:
-            fout.write(">user\n%s" % options.adapter_rev)
-        options.adapter_rev = "adapter_rev.fa"
-    if options.adapter_fwd and os.path.exists(options.adapter_fwd) is False:
-        with open("adapter_fwd.fa", "w") as fout:
-            fout.write(">user\n%s" % options.adapter_fwd)
-        options.adapter_fwd = "adapter_fwd.fa"
+
 
     # check valid combo of --glob / --fileX --input-dir
     # the 3 options are mutually exclusive
-    flag = int("%s%s%s%s" % (
-            int(bool(options.input_dir)),
-            int(bool(options.glob)),
+    """flag = int("%s%s%s" % (
+            int(bool(options.input_directory)),
             int(bool(options.file1)),
+            int(bool(options.file2)),
             int(bool(options.config)),
             ), 2)
 
@@ -381,88 +366,82 @@ def main(args=None):
     # config file can be used with 2,4,8 so we also add 2+1, 4+1, 8+1
     if flag not in [1, 2, 4, 8, 3, 5, 9]:
         sa.error(help_input + "\n\nUse --help for more information")
-
-    if options.project is None:
-        sa.blue("Note that --project was not provided. Will infer project " +\
-                "name from the prefix of the filenames (before first " +\
-                 "underscore)")
+    """
 
     # input_dir is nothing else than a glob to fastq.gz files
-    if options.input_dir:
-        options.glob = options.input_dir + os.sep + "*fastq.gz"
+    if options.input_directory is None:
+        options.input_directory = "./"
+    options.glob = options.input_directory + os.sep + options.pattern
 
-    # If a glob is used, we may have multiple project to handle
-    # This is done using the FastQFactory class
-
-    # for --glob or --file1/file2 cases
     def _get_adap(filename):
         return sequana_data(filename, "data/adapters")
 
-    if options.adapters and not options.index_mapper:
-        if options.adapters == "Nextera":
-            options.adapter_fwd = _get_adap("adapters_Nextera_PF1_220616_fwd.fa")
-            options.adapter_rev = _get_adap("adapters_Nextera_PF1_220616_rev.fa")
-        elif options.adapters == "PCRFree":
-            options.adapter_fwd = _get_adap('adapters_PCR-free_PF1_220616_fwd.fa')
-            options.adapter_rev = _get_adap('adapters_PCR-free_PF1_220616_rev.fa')
+    ff = FastQFactory(options.glob)
+    if options.verbose:
+        print("Found %s projects/samples " % len(ff.tags))
+
+    if options.pipeline == 'quality_control':
+        # check combo
+        flag = int("%s%s%s%s" % (
+            int(bool(options.design)),
+            int(bool(options.adapters)),
+            int(bool(options.adapter_fwd)),
+            int(bool(options.adapter_rev))
+            ), 2)
+
+        if flag not in [12, 4, 2, 3]:
+            sa.error("You must use a design experimental file using --design"
+                     " and --adapters to indicate the type of adapters (PCRFree"
+                     " or Nextera), or provide the adapters directly as a "
+                     " string or a file using --adapter_fwd (AND --adapter_rev"
+                     " for paired-end data). A third way is to set --adapters"
+                     " to either Nextera, PCRFree or universal")
+
+        # flag 12 (design + adapters when wrong args provided)
+        if options.design and options.adapters not in ["Nextera", "PCRFree"]:
+            raise ValueError("When using --design, you must also "
+                "provide the type of adapters using --adapters (set to "
+                "Nextera or PCRFree)")
+        # flag 12 (design + adapters with correct args)
+        elif options.design and options.adapters in ["Nextera", "PCRFree"]:
+            options.adapters_fwd = options.adapters
+            options.adapters_rev = options.adapters
         else:
-            raise ValueError("the type of adapters must be Nextera or PCRFree")
-
-    if options.glob:
-        ff = FastQFactory(options.glob)
-        if options.verbose:
-            print("Found %s projects/samples " % len(ff.tags))
-        if len(ff.tags) > 1 and options.project:
-            raise ValueError("""--project can be used with --input/--glob if there is only one project. """)
-
-        if options.index_mapper:
-            if options.adapters is None or options.adapters not in ["Nextera", "PCRFree"]:
-                raise ValueError("When using --index-mapper, you must also "
-                    "provide the type of adapters using --adapters (set to "
-                    "Nextera or PCRFree)")
-            adapter_finder = FindAdaptersFromIndex(options.index_mapper,
+            if options.adapter_fwd is None:
+                assert options.adapters in ["universal", "PCRFree", "Nextera"]
+                # flag 4
+                if options.adapters == "universal":
+                    options.adapter_fwd = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCGATGTATCTCGTATGCCGTCTTCTGC"
+                    options.adapter_rev = "TCTAGCCTTCTCGCAGCACATCCCTTTCTCACATCTAGAGCCACCAGCGGCATAGTAA"
+                # flag 4
+                elif options.adapters == "PCRFree":
+                    options.adapter_fwd = "file:" + _get_adap('adapters_PCR-free_PF1_220616_fwd.fa')
+                    options.adapter_rev = "file:" + _get_adap('adapters_PCR-free_PF1_220616_rev.fa')
+                # flag 4
+                elif options.adapters == "Nextera":
+                    options.adapter_fwd = "file:" + _get_adap("adapters_Nextera_PF1_220616_fwd.fa")
+                    options.adapter_rev = "file:" + _get_adap("adapters_Nextera_PF1_220616_rev.fa")
+            # flag 2/3
+            else:
+                print(options.adapter_fwd)
+                if options.adapter_fwd:
+                    # Could be a string or a file. If a file, check the format
+                    if os.path.exists(options.adapter_fwd):
+                        AdapterReader(options.adapter_fwd)
+                        options.adapter_fwd = "file:%s" % options.adapter_fwd
+                if options.adapter_rev:
+                    # Could be a string or a file. If a file, check the format
+                    if os.path.exists(options.adapter_rev):
+                        AdapterReader(options.adapter_rev)
+                        options.adapter_rev = "file:%s" % options.adapter_rev
+        if options.design:
+            # Just check the format
+            adapter_finder = FindAdaptersFromIndex(options.design,
                                 options.adapters)
-        elif options.adapter_fwd:
-            pass
-        elif options.adapters:
-            pass
-        elif options.no_adapters is True:
-            pass
 
-            for tag in ff.tags:
-                options.file1 = ff.get_file1(tag)
-                options.file2 = ff.get_file2(tag)
-                if options.index_mapper:
-                    fwd, rev = adapter_finder.save_adapters_to_fasta(tag)
-                    options.adapter_fwd = fwd
-                    options.adapter_rev = rev
-                sequana_init(options)
 
-        if options.no_adapters is True and options.pipeline in ['quality', 'quality_taxon']:
-            print("You did not provide information about adapters. You will have"
-                "to edit the config.yaml file to fill that information")
-        #Run sequana_init N times changing the files and project each time
-        return
-
-    # If --input-dir or --glob were not used, we now try to use the --file1 and --file2
-    # options. We need to get the project name if not provided
-    if options.file1 is None and options.file2 is None and options.config is None:
-        sa.error(help_input)
-    elif options.file1 and options.file2 is None:
-        ff = FastQFactory([options.file1])
-        if options.project is None:
-            options.project = ff.tags[0]
-    elif options.file1 and options.file2:
-        ff = FastQFactory([options.file1, options.file2])
-        if options.project is None:
-            options.project = ff.tags[0]
-
-    if options.pipeline:
-        sequana_init(options)
-
-    if options.no_adapters is True and options.pipeline in ['quality', 'quality_taxon']:
-        sa.red("You did not provide information about adapters. You will have"
-            "to edit the config.yaml file to fill that information")
+    # If all options are valid, we can now create the tree structure
+    sequana_init(options)
 
 
 def copy_config_from_sequana(module, source="config.yaml", target="config.yaml"):
@@ -482,19 +461,14 @@ def sequana_init(options):
     from sequana import Module
     sa = Tools(verbose=options.verbose)
 
-    if options.project is None:
-        options.project = input(red("No project name provided and could not" + \
-            " infer it (use --project). Enter a project name:"))
 
-    target_dir = options.project
-    sa.blue("Creating project directory (use --project to overwrite the " + \
-            "inferred value): '" + options.project +"'", force=True)
+    print(options)
+    #sa.blue("Creating project directory (use --project to overwrite the " + \
+    #        "inferred value): '" + options.project +"'", force=True)
 
     module = Module(options.pipeline)
 
-    # the module exists, so let us now copy the relevant files that is
-    # the Snakefile, the config and readme files:
-    if os.path.exists(options.project):
+    if os.path.exists(options.target_dir):
         txt = "Will override the following files if present: %s.rules " +\
               "config.yaml, runme.sh, ..."
         sa.blue(txt % options.pipeline)
@@ -506,13 +480,11 @@ def sequana_init(options):
 
         if choice == "n":
             sys.exit(0)
-    else:
-        sa.purple("Creating %s directory" % options.project)
-        sa.mkdir(options.project)
 
     # Copying snakefile
     sa.print("Copying snakefile")
-    shutil.copy(module.snakefile, target_dir + os.sep + options.pipeline + ".rules")
+    sa.mkdir(options.target_dir)
+    shutil.copy(module.snakefile, options.target_dir + os.sep + options.pipeline + ".rules")
 
     # Creating README to print on the screen and in a file
     txt = "User command::\n\n"
@@ -539,14 +511,14 @@ def sequana_init(options):
     """
 
     sa.print("Creating README")
-    with open(target_dir + os.sep + "README", "w") as fh:
+    with open(options.target_dir + os.sep + "README", "w") as fh:
         fh.write(txt.replace("\x1b[35m","").replace("\x1b[39;49;00m", ""))
 
     # Creating Config file
     sa.print("Creating the config file")
 
     # Create (if needed) and update the config file
-    config_filename = target_dir + os.sep + "config.yaml"
+    config_filename = options.target_dir + os.sep + "config.yaml"
 
     if options.config:
         # full existing path
@@ -562,59 +534,36 @@ def sequana_init(options):
     with open(config_filename, "r") as fin:
         config_txt = fin.read()
 
-    # and save it back filling it with relevant information such as
-    # - project
-    # - file1
-    # - file2
-    # - kraken db
-    # - reference for the bwa_ref
-    # - adapter
+    # and save it back filling it with relevant information provided by the user
     with open(config_filename, "w") as fout:
         from collections import defaultdict
         params = defaultdict(str)
-        params['project'] = options.project
 
+        # TODO: copy design file in the working directory ?
+        params['input_directory'] = os.path.abspath(options.input_directory)
+        params['pattern'] = options.pattern
         if options.file1:
             params['file1'] = os.path.abspath(options.file1)
-        else:
-            sa.green("You have not provided any input file. use --file1 or --input-dir")
-            sa.green("You will need to edit the config.yaml file")
-
         if options.file2:
             params['file2'] = os.path.abspath(options.file2)
-        else:
-            sa.green("You have not provided any input file. use --file2 or --input-dir")
-            sa.green("You will need to edit the config.yaml file")
 
-        if options.kraken:
-            params['kraken'] = os.path.abspath(options.kraken)
-        else:
-            params['kraken'] = None
-
-        if options.reference:
-            params['reference'] = os.path.abspath(options.reference)
-        else:
-            params['reference'] = None
-
-        if options.file1 and options.adapter_fwd:
-            params["adapter_fwd"] = "file:" + options.adapter_fwd
-            if options.index_mapper:
-                try:shutil.move(options.adapter_fwd, target_dir + os.sep)
-                except: print("File already exists")
+        if options.pipeline == "quality_taxon":
+            if options.design:
+                shutil.copy(options.design, options.target_dir + os.sep )
+                params['adapter_design'] = os.path.basename(options.design)
             else:
-                shutil.copy(options.adapter_fwd, target_dir + os.sep )
-
-        if options.file2  and options.adapter_rev:
-            params["adapter_rev"] = "file:" + options.adapter_rev
-            if options.index_mapper:
-                try:shutil.move(options.adapter_rev, target_dir + os.sep)
-                except: print("File already exists")
+                params['adapter_design'] = ""
+            if options.kraken:
+                params['kraken'] = os.path.abspath(options.kraken)
             else:
-                shutil.copy(options.adapter_rev, target_dir + os.sep)
-
-        if options.adapters == "universal":
-            params["adapter_fwd"] = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCGATGTATCTCGTATGCCGTCTTCTGC"
-            params["adapter_rev"] = "TCTAGCCTTCTCGCAGCACATCCCTTTCTCACATCTAGAGCCACCAGCGGCATAGTAA"
+                params['kraken'] = None
+            if options.reference:
+                params['reference'] = os.path.abspath(options.reference)
+            else:
+                params['reference'] = None
+            params["adapter_fwd"] = options.adapter_fwd
+            params["adapter_rev"] = options.adapter_rev
+            params["adapter_type"] = options.adapters
 
         fout.write(config_txt % params)
 
@@ -625,7 +574,7 @@ def sequana_init(options):
             if requirement.startswith('http') is False:
                 from sequana import sequana_data
                 sa.print('Copying %s from sequana' % requirement)
-                shutil.copy(sequana_data(requirement, "data"), target_dir)
+                shutil.copy(sequana_data(requirement, "data"), options.target_dir)
             elif requirement.startswith("http"):
                 from sequana.misc import wget
                 sa.print("This file %s will be needed" % requirement)
@@ -655,11 +604,11 @@ def sequana_init(options):
         cfg.save(config_filename)
 
     # Creating a unique runme.sh file
-    with open(target_dir + os.sep + "runme.sh", "w") as fout:
+    with open(options.target_dir + os.sep + "runme.sh", "w") as fout:
         cmd = "#!/usr/sh\n"
         cmd += "# generated with sequana version %s with this command:\n" % sequana.version
         cmd += "# %s\n" % " ".join(sys.argv)
-        cmd += "snakemake -s %(project)s.rules --stats report/stats.txt -p -j %(jobs)s"
+        cmd += "snakemake -s %(project)s.rules --stats stats.txt -p -j %(jobs)s"
         if options.forceall:
             cmd += " --forceall "
 
@@ -671,40 +620,16 @@ def sequana_init(options):
         fout.write(cmd % {'project':options.pipeline , 'jobs':options.jobs,
             "version": sequana.version})
 
-
-    with open(target_dir + os.sep + "cleanup.py", "w") as fout:
-        fout.write("""
-import glob
-import os
-import shutil
-from easydev import shellcmd
-import time
-
-directories = glob.glob("*")
-
-for this in directories:
-    if os.path.isdir(this) and this not in ['logs'] and 'report' not in this:
-        print('Deleting %s' % this)
-        time.sleep(0.2)
-        shellcmd("rm -rf %s" % this)
-shellcmd("rm -f  README config.yaml snakejob.*")
-shellcmd("rm -f cleanup.py")
-shellcmd("rm -rf .snakemake")
-""")
-
-    sa.green("Initialisation of %s succeeded" % target_dir)
+    sa.green("Initialisation of %s succeeded" % options.target_dir)
     sa.green("Please, go to the project directory ")
-    sa.purple("\n   cd %s\n" % target_dir)
+    sa.purple("\n   cd %s\n" % options.target_dir)
     sa.green("Check out the README and config.yaml files")
     sa.green("A basic script to run the analysis is named runme.sh ")
     sa.purple("\n    sh runme.sh\n")
     sa.green("In case of trouble, please post an issue on https://github.com/sequana/sequana/issue ")
     sa.green("or type sequana --issue and fill a post with the error and the config file (NO DATA PLEASE)")
 
-
     ## --cluster "qsub -cwd -qQUEUE -V -e -o "
-
-
 
 
 
