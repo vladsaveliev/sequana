@@ -118,7 +118,7 @@ class KrakenResults(object):
                     default[entry[1]] = entry[0]
                 elif entry[1] == "superkingdom":
                     default["kingdom"] = entry[0]
-            # Scientific name is the last entry tagged as no_rank  following
+            # Scientific name is the last entry tagged has no_rank  following
             # species TODO (check this assumption)
             # e.g. 351680 and 151529 have same 7 ranks so to differenatiate
             # them, the scientific name should be used.
@@ -127,7 +127,7 @@ class KrakenResults(object):
             try:
                 default['name'] = this[-1][0]
             except:
-                default['name'] = "unspecified"
+                default['name'] = "no genus specified"
             results.append(default)
 
         df = pd.DataFrame.from_records(results)
