@@ -1,14 +1,12 @@
-"""
-Author: TC
-Affiliation: IP
-Aim: create a sample data set for quick testing
-Input: *gz
-Output: fastq_sampling/*gz
-"""
 
 
 rule fastq_sampling:
-    """Select a sample from raw FastQ files"""
+    """A sample from raw FastQ files
+
+    Input: *gz
+    Output: fastq_sampling/*gz
+
+    """
     input: __fastq_sampling__input_fastq
     output: __fastq_sampling__output_fastq
     params:
@@ -16,5 +14,5 @@ rule fastq_sampling:
     message: "fastq_sampling extracting %s reads" % config['fastq_sampling']['N']
     run:
         for i,o in zip(input, output):
-            shell("fastq_head %s {params.N} %s" % (i,o))
+            shell("fastq_head %s %s %s" % (i, params.N * 4, o))
 
