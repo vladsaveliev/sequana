@@ -57,8 +57,9 @@ __bwa_mem_ref__mem_output = manager.getname("bwa_mem_ref", ".bam")
 __bwa_mem_ref__sort_output = manager.getname("bwa_mem_ref", ".sorted.bam")
 include: bwa_mem_dynamic("ref", manager.sample)
 # set input of next rules 
-__mark_duplicates__input = __bwa_mem_ref__sort_output
 __indel_realigner__input = __bwa_mem_ref__sort_output
+__mark_duplicates__input = __bwa_mem_ref__sort_output
+__bam_quality_filter__input = __bwa_mem_ref__sort_output
 __freebayes__input = __bwa_mem_ref__sort_output
 
 # Indel realigner
@@ -78,6 +79,7 @@ if config["indel_realigner"]["do"]:
             ".intervals")
     include: sm.modules["indel_realigner"]
     __mark_duplicates__input = __indel_realigner__output
+    __bam_quality_filter__input = __indel_realigner__output
     __freebayes__input = __indel_realigner__output
 
 # Mark duplicates
@@ -85,25 +87,39 @@ if config["mark_duplicates"]["do"]:
     __mark_duplicates__output = manager.getname("mark_duplicates", ".bam")
     __mark_duplicates__metrics = manager.getname("mark_duplicates", ".metrics")
     include: sm.modules["mark_duplicates"]
+    __bam_quality_filter__input = __mark_duplicates__output
     __freebayes__input = __mark_duplicates__output
+
+# bam quality filter
+if config["bam_quality_filter"]["do"]:
+    __bam_quality_filter__output = manager.getname("bam_quality_filter",
+                                                   ".filter.bam")
+    include: sm.modules["bam_quality_filter"]
+    __freebayes__input = __bam_quality_filter__output
 
 # Mapping report
 if config["report_mapping"]["do"]:
-    __bedtools_genomecov__input = __bwa_mem_ref__sort_output
-    __bedtools_genomecov__output = manager.getname("bedtools_genomecov", ".bed")
-    include: sm.modules["bedtools_genomecov"]
-    __report_mapping__input = __bedtools_genomecov__output
-    try:
+    __samtools_depth__input = __bwa_mem_ref__sort_output
+    if config["bam_quality_filter"]["do"]:
+        __samtools_depth__input = [__bam_quality_filter__output, 
+                                   __bam_quality_filter__input]
+        __report_mapping__bam_input = __bam_quality_filter__output
+    elif config["mark_duplicates"]["do"]:
         __report_mapping__bam_input = __mark_duplicates__output
-    except NameError:
+    else:
         __report_mapping__bam_input = __bwa_mem_ref__sort_output
-    __report_mapping__manager = manager
+
+    __samtools_depth__output = manager.getname("samtools_depth", ".bed")
+    include: sm.modules["samtools_depth"]
+    __report_mapping__input = __samtools_depth__output
+
+    __report_mapping__sample_dict = manager.samples
     __report_mapping__sample = manager.sample
     __report_mapping__directory = report_dir
     __report_mapping__output = report_dir + "report_mapping.html"
     include: sm.modules["report_mapping"]
-    final_output.append(expand(__report_mapping__output, 
-            sample=manager.samples))
+    final_output.append(expand(__report_mapping__output,
+                               sample=manager.samples))
     
 # Variant calling
 __freebayes__reference = __bwa_mem_ref__reference

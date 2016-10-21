@@ -5,15 +5,12 @@
 
 # =========================================== Sections for the users
 
-input_directory: "."
+input_directory: "%(input_directory)s"
 
 # List of your input file
 samples:
     file1: "%(file1)s"
     file2: "%(file2)s"
-
-# Project name
-project: "%(project)s"
 
 # Do you want to do mapping evaluation of your assembly ?
 do_mapping_evaluation: yes
@@ -113,6 +110,12 @@ indel_realigner:
 mark_duplicates:
     do: yes
     options: ''
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bam quality filter
+
+bam_quality_filter:
+    do: yes
+    threshold: 30  # between 0 and 60
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Report Mapping
 

@@ -36,7 +36,7 @@ rule report_mapping:
     output:
         __report_mapping__output
     params:
-        manager = __report_mapping__manager,
+        sample_dict = __report_mapping__sample_dict,
         outdir = __report_mapping__directory,
         sample = __report_mapping__sample,
         k = config["report_mapping"]["k"],
@@ -55,7 +55,7 @@ rule report_mapping:
         from sequana.tools import genbank_features_parser
 
 
-        s = report_main.SequanaReport(manager=params.manager,
+        s = report_main.SequanaReport(sample_dict=params.sample_dict,
                                       sample=params.sample,
                                       snakefile=__snakefile__,
                                       directory=params.outdir)

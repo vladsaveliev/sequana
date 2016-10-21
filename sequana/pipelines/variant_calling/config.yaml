@@ -7,14 +7,11 @@
 
 # You can use a directory with all your sample inside or just put your fastq
 # files in samples.
-input_directory:
+input_directory: "%(input_directory)s"
 
 samples:
     file1: "%(file1)s" # R1
     file2: "%(file2)s" # R2
-
-# Project name
-project: "%(project)s"
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GenomeAnalysisTK
 
@@ -79,6 +76,12 @@ indel_realigner:
 mark_duplicates:
     do: yes
     options: ''
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bam quality filter
+
+bam_quality_filter:
+    do: yes
+    threshold: 30  # between 0 and 60
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Report Mapping
 
