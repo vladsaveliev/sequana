@@ -41,6 +41,7 @@ import glob
 
 from easydev import get_package_location as gpl
 from easydev import load_configfile, AttrDict
+from easydev.tools import touch
 import pandas as pd
 import pylab
 
@@ -754,7 +755,6 @@ class PipelineManager(object):
             return lambda wildcards: self.samples[wildcards.sample]
 
 
-
 def sequana_check_config(config, globs):
     s = SequanaConfig.from_dict(config)
     dic = dict([(k, v) for k, v in globs.items()
@@ -905,9 +905,6 @@ class FileFactory(object):
         >>> extensions
         ".gz"
 
-
-
-
     """
     def __init__(self, pattern):
         self.pattern = pattern
@@ -1030,16 +1027,6 @@ class FastQFactory(FileFactory):
         return self._get_file(tag, "_R2_")
 
 
-def get_cleanup_rules(filename):
-    """Scan a Snakefile and its inclusion and returns rules ending in
-    _cleanup
-    """
-    s = snakemake.Workflow(filename)
-    s.include(filename)
-    names = [rule.name for rule in list(s.rules)
-             if rule.name.endswith('_cleanup')]
-    return names
-
 
 def init(filename, namespace):
     """Defines the global variable __snakefile__ inside snakefiles
@@ -1057,3 +1044,26 @@ def init(filename, namespace):
         namespace['__snakefile__'] = filename
         namespace['expected_output'] = []
         namespace['toclean'] = []
+
+
+def create_cleanup(targetdir):
+    """A script to include in directory created by the different pipelines"""
+    with open(targetdir + os.sep + ".sequana_cleanup.py", "w") as fout:
+        fout.write("""
+import glob
+import os
+import shutil
+from easydev import shellcmd
+import time
+
+directories = glob.glob("*")
+
+for this in directories:
+    if os.path.isdir(this) and this not in ['logs'] and 'report' not in this:
+        print('Deleting %s' % this)
+        time.sleep(0.1)
+        shellcmd("rm -rf %s" % this)
+shellcmd("rm -f  README config.yaml snakejob.*")
+shellcmd("rm -f .sequana_cleanup.py")
+shellcmd("rm -rf .snakemake")
+""")
