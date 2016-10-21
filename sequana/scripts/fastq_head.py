@@ -25,8 +25,8 @@ import argparse
 
 class Options(argparse.ArgumentParser):
     def  __init__(self,  prog="fastq_head"):
-        usage = """%s input N output \n""" % prog
-        usage += """usage2: %s --input input --N N --output output""" % prog
+        usage = """%s input --nlines 10000 output \n""" % prog
+        usage += """usage2: %s --input input --nlines N --output output""" % prog
         usage += """Examples:
 
             fastq_head input.fastq.gz 10000 output.fastq.gz
@@ -36,7 +36,7 @@ class Options(argparse.ArgumentParser):
 
         you can also use named arguments::
            
-            fastq_head --input input.fastq.gz --N 10000 --ouput output.fastq.gz
+            fastq_head --input input.fastq.gz --input 10000 --ouput output.fastq.gz
 
         """
         super(Options, self).__init__(usage=usage,  prog=prog)

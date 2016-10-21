@@ -59,6 +59,7 @@ class FastQStatsReport(BaseReport):
         # Add the canvas js in the header
         from sequana.resources.canvas import bar
 
+        print(self.input_directory)
         files = glob.glob("%s/*json" % self.input_directory)
         acgt = [
             {"name":"A", "data": {}},
@@ -113,6 +114,8 @@ class FastQStatsReport(BaseReport):
         data += """<script type="text/javascript" src="js/canvasjs.min.js"></script> """
         self.jinja["canvas"] = data
 
+
+
         dfsum["n_reads"] = [str(int(x)) for x in dfsum["n_reads"].values]
         dfsum["GC content"] = [str(int(x*100)/100.) for x in dfsum["GC content"].values]
         dfsum = dfsum.T
@@ -127,7 +130,7 @@ class FastQStatsReport(BaseReport):
 
         htmltable = HTMLTable(dfsum).to_html(index=True)
         # Save the table into a temporary file
-        with open(self.input_directory + "/temp_%s.html" % self.input_directory, "w") as fh:
+        with open(self.input_directory + "/temp.html", "w") as fh:
             fh.write(htmltable)
 
         html += htmltable

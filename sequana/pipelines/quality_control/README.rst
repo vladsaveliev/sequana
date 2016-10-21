@@ -1,13 +1,15 @@
-:Overview: Remove phix and adapters from set of FastQ files (single end or paired end). Adapter removal is performed with cutadapt and phix removal with BWA-mem and Sequana.
-:Input: 1 or 2 FastQ raw data file(s)
+:Overview: Quality control, trimming (adapter removal) and taxonomic overview
+:Input: FastQ raw data from Illumina Sequencer (either paired or not)
 :Output: 
-    - report/<PROJECT>_R1_.cutadapt.fastq.gz
-    - report/<PROJECT>_R2_.cutadapt.fastq.gz (optional)
+    - <SAMPLE>/<SAMPLE>_report_qc/<SAMPLE>_R1_.cutadapt.fastq.gz
+    - <SAMPLE>/<SAMPLE>_report_qc/<SAMPLE>_R1_.cutadapt.fastq.gz
+    - <SAMPLE>/<SAMPLE>_report_qc/kraken/kraken.html
 :Config file requirements:
-    - samples:file1
-    - samples:file2 (optional)
-    - project: 
-    - bwa_phix:reference
+    - samples: file1
+    - samples: file2
+    - project:
+    - bwa_mem: reference
+    - kraken: database
 
 
 Usage
@@ -15,9 +17,8 @@ Usage
 
 ::
 
-    sequana --pipeline quality --file1 R1.fastq.gz --file2 R2.fastq.gz --project Quality
-    cd Quality
-    snakemake -s quality -p --stats stats.txt -j 4
+    sequana --pipeline quality_control --file1 R1.fastq.gz --file2 R2.fastq.gz
+    python sequana_quality.py
 
 
 Requirements
@@ -25,11 +26,15 @@ Requirements
 
 - bwa
 - samtools
-- cutadapt
+- kraken
+- krona
+
+.. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/quality_control/dag.png
 
 
 Details
-~~~~~~~~~~~
+~~~~~~~~~
+
 
 The adapters are removed using cutadapt. If one specifies 
 the quality trimming option in the config file, then we trim
@@ -59,5 +64,3 @@ is 10% by default.
 
 :reference: cutadapt documentation
 
-
-.. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/quality/dag.png

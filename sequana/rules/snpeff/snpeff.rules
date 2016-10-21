@@ -1,6 +1,19 @@
-__snpeff__output = "snpeff/%s.ann.vcf" % cfg.PROJECT
-
 rule snpeff:
+    """ Snpeff adds annotation of variants detected in a VCF file. 
+
+    Required input:
+        __snpeff__input: vcf file
+
+    Required output:
+        __snpeff__output: vcf file
+
+    Required parameters:
+        config["snpeff"]["reference"]: genbank file
+        config["snpeff"]["options"]: result filters options 
+
+    Contributors:
+        Sequana consortium
+    """
     input:
         vcf = __snpeff__input, 
         ann = config["snpeff"]["reference"]

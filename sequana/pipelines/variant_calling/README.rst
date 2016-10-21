@@ -7,6 +7,21 @@
     - project
     - reference:reference.fasta
 
+Details
+~~~~~~~~
+
+Snakemake variant calling pipeline based on pipelines of Varun Khanna 
+(https://github.com/khannavarun) and Adrien Villain (https://github.com/avillain).
+Reads (paired or single) are mapped using bwa mem. Aligned reads are processed with
+picard tools markduplicates and GATK indel realigner. Freebayes is used to detect
+SNPs and short INDELs. An annotation file can be set to annotate detected variants.
+Variants are reported in a HTML report.
+
+The pipeline provides a coverage analysis of the mapping coverage after bam processing.
+Coverage for each base position is computed with bedtools genomecov. Sequana provides
+a HTML report with dynamics plots of sequencing coverage and shows interesting regions 
+which have unusual coverage depth.
+
 Usage
 ~~~~~~~~~
 

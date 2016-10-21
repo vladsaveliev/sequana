@@ -1,9 +1,34 @@
-include: sm.modules['dag']     # Create DAG file
-
-__report_mapping__output = "report/report_mapping.html"
 rule report_mapping:
+    """
+    Create a HTML report of sequencing coverage after bam processing. This
+    report is dedicated for variant calling and de novo assembly pipeline.
+
+    Required input:
+        __report_mapping__input: bed file from bedtools genomecov
+        __report_mapping__bam_input: bam file
+        __report_mapping__quast_input: html file from quast (optional*)
+        __report_mapping__ann_input: genbank annotation file (optional*)
+
+    Required output:
+        __report_mapping__output: html file
+
+    Required parameter:
+        __report_mapping__directory: report directory
+        config["report_mapping"]["k"]: number of gaussians predicted in the
+                gaussian pool.
+        config["report_mapping"]["window_size"]: windows size for running
+                median. This integer must be an odd number.
+        config["report_mapping"]["high_threshold"]: high zscore threshold
+        config["report_mapping"]["low_threshold"]: low zscore threshold
+        config["report_mapping"]["circular"]: boolean if the genome is circular
+
+    Contributors:
+        Sequana consortium
+
+    *: If you don't need the optional input. You must set the variable as an
+       empty list. (i.e.:  __report_mapping__quast_input = [])
+    """
     input:
-        dag = "report/dag.svg",
         bed = __report_mapping__input,
         bam = __report_mapping__bam_input,
         quast = __report_mapping__quast_input,
@@ -11,7 +36,9 @@ rule report_mapping:
     output:
         __report_mapping__output
     params:
-        outdir = "report",
+        sample_dict = __report_mapping__sample_dict,
+        outdir = __report_mapping__directory,
+        sample = __report_mapping__sample,
         k = config["report_mapping"]["k"],
         size = config["report_mapping"]["window_size"],
         high = config["report_mapping"]["high_threshold"],
@@ -28,8 +55,10 @@ rule report_mapping:
         from sequana.tools import genbank_features_parser
 
 
-        s = report_main.SequanaReport(snakefile=__snakefile__,
-                directory=params.outdir)
+        s = report_main.SequanaReport(sample_dict=params.sample_dict,
+                                      sample=params.sample,
+                                      snakefile=__snakefile__,
+                                      directory=params.outdir)
         s.jinja['description'] = """
 
         This is the output of variant calling pipeline. This pipeline search
@@ -40,13 +69,13 @@ rule report_mapping:
         s.create_report()
 
         mydata = bedtools.GenomeCov(input.bed, low_threshold=params.low,
-            high_threshold=params.high)
+                                    high_threshold=params.high)
         bam = BAM(input.bam)
         features = genbank_features_parser(input.ann) if input.ann else None
-        
+
         # Report mapping
         r = report_mapping.MappingReport(directory=params.outdir,
-            project=cfg.PROJECT)
+                                         sample=params.sample)
         r.set_data(mydata, bam, input.quast)
         r.create_report()
 
@@ -55,9 +84,7 @@ rule report_mapping:
             chrom.running_median(n=params.size, circular=params.circular)
             chrom.compute_zscore(k=params.k)
 
-            r = report_chromosome.ChromosomeMappingReport(chrom,
-                    directory=params.outdir, project=cfg.PROJECT, 
+            r = report_chromosome.ChromosomeMappingReport(
+                    chrom, directory=params.outdir, sample=params.sample,
                     features=features)
             r.create_report()
-
-        shell("cp %s %s/" % (__snakefile__, params.outdir))

@@ -118,13 +118,14 @@ class DoubleThresholds(object):
 
 
 class GenomeCov(object):
-    """Create a dataframe to hold data from a BED file generated with bedtools genomecov (-d)
+    """Create a list of dataframe to hold data from a BED file generated with
+    samtools depth.
 
 
     This class can be used to plot the coverage resulting from a mapping, which
-    is stored in BED format. The BEDf file may contain several chromosomes.
-    There are handled independently and accessible as a list of :class:`ChromosomeCov`
-    instances.
+    is stored in BED format. The BED file may contain several chromosomes.
+    There are handled independently and accessible as a list of
+    :class:`ChromosomeCov` instances.
 
     Example:
 
@@ -146,7 +147,8 @@ class GenomeCov(object):
             chrom.plot_coverage()
         gencov[0].plot_coverage()
 
-    Results are stored in a list of :class:`ChromosomeCov` named :attr:`chr_list`.
+    Results are stored in a list of :class:`ChromosomeCov` named 
+    :attr:`chr_list`.
 
     """
 
@@ -158,10 +160,10 @@ class GenomeCov(object):
             genomecov run. This is just a 3-column file. The first column is a
             string (chromosome), second column is the base postion and third
             is the coverage.
-        :param float low_threshold: threshold used to identify under-covered genomic
-            region of interest (ROI). Must be negative
-        :param float high_threshold: threshold used to identify over-covered genomic
-            region of interest (ROI). Must be positive
+        :param float low_threshold: threshold used to identify under-covered
+            genomic region of interest (ROI). Must be negative
+        :param float high_threshold: threshold used to identify over-covered
+            genomic region of interest (ROI). Must be positive
         :param float ldtr: fraction of the low_threshold to be used to define
             the intermediate threshold in the double threshold method. Must be
             between 0 and 1.
@@ -170,12 +172,12 @@ class GenomeCov(object):
             between 0 and 1.
 
         """
-        self.thresholds = DoubleThresholds(low_threshold, high_threshold, 
+        self.thresholds = DoubleThresholds(low_threshold, high_threshold,
             ldtr, hdtr)
 
         df = pd.read_table(input_filename, header=None)
         try:
-            df = df.rename(columns={0: "chr", 1: "pos", 2: "cov"})
+            df = df.rename(columns={0: "chr", 1: "pos", 2: "cov", 3: "mapq0"})
             df = df.set_index("chr", drop=False)
             # Create a list of ChromosomeCov for each chromosome present in the
             # bedtools.
@@ -612,12 +614,12 @@ class ChromosomeCov(object):
 
         """
         try:
-            labels=["pos", "cov", "rm"]
+            labels=["pos", "cov", "mapq0"]
             self.df[labels][start:stop].to_csv(filename, header=header)
         except NameError:
             print("You must set the file name")
         except KeyError:
-            print("Labels doesn't exist in the data frame")
+            self.df[labels[:-1]][start:stop].to_csv(filename, header=header)
 
     def plot_gc_vs_coverage(self, bins=None, Nlevels=6, fontsize=20, norm="log",
             ymin=0, ymax=100, contour=True, **kargs):

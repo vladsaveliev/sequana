@@ -1,6 +1,22 @@
-__add_locus_in_fasta__output = "add_locus_in_fasta/%s.cr.fasta" % cfg.PROJECT
-
 rule add_locus_in_fasta:
+    """
+    SnpEff needs that locus names in the annotation file and header in the 
+    fasta file are identical. This rule adds locus names of annotation file in 
+    the fasta header. Thus, sequences in annotation file and reference have the 
+    same name. 
+
+    Required input:
+        __add_locus_in_fasta__fasta_input: reference fasta file
+
+    Required output:
+        __add_locus_in_fasta__output: fasta file
+
+    Required parameters:
+        config["snpeff"]["reference"]
+
+    Contributors:
+        Sequana consortium
+    """
     input:
         fasta = __add_locus_in_fasta__fasta_input,
         ann = config["snpeff"]["reference"]
@@ -8,7 +24,6 @@ rule add_locus_in_fasta:
         fasta = __add_locus_in_fasta__output
     run:
         from sequana import SnpEff
-        
         
         snpeff = SnpEff(reference=input.ann)
         snpeff.add_locus_in_fasta(input.fasta, output.fasta)

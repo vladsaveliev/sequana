@@ -1,0 +1,26 @@
+rule bam_quality_filter:
+    """ Use samtools to filter reads with a mapping quality lower than a 
+    threshold. It removes reads with multiple occurrence.
+
+    Required input:
+        __bam_quality_filter__input: bam file
+
+    Required output:
+        __bam_quality_filter__output: bam file
+
+    Required parameters:
+        config["bam_quality_filter"]["threshold"]: integer
+
+    Contributors:
+        Sequana consortium
+    """
+    input:
+        __bam_quality_filter__input
+    output:
+        __bam_quality_filter__output
+    params:
+        threshold = config["bam_quality_filter"]["threshold"]
+    shell:
+        """
+        samtools view -bq {params.threshold} {input} > {output}
+        """

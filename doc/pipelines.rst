@@ -5,7 +5,6 @@ Pipelines
 ##############
 
 This sections provides a summary of the official Sequana pipelines, which are all based on snakemake.
-Note that quality_taxon re-uses quality, which itself uses phe phix_removal pipeline.
 
 Each pipeline can be automatically downloaded (with its config file) using::
 
@@ -13,9 +12,6 @@ Each pipeline can be automatically downloaded (with its config file) using::
 
 .. contents::
     :depth: 2
-
-.. _pipeline_phix_removal:
-
 
 
 .. _denovo_assembly_pipeline:
@@ -26,25 +22,12 @@ denovo_assembly
 .. include:: ../sequana/pipelines/denovo_assembly/README.rst
 
 
-Phix Removal
-==============
+.. _pipeline_quality_control:
 
+Quality control
+=================
 
-.. include:: ../sequana/pipelines/phix_removal/README.rst
-
-.. _pipeline_quality:
-
-Quality
-==========
-
-.. include:: ../sequana/pipelines/quality/README.rst
-
-.. _pipeline_quality_taxon:
-
-Quality Taxon
-=======================
-
-.. include:: ../sequana/pipelines/quality_taxon/README.rst
+.. include:: ../sequana/pipelines/quality_control/README.rst
 
 
 .. _pipeline_variant_calling:

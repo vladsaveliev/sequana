@@ -1,30 +1,16 @@
-"""
 
-Author: Thomas Cokelaer
-Affiliation: Institut Pasteur
-Summary: a rule to create the DAG image from the Snakemake
-Data:
-Run: snakemake -s Snakefile
-Changelog:
-
-"""
-
-
-rule dag:
-    """DAG
+rule rulegraph:
+    """Rulegrqph 
 
     :param filename: input dot file to be parsed
 
     """
-    input: 
+    input:
         filename = __dag__input
     output:
-        dot  = temp("dag.dot"),
-        dot2 = temp("dag.ann.dot"),
-        svg  = __dag__output
-    message: """
-    -- Creating DAG in a dot file and save into report/dag.svg
-    """
+        dot  = temp("rg.dot"),
+        dot2 = temp("rg.ann.dot"),
+        svg  = __rulegraph__output
     run:
         # Create the dot file (graphviz) using snakemake
         shell("snakemake -s {input.filename} --rulegraph > {output.dot}")

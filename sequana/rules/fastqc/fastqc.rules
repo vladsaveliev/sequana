@@ -1,40 +1,33 @@
-import glob
 
-__sequana__fastqc = [":options"]
-import sequana.snaketools as sm
-cfg = sm.SequanaConfig.from_dict(config)
 
 
 # should be called after bwa_mem and bwa_bam
 
 
-def fastqc_dynamic(name, inputs, outputs=[]):
-
-    metadata = {'inputs':inputs, 'name':name, 'project':cfg.PROJECT}
-
+def fastqc_dynamic(name, project):
+    metadata = {'name':name, 'project':project}
     fastqc_code = '''
 
-rule fastqc__%(name)s:
+rule fastqc_%(name)s:
     """Calls FastQC on input data sets """
     # we could have a dynamic search or based on config file
     input:
-        %(inputs)s
+        fastq = __fastqc_%(name)s__input_fastq
     output:
-        touch('fastqc__%(name)s/fastqc.done')
+        touch(__fastqc_%(name)s__output_done)
     params:
-        wkdir="fastqc__%(name)s",
-        kargs = cfg.config.fastqc.options
+        wkdir = __fastqc_%(name)s__wkdir,
+        kargs = config['fastqc']['options']
     threads: 4
     log:
-        "logs/fastqc__%(name)s.log"
+        fastqc = "%(project)s/logs/fastqc_%(name)s/fastqc.log",
     run:
         # if the content of the file is empty, this will fail. We need to
         # touch  a file in such case.
-        #
         from sequana import snaketools as sm
         from sequana import FastQ
         newinput = []
-        for i, this in enumerate(input):
+        for i, this in enumerate(input.fastq):
             fastq = FastQ(this)
             # TODO: could just try to iterate once instead of computing the length
             if len(fastq) != 0:
@@ -45,23 +38,20 @@ rule fastqc__%(name)s:
         if len(newinput):
             shell(
             " fastqc -t {threads} --outdir {params.wkdir} -f fastq "
-            " {newinput} {params.kargs} > {log}")
+            " {newinput} {params.kargs} > {log.fastqc}")
         else:
             pass
 
         # report
         from sequana import FastQCReport
         s = FastQCReport(
-                "fastqc__%(name)s",
-                output_filename="fastqc__%(name)s.html",
+                params.wkdir,
+                output_filename="fastqc_%(name)s.html",
                 directory=params.wkdir)
         s.jinja['main_link'] = '../summary.html'
         s.create_report()
 
-
-
     '''
-
     from easydev import TempFile
     tt = TempFile()
     fh = open(tt.name, "w")

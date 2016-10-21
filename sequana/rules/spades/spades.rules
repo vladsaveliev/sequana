@@ -1,7 +1,21 @@
-__spades__contigs = "spades/%s.contigs.fasta" % cfg.PROJECT
-__spades__scaffolds = "spades/%s.scaffolds.fasta" % cfg.PROJECT
-
 rule spades:
+    """ Spade is a de novo assembler designed for small genomes like bacteria
+    or fungi. This rule works only with paired-end files.
+
+    Required input:
+        __spades__input: list of paired fastq files
+
+    Required output:
+        __spades__contigs: fasta file
+        __spades__scaffolds: fasta file
+
+    Required parameters:
+        __spades__outdir: output directory
+        config["spades"]["threads"]: number of threads
+
+    Contributors:
+        Sequana consortium
+    """
     input:
         fastq = __spades__input
     output:
@@ -11,12 +25,12 @@ rule spades:
         config["spades"]["threads"]
     params:
         options = config["spades"]["options"],
-        project = cfg.PROJECT
+        outdir = __spades__outdir
     shell:
         """
         # spades
         spades.py -t {threads} {params.options} -1 {input.fastq[0]} \
-            -2 {input.fastq[1]} -o spades
+            -2 {input.fastq[1]} -o {params.outdir}
 
         # rename assembly files
         mv spades/scaffolds.fasta {output.scaffolds}
