@@ -355,7 +355,8 @@ def main(args=None):
 
     # check valid combo of --glob / --fileX --input-dir
     # the 3 options are mutually exclusive
-    """flag = int("%s%s%s" % (
+    flag = int("%s%s%s%s%s" % (
+            int(bool(options.pattern)),
             int(bool(options.input_directory)),
             int(bool(options.file1)),
             int(bool(options.file2)),
@@ -364,9 +365,9 @@ def main(args=None):
 
     # config file has flag 1, others have flag 2,4,8
     # config file can be used with 2,4,8 so we also add 2+1, 4+1, 8+1
-    if flag not in [1, 2, 4, 8, 3, 5, 9]:
+    if flag not in [1, 2, 4, 8, 3, 5, 9, 16,17,24,25]:
         sa.error(help_input + "\n\nUse --help for more information")
-    """
+
 
     # input_dir is nothing else than a glob to fastq.gz files
     if options.input_directory is None:
@@ -408,6 +409,7 @@ def main(args=None):
             options.adapters_rev = options.adapters
         else:
             if options.adapter_fwd is None:
+                print("HERE")
                 assert options.adapters in ["universal", "PCRFree", "Nextera"]
                 # flag 4
                 if options.adapters == "universal":
@@ -423,7 +425,6 @@ def main(args=None):
                     options.adapter_rev = "file:" + _get_adap("adapters_Nextera_PF1_220616_rev.fa")
             # flag 2/3
             else:
-                print(options.adapter_fwd)
                 if options.adapter_fwd:
                     # Could be a string or a file. If a file, check the format
                     if os.path.exists(options.adapter_fwd):
@@ -438,7 +439,6 @@ def main(args=None):
             # Just check the format
             adapter_finder = FindAdaptersFromIndex(options.design,
                                 options.adapters)
-
 
     # If all options are valid, we can now create the tree structure
     sequana_init(options)
@@ -462,7 +462,6 @@ def sequana_init(options):
     sa = Tools(verbose=options.verbose)
 
 
-    print(options)
     #sa.blue("Creating project directory (use --project to overwrite the " + \
     #        "inferred value): '" + options.project +"'", force=True)
 
@@ -534,6 +533,7 @@ def sequana_init(options):
     with open(config_filename, "r") as fin:
         config_txt = fin.read()
 
+
     # and save it back filling it with relevant information provided by the user
     with open(config_filename, "w") as fout:
         from collections import defaultdict
@@ -544,10 +544,11 @@ def sequana_init(options):
         params['pattern'] = options.pattern
         if options.file1:
             params['file1'] = os.path.abspath(options.file1)
+            params['input_directory'] = ""
         if options.file2:
             params['file2'] = os.path.abspath(options.file2)
 
-        if options.pipeline == "quality_taxon":
+        if options.pipeline == "quality_control":
             if options.design:
                 shutil.copy(options.design, options.target_dir + os.sep )
                 params['adapter_design'] = os.path.basename(options.design)
@@ -561,6 +562,7 @@ def sequana_init(options):
                 params['reference'] = os.path.abspath(options.reference)
             else:
                 params['reference'] = None
+
             params["adapter_fwd"] = options.adapter_fwd
             params["adapter_rev"] = options.adapter_rev
             params["adapter_type"] = options.adapters

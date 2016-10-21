@@ -146,7 +146,7 @@ class AdapterRemovalReport(BaseReport):
             histograms[key].plot(logy=True, lw=2, marker="o")
             pylab.title(name)
             name = key.replace(" ", "_")
-            filename =  "cutadapt/images/%s.png" % name
+            filename =  "%s/cutadapt/images/%s.png" % (self.sample_name,name)
             try:
                 pylab.savefig(filename)
             except FileNotFoundError:

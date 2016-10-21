@@ -1046,6 +1046,20 @@ def init(filename, namespace):
         namespace['toclean'] = []
 
 
+def create_recursive_cleanup(filename=".sequana_cleanup.py"):
+    with open(filename, "w") as fh:
+        fh.write("""
+import subprocess
+import glob
+import os
+for this in glob.glob("*"):
+    if os.path.isdir(this) and this not in ["fastq_sampling", "report"]:
+        print(" --- Cleaning up %s directory" % this)
+        subprocess.Popen(["python", ".sequana_cleanup.py"], cwd=this)
+""")
+
+
+
 def create_cleanup(targetdir):
     """A script to include in directory created by the different pipelines"""
     with open(targetdir + os.sep + ".sequana_cleanup.py", "w") as fout:
