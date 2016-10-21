@@ -12,10 +12,24 @@ rule cutadapt:
         quality = config['adapter_removal']['quality'],
         kwargs = __cutadapt__options,
         mode = __cutadapt__mode,
-        wkdir = __cutadapt__wkdir
+        wkdir = __cutadapt__wkdir,
+        design = __cutadapt__design,
+        design_adapter = __cutadapt__design_adapter,
+        sample = __cutadapt__sample
     log: __cutadapt__log
     run:
         executable = config['adapter_removal']['tool'] # could be cutadapt or atropos
+
+        if config['adapter_removal']['design']:
+            from sequana import FindAdaptersFromIndex
+            sample = params.sample.split("_")[0]
+            fa = FindAdaptersFromIndex(params.design, params.design_adapter)
+            fwd, rev = fa.save_adapters_to_fasta(sample, output_dir=params.wkdir)
+            fwd = "file:%s" % fwd
+            rev = "file:%s" % rev
+        else:
+            fwd = params.fwd
+            rev = params.rev
 
         if len(input.fastq) == 2:
             cmd = "%s -o {output.fastq[0]} -p {output.fastq[1]}" % executable
@@ -27,11 +41,12 @@ rule cutadapt:
             mode2 = params.mode.upper()
 
             if params.fwd:
-                cmd += " -{params.mode} {params.fwd} "
+                cmd += " -{params.mode} %s " % fwd
             else:
                 cmd += " -{params.mode} XXXX "
+
             if params.rev:
-                cmd += " -%s {params.rev} " % mode2
+                cmd += " -%s %s " % (mode2, rev)
             else:
                 cmd += " -%s XXXX " % mode2
 
@@ -41,7 +56,7 @@ rule cutadapt:
         else:
             cmd = "%s -o {output.fastq[0]} {input.fastq[0]}" % executable
             if params.fwd:
-                cmd += "    -{params.mode} {params.fwd} "
+                cmd += "    -{params.mode} %s " % fwd
             else:
                 cmd += "    -{params.mode} XXXX "
             cmd += " -m {params.m} -q {params.quality} "
