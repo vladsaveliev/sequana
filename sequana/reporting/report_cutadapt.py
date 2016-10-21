@@ -29,7 +29,6 @@ from reports import HTMLTable
 import pandas as pd
 
 
-
 class CutAdaptReport(AdapterRemovalReport):
 
     def __init__(self, proj, output_filename="cutadapt.html",
@@ -66,7 +65,7 @@ class CutAdaptReport(AdapterRemovalReport):
             tobefound.append(('total_reads', 'Total reads processed:'))
             tobefound.append(('reads_with_adapters', 'Reads with adapters:'))
             tobefound.append(('reads_too_short', 'Reads that were too short:'))
-            tobefound.append(('reads_too_long', 'Reads that were too long:'))
+            #tobefound.append(('reads_too_long', 'Reads that were too long:'))
             tobefound.append(('reads_kept', 'Reads written (passing filters):'))
             #tobefound.append(('total_basepairs_processed', 'Total basepairs processed:'))
             #tobefound.append(('total_basepairs_filtred', 'Total written (filtered):'))
@@ -94,7 +93,7 @@ class CutAdaptReport(AdapterRemovalReport):
                 key, pattern = this
                 found = [line for line in data if line.startswith(pattern)]
                 if len(found) == 0:
-                    print("%s not found)" % pattern)
+                    print("ReportCutadapt: %s (not found)" % pattern)
                 elif len(found) == 1:
                     text = found[0].split(":", 1)[1].strip()
                     try:

@@ -139,18 +139,22 @@ class AdapterRemovalReport(BaseReport):
         html = ""
         html += "<div>\n"
         from easydev import DevTools
-        DevTools().mkdir("cutadapt/images")
+        DevTools().mkdir(self.sample_name + "/cutadapt/images")
         for key in sorted(histograms.keys()):
+            if len(histograms[key]) <= 1:
+                continue
+            histograms[key].plot(logy=True, lw=2, marker="o")
+            pylab.title(name)
+            name = key.replace(" ", "_")
+            filename =  "cutadapt/images/%s.png" % name
             try:
-                histograms[key].plot(logy=True, lw=2, marker="o")
-                pylab.title(name)
-                name = key.replace(" ", "_")
-                filename =  "cutadapt/images/%s.png" % name
                 pylab.savefig(filename)
-                pylab.grid(True)
-                html += '<img src="images/%s.png" width="45%%"></img> ' % (name)
-            except:
-                pass
+            except FileNotFoundError:
+                print("Warning:: cutadapt report, image not created")
+            pylab.grid(True)
+            html += '<img src="cutadapt/images/%s.png" width="45%%"></img> ' % (name)
+            #except:
+            #    pass
         html += "</div>\n"
 
         self.jinja['cutadapt'] = html
