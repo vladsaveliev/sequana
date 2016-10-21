@@ -191,12 +191,12 @@ class SequanaReport(BaseReport):
 
 
     """
-    def __init__(self, manager, sample, snakefile="Snakefile",
-                 stats="stats.txt", directory="report", 
-                 output_filename="index.html",  **kargs):
+    def __init__(self, sample_dict, sample, snakefile="Snakefile",
+                 configfile="config.yaml", stats="stats.txt",
+                 directory="report", output_filename="index.html",  **kargs):
         """.. rubric:: constructor
 
-        :param manager: manager class of the config file
+        :param dict sample_dict  dictionnary of samples
         :param str sample: sample name
         :param str snakefile: the filename of the snakefile
         :param str configfile: the name of the snakemake config file
@@ -214,13 +214,17 @@ class SequanaReport(BaseReport):
                                             output_filename=output_filename,
                                             **kargs)
 
-        if snakefile: self.read_snakefile(snakefile)
+        if snakefile: 
+            self.read_snakefile(snakefile)
+
+        if configfile:
+            self.read_configfile(configfile)
 
         try:
             self.jinja['project'] = sample 
 
             html = ""
-            for link in manager.samples[sample]:
+            for link in dict_list[sample]:
                 filename = link.split("/")[-1]
                 html += '<li><a href="%s">%s</a></li>\n' % (link, filename)
                 html += "</ul>"

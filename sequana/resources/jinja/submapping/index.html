@@ -41,7 +41,7 @@ $(document).ready(function () {
             zoomType: "x",
             exportEnabled: true,
 			title:{
-				text: "Coverage and Running Median"
+				text: "Coverage of filtered reads and not"
 			},
             legend: {
 				verticalAlign: "right",
@@ -50,13 +50,13 @@ $(document).ready(function () {
 			data: [
 			{
 				type: "line",
-                name: "Coverage",
+                name: "Coverage filtered",
                 showInLegend: true,
 				dataPoints: dataCov
 			},
             {
                 type: "line",
-                name: "Running Median",
+                name: "Coverage unfiltered",
                 showInLegend: true,
                 dataPoints: dataRm
             }
