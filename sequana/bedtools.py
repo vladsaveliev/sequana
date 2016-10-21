@@ -619,7 +619,7 @@ class ChromosomeCov(object):
         except NameError:
             print("You must set the file name")
         except KeyError:
-            self.df[labels[-1]][start:stop].to_csv(filename, header=header)
+            self.df[labels[:-1]][start:stop].to_csv(filename, header=header)
 
     def plot_gc_vs_coverage(self, bins=None, Nlevels=6, fontsize=20, norm="log",
             ymin=0, ymax=100, contour=True, **kargs):
