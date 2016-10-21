@@ -98,7 +98,7 @@ report_mapping:
 vcf_filter:
     freebayes_score: 200         # Minimal freebayes score
     frequency: 0.8               # Minimal alternative allele frequency
-    depth: 10                    # Minimal coverage depth
+    min_depth: 10                    # Minimal coverage depth
     forward_depth: 3             # Minimal coverage depth of forward strand
     reverse_depth: 3             # Minimal coverage depth of reverse strand
     strand_ratio: 0.2            # Minimal strand ratio between 0 and 0.5 
