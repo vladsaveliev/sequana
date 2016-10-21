@@ -88,26 +88,34 @@ class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana"):
         usage = """Welcome to SEQUANA standalone
 
-        Provide a valid pipeline name:
+        If you want to analyse several samples distributed in sub-directories,
+        use:
 
-            sequana --pipeline quality
+            sequana --pipeline quality_control --pattern "./*/*fastq.gz" 
+                --design SampleSheetUsed.csv  --adapters PCRFree
 
-        Valid names can be retrieved using :
+        If all samples are in the current directory:
+
+            sequana --pipeline quality_control --input-directory . 
+                --design SampleSheetUsed.csv  --adapters PCRFree
+
+        If you want to analyse a specific pair of files:
+
+            sequana --pipeline quality_control --file1 test_R1_.fastq.gz
+                --file2 test_R2_.fastq.gz
+                --design SampleSheetUsed.csv  --adapters PCRFree
+
+        Note that files must end in fastq.gz, must contain _R1_ and _R2_ tag and
+        must have a common sample name before _R1_ and _R2_ (like in the example
+        above). You may have test after the _R1_ or _R2_ tag.
+
+        Here above, --pipeline can refer to other pipelines such as
+        variant_calling. Valid pipeline names can be retrieved using :
 
             sequana --show-pipelines
 
-        You must provide one or 2 filenames:
-
-            sequana --pipeline quality  --file1 A.fastq.gz
-
-        You may use --input-dir or --glob to help you especially if you have
-        multiple samples:
-
-            sequana --pipeline variant_calling  --input-dir ../
-
         If multiple samples are found, sub-directories are created for each
-        sample. In such case, for adapters a design file that maps adapter
-        to index can be used.
+        sample. 
 
 
 
@@ -353,8 +361,7 @@ def main(args=None):
 
 
 
-    # check valid combo of --glob / --fileX --input-dir
-    # the 3 options are mutually exclusive
+    # check valid combo of arguments
     flag = int("%s%s%s%s%s" % (
             int(bool(options.pattern)),
             int(bool(options.input_directory)),
