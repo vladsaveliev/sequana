@@ -32,14 +32,25 @@ elif cfg.compressor.source == 'fastq' and cfg.compressor.target == "fastq.dsrc":
     include: ss.modules["fastq_to_dsrc"]
     target = ".dsrc"
 
-print(cfg.compressor)
-
 if cfg.compressor.source == "fastq.gz" and cfg.compressor.target == "fastq.bz2":
     include: ss.modules["gz_to_bz2"]
     target = ".bz2"
 elif cfg.compressor.source == "fastq.bz2" and cfg.compressor.target == "fastq.gz":
     include: ss.modules["bz2_to_gz"]
     target = ".gz"
+elif cfg.compressor.source == "fastq.bz2" and cfg.compressor.target == "fastq.dsrc":
+    include: ss.modules["bz2_to_dsrc"]
+    target = ".dsrc"
+elif cfg.compressor.source == "fastq.dsrc" and cfg.compressor.target == "fastq.bz2":
+    include: ss.modules["dsrc_to_bz2"]
+    target = ".bz2"
+elif cfg.compressor.source == "fastq.dsrc" and cfg.compressor.target == "fastq.gz":
+    include: ss.modules["dsrc_to_gz"]
+    target = ".gz"
+elif cfg.compressor.source == "fastq.gz" and cfg.compressor.target == "fastq.dsrc":
+    include: ss.modules["gz_to_dsrc"]
+    target = ".dsrc"
+
 
 
 # The input files can be look for recursively or not
