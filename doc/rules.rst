@@ -30,7 +30,6 @@ fastqc
 
 .. include:: ../sequana/rules/fastqc/README.rst
 
-
 codecs
 ===========
 The following rules are used by the :ref:`pipeline_compressor` standalone
@@ -60,6 +59,17 @@ fastq_to_bz2
 fastq_to_dsrc
 ---------------
 .. snakemakerule:: fastq_to_dsrc
+
+gz_to_bz2
+---------------
+.. snakemakerule:: gz_to_bz2
+
+bz2_to_gz
+---------------
+.. snakemakerule:: bz2_to_gz
+
+
+
 
 bwa_mem
 ===========
