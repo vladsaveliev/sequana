@@ -14,35 +14,44 @@ import sequana.snaketools as ss
 cfg = SequanaConfig(config, mode="others").config
 
 # What do we want to convert from ?
-if cfg.compressor.source == "fastq.gz":
+if cfg.compressor.source == "fastq.gz" and cfg.compressor.target == "fastq":
     include: ss.modules["gz_to_fastq"]
-elif cfg.compressor.source == "fastq.bz2":
+elif cfg.compressor.source == "fastq.bz2" and cfg.compressor.target == "fastq":
     include: ss.modules["bz2_to_fastq"]
-elif cfg.compressor.source == "fastq.dsrc":
+elif cfg.compressor.source == "fastq.dsrc" and cfg.compressor.target == "fastq":
     include: ss.modules["dsrc_to_fastq"]
 
 # Which format for the output ?
-if cfg.compressor.target == "fastq.bz2":
+if cfg.compressor.source == 'fastq' and cfg.compressor.target == "fastq.bz2":
     include: ss.modules["fastq_to_bz2"]
     target = ".bz2"
-elif cfg.compressor.target == "fastq.gz":
+elif cfg.compressor.source == 'fastq' and cfg.compressor.target == "fastq.gz":
     include: ss.modules["fastq_to_gz"]
     target = ".gz"
-elif cfg.compressor.target == "fastq.dsrc":
+elif cfg.compressor.source == 'fastq' and cfg.compressor.target == "fastq.dsrc":
     include: ss.modules["fastq_to_dsrc"]
     target = ".dsrc"
-else:
-    target = "" # by default no extension
+
+print(cfg.compressor)
+
+if cfg.compressor.source == "fastq.gz" and cfg.compressor.target == "fastq.bz2":
+    include: ss.modules["gz_to_bz2"]
+    target = ".bz2"
+elif cfg.compressor.source == "fastq.bz2" and cfg.compressor.target == "fastq.gz":
+    include: ss.modules["bz2_to_gz"]
+    target = ".gz"
 
 
 # The input files can be look for recursively or not
 if cfg.compressor.recursive is True:
-    input_filenames = list(glob.iglob("**/*.%s" % cfg.compressor.source,  recursive=True))
+    input_filenames = list(glob.iglob("**/*.%s" % cfg.compressor.source,  
+                           recursive=True))
 else:
     input_filenames = list(glob.iglob("*.%s" % cfg.compressor.source))
 
 # We want the basename without the compression extension
-fastq = [x.replace(".bz2", "").replace(".gz","").replace(".dsrc", "") for x in input_filenames]
+fastq = [x.replace(".bz2", "").replace(".gz","").replace(".dsrc", "") 
+         for x in input_filenames]
 
 
 # Some information
