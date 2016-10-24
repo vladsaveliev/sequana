@@ -365,8 +365,6 @@ def main(args=None):
     if options.kraken and os.path.exists(options.kraken) is False:
         raise ValueError("%s does not exist" % options.kraken)
 
-
-
     # check valid combo of arguments
     flag = int("%s%s%s%s%s" % (
             int(bool(options.pattern)),

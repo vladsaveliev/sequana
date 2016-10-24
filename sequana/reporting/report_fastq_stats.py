@@ -139,12 +139,12 @@ class FastQStatsReport(BaseReport):
         """
 
         # Copying images into the report/images directory
-        targets = self.copy_images_to_report("%s/images/*png" % self.input_directory)
+        #targets = self.copy_images_to_report("%s/images/*png" % self.input_directory)
 
         # Create table with those images
-        from sequana.htmltools import galleria
-        if len(targets):
-            html += galleria(targets)
+        #from sequana.htmltools import galleria
+        #if len(targets):
+        #    html += galleria(targets)
         self.jinja["content"] = html
 
 

@@ -39,7 +39,8 @@ class SequanaSummary(BaseReport):
     """
     def __init__(self,  sample, directory="report", output_filename="summary.html",
                     configfile="config.yaml", snakefile=None,
-                    workdir=".", workflow=True, include_all=True, **kargs):
+                    workdir=".", workflow=True, include_all=True,
+                    manager=None, **kargs):
 
         super(SequanaSummary, self).__init__(
             jinja_filename="summary.html",
@@ -51,22 +52,23 @@ class SequanaSummary(BaseReport):
 
         self.workdir = workdir
         self.devtools = DevTools()
+        self.manager = manager
+        self.sample = sample
 
         self.title = "Summary Report"
         self.jinja['title'] = "Summary report"
 
+        if manager.paired is True:
+            self.jinja['type'] = "Paired-end"
+        else:
+            self.jinja['type'] = "Single-end"
         # ============================================ Add the config and pipeline files
         from sequana.snaketools import SequanaConfig
         from sequana.snaketools import Module
-        self.sample = sample
 
         if configfile:
             self.config = SequanaConfig(configfile)
             self.jinja['project'] = sample
-            if self.config.paired:
-                self.jinja['type'] = "Paired-end"
-            else:
-                self.jinja['type'] = "Single-end"
 
             try:
                 pipeline_name = snakefile.split(".rules")[0]
@@ -107,8 +109,9 @@ class SequanaSummary(BaseReport):
     def include_input_links(self):
         # Links to the datasets
         html = "<ul>"
-        for link, filename in zip(self.config.DATASET, self.config.BASENAME):
-            html += '<li>Raw data: <a href="%s">%s</a></li>\n' % (link, filename)
+        for fullpath in self.manager.samples[self.sample]:
+            filename = os.path.basename(fullpath)
+            html += '<li>Raw data: <a href="%s">%s</a></li>\n' % (fullpath, filename)
         html += "</ul>"
         self.jinja['dataset'] = html
 

@@ -505,7 +505,6 @@ class SequanaConfig(object):
 
     The second file may be optional.
 
-    :meth:`get_dataset_as_list`
 
     Empty strings in a config are interpreted as None but SequanaConfig will
     replace  None with empty strings, which is probably what was expected from
@@ -546,15 +545,7 @@ class SequanaConfig(object):
                 assert this in self.config.keys(),\
                     "Your config must contain %s" % this
 
-        if mode == "NGS":
-            self.DATASET = self.get_dataset_as_list()
-            self.ff = FileFactory(self.DATASET)
-            self.BASENAME = self.ff.basenames
-            self.FILENAME = self.ff.filenames
-            if len(self.DATASET) == 2:
-                self.paired = True
-            else:
-                self.paired = False
+
 
     def save(self, filename="config.yaml"):
         """Export config into YAML file
@@ -639,16 +630,6 @@ class SequanaConfig(object):
     def from_dict(dic):
         return SequanaConfig(dic)
 
-    def get_dataset_as_list(self):
-        filenames = []
-        try:
-            filenames.append(self.config.samples.file1)
-            if self.config.samples.file2 != "":
-                filenames.append(self.config.samples.file2)
-        except:
-            pass
-        return filenames
-
     def check(self, requirements_dict):
         """a dcitionary in the form
 
@@ -707,17 +688,33 @@ class PipelineManager(object):
 
         cfg = SequanaConfig(config)
         cfg.config.pipeline_name = name
-        self.config = cfg.config
-        self.paired = cfg.paired
 
-        try:
-            # Keep cfg.config.input_directory without default so that it
-            # fails if there is no input_directory provided
-            glob_dir = cfg.config.input_directory + "/" + cfg.get('pattern',
-                                                                  pattern)
-            self.ff = FastQFactory(glob_dir)
-        except:
-            self.ff = FastQFactory(cfg.DATASET)
+        # Default mode is the glob/pattern.
+        glob_dir = cfg.config.input_directory + "/" + \
+                   cfg.get('pattern', pattern)
+
+        self.ff = FastQFactory(glob_dir)
+        R1 = [1 for this in self.ff.filenames if "_R1_" in this]
+        R2 = [1 for this in self.ff.filenames if "_R2_" in this]
+        if len(R2) == 0:
+            self.paired = False
+        else:
+            if R1 == R2:
+                self.paired = True
+            else:
+                raise ValueError("Mix of paired and single-end data sets not implemented yet")
+
+        # Note, however, that another mode is the samples.file1/file2 . If
+        # provided, filenames is not empty and superseeds
+        # the previous results (with the glob). Here only 2 files are provided
+        # at most
+        filenames = self._get_filenames(cfg.config)
+        if len(filenames):
+            self.ff = FastQFactory(filenames)
+            if len(filenames) == 2:
+                self.paired = True
+            else:
+                self.paired = False
 
         ff = self.ff  # an alias
         self.samples = {tag: [ff.get_file1(tag), ff.get_file2(tag)]
@@ -729,13 +726,16 @@ class PipelineManager(object):
                              "(NAME_R1_<SUFFIX>.fastq.gz where <SUFFIX> is "
                              "optional")
         elif len(ff.tags) == 1:
-            self.mode = "nowc"
+            self.mode = "nowc"  # no wildcard
             self.sample = ff.tags[0]
             self.basename = self.sample + "/%s/" + self.sample
         else:
             self.mode = "wc"
             self.sample = "{sample}"
             self.basename = "{sample}/%s/{sample}"
+
+        # finally, keep track of the config file
+        self.config = cfg.config
 
     def getname(self, rulename, suffix=None):
         if suffix is None:
@@ -753,6 +753,26 @@ class PipelineManager(object):
             return self.ff.realpaths
         else:
             return lambda wildcards: self.samples[wildcards.sample]
+
+    def _get_filenames(self, cfg):
+        filenames = []
+        file1 = cfg.samples.file1
+        file2 = cfg.samples.file2
+        if file1:
+            if os.path.exists(file1):
+                filenames.append(file1)
+            else:
+                raise FileNotFoundError("%s not found" % file1)
+        if file2:
+            if os.path.exists(file2):
+                filenames.append(file2)
+            else:
+                raise FileNotFoundError("%s not found" % file2)
+        return filenames
+
+
+
+
 
 
 def sequana_check_config(config, globs):

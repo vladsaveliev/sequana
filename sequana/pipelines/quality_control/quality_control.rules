@@ -242,7 +242,8 @@ onsuccess:
         from sequana import SequanaSummary
         summary = SequanaSummary(proj, directory=report_dir, 
             output_filename="summary.html", 
-            snakefile=__snakefile__, configfile=report_dir+"/config.yaml")
+            snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
+            manager=manager)
         # This is probably not needed and buggy anymway. creates a report/ in
         # the top tree directory indeed
         #summary.copy_images_to_report(proj + "/*/images/*png")
