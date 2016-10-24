@@ -25,7 +25,7 @@ requirements:
 
 fastq_sampling:
     do: no
-    N: 100000
+    N: 2500
 
 # =========================================== Sections related to external tools
 
@@ -59,9 +59,10 @@ bwa_mem_phix:
 adapter_removal:
     do: yes
     tool: cutadapt
-    design: "%(design)s"
-    fwd: "%(fwd)s"
-    rev: "%(rev)s"
+    design: "%(adapter_design)s"
+    adapter_type: "%(adapter_type)s"
+    fwd: "%(adapter_fwd)s"
+    rev: "%(adapter_rev)s"
     m: 20   # cutoff
     mode: "b"   # g for 5' adapter, a for 3' and b for both 5'/3'
     quality: 30
@@ -69,7 +70,8 @@ adapter_removal:
 
 
 ########################################################### Kraken
-# For taxonomy. Used in quality_taxon pipeline
+# For taxonomy. Used in quality_control pipeline
 kraken:
-    do: yes
+    # To skip kraken step, just set database field to an empty value
+    # database:
     database: "%(kraken_database)s"

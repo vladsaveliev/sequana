@@ -139,7 +139,6 @@ adapter_removal:
 ########################################################### Kraken
 # For taxonomy. Used in quality_taxon pipeline
 kraken:
-    do: yes
     database: "%(kraken)s"
 
 

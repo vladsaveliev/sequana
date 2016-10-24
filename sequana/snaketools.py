@@ -1056,6 +1056,15 @@ for this in glob.glob("*"):
     if os.path.isdir(this) and this not in ["fastq_sampling", "report"]:
         print(" --- Cleaning up %s directory" % this)
         subprocess.Popen(["python", ".sequana_cleanup.py"], cwd=this)
+
+from easydev import shellcmd
+shellcmd("rm  README runme.sh config.yaml" )
+shellcmd("rm  stats.txt *fa" )
+shellcmd("rm  dag.svg" )
+shellcmd("rm  *.rules" )
+
+# We can further clean additional files
+
 """)
 
 

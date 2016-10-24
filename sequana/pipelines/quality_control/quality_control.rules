@@ -156,7 +156,7 @@ if manager.config.adapter_removal.do:
     expected_output += expand(__fastq_stats_cutadapt__output_done, sample=manager.samples)
 
 
-if manager.config.kraken.do:
+if manager.config.kraken.database:
     if manager.config.adapter_removal.do:
         # todo: handle all adapter removal cases
         __kraken__input = __cutadapt__output
@@ -212,7 +212,7 @@ onsuccess:
         report_dir = report_dir_format % {"proj": proj}
         try:os.mkdir(report_dir)
         except:pass
-        
+
         shell("cp %s %s" % (__snakefile__, report_dir))
         shell("cp rulegraph.svg %s/dag.svg" % (report_dir))
         shell("cp config.yaml %s" % report_dir)
@@ -225,7 +225,7 @@ onsuccess:
             this.read_data(proj + "/logs/cutadapt/{0}.txt".format("cutadapt"))
             this.create_report()
 
-        if manager.config.kraken.do:
+        if manager.config.kraken.database:
             shell('cp -r %s/kraken/ %s' % (proj, report_dir))
         shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
         shell('cp -r %s/fastq_stats*/ %s' % (proj, report_dir))
@@ -243,7 +243,9 @@ onsuccess:
         summary = SequanaSummary(proj, directory=report_dir, 
             output_filename="summary.html", 
             snakefile=__snakefile__, configfile=report_dir+"/config.yaml")
-        summary.copy_images_to_report(proj + "/*/images/*png")
+        # This is probably not needed and buggy anymway. creates a report/ in
+        # the top tree directory indeed
+        #summary.copy_images_to_report(proj + "/*/images/*png")
         summary.create_report()
 
         # Create a cleanup python file to clean a sub-directory

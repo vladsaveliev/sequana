@@ -84,6 +84,15 @@ class Tools(object):
         if self.verbose or force: print(txt)
 
 
+
+class SmartFormatter(argparse.HelpFormatter):
+    def _split_lines(self, text, width):
+        if text.startswith('FORMAT|'):
+            return text[7:].splitlines() 
+        # this is the RawTextHelpFormatter._split_lines
+        return argparse.HelpFormatter._split_lines(self, text, width)
+
+
 class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana"):
         usage = """Welcome to SEQUANA standalone
@@ -117,8 +126,6 @@ class Options(argparse.ArgumentParser):
         If multiple samples are found, sub-directories are created for each
         sample. 
 
-
-
 AUTHORS: Thomas Cokelaer and Dimitri Devilleschabrol
 Documentation: http://sequana.readthedocs.io
 Issues: http://github.com/sequana/sequana
@@ -134,7 +141,7 @@ Issues: http://github.com/sequana/sequana
         http://github.com/sequana/sequana
         """
         super(Options, self).__init__(usage=usage, prog=prog,
-                description=description)
+                description=description, formatter_class=SmartFormatter)
 
         group = self.add_argument_group('GENERAL')
 
@@ -186,29 +193,28 @@ will fetch the config file automatically from sequana library.""")
                       "directory"))
         group.add_argument("--config-params", dest="config_params",
             type=str,
-            help=r"""Overwrite any field in the config file by using
-                    the following convention. A config file is in YAML format
-                    and has a hierarchy of parametesr. For example:
+            help="""FORMAT|Overwrite any field in the config file by using
+the following convention. A config file is in YAML format
+and has a hierarchy of parametesr. For example:
 
-                    samples:
-                        file1: R1.fastq.gz
-                        file2: R2.fastq.gz
-                    bwa_mem_phix:
-                        mem:
-                            threads: 2
+    samples:
+        file1: R1.fastq.gz
+        file2: R2.fastq.gz
+    bwa_mem_phix:
+        mem:
+            threads: 2
 
-                Here we have 3 sections with 1,2,3 levels respectively. On the
-                command line, each level is separated by a : sign and each
-                meter to be changed separated by a comma. So to change the
-                project name and threads inside the bwa_phix section use:
+Here we have 3 sections with 1,2,3 levels respectively. On the
+command line, each level is separated by a : sign and each
+meter to be changed separated by a comma. So to change the
+project name and threads inside the bwa_phix section use:
 
-                --config-params project:newname, bwa_mem_phix:mem:threads:4
+--config-params project:newname, bwa_mem_phix:mem:threads:4
 
-                Be aware that when using --config-params, all comments are
-removed.""")
+Be aware that when using --config-params, all comments are removed.""")
 
         # ====================================================== CLUSTER
-        group = self.add_argument_group("Snakemake and cluster related",
+        group = self.add_argument_group("SNAKEMAKE AND CLUSTER RELATED",
             """When launching the pipeline, one need to use the snakemake
 command, which is written in the runme.sh file. One can tune that command to
 define the type of cluster command to use
@@ -384,6 +390,9 @@ def main(args=None):
     def _get_adap(filename):
         return sequana_data(filename, "data/adapters")
 
+
+    if options.verbose:
+        print("Looking for sample files in %s" % options.glob)
     ff = FastQFactory(options.glob)
     if options.verbose:
         print("Found %s projects/samples " % len(ff.tags))
@@ -403,7 +412,8 @@ def main(args=None):
                      " or Nextera), or provide the adapters directly as a "
                      " string or a file using --adapter_fwd (AND --adapter_rev"
                      " for paired-end data). A third way is to set --adapters"
-                     " to either Nextera, PCRFree or universal")
+                     " to either Nextera, PCRFree or universal in which case "
+                    " all adapters will be used (slower)")
 
         # flag 12 (design + adapters when wrong args provided)
         if options.design and options.adapters not in ["Nextera", "PCRFree"]:
@@ -416,7 +426,6 @@ def main(args=None):
             options.adapters_rev = options.adapters
         else:
             if options.adapter_fwd is None:
-                print("HERE")
                 assert options.adapters in ["universal", "PCRFree", "Nextera"]
                 # flag 4
                 if options.adapters == "universal":
@@ -482,7 +491,8 @@ def sequana_init(options):
         if options.force is True:
             choice = "y"
         else:
-            choice = input(red("Do you want to proceed ? [y]/n:"))
+            choice = input(red("Do you want to proceed (to avoid this " +
+                               " message, use --force)? [y]/n:"))
 
         if choice == "n":
             sys.exit(0)
@@ -561,10 +571,12 @@ def sequana_init(options):
                 params['adapter_design'] = os.path.basename(options.design)
             else:
                 params['adapter_design'] = ""
+
             if options.kraken:
                 params['kraken'] = os.path.abspath(options.kraken)
             else:
-                params['kraken'] = None
+                params['kraken'] = ""
+
             if options.reference:
                 params['reference'] = os.path.abspath(options.reference)
             else:

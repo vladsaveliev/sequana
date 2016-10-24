@@ -69,7 +69,8 @@ adapter_removal:
     options: "-O 6 --trim-n"
 
 ########################################################### Kraken
-# For taxonomy. Used in quality_taxon pipeline
+# For taxonomy. Used in quality_control pipeline
 kraken:
-    do: yes
+    # To skip kraken step, just set database field to an empty value
+    # database:
     database: "%(kraken_database)s"
