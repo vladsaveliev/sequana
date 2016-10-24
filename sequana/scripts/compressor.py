@@ -117,49 +117,40 @@ def main(args=None):
         ("fastq.dsrc", "fastq.bz2"),
 
 		]
-
     if (options.source, options.target) not in valid_combos:
         raise ValueError("""--target and --source combo not valid. 
 Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
 
 
-    # Create the config file locally i
-    temp = tempfile.NamedTemporaryFile(suffix=".yaml", dir=".", delete=False)
-    fh = open(temp.name, "w")
-    fh.write("compressor:\n")
-    fh.write("    source: %s\n" %options.source)
-    fh.write("    target: %s\n" % options.target)
-    fh.write("    threads: %s\n" % options.threads)
-    fh.write("    recursive: %s\n" % options.recursive)
-    fh.write("    verbose: %s\n" % options.verbose)
-    fh.close() # essential to close it because snakemake will try to use seek()
-    from sequana import Module
-    rule = Module("compressor").path + os.sep +  "compressor.rules"
+    from easydev import TempFile
+    # Create the config file locally 
+    with TempFile(suffix=".yaml", dir=".") as temp:
+        fh = open(temp.name, "w")
+        fh.write("compressor:\n")
+        fh.write("    source: %s\n" %options.source)
+        fh.write("    target: %s\n" % options.target)
+        fh.write("    threads: %s\n" % options.threads)
+        fh.write("    recursive: %s\n" % options.recursive)
+        fh.write("    verbose: %s\n" % options.verbose)
+        fh.close() # essential to close it because snakemake will try to use seek()
+        from sequana import Module
+        rule = Module("compressor").path + os.sep +  "compressor.rules"
 
-    if options.cluster:
-        cluster = '--cluster "%s"' % options.cluster
-    else:
-        cluster = ""
+        if options.cluster:
+            cluster = '--cluster "%s"' % options.cluster
+        else:
+            cluster = ""
 
-    if options.verbose:
-        cmd = 'snakemake -s %s  --configfile %s -j %s -p %s' % \
-            (rule, temp.name, options.cores, cluster)
-        print(cmd)
-    else:
-        cmd = 'snakemake -s %s  --configfile %s -j %s -p %s' % \
-            (rule, temp.name, options.cores, cluster)
-    shell(cmd)
+        if options.verbose:
+            cmd = 'snakemake -s %s  --configfile %s -j %s -p %s' % \
+                (rule, temp.name, options.cores, cluster)
+            print(cmd)
+        else:
+            cmd = 'snakemake -s %s  --configfile %s -j %s -p %s' % \
+                (rule, temp.name, options.cores, cluster)
+        shell(cmd)
+        fh.close()
 
-    try:
-        temp._closer.delete = True
-    except:
-        temp.delete = True
-
-    try:
-        temp.delete = True
-    except:
-        pass
-    temp.close()
 
 if __name__ == "__main__":
    import sys
