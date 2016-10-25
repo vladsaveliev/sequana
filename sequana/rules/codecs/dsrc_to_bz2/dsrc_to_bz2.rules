@@ -1,0 +1,22 @@
+rule dsrc_to_bz2:
+    """Convert fastq.dsrc files to fastq.bz2 files
+
+    Description:
+        First, uncompress the fastq.dsrc file into a fastq
+        Second, compress the fastq into a bz2 file 
+
+    :param input: fastq.dsrc files
+    :return: fastq.bz2 files
+    :third-party executables: pbunzip2 and dsrc
+
+    """
+    input: "{dataset}.dsrc"
+    output: "{dataset}.bz2"
+    params: "-m2"
+    threads: config["compressor"]["threads"]
+    run:
+        output_noext = output[0].replace(".bz2", "")
+        shell("dsrc d -t{threads} {params} {input} %s" % (output_noext))
+        shell("pbzip2 %s " % output_noext)
+        shell("rm -f {input}")
+
