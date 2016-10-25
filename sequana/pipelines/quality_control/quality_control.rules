@@ -172,6 +172,7 @@ if manager.config.kraken.database:
     __kraken__output_json = manager.sample + "/kraken/kraken.json"
     include: sm.modules['kraken']
     expected_output.append(expand(__kraken__output_html, sample=manager.samples))
+    expected_output.append(expand(__kraken__output_json, sample=manager.samples))
 
 
 # include overall dag file
@@ -184,6 +185,7 @@ expected_output.extend(["dag.svg"])
 # Include rule graph for each sample
 __rulegraph__input = __snakefile__
 __rulegraph__output = "rulegraph.svg"
+__rulegraph__mapper = {"fastqc_samples": "fastqc_samples/"}
 include: sm.modules['rulegraph']
 expected_output.extend(["rulegraph.svg"])
 
@@ -200,8 +202,6 @@ localrules: dag, conda, rulegraph
 rule pipeline_quality_control:
     input: expected_output
 
-
-dir_to_copy = ["fastqc_*", "fastq_stats_*", "bwa_bam_to_fastq"]
 
 onsuccess:
     import os
