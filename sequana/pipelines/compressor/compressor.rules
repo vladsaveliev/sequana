@@ -16,10 +16,13 @@ cfg = SequanaConfig(config, mode="others").config
 # What do we want to convert from ?
 if cfg.compressor.source == "fastq.gz" and cfg.compressor.target == "fastq":
     include: ss.modules["gz_to_fastq"]
+    target = ""
 elif cfg.compressor.source == "fastq.bz2" and cfg.compressor.target == "fastq":
     include: ss.modules["bz2_to_fastq"]
+    target = ""
 elif cfg.compressor.source == "fastq.dsrc" and cfg.compressor.target == "fastq":
     include: ss.modules["dsrc_to_fastq"]
+    target = ""
 
 # Which format for the output ?
 if cfg.compressor.source == 'fastq' and cfg.compressor.target == "fastq.bz2":
