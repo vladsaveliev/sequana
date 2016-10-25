@@ -54,7 +54,7 @@ class KrakenResults(object):
 
     """
     def __init__(self, filename="kraken.out", verbose=True):
-        """
+        """.. rubric:: **constructor**
 
         :param filename: the input from KrakenAnalysis class
         :param verbose:
@@ -147,18 +147,19 @@ class KrakenResults(object):
         # large files
         self._df = pd.read_csv(self.filename, sep="\t", header=None,
                                usecols=[0,2,3])
+        self._df.columns = ["status", "taxon", "quality"]
 
         # This gives the list of taxons as index and their amount
         # above, we select only columns 0,2,3  the column are still labelled
         # 0,2,3 in the df
-        self._taxons = self._df.groupby(2).size()
+        self._taxons = self._df.groupby("taxon").size()
         try:
             self._taxons.drop(0, inplace=True)
         except:
             pass # 0 may not be there
         self._taxons.sort_values(ascending=False, inplace=True)
 
-        category = self.df.groupby(0).size()
+        category = self.df.groupby("status").size()
         if 'C' in category.index:
             self.classified = category['C']
         if 'U' in category.index:
@@ -179,6 +180,31 @@ class KrakenResults(object):
             self._parse_data()
             return self._df
     df = property(_get_df)
+
+
+    def _get_df_with_taxon(self):
+        df = self.get_taxonomy_biokit([int(x) for x in self.taxons])
+        df['count'] = self.taxons.values
+        df.reset_index(inplace=True)
+        newrow = len(df)
+        df.ix[newrow] = "Unclassified"
+        df.ix[newrow, 'count'] = self.unclassified
+        df.ix[newrow, 'index'] = -1
+        df.rename(columns={"index":"taxon"}, inplace=True)
+        starter = ['taxon', 'count', 'percentage']
+        df["percentage"] = df["count"] / df["count"].sum() * 100
+        df = df[starter + [x for x in df.columns if x not in starter]]
+        return df
+
+    def kraken_to_csv(self, filename):
+        df = self._get_df_with_taxon()
+        df.to_csv(filename, index=False)
+        return df
+
+    def kraken_to_json(self, filename):
+        df = self._get_df_with_taxon()
+        df.to_json(filename)
+        return df
 
     def kraken_to_krona(self, output_filename=None, mode=None, nofile=False):
         if output_filename is None:
