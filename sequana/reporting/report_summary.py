@@ -22,6 +22,7 @@ import json
 
 from sequana.reporting.report_main import BaseReport
 from easydev import DevTools
+from reports import HTMLTable
 
 import pandas as pd
 
@@ -127,6 +128,21 @@ class SequanaSummary(BaseReport):
             html += "</ul>"
             self.jinja['output'] = html
 
+        # if cutadapt. If not TODO
+        filenames = glob.glob("%s//fastq_stats_cutadapt/*boxplot.png" % self.directory)
+        for filename in filenames:
+            filename = filename.split("//", 1)[1].strip("/")
+            if "R1" in filename:
+                self.jinja['output_image_r1'] = filename
+                self.jinja['output_image_r1_href'] = filename.replace(
+                    "fastq_stats_cutadapt", "fastqc_cutadapt").replace(
+                    "boxplot.png", "fastqc.html")
+            elif "R2" in filename:
+                self.jinja['output_image_r2'] = filename
+                self.jinja['output_image_r2_href'] = filename.replace(
+                    "fastq_stats_cutadapt", "fastqc_cutadapt").replace(
+                    "boxplot.png", "fastqc.html")
+
     def include_details(self):
         self.jinja['snakemake_stats'] = "snakemake_stats.png"
 
@@ -138,7 +154,6 @@ class SequanaSummary(BaseReport):
             self.config.config['adapter_removal']['do'] = False
 
         if self.config.config["adapter_removal"]['do']:
-            from reports import HTMLTable
             df = pd.read_json(self.directory + "/cutadapt/cutadapt_stats1.json")
             self.jinja["cutadapt_stats1_json"] = df.to_json()
             h = HTMLTable(df)
@@ -154,11 +169,25 @@ class SequanaSummary(BaseReport):
             filename = filename.split("//", 1)[1].strip("/")
             if "R1" in filename:
                 self.jinja['sample_image_r1'] = filename
+                self.jinja['sample_image_r1_href'] = filename.replace(
+                    "fastq_stats_samples", "fastqc_samples").replace(
+                    "boxplot.png", "fastqc.html")
             elif "R2" in filename:
                 self.jinja['sample_image_r2'] = filename
+                self.jinja['sample_image_r2_href'] = filename.replace(
+                    "fastq_stats_samples", "fastqc_samples").replace(
+                    "boxplot.png", "fastqc.html")
 
     def include_kraken(self):
         self.jinja['kraken_pie'] = "kraken/kraken.png"
+        try:
+            self.jinja['kraken_database'] = os.path.basename(
+                self.config.config['kraken']['database'])
+        except:
+            self.jinja['kraken_database'] = "?"
+
+        table = HTMLTable(pd.read_csv(self.directory + "/kraken/kraken.csv"))
+        self.jinja['kraken_html_table'] = table.to_html(index=False)
 
     def include_phix(self):
         filename=self.directory + "/bwa_bam_to_fastq/bwa_mem_stats.json"

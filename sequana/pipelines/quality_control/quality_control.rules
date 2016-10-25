@@ -168,6 +168,8 @@ if manager.config.kraken.database:
     __kraken__output_wkdir = manager.getwkdir("kraken")
     __kraken__output_html = manager.sample + "/kraken/kraken.html"
     __kraken__output = manager.sample + "/kraken/kraken.out"
+    __kraken__output_csv = manager.sample + "/kraken/kraken.csv"
+    __kraken__output_json = manager.sample + "/kraken/kraken.json"
     include: sm.modules['kraken']
     expected_output.append(expand(__kraken__output_html, sample=manager.samples))
 

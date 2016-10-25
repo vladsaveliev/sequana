@@ -7,6 +7,8 @@ rule kraken_to_krona:
         shell("ktImportText %s -o %s" % (input, output))
 
 
+
+
 rule kraken_translate:
     input: __kraken__output
     output:
@@ -36,7 +38,9 @@ rule kraken:
     output:
         classified = __kraken__output_wkdir + "/kraken_classified.fastq",
         unclassified = __kraken__output_wkdir + "/kraken_unclassified.fastq",
-        kraken = __kraken__output
+        kraken = __kraken__output,
+        kraken_csv = __kraken__output_csv,
+        kraken_json = __kraken__output_json
     params:
         database = config['kraken']['database']
     threads: 4
@@ -51,8 +55,9 @@ rule kraken:
                 " --threads {threads}  --classified-out {output.classified} "
                 " --unclassified-out {output.unclassified} --paired "
                 "--out {output.kraken}")
-
-
-
+        from sequana.kraken import KrakenResults
+        k = KrakenResults(output.kraken)
+        k.kraken_to_csv(output.kraken_csv)
+        k.kraken_to_json(output.kraken_json)
 
 
