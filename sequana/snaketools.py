@@ -812,6 +812,41 @@ class DOTParser(object):
     def __init__(self, filename):
         self.filename = filename
 
+    def add_urls2(self, output_filename=None, mapper={}):
+        with open(self.filename, "r") as fh:
+            data = fh.read()
+
+        if output_filename is None:
+            import os
+            output_filename = os.path.basename(self.filename)
+
+        with open(output_filename.replace(".dot", ".ann.dot"), "w") as fout:
+            for line in data.split("\n"):
+                if "[label =" not in line:
+                    if " -> " in line:
+                        fout.write(line + "\n")
+                    else:
+                        line = line.replace("dashed", "")
+                        fout.write(line + "\n")
+                else:
+                    separator = "color ="
+                    lhs, rhs = line.split(separator)
+                    name = lhs.split("label =")[1]
+                    name = name.replace(",", "")
+                    name = name.replace('"', "")
+                    name = name.strip()
+                    if name in mapper.keys():
+                        url = mapper[name]
+                        newline = lhs + (' URL="%s"'
+                                         ' target="_parent", ') % url
+                        newline += separator + rhs
+                        newline = newline.replace("dashed", "")
+                        fout.write(newline + "\n")
+                    else:
+                        fout.write(line + "\n")
+
+
+
     def add_urls(self, output_filename=None):
         """Create a new dot file with clickable links.
 
