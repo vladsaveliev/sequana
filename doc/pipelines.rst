@@ -29,6 +29,13 @@ Quality control
 
 .. include:: ../sequana/pipelines/quality_control/README.rst
 
+.. _pipeline_rnaseq:
+
+RNA-Seq 
+=================
+
+.. include:: ../sequana/pipelines/rnaseq/README.rst
+
 
 .. _pipeline_variant_calling:
 
