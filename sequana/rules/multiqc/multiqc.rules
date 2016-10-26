@@ -1,4 +1,11 @@
 rule multiqc:
+    """Run MultiQC on an input directory
+
+    __multiqc__input_dir: an input directory where to find data and logs
+    __multiqc__output: multiqc_report.html in the input directory
+
+    :note: if the directory exists, it is overwritten
+    """
     input:
         __multiqc__input_dir
     log:
@@ -6,8 +13,9 @@ rule multiqc:
     output:
         __multiqc__output
     params:
-        excluded = config['multiqc']['excluded']
+        excluded = config['multiqc']['excluded'],
+        outdir = config['multiqc']['output-directory']
     shell:
         """
-        multiqc -d {input} -o {output} {params.excluded} 2> {log}
+        multiqc -d {input} -o {params.outdir} {params.excluded} -f 2> {log}
         """
