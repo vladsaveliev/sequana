@@ -48,42 +48,23 @@ expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samp
 
 
 clean_ngs = manager.config.adapter_removal.tool
-__cutadapt__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output 
+__clean_ngs__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output 
                                    if "unmapped" in x]
-__cutadapt__wkdir = "%s/cutadapt" % manager.sample
-__cutadapt__output = [x.replace("bwa_bam_to_fastq", 
-                              "cutadapt").replace("unmapped","cutadapt")
-                              for x in __cutadapt__input_fastq]
+__clean_ngs__wkdir = "%s/clean_ngs" % manager.sample
+__clean_ngs__output = 
 
-if "adapter_fwd" in manager.config.adapter_removal.fwd :
-    __cutadapt__fwd = ""
-else:
-    __cutadapt__fwd = manager.config.adapter_removal.fwd
 
-if "adapter_rev" in manager.config.adapter_removal.rev:
-    __cutadapt__rev = ""
-else:
-    __cutadapt__rev = manager.config.adapter_removal.rev
+__mapping_ref__input = __clean_ngs__output
+include: sm.modules("bowtie1_mapping_ref")
 
-    __cutadapt__design = manager.config.adapter_removal.design
-    __cutadapt__design_adapter = manager.config.adapter_removal.adapter_type
-    __cutadapt__options = manager.config.adapter_removal.options
-    __cutadapt__mode = manager.config.adapter_removal.mode
-    __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
-    __cutadapt__sample = manager.sample
-    include: sm.modules["cutadapt"]
 
-    __fastqc_cutadapt__input_fastq = __cutadapt__output
-    __fastqc_cutadapt__output_done = manager.getname("fastqc_cutadapt", ".done")
-    __fastqc_cutadapt__wkdir = manager.getwkdir("fastqc_cutadapt")
-    include: fastqc_dynamic(adapter_removal, manager.sample)
-    expected_output += expand(__fastqc_cutadapt__output_done, sample=manager.samples)
-
-    __fastq_stats_cutadapt__input_fastq = __cutadapt__output
-    __fastq_stats_cutadapt__output_done = manager.getname("fastq_stats_cutadapt", ".done")
-    __fastq_stats_cutadapt__wkdir = manager.getwkdir("fastq_stats_cutadapt")
-    include: fastq_stats_dynamic(adapter_removal, manager.sample)
-    expected_output += expand(__fastq_stats_cutadapt__output_done, sample=manager.samples)
+# Feature counts from subread suite
+__feature_counts__input == __mapping_ref__outut
+__feature_counts__output_count = manager.getname("feature_counts")
+__feature_counts__output_gene_count = manager.getname("feature_counts")
+__feature_counts__log = manager.getname("feature_counts", ".logs")
+include: sm.modules("feature_counts")
+expected_output.extend(expand(__feature_counts__gene_count, sample=manger.samples))
 
 
 
