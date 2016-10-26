@@ -54,7 +54,8 @@ else:
 
 # Fastq Screen
 __fastq_screen__input = __clean_ngs__output
-__fastq_screen__output = TODO
+__fastq_screen__logs = manager.getname("fastq_screen", ".logs")
+__fastq_screen__output__dir = manager.getwkdir("fastq_screen")
 include: sm.modules("clean_ngs")
 expected_output.extend(expand(__clean_ngs__output, sample=manager.samples))
 
