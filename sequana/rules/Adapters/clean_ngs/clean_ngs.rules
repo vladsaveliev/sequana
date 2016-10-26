@@ -4,22 +4,21 @@ rule clean_ngs:
     log:
         __clean_ngs__logs
     output:
-        __clean_ngs__output
+        fastq = __clean_ngs__output,
+        rej_files = __clean_ngs__rej_files
     params:
-        adapters = config['clean_ngs']['adapters'],
-        MinLen = __clean_ngs__MinLen,
-        MaxLen = __clean_ngs__MaxLen,
-        qual3Thresh = __clean_ngs__qual3Thresh,
-        qual5Thresh = __clean_ngs__qual5Thresh,
-        rejFiles = __clean_ngs__rejFiles
+        adapters = config['adapter_removal']['fwd'],
+        min_len = config['adapter_removal']['m'],
+        max_len = config['adapter_removal']['M'],
+        quality = config['adapter_removal']['quality']
     shell:
         """
         clean_ngs {input} \
-           {output} \
-           {rejFiles} \
+           {output.fastq} \
+           {output.rej_files} \
            -adf {params.adapters} \
-           -l   {MinLen}\
-           -L   {MaxLen} \
-           -q3  {qual3Thresh} \
-           -q5  {qual5Thresh} > {log}
+           -l   {params.min_len}\
+           -L   {params.max_len} \
+           -q3  {params.quality} \
+           -q5  {params.quality} > {log}
         """
