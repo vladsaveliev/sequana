@@ -1,0 +1,69 @@
+# coding: utf-8
+"""Read mapping for either single end and paired end data using rna-star.
+
+input:
+    fastq -> list with one or two fastq.gz
+params:
+    index -> path to index of reference genome
+    ref -> path to the reference genome in fasta format
+    read_groups -> "ID:sample_id LB:library_id PL:platform PU:flowcell SM:sample_name"
+    RAM -> Star mapping on human genome requires at least 30 Gb of RAM
+    kwargs -> Star config. See https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf
+"""
+
+
+rule star_mapping:
+    input:
+        __star_mapping__input
+    log:
+        __star_mapping__logs
+    output:
+        __star_mapping__output_prefix
+    params:
+        index = __star_mapping__index,
+        ref = __star_mapping__ref,
+        read_groups = __star_mapping__read_groups,
+        genome_dir = temp(__star_mapping__genome_dir),
+        splice_file = temp(__star_mapping__splice_file),
+        kwargs = __star_mapping__kwargs
+    threads:
+        __star_mapping__threads
+    Resources:
+        ram = config['rna-star']['ram']
+    shell:
+        """
+        echo "Run rna-star 1st pass"
+        STAR
+            --genomeDir {params.index} \
+            --readFilesIn {input}  \
+            --runThreadN {threads} \
+            --genomeLoad NoSharedMemory \
+            --outFilterMismatchNoverLmax 0.05 \
+            --outSAMunmapped Within  \
+            --outSAMtype BAM
+            --seedSearchStartLmax 20 \
+            --outFileNamePrefix {output} \
+            --outSAMattrRGline {params.read_groups}\
+            {params.kwargs}  2> {log}
+        echo "run rna-star genome indexing"
+        STAR \
+            --runMode genomeGenerate \
+            --genomeDir {params.genome_dir} \
+            --genomeFastaFiles {params.ref} \
+            --sjdbFileChrStartEnd {params.splice_file} \
+            --sjdbOverhang 100 \
+            --runThreadN {threads}  2>> {log}
+        echo "Run rna-star 2nd pass"
+        STAR \
+            --genomeDir {params.genome_dir} \
+            --readFilesIn {input}  \
+            -runThreadN {threads} \
+            --genomeLoad NoSharedMemory \
+            --sjdbFileChrStartEnd {params.splice_file} \
+            --outFilterMismatchNoverLmax 0.05 \
+            --outSAMunmapped Within  \
+            --outFileNamePrefix {output} \
+            --outSAMattrRGline {params.read_groups}\
+            {params.kwargs}  2>> {log}
+
+        """

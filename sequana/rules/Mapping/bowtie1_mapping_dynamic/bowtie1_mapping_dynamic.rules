@@ -49,7 +49,6 @@ rule bowtie1_mapping_%(name)s:
     '''
 
     from easydev import TempFile
-    print(bowtie1_mapping_code % metadata)
     tt = TempFile()
     with open(tt.name, "w") as fh:
         fh.write(bowtie1_mapping_code % metadata)
