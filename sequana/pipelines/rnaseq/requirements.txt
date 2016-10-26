@@ -1,0 +1,6 @@
+- subread
+- bowtie
+- bowtie2
+- multiqc
+- tophat
+- star
