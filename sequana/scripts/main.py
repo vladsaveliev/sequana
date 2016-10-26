@@ -627,7 +627,7 @@ def sequana_init(options):
         cmd = "#!/usr/sh\n"
         cmd += "# generated with sequana version %s with this command:\n" % sequana.version
         cmd += "# %s\n" % " ".join(sys.argv)
-        cmd += "snakemake -s %(project)s.rules --stats stats.txt -p -j %(jobs)s"
+        cmd += "snakemake -s %(project)s.rules --stats stats.txt -p -j %(jobs)s --nolock"
         if options.forceall:
             cmd += " --forceall "
 
