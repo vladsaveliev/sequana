@@ -42,6 +42,9 @@ bowtie1_mapping_rRNA:
     reference:
 
 feature_counts:
+    gff: 
+    options: -t exon
+
 
 
 clean_ngs:
