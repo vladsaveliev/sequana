@@ -1,5 +1,6 @@
 # coding: utf-8
-"""Read mapping for either single end and paired end data using BWA and samtools.
+"""Read mapping for either single end and paired end data using BWA and
+samtools.
 
 input:
     fastq -> list with your fastq.gz (R1, R2)
