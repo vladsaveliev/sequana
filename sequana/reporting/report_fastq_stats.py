@@ -59,7 +59,6 @@ class FastQStatsReport(BaseReport):
         # Add the canvas js in the header
         from sequana.resources.canvas import bar
 
-        print(self.input_directory)
         files = glob.glob("%s/*json" % self.input_directory)
         acgt = [
             {"name":"A", "data": {}},
@@ -123,8 +122,11 @@ class FastQStatsReport(BaseReport):
         dfsum = dfsum.ix[['A', 'C', 'G', 'T', 'N', 'GC content', 'n_reads']]
         S = dfsum.ix[['A', 'C', 'G', 'T', 'N']].sum() 
         # FIXME change the json files themselves instead of multiplying by 100
-        if S.values[0]>0:
-            dfsum.ix[['A', 'C', 'G', 'T', 'N']] /= (S/100.) 
+        try:
+            if S.values[0]>0:
+                dfsum.ix[['A', 'C', 'G', 'T', 'N']] /= (S/100.) 
+        except: 
+            print("fixme in fastq_stats")
 
         html =""
 

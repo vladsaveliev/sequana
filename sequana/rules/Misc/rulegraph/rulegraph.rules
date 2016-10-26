@@ -22,7 +22,7 @@ rule rulegraph:
         # Annotate the dag with URLs 
         from sequana.snaketools import DOTParser
         d = DOTParser(output.dot)
-        d.add_urls2(mapper=params.mapper)
+        d.add_urls(mapper=params.mapper)
 
         # Now, create the SVG. Somehow if called dag.svg, this is a conflict
         # hence the || true 
