@@ -13,7 +13,7 @@ def bowtie1_mapping_dynamic(name, log_dir):
 rule bowtie1_mapping_%(name)s:
     input:
         fastq = __bowtie1_mapping_%(name)s__input,
-        index_file = __bowtie1_mapping_%(name)s__prefix_index
+        prefix_index = __bowtie1_mapping_%(name)s__prefix_index
     output:
         bam = __bowtie1_mapping_%(name)s__bam,
         sort = __bowtie1_mapping_%(name)s__sort
@@ -23,29 +23,34 @@ rule bowtie1_mapping_%(name)s:
     params:
         options = config["bowtie1_mapping_%(name)s"]["options"]
     threads:
-        __bowtie1_mapping_s(name)s__threads
+        int(config["bowtie1_mapping_%(name)s"]["threads"])
     run:
-        cmd = "bowtie -S {params.options} -p {threads}"
-        # paired end or single end
+        unzip_file = [filename[:-3] for filename in input.fastq]
+        cmd = "bowtie -S {params.options} -p {threads} {input.prefix_index}"
+        # paired end or single end unzip
         if len(input.fastq) == 2:
-            cmd = "%s -1 {input.fastq[0]} -2 {input.fastq[1]}" % cmd
+            bowtie_input = "-1 " + unzip_file[0] + "-2 " + unzip_file[1]
         else:
-            cmd = "%s -1 {input.fastq}" % cmd
+            bowtie_input = unzip_file[0]
+        cmd = "%%s" + 
         # sam to bam
-        cmd = "%s | samtools view -Sbh -> {output.bam}" % cmd
+        cmd = "%%s | samtools view -Sbh -> {output.bam}" %% cmd
         
         # logs
-        cmd = "(%s) > {log.out} 2> {log.err}"
+        cmd = "(%%s) > {log.out} 2> {log.err}"
         
         # sort result
-        cmd = "%s && samtools sort -o {output.sort} {output.bam}" % cmd
-        cmd = "%s && samtools index {output.sort}" % cmd
+        cmd = "%%s && samtools sort -o {output.sort} {output.bam}" %% cmd
+        cmd = "%%s && samtools index {output.sort}" %% cmd
 
-        shell(cmd)
-        '''
+        
+        shell("unpigz {input.fastq} && cmd")
+        shell("pigz %s" % )
+    '''
 
-        from easydev import TempFile
-        tt = TempFile()
-        with open(tt.name, "w") as fh:
-            fh.write(bowtie1_mapping_code)
-        return fh.name
+    from easydev import TempFile
+    print(bowtie1_mapping_code % metadata)
+    tt = TempFile()
+    with open(tt.name, "w") as fh:
+        fh.write(bowtie1_mapping_code % metadata)
+    return fh.name
