@@ -6,15 +6,20 @@ rule clean_ngs:
     output:
         __clean_ngs__output
     params:
-        kwargs = __clean_ngs__options,
+        adapters = config['clean_ngs']['adapters'],
+        MinLen = __clean_ngs__MinLen,
+        MaxLen = __clean_ngs__MaxLen,
+        qual3Thresh = __clean_ngs__qual3Thresh,
+        qual5Thresh = __clean_ngs__qual5Thresh,
+        rejFiles = __clean_ngs__rejFiles
     shell:
         """
-        clean_ngs $inputFiles \
-           $outputFiles \
-           $rejFiles \
-           -adf $AdapterSeqPath${adapterFile[$currentsample]} \
-           -l   $adpMinLen\
-           -L   $adpMaxLen \
-           -q3  $qual3Thresh \
-           -q5  $qual5Thresh > {log}
+        clean_ngs {input} \
+           {output} \
+           {rejFiles} \
+           -adf {params.adapters} \
+           -l   {MinLen}\
+           -L   {MaxLen} \
+           -q3  {qual3Thresh} \
+           -q5  {qual5Thresh} > {log}
         """
