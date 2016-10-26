@@ -803,7 +803,7 @@ class DOTParser(object):
         from sequana.snaketools import DOTParser
 
         filename = sequana_data("test_dag.dot", "testing")
-        dot = DOTParser(filename)
+        dot = DOTParser(filename, {"fastqc": "fastqc.html"})
 
         # creates test_dag.ann.dot locally
         dot.add_urls()
@@ -812,51 +812,7 @@ class DOTParser(object):
     def __init__(self, filename):
         self.filename = filename
 
-    def add_urls2(self, output_filename=None, mapper={}):
-        with open(self.filename, "r") as fh:
-            data = fh.read()
-
-        if output_filename is None:
-            import os
-            output_filename = os.path.basename(self.filename)
-
-        with open(output_filename.replace(".dot", ".ann.dot"), "w") as fout:
-            for line in data.split("\n"):
-                if "[label =" not in line:
-                    if " -> " in line:
-                        fout.write(line + "\n")
-                    else:
-                        line = line.replace("dashed", "")
-                        fout.write(line + "\n")
-                else:
-                    separator = "color ="
-                    lhs, rhs = line.split(separator)
-                    name = lhs.split("label =")[1]
-                    name = name.replace(",", "")
-                    name = name.replace('"', "")
-                    name = name.strip()
-                    if name in mapper.keys():
-                        url = mapper[name]
-                        newline = lhs + (' URL="%s"'
-                                         ' target="_parent", ') % url
-                        newline += separator + rhs
-                        newline = newline.replace("dashed", "")
-                        fout.write(newline + "\n")
-                    else:
-                        fout.write(line + "\n")
-
-
-
-    def add_urls(self, output_filename=None):
-        """Create a new dot file with clickable links.
-
-        So far all boxes are clickable even though a HTML report is not
-        created.
-
-        .. todo:: introspect the modules to figure out if a report is
-            available or not
-
-        """
+    def add_urls(self, output_filename=None, mapper={}):
         with open(self.filename, "r") as fh:
             data = fh.read()
 
@@ -882,44 +838,19 @@ class DOTParser(object):
                     name = name.replace(",", "")
                     name = name.replace('"', "")
                     name = name.strip()
-                    # if "__" in name:
-                    #     lhs = lhs.replace(name, name.split('__')[0])
-                    if "dataset:" in name:
-                        if ".rules" in name:
-                            index = lhs.split("[")[0]
-                            indices_to_drop.append(index.strip())
-                        else:
-                            filename = lhs.split("dataset:")[1]
-                            lhs = lhs.split("dataset:")[0]  # + "dataset:"
-                            filename = filename.rsplit("/")[-1]
-                            newline = lhs + filename + separator + rhs
-                            fout.write(newline + "\n")
-                    elif name in ['dag', 'conda']:
+                    if name in ['dag', 'conda', "rulegraph"]:
                         index = lhs.split("[")[0]
                         indices_to_drop.append(index.strip())
-                    elif name.startswith('fastqc__'):
-                        newline = lhs + (' URL="%s/%s.html"'
-                                         ' target="_parent", ') % (name, name)
-
+                    elif name in mapper.keys():
+                        url = mapper[name]
+                        newline = lhs + (' URL="%s"'
+                                         ' target="_parent", ') % url
                         newline += separator + rhs
                         newline = newline.replace("dashed", "")
-                        fout.write(newline + "\n")
-                    elif name.startswith('pipeline'):
-                        newline = lhs + separator + rhs
-                        newline = newline.replace("dashed", "")
-                        fout.write(newline + "\n")
-                    elif name in ['all', "bwa_bam_to_fastq"] \
-                            or "dataset:" in name:
-                        # redirect to the main page so nothing to do
-                        newline = lhs + separator + rhs
-                        newline = newline.replace("dashed", "")
+                        newline = newline.replace('];', 'color="blue"];')
                         fout.write(newline + "\n")
                     else:
-                        # redirect to another report
-                        newline = lhs + (' URL="%s.html"'
-                                         ' target="_parent", ') % name
-                        newline += separator + rhs
-                        newline = newline.replace("dashed", "")
+                        newline = line.replace('];', 'color="orange"];')
                         fout.write(newline + "\n")
 
 
