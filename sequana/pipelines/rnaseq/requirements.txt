@@ -1,0 +1,6 @@
+- featureCounts [subread]
+- bowtie
+- bowtie2
+- multiqc
+- tophat
+- STAR

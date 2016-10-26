@@ -20,23 +20,10 @@ exec(open(sequana.modules["fastqc"], "r").read())
 
 manager = sm.PipelineManager("rnaseq", config)
 
-__rawdata__input = manager.getrawdata()
+__data__input = manager.getrawdata()
 
 
-if manager.config.fastq_sampling.do is True:
-    __fastq_sampling__input_fastq = __rawdata__input
-    if manager.paired:
-        __fastq_sampling__output_fastq = [
-            "fastq_sampling/%s._R1_.fastq.gz" % (manager.sample),
-            "fastq_sampling/%s._R2_.fastq.gz" % (manager.sample)]
-    else:
-        __fastq_sampling__output_fastq = [
-            "fastq_sampling/%s._R1_.fastq.gz" % (manager.sample)]
-    include: sm.modules["fastq_sampling"]
-    __data__input = __fastq_sampling__output_fastq
-else:
-    __data__input = __rawdata__input
-
+TODO = ""
 
 # FASTQC on input data set
 __fastqc_samples__input_fastq = __data__input
@@ -46,16 +33,53 @@ include: fastqc_dynamic("samples", manager.sample)
 expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samples))
 
 
+# Clean NGS
+if manager.config.adapter_removal.tool == "clean_ngs":
+    __clean_ngs__input_fastq = __data__input
+    __clean_ngs__output = TODO
+    include: sm.modules("clean_ngs")
+    expected_output.extend(expand(__clean_ngs__output, sample=manager.samples))
+elif manager.config.adapter_removal.tool == "cutadapt":
+    pass
+    # TODO
+    """
+    __cutadapt__input_fastq = __data__input
+    __cutadapt__output = TODO
+    include: sm.modules("clean_ngs")
+    expected_output.extend(expand(__clean_ngs__output, sample=manager.samples))
+    """
+else:
+    raise ValueError("Invalid choice of adapter_removal:tool in config file. Use either clean_ngs or cutadapt")
 
-clean_ngs = manager.config.adapter_removal.tool
-__clean_ngs__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output 
-                                   if "unmapped" in x]
-__clean_ngs__wkdir = "%s/clean_ngs" % manager.sample
-__clean_ngs__output = 
+
+# Fastq Screen
+__fastq_screen__input = __clean_ngs__output
+__fastq_screen__logs = manager.getname("fastq_screen", ".logs")
+__fastq_screen__output__dir = manager.getwkdir("fastq_screen")
+include: sm.modules("clean_ngs")
+expected_output.extend(expand(__clean_ngs__output, sample=manager.samples))
 
 
+# FASTQC on input data set
+__fastqc_samples__input_fastq = __clean_ngs__output
+__fastqc_samples__output_done = manager.getname("fastqc_samples", ".done")
+__fastqc_samples__wkdir       = manager.getwkdir("fastqc_samples")
+include: fastqc_dynamic("samples", manager.sample)
+expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samples))
+
+
+# rRNA 
+__bowtie1_rna__input = __clean_ngs__output
+__bowtie1_rna__output = TODO
+include: sm.modules("bowtie1_rRNA")
+expected_output.extend(expand(__bowtie1_rna__output, sample=manager.samples))
+
+
+# Mapper
 __mapping_ref__input = __clean_ngs__output
+__mapping_ref__output = TODO
 include: sm.modules("bowtie1_mapping_ref")
+expected_output.extend(expand(__bowtie1_mapping_ref__output, sample=manager.samples))
 
 
 # Feature counts from subread suite
@@ -64,8 +88,15 @@ __feature_counts__output_count = manager.getname("feature_counts")
 __feature_counts__output_gene_count = manager.getname("feature_counts")
 __feature_counts__log = manager.getname("feature_counts", ".logs")
 include: sm.modules("feature_counts")
-expected_output.extend(expand(__feature_counts__gene_count, sample=manger.samples))
+expected_output.extend(expand(__feature_counts__output_gene_count, sample=manger.samples))
 
+
+# Multiqc rule
+__multiqc__input_dir = "."
+__multiqc__logs = "multiqc/multiqc.log"
+__multiqc__output = "multiqc/multiqc_report.html")
+include: sm.modules("multiqc")
+expected_output.extend(__multiqc__output)
 
 
 # include overall dag file
