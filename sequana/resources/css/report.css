@@ -220,7 +220,7 @@ th.field-name
 }
 
 .table_outer { 
-    height: auto; 
+    max-height: 25em; 
     width: auto; 
     overflow: scroll; }
 
