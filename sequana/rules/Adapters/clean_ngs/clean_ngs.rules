@@ -1,0 +1,20 @@
+rule clean_ngs:
+    input:
+        __clean_ngs__input_dir
+    log:
+        __clean_ngs__logs
+    output:
+        __clean_ngs__output
+    params:
+        kwargs = __clean_ngs__options,
+    shell:
+        """
+        clean_ngs $inputFiles \
+           $outputFiles \
+           $rejFiles \
+           -adf $AdapterSeqPath${adapterFile[$currentsample]} \
+           -l   $adpMinLen\
+           -L   $adpMaxLen \
+           -q3  $qual3Thresh \
+           -q5  $qual5Thresh > {log}
+        """
