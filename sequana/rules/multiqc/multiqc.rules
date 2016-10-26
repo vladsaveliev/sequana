@@ -9,5 +9,5 @@ rule multiqc:
         excluded = config['multiqc']['excluded']
     shell:
         """
-        multiqc -d {input} -o {output} -x {params.excluded} 2> {log}
+        multiqc -d {input} -o {output} {params.excluded} 2> {log}
         """
