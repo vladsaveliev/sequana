@@ -1,0 +1,152 @@
+"""RNASeq pipeline
+
+Affiliation: Institut Pasteur @ 2016
+
+This pipeline is part of Sequana software (sequana.readthedocs.io)
+"""
+import os
+import sequana
+from sequana import snaketools as sm
+sm.init("rnaseq.rules", globals())
+
+
+# This must be defined before the include 
+configfile: "config.yaml"
+
+# Generic include of some dynamic modules
+exec(open(sequana.modules["bowtie1_mapper_dynamic"], "r").read())
+exec(open(sequana.modules["fastqc"], "r").read())
+
+
+manager = sm.PipelineManager("rnaseq", config)
+
+__rawdata__input = manager.getrawdata()
+
+
+if manager.config.fastq_sampling.do is True:
+    __fastq_sampling__input_fastq = __rawdata__input
+    if manager.paired:
+        __fastq_sampling__output_fastq = [
+            "fastq_sampling/%s._R1_.fastq.gz" % (manager.sample),
+            "fastq_sampling/%s._R2_.fastq.gz" % (manager.sample)]
+    else:
+        __fastq_sampling__output_fastq = [
+            "fastq_sampling/%s._R1_.fastq.gz" % (manager.sample)]
+    include: sm.modules["fastq_sampling"]
+    __data__input = __fastq_sampling__output_fastq
+else:
+    __data__input = __rawdata__input
+
+
+# FASTQC on input data set
+__fastqc_samples__input_fastq = __data__input
+__fastqc_samples__output_done = manager.getname("fastqc_samples", ".done")
+__fastqc_samples__wkdir       = manager.getwkdir("fastqc_samples")
+include: fastqc_dynamic("samples", manager.sample)
+expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samples))
+
+
+
+clean_ngs = manager.config.adapter_removal.tool
+__cutadapt__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output 
+                                   if "unmapped" in x]
+__cutadapt__wkdir = "%s/cutadapt" % manager.sample
+__cutadapt__output = [x.replace("bwa_bam_to_fastq", 
+                              "cutadapt").replace("unmapped","cutadapt")
+                              for x in __cutadapt__input_fastq]
+
+if "adapter_fwd" in manager.config.adapter_removal.fwd :
+    __cutadapt__fwd = ""
+else:
+    __cutadapt__fwd = manager.config.adapter_removal.fwd
+
+if "adapter_rev" in manager.config.adapter_removal.rev:
+    __cutadapt__rev = ""
+else:
+    __cutadapt__rev = manager.config.adapter_removal.rev
+
+    __cutadapt__design = manager.config.adapter_removal.design
+    __cutadapt__design_adapter = manager.config.adapter_removal.adapter_type
+    __cutadapt__options = manager.config.adapter_removal.options
+    __cutadapt__mode = manager.config.adapter_removal.mode
+    __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
+    __cutadapt__sample = manager.sample
+    include: sm.modules["cutadapt"]
+
+    __fastqc_cutadapt__input_fastq = __cutadapt__output
+    __fastqc_cutadapt__output_done = manager.getname("fastqc_cutadapt", ".done")
+    __fastqc_cutadapt__wkdir = manager.getwkdir("fastqc_cutadapt")
+    include: fastqc_dynamic(adapter_removal, manager.sample)
+    expected_output += expand(__fastqc_cutadapt__output_done, sample=manager.samples)
+
+    __fastq_stats_cutadapt__input_fastq = __cutadapt__output
+    __fastq_stats_cutadapt__output_done = manager.getname("fastq_stats_cutadapt", ".done")
+    __fastq_stats_cutadapt__wkdir = manager.getwkdir("fastq_stats_cutadapt")
+    include: fastq_stats_dynamic(adapter_removal, manager.sample)
+    expected_output += expand(__fastq_stats_cutadapt__output_done, sample=manager.samples)
+
+
+
+# include overall dag file
+__dag__input = __snakefile__
+__dag__output = "dag.svg"
+include: sm.modules['dag']
+expected_output.extend(["dag.svg"])
+
+
+# Include rule graph for each sample
+__rulegraph__input = __snakefile__
+__rulegraph__output = "rulegraph.svg"
+__rulegraph__mapper = {"fastqc_samples": "fastqc_samples/"}
+include: sm.modules['rulegraph']
+expected_output.extend(["rulegraph.svg"])
+
+
+# Add Conda
+__conda__output = "requirements.txt"
+include: sm.modules['conda']   # Create requirements.txt(dependencies)
+expected_output.extend([__conda__output])
+
+# Those rules takes a couple of seconds so no need for a cluster
+localrules: dag, conda, rulegraph
+
+
+rule pipeline_quality_control:
+    input: expected_output
+
+
+onsuccess:
+    import os
+    # Create plots about stats
+    sm.plot_stats(N=len(manager.samples))
+
+    # Main directory
+    report_dir_format = "%(proj)s/report_qc_%(proj)s"
+    for proj in manager.samples.keys():
+        report_dir = report_dir_format % {"proj": proj}
+        try:os.mkdir(report_dir)
+        except:pass
+
+        shell("cp %s %s" % (__snakefile__, report_dir))
+        shell("cp rulegraph.svg %s/dag.svg" % (report_dir))
+        shell("cp config.yaml %s" % report_dir)
+        shell("cp requirements.txt %s" % report_dir)
+        shell("cp snakemake_stats.png %s" % report_dir)
+
+        from sequana import SequanaSummary
+        summary = SequanaSummary(proj, directory=report_dir, 
+            output_filename="summary.html", 
+            snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
+            manager=manager)
+        summary.create_report()
+
+        # Create a cleanup python file to clean a sub-directory
+        sm.create_cleanup(proj)
+
+    sm.create_recursive_cleanup()
+    sm.message("Done. To further cleanup the directory, type \n python .sequana_cleanup.py")
+
+onerror:
+    print("An error occurred. See message above.")
+
+

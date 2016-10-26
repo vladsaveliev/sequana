@@ -1,0 +1,69 @@
+
+
+input_directory: "%(input_directory)s"
+pattern: "%(pattern)s"
+
+# =========================================== Sections for the users
+
+# list of your input file
+samples:
+    file1: "%(file1)s"
+    file2: "%(file2)s"
+
+
+# =========================================== For testing only
+# If True, only a subset of the reads (N) are used
+
+fastq_sampling:
+    do: no
+    N: 2500
+
+# =========================================== Sections related to external tools
+
+
+fastqc:
+    options: "--nogroup"
+
+##################################################################
+# Use by Phix_removal pipeline to remove reads with the 
+# phix found in the bwa_phix:reference section
+#
+##################################################################
+star:
+
+tophat:
+
+bowtie1_mapping_ref:
+    do: yes
+    reference:
+
+bowtie1_mapping_rRNA:
+    do: yes
+    reference:
+
+feature_counts:
+
+
+clean_ngs:
+#################################################################
+# Quality trimming and adapter removal
+#   - quality: 0 means no trimming, 30 means keep base with quality 
+#       above 30
+#   - m: 20 means discard trimmed reads that are shorter than 20.
+#   - tool: only cutadapt supported for now
+#   ref: http://cutadapt.readthedocs.io/
+#################################################################
+adapter_removal:
+    do: yes
+    tool: cutadapt
+    design: "%(adapter_design)s"
+    adapter_type: "%(adapter_type)s"
+    fwd: "%(adapter_fwd)s"
+    rev: "%(adapter_rev)s"
+    m: 20   # cutoff
+    mode: "g"   # g for 5' adapter, a for 3' and b for both 5'/3'
+    quality: "30"
+    options: "-O 6 --trim-n"
+
+multiqc:
+
