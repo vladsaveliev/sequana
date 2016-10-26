@@ -43,8 +43,11 @@ if manager.config.adapter_removal.tool == "clean_ngs":
     expected_output.extend(expand(__clean_ngs__output_fastq, sample=manager.samples))
 elif manager.config.adapter_removal.tool == "cutadapt":
     __cutadapt__input_fastq = __data__input
-    __cutadapt__wkdir = "%s/cutadapt" % manager.sample
-    __cutadapt__output = manager.getname("cutadapt", ".cutadapt.fastq.gz")
+    __cutadapt__wkdir = manager.getwkdir("cutadapt")
+    __cutadapt__output = [manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")]
+    if manager.paired:
+        __cutadapt__output += [manager.getname("cutadapt", "_R2_.cutadapt.fastq.gz")]
+
     if "adapter_fwd" in manager.config.adapter_removal.fwd :
        __cutadapt__fwd = ""
     else:
@@ -62,6 +65,8 @@ elif manager.config.adapter_removal.tool == "cutadapt":
     __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
     __cutadapt__sample = manager.sample
     __clean_ngs__output = __cutadapt__output
+    include: sm.modules["cutadapt"]
+    expected_output.extend(expand(__cutadapt__output, sample=manager.samples))
 else:
     raise ValueError("Invalid choice of adapter_removal:tool in config file. Use either clean_ngs or cutadapt")
 
@@ -71,11 +76,10 @@ __fastq_screen__input = __clean_ngs__output
 __fastq_screen__logs = manager.getname("fastq_screen", ".logs")
 __fastq_screen__output__dir = manager.getwkdir("fastq_screen")
 include: sm.modules["fastq_screen"]
-expected_output.extend(expand(__clean_ngs__output, sample=manager.samples))
-
+expected_output.extend(expand(__fastq_screen__output__dir, sample=manager.samples))
 
 # FASTQC on input data set
-__fastqc_filtered__input_fastq = __clean_ngs__output
+__fastqc_filtered__input_fastq = expand(__clean_ngs__output, sample=manager.samples)
 __fastqc_filtered__output_done = manager.getname("fastqc_filtered", ".done")
 __fastqc_filtered__wkdir       = manager.getwkdir("fastqc_filtered")
 include: fastqc_dynamic("filtered", manager.sample)
