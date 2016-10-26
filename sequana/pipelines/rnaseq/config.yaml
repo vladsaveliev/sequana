@@ -36,9 +36,10 @@ bowtie1_mapping_rna:
     options: "" 
     threads: 4
 
+# example of options: "-t exon -g gene_id"
 feature_counts:
     gff:
-    options: -t exon
+    options: "-t exon -g gene_id" 
 
 fastq_screen:
     conf:
