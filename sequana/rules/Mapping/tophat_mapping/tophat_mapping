@@ -27,11 +27,6 @@ rule tophat_mapping:
 
     shell:
         """
-        tophat
-        -o {output} \
-        -p {thread} \
-        {params.kwargs} \
-        {params.index} \
-        {input}
+        tophat --b2-very-sensitive  -o {output} -p {thread} {params.kwargs} {params.index} {input} 2> {log}
 
         """

@@ -44,7 +44,7 @@ rule star_mapping:
             --seedSearchStartLmax 20 \
             --outFileNamePrefix {output} \
             --outSAMattrRGline {params.read_groups}\
-            {params.kwargs}
+            {params.kwargs}  2> {log}
         echo "run rna-star genome indexing"
         STAR \
             --runMode genomeGenerate \
@@ -52,7 +52,7 @@ rule star_mapping:
             --genomeFastaFiles {params.ref} \
             --sjdbFileChrStartEnd {params.splice_file} \
             --sjdbOverhang 100 \
-            --runThreadN {threads}
+            --runThreadN {threads}  2>> {log}
         echo "Run rna-star 2nd pass"
         STAR \
             --genomeDir {params.genome_dir} \
@@ -64,6 +64,6 @@ rule star_mapping:
             --outSAMunmapped Within  \
             --outFileNamePrefix {output} \
             --outSAMattrRGline {params.read_groups}\
-            {params.kwargs}
+            {params.kwargs}  2>> {log}
 
         """
