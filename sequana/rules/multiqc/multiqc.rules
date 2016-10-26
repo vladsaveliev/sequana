@@ -1,0 +1,13 @@
+rule multiqc:
+    input:
+        __multiqc__input_dir
+    log:
+        __multiqc__logs
+    output:
+        __multiqc__output
+    params:
+        excluded = config['multiqc']['excluded']
+    shell:
+        """
+        multiqc -d {input} -o {output} -x {params.excluded} 2> {log}
+        """
