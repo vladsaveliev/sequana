@@ -4,3 +4,4 @@
 - multiqc
 - tophat
 - STAR
+- fastq-screen 

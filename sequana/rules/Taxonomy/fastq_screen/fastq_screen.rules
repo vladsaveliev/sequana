@@ -4,17 +4,17 @@ rule fastq_screen:
     log:
         __fastq_screen__logs
     output:
-        __fastq_screen__output__dir
+        __fastq_screen__output
     threads: 4
     params:
-        configFile = config['fastq_screen']['conf']
+        configFile = config['fastq_screen']['conf'],
+        outdir = __fastq_screen__outdir
     shell:
         """
-        fastqscreen
-        --subset 2000000 \
-        --outdir {output} \
+        fastq_screen --subset 2000000 \
+        --outdir {params.outdir} \
         --threads {threads} \
-        --conf {param.configFile}  \
-        --aligner bowtie2 \
+        --conf {params.configFile}  \
+        --aligner bowtie  \
         {input}
         """

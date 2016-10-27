@@ -4,7 +4,7 @@ rule cutadapt:
     input:
         fastq = __cutadapt__input_fastq
     output:
-        fastq = __cutadapt__output,
+        fastq = __cutadapt__output
     params:
         fwd = __cutadapt__fwd,
         rev = __cutadapt__rev,

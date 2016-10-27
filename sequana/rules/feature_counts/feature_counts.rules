@@ -23,7 +23,7 @@ rule feature_counts:
         __feature_counts__log
     threads: 4
     run:
-        shell("""featureCounts -T {threads} {params.mapp} 
+        shell("""featureCounts -T {threads} {params.mapp} \
                  -a {params.gff} -o {output.count} {input.bam} 2> {log}""")
 
         shell("""cut -f 1,7- {output.count} | awk 'NR > 2' | awk '{{gsub("samples/bam/","",$0); print}}'> {output.gene_count}""")
