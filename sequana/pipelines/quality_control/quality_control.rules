@@ -185,7 +185,16 @@ expected_output.extend(["dag.svg"])
 # Include rule graph for each sample
 __rulegraph__input = __snakefile__
 __rulegraph__output = "rulegraph.svg"
-__rulegraph__mapper = {"fastqc_samples": "fastqc_samples/"}
+__rulegraph__mapper = {
+    "fastqc_samples": "fastqc_samples/",
+    "fastqc_phix": "fastqc_phix/",
+    "fastqc_cutadapt": "fastqc_cutadapt",
+    "cutadapt": "cutadapt.html",
+    "kraken": "kraken/kraken.html",
+    "kraken_translate": "kraken/kraken.html",
+    "kraken_to_krona": "kraken/kraken.html",
+
+}
 include: sm.modules['rulegraph']
 expected_output.extend(["rulegraph.svg"])
 

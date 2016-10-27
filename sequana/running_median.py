@@ -31,25 +31,21 @@ import numpy as np
 # blist seems to be unstable on older systems/platforms so we use list by
 # default for now. Be aware that on recent systems blist exhibits a log(W)
 # complexity that is better than list complexity. Note, however that there is an
-# overhead so the list is faster for W<20,000
-
-#try:
-#    from blist import blist
-#except:
-#    print("blist package could not be imported.")
-#    blist = list
+# overhead so the list is faster for W<20,000, which is the case in most
+# applications.
 
 class RunningMedian:
     """Running median (fast)
 
-
-    This is an efficient implementation of running media, faster than SciPy
+    This is an efficient implementation of running median, faster than SciPy
     implementation v0.17 and a skip list method.
 
     The main idea comes from a recipe posted in this website:
     http://code.activestate.com/recipes/576930/#c3 that uses a simple list
     as proposed in https://gist.github.com/f0k/2f8402e4dfb6974bfcf1 and was
     adapted to our needs included object oriented implementation.
+
+    .. note:: a circular running median is implemented in :class:`sequana.bedtools.GenomeCov`
 
     ::
 
@@ -138,7 +134,8 @@ class RunningMedian:
 
         """
         if (width % 2) != 1:
-            raise ValueError("Window length should be odd.")
+            print("Warning[sequana]:: window length should be odd. Added +1.")
+            width += 1
 
         self.container = container
         self.W = width

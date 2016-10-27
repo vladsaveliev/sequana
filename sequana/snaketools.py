@@ -423,7 +423,7 @@ or open a Python shell and type::
             try:
                 easydev.shellcmd("which %s" % req)
                 if verbose:
-                    print("%s executable" % req)
+                    print("Found %s executable" % req)
             except:
                 # is this a Python code ?
                 if len(easydev.get_dependencies(req)) == 0:
@@ -437,11 +437,17 @@ or open a Python shell and type::
 
     def check(self, mode="warning"):
         if self.is_executable(verbose=False):
+            #print("All requirements fulfilled for %s pipeline/rule." % self._name)
             return
         else:
-            print("Some executable or Python packages are not available:\n")
             self.is_executable(verbose=True)
-            print("Some functionalities may not work ")
+            txt = "Some executable or Python packages are not available:\n"
+            txt += "Some functionalities may not work "
+            if mode == "warning":
+                print(txt)
+            elif mode == "error":
+                txt += "Use \n conda install missing_package_name"
+                raise ValueError(txt)
 
     def _get_description(self):
         try:
@@ -685,15 +691,14 @@ class SequanaConfig(object):
 
 class PipelineManager(object):
     def __init__(self, name, config, pattern="*.fastq.gz"):
-
         cfg = SequanaConfig(config)
         cfg.config.pipeline_name = name
 
-        # Default mode is the glob/pattern.
+        # Default mode is the glob/pattern. 
         glob_dir = cfg.config.input_directory + "/" + \
                    cfg.get('pattern', pattern)
-
         self.ff = FastQFactory(glob_dir)
+
         R1 = [1 for this in self.ff.filenames if "_R1_" in this]
         R2 = [1 for this in self.ff.filenames if "_R2_" in this]
         if len(R2) == 0:
@@ -708,13 +713,14 @@ class PipelineManager(object):
         # provided, filenames is not empty and superseeds
         # the previous results (with the glob). Here only 2 files are provided
         # at most
-        filenames = self._get_filenames(cfg.config)
-        if len(filenames):
-            self.ff = FastQFactory(filenames)
-            if len(filenames) == 2:
-                self.paired = True
-            else:
-                self.paired = False
+        if not self.ff:
+            filenames = self._get_filenames(cfg.config)
+            if len(filenames):
+                self.ff = FastQFactory(filenames)
+                if len(filenames) == 2:
+                    self.paired = True
+                else:
+                    self.paired = False
 
         ff = self.ff  # an alias
         self.samples = {tag: [ff.get_file1(tag), ff.get_file2(tag)]
@@ -1024,12 +1030,16 @@ def init(filename, namespace):
         * toclean as an empty  list
 
     """
+    # Create global name for later
     if "__snakefile__" in namespace.keys():
         pass
     else:
         namespace['__snakefile__'] = filename
         namespace['expected_output'] = []
         namespace['toclean'] = []
+
+    # check requirements
+    Module(filename.replace(".rules", "")).check('error')
 
 
 def create_recursive_cleanup(filename=".sequana_cleanup.py"):
