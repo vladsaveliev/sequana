@@ -5,13 +5,14 @@ rule tophat_mapping:
         bam = __tophat_mapping__outdir + "/accepted_hits.bam",
         sort = __tophat_mapping__sort
     params:
-        outdir = __tophat_mapping__outdir
+        outdir = __tophat_mapping__outdir,
         prefix_index = config["tophat"]["prefix_index"],
         options = config["tophat"]["options"]
     threads:
         config["tophat"]["threads"]
     shell:
         """
-        tophat -p {threads} {params.options} {input.fastq} -o {params.outdir} \
-        && samtools sort -o {output.sort} {output.bam} 
+        tophat -p {threads} {params.options} {params.prefix_index} \
+        {input.fastq} -o {params.outdir} \
+        && samtools sort -o {output.sort} {output.bam}
         """
