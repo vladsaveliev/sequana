@@ -713,13 +713,14 @@ class PipelineManager(object):
         # provided, filenames is not empty and superseeds
         # the previous results (with the glob). Here only 2 files are provided
         # at most
-        filenames = self._get_filenames(cfg.config)
-        if len(filenames):
-            self.ff = FastQFactory(filenames)
-            if len(filenames) == 2:
-                self.paired = True
-            else:
-                self.paired = False
+        if not self.ff:
+            filenames = self._get_filenames(cfg.config)
+            if len(filenames):
+                self.ff = FastQFactory(filenames)
+                if len(filenames) == 2:
+                    self.paired = True
+                else:
+                    self.paired = False
 
         ff = self.ff  # an alias
         self.samples = {tag: [ff.get_file1(tag), ff.get_file2(tag)]
