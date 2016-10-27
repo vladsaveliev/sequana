@@ -90,7 +90,6 @@ def main(args=None):
         raise ValueError("--file1 must be used")
 
 
-    # Compute DOC
     from sequana import FastQ
     from sequana import FastA
     S = 0
