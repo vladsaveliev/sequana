@@ -24,7 +24,7 @@ rule kraken_translate:
 
 
 rule kraken:
-    """Kraken 
+    """Kraken
 
     Input:
         __kraken__input

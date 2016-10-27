@@ -17,6 +17,7 @@ from docutils.parsers.rst import  directives
 from docutils import nodes
 from docutils.nodes import Body, Element
 
+
 def get_rule_doc(name):
     """Decode and return lines of the docstring(s) for the object."""
     try:
@@ -29,16 +30,34 @@ def get_rule_doc(name):
         data = open(name, "r").read()
 
     # Try to identify the rule and therefore possible docstring
-    start = data.find("rule %s:" % name)
-    data = data[start:]
-    if start == -1:
+    # It may be a standard rule or a dynamic rule !
+    # standard one
+    rulename_tag = "rule %s" % name
+    if rulename_tag in data:
+        data = data.split(rulename_tag, 1)[1]
+    else:
         return "no docstring found for %s " % name
 
-    start = max(data.find("'''"),  data.find('"""'))
-    if start == -1:
+    # Find first """ or ''' after the rule definition
+    single = data.find("'''")
+    double = data.find('"""')
+    if single > 0 and double > 0:
+        if single > double:
+            quotes = '"""'
+        else:
+            quotes = "'''"
+    elif single > 0:
+        quotes = "'''"
+    elif double > 0:
+        quotes = '"""'
+    else:
         return "no docstring found for %s " % name
-    end = max(data[start+3:].find("'''"),  data[start+3:].find('"""'))
-    if end == -1:
+
+
+    start = data.find(quotes)
+    end = data[start+3:].find(quotes) + start+3 
+
+    if end == -1 or end < start:
         return "no end of docstring found for %s " % name
 
     docstring = data[start+3:end]
@@ -66,7 +85,6 @@ class snakemake_rule(snakemake_base):
 
 
 def run(content, node_class, state, content_offset):
-    text = get_rule_doc(content[0])
     node = node_class("")  # shall we add something here ?
     node.rule_docstring = get_rule_doc(content[0])
     state.nested_parse(content, content_offset, node)

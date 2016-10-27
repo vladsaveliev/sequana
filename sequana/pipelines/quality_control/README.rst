@@ -17,7 +17,7 @@ Usage
 Requirements
 ~~~~~~~~~~~~~~~~~~
 
-.. include:: ../../sequana/pipelines/quality_control/requirements.txt
+.. include:: ../sequana/pipelines/quality_control/requirements.txt
 
 .. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/quality_control/dag.png
 

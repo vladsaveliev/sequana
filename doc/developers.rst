@@ -160,19 +160,23 @@ allows users to use any parameters.
 How to write new pipelines
 ================================
 
-Include existing rules
+Use sequana.snaketools
 -------------------------
 
-Assuming there will be a config file named *config.yaml*, the pipeline could
-look like::
+Assuming there will be a config file named *config.yaml*, the pipeline should be
+written as follows:
+
+.. code-block:: snakemake
 
     import sequana
     from sequana import snaketools as sm
+    sm.init("counter", globals())        # see later for explanation
 
     configfile: "config.yaml"
 
     # include all relevant rules
-    include: sm.modules['count']
+    include: sm.modules['count']        # if included in sequana/rules
+
 
     # must be defined as the final rule
     rule pipeline_count:
@@ -201,5 +205,20 @@ This is a WIP in progress but here is an example for the previous pipeline::
         snakemake -s pipeline_count.rules -f 
 
 .. note:: the README uses Restructured syntax (not markdown)
+
+
+
+
+requirements file
+-----------------------
+
+You can add a **requirements.txt** file with a list of executable or libraries
+required by the pipeline. Executable are searched in your PATH and libraries in
+PYTHONPATH (conda).
+
+Where running a pipeline, if the requirements are not fulfilled, an error is
+raised before starting the analysis.
+
+
 
 
