@@ -7,15 +7,16 @@ rule multiqc:
     :note: if the directory exists, it is overwritten
     """
     input:
-        __multiqc__input_dir
+        __multiqc__input
     log:
         __multiqc__logs
     output:
         __multiqc__output
     params:
+        inputdir = __multiqc__input_dir,
         excluded = config['multiqc']['excluded'],
         outdir = config['multiqc']['output-directory']
     shell:
         """
-        multiqc -d {input} -o {params.outdir} {params.excluded} -f 2> {log}
+        multiqc -d {params.inputdir} -o {params.outdir} {params.excluded} -f 2> {log}
         """

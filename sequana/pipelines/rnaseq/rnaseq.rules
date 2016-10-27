@@ -115,12 +115,14 @@ include: sm.modules["feature_counts"]
 expected_output.extend(expand(__feature_counts__output_gene_count, sample=manager.samples))
 
 
+# !!!!!!!!!!!!!!!!!!! Reset expected_output variable after multiqc
 # Multiqc rule
+__multiqc__input = expected_output
 __multiqc__input_dir = "."
 __multiqc__logs = "multiqc/multiqc.log"
 __multiqc__output = config['multiqc']['output-directory'] + "/multiqc_report.html"
 include: sm.modules["multiqc"]
-expected_output.append(__multiqc__output)
+expected_output = [__multiqc__output]
 
 
 # include overall dag file
