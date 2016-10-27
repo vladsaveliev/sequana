@@ -33,6 +33,6 @@ rule spades:
             -2 {input.fastq[1]} -o {params.outdir}
 
         # rename assembly files
-        mv spades/scaffolds.fasta {output.scaffolds}
-        mv spades/contigs.fasta {output.contigs}
+        mv {params.outdir}/scaffolds.fasta {output.scaffolds}
+        mv {params.outdir}/contigs.fasta {output.contigs}
         """

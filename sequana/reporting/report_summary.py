@@ -91,7 +91,8 @@ class SequanaSummary(BaseReport):
 
         # include whatever is relevant
         if include_all:
-            self.include_kraken()
+            try:self.include_kraken()
+            except:pass
             self.include_phix()
             self.include_sample_stats()
             self.include_adapters_stats()

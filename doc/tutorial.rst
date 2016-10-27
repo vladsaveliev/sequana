@@ -62,7 +62,7 @@ Initialise the pipeline
 
 Call **sequana** standalone as follows::
 
-    sequana --pipeline variant_calling --input-dir . --project TUTORIAL
+    sequana --pipeline variant_calling --input-directory . --output-directory TUTORIAL
 
 Go to the project directory
 ::
@@ -125,7 +125,7 @@ snpEff section::
 and bwa_ref section::
 
     # Bwa parameter for reference mapping
-    bwa_ref:
+    bwa_mem_ref:
       reference: "measles.fa"
 
 
@@ -142,8 +142,18 @@ Run the pipeline
 De novo
 -------------
 
+The denovo_assembly pipeline can be initialised in the same way::
 
-.. todo:: documentation to be done
+    sequana --pipeline denovo_assembly --input-directory . --output-directory denovo_test
 
-    sequana --pipeline denovo_assembly --input-dir . --project denovo_test
+Go to the **denovo_test** directory and edit the config file. 
+
+.. warning:: this is very time and computationally expensive. The
+   **digital_normalisation** section is one that controls the memory footprint.
+   In particular, you can check change max-tablesize to a small value for
+   test-purposes (set the value to 3e6)
+
+
+
+
 
