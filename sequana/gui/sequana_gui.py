@@ -177,12 +177,12 @@ class SequanaGUI(QWidget):
         if self.tabs_browser.currentIndex() == 0:
             formular_dict["samples"] = (
                 self.tabs_browser.currentWidget().get_filenames())
-            formular_dict["input_directory"] = ""
         else:
             formular_dict["input_directory"] = (
                 self.tabs_browser.currentWidget().get_filenames())
         yaml = snaketools.SequanaConfig(data=formular_dict,
                                         test_requirements=False)
+        print(formular_dict)
         if self.working_dir.path_is_setup():
             yaml.save(self.working_dir.get_filenames() + "/config.yaml")
         else:
@@ -356,6 +356,8 @@ class TextOption(GeneralOption):
         self.layout.addWidget(self.text)
 
     def get_value(self):
+        if not self.text.text():
+            return " "
         return self.text.text()
 
 
@@ -389,6 +391,8 @@ class FileBrowserOption(GeneralOption):
         self.layout.addWidget(self.browser)
 
     def get_value(self):
+        if not self.browser.get_filenames():
+            return " "
         return self.browser.get_filenames()
 
 
