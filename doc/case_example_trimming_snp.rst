@@ -1,4 +1,4 @@
-Effect of the trimming of SNPs detection
+Effect of the trimming on SNPs detection
 ===========================================
 
 :Description: Effect of trimming (or not trimming) on the the SNPs detection.

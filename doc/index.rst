@@ -68,26 +68,26 @@ Some packages musts be installed::
 
     conda install numpy matplotlib pandas snakemake graphviz scipy
 
-Then, depending on the pipelines on standalone applications you want to use
-you will need to install other packages. Here is a non exhaustive list 
-of dependencies that should be enough to run the most of the current 
+Then, depending on the pipelines or standalone applications you want to use,
+you will need to install other packages. Here is a non exhaustive list
+of dependencies that should be enough to run most of the current
 pipelines (commands are split on several lines but you can also
 install everything in one go)::
 
     conda install pysam pyvcf snpeff biokit bioservices spades khmer
     conda install bwa bcftools samtools bedtools picard freebayes fastqc
-    conda install kraken krona 
+    conda install kraken krona pigz
 
 
-.. note:: we ported quast to python 3.5 but this is not yet in bioconda. One can
-   install it from the quast github (required by denovo pipeline only) (sept
-   2016)
+.. note:: the denovo_assembly pipelines uses Quast tool. We ported the package to
+   python 3.5 but this is not yet in bioconda. One can
+   install it from the quast github (sept 2016).
 
 .. note:: **Sequana** is not fully compatible with Python 2.7 since a dependency
     (Snakemake) is only available for Python 3.5. However, many core
-    functionalities would work under Python 2.7 
+    functionalities would work under Python 2.7
 
-.. note:: we also provide a docker file with release 0.11 of Sequana pre-installed.
+.. note:: We also provide a docker file with release 0.11 of Sequana pre-installed.
     Please see https://github.com/sequana/sequana/tree/master/docker
 
 .. _quick_start:
@@ -99,7 +99,7 @@ Quick start example: the quality pipeline
 Snakefile (`snakemake <https://bitbucket.org/snakemake/snakemake/wiki/Home>`_)
 
 The following example will show how to initialise and run the quality control pipeline
-on a pair of FastQ files.
+on a pair of FastQ files. 
 The data comes from a sequencing (using HiSeq technology) of a
 Measles virus. For testing purposes, you can download :download:`R1
 <../sequana/resources/data/Hm2_GTGAAA_L005_R1_001.fastq.gz>` and
@@ -107,9 +107,9 @@ Measles virus. For testing purposes, you can download :download:`R1
 files that contain only 1500 reads. Copy them in a local directory. 
 
 First, run the sequana standalone application to initialise the pipeline
-**quality**::
+**quality_control**::
 
-    sequana --pipeline quality --input-dir . --project TEST
+    sequana --pipeline quality_control --input-dir . --output-directory TEST --adapters PCRFree
 
 This command downloads the required configuration file(s) in particular 
 the config file and the pipeline itself. This example should work out of 
@@ -119,33 +119,22 @@ reference to the *phix* (by default we use *phix174.fa*, which is provided in Se
 change the adapter_removal section to your needs (cutadapt parameters, in
 particular the forward and reverse complement list of adapters; None by default).
 
-Note that the ``--project`` parameter is optional. If not provided, the project
-name will be the prefix of the FastQ files (before the _R?_ pattern). 
-
-.. warning:: If ``--project`` is provided, the input directory must contain only one sample.
-   otherwise, the name of each sample is the same
+Note that the ``--output-directory`` parameter is optional. If not provided, the directory is named  **analysis**. 
 
 Then, run the pipeline and wait for completion.::
 
     cd TEST
-    snakemake -s quality --stats report/stats.txt -p -j 4 --forceall
+    snakemake -s quality_control.rules --stats stats.txt -p -j 4 --forceall
 
-The -p option shows the commands, -j 4 means use 4 threads when possible. 
+The -p option shows the commands, -j 4 means use 4 threads when possible.
+Alternatively, there is also a **runme.sh** script.
 
 Check the output and if there is no errors, you should be able to open the HTML report 
-in ./TEST::
+corresponding to the sample::
 
-    open report/summary.html
+    open Hm2_GTGAAA_L005/report_qc_Hm2_GTGAAA_L005/summary.html
 
-All relevant HTML files and final FastQ files are stored in **./report**.
-
-There are temporary files that can be removed using this command::
-
-    python cleanup.py
-
-
-All pipelines in **Sequana** generate a HTML report named summary.html and can be
-initialised as shown in this section. More information can be found in the next sections.
+More information can be found in the next sections.
 
 User guide and reference
 ###########################

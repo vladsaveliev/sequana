@@ -41,6 +41,11 @@ sequana_summary
     handles Fastq (gzipped or not) or BED files (coverage).
 
 
+sequana_mapping
+------------------
+:Description: a simple application to map reads onto a genome given one or two
+    FastQ files (gzipped) and a refenrece.
+
 
 sequana_taxonomy
 --------------------
