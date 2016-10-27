@@ -87,7 +87,7 @@ Issues: http://github.com/sequana/sequana
         self.add_argument("--download", dest="download", type=str,
             default=None, choices=["sequana_db1", "toydb", "minikraken"],
             help="""download an official sequana DB. The sequana_db1 is stored
-                in a dedicated Synapse page (www.synapse.org). minikraken 
+                in a dedicated Synapse page (www.synapse.org). minikraken
                 is donwload from the kraken's author page, and toydb from
                 sequana github.""")
 
@@ -127,8 +127,8 @@ def main(args=None):
         devtools.check_exists(options.file2)
         fastq.append(options.file2)
 
-    devtools.mkdir(options.directory)
-
+    #devtools.mkdir(options.directory)
+    devtools.mkdirs(options.directory + os.sep + "kraken")
 
     from sequana import sequana_config_path as scfg
     if options.database == "toydb":
@@ -147,17 +147,20 @@ def main(args=None):
 
 
     # if DB exists locally, use it otherwise add the sequana path
-    k = KrakenPipeline(fastq, options.database, threads=options.thread, 
-        output=options.directory + os.sep + "kraken.html")
+    k = KrakenPipeline(fastq, options.database, threads=options.thread,
+        output=options.directory + os.sep + "kraken" + os.sep + "kraken.html")
 
-    output_png = "kraken.png"
-    k.run(output_png=options.directory +os.sep + "/%s" % output_png)
+    output_png = "kraken/kraken.png"
+    k.run(output_png=options.directory +os.sep + "%s" % output_png)
+
 
     if 1==1:
         # Here we create a simple temporary config file to be read by the Summary
         # report
         from easydev import TempFile
-        config_txt = "samples:\n"
+
+        config_txt = "input_directory:\n"
+        config_txt += "samples:\n"
         config_txt += '    file1: "%s"\n' % options.file1
         if options.file2:
             config_txt += '    file2: "%s"\n'% options.file2
@@ -171,13 +174,29 @@ def main(args=None):
         fh.write(config_txt)
         fh.close()
 
+
         from sequana import SequanaSummary
-        ss = SequanaSummary(options.directory, "summary.html", tf.name,
-            include_all=False, workflow=False)
+        class DummyManager(object):
+            def __init__(self, options):
+                if options.file1 and options.file2:
+                    self.paired = True
+                    self.samples = {'custom': [options.file1,options.file2]}
+                else:
+                    self.samples = {'test': [options.file1]}
+                    self.paired = False
+
+        manager = DummyManager(options)
+        sample = "custom"
+        ss = SequanaSummary(sample, options.directory, output_filename="summary.html",
+            configfile=tf.name,
+            include_all=False, workflow=False, manager=manager)
         ss.include_input_links()
         ss.jinja['kraken_pie'] = output_png
         ss.create_report()
-    
+
+        print("Open ./%s/summary.html" % options.directory)
+        print("or ./%s/kraken/kraken.html" % options.directory)
+
     if options.html is True:
         ss.onweb()
 
