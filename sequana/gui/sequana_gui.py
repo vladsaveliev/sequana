@@ -1,24 +1,26 @@
 # coding: utf-8
 
-import sys
 import os
+import shutil
 import subprocess as sp
+import sys
 
+from PyQt5.QtCore import Qt, QCoreApplication, pyqtSlot, QEvent
 from PyQt5.QtWidgets import (QApplication, QPushButton, QComboBox, QWidget,
                              QLineEdit, QFileDialog, QTabWidget, QLabel,
                              QFrame, QGroupBox, QCheckBox, QSpinBox,
                              QDoubleSpinBox, QScrollArea)
 from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QVBoxLayout
-from PyQt5.QtCore import Qt, QCoreApplication, pyqtSlot, QEvent
 
 from sequana import snaketools
+from sequana.snaketools import Module
 
 
 class SequanaGUI(QWidget):
     """ Sequana GUI !
     """
 
-    _not_a_rule = {"samples", "requirements", "gatk_bin", "input_directory",
+    _not_a_rule = {"requirements", "gatk_bin", "input_directory",
                    "pattern"}
 
     def __init__(self):
@@ -30,6 +32,10 @@ class SequanaGUI(QWidget):
         self.create_choice_button()
         choice_layout.addWidget(self.choice_button)
 
+        # create browser tab to choice directory or files
+        self.create_tabs_browser()
+        self.tabs_browser.currentChanged.connect(self.switch_run)
+
         # select the working directory
         groupbox_layout = QHBoxLayout()
         self.working_dir = FileBrowser(directory=True)
@@ -38,23 +44,21 @@ class SequanaGUI(QWidget):
         groupbox = QGroupBox("Working directory")
         groupbox.setLayout(groupbox_layout)
 
-        self.project_name = TextOption("project", "project")
-
         # formular which contains all options the pipeline chosen
         widget_formular = QWidget()
         self.formular = QVBoxLayout(widget_formular)
-        widget_formular.setMinimumSize(400, 2000)
         scroll_area = QScrollArea()
         scroll_area.setWidget(widget_formular)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setMinimumHeight(250)
 
         # footer with run/save/quit button
 
         # main layout
         vlayout = QVBoxLayout(self)
         vlayout.addLayout(choice_layout)
-        vlayout.addWidget(self.file_browser())
+        vlayout.addWidget(self.tabs_browser)
         vlayout.addWidget(groupbox)
-        vlayout.addWidget(self.project_name)
         vlayout.addWidget(scroll_area)
         vlayout.addWidget(self.create_footer_button())
 
@@ -95,7 +99,6 @@ class SequanaGUI(QWidget):
         self.choice_flag = True
         self.switch_run()
 
-
     def create_base_formular(self, config_file):
         """ Create formular with all options necessary for a pipeline.
         """
@@ -106,7 +109,6 @@ class SequanaGUI(QWidget):
         self.necessary_dict = {}
         for rule in rules_list:
             # Check if dictionnary or not
-            print(rule)
             if rule not in SequanaGUI._not_a_rule:
                 rule_box = RuleFormular(rule, config_dict[rule])
                 self.formular.addWidget(rule_box)
@@ -114,17 +116,18 @@ class SequanaGUI(QWidget):
                 self.necessary_dict = dict(self.necessary_dict,
                                            **{rule: config_dict[rule]})
 
-    def file_browser(self):
+    def create_tabs_browser(self):
         """ Generate file browser widget.
         """
         # create browser file
-        self.paired_tab = FileBrowser(paired=True)
-        self.directory_tab = FileBrowser(directory=True)
-
-        tabs = QTabWidget()
-        tabs.addTab(self.paired_tab, "Paired end")
-        tabs.addTab(self.directory_tab, "Directory")
-        return tabs
+        paired_tab = FileBrowser(paired=True)
+        directory_tab = FileBrowser(directory=True)
+        paired_tab.clicked_connect(self.switch_run)
+        directory_tab.clicked_connect(self.switch_run)
+        # create tab box
+        self.tabs_browser = QTabWidget()
+        self.tabs_browser.addTab(paired_tab, "Paired end")
+        self.tabs_browser.addTab(directory_tab, "Directory")
 
     def create_footer_button(self):
         """ Create Run/Save/Quit buttons
@@ -146,27 +149,44 @@ class SequanaGUI(QWidget):
         footer_layout.addWidget(quit_btn)
         return footer_widget
 
-    def run_sequana(self):
+################
 
-        pass
+    def run_sequana(self):
+        working_dir = self.working_dir.get_filenames()
+        self.save_config_file()
+        module = Module(self.choice_button.currentText())
+        shutil.copy(module.snakefile, working_dir)
+        cmd = ["snakemake", "-s", module.snakefile]
+        snakemake = sp.Popen(cmd, cwd=working_dir)
+        snakemake.communicate()
+
+###############
 
     def switch_run(self):
         if self.working_dir.path_is_setup():
-            if self.paired_tab.path_is_setup() or \
-                    self.directory_tab.path_is_setup():
+            if self.tabs_browser.currentWidget().path_is_setup():
                 if self.working_dir.path_is_setup():
                     if self.choice_flag:
-                        print("SWIIIITCH ON")
                         return self.run_btn.setEnabled(True)
-        print("SWIIIITCH OFF")
         return self.run_btn.setEnabled(False)
 
     def save_config_file(self):
         formular_dict = dict(self.create_formular_dict(self.formular),
                              **self.necessary_dict)
+        # get samples names or input_directory
+        if self.tabs_browser.currentIndex() == 0:
+            formular_dict["samples"] = (
+                self.tabs_browser.currentWidget().get_filenames())
+            formular_dict["input_directory"] = ""
+        else:
+            formular_dict["input_directory"] = (
+                self.tabs_browser.currentWidget().get_filenames())
         yaml = snaketools.SequanaConfig(data=formular_dict,
                                         test_requirements=False)
-        yaml.save()
+        if self.working_dir.path_is_setup():
+            yaml.save(self.working_dir.get_filenames() + "/config.yaml")
+        else:
+            yaml.save()
 
     def create_formular_dict(self, layout):
         widgets = (layout.itemAt(i).widget() for i in range(layout.count()))
@@ -208,20 +228,19 @@ class FileBrowser(QWidget):
     def browse_paired_file(self):
         file_path = QFileDialog.getOpenFileNames(self,
                                                  "Paired end File", ".")[0]
-        try:
-            if len(file_path) > 2:
-                self.btn_filename.setText("No file selected")
-                return
+        self.setup = False
+        if not file_path:
+            self.btn_filename.setText("No file selected")
+            self.paths = {"file1": "", "file2": ""}
+        elif len(file_path) > 2:
+            self.btn_filename.setText("No file selected")
+        else:
             self.paths = {"file{0}".format(i+1): file_path[i]
                           for i in range(0, len(file_path))}
             self.btn_filename.setText("\n".join([key + ": " + value
                                       for key, value in self.paths.items()]))
             self.setup = True
-        except IndexError:
-            self.btn_filename.setText("No file selected")
-            self.paths = {"file1": "", "file2": ""}
-            self.setup = False
-
+        
     def browse_directory(self):
         directory_path = QFileDialog.getExistingDirectory(self,
                                                           "Directory", ".")
