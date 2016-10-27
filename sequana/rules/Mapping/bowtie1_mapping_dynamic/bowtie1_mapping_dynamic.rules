@@ -29,7 +29,7 @@ rule bowtie1_mapping_%(name)s:
         cmd = "bowtie -S {params.options} -p {threads} {params.prefix_index}"
         # paired end or single end unzip
         if len(input.fastq) == 2:
-            bowtie_input = "-1 " + unzip_file[0] + "-2 " + unzip_file[1]
+            bowtie_input = "-1 " + unzip_file[0] + " -2 " + unzip_file[1]
         else:
             bowtie_input = unzip_file[0]
         cmd = cmd + " " + bowtie_input

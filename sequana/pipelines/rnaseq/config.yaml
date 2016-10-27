@@ -25,24 +25,25 @@ tophat:
 
 bowtie1_mapping_ref:
     do: yes
-    reference:
+    prefix_index: ../Saccer3
     options: "" 
     threads: 4
 
 
 bowtie1_mapping_rna:
     do: yes
-    reference:
+    prefix_index: ../Saccer3
     options: "" 
     threads: 4
 
 # example of options: "-t exon -g gene_id"
 feature_counts:
-    gff:
-    options: "-t exon -g gene_id" 
+    gff: ../saccer3.gff
+    #options: "-t exon -g gene_id" 
+    options: "-t gene -g ID" 
 
 fastq_screen:
-    conf:
+    conf: "fastq_screen.conf"
 
 #################################################################
 # Quality trimming and adapter removal
