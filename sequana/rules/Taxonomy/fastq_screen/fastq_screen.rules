@@ -11,10 +11,10 @@ rule fastq_screen:
         outdir = __fastq_screen__outdir
     shell:
         """
-        fastq_screen --subset 2000000 \
+        fastq_screen --subset 20000 \
         --outdir {params.outdir} \
         --threads {threads} \
         --conf {params.configFile}  \
-        --aligner bowtie  \
+        --aligner bowtie2  \
         {input}
         """
