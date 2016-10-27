@@ -10,11 +10,10 @@ rule fastq_screen:
         configFile = config['fastq_screen']['conf']
     shell:
         """
-        fastqscreen
-        --subset 2000000 \
+        fastq_screen --subset 2000000 \
         --outdir {output} \
         --threads {threads} \
-        --conf {param.configFile}  \
+        --conf {params.configFile}  \
         --aligner bowtie2 \
         {input}
         """
