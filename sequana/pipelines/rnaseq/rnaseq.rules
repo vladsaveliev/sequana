@@ -40,7 +40,7 @@ if manager.config.adapter_removal.tool == "clean_ngs":
     __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
     __clean_ngs__rej_files = manager.getname("clean_ngs", "_rejected.fastq")
     include: sm.modules["clean_ngs"]
-    expected_output.extend(expand(__clean_ngs__output_fastq, sample=manager.samples))
+    expected_output.extend(expand(__clean_ngs__output, sample=manager.samples))
 elif manager.config.adapter_removal.tool == "cutadapt":
     __cutadapt__input_fastq = __data__input
     __cutadapt__wkdir = manager.getwkdir("cutadapt")
@@ -166,6 +166,9 @@ onsuccess:
         shell("cp config.yaml %s" % report_dir)
         shell("cp requirements.txt %s" % report_dir)
         shell("cp snakemake_stats.png %s" % report_dir)
+
+        shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
+        shell('cp -r %s/cutadapt/ %s' % (proj, report_dir))
 
         from sequana import SequanaSummary
         summary = SequanaSummary(proj, directory=report_dir, 
