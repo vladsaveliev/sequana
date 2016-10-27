@@ -446,6 +446,7 @@ or open a Python shell and type::
             if mode == "warning":
                 print(txt)
             elif mode == "error":
+                txt += "Use \n conda install missing_package_name"
                 raise ValueError(txt)
 
     def _get_description(self):
