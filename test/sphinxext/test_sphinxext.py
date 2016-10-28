@@ -2,6 +2,7 @@ from sequana.sphinxext import snakemakerule
 
 
 
+@skip('!travis')
 def test_doc():
     res  = snakemakerule.get_rule_doc("dag")
     res  = snakemakerule.get_rule_doc("fastqc")
