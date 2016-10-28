@@ -19,9 +19,18 @@ fastqc:
 # phix found in the bwa_phix:reference section
 #
 ##################################################################
-star:
+star_mapping:
+    do: yes
+    prefix_index: /mnt/atlas/PF2_ngs/protected/starGenomes/S_cervS288c
+    ref: /mnt/atlas/PF2_ngs/protected/starGenomes/S_cervS288c.fa
+    options: ""
+    threads: 4
 
-tophat:
+tophat_mapping:
+    do: no
+    prefix_index: /mnt/atlas/PF2_ngs/protected/bowtie_genomes/S_cervS288c
+    options: ""
+    threads: 4
 
 bowtie1_mapping_ref:
     do: yes
