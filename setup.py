@@ -64,7 +64,7 @@ setup(
     install_requires = ["easydev>=0.9.28", "reports>=0.2.0", "matplotlib",
         "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14", "biokit>=0.3.2", 
         "pysam", "pyVCF", "docutils", "sphinx-gallery", "mock", "numpydoc", "pillow",
-        "blist", "sphinx"],
+        "blist", "sphinx", "pyyaml"],
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
