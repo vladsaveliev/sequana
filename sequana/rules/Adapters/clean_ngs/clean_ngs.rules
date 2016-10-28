@@ -13,9 +13,9 @@ rule clean_ngs:
         quality = config['adapter_removal']['quality']
     shell:
         """
-        clean_ngs {input} \
-           {output.fastq} \
-           {output.rej_files} \
+        clean_ngs -if1 {input} \
+           -of1 {output.fastq} \
+           -rf1 {output.rej_files} \
            -adf {params.adapters} \
            -l   {params.min_len}\
            -L   {params.max_len} \
