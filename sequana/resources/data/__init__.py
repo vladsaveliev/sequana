@@ -3,7 +3,6 @@
 Some useful data sets to be used in the analysis
 
 
-
 The command :func:`sequana.sequana_data` may be used to retrieved data from 
 this package. For example, a small but standard reference (phix) is used in 
 some NGS experiments. The file is small enough that it is provided within
