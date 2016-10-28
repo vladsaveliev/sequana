@@ -27,7 +27,7 @@ rule star_mapping:
         splice_file = temp(__star_mapping__splice_file),
         kwargs = config['star_mapping']['options']
     threads:
-        __star_mapping__threads
+        config['star_mapping']['threads']
     #Resources:
     #    ram = config['star_mapping']['ram']
     shell:
