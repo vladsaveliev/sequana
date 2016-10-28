@@ -25,6 +25,7 @@ star_mapping:
     ref: /mnt/atlas/PF2_ngs/protected/starGenomes/S_cervS288c.fa
     options: ""
     threads: 4
+    ram: 30
 
 tophat_mapping:
     do: no

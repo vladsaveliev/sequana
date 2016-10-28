@@ -29,7 +29,7 @@ rule star_mapping:
     threads:
         __star_mapping__threads
     Resources:
-        ram = config['rna-star']['ram']
+        ram = config['star_mapping']['ram']
     shell:
         """
         echo "Run rna-star 1st pass"
