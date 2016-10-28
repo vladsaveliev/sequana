@@ -28,8 +28,8 @@ rule star_mapping:
         kwargs = config['star_mapping']['options']
     threads:
         __star_mapping__threads
-    Resources:
-        ram = config['star_mapping']['ram']
+    #Resources:
+    #    ram = config['star_mapping']['ram']
     shell:
         """
         echo "Run rna-star 1st pass"
