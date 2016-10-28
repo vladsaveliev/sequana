@@ -19,7 +19,7 @@ from docutils.nodes import Body, Element
 
 
 def get_rule_doc(name):
-    """Decode and return lines of the docstring(s) for the object."""
+    """Decode and return the docstring(s) of a sequana/snakemake rule."""
     try:
         from sequana import Module
         rule = Module(name)
@@ -52,7 +52,6 @@ def get_rule_doc(name):
         quotes = '"""'
     else:
         return "no docstring found for %s " % name
-
 
     start = data.find(quotes)
     end = data[start+3:].find(quotes) + start+3 

@@ -84,10 +84,6 @@ snpeff:
     reference:
     options: "-no-downstream -no-upstream"
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bedtools genomecov
-
-bedtools: 
-    options: '-d'
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Freebayes
 

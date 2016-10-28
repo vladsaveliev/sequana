@@ -78,6 +78,7 @@ class SequanaMultipleSummary(BaseReport):
             output_filename="multi_summary.html",
             **kargs)
 
+        print("Sequana Summary is still a tool in progress and would only work with the output of the quality_control .")
         self.verbose = verbose
         workdir = "."
         self.jinja['title'] = "Sequana multiple summary" 
@@ -99,10 +100,14 @@ class SequanaMultipleSummary(BaseReport):
         self.jinja['canvas'] += """<script type="text/javascript">
             window.onload = function () {"""
 
-        self.populate_phix()
-        self.populate_gc_samples()
-        self.populate_trimming()
-        self.populate_mean_quality()
+        try:self.populate_phix()
+        except:pass
+        try:self.populate_gc_samples()
+        except:pass
+        try: self.populate_trimming()
+        except:pass
+        try:self.populate_mean_quality()
+        except:pass
 
         self.jinja['canvas'] += "}</script>"
 

@@ -16,16 +16,10 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-import easydev
-import os
 import glob
-import json
 
 from sequana.reporting.report_main import BaseReport
-
-# a utility from external reports package
 from reports import HTMLTable
-
 import pandas as pd
 
 
@@ -54,12 +48,18 @@ class FastQStatsReport(BaseReport):
                 output_filename=output_filename, **kargs)
         self.input_directory = input_directory
         self.jinja['title'] = "FastQ Stats Report"
+        self.filenames = []
+
 
     def parse(self):
         # Add the canvas js in the header
         from sequana.resources.canvas import bar
 
-        files = glob.glob("%s/*json" % self.input_directory)
+        if len(self.filenames) == 0:
+            files = glob.glob("%s/*json" % self.input_directory)
+        else:
+            files = self.filenames
+
         acgt = [
             {"name":"A", "data": {}},
             {"name":"C", "data": {}},
@@ -95,6 +95,8 @@ class FastQStatsReport(BaseReport):
                 key = "R1"
             elif "_R2." in filename:
                 key = "R2"
+            else:
+                key = "R1"
             thisdata.index = [key]
 
             if dfsum is None:

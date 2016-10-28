@@ -11,17 +11,28 @@ def fastqc_dynamic(name, project):
 rule fastqc_%(name)s:
     """Calls FastQC on input data sets (paired or not)
 
-    :input:
-        - __fastqc_%(name)s__input_fastq: 
-    :output:
-        - __fastqc_%(name)s__output_done
-    :params:
-        - __fastqc_%(name)s__wkdir: the working directory
-    :configuration: config['fastqc']['options']
-    :threads: 4 (harcdoded)
+    This rule is a **dynamic** rule. Meaning that it can be included
+    in a pipeline with different names. For instance in the quality_control
+    pipeline, it is used as fastqc_samples and fastqc_phix. Here below, 
+    the string %(name)s must be replaced by the appropriate dynamic name.
 
-    :Requirements: fastqc
-    :References: http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+    Required input:
+        - __fastqc_%(name)s__input_fastq: 
+
+    Required output:
+        - __fastqc_%(name)s__output_done
+
+    Required parameters
+        - __fastqc_%(name)s__wkdir: the working directory
+
+    Required configuration:
+        .. code-block:: yaml
+
+            fastqc:
+                options: "-nogroup"   # a string with fastqc options
+
+    References: 
+        - http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
     """
     # we could have a dynamic search or based on config file
     input:

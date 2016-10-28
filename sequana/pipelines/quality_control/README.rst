@@ -1,10 +1,6 @@
 :Overview: Quality control, trimming (adapter removal) and taxonomic overview
 :Input: A set of FastQ (paired of single-end) 
 :Output: fastqc, cleanup FastQ files
-:Config file requirements:
-    - bwa_mem: remove a phix or another reference if provided
-    - kraken: a Kraken database (see sequana documentation)
-    - adapters: files or experimental design 
 
 Usage
 ~~~~~~~
@@ -52,5 +48,33 @@ sequences are error tolerant (allowing errors such as
 mismatches, insertions and deletions). The level of error tolerance
 is 10% by default.
 
-:reference: cutadapt documentation
+Rules and configuration details
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here is a documented configuration file :download:`../sequana/pipelines/quality_control/config.yaml` to be used with the pipeline. Each rule used in the pipeline may have a section in the
+configuration file. Here are the rules and their developer and user documentation.
+
+
+
+FastQC
+^^^^^^^^^^^
+.. snakemakerule:: fastqc
+
+Cutadapt
+^^^^^^^^^
+.. snakemakerule:: cutadapt
+
+Kraken
+^^^^^^^
+.. snakemakerule:: kraken
+
+
+.. .. snakemakerule:: fastq_sampling
+.. .. snakemakerule:: bwa_mem_phix
+
+
+
+
+
+
 

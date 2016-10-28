@@ -38,6 +38,18 @@ Access to online database (e.g. ENA)
     :members:
     :undoc-members:
 
+Access to Sequana data
+----------------------------
+.. automodule:: sequana.datatools
+    :members:
+    :undoc-members:
+
+Experimental design
+----------------------------
+.. automodule:: sequana.designexp
+    :members:
+    :undoc-members:
+
 
 FASTQ module
 ---------------
