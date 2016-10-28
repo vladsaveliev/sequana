@@ -7,9 +7,9 @@ import sys
 
 from PyQt5.QtCore import Qt, QCoreApplication, pyqtSlot, QEvent
 from PyQt5.QtWidgets import (QApplication, QPushButton, QComboBox, QWidget,
-                             QLineEdit, QFileDialog, QTabWidget, QLabel,
-                             QFrame, QGroupBox, QCheckBox, QSpinBox,
-                             QDoubleSpinBox, QScrollArea)
+                             QLineEdit, QTabWidget, QLabel, QFrame, QGroupBox,
+                             QCheckBox, QSpinBox, QDoubleSpinBox, QScrollArea)
+from PyQt5.QtWidgets import QFileDialog, QDialog
 from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QVBoxLayout
 
 from sequana import snaketools
@@ -21,7 +21,7 @@ class SequanaGUI(QWidget):
     """
 
     _not_a_rule = {"requirements", "gatk_bin", "input_directory",
-                   "pattern"}
+                   "pattern", "samples"}
 
     def __init__(self):
         super().__init__()
@@ -47,12 +47,11 @@ class SequanaGUI(QWidget):
         # formular which contains all options the pipeline chosen
         widget_formular = QWidget()
         self.formular = QVBoxLayout(widget_formular)
+        self.formular.setSpacing(0)
         scroll_area = QScrollArea()
         scroll_area.setWidget(widget_formular)
         scroll_area.setWidgetResizable(True)
         scroll_area.setMinimumHeight(250)
-
-        # footer with run/save/quit button
 
         # main layout
         vlayout = QVBoxLayout(self)
@@ -62,10 +61,14 @@ class SequanaGUI(QWidget):
         vlayout.addWidget(scroll_area)
         vlayout.addWidget(self.create_footer_button())
 
+        # snakemake dialog windows
+        self.snakemake_dialog = SnakemakeOptionDialog()
+
         # main window options
         self.setGeometry(200, 200, 500, 500)
         self.setWindowTitle("Sequana")
         self.show()
+
 
     def clearLayout(self, layout):
         """ Clean all widget contained in a layout.
@@ -109,12 +112,14 @@ class SequanaGUI(QWidget):
         self.necessary_dict = {}
         for rule in rules_list:
             # Check if dictionnary or not
-            if rule not in SequanaGUI._not_a_rule:
-                rule_box = RuleFormular(rule, config_dict[rule])
+            contains = config_dict[rule]
+            if isinstance(contains, dict) and (
+                    rule not in SequanaGUI._not_a_rule):
+                rule_box = RuleFormular(rule, contains)
                 self.formular.addWidget(rule_box)
             else:
                 self.necessary_dict = dict(self.necessary_dict,
-                                           **{rule: config_dict[rule]})
+                                           **{rule: contains})
 
     def create_tabs_browser(self):
         """ Generate file browser widget.
@@ -154,6 +159,9 @@ class SequanaGUI(QWidget):
     def run_sequana(self):
         working_dir = self.working_dir.get_filenames()
         self.save_config_file()
+        rules = self.get_rules(self.formular)
+        self.snakemake_dialog.fill_options(rules)
+        self.snakemake_dialog.exec_()
         module = Module(self.choice_button.currentText())
         shutil.copy(module.snakefile, working_dir)
         cmd = ["snakemake", "-s", module.snakefile]
@@ -182,7 +190,6 @@ class SequanaGUI(QWidget):
                 self.tabs_browser.currentWidget().get_filenames())
         yaml = snaketools.SequanaConfig(data=formular_dict,
                                         test_requirements=False)
-        print(formular_dict)
         if self.working_dir.path_is_setup():
             yaml.save(self.working_dir.get_filenames() + "/config.yaml")
         else:
@@ -194,6 +201,11 @@ class SequanaGUI(QWidget):
                          else self.create_formular_dict(w.get_layout())
                          for w in widgets}
         return formular_dict
+
+    def get_rules(self, layout):
+        widgets = (layout.itemAt(i).widget() for i in range(layout.count()))
+        rules = [w.get_name() for w in widgets]
+        return rules
 
     def eventFilter(self, source, event):
         """ Inactivate wheel event of combobox
@@ -395,6 +407,39 @@ class FileBrowserOption(GeneralOption):
             return " "
         return self.browser.get_filenames()
 
+
+class ComboBoxOption(GeneralOption):
+    def __init__(self, option, choice):
+        super().__init__(option)
+        self.combobox = QComboBox()
+        self.combobox.addItems([None] + choice)
+        self.layout.addWidget(self.combobox)
+
+    def get_value(self):
+        return self.combobox.currentText()
+
+
+class SnakemakeOptionDialog(QDialog):
+    """ Widget to set up options of snakemake and launch pipeline. It provides
+    a progress bar to know how your jobs work.
+    """
+    def __init__(self):
+        super().__init__()
+        self.main_layout = QVBoxLayout(self)
+        self.setWindowTitle("Snakemake options")
+
+    def fill_options(self, rules):
+        cluster_option = TextOption("--cluster", "")
+        jobs_option = NumberOption("--jobs", 2)
+        cores_option = NumberOption("--cores", 2)
+        forcerun_option = ComboBoxOption("--forcerun", rules)
+        until_option = ComboBoxOption("--until", rules)
+
+        self.main_layout.addWidget(cluster_option)
+        self.main_layout.addWidget(jobs_option)
+        self.main_layout.addWidget(cores_option)
+        self.main_layout.addWidget(forcerun_option)
+        self.main_layout.addWidget(until_option)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
