@@ -16,9 +16,12 @@ def test_report():
     stats = sequana_data("test_snakemake_stats.txt", "testing")
 
     from sequana import Module
-    module = Module('phix_removal')
-    
+    module = Module('quality_control')
+   
+    class DummyManager(object):
+        sample = {"dummy":"dummy"}
+    manager = DummyManager()
 
-    r = SequanaReport(snakefile=module.snakefile, configfile=module.config,
+    r = SequanaReport(manager, "dummy", snakefile=module.snakefile, configfile=module.config,
         stats=stats)
     r.create_report()

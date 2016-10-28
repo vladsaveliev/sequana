@@ -3,6 +3,27 @@ Changelog
 
 .. contents::
 
+0.1.13
+-----------
+
+* CHANGES:
+
+    - revisited all pipelines so that they can work of multi samples.
+    - quality_phix, quqlity and quality_taxon pipelines merged in
+      quality_control pipeline
+    - running meadian won't fail anymore with odd window size (we add +1)
+    - rulegraph is used as well as dag to create figures of the pipelines
+
+* NEWS:
+
+    - compressor: includes dsrc format in addition to bz2 and gz
+    - snakemake rule extension for sphinx
+    - add a pipeline manager in snaketools to handle all pipelines
+    - a designexp module to handle adapter design files
+
+
+     
+
 0.1.12
 -----------
 

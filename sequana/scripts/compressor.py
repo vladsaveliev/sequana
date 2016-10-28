@@ -25,7 +25,8 @@ from optparse import OptionParser
 import argparse
 
 from snakemake import shell
-from easydev import TempFile 
+#from easydev import TempFile 
+import tempfile
 
 from sequana.scripts.tools import SequanaOptions
 
@@ -35,7 +36,7 @@ class Options(argparse.ArgumentParser, SequanaOptions):
         usage = """Welcome to SEQUANA - Fastq compression standalone
 
     This standalone fetches recursively all files in a given format (--source)
-    and transform them into another format (--to)
+    and transform them into another format (--target)
 
     Supported files must have one of the following extension:
 
@@ -64,14 +65,21 @@ Issues: http://github.com/sequana/sequana
 
         # options to fill the config file
         self.add_argument("--source", dest="source", type=str,
-            help="""fastq, fastq.gz, fastq.bz2""")
+            help="""fastq, fastq.gz, fastq.bz2, fastq.dscr""")
         self.add_argument("--target", dest="target", type=str,
-            help="""fastq, fastq.gz, fastq.bz2 """)
+            help="""fastq, fastq.gz, fastq.bz2, fastq.dscr """)
         self.add_argument("--recursive", dest="recursive",
             default=False,
             action="store_true", help="""recursive search""")
+        self.add_argument("--threads", dest="threads",
+            default=4,
+            help="""number of threads to use per core (4)""")
+        self.add_argument("--cores", dest="cores",
+            default=4,
+            help="""number of cores to use at most (4) """)
         self.add_version(self)
-        self.add_quiet(self)
+        self.add_verbose(self)
+        self.add_cluster(self)
 
 def main(args=None):
 
@@ -86,33 +94,63 @@ def main(args=None):
     else:
        options = user_options.parse_args(args[1:])
 
+    if options.version:
+        import sequana
+        print(sequana.version)
+        sys.exit()
     # valid codecs:
     valid_combos = [
         ("fastq", "fastq.gz"),
         ("fastq", "fastq.bz2"),
+        ("fastq", "fastq.dsrc"),
+
         ("fastq.gz", "fastq"),
+        ("fastq.gz", "fastq.bz2"),
+        ("fastq.gz", "fastq.dsrc"),
+
         ("fastq.bz2", "fastq"),
         ("fastq.bz2", "fastq.gz"),
-        ("fastq.gz", "fastq.bz2")]
+        ("fastq.bz2", "fastq.dsrc"),
 
-    # Create the config file
-    temp = TempFile(suffix=".yaml")
-    fh = open(temp.name, "w")
-    fh.write("compressor:\n")
-    fh.write("    source: %s\n" %options.source)
-    fh.write("    target: %s\n" % options.target)
-    fh.write("    recursive: %s\n" % options.recursive)
-    fh.write("    verbose: %s\n" % options.verbose)
-    fh.close() # essential to close it because snakemake will try to use seek()
-    from sequana import Module
-    rule = Module("compressor").path + os.sep +  "compressor.rules"
+        ("fastq.dsrc", "fastq"),
+        ("fastq.dsrc", "fastq.gz"),
+        ("fastq.dsrc", "fastq.bz2"),
 
-    if options.verbose:
-        cmd = "snakemake -s %s  --configfile %s -j 4 -p" % (rule, temp.name)
-    else:
-        cmd = "snakemake -s %s  --configfile %s -j 4 -q" % (rule, temp.name)
-    shell(cmd)
-    temp.delete()
+		]
+    if (options.source, options.target) not in valid_combos:
+        raise ValueError("""--target and --source combo not valid. 
+Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
+
+
+    from easydev import TempFile
+    # Create the config file locally 
+    with TempFile(suffix=".yaml", dir=".") as temp:
+        fh = open(temp.name, "w")
+        fh.write("compressor:\n")
+        fh.write("    source: %s\n" %options.source)
+        fh.write("    target: %s\n" % options.target)
+        fh.write("    threads: %s\n" % options.threads)
+        fh.write("    recursive: %s\n" % options.recursive)
+        fh.write("    verbose: %s\n" % options.verbose)
+        fh.close() # essential to close it because snakemake will try to use seek()
+        from sequana import Module
+        rule = Module("compressor").path + os.sep +  "compressor.rules"
+
+        if options.cluster:
+            cluster = '--cluster "%s"' % options.cluster
+        else:
+            cluster = ""
+
+        if options.verbose:
+            cmd = 'snakemake -s %s  --configfile %s -j %s -p %s' % \
+                (rule, temp.name, options.cores, cluster)
+            print(cmd)
+        else:
+            cmd = 'snakemake -s %s  --configfile %s -j %s -p %s' % \
+                (rule, temp.name, options.cores, cluster)
+        shell(cmd)
+        fh.close()
+
 
 if __name__ == "__main__":
    import sys

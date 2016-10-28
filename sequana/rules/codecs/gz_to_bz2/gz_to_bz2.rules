@@ -1,0 +1,20 @@
+rule gz_to_bz2:
+    """Convert fastq.gz files to fastq.bz2 files
+
+    Description:
+        First, the input fastq.gz file is decompressed to a fastq file.
+        Second, the fastq file is compressed to a BZ2 file.
+        
+
+    :param input: fastq.gz file
+    :return: fastq.bz2 file
+    :third-party executables: pbzip2 and unpigz
+    :note: uses a wildcard {dataset}
+
+    """
+    input: "{dataset}.gz"
+    output: "{dataset}.bz2"
+    run:
+        shell("unpigz {input}")
+        output = output[0].replace(".bz2", "")
+        shell("pbzip2 %s" % output)

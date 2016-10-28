@@ -1,0 +1,278 @@
+"""Phix removal pipeline
+
+Author: Thomas Cokelaer
+Affiliation: Institut Pasteur @ 2016
+
+This pipeline is part of Sequana software (sequana.readthedocs.io)
+"""
+import os
+import sequana
+from sequana import snaketools as sm
+sm.init("quality_control.rules", globals())
+
+
+# This must be defined before the include 
+configfile: "config.yaml"
+
+# Generic include of some dynamic modules
+exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
+exec(open(sequana.modules["fastqc"], "r").read())
+exec(open(sequana.modules["fastq_stats"], "r").read())
+
+
+manager = sm.PipelineManager("quality_control", config)
+
+__rawdata__input = manager.getrawdata()
+
+
+if manager.config.fastq_sampling.do is True:
+    __fastq_sampling__input_fastq = __rawdata__input
+    if manager.paired:
+        __fastq_sampling__output_fastq = [
+            "fastq_sampling/%s._R1_.fastq.gz" % (manager.sample),
+            "fastq_sampling/%s._R2_.fastq.gz" % (manager.sample)]
+    else:
+        __fastq_sampling__output_fastq = [
+            "fastq_sampling/%s._R1_.fastq.gz" % (manager.sample)]
+    include: sm.modules["fastq_sampling"]
+    __data__input = __fastq_sampling__output_fastq
+else:
+    __data__input = __rawdata__input
+
+
+# FASTQC on input data set
+__fastqc_samples__input_fastq = __data__input
+__fastqc_samples__output_done = manager.getname("fastqc_samples", ".done")
+__fastqc_samples__wkdir       = manager.getwkdir("fastqc_samples")
+include: fastqc_dynamic("samples", manager.sample)
+expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samples))
+
+
+# FASTQ stats on input data set
+__fastq_stats_samples__input_fastq = __data__input
+__fastq_stats_samples__output_done = manager.getname("fastq_stats_samples", ".done")
+__fastq_stats_samples__wkdir       = manager.getwkdir("fastq_stats_samples")
+include: fastq_stats_dynamic("samples", manager.sample)
+expected_output.extend(expand(__fastq_stats_samples__output_done, sample=manager.samples))
+
+
+if manager.config.bwa_mem_phix.do:
+    # Mapping input / output
+    __bwa_mem_phix__input = __data__input
+    __bwa_mem_phix__ref_input = config["bwa_mem_phix"]["reference"]
+    __bwa_mem_phix__reference = manager.getname("reference",".fasta")
+    __bwa_mem_phix__mem_output = manager.getname("bwa_mem_phix", ".bam")
+    __bwa_mem_phix__sort_output = manager.getname("bwa_mem_phix", ".sorted.bam")
+
+    include: bwa_mem_dynamic("phix", manager.sample)
+
+    # BWA_BAM_TO_FASTQ 
+    __bwa_bam_to_fastq__input = __bwa_mem_phix__sort_output
+
+    if manager.paired is True:
+        def _mapper(ff):
+            f1 = [x.replace("fastq.gz", "mapped.fastq.gz") for x in ff]
+            f2 = [x.replace("fastq.gz", "unmapped.fastq.gz") for x in ff]
+            return f1 + f2
+
+        _params = {"sample": manager.sample}
+
+        __bwa_bam_to_fastq__fastq_output = [
+            "%(sample)s/bwa_bam_to_fastq/%(sample)s_R1_.unmapped.fastq.gz" % _params, 
+            "%(sample)s/bwa_bam_to_fastq/%(sample)s_R1_.mapped.fastq.gz" % _params,
+            "%(sample)s/bwa_bam_to_fastq/%(sample)s_R2_.unmapped.fastq.gz" % _params,
+            "%(sample)s/bwa_bam_to_fastq/%(sample)s_R2_.mapped.fastq.gz" % _params]
+    else:
+        __bwa_bam_to_fastq__fastq_output = [
+            "%(sample)s/bwa_bam_to_fastq/%(sample)s_R1_.unmapped.fastq.gz" % {"sample":manager.sample},
+            "%(sample)s/bwa_bam_to_fastq/%(sample)s_R1_.mapped.fastq.gz" % {"sample":manager.sample}]
+
+    __bwa_bam_to_fastq__stats_output = "%s/bwa_bam_to_fastq/bwa_mem_stats.json" % manager.sample
+    __bwa_bam_to_fastq__wkdir = "%s/bwa_bam_to_fastq" % manager.sample
+
+    include: sm.modules['bwa_bam_to_fastq']
+
+    # Run a fastqc and fastq_stats on the data without phix
+    __fastqc_phix__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output if "unmapped" in x]
+    __fastqc_phix__output_done = manager.getname("fastqc_phix", ".fastqc.done")
+    __fastqc_phix__wkdir = manager.getwkdir("fastqc_phix")
+    include: fastqc_dynamic("phix", manager.sample)
+    expected_output.extend(expand(__fastqc_phix__output_done, sample=manager.samples))
+
+    __fastq_stats_phix__input_fastq = __bwa_bam_to_fastq__fastq_output
+    __fastq_stats_phix__output_done = manager.getname("fastq_stats_phix", ".done")
+    __fastq_stats_phix__wkdir = manager.getwkdir("fastq_stats_phix")
+    include: fastq_stats_dynamic("phix", manager.sample)
+    expected_output.extend(expand(__fastq_stats_phix__output_done, sample=manager.samples))
+
+
+if manager.config.adapter_removal.do:
+    adapter_removal = manager.config.adapter_removal.tool
+
+    if adapter_removal in ["cutadapt"]:
+        __cutadapt__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output 
+                                   if "unmapped" in x]
+        __cutadapt__wkdir = "%s/cutadapt" % manager.sample
+        __cutadapt__output = [x.replace("bwa_bam_to_fastq", 
+                              "cutadapt").replace("unmapped","cutadapt")
+                              for x in __cutadapt__input_fastq]
+
+        if "adapter_fwd" in manager.config.adapter_removal.fwd :
+            __cutadapt__fwd = ""
+        else:
+            __cutadapt__fwd = manager.config.adapter_removal.fwd
+
+        if "adapter_rev" in manager.config.adapter_removal.rev:
+            __cutadapt__rev = ""
+        else:
+            __cutadapt__rev = manager.config.adapter_removal.rev
+
+        __cutadapt__design = manager.config.adapter_removal.design
+        __cutadapt__design_adapter = manager.config.adapter_removal.adapter_type
+        __cutadapt__options = manager.config.adapter_removal.options
+        __cutadapt__mode = manager.config.adapter_removal.mode
+        __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
+        __cutadapt__sample = manager.sample
+        include: sm.modules["cutadapt"]
+    elif adapter_removal == "atropos":
+        raise NotImplementedError
+        include: sm.modules["atropos"]
+    elif adapter_removal == "skewer":
+        raise NotImplementedError
+        include: sm.modules["skewer"]
+    else:
+        raise ValueError("trimming must be either cutadapt or atropos or skewer")
+
+    __fastqc_cutadapt__input_fastq = __cutadapt__output
+    __fastqc_cutadapt__output_done = manager.getname("fastqc_cutadapt", ".done")
+    __fastqc_cutadapt__wkdir = manager.getwkdir("fastqc_cutadapt")
+    include: fastqc_dynamic(adapter_removal, manager.sample)
+    expected_output += expand(__fastqc_cutadapt__output_done, sample=manager.samples)
+
+    __fastq_stats_cutadapt__input_fastq = __cutadapt__output
+    __fastq_stats_cutadapt__output_done = manager.getname("fastq_stats_cutadapt", ".done")
+    __fastq_stats_cutadapt__wkdir = manager.getwkdir("fastq_stats_cutadapt")
+    include: fastq_stats_dynamic(adapter_removal, manager.sample)
+    expected_output += expand(__fastq_stats_cutadapt__output_done, sample=manager.samples)
+
+
+if manager.config.kraken.database:
+    if manager.config.adapter_removal.do:
+        # todo: handle all adapter removal cases
+        __kraken__input = __cutadapt__output
+    elif manager.config.phix_removal.do:
+        __kraken__input = [x for x in __bwa_bam_to_fastq__output if "unmapped" in x]
+    else:
+        __kraken__input = __data_input
+
+    __kraken__output_wkdir = manager.getwkdir("kraken")
+    __kraken__output_html = manager.sample + "/kraken/kraken.html"
+    __kraken__output = manager.sample + "/kraken/kraken.out"
+    __kraken__output_csv = manager.sample + "/kraken/kraken.csv"
+    __kraken__output_json = manager.sample + "/kraken/kraken.json"
+    include: sm.modules['kraken']
+    expected_output.append(expand(__kraken__output_html, sample=manager.samples))
+    expected_output.append(expand(__kraken__output_json, sample=manager.samples))
+
+
+# include overall dag file
+__dag__input = __snakefile__
+__dag__output = "dag.svg"
+include: sm.modules['dag']
+expected_output.extend(["dag.svg"])
+
+
+# Include rule graph for each sample
+__rulegraph__input = __snakefile__
+__rulegraph__output = "rulegraph.svg"
+__rulegraph__mapper = {
+    "fastqc_samples": "fastqc_samples/",
+    "fastqc_phix": "fastqc_phix/",
+    "fastqc_cutadapt": "fastqc_cutadapt",
+    "cutadapt": "cutadapt.html",
+    "kraken": "kraken/kraken.html",
+    "kraken_translate": "kraken/kraken.html",
+    "kraken_to_krona": "kraken/kraken.html",
+
+}
+include: sm.modules['rulegraph']
+expected_output.extend(["rulegraph.svg"])
+
+
+# Add Conda
+__conda__output = "requirements.txt"
+include: sm.modules['conda']   # Create requirements.txt(dependencies)
+expected_output.extend([__conda__output])
+
+# Those rules takes a couple of seconds so no need for a cluster
+localrules: dag, conda, rulegraph
+
+
+rule pipeline_quality_control:
+    input: expected_output
+
+
+onsuccess:
+    import os
+    # Create plots about stats
+    sm.plot_stats(N=len(manager.samples))
+
+    # Main directory
+    report_dir_format = "%(proj)s/report_qc_%(proj)s"
+    for proj in manager.samples.keys():
+        report_dir = report_dir_format % {"proj": proj}
+        try:os.mkdir(report_dir)
+        except:pass
+
+        shell("cp %s %s" % (__snakefile__, report_dir))
+        shell("cp rulegraph.svg %s/dag.svg" % (report_dir))
+        shell("cp config.yaml %s" % report_dir)
+        shell("cp requirements.txt %s" % report_dir)
+        shell("cp snakemake_stats.png %s" % report_dir)
+
+        if manager.config.adapter_removal.do:
+            from sequana.reporting import report_cutadapt
+            this = report_cutadapt.CutAdaptReport(proj, directory=report_dir)
+            this.read_data(proj + "/logs/cutadapt/{0}.txt".format("cutadapt"))
+            this.create_report()
+
+        if manager.config.kraken.database:
+            shell('cp -r %s/kraken/ %s' % (proj, report_dir))
+        shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
+        shell('cp -r %s/fastq_stats*/ %s' % (proj, report_dir))
+        shell('cp -r %s/bwa_bam_to_fastq/ %s' % (proj, report_dir))
+        shell('rm -f %s/bwa_bam_to_fastq/*fastq ' % (report_dir))
+
+        # Copy the fastq files 
+        if manager.config.adapter_removal.do:
+            shell('cp -r %s/cutadapt %s' % (proj, report_dir))
+            shell('mv  %s/cutadapt/*fastq.gz %s' % (report_dir, report_dir))
+        elif manager.config.bwa_mem_phix.do:
+            shell('cp -r %s/bwa_bam_to_fastq/*unmapped* %s' % (proj, report_dir))
+
+        from sequana import SequanaSummary
+        summary = SequanaSummary(proj, directory=report_dir, 
+            output_filename="summary.html", 
+            snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
+            manager=manager)
+        # This is probably not needed and buggy anymway. creates a report/ in
+        # the top tree directory indeed
+        #summary.copy_images_to_report(proj + "/*/images/*png")
+        summary.create_report()
+
+        # Create a cleanup python file to clean a sub-directory
+        sm.create_cleanup(proj)
+
+    garbage = ['snakemake_stats.png',  "rulegraph.svg", "requirements.txt"]
+    for filename in garbage:
+        import os
+        try: os.remove(filename)
+        except:pass
+
+    sm.create_recursive_cleanup()
+    sm.message("Done. To further cleanup the directory, type \n python .sequana_cleanup.py")
+
+onerror:
+    print("An error occurred. See message above.")
+
+

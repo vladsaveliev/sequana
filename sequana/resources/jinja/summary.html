@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
 
-
-
     <div class="section" id="Description">
     <p><b>Sample:</b> {{ project }} <br>
     <b>Type:</b> {{ type }} <br>
@@ -12,45 +10,54 @@
 <div class="section" id="input">
     <h2> Input
     <div style="float:right">
-        <a href="fastq_stats__samples.html" title="Jump to more statistics">| Details </a>
-    </div>
-    <div style="float:right"><a href="fastqc__samples/fastqc__samples.html"
-        title="Jump to original FastQC reports on the input data">| FastQC </a>
+        <a href="fastq_stats_samples/fastq_stats_samples.html" title="Jump to
+more statistics">| Others </a>
     </div>
     </h2>
 
     {{ dataset }}
 
-    <p>Here are some basic statistics about the raw data. The A, C, G, T, N rows
-    report the percentage of each bases in the overall sequences</p>
+    <p>The following table gives some basic statistics about the raw data before any filtering. 
+    The A, C, G, T, N rows report the percentage of each bases in the overall sequences. 
+    The GC content is provided in percentage as well. </p>
     <div>{{ sample_stats }} </div>
     <div>
     {% if sample_image_r1 %}
-    <div style="float:left; width:49%">
-        <a href="../{{sample_image_r1 }}"><img src="../{{ sample_image_r1 }}"></a>
-    </div>
+
+    <p>The following figure(s) gives the average quality (red line) of raw reads
+    (500,000 at max). The x-axis being the length of the reads. The yellow 
+    enveloppe gives the variation of the quality (1 standard deviation).</p>
+    <p> Click on the image to jump to a full FastQC report.</p>
+
+    <figure style="float:left; width:49%; padding:0px; margin:0px;">
+        <a href="{{ sample_image_r1_href }}"><img src="{{ sample_image_r1 }}"></a>
+    <figcaption style="font-style:italic">Fig1: R1 reads</figcaption>
+    </figure>
     {% endif %}
     {% if sample_image_r2 %}
-    <div style="float:right; width:49%">
-        <a href="../{{sample_image_r2 }}"><img src="../{{ sample_image_r2 }}"></a>
-    </div>
+    <figure style="float:right; width:49%; padding:0px; margin:0px;">
+        <a href="{{ sample_image_r2_href }}"><img src="{{ sample_image_r2 }}"></a>
+    <figcaption style="font-style:italic">Fig2: R2 reads</figcaption>
+    </figure>
     {% endif %}
     </div>
 </div>
 
 {# ================================================================= PHIX #}
-{% if cfg['bwa_phix'] and cfg['bwa_phix']['do'] == True %}
+{% if cfg['bwa_mem_phix'] and cfg['bwa_mem_phix']['do'] == True %}
     <div class="section" id="phix">
     <h2>  <a class="toc-backref" href="#id2">Phix content</a>
-    <div style="float:right"><a href="fastq_stats__phix.html"
+    <div style="float:right"><a href="fastq_stats_phix/fastq_stats_phix.html"
         title="Jump to more statistics">| Details </a>
     </div>
-    <div style="float:right"><a href="fastqc__phix/fastqc__phix.html"
+    <div style="float:right"><a href="fastqc_phix/fastqc_phix.html"
         title="Jump to original FastQC reports on the data without Phix">| FastQC </a>
     </div>
     </h2>
    {{ phix_section }}
-    <p>Reads statistics after/before Phix removal (mapped means wiith Phix).</p>
+    <p>We mapped the raw reads on a reference (see config file). The reads
+mapped are removed and the unmapped reads are kept. Here below are some
+statistics about the mapped and unmapped reads. </p>
     <p>The A, C, G, T, N rows report the percentage of each bases in the overall sequences</p>
 
    {{ phix_stats }}
@@ -63,14 +70,17 @@
     <h2>  <a class="toc-backref" href="#id2">Adapters</a>
 
     <div style="float:right"><a href="cutadapt.html">| Cutadapt report</a></div>
-    <div style="float:right"><a href="fastq_stats__cutadapt.html">| Details </a></div>
-    <div style="float:right"><a href="fastqc__cutadapt/fastqc__cutadapt.html">| FastQC</a></div>
+    <div style="float:right"><a href="fastq_stats_cutadapt/fastq_stats_cutadapt.html">| Details </a></div>
+    <div style="float:right"><a href="fastqc_cutadapt/fastqc_cutadapt.html">| FastQC</a></div>
 
     </h2>
     <p>Reads statistics after trimming and adapter removal. Again, the A, C, G, T, N rows
     report the percentage of each bases in the overall sequences</p>
     {{ cutadapt_stats1 }}
+
+    The final FastQ files without adapters have the following characteristics:
     {{ cutadapt_stats2 }}
+    </div>
 {% endif %}
 
 {# ============================================================= OUTPUT #}
@@ -82,19 +92,54 @@
 
     {{ output }}
 
+    <div>
+    {% if output_image_r1 %}
+    <p>The following figure(s) gives the average quality (red line) of raw reads
+    (500,000 at max). The x-axis being the length of the reads. The yellow 
+    enveloppe gives the variation of the quality (1 standard deviation).</p>
+    <p> Click on the image to jump to a full FastQC report.</p>
+
+    <figure style="float:left; width:49%; padding:0px; margin:0px;">
+        <a href="{{ output_image_r1_href }}"><img src="{{ output_image_r1 }}"></a>
+    <figcaption style="font-style:italic">Fig1: R1 reads</figcaption>
+    </figure>
+    {% endif %}
+    {% if output_image_r2 %}
+    <figure style="float:right; width:49%; padding:0px; margin:0px;">
+        <a href="{{ output_image_r2_href }}"><img src="{{ output_image_r2 }}"></a>
+    <figcaption style="font-style:italic">Fig2: R2 reads</figcaption>
+    </figure>
+    {% endif %}
+    </div>
+
+
 </div>
 {% endif %}
 
 {# ============================================================  TAXONOMY #}
-{% if kraken_pie %}
+{% if cfg['kraken'] and cfg['kraken']['database'] %}
     <div class="section" id="taxon">
     <h2>  <a class="toc-backref" href="#id8">Taxonomic content</a>
-    <div style="float:right"><a href="./kraken.html">Details</a></div>
+    <div style="float:right"><a href="./kraken/kraken.html">Details</a></div>
     </h2>
-    <p>Overview of the Taxonomic content of the reads. Click on the image to get
-an interactive and more detailled visualisation.</p>
-    <a href="./kraken.html"> <img src="{{ kraken_pie }}"></img></a>
+    <p>Overview of the Taxonomic content of the filtered reads. </p>
+    <p>The taxonomic analysis is performed with Kraken and the
+database {{ kraken_database }}. The analysis is performed with a Kmer approach.
+The details about the database itself are available in the <a
+href="sequana.readthedocs.io">Sequana documentation</a>.
+The taxonomic analysis should give a good idea of the content of the FastQ
+files. It should be used as a sanity check. However, 
+be aware that this is not a systematic analysis: some species may be absent and
+therefore will not appear. Besides, be aware that the more closely related two
+species are, the less precise will be the classification. </p>
+
+    <p>The following clickable image is a simplified version (only genus are shown) of an
+interactive and more detailled version. The unclassified part includes adapters or species 
+not included in the database (eukaryotes except human)</p> 
+    <a href="./kraken/kraken.html"> <img src="{{ kraken_pie }}"></img></a>
     <br>
+
+    {{ kraken_html_table }}
     </div>
 {% endif %}
 

@@ -1,6 +1,19 @@
-__format_contigs__output = "format_contigs/%s.format.fasta" % (cfg.PROJECT)
-
 rule format_contigs:
+    """ Change names of contigs to have sample name and filter reads shorter 
+    than a threshold.
+
+    Required input:
+        __format_contigs__input: fasta file
+
+    Required output:
+        __format_contigs__output: fasta file
+
+    Required parameter:
+        config["format_contigs"]["length_min"]: length treshold
+
+    Contributors:
+        Sequana consortium
+    """
     input:
         contigs = __format_contigs__input
     output:

@@ -8,7 +8,7 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 1
-_MICRO               = 12
+_MICRO               = 13
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -61,10 +61,10 @@ setup(
 
     # pillow, sphinx-gallery and numpydoc are  for the doc only
     # mock is for the test only
-    install_requires = ["easydev>=0.9.22", "reports>=0.1.8", "matplotlib",
+    install_requires = ["easydev>=0.9.28", "reports>=0.2.0", "matplotlib",
         "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14", "biokit>=0.3.2", 
-        "pysam", "pyVCF", "sphinx-gallery", "mock", "numpydoc", "pillow",
-        "blist"],
+        "pysam", "pyVCF", "docutils", "sphinx-gallery", "mock", "numpydoc", "pillow",
+        "blist", "sphinx", "pyyaml"],
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
@@ -77,7 +77,7 @@ setup(
                 "snpEff.config*", "*.fa", "*.rules"],
         'sequana.rules' : ['*/*.rules', "*/*/*.rules"],
         'sequana.pipelines' : ['*/*.rules', "*/*/*.rules", "*/*yaml"],
-        'sequana.resources.data' : ['*'],
+        'sequana.resources.data' : ['*.*'],  # use *.* for files and not ./adapters
         'sequana.resources.data.adapters' : ['*'],
         'sequana.resources.images' : ['*'],
         'sequana.resources.testing' : ['*'],

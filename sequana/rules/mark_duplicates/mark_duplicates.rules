@@ -1,18 +1,28 @@
-__mark_duplicates__output = "mark_duplicates/%s.bam" % cfg.PROJECT
-
 rule mark_duplicates:
+    """ 
+    Mark reads duplicated. Thus, variant caller is aware of reads duplicated.
+
+    Required input:
+        __mark_duplicates__input: bam file
+
+    Required output:
+        __mark_duplicates__output: bam file
+
+    Contributors:
+        Sequana consortium
+    """
     input:
         __mark_duplicates__input
     output:
-        __mark_duplicates__output
+        bam = __mark_duplicates__output,
+        metrics = __mark_duplicates__metrics
     log:
-        out = "logs/picard_tools/MarkDuplicates/stdout.logs",
-        err = "logs/picard_tools/MarkDuplicates/stderr.logs",
-        metrics = "logs/picard_tools/MarkDuplicates/%s.metrics" % cfg.PROJECT
+        out = "logs/mark_duplicates/stdout.logs",
+        err = "logs/mark_duplicates/stderr.logs"
     params:
         options = config["mark_duplicates"]["options"]
     shell:
         """
         picard MarkDuplicates I={input} \
-        O={output} M={log.metrics} > {log.out} 2> {log.err}
+        O={output.bam} M={output.metrics} > {log.out} 2> {log.err}
         """

@@ -1,0 +1,30 @@
+
+
+
+rule rulegraph:
+    """Rulegrqph 
+
+    :param filename: input dot file to be parsed
+
+    """
+    input:
+        filename = __dag__input
+    output:
+        dot  = temp("rg.dot"),
+        dot2 = temp("rg.ann.dot"),
+        svg  = __rulegraph__output
+    params:
+        mapper = __rulegraph__mapper
+    run:
+        # Create the dot file (graphviz) using snakemake
+        shell("snakemake -s {input.filename} --rulegraph > {output.dot}")
+
+        # Annotate the dag with URLs 
+        from sequana.snaketools import DOTParser
+        d = DOTParser(output.dot)
+        d.add_urls(mapper=params.mapper)
+
+        # Now, create the SVG. Somehow if called dag.svg, this is a conflict
+        # hence the || true 
+        shell("dot -Tsvg {output.dot2} -o {output.svg} || true")
+

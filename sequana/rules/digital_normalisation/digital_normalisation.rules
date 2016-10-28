@@ -1,0 +1,57 @@
+rule digital_normalisation:
+    """ Assembly is very hard with ultra-deep sequencing data. Digital
+    normalisation is a method to normalise coverage of a sample without
+    reference. It provides as good or better results than assembling the
+    unnormalised data.
+
+    Required input:
+        __digital_normalisation__input: list of paired fastq files
+
+    Required output:
+        __digital_normalisation__output: list of paired fastq files
+
+    Required parameters:
+        __digital_normalisation__outdir: output directory
+
+    Contributors:
+        Sequana consortium
+    """
+    input:
+        fastq = __digital_normalisation__input
+    output:
+        fastq_dn = __digital_normalisation__output,
+        graph = temp(__digital_normalisation__outdir + "/graph.ct")
+    params:
+        outdir = __digital_normalisation__outdir,
+        ksize = config["digital_normalisation"]["ksize"],
+        cutoff = config["digital_normalisation"]["cutoff"],
+        n_tables = config["digital_normalisation"]["n_tables"],
+        max_ts = config["digital_normalisation"]["max-tablesize"],
+        options = config["digital_normalisation"]["options"]
+    threads:
+        config["digital_normalisation"]["threads"]
+    shell:
+        """
+        # concatenate R1 and R2
+        interleave-reads.py {input.fastq} --output {params.outdir}.pe
+
+        # digital norm
+        normalize-by-median.py --paired --ksize {params.ksize} \
+            --cutoff {params.cutoff} --n_table {params.n_tables} \
+            --max-tablesize {params.max_ts} {params.options} \
+            --savegraph {output.graph} {params.outdir}.pe \
+            --output {params.outdir}.pe.keep
+
+        # filter abundance
+        filter-abund.py --threads {threads} -V {output.graph} \
+            {params.outdir}.pe.keep --output {params.outdir}.pe.filter
+
+        # extract paired reads
+        extract-paired-reads.py {params.outdir}.pe.filter \
+            --output-paired {params.outdir}.dn.pe \
+            --output-single {params.outdir}.dn.se
+
+        # split paired reads
+        split-paired-reads.py {params.outdir}.dn.pe --gzip \
+            -1 {output.fastq_dn[0]} -2 {output.fastq_dn[1]}
+        """

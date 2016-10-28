@@ -1,0 +1,22 @@
+rule dsrc_to_gz:
+    """Convert fastq.dsrc files to fastq.gz files
+
+    Description:
+        First, uncompress the fastq.dsrc file into a fastq
+        Second, compress the fastq into a gz file 
+
+    :param input: fastq.dsrc files
+    :return: fastq.gz files
+    :third-party executables: pigz and dsrc
+
+    """
+    input: "{dataset}.dsrc"
+    output: "{dataset}.gz"
+    params: "-m2"
+    threads: config["compressor"]["threads"]
+    run:
+        output_noext = output[0].replace(".gz", "")
+        shell("dsrc d -t{threads} {params} {input} %s" % (output_noext))
+        shell("pigz %s " % output_noext)
+        shell("rm -f {input}")
+

@@ -4,28 +4,11 @@
 Rules
 ##############
 
-Here below we present a small subset of rules used within the different
-pipelines. Rules can be incorporated within a pipeline as follows (given its
-name, here e.g. *data*)::
+Rules are stored in ./sequana/rules and can easily be added in your pipelines as
+follows::
 
     from sequana import snaketools as sm
-    include: sm.module['data']
-
-
-.. contents::
-    :depth: 2
-
-data
-==============
-
-.. include:: ../sequana/rules/data/README.rst
-
-
-fastqc
-==========
-
-.. include:: ../sequana/rules/fastqc/README.rst
-
+    include: sm.module['rulegraph']
 
 
 

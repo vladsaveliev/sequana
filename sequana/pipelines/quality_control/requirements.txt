@@ -1,0 +1,10 @@
+Requirements
+~~~~~~~~~~~~~~~~~~
+
+- bwa
+- samtools
+- kraken
+- ktImportText
+- fastqc
+- pigz
+- cutadapt

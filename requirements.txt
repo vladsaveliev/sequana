@@ -4,3 +4,6 @@ matplotlib
 pandas
 bioservices>=1.4.5
 biokit
+pillow
+sphinx
+pyyaml

@@ -1,19 +1,39 @@
-__freebayes__output = "freebayes/%s.vcf" % cfg.PROJECT
-
 rule freebayes:
+    """ Freebayes is a variant caller designed to find SNPs and short INDELs.
+    It is capable of calling multiple variants segregate on the same read.
+
+    Required input:
+        __freebayes__input: sorted bam file
+        __freebayes__reference: reference fasta file
+
+    Required output:
+        __freebayes__output: vcf file
+
+    Required parameter:
+        config["freebayes"]["ploidy"]: set the ploidy of the sample
+        config["freebayes"]["max-complex-gap"]: set the maximum distance 
+            between polymorphisms segregate on the same read.
+        config["freebayes"]["options"]: others freebayes options
+
+    Contributors:
+        Sequana consortium
+    """
     input:
         bam = __freebayes__input,
-        ref = __bwa_mem_ref__reference
+        ref = __freebayes__reference
     output:
         vcf = __freebayes__output
     log:
         out = "logs/freebayes/stdout.logs",
         err = "logs/freebayes/stderr.logs"
     params:
-        freebayes = config["freebayes"]["options"]
+        ploidy = config["freebayes"]["ploidy"],
+        max_complex_gap = config["freebayes"]["max-complex-gap"],
+        options = config["freebayes"]["options"]
     shell:
         """
         samtools index {input.bam}
-        freebayes {params.freebayes} -f {input.ref} \
+        freebayes {params.options} --ploidy {params.ploidy} \
+        --max-complex-gap {params.max_complex_gap}  -f {input.ref} \
         -b {input.bam} -v {output.vcf} > {log.out} 2> {log.err}
         """

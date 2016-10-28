@@ -60,4 +60,23 @@ Alternatively, get the source code from their GitHub (takes a while)::
     python setup.py install
 
 
+Expected input format
+----------------------------
+
+Most of the pipelines and standalone expect FastQ files with the extension
+**fastq.gz** meaning that files are gzipped.
+
+
+Besides, the filename convention is as follows::
+
+    PREFIX_R1_.fastq.gz
+
+that is **_R1_** and **_R2_** indicates the paired or single-ended files and
+the PREFIX is used to create directories or reports; it must be present.
+
+
+
+
+
+
 

@@ -39,7 +39,7 @@ class AdapterRemovalReport(BaseReport):
     This class defines a minimal set of information to be provided
 
     """
-    def __init__(self, 
+    def __init__(self,
             output_filename="adapter_removal.html", 
             directory="report",
             overwrite=False, **kargs):
@@ -111,7 +111,7 @@ class AdapterRemovalReport(BaseReport):
         if self.mode != "pe":
             df.index = [this.replace("paired", "").replace("Pairs", "Reads") for this in df.index]
 
-        df.to_json("cutadapt/cutadapt_stats1.json")
+        df.to_json(self.sample_name + "/cutadapt/cutadapt_stats1.json")
 
         h = HTMLTable(df)
         html = h.to_html(index=True)
@@ -128,7 +128,7 @@ class AdapterRemovalReport(BaseReport):
                 info['Type'], info['Sequence']]
         df.columns = ['Length', 'Trimmed', 'Type', 'Sequence']
 
-        df.to_json("cutadapt/cutadapt_stats2.json")
+        df.to_json(self.sample_name + "/cutadapt/cutadapt_stats2.json")
         h = HTMLTable(df)
         html = h.to_html(index=True)
         self.jinja['adapters'] = html
@@ -139,18 +139,22 @@ class AdapterRemovalReport(BaseReport):
         html = ""
         html += "<div>\n"
         from easydev import DevTools
-        DevTools().mkdir("cutadapt/images")
+        DevTools().mkdir(self.sample_name + "/cutadapt/images")
         for key in sorted(histograms.keys()):
+            if len(histograms[key]) <= 1:
+                continue
+            histograms[key].plot(logy=True, lw=2, marker="o")
+            pylab.title(name)
+            name = key.replace(" ", "_")
+            filename =  "%s/cutadapt/images/%s.png" % (self.sample_name,name)
             try:
-                histograms[key].plot(logy=True, lw=2, marker="o")
-                pylab.title(name)
-                name = key.replace(" ", "_")
-                filename =  "cutadapt/images/%s.png" % name
                 pylab.savefig(filename)
-                pylab.grid(True)
-                html += '<img src="images/%s.png" width="45%%"></img> ' % (name)
-            except:
-                pass
+            except FileNotFoundError:
+                print("Warning:: cutadapt report, image not created")
+            pylab.grid(True)
+            html += '<img src="cutadapt/images/%s.png" width="45%%"></img> ' % (name)
+            #except:
+            #    pass
         html += "</div>\n"
 
         self.jinja['cutadapt'] = html

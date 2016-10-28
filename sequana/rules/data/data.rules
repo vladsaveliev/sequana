@@ -1,7 +1,8 @@
 
-# should be used by any pipelines that relies on input data sets
-# configfile: "config.yaml"
-# cfg = SequanaConfig(config)
+
+
+
+
 
 if config['fastq_sampling']['do']:
     include: sm.modules['fastq_sampling']

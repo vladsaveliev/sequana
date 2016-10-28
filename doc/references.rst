@@ -7,7 +7,6 @@ References
 .. contents::
 
 
-.. include:: test.py
 
 Adapters
 ---------------
@@ -36,6 +35,13 @@ Coverage (theoretical)
 Access to online database (e.g. ENA)
 ----------------------------------------
 .. automodule:: sequana.databases
+    :members:
+    :undoc-members:
+
+
+Experimental design
+----------------------------
+.. automodule:: sequana.designexp
     :members:
     :undoc-members:
 
@@ -124,29 +130,33 @@ Reports
 
 Others
 ---------
+.. automodule:: sequana.datatools
+    :members:
+    :undoc-members:
+
 .. automodule:: sequana.resources.data
 
 
 
-Standalone applications
----------------------------
-
-.. automodule:: sequana.scripts.coverage
-    :members:
-    :undoc-members:
-.. automodule:: sequana.scripts.fastq_head
-    :members:
-    :undoc-members:
-.. automodule:: sequana.scripts.fastq_count
-    :members:
-    :undoc-members:
-.. automodule:: sequana.scripts.mapping
-    :members:
-    :undoc-members:
-.. automodule:: sequana.scripts.summary
-    :members:
-    :undoc-members:
-.. automodule:: sequana.scripts.taxonomy
-    :members:
-    :undoc-members:
-
+.. Standalone applications
+    ---------------------------
+    
+    .. automodule:: sequana.scripts.coverage
+        :members:
+        :undoc-members:
+    .. automodule:: sequana.scripts.fastq_head
+        :members:
+        :undoc-members:
+    .. automodule:: sequana.scripts.fastq_count
+        :members:
+        :undoc-members:
+    .. automodule:: sequana.scripts.mapping
+        :members:
+        :undoc-members:
+    .. automodule:: sequana.scripts.summary
+        :members:
+        :undoc-members:
+    .. automodule:: sequana.scripts.taxonomy
+        :members:
+        :undoc-members:
+    

@@ -33,19 +33,19 @@ class ChromosomeMappingReport(BaseReport):
 
     """
     def __init__(self, mapping, features=None,
-            directory="report", project="", verbose=True, **kargs):
+            directory="report", sample="", verbose=True, **kargs):
         """.. rubric:: constructor
 
         """
         self.mapping = mapping
-        output_filename = "{0}_mapping.chrom{1}.html".format(project, 
+        output_filename = "{0}_mapping.chrom{1}.html".format(sample, 
                 mapping.chrom_index)
         super(ChromosomeMappingReport, self).__init__(
                 jinja_filename="chromosome/index.html",
                 directory=directory,
                 output_filename=output_filename, **kargs)
         self.chrom_index = mapping.chrom_index
-        self.project = project
+        self.sample = sample
         self.features = features
         self._max_window = 500000
         self.jinja['chrom_name'] = self.mapping.chrom_name
@@ -70,7 +70,7 @@ class ChromosomeMappingReport(BaseReport):
         for i in range(0, len(self.mapping), step):
             if self.verbose:
                 print("Generating sub mapping {}".format(i))
-            name = "{0}_mapping_{1}".format(self.project, i)
+            name = "{0}_mapping_{1}".format(self.sample, i)
             stop = i + step
             if stop > len(self.mapping):
                 stop = len(self.mapping)
@@ -78,6 +78,7 @@ class ChromosomeMappingReport(BaseReport):
             link = "submapping/{0}.chrom{1}.html".format(name, self.chrom_index)
             r = SubMappingReport(start=i, stop=stop, high_roi=high_roi, 
                     low_roi=low_roi, chrom_index=self.chrom_index,
+                    chrom_name=self.mapping.chrom_name,
                     output_filename=name + ".chrom%i.html" % self.chrom_index,
                     directory=self.directory + "/submapping", 
                     thresholds=self.mapping.thresholds)
@@ -105,7 +106,7 @@ class ChromosomeMappingReport(BaseReport):
         if self.verbose:
             print("Creating coverage plot")
         self.jinja["cov_plot"] = "images/{0}_coverage.chrom{1}.png".format(
-                self.project, self.chrom_index)
+                self.sample, self.chrom_index)
         self.mapping.plot_coverage(filename=self.directory + os.sep + 
                 self.jinja["cov_plot"])
 
@@ -117,7 +118,7 @@ class ChromosomeMappingReport(BaseReport):
                 "trend of the barplot.")
         self.jinja["nc_paragraph"] = nc_paragraph
         self.jinja["nc_plot"] = "images/{0}_norm_cov_his.chrom{1}.png".format(
-                self.project, self.chrom_index)
+                self.sample, self.chrom_index)
         self.mapping.plot_hist_normalized_coverage(filename=self.directory +
                 os.sep + self.jinja["nc_plot"])
 
@@ -129,7 +130,7 @@ class ChromosomeMappingReport(BaseReport):
                 self.mapping.best_gaussian["mu"], 
                 self.mapping.best_gaussian["sigma"])
         self.jinja["bp_plot"] = "images/{0}_zscore_hist.chrom{1}.png".format(
-                self.project, self.chrom_index)
+                self.sample, self.chrom_index)
         self.mapping.plot_hist_zscore(filename=self.directory + os.sep + 
                 self.jinja["bp_plot"])
 
@@ -153,7 +154,7 @@ class ChromosomeMappingReport(BaseReport):
         step = self._get_step()
         def get_link(pos):
             start = divmod(pos, step)[0]
-            name = "{0}_mapping_{1}".format(self.project, start*step)
+            name = "{0}_mapping_{1}".format(self.sample, start*step)
             stop = (start + 1)  * step
             if stop > len(self.mapping):
                 stop = len(self.mapping)

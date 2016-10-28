@@ -1,0 +1,77 @@
+
+
+input_directory: "%(input_directory)s"
+pattern: "%(pattern)s"
+
+# =========================================== Sections for the users
+
+# list of your input file
+samples:
+    file1: "%(file1)s"
+    file2: "%(file2)s"
+
+
+# if files are required for a pipeline and are within sequana or should
+# # be downloaded before the pipeline provide them in this section
+# # Note that sequana and url fields are followed by itemised files or links
+# using
+# # the front dashes
+requirements:
+    - phiX174.fa
+
+
+# =========================================== For testing only
+# If True, only a subset of the reads (N) are used
+
+fastq_sampling:
+    do: no
+    N: 2500
+
+# =========================================== Sections related to external tools
+
+
+fastqc:
+    options: "--nogroup"
+
+##################################################################
+# Use by Phix_removal pipeline to remove reads with the 
+# phix found in the bwa_phix:reference section
+#
+##################################################################
+bwa_mem_phix:
+    do: yes
+    reference: "phiX174.fa"
+    index:
+        options: '-a is'
+    mem:
+        options: '-T 30'
+        read_groups: '@RG\\tID:1\\tSM:1\\tPL:illumina'
+        threads: 2 
+
+#################################################################
+# Quality trimming and adapter removal
+#   - quality: 0 means no trimming, 30 means keep base with quality 
+#       above 30
+#   - m: 20 means discard trimmed reads that are shorter than 20.
+#   - tool: only cutadapt supported for now
+#   ref: http://cutadapt.readthedocs.io/
+#################################################################
+adapter_removal:
+    do: yes
+    tool: cutadapt
+    design: "%(adapter_design)s"
+    adapter_type: "%(adapter_type)s"
+    fwd: "%(adapter_fwd)s"
+    rev: "%(adapter_rev)s"
+    m: 20   # cutoff
+    mode: "b"   # g for 5' adapter, a for 3' and b for both 5'/3'
+    quality: 30
+    options: "-O 6 --trim-n"
+
+
+########################################################### Kraken
+# For taxonomy. Used in quality_control pipeline
+kraken:
+    # To skip kraken step, just set database field to an empty value
+    # database:
+    database: "%(kraken_database)s"

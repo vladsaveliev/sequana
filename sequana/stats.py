@@ -66,4 +66,3 @@ def evenness(data):
     else:
         
         return 1. - (len(D2) - sum(D2) / C) / len(coverage)
-

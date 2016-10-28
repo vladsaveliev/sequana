@@ -24,7 +24,6 @@ def test_kraken_taxon():
     kt.run()
 
 
-
 def test_kraken_results():
     test_file = sequana_data("test_kraken.out", "testing")
     k = KrakenResults(test_file, verbose=False)
@@ -51,6 +50,4 @@ def test_kraken_results():
 def test_download():
     kd = KrakenDownload()
     kd.download('toydb')
-
-
 

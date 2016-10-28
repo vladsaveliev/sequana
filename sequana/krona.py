@@ -24,7 +24,7 @@ __all__ = ['KronaMerger']
 
 
 class KronaMerger(collections.Counter):
-    """Utility to merge to Krona files
+    """Utility to merge two Krona files
 
     Imagine those two files (formatted for Krona; first column is a counter)::
 

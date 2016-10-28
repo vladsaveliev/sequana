@@ -32,20 +32,21 @@ the :class:`AdapterReader`::
     from sequana import sequana_data, AdapterReader
     filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa")
     ar = AdapterReader(filename)
-    ar.get_adapter_by_index("N501")
+    ar.get_adapter_by_index("index_dna:N501")
 
 """
 import pandas as pd
 import pysam
 from sequana.fasta import FastA
+from sequana import sequana_data
 import os
 
 
 def fasta_fwd_rev_to_columns(file1, file2=None, output_filename=None):
-    """From two FASTA files (reverse and forward) adapters, returns 2-columns file
+    """From 2 FASTA files (reverse and forward) adapters, returns 2-columns file
 
     This is useful for some tools related to adapter removal that takes as input
-    this kind of fomat
+    this kind of format
 
     :param str filename1: FASTA format
     :param str filename2: FASTA format (optional)
@@ -55,6 +56,7 @@ def fasta_fwd_rev_to_columns(file1, file2=None, output_filename=None):
     f1 = pysam.FastxFile(file1)
     if output_filename is not None:
         fout = open(output_filename, "w")
+
     if file2:
         f2 = pysam.FastxFile(file2)
         for read1, read2 in zip(f1, f2):
@@ -75,12 +77,10 @@ def fasta_fwd_rev_to_columns(file1, file2=None, output_filename=None):
 
 
 def adapters_to_clean_ngs(input_filename, output_filename="adapters_ngs.txt"):
-    """Convert a FASTA formatted file into adapters_ngs format
+    """Convert a FASTA formatted file into clean_ngs format
 
-    That is a TSV file
-
-    .. warning:: may be removed in the future.
-
+    :param str input_filename: the input FASTA file
+    :param str output_filename: a TSV formatted file
 
     """
     with open(input_filename, 'r') as fh1:
@@ -189,13 +189,14 @@ class AdapterReader(object):
 
     Header of the FASTA must be of the form::
 
-        Nextera_index_N501|index_dna:N501 optional comment
+        >Nextera_index_N501|index_dna:N501 optional comment
 
-    In the FASTA identifier, the part after the pipe that contains the index_dna field
-    will be used to identify the index of the adapter and must be found.
+    In the FASTA identifier, the part after the pipe that contains the
+    index_dna field, which will be used to identify the index of the adapter
+    and must be found.
 
-    .. note:: the universal adapter does not need to have it but must be called
-        *Universal_Adapter*
+    .. note:: the universal adapter does not need to have the index_dna tag
+        but must be called *Universal_Adapter*
 
     .. doctest::
 
@@ -212,10 +213,14 @@ class AdapterReader(object):
 
     """
     def __init__(self, filename):
+        """.. rubric:: Constructor
+
+        :param str filename: the input FASTA file
+        """
         if isinstance(filename, str):
-            # this is not large files so we load in memory all sequences/names and
-            # comments once for all. This has also the adavantage that data can now
-            # be changed on the fly
+            # this is not large files so we load in memory all sequences/names
+            # and comments once for all. This has also the adavantage that
+            # data can now be changed on the fly
             fasta = FastA(filename)
             self._data = [self._to_read(this) for this in fasta]
         elif isinstance(filename, AdapterReader):
@@ -257,8 +262,9 @@ class AdapterReader(object):
         adapters = []
         for this in self._data:
             if sequence in this.sequence:
-                this_adapter = Adapter(identifier=this.identifier, sequence=this.sequence,
-                    comment=this.comment)
+                this_adapter = Adapter(identifier=this.identifier,
+                                       sequence=this.sequence,
+                                       comment=this.comment)
                 adapters.append(this_adapter)
         if len(adapters) == 0:
             return None
@@ -268,17 +274,18 @@ class AdapterReader(object):
     def get_adapter_by_identifier(self, text):
         """Return adapter whose identifier matches the user text
 
-        :param index_identifier: the unique index identifier to be found. If several
-            sequence do match, this is an error meaning the fasta file
-            with all adapters is not correctly formatted.
+        :param index_identifier: the unique index identifier to be found.
+            If several sequence do match, this is an error meaning the fasta
+            file with all adapters is not correctly formatted.
         :return: the adapter that match the index_name (if any) otherwise
             returns None
         """
         adapters = []
         for this in self._data:
             if text == this.identifier or text in this.identifier.split("|"):
-                this_adapter = Adapter(identifier=this.identifier, sequence=this.sequence,
-                    comment=this.comment)
+                this_adapter = Adapter(identifier=this.identifier,
+                                       sequence=this.sequence,
+                                       comment=this.comment)
                 adapters.append(this_adapter)
 
         if len(adapters) == 0:
@@ -294,8 +301,8 @@ class AdapterReader(object):
         :param index_name: the unique index name to be found. If several
             sequence do match, this is an error meaning the fasta file
             with all adapters is not correctly formatted.
-        :return: an instance of :class:`Adapter` if index_name match an adapter, 
-            returns None otherwise
+        :return: an instance of :class:`Adapter` if index_name match an
+            adapter; returns None otherwise
 
         ::
 
@@ -309,8 +316,9 @@ class AdapterReader(object):
         adapters = []
         for this in self._data:
             if index_name in this.identifier.split("|"):
-                this_adapter = Adapter(identifier=this.identifier, sequence=this.sequence,
-                    comment=this.comment)
+                this_adapter = Adapter(identifier=this.identifier,
+                                       sequence=this.sequence,
+                                       comment=this.comment)
                 adapters.append(this_adapter)
 
         if len(adapters) == 0:
@@ -337,7 +345,8 @@ class AdapterReader(object):
         return self._data[i]
 
     def to_dict(self):
-        d1 = [(this.identifier, [this.comment, this.sequence]) for this in self._data]
+        d1 = [(this.identifier, [this.comment, this.sequence])
+              for this in self._data]
         return dict(d1)
 
     def __eq__(self, other):
@@ -393,104 +402,136 @@ class AdapterReader(object):
             for i, this in enumerate(self._data):
                 if i>0:
                     fout.write("\n")
-                fout.write(">%s\t%s\n%s" % (this.identifier, this.comment, this.sequence))
+                fout.write(">%s\t%s\n%s" % (this.identifier, this.comment,
+                                            this.sequence))
 
 
 class FindAdaptersFromIndex(object):
-    """Used to identify one or two indices from an IndexMapper structure
+    """Used to identify one or two indices from a design experimental structure
 
-    An IndexMapper structure is just a CSV file that stores
-    the mapping between a sample name and one or two indices.
-
-    The columns are project, index1, index2 and sample_name. 
-
-    Used by sequana main script top build the adapter files for multi-sample
+    Used by sequana main script top build the adapter files for multi-samples
     projects. 
 
     """
-    def __init__(self, index_mapper, adapters, mode="revcomp"):
+    def __init__(self, design_filename, adapters):
         """.. rubric:: Constructor
 
-        :param str index_mapper: filename of a CSV file that has the following
+        :param str design_filename: a CSV file that is compatible
+            with our :class:`sequana.designexp.ExpDesignAdapter`
             header projet,index1,index2,sample_name (index2 is optional)
+        :param adapters: the type of adapters (PCRFree or Nextera)
 
-        sample name is the string that starts the filename. From
-        the sample name, get the indices 1 and 2 and then the corresponding
-        adapter.
+        PCRfree indices are just numbers stored as index_dna:XY
+        Nextera indices have NXYZ or SXYZ tags.
 
+        The files of adapters are stored in Sequana and accessible with the
+        sequana_data function. So, for instance if adapters is set to Nextera,
+        the following file is used to identify the adapters::
+
+            sequana_data("adapters_Nextera_PF1_220616_fwd.fa",
+                        "data/adapters")
+
+        New adapters files can be added on request.
         """
-        if mode != "revcomp":
-            raise ValueError("only mode revcomp implemented. ")
-        #self.index_mapper = pd.read_csv(index_mapper, delim_whitespace=True)[columns_in]
-        try:
-            columns_in = ['sample_name', 'index1', 'index2']
-            self.index_mapper = pd.read_csv(index_mapper, sep=",", dtype=str)[columns_in]
-            self.mode = 'multi_index'
-        except:
-            columns_in = ['sample_name', 'index1']
-            self.index_mapper = pd.read_csv(index_mapper, sep=",", dtype=str)[columns_in]
-            self.mode = 'single_index'
-
-        self.index_mapper.columns = columns_in
-        self.index_mapper.set_index('sample_name', inplace=True)
+        from sequana.designexp import ExpDesignAdapter
+        self.design = ExpDesignAdapter(design_filename).df
+        self.design.set_index("Sample_ID", inplace=True)
 
         self.adapters = adapters
         if adapters == "Nextera":
-            from sequana import sequana_data
             file1 = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", 
                 "data/adapters")
             file2 = sequana_data("adapters_Nextera_PF1_220616_revcomp.fa",
                 "data/adapters")
         elif adapters == "PCRFree":
-            from sequana import sequana_data
             file1 = sequana_data("adapters_PCR-free_PF1_220616_fwd.fa", 
                 "data/adapters")
             file2 = sequana_data("adapters_PCR-free_PF1_220616_revcomp.fa",
                 "data/adapters")
         else:
-            raise ValueError("Unknown set of adapters. Use Nextera or PCRFree (note the small/big caps)")
+            raise ValueError("Unknown set of adapters. Use Nextera or ",
+                             "PCRFree (note the small/big caps)")
 
         self._adapters_fwd = AdapterReader(file1)
         self._adapters_rev = AdapterReader(file2)  # !!! revcomp
 
     def _get_samples(self):
-        return list(self.index_mapper.index)
+        return list(self.design.index)
     sample_names = property(_get_samples)
 
     def get_indices(self, sample_name):
-        if sample_name not in self.index_mapper.index:
+        if sample_name not in self.design.index:
             raise ValueError("%s not valid. Use one of %s" % (sample_name,
                                                               self.sample_names))
-        return self.index_mapper.ix[sample_name]
+        return self.design.ix[sample_name]
 
     def get_adapters(self, sample_name, include_universal=True,
             include_transposase=True):
 
-        indices = self.get_indices(sample_name)
+        data = self.get_indices(sample_name)
+        res = {'index1': {}, 'index2': {}, 'universal': {}, 'transposase': {}}
 
-        if self.mode == "single_index" or self.mode == "multi_index":
-            res = {'index1': {}}
-            index1 = "index_dna:" + indices.ix['index1']
-            #index1 = indices.ix['index1']
+        # Index1_Seq must always be present. This is part of the API of the
+        # ExpDesignAdapter class. However, Index2_ID may not always be present
+        if "Index1_ID" in data.index:
+            index1 = "index_dna:%s" % data.ix['Index1_ID']
             res['index1']['fwd'] = self._adapters_fwd.get_adapter_by_index(index1)
             res['index1']['rev'] = self._adapters_rev.get_adapter_by_index(index1)
+        elif "Index1_Seq" in data.index:
+            index = data.ix['Index1_Seq']
+            if index is None:
+                index = "ZZZZZ"
 
-        if self.mode == "multi_index":
-            res['index2'] = {}
-            index2 = "index_dna:" + str(indices.ix['index2'])
-            #index2 =  indices.ix['index2']
+            seq = self._adapters_fwd.get_adapter_by_sequence(index)
+            if seq is None:
+                pass
+            elif len(seq) == 1:
+                res['index1']['fwd'] = seq[0]
+            else:
+                raise ValueError("Found 2 sequences with index %s " % index)
+
+            from sequana.tools import reverse_complement as revcomp
+            seq = self._adapters_rev.get_adapter_by_sequence(revcomp(index))
+            if seq is None:
+                pass
+            elif len(seq) == 1:
+                res['index1']['rev'] = seq[0]
+            else:
+                raise ValueError("Found 2 sequences with index %s " % index)
+
+        if "Index2_ID" in data.index:
+            index2 = "index_dna:%s" % data.ix['Index2_ID']
             res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index(index2)
             res['index2']['rev'] = self._adapters_rev.get_adapter_by_index(index2)
+        elif "Index2_Seq" in data.index:
+            index = data.ix['Index2_Seq']
+            if index is None:
+                index = "ZZZZZ"
+
+            seq = self._adapters_fwd.get_adapter_by_sequence(index)
+            if seq is None:
+                pass
+            elif len(seq) == 1:
+                res['index2']['fwd'] = seq[0]
+            else:
+                raise ValueError("Found 2 sequences with index %s " % index)
+
+            from sequana.tools import reverse_complement as revcomp
+            seq = self._adapters_rev.get_adapter_by_sequence(revcomp(index))
+            if seq is None:
+                pass
+            elif len(seq) == 1:
+                res['index2']['rev'] = seq[0]
+            else:
+                raise ValueError("Found 2 sequences with index %s " % index)
 
         if include_universal:
-            res['universal'] = {}
             res['universal']['fwd'] = self._adapters_fwd.get_adapter_by_identifier(
                 'Universal_Adapter')
             res['universal']['rev'] = self._adapters_rev.get_adapter_by_identifier(
                 'Universal_Adapter')
 
         if include_transposase and self.adapters == "Nextera":
-            res['transposase'] = {}
             res['transposase']['fwd'] = str(self._adapters_fwd.get_adapter_by_identifier(
                 'Nextera_transposase_seq_1'))
             res['transposase']['fwd'] += "\n" + str(self._adapters_fwd.get_adapter_by_identifier(
@@ -500,12 +541,13 @@ class FindAdaptersFromIndex(object):
             res['transposase']['rev'] += "\n"+str(self._adapters_rev.get_adapter_by_identifier(
                 'Nextera_transposase_seq_1'))
 
-
+        # FIXME changes the dictionary ion the loop. May not be wise
+        res = dict([(k,v) for k,v in res.items() if len(v)!=0])
         return res
 
     def save_adapters_to_fasta(self, sample_name, include_universal=True,
             include_transposase=True, output_dir='.'):
-        """Get index1, index2 and uiversal adapter"""
+        """Get index1, index2 and universal adapter"""
         adapters = self.get_adapters(sample_name, include_universal=include_universal)
 
         file_fwd = output_dir + os.sep + "%s_adapters_fwd.fa"% sample_name
@@ -517,7 +559,7 @@ class FindAdaptersFromIndex(object):
                 fout.write(str(adapters['universal']['fwd'])+"\n")
 
             fout.write(str(adapters['index1']['fwd'])+"\n")
-            if self.mode == "multi_index":
+            if "index2" in adapters.keys():
                 fout.write(str(adapters['index2']['fwd'])+"\n")
 
         file_rev = output_dir + os.sep + "%s_adapters_revcomp.fa" % sample_name
@@ -527,7 +569,7 @@ class FindAdaptersFromIndex(object):
             if include_universal:
                 fout.write(str(adapters['universal']['rev'])+"\n")
             fout.write(str(adapters['index1']['rev'])+"\n")
-            if self.mode == "multi_index":
+            if "index2" in adapters.keys():
                 fout.write(str(adapters['index2']['rev'])+"\n")
 
         return file_fwd, file_rev
@@ -568,14 +610,5 @@ class AdapterRemoval(object):
         return file_fwd, file_rev
 
 
-class AdapterRemoval(object):
-    """Possible data structure for future usage. Not used yet"""
-    def __init__(self, file1, file2=None, adapter1=None, adapter2=None,
-        quality_cutoff1=30, quality_cutoff2=None):
 
-        self.file1 = file1
-        self.file2 = file2
-        self.qual1 = quality_cutoff1
-        self.qual2 = quality_cutoff2
-        self.adapter1 = adapter1
-        self.adapter2 = adapter2
+

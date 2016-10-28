@@ -1,0 +1,26 @@
+
+
+rule report_fastq_stats:
+    input:
+        fastq = __report_fastq_stats__input
+    output:
+        done    = touch(__fastq_stats_stats__output_done)
+    params:
+        wkdir = __fastq_stats_%(name)s__wkdir,
+    threads: 4
+    run:
+        from sequana import FastQStatsReport
+        s = FastQStatsReport(
+              params.wkdir,
+              output_filename="fastq_stats__%(name)s.html",
+              directory=params.wkdir)
+        s.jinja['main_link'] = '../report/summary.html'
+        s.create_report()
+
+
+
+
+
+
+
+

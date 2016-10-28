@@ -16,16 +16,10 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-import easydev
-import os
 import glob
-import json
 
 from sequana.reporting.report_main import BaseReport
-
-# a utility from external reports package
 from reports import HTMLTable
-
 import pandas as pd
 
 
@@ -54,12 +48,18 @@ class FastQStatsReport(BaseReport):
                 output_filename=output_filename, **kargs)
         self.input_directory = input_directory
         self.jinja['title'] = "FastQ Stats Report"
+        self.filenames = []
+
 
     def parse(self):
         # Add the canvas js in the header
         from sequana.resources.canvas import bar
 
-        files = glob.glob("%s/*json" % self.input_directory)
+        if len(self.filenames) == 0:
+            files = glob.glob("%s/*json" % self.input_directory)
+        else:
+            files = self.filenames
+
         acgt = [
             {"name":"A", "data": {}},
             {"name":"C", "data": {}},
@@ -95,6 +95,8 @@ class FastQStatsReport(BaseReport):
                 key = "R1"
             elif "_R2." in filename:
                 key = "R2"
+            else:
+                key = "R1"
             thisdata.index = [key]
 
             if dfsum is None:
@@ -113,6 +115,8 @@ class FastQStatsReport(BaseReport):
         data += """<script type="text/javascript" src="js/canvasjs.min.js"></script> """
         self.jinja["canvas"] = data
 
+
+
         dfsum["n_reads"] = [str(int(x)) for x in dfsum["n_reads"].values]
         dfsum["GC content"] = [str(int(x*100)/100.) for x in dfsum["GC content"].values]
         dfsum = dfsum.T
@@ -120,14 +124,17 @@ class FastQStatsReport(BaseReport):
         dfsum = dfsum.ix[['A', 'C', 'G', 'T', 'N', 'GC content', 'n_reads']]
         S = dfsum.ix[['A', 'C', 'G', 'T', 'N']].sum() 
         # FIXME change the json files themselves instead of multiplying by 100
-        if S.values[0]>0:
-            dfsum.ix[['A', 'C', 'G', 'T', 'N']] /= (S/100.) 
+        try:
+            if S.values[0]>0:
+                dfsum.ix[['A', 'C', 'G', 'T', 'N']] /= (S/100.) 
+        except: 
+            print("fixme in fastq_stats")
 
         html =""
 
         htmltable = HTMLTable(dfsum).to_html(index=True)
         # Save the table into a temporary file
-        with open(self.input_directory + "/temp_%s.html" % self.input_directory, "w") as fh:
+        with open(self.input_directory + "/temp.html", "w") as fh:
             fh.write(htmltable)
 
         html += htmltable
@@ -136,12 +143,12 @@ class FastQStatsReport(BaseReport):
         """
 
         # Copying images into the report/images directory
-        targets = self.copy_images_to_report("%s/images/*png" % self.input_directory)
+        #targets = self.copy_images_to_report("%s/images/*png" % self.input_directory)
 
         # Create table with those images
-        from sequana.htmltools import galleria
-        if len(targets):
-            html += galleria(targets)
+        #from sequana.htmltools import galleria
+        #if len(targets):
+        #    html += galleria(targets)
         self.jinja["content"] = html
 
 
