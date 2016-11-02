@@ -34,36 +34,33 @@ rule star_mapping:
     shell:
         """
         echo "Run rna-star 1st pass"
-        STAR
-            --genomeDir {params.index} \
-            --readFilesIn {input}  \
-            --runThreadN {threads} \
-            --genomeLoad NoSharedMemory \
-            --outFilterMismatchNoverLmax 0.05 \
-            --outSAMunmapped Within  \
-            --outSAMtype BAM
-            --seedSearchStartLmax 20 \
-            --outFileNamePrefix {params.prefix} \
+        STAR --genomeDir {params.index} \
+             --readFilesIn {input}  \
+             --runThreadN {threads} \
+             --genomeLoad NoSharedMemory \
+             --outFilterMismatchNoverLmax 0.05 \
+             --outSAMunmapped Within  \
+             --outSAMtype BAM
+             --seedSearchStartLmax 20 \
+             --outFileNamePrefix {params.prefix} \
             {params.kwargs}  2> {log}
         echo "run rna-star genome indexing"
-        STAR \
-            --runMode genomeGenerate \
-            --genomeDir {params.genome_dir} \
-            --genomeFastaFiles {params.ref} \
-            --sjdbFileChrStartEnd {params.splice_file} \
-            --sjdbOverhang 100 \
-            --runThreadN {threads}  2>> {log}
+        STAR --runMode genomeGenerate \
+             --genomeDir {params.genome_dir} \
+             --genomeFastaFiles {params.ref} \
+             --sjdbFileChrStartEnd {params.splice_file} \
+             --sjdbOverhang 100 \
+             --runThreadN {threads}  2>> {log}
         echo "Run rna-star 2nd pass"
-        STAR \
-            --genomeDir {params.genome_dir} \
-            --readFilesIn {input}  \
-            -runThreadN {threads} \
-            --genomeLoad NoSharedMemory \
-            --sjdbFileChrStartEnd {params.splice_file} \
-            --outFilterMismatchNoverLmax 0.05 \
-            --outSAMunmapped Within  \
-            --outSAMtype BAM \
-            --outFileNamePrefix {params.prefix} \
-            {params.kwargs}  2>> {log}
+        STAR --genomeDir {params.genome_dir} \
+             --readFilesIn {input}  \
+             -runThreadN {threads} \
+             --genomeLoad NoSharedMemory \
+             --sjdbFileChrStartEnd {params.splice_file} \
+             --outFilterMismatchNoverLmax 0.05 \
+             --outSAMunmapped Within  \
+             --outSAMtype BAM \
+             --outFileNamePrefix {params.prefix} \
+             {params.kwargs}  2>> {log}
         samtools sort {params.prefix}_Aligned.out.bam > {output}
         """
