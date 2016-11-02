@@ -68,5 +68,5 @@ rule star_mapping:
              --readFilesCommand zcat \
              --outFileNamePrefix {params.prefix2} \
              {params.kwargs}  2>> {log}
-        samtools sort {params.prefix2}Aligned.Unsorted.out.bam > {output}
+        samtools sort {params.prefix2}Aligned.out.bam > {output}
         """
