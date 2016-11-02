@@ -18,8 +18,9 @@ rule star_mapping:
     log:
         __star_mapping__logs
     output:
-        __star_mapping__output_prefix
+        __star_mapping__sort
     params:
+        prefix = __star_mapping__output_prefix,
         index = config['star_mapping']['prefix_index'],
         ref = config['star_mapping']['ref'],
         #read_groups = __star_mapping__read_groups,
@@ -42,7 +43,7 @@ rule star_mapping:
             --outSAMunmapped Within  \
             --outSAMtype BAM
             --seedSearchStartLmax 20 \
-            --outFileNamePrefix {output} \
+            --outFileNamePrefix {params.prefix} \
             {params.kwargs}  2> {log}
         echo "run rna-star genome indexing"
         STAR \
@@ -62,7 +63,7 @@ rule star_mapping:
             --outFilterMismatchNoverLmax 0.05 \
             --outSAMunmapped Within  \
             --outSAMtype BAM \
-            --outFileNamePrefix {output} \
+            --outFileNamePrefix {params.prefix} \
             {params.kwargs}  2>> {log}
-
+        samtools sort {params.prefix}_Aligned.out.bam > {output}
         """
