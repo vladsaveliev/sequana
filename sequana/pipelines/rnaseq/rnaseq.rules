@@ -110,10 +110,10 @@ elif manager.config.star_mapping.do:
     # Mapper rna-star
     __star_mapping__input = __clean_ngs__output
     __star_mapping__logs = manager.getname("star_mapping", ".logs")
-    __star_mapping__output_prefix = manager.getname("star_mapping", "")
+    __star_mapping__output_prefix = manager.getname("star_mapping", "_")
     __star_mapping__read_groups = ""
     __star_mapping__sort = manager.getname("star_mapping", "_Aligned.sorted.bam")
-    __star_mapping__genome_dir = manager.getname("star_mapping", "star_2nd_pass")
+    __star_mapping__genome_dir = manager.getname("star_mapping", "_star_2nd_pass")
     __star_mapping__splice_file = manager.getname("star_mapping", "_SJ.out.tab")
     include: sm.modules["star_mapping"]
 
