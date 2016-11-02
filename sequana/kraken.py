@@ -80,10 +80,11 @@ class KrakenResults(object):
                     return [(self.df.ix[x][rank], rank) for rank in ranks]
             self.tax = Taxonomy()
 
-        # This initialise the data
-        self._parse_data()
+        if filename:
+            # This initialise the data
+            self._parse_data()
+            self._data_created = False
 
-        self._data_created = False
 
     def get_taxonomy_biokit(self, ids):
         """Retrieve taxons given a list of taxons
