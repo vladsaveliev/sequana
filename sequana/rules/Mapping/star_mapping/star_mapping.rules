@@ -62,5 +62,5 @@ rule star_mapping:
              --outSAMtype BAM Unsorted \
              --outFileNamePrefix {params.prefix} \
              {params.kwargs}  2>> {log}
-        samtools sort {params.prefix}_Aligned.out.bam > {output}
+        samtools sort {params.prefix}_Aligned.Unsorted.out.bam > {output}
         """
