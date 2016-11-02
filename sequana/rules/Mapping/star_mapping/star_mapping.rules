@@ -41,6 +41,7 @@ rule star_mapping:
              --outFilterMismatchNoverLmax 0.05 \
              --outSAMunmapped Within  \
              --outSAMtype BAM Unsorted \
+             --readFilesCommand pigz \
              --seedSearchStartLmax 20 \
              --outFileNamePrefix {params.prefix} \
             {params.kwargs}  2> {log}
@@ -60,7 +61,8 @@ rule star_mapping:
              --outFilterMismatchNoverLmax 0.05 \
              --outSAMunmapped Within  \
              --outSAMtype BAM Unsorted \
+             --readFilesCommand pigz \
              --outFileNamePrefix {params.prefix} \
              {params.kwargs}  2>> {log}
-        samtools sort {params.prefix}_Aligned.Unsorted.out.bam > {output}
+        samtools sort {params.prefix}Aligned.Unsorted.out.bam > {output}
         """
