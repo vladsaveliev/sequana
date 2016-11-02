@@ -18,7 +18,8 @@ rule star_mapping:
     log:
         __star_mapping__logs
     output:
-        __star_mapping__sort
+        bam = __star_mapping__sort,
+        genome_dir = temp(__star_mapping__genome_dir)
     params:
         prefix = __star_mapping__output_prefix,
         index = config['star_mapping']['prefix_index'],
@@ -47,7 +48,7 @@ rule star_mapping:
             {params.kwargs}  2> {log}
         echo "run rna-star genome indexing"
         STAR --runMode genomeGenerate \
-             --genomeDir {params.genome_dir} \
+             --genomeDir {output.genome_dir} \
              --genomeFastaFiles {params.ref} \
              --sjdbFileChrStartEnd {params.splice_file} \
              --sjdbOverhang 100 \
@@ -64,5 +65,5 @@ rule star_mapping:
              --readFilesCommand pigz \
              --outFileNamePrefix {params.prefix} \
              {params.kwargs}  2>> {log}
-        samtools sort {params.prefix}Aligned.Unsorted.out.bam > {output}
+        samtools sort {params.prefix}Aligned.Unsorted.out.bam > {output.bam}
         """
