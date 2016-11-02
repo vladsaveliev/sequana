@@ -366,6 +366,7 @@ class BAM(pysam.AlignmentFile):
         df.plot(kind='hist', bins=range(0,df.max().values[0]+1), legend=False,
             grid=True, logy=True)
         pylab.xlabel("MAPQ", fontsize=fontsize)
+        pylab.ylabel("Count", fontsize=fontsize)
         try:
             # This may raise issue on MAC platforms
             pylab.tight_layout()

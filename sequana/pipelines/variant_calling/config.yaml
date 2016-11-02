@@ -47,13 +47,7 @@ bwa_mem_ref:
 snpeff:
     do: no
     reference:
-    format: "" # format of your annotation file (only genbank for the moment)
     options: "-no-downstream -no-upstream"
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bedtools genomecov
-
-bedtools_genomecov: 
-    options: '-d'
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Freebayes
 

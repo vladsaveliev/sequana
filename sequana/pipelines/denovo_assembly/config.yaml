@@ -61,7 +61,6 @@ format_contigs:
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bwa
 
 bwa_mem_ref:
-    reference: # Empty for denovo assembly
     index:      # Options for bwa index
         options: '-a is'
     mem:        # Options for bwa mem
@@ -70,20 +69,6 @@ bwa_mem_ref:
         read_groups: '@RG\\tID:1\\tSM:1\\tPL:illumina'
         # -t option (number thread)
         threads: 2 
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SnpEff
-
-#Results filter options:
-#	-no-downstream: Do not show DOWNSTREAM changes
-#	-no-intergenic: Do not show INTERGENIC changes
-#	-no-intron: Do not show INTRON changes
-#	-no-upstream: Do not show UPSTREAM changes
-#	-no-utr: Do not show 5_PRIME_UTR or 3_PRIME_UTR changes
-snpeff:
-    do: no
-    reference:
-    options: "-no-downstream -no-upstream"
-
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Freebayes
 
