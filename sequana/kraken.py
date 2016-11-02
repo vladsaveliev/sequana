@@ -361,7 +361,8 @@ class KrakenPipeline(object):
         called sequana_taxonomy and can be used within a command shell.
 
     """
-    def __init__(self, fastq, database, threads=4, output="krona.html"):
+    def __init__(self, fastq, database, threads=4, output_directory="kraken",
+            verbose=True):
         """.. rubric:: Constructor
 
         :param fastq: either a fastq filename or a list of 2 fastq filenames
@@ -374,35 +375,39 @@ class KrakenPipeline(object):
         lineage and scientif names to store within a Krona formatted file.
         KtImportTex is then used to create the Krona page.
 
-        """
+        """ 
+        self.verbose = verbose
+        # Set and create output directory
+        self._devtools = DevTools()
+        self.output_directory = output_directory
+        self._devtools.mkdir(output_directory)
         self.ka = KrakenAnalysis(fastq, database, threads)
-        self.output = output
 
-    def run(self, output_png="kraken.png"):
+
+    def run(self):
         """Run the analysis using Kraken and create the Krona output"""
 
-        # Run Kraken
-        self.ka.run()
+        # Run Kraken (KrakenAnalysis)
+        kraken_results = self.output_directory + os.sep + "kraken.out"
+        self.ka.run(output_filename=kraken_results)
 
-        # Translate kraken output to a format understood by Krona
-        kraken_summary = TempFile()
-        kr = KrakenResults(self.ka.kraken_output.name)
+        # Translate kraken output to a format understood by Krona and save png
+        # image
+        self.kr = KrakenResults(kraken_results, verbose=self.verbose)
 
-        df = kr.plot(kind="pie")
+        df = self.kr.plot(kind="pie")
         from pylab import savefig
-        savefig(output_png)
+        savefig(self.output_directory + os.sep + "kraken.png")
 
-        kr.kraken_to_krona(output_filename=kraken_summary.name)
+        kraken_out_summary = self.output_directory + os.sep + "kraken.out.summary"
+        self.kr.kraken_to_krona(output_filename=kraken_out_summary)
+        self.kr.kraken_to_json(self.output_directory + os.sep + "kraken.json")
+        self.kr.kraken_to_csv(self.output_directory + os.sep + "kraken.csv")
 
-        # Transform to Krona
+        # Transform to Krona HTML
         from snakemake import shell
-        shell("ktImportText %s -o %s" % (kraken_summary.name, self.output))
-
-        print(self.ka.kraken_output.name)
-        print(kraken_summary.name)
-        #if keep_temporary_files is False:
-        #    self.ka.kraken_output.delete()
-        #    kraken_summary.delete()
+        kraken_html = self.output_directory + os.sep + "kraken.html"
+        shell("ktImportText %s -o %s" % (kraken_out_summary, kraken_html))
 
     def show(self):
         """Opens the filename defined in the constructor"""
@@ -476,14 +481,23 @@ class KrakenAnalysis(object):
         for this in self.fastq:
             self._devtools.check_exists(database)
 
-    def run(self):
-        self.kraken_output = TempFile()
+    def run(self, output_filename=None):
+        """Performs the kraken analysis
+
+        :param str output_filename: if not provided, a temporary file is used
+            and stored in :attr:`kraken_output`.
+
+        """
+        if output_filename is None:
+            self.kraken_output = TempFile().name
+        else:
+            self.kraken_output = output_filename
 
         params = {
             "database": self.database,
             "thread": self.threads,
             "file1": self.fastq[0],
-            "kraken_output": self.kraken_output.name,
+            "kraken_output": self.kraken_output,
             }
 
         if self.paired:
