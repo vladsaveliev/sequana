@@ -47,7 +47,9 @@ rule star_mapping:
              --outFileNamePrefix {params.prefix1} \
             {params.kwargs}  2> {log}
         echo "run rna-star genome indexing"
-        mkdir {params.genome_dir}
+        if [ ! -d "{params.genome_dir}" ]; then
+            mkdir {params.genome_dir}
+        fi
         STAR --runMode genomeGenerate \
              --genomeDir {params.genome_dir} \
              --genomeFastaFiles {params.ref} \
