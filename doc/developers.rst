@@ -150,9 +150,59 @@ coded parameter may break the pipeline. However having the *options* field
 allows users to use any parameters.
 
 
-
 .. seealso:: Sequana contains many pipelines that can be used as examples.
     See `github repo <https://github.com/sequana/sequana/tree/master/sequana/pipelines>`_
+
+
+Add documentation
+------------------------
+
+In **sequana**, we provide a sphinx extension to include the inline
+documentation of a rule::
+
+    .. snakemakerule:: rule_name
+
+This searches for the rule docstring, and includes it in your documentation. The
+docstring should be uniformised across all rules and pipelines. Here is our
+current convention::
+
+    rule cutadapt:
+        """Cutadapt (adapter removal)
+
+        Some details about the tool on what is does is more than welcome.
+
+        Required input:
+            - __cutadapt__input_fastq
+
+        Required output:
+            - __cutadapt__output
+
+        Required parameters:
+            - __cutadapt__fwd: forward adapters as a file, or string
+            - __cutadapt__rev: reverse adapters as a file, or string
+
+        Required configuration:
+            .. code-block:: yaml
+
+                cutadapt:
+                    fwd: "%(adapter_fwd)s"
+                    rev: "%(adapter_rev)s"
+
+        References:
+            a url link here or a link to a publication.
+    """
+    input:
+        fastq = __cutadapt__input_fastq
+    output:
+        fastq = __cutadapt__output
+    params:
+        fwd = config['cutadapt']["fwd"],
+        rev = config['cutadapt']["rev"]
+    run:
+        cmd = "cutadapt -o {output.fastq[0]} -p {output.fastq[1]} "
+        cmd += " -g %s -G %s" % (params.fwd, params.rev)
+        cmd += "{input.fastq[0]} {input.fastq[1]}"
+        shell(cmd)
 
 
 .. _dev_pipeline:
@@ -160,19 +210,23 @@ allows users to use any parameters.
 How to write new pipelines
 ================================
 
-Include existing rules
+Use sequana.snaketools
 -------------------------
 
-Assuming there will be a config file named *config.yaml*, the pipeline could
-look like::
+Assuming there will be a config file named *config.yaml*, the pipeline should be
+written as follows:
+
+.. code-block:: snakemake
 
     import sequana
     from sequana import snaketools as sm
+    sm.init("counter", globals())        # see later for explanation
 
     configfile: "config.yaml"
 
     # include all relevant rules
-    include: sm.modules['count']
+    include: sm.modules['count']        # if included in sequana/rules
+
 
     # must be defined as the final rule
     rule pipeline_count:
@@ -201,5 +255,20 @@ This is a WIP in progress but here is an example for the previous pipeline::
         snakemake -s pipeline_count.rules -f 
 
 .. note:: the README uses Restructured syntax (not markdown)
+
+
+
+
+requirements file
+-----------------------
+
+You can add a **requirements.txt** file with a list of executable or libraries
+required by the pipeline. Executable are searched in your PATH and libraries in
+PYTHONPATH (conda).
+
+Where running a pipeline, if the requirements are not fulfilled, an error is
+raised before starting the analysis.
+
+
 
 

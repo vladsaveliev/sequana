@@ -1,15 +1,12 @@
 :Overview: Denovo Assembly from FastQ files
 :Input: FastQ file(s) from Illumina Sequencing instrument
 :Output: FastA, VCF and HTML files
-:Config file requirements:
-    - samples:file1
-    - samples:file2
-    - project
+
 
 Usage
 ~~~~~~~~~
 
-::
+Example::
 
     sequana --pipeline denovo_assembly --file1 R1.fastq.gz --file2 R2.fastq.gz --project denovo
     cd denovo
@@ -34,4 +31,39 @@ pipeline.
 
 .. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/denovo_assembly/denovo_dag.png
 
+Rules and configuration details
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Here is a documenteted configuration file :download:`../sequana/pipelines/denovo_assembly/config.yaml` to be used with the pipeline. Each rule used in the pipeline may have a section in the configuration file. Here are the rules and their developer and user documentation.
+
+samtools_depth
+^^^^^^^^^^^^^^
+.. snakemakerule:: samtools_depth
+
+bwa
+^^^^
+.. snakemakerule:: bwa_mem_dynamic
+
+digital_normalisation
+^^^^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: digital_normalisation
+
+format_contigs
+^^^^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: format_contigs
+
+freebayes
+^^^^^^^^^^
+.. snakemakerule:: freebayes
+
+quast
+^^^^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: quast
+
+snpeff
+^^^^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: snpeff
+
+spades
+^^^^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: spades

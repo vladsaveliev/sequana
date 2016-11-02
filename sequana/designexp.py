@@ -22,7 +22,7 @@ import shlex
 import io
 
 
-__all__ = ["ExpDesignAdapter"]
+__all__ = ["ExpDesignAdapter", "ExpDesignMiSeq", "ExpDesignHiSeq"]
 
 
 class ExpDesignAdapter(object):
@@ -30,11 +30,18 @@ class ExpDesignAdapter(object):
 
 
     The :attr:`df` attribute contains Sample_ID, Index_Seq and Index_ID amongst
-    other things. The other column may differ depending on the input.
+    other things. The other columns may differ depending on the input.
 
+
+    .. seealso:: :class:`ExpDesignHiSeq`, :class:`ExpDesignMiSeq`.
     """
     def __init__(self, filename, verbose=True):
+        """.. rubric:: constructor
 
+        :param str filename:
+        :param bool verbose:
+
+        """
         self.df = None
         if self.df is None:
             try: 
@@ -54,16 +61,20 @@ class ExpDesignAdapter(object):
         if self.df is None:
             raise IOError("Input file could not be read or interpreted")
 
+
 class ExpDesignBase(object):
 
     def check(self):
+        """Check the presence of the Sample_ID columnd"""
         for this in ["Sample_ID"]:
             if this not in self.df.columns:
                 print(self.df.columns)
                 raise KeyError("%s not found. " % this)
 
     def read(self, filename):
+        """Read a CSV file"""
         self.df = pd.read_csv(filename, sep=",")
+
 
 class ExpDesignGeneric(ExpDesignBase):
     #TODO a generic list of columns to be found
@@ -126,6 +137,7 @@ class ExpDesignHiSeq(ExpDesignBase):
         self.df.drop("Index_Seq", axis=1, inplace=True)
 
         self.check()
+
 
 class ExpDesignMiSeq(ExpDesignBase):
     """

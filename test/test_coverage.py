@@ -6,7 +6,6 @@ def test_coverage():
     cover = Coverage(L=500, G=300000000)
     cover.__repr__() # test __repr__
 
-
     cover.a = 10
     assert cover.N == 6000000.0
 

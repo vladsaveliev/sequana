@@ -17,7 +17,6 @@
 #
 ##############################################################################
 import pandas as pd
-from bioservices import EUtils, easyXML
 import collections
 from sequana.databases import ENADownload
 from easydev import DevTools
@@ -35,10 +34,10 @@ __all__ = ["KrakenBuilder"]
 class KrakenBuilder():
     """This class will help you building a custom Kraken database
 
-    
+
     You will need a few steps, and depending on the FASTA files you want to
-    include lots of resources (memory and space wise). In the following example, 
-    we will be reasonable and use only viruses FASTA files. 
+    include lots of resources (memory and space wise). In the following example,
+    we will be reasonable and use only viruses FASTA files.
 
     First, we need to create the data structure directory. Let us call it
     **virusdb**::
@@ -47,7 +46,7 @@ class KrakenBuilder():
         kb = KrakenBuilder("virusdb")
 
     We then need to download a large taxonomic database from NCBI. You may
-    already have a local copy, in which case you would need to copy it in 
+    already have a local copy, in which case you would need to copy it in
     virusdb/taxonomy directory. If not, type::
 
         kb.download_taxonomy()
@@ -57,7 +56,7 @@ class KrakenBuilder():
     Note that this currently requires the unix tools **wget** and **tar**.
 
     Then, we need to add some fasta files. You may download specific FASTA files
-    if you know the accession numbers using :meth:`download_accession`. However, 
+    if you know the accession numbers using :meth:`download_accession`. However,
     we also provide a method to download all viruses from ENA::
 
         kb.download_viruses()
@@ -87,7 +86,7 @@ class KrakenBuilder():
 
         kb.params['kmer_length']  (max value is 31)
         kb.params['max_db_size'] is tha max size of the DB files in Gb
-        kb.params['minimizer_len'] 
+        kb.params['minimizer_len']
 
     To create a small DB quicly, we set those values::
 
@@ -125,14 +124,14 @@ class KrakenBuilder():
 
         kb = KrakenBuilder("virusdb")
         kb.run(['virus']) # use only viruses from ENA list
-        
+
     Here, you may want to re-run the analysis with different parameters
     for the database built. If you require the virus DB, it has been
-    downloaded already so this step will be skip. The Taxon DB does not 
+    downloaded already so this step will be skip. The Taxon DB does not
     need to be downloaded again, so set download_taxonomy to False.
 
     Before, let us change the parameter to build a full database::
-        
+
         kb.params['kmer_length']  = 31
         kb.params['minimizer_len'] = 13
 
@@ -187,7 +186,7 @@ class KrakenBuilder():
         """Donwload a specific Fasta from ENA given its accession number
 
         Note that if you want to add specific FASTA from ENA, you must use
-        that function to make sure the header will be understood by Kraken; 
+        that function to make sure the header will be understood by Kraken;
         The header must use a GI number (not ENA)
 
         """
@@ -281,7 +280,7 @@ class KrakenBuilder():
         # Now we can clean the kraken db:
         print('Cleaning the kraken db ')
         # Clean the nodes.dmp and names.dmp
-        print('Identifying the GI numbers') 
+        print('Identifying the GI numbers')
         gis = self.get_gis()
         taxons = self.get_taxons_from_gis(gis)
         print("")
@@ -296,13 +295,13 @@ class KrakenBuilder():
         nodes_file = self.taxon_path + os.sep + "nodes.dmp"
         names_file_temp = self.taxon_path + os.sep + "names_temp.dmp"
         nodes_file_temp = self.taxon_path + os.sep + "nodes_temp.dmp"
- 
-        taxon_file_reader = NCBITaxonReader(names=names_file, nodes=nodes_file, 
+
+        taxon_file_reader = NCBITaxonReader(names=names_file, nodes=nodes_file,
             verbose=True)
         print("Filtering")
-        taxon_file_reader.filter_nodes_dmp_file(nodes_file, nodes_file_temp, 
+        taxon_file_reader.filter_nodes_dmp_file(nodes_file, nodes_file_temp,
             taxons=taxons)
-        taxon_file_reader.filter_names_dmp_file(names_file, names_file_temp, 
+        taxon_file_reader.filter_names_dmp_file(names_file, names_file_temp,
             taxons=taxons)
 
         # mv the new files into the old ones
@@ -318,10 +317,10 @@ class KrakenBuilder():
         self.filenames = []
         root = self.dbname
         for extension in extensions:
-            self.filenames.extend( list(glob.iglob("%s/library/**/*%s" % 
+            self.filenames.extend( list(glob.iglob("%s/library/**/*%s" %
                 (root, extension))))
         for extension in extensions:
-            self.filenames.extend( list(glob.iglob("%s/library/**/**/*%s" % 
+            self.filenames.extend( list(glob.iglob("%s/library/**/**/*%s" %
                 (root, extension))))
 
         N = len(self.filenames)
@@ -370,7 +369,7 @@ class KrakenBuilder():
                 _ = local_gis.remove(this)
 
             if len(found_gis)>0:
-                taxons.extend(chunk[1].values) 
+                taxons.extend(chunk[1].values)
 
             # no need to carry on if all GIs were found
             if len(local_gis) == 0:
@@ -435,7 +434,7 @@ class NCBITaxonReader(object):
         7 | 6       | species | AC  | 0 | 1 | 11 | 1  | 0 | 1 | 1 | 0 |   |
         9 | 32199   | species | BA  | 0 | 1 | 11 | 1  | 0 | 1 | 1 | 0 |   |
 
-    Again this is a tabulated file. The first three columns are taxid, parent taxid, 
+    Again this is a tabulated file. The first three columns are taxid, parent taxid,
     and rank. Rank is species, genus, family, phylum, etc.
 
     ::
@@ -475,7 +474,6 @@ class NCBITaxonReader(object):
 
         self._df_nodes_taxon = self.df_nodes.copy()
         self._df_nodes_taxon.set_index('taxon', inplace=True)
-
 
     def get_number_taxon(self):
         """Return number of unique taxon"""
@@ -538,41 +536,4 @@ class NCBITaxonReader(object):
                 for line in fin.readlines():
                     if int(line.split("\t", 1)[0]) in all_taxons:
                         fout.write(line)
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
