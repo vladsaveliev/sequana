@@ -1,14 +1,17 @@
-#
+# ============================================================================
 # Config file for Denovo Assembly
 #
-##############################################################################
-
-# =========================================== Sections for the users
-
+# ==========================================[ Sections for the users ]========
+#
+# One of input_directory, input_pattern and input_samples must be provided
+# If input_directory provided, use it otherwise if input_pattern provided,
+# use it, otherwise use input_samples.
+# If input_extension provided, use it otherwise assume fastq.gz
+# ============================================================================
 input_directory: "%(input_directory)s"
-
-# List of your input file
-samples:
+input_extension: "%(input_extension)s"
+input_pattern: "%(input_pattern)s"
+input_samples:
     file1: "%(file1)s"
     file2: "%(file2)s"
 
@@ -61,7 +64,6 @@ format_contigs:
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bwa
 
 bwa_mem_ref:
-    reference: # Empty for denovo assembly
     index:      # Options for bwa index
         options: '-a is'
     mem:        # Options for bwa mem
@@ -70,20 +72,6 @@ bwa_mem_ref:
         read_groups: '@RG\\tID:1\\tSM:1\\tPL:illumina'
         # -t option (number thread)
         threads: 2 
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SnpEff
-
-#Results filter options:
-#	-no-downstream: Do not show DOWNSTREAM changes
-#	-no-intergenic: Do not show INTERGENIC changes
-#	-no-intron: Do not show INTRON changes
-#	-no-upstream: Do not show UPSTREAM changes
-#	-no-utr: Do not show 5_PRIME_UTR or 3_PRIME_UTR changes
-snpeff:
-    do: no
-    reference:
-    options: "-no-downstream -no-upstream"
-
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Freebayes
 

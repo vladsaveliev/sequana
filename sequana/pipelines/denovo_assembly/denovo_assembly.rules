@@ -49,6 +49,8 @@ __format_contigs__output = manager.getname("format_contigs", ".fasta")
 include: sm.modules["format_contigs"]
 
 if config["do_mapping_evaluation"]:
+    # remove snpeff analysis
+    config = dict(config, **{"snpeff": {"do": False}})
     __bwa_mem_ref__ref_input = __format_contigs__output
     __report_mapping__quast_input = __quast__output
     include: sm.modules["variant_calling"]

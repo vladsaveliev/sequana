@@ -1,15 +1,19 @@
-
-
+# ============================================================================
+# Config file for Quality Control
+#
+# ==========================================[ Sections for the users ]========
+#
+# One of input_directory, input_pattern and input_samples must be provided
+# If input_directory provided, use it otherwise if input_pattern provided,
+# use it, otherwise use input_samples.
+# If input_extension provided, use it otherwise assume fastq.gz
+# ============================================================================
 input_directory: "%(input_directory)s"
-pattern: "%(pattern)s"
-
-# =========================================== Sections for the users
-
-# list of your input file
-samples:
+input_extension: "%(input_extension)s"
+input_pattern: "%(input_pattern)s"
+input_samples:
     file1: "%(file1)s"
     file2: "%(file2)s"
-
 
 # if files are required for a pipeline and are within sequana or should
 # # be downloaded before the pipeline provide them in this section
@@ -34,7 +38,7 @@ fastqc:
     options: "--nogroup"
 
 ##################################################################
-# Use by Phix_removal pipeline to remove reads with the 
+# Use by Phix_removal pipeline to remove reads with the
 # phix found in the bwa_phix:reference section
 #
 ##################################################################
@@ -46,11 +50,11 @@ bwa_mem_phix:
     mem:
         options: '-T 30'
         read_groups: '@RG\\tID:1\\tSM:1\\tPL:illumina'
-        threads: 2 
+        threads: 2
 
 #################################################################
 # Quality trimming and adapter removal
-#   - quality: 0 means no trimming, 30 means keep base with quality 
+#   - quality: 0 means no trimming, 30 means keep base with quality
 #       above 30
 #   - m: 20 means discard trimmed reads that are shorter than 20.
 #   - tool: only cutadapt supported for now

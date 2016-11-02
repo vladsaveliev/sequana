@@ -505,7 +505,7 @@ class SequanaConfig(object):
 
     Input files should be stored into::
 
-        samples:
+        input_samples:
             - file1: FILE1
             - file2: FILE2
 
@@ -544,14 +544,16 @@ class SequanaConfig(object):
         self._converts_boolean(self.config)
 
         if test_requirements and mode == "NGS":
-            requirements = ["input_directory", "samples", "samples:file1", "samples:file2"]
+            requirements = ["input_directory", 
+                            "input_samples",
+                            "input_extension",
+                            "input_pattern",
+                            "input_samples:file1", "input_samples:file2"]
             # converts to dictionary ?
             for this in requirements:
                 this = this.split(":")[0]
                 assert this in self.config.keys(),\
                     "Your config must contain %s" % this
-
-
 
     def save(self, filename="config.yaml"):
         """Export config into YAML file
@@ -684,7 +686,10 @@ class SequanaConfig(object):
             return self.get(level2, default=default, cfg=cfg[level1])
         else:
             if isinstance(cfg, dict) and field in cfg.keys():
-                return cfg[field]
+                if cfg[field]:
+                    return cfg[field]
+                else:
+                    return default
             else:
                 return default
 
@@ -695,8 +700,16 @@ class PipelineManager(object):
         cfg.config.pipeline_name = name
 
         # Default mode is the glob/pattern. 
-        glob_dir = cfg.config.input_directory + "/" + \
-                   cfg.get('pattern', pattern)
+        if cfg.config.input_directory.strip():
+            glob_dir = cfg.config.input_directory + os.sep + \
+                        "*" + cfg.get('input_extension', pattern)
+        elif cfg.config.input_pattern:
+            glob_dir = cfg.config.input_pattern
+        else:
+            glob_dir = [cfg.config.input_samples.file1]
+            if cfg.config.samples.file2:
+                glob_dir += [cfg.config.input_samples.file2]
+
         self.ff = FastQFactory(glob_dir)
 
         R1 = [1 for this in self.ff.filenames if "_R1_" in this]
@@ -899,10 +912,29 @@ class FileFactory(object):
 
     """
     def __init__(self, pattern):
+        """.. rubric:: Constructor
+
+        :param pattern: can be a filename, list of filenames, or a glob
+
+        """
         self.pattern = pattern
-        if isinstance(pattern, str):
-            self._glob = glob.glob(pattern)
+        # A filename
+        if isinstance(pattern, str) and os.path.exists(pattern):
+            # Found one existing file
+            self._glob = [pattern]
+        # A pattern
+        elif isinstance(pattern, str):
+            try:
+                self._glob = glob.glob(pattern, recursive=True)
+            except:
+                print("Recursive glob does not work in Python 2.X. Do not use **")
+                self._glob = glob.glob(pattern)
+                
+        # a list of files
         elif isinstance(pattern, list):
+            for this in pattern:
+                if os.path.exists(this) is False:
+                    raise ValueError("This file % does not exist" % this)
             self._glob = pattern[:]
 
     def _get_realpath(self):
@@ -944,14 +976,27 @@ class FileFactory(object):
         return filenames
     all_extensions = property(_get_all_extensions)
 
+    def __len__(self):
+        return len(self.filenames)
+
+    def __str__(self):
+        return "Found %s file(s)" % len(self)
+
 
 class FastQFactory(FileFactory):
-    """
+    """FastQ Factory tool
 
 
+    ::
+
+        ff = FastQFactory("*fastq.gz")
+        ff.tags
+        ff.get_file1(ff.tags[0])
+        len(ff)
+
     """
-    def __init__(self, pattern, extension="fastq.gz", strict=True,
-                 rstrip_underscore=True):
+    def __init__(self, pattern, extension=["fq.gz", "fastq.gz"], 
+                 strict=True, verbose=False):
         """
 
         :param strict: if true, the pattern _R1_ or _R2_ must be found
@@ -962,12 +1007,10 @@ class FastQFactory(FileFactory):
             raise ValueError("No files found with the requested pattern (%s)"
                              % pattern)
 
-        # Check the extension of each file (fastq.gz by default)
-        for this in self.all_extensions:
-            assert this.endswith(extension), \
-                "Expecting file with %s extension. Found %s" % (extension,
-                                                                this)
-
+        # Check the extension of each file (fastq.gz by default) TODO
+        #for this in self.all_extensions:
+        #    assert this.endswith(extension), \
+        #        "Expecting file with %s extension. Found %s" % (extension, this)
         # identify a possible tag
         self.tags = []
         for this in self.filenames:
@@ -982,6 +1025,8 @@ class FastQFactory(FileFactory):
 
         self.short_tags = [x.split("_")[0] for x in self.tags]
 
+        if verbose:
+            print("Found %s projects/samples " % len(self.tags))
 
     def _get_file(self, tag, rtag):
         assert rtag in ["_R1_", "_R2_"]
@@ -1018,6 +1063,8 @@ class FastQFactory(FileFactory):
     def get_file2(self, tag=None):
         return self._get_file(tag, "_R2_")
 
+    def __len__(self):
+        return len(self.tags)
 
 
 def init(filename, namespace):
