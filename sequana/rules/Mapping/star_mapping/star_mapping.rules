@@ -20,7 +20,8 @@ rule star_mapping:
     output:
         __star_mapping__sort
     params:
-        prefix = __star_mapping__output_prefix,
+        prefix1 = __star_mapping__output_prefix1,
+        prefix2 = __star_mapping__output_prefix2,
         index = config['star_mapping']['prefix_index'],
         ref = config['star_mapping']['ref'],
         #read_groups = __star_mapping__read_groups,
@@ -43,7 +44,7 @@ rule star_mapping:
              --outSAMtype BAM Unsorted \
              --readFilesCommand pigz \
              --seedSearchStartLmax 20 \
-             --outFileNamePrefix {params.prefix} \
+             --outFileNamePrefix {params.prefix1} \
             {params.kwargs}  2> {log}
         echo "run rna-star genome indexing"
         mkdir {params.genome_dir}
@@ -63,7 +64,7 @@ rule star_mapping:
              --outSAMunmapped Within  \
              --outSAMtype BAM Unsorted \
              --readFilesCommand pigz \
-             --outFileNamePrefix {params.prefix} \
+             --outFileNamePrefix {params.prefix2} \
              {params.kwargs}  2>> {log}
         samtools sort {params.prefix}Aligned.Unsorted.out.bam > {output}
         """
