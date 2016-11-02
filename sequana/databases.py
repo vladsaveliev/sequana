@@ -34,6 +34,7 @@ except:
 from bioservices import EUtils, ENA
 from easydev import AttrDict
 from easydev import execute
+from easydev import Progress
 
 
 class EUtilsTools(object):
@@ -113,7 +114,7 @@ class ENADownload(object):
         instead of embl.
     """
     def __init__(self):
-        """..rubric:: constructor"""
+        """.. rubric:: constructor"""
         self.convert_enaacc_to_gi = True
         self.eutils = EUtilsTools()
 
@@ -199,7 +200,6 @@ class ENADownload(object):
             try: os.mkdir(output_dir)
             except:pass
 
-        from easydev import Progress
         N = len(identifiers)
         pb = Progress(N)
         print("Fetching all fasta from ENA")
