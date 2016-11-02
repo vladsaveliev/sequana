@@ -56,7 +56,7 @@ rule star_mapping:
         echo "Run rna-star 2nd pass"
         STAR --genomeDir {params.genome_dir} \
              --readFilesIn {input}  \
-             -runThreadN {threads} \
+             --runThreadN {threads} \
              --genomeLoad NoSharedMemory \
              --sjdbFileChrStartEnd {params.splice_file} \
              --outFilterMismatchNoverLmax 0.05 \
