@@ -32,9 +32,8 @@ rule star_mapping:
         config['star_mapping']['threads']
     #Resources:
     #    ram = config['star_mapping']['ram']
-    shell:
-        """
-        echo "Run rna-star 1st pass"
+    run:
+        shell(""" echo "Run rna-star 1st pass"
         STAR --genomeDir {params.index} \
              --readFilesIn {input}  \
              --runThreadN {threads} \
@@ -45,8 +44,9 @@ rule star_mapping:
              --readFilesCommand zcat \
              --seedSearchStartLmax 20 \
              --outFileNamePrefix {params.prefix1} \
-            {params.kwargs}  2> {log}
-        echo "run rna-star genome indexing"
+            {params.kwargs}  2> {log}""")
+
+        shell(""" echo "run rna-star genome indexing"
         if [ ! -d "{params.genome_dir}" ]; then
             mkdir {params.genome_dir}
         fi
@@ -55,8 +55,10 @@ rule star_mapping:
              --genomeFastaFiles {params.ref} \
              --sjdbFileChrStartEnd {params.splice_file} \
              --sjdbOverhang 100 \
-             --runThreadN {threads}  2>> {log}
-        echo "Run rna-star 2nd pass"
+             --runThreadN {threads}  2>> {log}""")
+
+
+        shell(""" echo "Run rna-star 2nd pass"
         STAR --genomeDir {params.genome_dir} \
              --readFilesIn {input}  \
              --runThreadN {threads} \
@@ -67,6 +69,7 @@ rule star_mapping:
              --outSAMtype BAM Unsorted \
              --readFilesCommand zcat \
              --outFileNamePrefix {params.prefix2} \
-             {params.kwargs}  2>> {log}
-        samtools sort {params.prefix2}Aligned.out.bam > {output}
-        """
+             {params.kwargs}  2>> {log}""")
+
+
+        shell(""" samtools sort {params.prefix2}Aligned.out.bam > {output}""")
