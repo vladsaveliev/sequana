@@ -12,6 +12,7 @@ Changelog
           - remove SnakeMakeProfile (not used)
           - remove sequana_check_config (not used)
           - remove deprecated __get_tagname
+          - remove ExpandedSnakefile since not required anymore
     - Simplify combos of input_directory, input_patter, input_samples, the new
       possible mutually exclusive input parameters of sequana standalone and all
       pipelines. 

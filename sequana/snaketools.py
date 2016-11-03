@@ -24,12 +24,13 @@ Here is an overview (see details here below)
     :nosignatures:
 
     sequana.snaketools.DOTParser
+    sequana.snaketools.FastQFactory
+    sequana.snaketools.FileFactory
     sequana.snaketools.Module
     sequana.snaketools.ModuleFinder
-    sequana.snaketools.SnakeMakeProfile
+    sequana.snaketools.PipelineManager
     sequana.snaketools.SnakeMakeStats
     sequana.snaketools.SequanaConfig
-    sequana.snaketools.get_cleanup_rules
     sequana.snaketools.message
     sequana.snaketools.modules
 
@@ -41,12 +42,12 @@ import glob
 
 from easydev import get_package_location as gpl
 from easydev import load_configfile, AttrDict
-from easydev.tools import touch
 import pandas as pd
 import pylab
 
-
-# __all__ = ["SequanaConfig"]
+__all__ = ["DOTParser", "FastQFactory", "FileFactory",
+    "Module", "PipelineManager", "SnakeMakeStats",
+    "SequanaConfig"]
 
 try:
     # This is for python2.7
@@ -60,49 +61,6 @@ except:
         def Workflow(self, filename):
             raise ImportError
     snakemake = MockSnakeMake()
-
-
-
-class _ExpandedSnakeFile(object):
-    """Read a Snakefile and its dependencies (include) and create single file
-
-    **Motivation**
-
-    a Snakefile may look like::
-
-        from sequana import snaketools as sm
-        include: sm.modules['bwa_phix']
-        include: sm.modules['fastqc']
-
-    This is nice and compact but we do not see anymore what the Snakefile does.
-    This class will recreate the Snakefile without this compactness so that one
-    can see the entire structure. The expansion is performed by :meth:`expand`.
-
-    .. warning:: experimental. docstrings should be removed. lines starting
-        with **include** should also be removed.
-
-    .. warning:: will be removed.
-    """
-    def __init__(self, snakefile):
-        # read the file and include it (Snakemake API)
-        # This import is the package not the sequana.snaketools file
-        self.snakefile = snakemake.Workflow(snakefile)
-        self.snakefile.include(snakefile)
-
-    def expand(self, output_filename="Snakefile.expanded"):
-        """The expansion of Snakefile
-
-        :param str filename: name of the output file
-
-        """
-        # open a file to save all included rules and workflow in one place
-        with open(output_filename, "w") as workflow_expanded:
-            # scan all included workflow
-            for include in self.snakefile.included:
-                with open(include, "r") as wk_toinclude:
-                    data = wk_toinclude.read()
-                    workflow_expanded.write(data)
-
 
 
 class SnakeMakeStats(object):
