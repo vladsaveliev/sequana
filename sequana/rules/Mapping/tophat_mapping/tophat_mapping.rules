@@ -12,7 +12,7 @@ rule tophat_mapping:
         config["tophat_mapping"]["threads"]
     shell:
         """
-        tophat2 --bowtie1 -p {threads} {params.options} {params.prefix_index} \
-        {input.fastq} -o {params.outdir} \
+        tophat2 --bowtie1 -p {threads} -o {params.outdir} {params.options} \
+        {params.prefix_index} {input.fastq}  \
         && samtools sort -o {output.sort} {output.bam}
         """
