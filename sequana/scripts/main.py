@@ -658,7 +658,7 @@ def sequana_init(options):
 
     # Creating a unique runme.sh file
     with open(options.target_dir + os.sep + "runme.sh", "w") as fout:
-        cmd = "#!/usr/sh\n"
+        cmd = "#!/bin/sh\n"
         cmd += "# generated with sequana version %s with this command:\n" % sequana.version
         cmd += "# %s\n" % " ".join(sys.argv)
         cmd += "snakemake -s %(project)s.rules --stats stats.txt -p -j %(jobs)s --nolock"
