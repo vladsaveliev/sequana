@@ -107,7 +107,7 @@ if manager.config.bowtie1_mapping_ref.do:
     __bowtie1_mapping_ref__sort = manager.getname("bowtie1_mapping_ref", ".sorted.bam")
     __bowtie1_mapping_ref__prefix_index = config["bowtie1_mapping_ref"]['prefix_index']
     include: bowtie1_mapping_dynamic("ref", manager.sample)
-elif manager.config.star_mapping.do:
+if manager.config.star_mapping.do:
     # Mapper rna-star
     __star_mapping__input = __clean_ngs__output
     __star_mapping__logs = manager.getname("star_mapping", ".logs")
@@ -118,6 +118,14 @@ elif manager.config.star_mapping.do:
     __star_mapping__genome_dir = manager.getname("star_mapping", "_star_2nd_pass")
     __star_mapping__splice_file = manager.getname("star_mapping", "_1_SJ.out.tab")
     include: sm.modules["star_mapping"]
+if manager.config.tophat_mapping.do:
+    # Mapper tophat
+    __tophat_mapping__input = __clean_ngs__output
+    __tophat_mapping__sort = manager.getname("tophat_mapping", ".sorted.bam")
+    __tophat_mapping__outdir = config["tophat_mapping"]['prefix_index']
+    include: sm.modules["tophat_mapping"]
+
+
 
 
 # Feature counts from subread suite
