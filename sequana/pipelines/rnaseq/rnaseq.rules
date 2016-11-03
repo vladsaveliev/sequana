@@ -98,6 +98,7 @@ __bowtie1_mapping_rna__bam = manager.getname("bowtie1_mapping_rna", ".bam")
 __bowtie1_mapping_rna__sort = manager.getname("bowtie1_mapping_rna", ".sorted.bam")
 __bowtie1_mapping_rna__prefix_index = config["bowtie1_mapping_rna"]['prefix_index']
 include: bowtie1_mapping_dynamic("rna", manager.sample)
+expected_output.extend(expand(__bowtie1_mapping_rna__sort, sample=manager.samples))
 
 if manager.config.bowtie1_mapping_ref.do:
     # Mapper bowtie 1

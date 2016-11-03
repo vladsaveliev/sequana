@@ -28,7 +28,7 @@ star_mapping:
     ram: 30
 
 tophat_mapping:
-    do: no
+    do: yes
     prefix_index: /mnt/atlas/PF2_ngs/protected/bowtie_genomes/S_cervS288c
     options: ""
     threads: 4
@@ -36,7 +36,7 @@ tophat_mapping:
 bowtie1_mapping_ref:
     do: yes
     prefix_index: ../Saccer3
-    options: "" 
+    options: "--chunkmbs 400 -a --best -q -e50 "
     threads: 4
 
 
