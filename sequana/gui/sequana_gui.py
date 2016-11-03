@@ -1,14 +1,16 @@
 # coding: utf-8
 
 import os
+import sys
 import shutil
 import subprocess as sp
-import sys
+import multiprocessing
 
 from PyQt5.QtCore import Qt, QCoreApplication, pyqtSlot, QEvent
 from PyQt5.QtWidgets import (QApplication, QPushButton, QComboBox, QWidget,
                              QLineEdit, QTabWidget, QLabel, QFrame, QGroupBox,
-                             QCheckBox, QSpinBox, QDoubleSpinBox, QScrollArea)
+                             QCheckBox, QSpinBox, QDoubleSpinBox, QScrollArea,
+                             QMenuBar, QAction)
 from PyQt5.QtWidgets import QFileDialog, QDialog
 from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QVBoxLayout
 
@@ -25,6 +27,14 @@ class SequanaGUI(QWidget):
 
     def __init__(self):
         super().__init__()
+
+        # snakemake dialog windows
+        self.snakemake_dialog = SnakemakeOptionDialog()
+
+        # set menu bar
+        self.menu_bar = QMenuBar(self)
+        options_menu = self.menu_bar.addMenu("File")
+
 
         # box to choose the pipeline
         self.choice_flag = False
@@ -55,20 +65,19 @@ class SequanaGUI(QWidget):
 
         # main layout
         vlayout = QVBoxLayout(self)
+        vlayout.insertSpacing(0, 10)
+
+        # add widgets in layout
         vlayout.addLayout(choice_layout)
         vlayout.addWidget(self.tabs_browser)
         vlayout.addWidget(groupbox)
         vlayout.addWidget(scroll_area)
         vlayout.addWidget(self.create_footer_button())
 
-        # snakemake dialog windows
-        self.snakemake_dialog = SnakemakeOptionDialog()
-
         # main window options
         self.setGeometry(200, 200, 500, 500)
         self.setWindowTitle("Sequana")
         self.show()
-
 
     def clearLayout(self, layout):
         """ Clean all widget contained in a layout.
@@ -160,13 +169,9 @@ class SequanaGUI(QWidget):
         working_dir = self.working_dir.get_filenames()
         self.save_config_file()
         rules = self.get_rules(self.formular)
+        module = Module(self.choice_button.currentText())
         self.snakemake_dialog.fill_options(rules)
         self.snakemake_dialog.exec_()
-        module = Module(self.choice_button.currentText())
-        shutil.copy(module.snakefile, working_dir)
-        cmd = ["snakemake", "-s", module.snakefile]
-        snakemake = sp.Popen(cmd, cwd=working_dir)
-        snakemake.communicate()
 
 ###############
 
@@ -390,6 +395,9 @@ class NumberOption(GeneralOption):
     def get_value(self):
         return self.number.value()
 
+    def set_range(self, min_value, max_value):
+        self.number.setRange(min_value, max_value)
+
     def eventFilter(self, source, event):
         if event.type() == QEvent.Wheel and source is self.number:
             return True
@@ -409,11 +417,14 @@ class FileBrowserOption(GeneralOption):
 
 
 class ComboBoxOption(GeneralOption):
-    def __init__(self, option, choice):
+    def __init__(self, option):
         super().__init__(option)
         self.combobox = QComboBox()
-        self.combobox.addItems([None] + choice)
         self.layout.addWidget(self.combobox)
+
+    def add_items(self, items_list):
+        self.combobox.clear()
+        self.combobox.addItems([None] + items_list)
 
     def get_value(self):
         return self.combobox.currentText()
@@ -427,19 +438,24 @@ class SnakemakeOptionDialog(QDialog):
         super().__init__()
         self.main_layout = QVBoxLayout(self)
         self.setWindowTitle("Snakemake options")
+        self.cores_option = NumberOption("--cores", 2)
+        self.forcerun_option = ComboBoxOption("--forcerun")
+        self.until_option = ComboBoxOption("--until")
+
+        self.cores_option.set_range(1, multiprocessing.cpu_count())
+
+        self.main_layout.addWidget(self.cores_option)
+        self.main_layout.addWidget(self.forcerun_option)
+        self.main_layout.addWidget(self.until_option)
 
     def fill_options(self, rules):
-        cluster_option = TextOption("--cluster", "")
-        jobs_option = NumberOption("--jobs", 2)
-        cores_option = NumberOption("--cores", 2)
-        forcerun_option = ComboBoxOption("--forcerun", rules)
-        until_option = ComboBoxOption("--until", rules)
+        self.forcerun_option.add_items(rules)
+        self.until_option.add_items(rules)
 
-        self.main_layout.addWidget(cluster_option)
-        self.main_layout.addWidget(jobs_option)
-        self.main_layout.addWidget(cores_option)
-        self.main_layout.addWidget(forcerun_option)
-        self.main_layout.addWidget(until_option)
+    def cluster_options(self):
+        self.cluster_check_box = BooleanOption("On a cluster ?", False)
+
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
