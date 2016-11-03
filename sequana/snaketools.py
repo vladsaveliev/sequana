@@ -53,7 +53,6 @@ try:
     import snakemake
 except:
     print("Snakemake must be installed. Available for Python3 only")
-
     class MockSnakeMake(object):
         def __init__(self):
             pass
@@ -82,6 +81,7 @@ class _ExpandedSnakeFile(object):
     .. warning:: experimental. docstrings should be removed. lines starting
         with **include** should also be removed.
 
+    .. warning:: will be removed.
     """
     def __init__(self, snakefile):
         # read the file and include it (Snakemake API)
@@ -103,20 +103,6 @@ class _ExpandedSnakeFile(object):
                     data = wk_toinclude.read()
                     workflow_expanded.write(data)
 
-
-class SnakeMakeProfile(object):
-    """Interpret the snakemake profile file
-
-    Run the Snakemake with this option::
-
-        --profile profile.json
-
-    """
-    def __init__(self, filename):
-        self.filename = filename
-
-    def parse(self):
-        data = json.loads(self.filename)
 
 
 class SnakeMakeStats(object):
@@ -791,16 +777,6 @@ class PipelineManager(object):
 
 
 
-
-
-
-def sequana_check_config(config, globs):
-    s = SequanaConfig.from_dict(config)
-    dic = dict([(k, v) for k, v in globs.items()
-                if k.startswith("__sequana__")])
-    s.check(dic)
-
-
 def message(mes):
     """Dedicated print function to include in Snakefiles
 
@@ -871,19 +847,6 @@ class DOTParser(object):
                     else:
                         newline = line.replace('];', 'color="orange"];')
                         fout.write(newline + "\n")
-
-
-def __get_tagname(filename):
-    """Given a fullpath name, remove extension and prefix and return the name
-
-    .. deprecated::
-
-    """
-    raise ValueError("deprecated")
-    import os
-    # This should always work
-    name = os.path.split(filename)[1].split('.', 1)[0]
-    return name
 
 
 class FileFactory(object):
