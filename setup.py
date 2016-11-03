@@ -91,6 +91,7 @@ setup(
     zip_safe=False,
     entry_points = {
         'console_scripts':[
+           'sequana_gui=sequana.gui.sequana_gui:main',
            'fastq_head=sequana.scripts.fastq_head:main',
            'fastq_count=sequana.scripts.fastq_count:main',
            'sequana_fastq_head=sequana.scripts.fastq_head:main',
