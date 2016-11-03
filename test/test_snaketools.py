@@ -35,41 +35,67 @@ def test_module():
     m = snaketools.Module('dag')
     m.description
     m.overview
+    m.is_executable()
+    # m.onweb()
+    m.check()
+
+    m = snaketools.Module('quality_control')
+    m.is_executable()
+    # m.onweb()
+    m.check()
 
 
 def test_valid_config():
+    config = snaketools.SequanaConfig(None)
+
+    s = snaketools.Module("quality_control")
+    config = snaketools.SequanaConfig(s.config)
+    config.check({})
+
+    from easydev import TempFile
+    with TempFile() as fh:
+        config.save(fh.name)
+
+def test_sequana_config():
     s = snaketools.Module("quality_control")
     config = snaketools.SequanaConfig(s.config)
 
-
-def _test_file_name_factory():
-    # __file__ should contain either "test_snaketools.py" in local mode
-    # or test/test_snaketools
-    if __file__.startswith('test/'):
-        ff = snaketools.FileFactory("test/test_snaketools.py")
-        #assert ff.dataset == ["test_snaketools.py"]
-        #assert ff.dataset_noext == ['test_snaketools']
-        #assert ff.extensions == ['.py']
-        #assert ff.filenames == ['test_snaketools.py']
-        #assert ff.pathname == 'test/'
-        #assert ff.pathnames == ['test']
-        assert ff.pattern == 'test/test_snaketools.py'
-    else:
-        print(2)
-        ff = snaketools.FileFactory("test_snaketools.py")
-        assert ff.dataset == ["test/test_snaketools.py"]
-        assert ff.dataset_noext == ['test_snaketools']
-        assert ff.extensions == ['.py']
-        assert ff.filenames == ['test_snaketools.py']
-        assert ff.pathname == '/'
-        assert ff.pathnames == ['']
-        assert ff.pattern == 'test_snaketools.py'
+    assert config.get("kraken:database", "test") == "%(kraken_database)s"
+    assert config.get("kraken:database", "test") == "%(kraken_database)s"
+    assert config.get("kraken:dummy", "test") == "test"
+    assert config.get("kraken:dummy") == None
 
 
+def test_file_name_factory():
+    import glob
 
+    def inner_test(ff):
+        len(ff)
+        print(ff)
+        ff.filenames
+        ff.realpaths
+        ff.all_extensions
+        ff.pathnames
+        ff.extensions
 
+    #list
+    list_files = glob.glob("*.py")
+    ff = snaketools.FileFactory(list_files)
+    inner_test(ff)
 
+    # glob
+    ff = snaketools.FileFactory("*py")
+    inner_test(ff)
+    
 
+    directory = os.path.dirname(sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz"))
+
+    ff = snaketools.FastQFactory(directory + "/*fastq.gz", verbose=True)
+    assert ff.tags == ['Hm2_GTGAAA_L005']
+
+    ff.get_file1(ff.tags[0])
+    ff.get_file2(ff.tags[0])
+    assert len(ff) == 1
 
 
 
