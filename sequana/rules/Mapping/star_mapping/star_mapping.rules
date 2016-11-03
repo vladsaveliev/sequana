@@ -18,7 +18,7 @@ rule star_mapping:
     log:
         __star_mapping__logs
     output:
-        protected(__star_mapping__sort)
+        __star_mapping__sort
     params:
         prefix1 = temp(__star_mapping__output_prefix1),
         prefix2 = __star_mapping__output_prefix2,
