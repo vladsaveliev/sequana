@@ -90,6 +90,8 @@ Issues: http://github.com/sequana/sequana
                 in a dedicated Synapse page (www.synapse.org). minikraken
                 is donwload from the kraken's author page, and toydb from
                 sequana github.""")
+        self.add_argument('--verbose', dest="verbose", default=False,
+            action="store_true")
 
 
 def main(args=None):
@@ -127,8 +129,9 @@ def main(args=None):
         devtools.check_exists(options.file2)
         fastq.append(options.file2)
 
-    #devtools.mkdir(options.directory)
-    devtools.mkdirs(options.directory + os.sep + "kraken")
+    output_directory = options.directory + os.sep + "kraken"
+
+    devtools.mkdirs(output_directory)
 
     from sequana import sequana_config_path as scfg
     if options.database == "toydb":
@@ -148,11 +151,9 @@ def main(args=None):
 
     # if DB exists locally, use it otherwise add the sequana path
     k = KrakenPipeline(fastq, options.database, threads=options.thread,
-        output=options.directory + os.sep + "kraken" + os.sep + "kraken.html")
+        output_directory=output_directory, verbose=options.verbose)
 
-    output_png = "kraken/kraken.png"
-    k.run(output_png=options.directory +os.sep + "%s" % output_png)
-
+    k.run()
 
     if 1==1:
         # Here we create a simple temporary config file to be read by the Summary
@@ -174,7 +175,6 @@ def main(args=None):
         fh.write(config_txt)
         fh.close()
 
-
         from sequana import SequanaSummary
         class DummyManager(object):
             def __init__(self, options):
@@ -191,11 +191,13 @@ def main(args=None):
             configfile=tf.name,
             include_all=False, workflow=False, manager=manager)
         ss.include_input_links()
+        output_png = options.directory + os.sep + "kraken.png"
         ss.jinja['kraken_pie'] = output_png
         ss.create_report()
 
-        print("Open ./%s/summary.html" % options.directory)
-        print("or ./%s/kraken/kraken.html" % options.directory)
+        if options.verbose:
+            print("Open ./%s/summary.html" % options.directory)
+            print("or ./%s/kraken/kraken.html" % options.directory)
 
     if options.html is True:
         ss.onweb()

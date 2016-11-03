@@ -1,17 +1,20 @@
+# ============================================================================
+# Config file for  Variant Calling
 #
-# Config file for Variant Calling
+# ==========================================[ Sections for the users ]========
 #
-##############################################################################
-
-# =========================================== Sections for the users
-
-# You can use a directory with all your sample inside or just put your fastq
-# files in samples.
+# One of input_directory, input_pattern and input_samples must be provided
+# If input_directory provided, use it otherwise if input_pattern provided,
+# use it, otherwise use input_samples.
+# If input_extension provided, use it otherwise assume fastq.gz
+# ============================================================================
 input_directory: "%(input_directory)s"
+input_extension: "%(input_extension)s"
+input_pattern: "%(input_pattern)s"
+input_samples:
+    file1: "%(file1)s"
+    file2: "%(file2)s"
 
-samples:
-    file1: "%(file1)s" # R1
-    file2: "%(file2)s" # R2
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GenomeAnalysisTK
 
