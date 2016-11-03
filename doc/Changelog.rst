@@ -3,6 +3,27 @@ Changelog
 
 .. contents::
 
+0.1.14
+------------
+
+* CHANGES:
+
+    - snaketools: 
+          - remove SnakeMakeProfile (not used)
+          - remove sequana_check_config (not used)
+          - remove deprecated __get_tagname
+    - Simplify combos of input_directory, input_patter, input_samples, the new
+      possible mutually exclusive input parameters of sequana standalone and all
+      pipelines. 
+   
+* NEWS
+
+    - fq.gz are now allowed in the pipelines and should be supported in the
+      future
+    - More tests in particular a ./test/pipelines/ new directory 
+ 
+
+
 0.1.13
 -----------
 
