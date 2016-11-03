@@ -6,10 +6,10 @@ rule tophat_mapping:
         sort = __tophat_mapping__sort
     params:
         outdir = __tophat_mapping__outdir,
-        prefix_index = config["tophat"]["prefix_index"],
-        options = config["tophat"]["options"]
+        prefix_index = config["tophat_mapping"]["prefix_index"],
+        options = config["tophat_mapping"]["options"]
     threads:
-        config["tophat"]["threads"]
+        config["tophat_mapping"]["threads"]
     shell:
         """
         tophat -p {threads} {params.options} {params.prefix_index} \
