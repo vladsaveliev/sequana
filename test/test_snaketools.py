@@ -52,7 +52,7 @@ def test_module():
     m.name
 
 @attr("onweb")
-def test_module_onweb()
+def test_module_onweb():
     m = snaketools.Module('quality_control')
     m.onweb()
 
