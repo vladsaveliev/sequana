@@ -1,6 +1,7 @@
 from sequana import snaketools, sequana_data
 from sequana.snaketools import DOTParser
 import os
+from nose.plugins.attrib import attr
 
 
 testing = lambda x: sequana_data(x, "testing")
@@ -32,18 +33,28 @@ def test_snakemake_stats():
 
 
 def test_module():
+    # a rule without README
+    m = snaketools.Module('mark_duplicates')
+    m.description
+
+    # a rule with README
     m = snaketools.Module('dag')
     m.description
     m.overview
     m.is_executable()
-    # m.onweb()
     m.check()
 
+    # a pipeline
     m = snaketools.Module('quality_control')
     m.is_executable()
-    # m.onweb()
     m.check()
+    m.snakefile
+    m.name
 
+@attr("onweb")
+def test_module_onweb()
+    m = snaketools.Module('quality_control')
+    m.onweb()
 
 def test_valid_config():
     config = snaketools.SequanaConfig(None)

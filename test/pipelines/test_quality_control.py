@@ -2,8 +2,10 @@ import os
 import tempfile
 from sequana import sequana_data
 from easydev import execute
+from nose.plugins.attrib import attr
 
 
+@attr('skip')
 def test_running():
     data = sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz")
     input_directory = os.path.dirname(data)
