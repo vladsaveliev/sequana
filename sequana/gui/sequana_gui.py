@@ -140,8 +140,8 @@ class SequanaGUI(QWidget):
         directory_tab.clicked_connect(self.switch_run)
         # create tab box
         self.tabs_browser = QTabWidget()
-        self.tabs_browser.addTab(paired_tab, "Paired end")
         self.tabs_browser.addTab(directory_tab, "Directory")
+        self.tabs_browser.addTab(paired_tab, "Paired end")
 
     def create_footer_button(self):
         """ Create Run/Save/Quit buttons
@@ -257,10 +257,11 @@ class FileBrowser(QWidget):
             self.btn_filename.setText("\n".join([key + ": " + value
                                       for key, value in self.paths.items()]))
             self.setup = True
-        
+
     def browse_directory(self):
         directory_path = QFileDialog.getExistingDirectory(self,
-                                                          "Directory", ".")
+                                                          "Directory",
+                                                          ".")
         try:
             self.btn_filename.setText(directory_path)
             self.paths = directory_path
@@ -359,10 +360,26 @@ class BooleanOption(GeneralOption):
         self.check_box = QCheckBox()
         self.check_box.setChecked(value)
 
+        self.answer = QLabel()
+        self.switch_answer()
+
+        self.check_box.clicked.connect(self.switch_answer)
+
         self.layout.addWidget(self.check_box)
+        self.layout.addWidget(self.answer)
 
     def get_value(self):
         return self.check_box.isChecked()
+
+    def switch_answer(self):
+        value = self.get_value()
+        if value:
+            self.answer.setText("<b> yes <\b>")
+        else:
+            self.answer.setText("<b> no <\b>")
+
+    def connect(self, task):
+        self.check_box.clicked.connect(task)
 
 
 class TextOption(GeneralOption):
@@ -438,12 +455,13 @@ class SnakemakeOptionDialog(QDialog):
         super().__init__()
         self.main_layout = QVBoxLayout(self)
         self.setWindowTitle("Snakemake options")
-        self.cores_option = NumberOption("--cores", 2)
+
+        self.cluster_local_switch()
+        self.set_launch_options()
         self.forcerun_option = ComboBoxOption("--forcerun")
         self.until_option = ComboBoxOption("--until")
 
-        self.cores_option.set_range(1, multiprocessing.cpu_count())
-
+        self.main_layout.addWidget(self.cluster_check_box)
         self.main_layout.addWidget(self.cores_option)
         self.main_layout.addWidget(self.forcerun_option)
         self.main_layout.addWidget(self.until_option)
@@ -452,9 +470,21 @@ class SnakemakeOptionDialog(QDialog):
         self.forcerun_option.add_items(rules)
         self.until_option.add_items(rules)
 
-    def cluster_options(self):
+    def cluster_local_switch(self):
         self.cluster_check_box = BooleanOption("On a cluster ?", False)
 
+    def set_launch_options(self): 
+        self.cores_option = NumberOption("--cores", 2)
+        self.jobs_option = NumberOption("--jobs", 2)
+        self.cluster_options = TextOption("--cluster", "")
+
+        self.jobs_option.set_range(1, 10000)
+        self.cores_option.set_range(1, multiprocessing.cpu_count())
+
+        self.cluster_widget = QWidget()
+        self.cluster_layout = QVBoxLayout(self.cluster_widget)
+        self.cluster_layout.addWidget(self.cluster_options)
+        self.cluster_layout.addWidget(self.jobs_option)
 
 
 if __name__ == "__main__":
