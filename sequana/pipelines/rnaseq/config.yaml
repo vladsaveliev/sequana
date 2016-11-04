@@ -46,7 +46,7 @@ bowtie1_mapping_rna:
     options: "" 
     threads: 4
 
-# example of options: "-t exon -g gene_id"
+# example of options: "-t exon -g gene_id" for gtf file
 feature_counts:
     gff: ../saccer3.gff
     #options: "-t exon -g gene_id" 

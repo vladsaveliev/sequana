@@ -117,6 +117,8 @@ if manager.config.star_mapping.do:
     __star_mapping__sort = manager.getname("star_mapping", "_Aligned.sorted.bam")
     __star_mapping__genome_dir = manager.getname("star_mapping", "_star_2nd_pass")
     __star_mapping__splice_file = manager.getname("star_mapping", "_1_SJ.out.tab")
+# get the  Nam7_1/tophat_mapping/Nam7_1/align_summary.txt as tophat reporting ?
+
     include: sm.modules["star_mapping"]
 if manager.config.tophat_mapping.do:
     # Mapper tophat
