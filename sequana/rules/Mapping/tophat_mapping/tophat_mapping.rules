@@ -4,6 +4,8 @@ rule tophat_mapping:
     output:
         bam = __tophat_mapping__outdir + "/accepted_hits.bam",
         sort = __tophat_mapping__sort
+    log:
+        __tophat_mapping__logs
     params:
         outdir = __tophat_mapping__outdir,
         prefix_index = config["tophat_mapping"]["prefix_index"],
