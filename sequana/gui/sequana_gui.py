@@ -13,8 +13,12 @@ from PyQt5.QtWidgets import (QApplication, QPushButton, QComboBox, QWidget,
                              QMenuBar, QAction)
 from PyQt5.QtWidgets import QFileDialog, QDialog
 from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QVBoxLayout
+from PyQt5.QtWidgets import QSplashScreen, QProgressBar
 
-from sequana import snaketools
+from PyQt5 import QtGui
+
+
+from sequana import snaketools, sequana_data
 from sequana.snaketools import Module
 
 
@@ -27,14 +31,30 @@ class SequanaGUI(QWidget):
 
     def __init__(self):
         super().__init__()
+        self.initUI()
 
-        # snakemake dialog windows
-        self.snakemake_dialog = SnakemakeOptionDialog()
+
+    def initUI(self):
+
+        # action quit
+        quitAction = QAction("Quit",self)
+        quitAction.setShortcut('Ctrl+Q')
+        quitAction.setStatusTip('Quit Sequana')
+        quitAction.triggered.connect(self.close)
+
+        # action About
+        aboutAction = QAction("About",self)
 
         # set menu bar
         self.menu_bar = QMenuBar(self)
-        options_menu = self.menu_bar.addMenu("File")
+        options_menu = self.menu_bar.addMenu("&File")
+        options_menu.addAction(quitAction)
+        options_menu = self.menu_bar.addMenu("&About")
+        options_menu.addAction(aboutAction)
 
+
+        # snakemake dialog windows
+        self.snakemake_dialog = SnakemakeOptionDialog()
 
         # box to choose the pipeline
         self.choice_flag = False
@@ -115,7 +135,11 @@ class SequanaGUI(QWidget):
         """ Create formular with all options necessary for a pipeline.
         """
         self.clearLayout(self.formular)
-        config_dict = snaketools.SequanaConfig(config_file).config
+        try:
+            config_dict = snaketools.SequanaConfig(config_file).config
+        except AssertionError:
+            print("Could not parse the config file")
+            return
         rules_list = list(config_dict.keys())
         rules_list.sort()
         self.necessary_dict = {}
@@ -484,7 +508,33 @@ class SnakemakeOptionDialog(QDialog):
         cluster_layout.addWidget(self.jobs_option)
 
 
-if __name__ == "__main__":
+def main():
     app = QApplication(sys.argv)
+
+    import os, time
+
+    filename = sequana_data("splash_loading.png", "../gui")
+
+    splash_pix = QtGui.QPixmap(filename)
+    splash = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
+
+    progressBar = QProgressBar(splash)
+    splash.setMask(splash_pix.mask())
+
+    # Show the splash screen for 5 seconds
+    splash.show()
+    for i in range(0, 100):
+        progressBar.setValue(i)
+        t = time.time()
+        while time.time() < t + 2/100.:
+           app.processEvents()
+
+    app.processEvents()
     sequana = SequanaGUI()
+    sequana.show()
+    splash.finish(sequana)
     sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    main()
