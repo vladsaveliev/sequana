@@ -22,8 +22,8 @@ class SequanaGUI(QWidget):
     """ Sequana GUI !
     """
 
-    _not_a_rule = {"requirements", "gatk_bin", "input_directory",
-                   "pattern", "samples"}
+    _not_a_rule = {"requirements", "gatk_bin", "input_directory", "pattern",
+                   "samples"}
 
     def __init__(self):
         super().__init__()
@@ -455,8 +455,8 @@ class SnakemakeOptionDialog(QDialog):
         super().__init__()
         self.main_layout = QVBoxLayout(self)
         self.setWindowTitle("Snakemake options")
-
-        self.cluster_local_switch()
+ 
+        self.cluster_check_box = BooleanOption("On a cluster ?", False)
         self.set_launch_options()
         self.forcerun_option = ComboBoxOption("--forcerun")
         self.until_option = ComboBoxOption("--until")
@@ -470,9 +470,6 @@ class SnakemakeOptionDialog(QDialog):
         self.forcerun_option.add_items(rules)
         self.until_option.add_items(rules)
 
-    def cluster_local_switch(self):
-        self.cluster_check_box = BooleanOption("On a cluster ?", False)
-
     def set_launch_options(self): 
         self.cores_option = NumberOption("--cores", 2)
         self.jobs_option = NumberOption("--jobs", 2)
@@ -482,9 +479,9 @@ class SnakemakeOptionDialog(QDialog):
         self.cores_option.set_range(1, multiprocessing.cpu_count())
 
         self.cluster_widget = QWidget()
-        self.cluster_layout = QVBoxLayout(self.cluster_widget)
-        self.cluster_layout.addWidget(self.cluster_options)
-        self.cluster_layout.addWidget(self.jobs_option)
+        cluster_layout = QVBoxLayout(self.cluster_widget)
+        cluster_layout.addWidget(self.cluster_options)
+        cluster_layout.addWidget(self.jobs_option)
 
 
 if __name__ == "__main__":
