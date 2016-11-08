@@ -19,12 +19,14 @@
 """Utilities to manipulate adapters
 
 Adapters removal can be performed by many different tools such as CutAdapt,
-AlienTrimmer, Trimmomatic ... but they tend to use different formats from FASTA
-to text files.
+AlienTrimmer, Trimmomatic. Unfortunately, they tend to use different formats
+from FASTA to text files. Moreover outputs are generally also reported in
+different formats.
 
 In this module we provide utilities to help building the input files but also
 other tools to e.g. merge several list of adapters making sure there is no
-duplicates.
+duplicates. One goal is also to ease the conversion of outputs reports into
+a common type of reports.
 
 We also store list of adapters in FASTA format, which can be read using 
 the :class:`AdapterReader`::
@@ -35,7 +37,6 @@ the :class:`AdapterReader`::
     ar.get_adapter_by_index("index_dna:N501")
 
 """
-import pandas as pd
 import pysam
 from sequana.fasta import FastA
 from sequana import sequana_data
@@ -109,7 +110,6 @@ def adapter_removal_parser(filename):
         >>> results["adapter1"]
         'AGATCGGAAGAGCACACGTCTGAACTCCAGTCACNNNNNNATCTCGTATGCCGTCTTCTGCTTG'
 
-
     """
     results = {}
 
@@ -130,14 +130,18 @@ class Adapter():
     An adapter is just a sequence from a FASTA file. It contains
     an identifier, a sequence and possibly a comment.
 
-    .. warning:: the identifier is the FASTA identifier. It must start with a
-        ">" character followed by the identifier. This is different from an
-        index. 
+    .. warning:: The identifier provided must not contain the starting
+        ">" character, which is added automatically when needed.
     """
-    def __init__(self, identifier, sequence, comment="nocomment"):
-        self._comment = comment
-        self._sequence = sequence
-        self._identifier = identifier
+    def __init__(self, identifier, sequence, comment=""):
+        if comment is None:
+            comment = ""
+        self._comment = comment.strip()
+        self._sequence = sequence.strip()
+        self._identifier = identifier.strip()
+        if self.identifier.startswith(">"):
+            error = "identifier must be a string without starting > character"
+            raise ValueError(error)
 
     def _get_sequence(self):
         return self._sequence
@@ -161,10 +165,7 @@ class Adapter():
         doc="R/W adapter's identifier")
 
     def __str__(self):
-        if self.comment is None:
-            txt = ">%(identifier)s\n"
-        else:
-            txt = ">%(identifier)s\t%(comment)s\n"
+        txt = ">%(identifier)s\t%(comment)s\n"
         txt+= "%(sequence)s"
  
         txt = txt % {"identifier":self.identifier,
@@ -185,18 +186,19 @@ class Adapter():
 
 
 class AdapterReader(object):
-    """We use FASTA as our data structure to store adapters
+    """Reader of FASTA file dedicated to adapters
 
     Header of the FASTA must be of the form::
 
         >Nextera_index_N501|index_dna:N501 optional comment
 
-    In the FASTA identifier, the part after the pipe that contains the
-    index_dna field, which will be used to identify the index of the adapter
-    and must be found.
+    In the FASTA identifier, the first pipe delimits the official name (left
+    hand side) from the index_dna tag. The information on this example may
+    be redundant but the *index_dna* will be used throughout the
+    **Sequana** code to ensure reproductibility.
 
-    .. note:: the universal adapter does not need to have the index_dna tag
-        but must be called *Universal_Adapter*
+    .. note:: the universal adapter has no index so does not need to have the
+        index_dna tag. However, it must be called *Universal_Adapter*
 
     .. doctest::
 
@@ -207,10 +209,12 @@ class AdapterReader(object):
         >>> print(candidate)
         >Nextera_index_S505|index_dna:S505
         AATGATACGGCGACCACCGAGATCTACACGTAAGGAGTCGTCGGCAGCGTC
-
         >>> len(ar)
         56
 
+
+    .. note:: Checks for uniqueness of the identifers. It not unique, an error
+        is raised
     """
     def __init__(self, filename):
         """.. rubric:: Constructor
@@ -228,6 +232,8 @@ class AdapterReader(object):
         elif isinstance(filename, list):
             self._data = [self._to_read(this) for this in filename]
 
+        self._sanity_check()
+
     def __len__(self):
         return len(self._data)
 
@@ -243,7 +249,7 @@ class AdapterReader(object):
         return [this.comment for this in self._data]
     comments = property(_get_comments)
 
-    def sanity_check(self):
+    def _sanity_check(self):
         """Check that all identifiers are unique"""
         if len(set(self.identifiers)) != len(self.identifiers):
             import collections
@@ -292,8 +298,6 @@ class AdapterReader(object):
             raise ValueError("No matching identifier found with this pattern: %s" % text)
         elif len(adapters) == 1:
             return adapters[0]
-        else:
-            raise ValueError("identifier %s found several times" % text)
 
     def get_adapter_by_index(self, index_name):
         """Return adapter corresponding to the unique index 
@@ -345,6 +349,10 @@ class AdapterReader(object):
         return self._data[i]
 
     def to_dict(self):
+        """Returns dictionary with key as identifier and values as
+        list with comments and sequences
+
+        """
         d1 = [(this.identifier, [this.comment, this.sequence])
               for this in self._data]
         return dict(d1)
@@ -400,7 +408,7 @@ class AdapterReader(object):
         """
         with open(filename, "w") as fout:
             for i, this in enumerate(self._data):
-                if i>0:
+                if i > 0:
                     fout.write("\n")
                 fout.write(">%s\t%s\n%s" % (this.identifier, this.comment,
                                             this.sequence))
@@ -409,7 +417,7 @@ class AdapterReader(object):
 class FindAdaptersFromIndex(object):
     """Used to identify one or two indices from a design experimental structure
 
-    Used by sequana main script top build the adapter files for multi-samples
+    Used by sequana main script to build the adapter files for multi-samples
     projects. 
 
     """
@@ -479,11 +487,13 @@ class FindAdaptersFromIndex(object):
             res['index1']['rev'] = self._adapters_rev.get_adapter_by_index(index1)
         elif "Index1_Seq" in data.index:
             index = data.ix['Index1_Seq']
+            # FIXME this should not happen
             if index is None:
                 index = "ZZZZZ"
 
             seq = self._adapters_fwd.get_adapter_by_sequence(index)
             if seq is None:
+                # FIXME this should not happen
                 pass
             elif len(seq) == 1:
                 res['index1']['fwd'] = seq[0]
@@ -575,8 +585,8 @@ class FindAdaptersFromIndex(object):
         return file_fwd, file_rev
 
 
-class AdapterRemoval(object):
-    """Possible data structure for future usage. Not used yet"""
+'''class AdapterRemoval(object):
+    """Possible data structure for future usage. """
     def __init__(self, file1, file2=None, adapter1=None, adapter2=None,
         quality_cutoff1=30, quality_cutoff2=None):
 
@@ -588,7 +598,7 @@ class AdapterRemoval(object):
         self.adapter2 = adapter2
 
     def save_adapters_to_fasta(self, sample_name, include_universal=True, output_dir='.'):
-        """Get index1, index2 and uiversal adapter"""
+        """Get index1, index2 and universal adapter"""
         adapters = self.get_adapters(sample_name, include_universal=include_universal)
 
         file_fwd = output_dir + os.sep + "%s_adapters_fwd.fa"% sample_name
@@ -608,7 +618,7 @@ class AdapterRemoval(object):
                 fout.write(str(adapters['index2']['rev'])+"\n")
 
         return file_fwd, file_rev
-
+'''
 
 
 

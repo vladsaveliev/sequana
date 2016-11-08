@@ -8,7 +8,6 @@ except:
 from easydev import CustomConfig
 configuration = CustomConfig("sequana", verbose=False)
 sequana_config_path = configuration.user_config_dir
-
 # This must be import before all other modules (sequana_data function)
 from .datatools import sequana_data
 
