@@ -49,6 +49,14 @@ class KrakenResults(object):
         k = KrakenResults("kraken.out")
         k.kraken_to_krona()
 
+    Then format expected looks like::
+
+        C	HISEQ:426:C5T65ACXX:5:2301:18719:16377	1	203	1:71 A:31 1:71
+        C	HISEQ:426:C5T65ACXX:5:2301:21238:16397	1	202	1:71 A:31 1:71
+
+    Where each row corresponds to one read. See kraken documentation for
+    details.
+
     .. note:: This takes care of fetching taxons and the corresponding lineages
         from online web services.
 
@@ -84,7 +92,6 @@ class KrakenResults(object):
             # This initialise the data
             self._parse_data()
             self._data_created = False
-
 
     def get_taxonomy_biokit(self, ids):
         """Retrieve taxons given a list of taxons
@@ -134,7 +141,6 @@ class KrakenResults(object):
         df = pd.DataFrame.from_records(results)
         df.index = ids
         df = df[list(ranks) + ['name']]
-
         df.index = df.index.astype(int)
 
         return df
@@ -182,9 +188,13 @@ class KrakenResults(object):
             return self._df
     df = property(_get_df)
 
+    def _get_df_with_taxon(self, dbname):
 
-    def _get_df_with_taxon(self):
-        df = self.get_taxonomy_biokit([int(x) for x in self.taxons])
+        # line 14500
+        # >gi|331784|gb|K01711.1|MEANPCG[331784] Measles virus (strain Edmonston), complete genome
+
+
+        df = self.get_taxonomy_biokit([int(x) for x in self.taxons.index])
         df['count'] = self.taxons.values
         df.reset_index(inplace=True)
         newrow = len(df)
@@ -192,18 +202,43 @@ class KrakenResults(object):
         df.ix[newrow, 'count'] = self.unclassified
         df.ix[newrow, 'index'] = -1
         df.rename(columns={"index":"taxon"}, inplace=True)
-        starter = ['taxon', 'count', 'percentage']
         df["percentage"] = df["count"] / df["count"].sum() * 100
-        df = df[starter + [x for x in df.columns if x not in starter]]
+
+        # Now get back all annotations from the database itself.
+        filename = dbname + os.sep + "annotations.csv"
+        if os.path.exists(filename):
+            annotations = pd.read_csv(filename)
+            annotations.set_index("taxon", inplace=True)
+
+            df2 = annotations.ix[df.taxon][['ena', 'gi', 'description']]
+            # There are duplicates sohow. let us keep the first one for now
+            df2 = df2.reset_index().drop_duplicates(subset="taxon",
+                keep="first").set_index("taxon")
+            self.df2 = df2
+            self.df1 = df.set_index("taxon")
+            df = pd.merge(self.df1, df2, left_index=True, right_index=True)
+            df.reset_index(inplace=True)
+            starter = ['percentage', 'name', 'ena', 'taxon', "gi", 'count']
+            df = df[starter + [x for x in df.columns if x not in starter and
+x!="description"] +  ["description"]]
+
+            df['gi'] = [int(x) for x in df['gi'].fillna(-1)]
+            from easydev import precision
+            df['percentage'] = [str(precision(x,2)) for x in df['percentage']]
+        else:
+            starter = ['taxon', 'count', 'percentage']
+            df = df[starter + [x for x in df.columns if x not in starter]]
+
+        df.sort_values(by="percentage", inplace=True, ascending=False)
         return df
 
-    def kraken_to_csv(self, filename):
-        df = self._get_df_with_taxon()
+    def kraken_to_csv(self, filename, dbname):
+        df = self._get_df_with_taxon(dbname)
         df.to_csv(filename, index=False)
         return df
 
-    def kraken_to_json(self, filename):
-        df = self._get_df_with_taxon()
+    def kraken_to_json(self, filename, dbname):
+        df = self._get_df_with_taxon(dbname)
         df.to_json(filename)
         return df
 
@@ -301,7 +336,6 @@ class KrakenResults(object):
         others = data[data<threshold].sum()
         data = data[data>threshold]
         names = df.ix[data.index]['name']
-
 
         data.index = names.values
         data.ix['others'] = others
@@ -546,6 +580,7 @@ class KrakenDownload(object):
         else:
             raise ValueError("name must be toydb or minikraken, or sequana_db1")
 
+
     def _download_kraken_toydb(self, verbose=True):
         """Download the kraken DB toy example from sequana_data into
         .config/sequana directory
@@ -584,7 +619,6 @@ class KrakenDownload(object):
             else:
                 print("Downloading %s" % url)
                 wget(url, filename)
-
 
     def _download_minikraken(self, verbose=True):
         dv = DevTools()
@@ -664,6 +698,15 @@ class KrakenDownload(object):
         else:
             self._download_from_synapse('syn6171290', dir2)
         print('done. You should have a kraken DB in %s' % dir1)
+
+        # The annotations
+        wget("https://github.com/sequana/data/raw/master/sequana_db1/annotations.csv",
+            dir1 + os.sep + "annotations.csv")
+
+
+
+
+
 
 
 
