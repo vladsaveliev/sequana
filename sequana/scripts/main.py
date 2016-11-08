@@ -75,7 +75,6 @@ class Tools(object):
         if self.verbose or force: print(txt)
 
 
-
 class SmartFormatter(argparse.HelpFormatter):
     def _split_lines(self, text, width):
         if text.startswith('FORMAT|'):
@@ -265,7 +264,10 @@ define the type of cluster command to use
                 github.com/sequana/sequana/resources/data/adapters
                 """)
         group.add_argument("--no-adapters", dest="no_adapters",
-                           action="store_true", default=False)
+            action="store_true", default=False,
+            help="""If provided, no removal of adapters will be 
+                 performed. Trimming quality is still performed.
+                 Value must be set in the config file or using --config-params""")
         group.add_argument("--kraken", dest="kraken", type=str,
             help=""" Fills the *kraken* field in the config file. To be used
                 with --init option""")
