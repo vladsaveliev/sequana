@@ -71,7 +71,7 @@ rule kraken:
                 "--out {output.kraken}")
         from sequana.kraken import KrakenResults
         k = KrakenResults(output.kraken)
-        k.kraken_to_csv(output.kraken_csv)
-        k.kraken_to_json(output.kraken_json)
+        k.kraken_to_csv(output.kraken_csv, params.database)
+        k.kraken_to_json(output.kraken_json, params.database)
 
 
