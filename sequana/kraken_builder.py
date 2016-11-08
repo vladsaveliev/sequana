@@ -365,7 +365,11 @@ class KrakenBuilder():
         N = 560  # with time this number will be deprecated but good for now
 
         local_gis = gis[:]
-        taxons = []
+
+        # We will found GI an order than different from the input gis list so
+        # we will need to keep track of the order
+        found_gis = []
+        taxons = [32644] * len(gis)   # 32644 means unidentified
         # we search for the unique gis. Once found, we remove them from the
         # vector and keep going until the vector is empty or there is no more
         # chunks. A good sanity check is that the final gis vector should be
@@ -378,28 +382,20 @@ class KrakenBuilder():
             chunk.set_index(0, inplace=True)
             chunk = chunk.ix[local_gis].dropna()
 
-            found_gis = list(chunk.index)
-            found_gis = [int(x) for x in list(chunk.index)]
-            for this in found_gis:
-                _ = local_gis.remove(this)
-
-            if len(found_gis)>0:
-                taxons.extend(chunk[1].values)
+            # keep the GI and Taxon
+            found_gis.extend([int(x) for x in list(chunk.index)])
+            
+            # update the remaining GIs and the taxons
+            for gi, tax in zip(chunk.index, chunk.values):
+                local_gis.remove(gi)
+                index = gis.index(gi)
+                taxons[index] = tax
 
             # no need to carry on if all GIs were found
             if len(local_gis) == 0:
                 break
             pb.animate(i+1)
         print("")
-
-        # Some GIs may not be found if the taxon.dmp from NCBI is not synchrone
-        # with the FASTA list used in the build. In such case, we set to 32644
-        # (unidentified)
-        if len(local_gis) > 0:
-            print('Warning: those GIs were not found and set as undefined')
-            for this in local_gis:
-                print(this)
-            taxons += [32644] * len(local_gis)
 
         taxons = [int(x) for x in taxons]
         return taxons
