@@ -111,12 +111,12 @@ if manager.config.star_mapping.do:
     # Mapper rna-star
     __star_mapping__input = __clean_ngs__output
     __star_mapping__logs = manager.getname("star_mapping", ".logs")
-    __star_mapping__output_prefix1 = manager.getname("star_mapping", "_1_")
+    __star_mapping__output_prefix1 = manager.getname("star_mapping", "_init_")
     __star_mapping__output_prefix2 = manager.getname("star_mapping", "_")
     __star_mapping__read_groups = ""
     __star_mapping__sort = manager.getname("star_mapping", "_Aligned.sorted.bam")
     __star_mapping__genome_dir = manager.getname("star_mapping", "_star_2nd_pass")
-    __star_mapping__splice_file = manager.getname("star_mapping", "_1_SJ.out.tab")
+    __star_mapping__splice_file = manager.getname("star_mapping", "_init_SJ.out.tab")
 # get the  Nam7_1/tophat_mapping/Nam7_1/align_summary.txt as tophat reporting ?
 
     include: sm.modules["star_mapping"]
