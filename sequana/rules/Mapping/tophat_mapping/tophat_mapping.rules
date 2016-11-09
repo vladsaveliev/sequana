@@ -16,5 +16,5 @@ rule tophat_mapping:
         """
         tophat2 --bowtie1 -p {threads} -o {params.outdir} {params.options} \
         {params.prefix_index} {input.fastq}  \
-        && samtools sort -o {output.sort} {output.bam}
+        && samtools sort -o {output.sort} {output.bam} 2> {log}
         """
