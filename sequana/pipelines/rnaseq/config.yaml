@@ -30,28 +30,28 @@ star_mapping:
 tophat_mapping:
     do: yes
     prefix_index: /mnt/atlas/PF2_ngs/protected/bowtie_genomes/S_cervS288c
-    options: ""
+    options: "--no-coverage-search "
     threads: 4
 
 bowtie1_mapping_ref:
     do: yes
-    prefix_index: ../Saccer3
+    prefix_index: /mnt/atlas/PF2_ngs/protected/bowtie_genomes/S_cervS288c
     options: "--chunkmbs 400 -a --best -q -e50 "
     threads: 4
 
 
 bowtie1_mapping_rna:
     do: yes
-    prefix_index: ../Saccer3
+    prefix_index: /mnt/atlas/PF2_ngs/protected/bowtie_genomes/S_cervS288c_rRNA
     options: "" 
     threads: 4
 
 # example of options: "-t exon -g gene_id" for gtf file
 feature_counts:
-    gff: ../saccer3.gff
-    #options: "-t exon -g gene_id" 
+    gff: /mnt/atlas/PF2_ngs/protected/annotation/gff_data/S_cervS288c.gff
+    #options: "-t exon -g gene_id"
     options: "-t gene -g ID"
-    threads: 4
+    threads: 2
 
 fastq_screen:
     conf: "fastq_screen.conf"
