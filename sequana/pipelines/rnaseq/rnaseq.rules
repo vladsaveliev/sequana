@@ -122,6 +122,7 @@ if manager.config.star_mapping.do:
 if manager.config.tophat_mapping.do:
     # Mapper tophat
     __tophat_mapping__input = __clean_ngs__output
+    __stophat_mapping__logs = manager.getname("tophat_mapping", ".logs")
     __tophat_mapping__sort = manager.getname("tophat_mapping", ".sorted.bam")
     __tophat_mapping__outdir = manager.getname("tophat_mapping")
     include: sm.modules["tophat_mapping"]
