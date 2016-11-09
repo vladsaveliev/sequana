@@ -21,7 +21,8 @@ rule feature_counts:
         mapp = config['feature_counts']["options"]  # -t exon
     log:
         __feature_counts__log
-    threads: 4
+    threads:
+        config['star_mapping']['threads']
     run:
         shell("""featureCounts -T {threads} {params.mapp} \
                  -a {params.gff} -o {output.count} {input.bam} 2> {log}""")
