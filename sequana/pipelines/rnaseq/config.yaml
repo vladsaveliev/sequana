@@ -50,7 +50,8 @@ bowtie1_mapping_rna:
 feature_counts:
     gff: ../saccer3.gff
     #options: "-t exon -g gene_id" 
-    options: "-t gene -g ID" 
+    options: "-t gene -g ID"
+    threads: 4
 
 fastq_screen:
     conf: "fastq_screen.conf"
@@ -77,7 +78,7 @@ adapter_removal:
     options: "-O 6 --trim-n"
 
 multiqc:
-    excluded: ""
+    excluded: "-x *_init_*"
     output-directory: "multiqc"
 
 
