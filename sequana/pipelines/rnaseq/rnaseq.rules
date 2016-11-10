@@ -85,7 +85,7 @@ include: sm.modules["fastq_screen"]
 expected_output.extend(expand(__fastq_screen__output, sample=manager.samples))
 
 # FASTQC on input data set
-__fastqc_filtered__input_fastq = expand(__clean_ngs__output, sample=manager.samples)
+__fastqc_filtered__input_fastq = __clean_ngs__output
 __fastqc_filtered__output_done = manager.getname("fastqc_filtered", ".done")
 __fastqc_filtered__wkdir       = manager.getwkdir("fastqc_filtered")
 include: fastqc_dynamic("filtered", manager.sample)

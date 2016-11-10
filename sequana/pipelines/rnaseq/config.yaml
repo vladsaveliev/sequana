@@ -15,10 +15,14 @@ fastqc:
     options: "--nogroup"
 
 ##################################################################
-# Use by Phix_removal pipeline to remove reads with the 
-# phix found in the bwa_phix:reference section
-#
+#       MAPPING SECTION
+#     Don't forgot to fill sequencing information
 ##################################################################
+sequencing:
+    platform: "Illumina"
+    instrument: "Hiseq2500"
+    flowcell: "C9M8FANXX"
+
 star_mapping:
     do: yes
     prefix_index: /mnt/atlas/PF2_ngs/protected/starGenomes/S_cervS288c
@@ -77,8 +81,13 @@ adapter_removal:
     quality: "30"
     options: "-O 6 --trim-n"
 
+##################################################################
+#       REPORTING SECTION WITH MULTIQC
+#
+##################################################################
+
 multiqc:
-    excluded: "-x *_init_*"
+    excluded: "-x *_init_* -x *left_kept_reads* -x *report_rnaseq*"
     output-directory: "multiqc"
 
 
