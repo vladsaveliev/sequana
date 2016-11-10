@@ -44,7 +44,7 @@ rule bowtie1_mapping_%(name)s:
         cmd = "%%s && samtools index {output.sort}" %% cmd
 
         
-        shell("unpigz -k {input.fastq} && " + cmd )
+        shell("unpigz -fk {input.fastq} && " + cmd )
     '''
 
     from easydev import TempFile
