@@ -1,18 +1,17 @@
 rule add_read_group:
     input:
-        bam = "sorted/" + config["output"] + ".bam"
+        bam = __add_read_group__input
     output: 
-        rgbam = "add_read_group/" + config["output"] + ".bam"
+        rgbam = __add_read_group__output
     log:
-        out = config["output"] + 
-            "_logs/picard_tools/AddOrReplaceReadGroups/stdout.logs",
-        err = config["output"] + 
-            "_logs/picard_tools/AddOrReplaceReadGroups/stderr.logs"
+        out = __add_read_group__log_std,
+        err = __add_read_group__log_err
     params:
-        r = " ".join(['%s%s' % (key, value) for (key, value) in \
-            config["add_read_group"].items()]),
+        rg = __add_read_group__rg
     shell:
         """
         picard AddOrReplaceReadGroups I={input.bam} O={output.rgbam} \
-        {params.r} > {log.out} 2> {log.err}
+        {params.rg} > {log.out} 2> {log.err}
         """
+
+
