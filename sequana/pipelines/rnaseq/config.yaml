@@ -91,3 +91,8 @@ multiqc:
     output-directory: "multiqc"
 
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Mark duplicates (picard-tools)
+
+mark_duplicates:
+    do: yes
+    options: ''
