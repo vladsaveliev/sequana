@@ -193,6 +193,7 @@ class SequanaGUI(QWidget):
         self.save_config_file()
         rules = self.get_rules(self.formular)
         snakefile = Module(self.choice_button.currentText()).snakefile
+        shutil.copy(snakefile, working_dir)
         self.snakemake_dialog.fill_options(rules, working_dir, snakefile)
         self.snakemake_dialog.exec_()
 
@@ -211,7 +212,7 @@ class SequanaGUI(QWidget):
             formular_dict = dict(self.create_formular_dict(self.formular),
                                  **self.necessary_dict)
         except AttributeError:
-            msg = Warning_message("You must choose a pipeline before saving.")
+            msg = WarningMessage("You must choose a pipeline before saving.")
             msg.exec_()
             return
         # get samples names or input_directory
@@ -226,7 +227,7 @@ class SequanaGUI(QWidget):
         if self.working_dir.path_is_setup():
             yaml_path = self.working_dir.get_filenames() + "/config.yaml"
             if os.path.isfile(yaml_path):
-                save_msg = Warning_message(
+                save_msg = WarningMessage(
                     "The file {0} already exist".format(yaml_path))
                 save_msg.setInformativeText(
                     "Do you want to overwrite the file?")
@@ -240,7 +241,7 @@ class SequanaGUI(QWidget):
             else:
                 yaml.save(yaml_path)
         else:
-            msg = Warning_message("You must indicate your working directory")
+            msg = WarningMessage("You must indicate your working directory")
             msg.exec_()
 
     def create_formular_dict(self, layout):
@@ -302,9 +303,11 @@ class FileBrowser(QWidget):
             self.setup = True
 
     def browse_directory(self):
-        directory_path = QFileDialog.getExistingDirectory(self,
-                                                          "Directory",
-                                                          ".")
+        dialog = DirectoryDialog(
+            self, "Select a directory", ".",
+            "Fastq (*.fastq *.fq *.fastq.gz *.fq.gz)")
+        dialog.exec_()
+        directory_path = dialog.selectedFiles()[0]
         try:
             self.btn_filename.setText(directory_path)
             self.paths = directory_path
@@ -568,16 +571,27 @@ class SnakemakeOptionDialog(QDialog):
         snakemake_line = ["snakemake", "-s", self.snakefile]
         options = self.get_snakemake_options()
         snakemake_line += options
-        print(snakemake_line)
         snakemake_proc = sp.Popen(snakemake_line, cwd=self.working_dir)
         snakemake_proc.communicate()
 
-class Warning_message(QMessageBox):
+class WarningMessage(QMessageBox):
     def __init__(self, msg):
         super().__init__()
         self.setWindowTitle("Warning message")
         self.setIcon(QMessageBox.Warning)
         self.setText(msg)
+
+
+class DirectoryDialog(QFileDialog):
+    def __init__(self, parent, title, directory, file_filter):
+        super().__init__(parent)
+        self.setAcceptMode(QFileDialog.AcceptOpen)
+        self.setFileMode(QFileDialog.Directory)
+        self.setViewMode(QFileDialog.Detail)
+        self.setWindowTitle(title)
+        self.setDirectory(directory)
+        self.setNameFilter(file_filter)
+
 
 def main():
     app = QApplication(sys.argv)
