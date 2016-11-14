@@ -11,8 +11,8 @@ from PyQt5.QtWidgets import (QApplication, QPushButton, QComboBox, QWidget,
                              QLineEdit, QTabWidget, QLabel, QFrame, QGroupBox,
                              QCheckBox, QSpinBox, QDoubleSpinBox, QScrollArea,
                              QMenuBar, QAction)
-from PyQt5.QtWidgets import QFileDialog, QDialog
-from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QVBoxLayout
+from PyQt5.QtWidgets import QFileDialog, QDialog, QMessageBox
+from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QVBoxLayout, QBoxLayout
 from PyQt5.QtWidgets import QSplashScreen, QProgressBar
 
 from PyQt5 import QtGui
@@ -51,7 +51,6 @@ class SequanaGUI(QWidget):
         options_menu.addAction(quitAction)
         options_menu = self.menu_bar.addMenu("&About")
         options_menu.addAction(aboutAction)
-
 
         # snakemake dialog windows
         self.snakemake_dialog = SnakemakeOptionDialog()
@@ -99,7 +98,7 @@ class SequanaGUI(QWidget):
         self.setWindowTitle("Sequana")
         self.show()
 
-    def clearLayout(self, layout):
+    def clear_layout(self, layout):
         """ Clean all widget contained in a layout.
         """
         while layout.count():
@@ -107,7 +106,7 @@ class SequanaGUI(QWidget):
             if child.widget() is not None:
                 child.widget().deleteLater()
             elif child.layout() is not None:
-                self.clearLayout(child.layout())
+                self.clear_layout(child.layout())
 
     def create_choice_button(self):
         """ Create button to select the wished pipeline.
@@ -134,7 +133,7 @@ class SequanaGUI(QWidget):
     def create_base_formular(self, config_file):
         """ Create formular with all options necessary for a pipeline.
         """
-        self.clearLayout(self.formular)
+        self.clear_layout(self.formular)
         try:
             config_dict = snaketools.SequanaConfig(config_file).config
         except AssertionError:
@@ -208,10 +207,15 @@ class SequanaGUI(QWidget):
         return self.run_btn.setEnabled(False)
 
     def save_config_file(self):
-        formular_dict = dict(self.create_formular_dict(self.formular),
-                             **self.necessary_dict)
+        try:
+            formular_dict = dict(self.create_formular_dict(self.formular),
+                                 **self.necessary_dict)
+        except AttributeError:
+            msg = Warning_message("You must choose a pipeline before saving.")
+            msg.exec_()
+            return
         # get samples names or input_directory
-        if self.tabs_browser.currentIndex() == 0:
+        if self.tabs_browser.currentIndex() == 1:
             formular_dict["samples"] = (
                 self.tabs_browser.currentWidget().get_filenames())
         else:
@@ -220,9 +224,24 @@ class SequanaGUI(QWidget):
         yaml = snaketools.SequanaConfig(data=formular_dict,
                                         test_requirements=False)
         if self.working_dir.path_is_setup():
-            yaml.save(self.working_dir.get_filenames() + "/config.yaml")
+            yaml_path = self.working_dir.get_filenames() + "/config.yaml"
+            if os.path.isfile(yaml_path):
+                save_msg = Warning_message(
+                    "The file {0} already exist".format(yaml_path))
+                save_msg.setInformativeText(
+                    "Do you want to overwrite the file?")
+                save_msg.setStandardButtons(
+                    QMessageBox.Save | QMessageBox.Discard |
+                    QMessageBox.Cancel)
+                save_msg.setDefaultButton(QMessageBox.Save)
+                save_answer = save_msg.exec_()
+                if save_answer == 2048:
+                    yaml.save(yaml_path)
+            else:
+                yaml.save(yaml_path)
         else:
-            yaml.save()
+            msg = Warning_message("You must indicate your working directory")
+            msg.exec_()
 
     def create_formular_dict(self, layout):
         widgets = (layout.itemAt(i).widget() for i in range(layout.count()))
@@ -374,6 +393,9 @@ class GeneralOption(QWidget):
     def get_value(self):
         pass
 
+    def get_tuple(self):
+        return (self.get_name(), self.get_value())
+
 
 class BooleanOption(GeneralOption):
     """ Wrapp QCheckBox class
@@ -479,34 +501,81 @@ class SnakemakeOptionDialog(QDialog):
         super().__init__()
         self.main_layout = QVBoxLayout(self)
         self.setWindowTitle("Snakemake options")
- 
-        self.cluster_check_box = BooleanOption("On a cluster ?", False)
+
         self.set_launch_options()
+ 
         self.forcerun_option = ComboBoxOption("--forcerun")
         self.until_option = ComboBoxOption("--until")
 
-        self.main_layout.addWidget(self.cluster_check_box)
-        self.main_layout.addWidget(self.cores_option)
+        footer = self.footer_button()
+        self.main_layout.addWidget(self.tabs)
         self.main_layout.addWidget(self.forcerun_option)
         self.main_layout.addWidget(self.until_option)
+        self.main_layout.addWidget(footer)
+
+    def footer_button(self):
+        run_btn = QPushButton("Run")
+        run_btn.clicked.connect(self.run_snakemake)
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.clicked.connect(self.close)
+
+        footer_widget = QWidget()
+        footer_layout = QHBoxLayout(footer_widget)
+        footer_layout.addWidget(run_btn)
+        footer_layout.addWidget(cancel_btn)
+
+        return footer_widget
 
     def fill_options(self, rules):
         self.forcerun_option.add_items(rules)
         self.until_option.add_items(rules)
 
     def set_launch_options(self): 
-        self.cores_option = NumberOption("--cores", 2)
-        self.jobs_option = NumberOption("--jobs", 2)
-        self.cluster_options = TextOption("--cluster", "")
+        cores_option = NumberOption("--cores", 2)
+        jobs_option = NumberOption("--jobs", 2)
+        cluster_options = TextOption("--cluster", "")
 
-        self.jobs_option.set_range(1, 10000)
-        self.cores_option.set_range(1, multiprocessing.cpu_count())
+        launch_cluster_widget = QWidget()
+        launch_cluster_layout = QVBoxLayout(launch_cluster_widget)
+        launch_cluster_layout.addWidget(cluster_options)
+        launch_cluster_layout.addWidget(jobs_option)
 
-        self.cluster_widget = QWidget()
-        cluster_layout = QVBoxLayout(self.cluster_widget)
-        cluster_layout.addWidget(self.cluster_options)
-        cluster_layout.addWidget(self.jobs_option)
+        jobs_option.set_range(1, 10000)
+        cores_option.set_range(1, multiprocessing.cpu_count())
 
+        # create tab
+        self.tabs = QTabWidget()
+        self.tabs.addTab(cores_option, "Local")
+        self.tabs.addTab(launch_cluster_widget, "Cluster")
+
+    def get_snakemake_options(self):
+        # cluster/local option
+        current_tab = self.tabs.currentWidget()
+        try:
+            option_list = [current_tab.get_name(), current_tab.get_value()]
+        except AttributeError:
+            current_layout = current_tab.layout()
+            widgets = (current_layout.itemAt(i).widget() for i in
+                       range(current_layout.count()))
+            option_list = [this for w in widgets for this in w.get_tuple()]
+        return option_list
+
+    def run_snakemake(self):
+        """ Run snakemake in the working directory.
+        """
+        snakemake_line = ["snakemake"]
+        options = self.get_snakemake_options()
+        snakemake_line += options
+        print(snakemake_line)
+        snakemake_proc = sp.Popen(snakemake_line, cwd=self.working_dir)
+        snakemake_proc.communicate()
+
+class Warning_message(QMessageBox):
+    def __init__(self, msg):
+        super().__init__()
+        self.setWindowTitle("Warning message")
+        self.setIcon(QMessageBox.Warning)
+        self.setText(msg)
 
 def main():
     app = QApplication(sys.argv)
