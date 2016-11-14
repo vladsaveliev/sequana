@@ -267,7 +267,8 @@ class SequanaGUI(QWidget):
 class FileBrowser(QWidget):
     """ Class to create a file browser in PyQT5.
     """
-    def __init__(self, paired=False, directory=False):
+    def __init__(self, paired=False, directory=False,
+                 file_filter="Any file (*)"):
         super().__init__()
 
         self.paths = ""
@@ -305,7 +306,7 @@ class FileBrowser(QWidget):
     def browse_directory(self):
         dialog = DirectoryDialog(
             self, "Select a directory", ".",
-            "Fastq (*.fastq *.fq *.fastq.gz *.fq.gz)")
+            self.file_filter)
         dialog.exec_()
         directory_path = dialog.selectedFiles()[0]
         try:
