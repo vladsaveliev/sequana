@@ -557,7 +557,8 @@ class SnakemakeOptionDialog(QDialog):
         # cluster/local option
         current_tab = self.tabs.currentWidget()
         try:
-            option_list = [current_tab.get_name(), current_tab.get_value()]
+            option_list = [current_tab.get_name(),
+                           str(current_tab.get_value())]
         except AttributeError:
             current_layout = current_tab.layout()
             widgets = (current_layout.itemAt(i).widget() for i in
