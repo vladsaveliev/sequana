@@ -65,18 +65,22 @@ Issues: http://github.com/sequana/sequana
 
         # options to fill the config file
         self.add_argument("--source", dest="source", type=str,
-            help="""fastq, fastq.gz, fastq.bz2, fastq.dscr""")
+            help="""Search for all source files with this extension. Valid
+extensions are: fastq, fastq.gz, fastq.bz2, fastq.dscr, fq, fq.gz, fq.bz2 and
+fq.dsrc""")
         self.add_argument("--target", dest="target", type=str,
-            help="""fastq, fastq.gz, fastq.bz2, fastq.dscr """)
+            help="""Convert the source files to a new format. Valid
+extensions are: fastq, fastq.gz, fastq.bz2, fastq.dscr, fq, fq.gz, fq.bz2 and
+fq.dsrc""")
         self.add_argument("--recursive", dest="recursive",
             default=False,
             action="store_true", help="""recursive search""")
         self.add_argument("--threads", dest="threads",
             default=4,
-            help="""number of threads to use per core (4)""")
-        self.add_argument("--cores", dest="cores",
+            help="""number of threads to use per job (4)""")
+        self.add_argument("--jobs", dest="jobs",
             default=4,
-            help="""number of cores to use at most (4) """)
+            help="""number of jobs to use at most (4) """)
         self.add_version(self)
         self.add_verbose(self)
         self.add_cluster(self)
@@ -99,28 +103,19 @@ def main(args=None):
         print(sequana.version)
         sys.exit()
     # valid codecs:
-    valid_combos = [
-        ("fastq", "fastq.gz"),
-        ("fastq", "fastq.bz2"),
-        ("fastq", "fastq.dsrc"),
+    valid_extensions = [("fastq." + ext2).rstrip(".") 
+                        for ext2 in ['', 'bz2', 'gz', 'dsrc']]
 
-        ("fastq.gz", "fastq"),
-        ("fastq.gz", "fastq.bz2"),
-        ("fastq.gz", "fastq.dsrc"),
+    valid_extensions += [("fq." + ext2).rstrip(".") 
+                        for ext2 in ['', 'bz2', 'gz', 'dsrc']]
 
-        ("fastq.bz2", "fastq"),
-        ("fastq.bz2", "fastq.gz"),
-        ("fastq.bz2", "fastq.dsrc"),
+    valid_combos = [(x, y) for x in valid_extensions
+                           for y in valid_extensions
+                           if x!=y] 
 
-        ("fastq.dsrc", "fastq"),
-        ("fastq.dsrc", "fastq.gz"),
-        ("fastq.dsrc", "fastq.bz2"),
-
-		]
     if (options.source, options.target) not in valid_combos:
         raise ValueError("""--target and --source combo not valid. 
 Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
-
 
     from easydev import TempFile
     # Create the config file locally 
@@ -143,11 +138,11 @@ Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
 
         if options.verbose:
             cmd = 'snakemake -s %s  --configfile %s -j %s -p %s' % \
-                (rule, temp.name, options.cores, cluster)
+                (rule, temp.name, options.jobs, cluster)
             print(cmd)
         else:
             cmd = 'snakemake -s %s  --configfile %s -j %s -p %s' % \
-                (rule, temp.name, options.cores, cluster)
+                (rule, temp.name, options.jobs, cluster)
         shell(cmd)
         fh.close()
 

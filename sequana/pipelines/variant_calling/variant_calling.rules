@@ -152,6 +152,8 @@ final_output.append(expand(__report_variant__html_output,
 include: sm.modules["conda"] # Create requirements.txt(dependencies)
 __dag__input = __snakefile__
 __rulegraph__output = "dag.svg"
+__rulegraph__mapper = {"report_mapping":"report_mapping.html",
+                       "report_variant":"report_variant.html"}
 include: sm.modules["rulegraph"]
 final_output.extend(["requirements.txt", "dag.svg"])
 

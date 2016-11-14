@@ -52,14 +52,17 @@ class ReadSummary(object):
         return float(trimming.replace("%", "").replace("(","").replace(")","").strip())
 
     def get_read1_with_adapters_percent(self):
-        d = self.get_cutadapt_stats()
-        trimming = d["percent"]["Read1 with adapters"]
-        return int(trimming.replace(",", "").strip())
-
+        return self._get_read_with_adapters_percent("1")
     def get_read2_with_adapters_percent(self):
+        return self._get_read_with_adapters_percent("2")
+    def _get_read_with_adapters_percent(self, tag):
         d = self.get_cutadapt_stats()
-        trimming = d["percent"]["Read2 with adapters"]
-        return int(trimming.replace(",", "").strip())
+        trimming = d["percent"]["Read%s with adapters" % tag]
+        trimming = trimming.strip()
+        for this in [",", "(", ")", "%"]:
+            trimming = trimming.replace(this, "")
+        trimming = float(trimming)
+        return trimming
 
 
 class SequanaMultipleSummary(BaseReport):
@@ -78,6 +81,8 @@ class SequanaMultipleSummary(BaseReport):
             output_filename="multi_summary.html",
             **kargs)
 
+        print("Sequana Summary is still a tool in progress and have been " +
+              "  tested with the quality_control pipeline only for now.")
         self.verbose = verbose
         workdir = "."
         self.jinja['title'] = "Sequana multiple summary" 
@@ -95,14 +100,22 @@ class SequanaMultipleSummary(BaseReport):
 
         self.jinja['n_samples'] = len(self.summaries)
 
+        self.jinja['links'] = [{'href': this.replace(".json", ".html"),
+                                'caption': this.split("/",1)[0]}
+                               for this in self.filenames]
+
         self.jinja['canvas'] = '<script type="text/javascript" src="js/canvasjs.min.js"></script>'
         self.jinja['canvas'] += """<script type="text/javascript">
             window.onload = function () {"""
 
-        self.populate_phix()
-        self.populate_gc_samples()
-        self.populate_trimming()
-        self.populate_mean_quality()
+        try:self.populate_phix()
+        except:pass
+        try:self.populate_gc_samples()
+        except:pass
+        try: self.populate_trimming()
+        except:pass
+        try:self.populate_mean_quality()
+        except:pass
 
         self.jinja['canvas'] += "}</script>"
 

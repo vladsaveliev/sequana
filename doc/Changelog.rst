@@ -3,13 +3,48 @@ Changelog
 
 .. contents::
 
+0.1.14
+------------
+
+* CHANGES:
+
+    - snaketools: 
+          - remove SnakeMakeProfile (not used)
+          - remove sequana_check_config (not used)
+          - remove deprecated __get_tagname
+          - remove ExpandedSnakefile since not required anymore
+    - Simplify combos of input_directory, input_patter, input_samples, the new
+      possible mutually exclusive input parameters of sequana standalone and all
+      pipelines. 
+   
+* NEWS
+
+    - fq.gz are now allowed in the pipelines and should be supported in the
+      future
+    - More tests in particular a ./test/pipelines/ new directory 
+ 
+
+
 0.1.13
 -----------
+
+* CHANGES:
+
+    - revisited all pipelines so that they can work of multi samples.
+    - quality_phix, quqlity and quality_taxon pipelines merged in
+      quality_control pipeline
+    - running meadian won't fail anymore with odd window size (we add +1)
+    - rulegraph is used as well as dag to create figures of the pipelines
 
 * NEWS:
 
     - compressor: includes dsrc format in addition to bz2 and gz
+    - snakemake rule extension for sphinx
+    - add a pipeline manager in snaketools to handle all pipelines
+    - a designexp module to handle adapter design files
 
+
+     
 
 0.1.12
 -----------

@@ -1,7 +1,7 @@
+import os
 from sequana import adapters
 from sequana import sequana_data, FastA
 from easydev import TempFile
-
 
 
 def test_fasta_fwd_rev_to_columns():
@@ -33,7 +33,25 @@ def test_clean_ngs():
 def test_adapter():
     a1 = adapters.Adapter("test", "ACGT", "comment")
     a2 = adapters.Adapter("test", "ACGT", "comment")
+    a3 = adapters.Adapter("test", "ACGC", "comment")
+    a4 = adapters.Adapter("test", "ACGT", "comment2")
     assert a1 == a2
+    assert a1 != a3
+    assert a1 != a4
+
+    try:
+        # > should not be included
+        adapters.Adapter(">test", "ACGC", "comment")
+        assert False
+    except ValueError:
+        assert True
+    
+    a1 = adapters.Adapter("test", "ACGT", "comment")
+    a1.sequence = "other"
+    assert a1.sequence == "other"
+    a1.identifier = "new"
+    a1.comment = "new"
+
 
 
 def test_adapters_removal_parser():
@@ -46,7 +64,8 @@ def test_adapter_reader():
     from sequana.adapters import AdapterReader as AR
     data = sequana_data("adapters_with_duplicates.fa", "testing")
     try:
-        AR(data)
+        ar = AR(data)
+        ar.sanity_check()
     except ValueError:
         pass
 
@@ -81,16 +100,43 @@ def test_adapter_reader():
     ar3.reverse_complement()
     assert ar1 == ar3
 
-
+    # test to_fasta method
+    with TempFile() as fh:
+        ar1.to_fasta(fh.name)
 
 def test_find_adapters_from_index_mapper():
     from sequana.adapters import FindAdaptersFromIndex
-    ad = FindAdaptersFromIndex(sequana_data("test_index_mapper.csv", "testing"),
-            "Nextera")
+    design = sequana_data("test_index_mapper.csv")
+    ad = FindAdaptersFromIndex(design, "Nextera")
     assert ad.get_adapters("C4405-M1-EC1")
     ad.sample_names
 
     fwd, rev = ad.save_adapters_to_fasta("C4405-M1-EC1")
-    import os
     os.remove(fwd)
     os.remove(rev)
+
+    try:
+        ad = FindAdaptersFromIndex(design, "error")
+        assert False
+    except ValueError:
+        assert True
+
+    # Other input from PCRFree
+    ad = FindAdaptersFromIndex(design, "PCRFree")
+
+    # Other type of designs
+
+    design1 = sequana_data("test_expdesign_hiseq.csv")
+    ad1 = FindAdaptersFromIndex(design1, "Nextera")   
+    ad1.get_adapters("553-iH2-1")
+
+    design2 = sequana_data("test_expdesign_miseq_illumina2.csv")
+    ad2 = FindAdaptersFromIndex(design2, "PCRFree")
+    assert ad2.get_adapters('M2')['index2']['fwd'].identifier == \
+            'NextFlex_PCR_Free_adapter13|index_dna:13'
+
+    design3 = sequana_data("test_expdesign_miseq_illumina.csv")
+    ad3 = FindAdaptersFromIndex(design3, "PCRFree")
+    res = ad3.get_adapters("CR81-L1236-P1")
+    assert res['index1']['fwd'].identifier == 'NextFlex_PCR_Free_adapter1|index_dna:1'
+

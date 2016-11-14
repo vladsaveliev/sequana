@@ -15,6 +15,8 @@ body {
 }
 
 
+header {background: black;color:white;}
+
 /*
  * ┌──────────────────────────────────────────────────────────────────────────┐
  * │                                                                 Document │
@@ -67,16 +69,19 @@ h1.title {
     margin-bottom:  0.0em;
     padding-bottom: 0.0em;
     margin-top:  0.2em;
-    padding-top: 0.2em;
+    padding-top: 0.4em;
+    text-align: center;
 }
 h2.subtitle {
     font-size:     1.0em;
     padding-top:   0.5em;
-    margin-top:    0.0em;
     color:         #999;
     border-bottom: none;
     margin-top:  0.2em;
+    margin-left: 0;
+    margin-right: 0;
     padding-top: 0.2em;
+    text-align: center;
 }
 
 p {

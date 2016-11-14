@@ -11,9 +11,10 @@ dependencies:
 - pysam
 - krona
 - kraken
+- pillow
 - pip:
   - matplotlib
-  - easydev>=0.9.21
+  - easydev>=0.9.28
   - bioservices
   - biokit>=0.3.0
   - mpld3

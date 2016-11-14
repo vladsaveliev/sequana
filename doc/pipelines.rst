@@ -4,50 +4,28 @@
 Pipelines
 ##############
 
-This sections provides a summary of the official Sequana pipelines, which are all based on snakemake.
+In **Sequana** parlance, a pipeline is an application based on Snakemake that consists of a Snakefile and a configuration file. Each pipeline and its configuration file can be automatically downloaded using::
 
-Each pipeline can be automatically downloaded (with its config file) using::
+    sequana --pipeline <name> 
 
-    sequana --pipeline <name> --file1 <FILE1> --file2 <FILE2>
+By default the previous command creates a directory named *analysis* where the
+pipeline and config file are stored. The pipeline must not be changed but the
+configuration file can be edited to change the options. 
 
-.. contents::
-    :depth: 2
-
-
-.. _denovo_assembly_pipeline:
-
-denovo_assembly
-====================
-
-.. include:: ../sequana/pipelines/denovo_assembly/README.rst
+Although the configuration is documented and should be self content, additional
+help for users and developers can be found for each pipeline in the following
+links.
 
 
-.. _pipeline_quality_control:
+.. todo:: the following sections are in progress but should already give useful
+   information about the pipelines that are available.
 
-Quality control
-=================
+.. toctree::
+    :maxdepth: 1
 
-.. include:: ../sequana/pipelines/quality_control/README.rst
-
-.. _pipeline_rnaseq:
-
-RNA-Seq 
-=================
-
-.. include:: ../sequana/pipelines/rnaseq/README.rst
+    pipeline_denovo_assembly.rst
+    pipeline_quality_control.rst
+    pipeline_variant_calling.rst
+    pipeline_compressor.rst
 
 
-.. _pipeline_variant_calling:
-
-Variant Calling
-=================
-
-.. include:: ../sequana/pipelines/variant_calling/README.rst
-
-
-.. _pipeline_compressor:
-
-Compressor
-============
-
-.. include:: ../sequana/pipelines/compressor/README.rst

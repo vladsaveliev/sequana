@@ -175,19 +175,31 @@ class SequanaSummary(BaseReport):
                 self.jinja['sample_image_r1_href'] = filename.replace(
                     "fastq_stats_samples", "fastqc_samples").replace(
                     "boxplot.png", "fastqc.html")
+                df = pd.read_json(self.directory + "/fastq_stats_samples/%s_R1_001.json" % self.sample)
+                self.jinja["sample_stats__samples_json"] = df.to_json()
+
             elif "R2" in filename:
                 self.jinja['sample_image_r2'] = filename
                 self.jinja['sample_image_r2_href'] = filename.replace(
                     "fastq_stats_samples", "fastqc_samples").replace(
                     "boxplot.png", "fastqc.html")
+                df = pd.read_json(self.directory + "/fastq_stats_samples/%s_R2_001.json" % self.sample)
+                self.jinja["sample_stats__samples_json_R2"] = df.to_json()
 
     def include_kraken(self):
         if "kraken" in self.config.config.keys() and self.config.config['kraken']['database']: 
             self.jinja['kraken_pie'] = "kraken/kraken.png"
             self.jinja['kraken_database'] = os.path.basename(
                 self.config.config['kraken']['database'])
-            table = HTMLTable(pd.read_csv(self.directory + "/kraken/kraken.csv"))
-            self.jinja['kraken_html_table'] = table.to_html(index=False)
+        except:
+            self.jinja['kraken_database'] = "?"
+
+        table = self.htmltable(pd.read_csv(self.directory + "/kraken/kraken.csv"), 
+                              tablename="kraken")
+        if "ena" in table.df.columns:
+            table.add_href('ena', url="http://www.ebi.ac.uk/ena/data/view/")
+        table.name = "kraken/kraken"
+        self.jinja['kraken_html_table'] = table.to_html(index=False)
 
     def include_phix(self):
         filename=self.directory + "/bwa_bam_to_fastq/bwa_mem_stats.json"

@@ -24,12 +24,13 @@ Here is an overview (see details here below)
     :nosignatures:
 
     sequana.snaketools.DOTParser
+    sequana.snaketools.FastQFactory
+    sequana.snaketools.FileFactory
     sequana.snaketools.Module
     sequana.snaketools.ModuleFinder
-    sequana.snaketools.SnakeMakeProfile
+    sequana.snaketools.PipelineManager
     sequana.snaketools.SnakeMakeStats
     sequana.snaketools.SequanaConfig
-    sequana.snaketools.get_cleanup_rules
     sequana.snaketools.message
     sequana.snaketools.modules
 
@@ -41,19 +42,18 @@ import glob
 
 from easydev import get_package_location as gpl
 from easydev import load_configfile, AttrDict
-from easydev.tools import touch
-import pandas as pd
 import pylab
 
 
-# __all__ = ["SequanaConfig"]
+__all__ = ["DOTParser", "FastQFactory", "FileFactory",
+           "Module", "PipelineManager", "SnakeMakeStats",
+           "SequanaConfig"]
 
 try:
     # This is for python2.7
     import snakemake
 except:
     print("Snakemake must be installed. Available for Python3 only")
-
     class MockSnakeMake(object):
         def __init__(self):
             pass
@@ -61,62 +61,6 @@ except:
         def Workflow(self, filename):
             raise ImportError
     snakemake = MockSnakeMake()
-
-
-
-class _ExpandedSnakeFile(object):
-    """Read a Snakefile and its dependencies (include) and create single file
-
-    **Motivation**
-
-    a Snakefile may look like::
-
-        from sequana import snaketools as sm
-        include: sm.modules['bwa_phix']
-        include: sm.modules['fastqc']
-
-    This is nice and compact but we do not see anymore what the Snakefile does.
-    This class will recreate the Snakefile without this compactness so that one
-    can see the entire structure. The expansion is performed by :meth:`expand`.
-
-    .. warning:: experimental. docstrings should be removed. lines starting
-        with **include** should also be removed.
-
-    """
-    def __init__(self, snakefile):
-        # read the file and include it (Snakemake API)
-        # This import is the package not the sequana.snaketools file
-        self.snakefile = snakemake.Workflow(snakefile)
-        self.snakefile.include(snakefile)
-
-    def expand(self, output_filename="Snakefile.expanded"):
-        """The expansion of Snakefile
-
-        :param str filename: name of the output file
-
-        """
-        # open a file to save all included rules and workflow in one place
-        with open(output_filename, "w") as workflow_expanded:
-            # scan all included workflow
-            for include in self.snakefile.included:
-                with open(include, "r") as wk_toinclude:
-                    data = wk_toinclude.read()
-                    workflow_expanded.write(data)
-
-
-class SnakeMakeProfile(object):
-    """Interpret the snakemake profile file
-
-    Run the Snakemake with this option::
-
-        --profile profile.json
-
-    """
-    def __init__(self, filename):
-        self.filename = filename
-
-    def parse(self):
-        data = json.loads(self.filename)
 
 
 class SnakeMakeStats(object):
@@ -150,8 +94,9 @@ class SnakeMakeStats(object):
 
     def plot(self, fontsize=16):
         """Create the barplot from the stats file"""
+        from pandas import DataFrame
         pylab.clf()
-        df = pd.DataFrame(self._parse_data()['rules'])
+        df = DataFrame(self._parse_data()['rules'])
         ts = df.ix['mean-runtime']
         ts['total'] = self._parse_data()['total_runtime'] / float(self.N)
         ts.sort_values(inplace=True)
@@ -252,8 +197,36 @@ class ModuleFinder(object):
 class Module(object):
     """Data structure that holds metadata about a **Module**
 
-    A **Module** in sequana's parlance is a directory that contains
-    the following files:
+    In Sequana, we provide rules and pipelines to be used with snakemake.
+    Snakemake rules look like::
+
+        rule <name>:
+            :input: file1
+            :output: file2
+            :shell: "cp file1 file2"
+
+    A pipeline may look like::
+
+        include: "path_to_rule1"
+        include: "path_to_rule2"
+        rule all:
+            input: FINAL_FILES
+
+    Note that the pipeline includes rules by providing the path to them.
+
+    All rules can be stored in a single directory. Similarly for pipelines.
+    We decided not to use that convention. Instead, we bundle rules (and
+    pipelines) in their own directories so that other files can be stored
+    with them. We also consider that
+
+        #. if the **Snakefile** includes other **Snakefile** then
+           it is **Pipeline**.
+        #. Otherwise it is a simple **Rule**.
+
+    So, a **Module** in sequana's parlance is a directory that contains a
+    rule or a pipeline and associated files. There is currently no strict
+    conventions for rule Modules except for their own rule file. However,
+    pipeline Modules should have the following files:
 
         - A **snakemake** file named after the directory with the extension
           **.rules**
@@ -266,36 +239,41 @@ class Module(object):
           in ./sequana/sequana/pipelines will be used.
         - a **requirements.txt**
 
-    The name of the module is the name of the directory where the files are
-    stored. The **Modules** are stored in sequana/rules and sequana/pipelines
-    directories. Those main directories may have sub-directories main names
-    should not but duplicated
+    .. note:: Developers who wish to include new rules should refer to the
+        Developer guide.
 
-    The Snakefile should be named **<module_name>.rules**.
+    .. note:: it is important that module's name should be used to name
+        the directory and the rule/pipeline.
 
-    Before explaining the different type of **Modules**, let us remind
-    that a **rule** in **Snakemake** terminology looks like::
+    The **Modules** are stored in sequana/rules and sequana/pipelines
+    directories. The modules' names cannot be duplicated.
 
-        rule <name>:
-            :input: file1
-            :output: file2
-            :shell: "cp file1 file2"
+    Example::
 
-    However, in **sequana**, the module may contain several rules.
+        pipelines/test_pipe/test_pipe.rules
+        pipelines/test_pipe/README.rst
+        rules/rule1/rule1.rules
+        rules/rule1/README.rst
 
-    Here is the terminolgy. Within a module directory, :
+    The :class:`Module` will ease the retrieval of information linked to a
+    rule or pipeline. For instance if a pipeline has a config file, its path
+    can be retrived easily::
 
-        - if the **Snakefile** includes other **Snakefile** then
-          we consider that that Module is a **Pipeline** module.
-        - if the **Snakefile** does not include other **Snakefile** and
-          all internal snakemake rules start with the same name, we consider
-          that that module is a **Rule** module.
+        m = Module("quality_control")
+        m.config
 
-    This data structure ease the retrieval of metadata and Snakefiles stored
-    within Sequana.
+    This Module may be rule or pipeline, the method :meth:`is_pipeline` can
+    be used to get that information. Other useful methods are available such
+    as :meth:`onweb` that open the web page of the pipeline (linked to the
+    README).
 
     """
     def __init__(self, name):
+        """.. rubric:: Constructor
+
+        :param str name: the name of an available module.
+
+        """
         self._mf = ModuleFinder()
         self._mf.isvalid(name)
         if name not in self._mf.names:
@@ -319,6 +297,7 @@ or open a Python shell and type::
         self._requirements = None
 
     def is_pipeline(self):
+        """Return true is this module is a pipeline"""
         return self._mf.is_pipeline(self._name)
 
     def _get_file(self, name):
@@ -390,6 +369,14 @@ or open a Python shell and type::
     requirements = property(_get_requirements, doc="list of requirements")
 
     def is_executable(self, verbose=False):
+        """Is the module executable
+
+        A Pipeline Module should have a requirements.txt file that is
+        introspectied to check if all executables are available;
+
+        :param verbose:
+        :return: a boolean
+        """
         if self.requirements is None:
             return True
 
@@ -423,7 +410,7 @@ or open a Python shell and type::
             try:
                 easydev.shellcmd("which %s" % req)
                 if verbose:
-                    print("%s executable" % req)
+                    print("Found %s executable" % req)
             except:
                 # is this a Python code ?
                 if len(easydev.get_dependencies(req)) == 0:
@@ -437,11 +424,17 @@ or open a Python shell and type::
 
     def check(self, mode="warning"):
         if self.is_executable(verbose=False):
+            #print("All requirements fulfilled for %s pipeline/rule." % self._name)
             return
         else:
-            print("Some executable or Python packages are not available:\n")
             self.is_executable(verbose=True)
-            print("Some functionalities may not work ")
+            txt = "Some executable or Python packages are not available:\n"
+            txt += "Some functionalities may not work "
+            if mode == "warning":
+                print(txt)
+            elif mode == "error":
+                txt += "Use \n conda install missing_package_name"
+                raise ValueError(txt)
 
     def _get_description(self):
         try:
@@ -451,12 +444,7 @@ or open a Python shell and type::
                 self._description = "no description"
         return self._description
     description = property(_get_description,
-                           doc=("Content of the README file associated with "
-                                "the module.\n\n::\n"
-                                "   from sequana import Module\n"
-                                "   m = Module('dag')\n"
-                                "   print(m.description)\n"))
-
+                           doc=("Content of the README file associated with "))
     def onweb(self):
         # TOD: automatic switch
         from easydev import onweb
@@ -499,7 +487,7 @@ class SequanaConfig(object):
 
     Input files should be stored into::
 
-        samples:
+        input_samples:
             - file1: FILE1
             - file2: FILE2
 
@@ -538,14 +526,16 @@ class SequanaConfig(object):
         self._converts_boolean(self.config)
 
         if test_requirements and mode == "NGS":
-            requirements = ["input_directory", "samples", "samples:file1", "samples:file2"]
+            requirements = ["input_directory", 
+                            "input_samples",
+                            "input_extension",
+                            "input_pattern",
+                            "input_samples:file1", "input_samples:file2"]
             # converts to dictionary ?
             for this in requirements:
                 this = this.split(":")[0]
                 assert this in self.config.keys(),\
                     "Your config must contain %s" % this
-
-
 
     def save(self, filename="config.yaml"):
         """Export config into YAML file
@@ -678,22 +668,83 @@ class SequanaConfig(object):
             return self.get(level2, default=default, cfg=cfg[level1])
         else:
             if isinstance(cfg, dict) and field in cfg.keys():
-                return cfg[field]
+                if cfg[field]:
+                    return cfg[field]
+                else:
+                    return default
             else:
                 return default
 
 
 class PipelineManager(object):
-    def __init__(self, name, config, pattern="*.fastq.gz"):
+    """Utility to manage easily the snakemake pipeline
 
+
+    Inside a snakefile, use it as follows::
+
+        from sequana import PipelineManager
+        manager = PipelineManager("pipeline_name", "config.yaml")
+
+    config file must have these fields::
+
+        - input_directory:  #a_path
+        - input_extension:  fastq.gz  # this is the default. could be also fq.gz
+        - input_pattern:    # a_global_pattern e.g. H*fastq.gz
+        - input_samples:
+            - file1:
+            - file2:
+
+    The manager can then easily access to the data with a :class:`FastQFactory`
+    instance::
+
+        manager.ff.filenames
+
+    This can be further used to get a wildcards with the proper directory.
+
+    The manager also tells you if the samples are paired or not assuming all
+    samples are homogneous (either all paired or all single-ended).
+
+    If there is only one sample, the attribute :attr:`mode` is set to "nowc"
+    meaning no wildcard. Otherwise, we assume that we are in a wildcard mode.
+
+    When the mode is set, two attributes are also set: :attr:`sample` and
+    :attr:`basename`.
+
+    If the mode os **nowc**, the *sample* and *basename* are hardcoded to
+    the sample name and  sample/rule/sample respectively. Whereas in the
+    **wc** mode, the sample and basename are wilccard set to "{sample}"
+    and "{sample}/rulename/{sample}". See the following methods :meth:``
+
+
+    The methods:
+
+    See Developer Guide for details.
+
+    """
+    def __init__(self, name, config, pattern="*.fastq.gz"):
+        """.. rubric:: Constructor
+
+        :param name: name of the pipeline
+        :param config:  name of a configuration file
+        :param pattern: a default pattern if not provided in the configuration
+            file as an *input_pattern* field.
+        """
         cfg = SequanaConfig(config)
         cfg.config.pipeline_name = name
 
-        # Default mode is the glob/pattern.
-        glob_dir = cfg.config.input_directory + "/" + \
-                   cfg.get('pattern', pattern)
+        # Default mode is the glob/pattern. 
+        if cfg.config.input_directory.strip():
+            glob_dir = cfg.config.input_directory + os.sep + \
+                        "*" + cfg.get('input_extension', pattern)
+        elif cfg.config.input_pattern:
+            glob_dir = cfg.config.input_pattern
+        else:
+            glob_dir = [cfg.config.input_samples.file1]
+            if cfg.config.samples.file2:
+                glob_dir += [cfg.config.input_samples.file2]
 
         self.ff = FastQFactory(glob_dir)
+
         R1 = [1 for this in self.ff.filenames if "_R1_" in this]
         R2 = [1 for this in self.ff.filenames if "_R2_" in this]
         if len(R2) == 0:
@@ -708,13 +759,14 @@ class PipelineManager(object):
         # provided, filenames is not empty and superseeds
         # the previous results (with the glob). Here only 2 files are provided
         # at most
-        filenames = self._get_filenames(cfg.config)
-        if len(filenames):
-            self.ff = FastQFactory(filenames)
-            if len(filenames) == 2:
-                self.paired = True
-            else:
-                self.paired = False
+        if not self.ff:
+            filenames = self._get_filenames(cfg.config)
+            if len(filenames):
+                self.ff = FastQFactory(filenames)
+                if len(filenames) == 2:
+                    self.paired = True
+                else:
+                    self.paired = False
 
         ff = self.ff  # an alias
         self.samples = {tag: [ff.get_file1(tag), ff.get_file2(tag)]
@@ -738,17 +790,26 @@ class PipelineManager(object):
         self.config = cfg.config
 
     def getname(self, rulename, suffix=None):
+        """Returns basename % rulename + suffix"""
         if suffix is None:
             suffix = ""
         return self.basename % rulename + suffix
 
     def getreportdir(self, acronym):
+        """
+        """
         return self.sample + "/report_" + acronym + "_" + self.sample + "/"
 
     def getwkdir(self, rulename):
         return self.sample + "/" + rulename
 
     def getrawdata(self):
+        """Return list of raw data
+
+        If :attr:`mode` is *nowc*, a list of files is returned (one or two files)
+        otherwise, a function compatible with snakemake is returned. This function
+        contains a wildcard to each of the samples found by the manager.
+        """
         if self.mode == "nowc":
             return self.ff.realpaths
         else:
@@ -772,16 +833,6 @@ class PipelineManager(object):
 
 
 
-
-
-
-def sequana_check_config(config, globs):
-    s = SequanaConfig.from_dict(config)
-    dic = dict([(k, v) for k, v in globs.items()
-                if k.startswith("__sequana__")])
-    s.check(dic)
-
-
 def message(mes):
     """Dedicated print function to include in Snakefiles
 
@@ -795,24 +846,55 @@ def message(mes):
 
 
 class DOTParser(object):
-    """Utility to parse the dot returned by Snakemake and add URLs automatically
+    """Utility to manipulate the dot file returned by Snakemake
 
-    ::
+    This class is used in the *dag* and *rulegraph* rules used in the
+    snakemake pipeline. The input must be a dag/rulegraph created by snakemake.
+
+    Consider this example where the test file was created by snakemake --dag ::
 
         from sequana import sequana_data
         from sequana.snaketools import DOTParser
 
-        filename = sequana_data("test_dag.dot", "testing")
-        dot = DOTParser(filename, {"fastqc": "fastqc.html"})
+        filename = sequana_data("test_dag.dot")
+        dot = DOTParser(filename)
 
         # creates test_dag.ann.dot locally
-        dot.add_urls()
+        dot.add_urls("test.dot", {"fastqc": "fastqc.html"})
+
+    You can then convert the dag in an unix shell::
+
+        dot -Tsvg test.ann.dot -o test.svg
+
+    .. plot::
+
+        from sequana import sequana_data
+        from sequana.snaketools import DOTParser
+        dot = DOTParser(sequana_data("test_dag.dot"))
+        dot.add_urls("test.dot", {"fastqc": "fastqc.html"})
+        from easydev import execute
+        execute("dot -Tpng test.ann.dot -o test.png")
+        from pylab import imshow, imread, xticks, yticks
+        imshow(imread("test.png")); xticks([]) ;yticks([])
 
     """
     def __init__(self, filename):
+        """.. rubric:: constructor
+
+         :param str filename: a DAG in dot format created by snakemake
+
+         """
         self.filename = filename
 
     def add_urls(self, output_filename=None, mapper={}):
+        """Change the dot file adding URL on some nodes
+
+        :param str output_filename: the DAG file in dot format (graphviz)
+        :param dict mapper: a dictionary where keys are named after the rule
+            names for which an HTML will be available (provided here as keys)
+
+        """
+        # Open the original file
         with open(self.filename, "r") as fh:
             data = fh.read()
 
@@ -820,6 +902,7 @@ class DOTParser(object):
             import os
             output_filename = os.path.basename(self.filename)
 
+        # The DOT parsing
         with open(output_filename.replace(".dot", ".ann.dot"), "w") as fout:
             indices_to_drop = []
             for line in data.split("\n"):
@@ -838,9 +921,12 @@ class DOTParser(object):
                     name = name.replace(",", "")
                     name = name.replace('"', "")
                     name = name.strip()
+                    # These nodes are removed
                     if name in ['dag', 'conda', "rulegraph"]:
                         index = lhs.split("[")[0]
                         indices_to_drop.append(index.strip())
+                    # if a mapping is available, adds a URL and color the node
+                    # in blue
                     elif name in mapper.keys():
                         url = mapper[name]
                         newline = lhs + (' URL="%s"'
@@ -849,36 +935,22 @@ class DOTParser(object):
                         newline = newline.replace("dashed", "")
                         newline = newline.replace('];', 'color="blue"];')
                         fout.write(newline + "\n")
+                    # else, we color in orange
                     else:
                         newline = line.replace('];', 'color="orange"];')
                         fout.write(newline + "\n")
 
 
-def __get_tagname(filename):
-    """Given a fullpath name, remove extension and prefix and return the name
-
-    .. deprecated::
-
-    """
-    raise ValueError("deprecated")
-    import os
-    # This should always work
-    name = os.path.split(filename)[1].split('.', 1)[0]
-    return name
-
-
 class FileFactory(object):
-    """
+    """Factory to handle a set of files
 
     ::
 
-        ff = FileNameFactory("../*")
-        ff.dataset
+        from sequana.snaketools import FileFactory
+        ff = FileFactory("H*.gz")
+        ff.filenames
 
-    special case if ends in .fastq.gz
-
-
-    definition to use::
+    A set of useful methods are available based on this convention::
 
         >>> fullpath = /home/user/test/A.fastq.gz
         >>> dirname(fullpath)
@@ -886,6 +958,7 @@ class FileFactory(object):
         >>> basename(fullpath)
         'A.fastq.gz'
         >>> realpath(fullpath) # is .., expanded to /home/user/test
+
         >>> all_extensions
         "fastq.gz"
         >>> extensions
@@ -893,31 +966,57 @@ class FileFactory(object):
 
     """
     def __init__(self, pattern):
+        """.. rubric:: Constructor
+
+        :param pattern: can be a filename, list of filenames, or a global
+            pattern (a unix regular expression with wildcards). For instance,
+            "*/*fastq.gz"
+
+        .. warning:: Only in Python 3.X supports the recursive global pattern
+            for now.
+
+        """
         self.pattern = pattern
-        if isinstance(pattern, str):
-            self._glob = glob.glob(pattern)
+        # A filename
+        if isinstance(pattern, str) and os.path.exists(pattern):
+            # Found one existing file
+            self._glob = [pattern]
+        # A pattern
+        elif isinstance(pattern, str):
+            try:
+                self._glob = glob.glob(pattern, recursive=True)
+            except:
+                print("Recursive glob does not work in Python 2.X. Do not use **")
+                self._glob = glob.glob(pattern)
+                
+        # a list of files
         elif isinstance(pattern, list):
+            for this in pattern:
+                if os.path.exists(this) is False:
+                    raise ValueError("This file % does not exist" % this)
             self._glob = pattern[:]
 
     def _get_realpath(self):
         return [os.path.realpath(filename) for filename in self._glob]
-    realpaths = property(_get_realpath)
+    realpaths = property(_get_realpath,
+                         doc=("real path is the full path + the filename"
+                              " the extension"))
 
     def _get_basenames(self):
         return [os.path.split(filename)[1] for filename in self._glob]
-    basenames = property(_get_basenames)
-
-    def rstrip(self, ext):
-        return [filename.rstrip(ext) for filename in self.basenames]
+    basenames = property(_get_basenames,
+                         doc="list of filenames and their extensions without the path")
 
     def _get_filenames(self):
         return [this.split(".")[0] for this in self.basenames]
-    filenames = property(_get_filenames)
+    filenames = property(_get_filenames,
+                         doc="list of filenames (no path, no extension)")
 
     def _pathnames(self):
         pathnames = [os.path.split(filename)[0] for filename in self._glob]
         return pathnames
-    pathnames = property(_pathnames)
+    pathnames = property(_pathnames,
+                         doc="the relative path for each file (list)")
 
     def _pathname(self):
         pathname = set(self.pathnames)
@@ -925,30 +1024,64 @@ class FileFactory(object):
             return list(pathname)[0] + os.sep
         else:
             raise ValueError("found more than one pathname")
-    pathname = property(_pathname)
+    pathname = property(_pathname, doc="the common relative path")
 
     def _get_extensions(self):
         filenames = [os.path.splitext(filename)[1] for filename in self._glob]
         return filenames
-    extensions = property(_get_extensions)
+    extensions = property(_get_extensions, doc="the last extension (list)")
 
     def _get_all_extensions(self):
         filenames = [this.split('.', 1)[1] if "." in this else ""
                      for this in self.basenames]
         return filenames
-    all_extensions = property(_get_all_extensions)
+    all_extensions = property(_get_all_extensions,
+                              doc="the extensions (list)")
+
+    def __len__(self):
+        return len(self.filenames)
+
+    def __str__(self):
+        return "Found %s file(s)" % len(self)
 
 
 class FastQFactory(FileFactory):
+    """FastQ Factory tool
+
+    In NGS experiments, reads are stored in a so-called FastQ file. The file is
+    named::
+
+        PREFIX_R1_SUFFIX.fastq.gz
+
+    where _R1_ tag is always to be found. This is a single-ended case. In
+    paired case, a second file is to be found::
+
+        PREFIX_R2_SUFFIX.fastq.gz
+
+    The PREFIX indicates the sample name. The SUFFIX does not convey any
+    information per se.
+
+    In a directory (recursively or not), there could be lots of samples. This
+    class can be used to get all the sample prefix in the :attr:`tags`
+    attribute.
+
+    Given a tag, one can get the corresponding file(s)::
+
+        ff = FastQFactory("*fastq.gz")
+        ff.tags
+        ff.get_file1(ff.tags[0])
+        len(ff)
+
     """
+    def __init__(self, pattern, extension=["fq.gz", "fastq.gz"], 
+                 strict=True, verbose=False):
+        """.. rubric:: Constructor
 
-
-    """
-    def __init__(self, pattern, extension="fastq.gz", strict=True,
-                 rstrip_underscore=True):
-        """
-
+        :param str pattern: a global pattern (e.g., ``H*fastq.gz``)
+        :param list extension: not used
         :param strict: if true, the pattern _R1_ or _R2_ must be found
+        :param bool strict:
+        :param bool verbose:
         """
         super(FastQFactory, self).__init__(pattern)
 
@@ -956,12 +1089,10 @@ class FastQFactory(FileFactory):
             raise ValueError("No files found with the requested pattern (%s)"
                              % pattern)
 
-        # Check the extension of each file (fastq.gz by default)
-        for this in self.all_extensions:
-            assert this.endswith(extension), \
-                "Expecting file with %s extension. Found %s" % (extension,
-                                                                this)
-
+        # Check the extension of each file (fastq.gz by default) TODO
+        #for this in self.all_extensions:
+        #    assert this.endswith(extension), \
+        #        "Expecting file with %s extension. Found %s" % (extension, this)
         # identify a possible tag
         self.tags = []
         for this in self.filenames:
@@ -976,6 +1107,8 @@ class FastQFactory(FileFactory):
 
         self.short_tags = [x.split("_")[0] for x in self.tags]
 
+        if verbose:
+            print("Found %s projects/samples " % len(self.tags))
 
     def _get_file(self, tag, rtag):
         assert rtag in ["_R1_", "_R2_"]
@@ -1013,6 +1146,8 @@ class FastQFactory(FileFactory):
     def get_file2(self, tag=None):
         return self._get_file(tag, "_R2_")
 
+    def __len__(self):
+        return len(self.tags)
 
 
 def init(filename, namespace):
@@ -1025,12 +1160,16 @@ def init(filename, namespace):
         * toclean as an empty  list
 
     """
+    # Create global name for later
     if "__snakefile__" in namespace.keys():
         pass
     else:
         namespace['__snakefile__'] = filename
         namespace['expected_output'] = []
         namespace['toclean'] = []
+
+    # check requirements
+    Module(filename.replace(".rules", "")).check('error')
 
 
 def create_recursive_cleanup(filename=".sequana_cleanup.py"):

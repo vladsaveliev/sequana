@@ -181,11 +181,6 @@ def main(args=None):
     else:
         raise ValueError("Input file must be a BAM or BED file")
 
-    if divmod(options.w_median, 2)[1] == 0:
-        from easydev.console import red
-        print(red("Error: -w/--window-median option must be set to an odd value"))
-        return
-
     if options.low_threshold is None:
         options.low_threshold = -options.threshold
 

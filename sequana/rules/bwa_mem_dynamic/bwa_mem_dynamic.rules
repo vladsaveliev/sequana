@@ -24,6 +24,10 @@ def bwa_mem_dynamic(name, project):
 
     bwa_mem_code = '''
 rule bwa_mem_%(name)s:
+    """BWA MEM
+
+
+    """
     input:
         fastq = __bwa_mem_%(name)s__input,
         reference = __bwa_mem_%(name)s__ref_input
@@ -51,6 +55,10 @@ rule bwa_mem_%(name)s:
         else
             ln -sf $(pwd)/{input.reference} {output.reference}
         fi
+
+        # this ensures that the symlink is updated (see
+        # https://bitbucket.org/snakemake/snakemake/wiki/FAQ)
+        touch -h {output.reference}
 
         # Indexing
         bwa index {params.index} {output.reference} 2> {log.index}
