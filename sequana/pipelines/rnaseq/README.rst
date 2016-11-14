@@ -18,7 +18,7 @@ Requirements
 
 .. include:: ../sequana/pipelines/rnaseq/requirements.txt
 
-.. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/quality_control/dag.png
+.. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/rnaseq/dag.png
 
 
 Details
