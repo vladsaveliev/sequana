@@ -10,17 +10,9 @@ BWA options
 * Similarly -R option to add read group headers to the alignment output is required for GATK tool
 
 
+References
+-------------
 
-Tools used
----------------
-
-
-- cutadapt
-- snpeff
-- BWA
-- Python: numpy, pandas, matplotlib
-- PySam
-- Biokit
 - Krona:  [Ondov BD, Bergman NH, and Phillippy AM. Interactive metagenomic visualization in a Web browser. BMC Bioinformatics. 2011 Sep 30; 12(1):385.](http://www.ncbi.nlm.nih.gov/pubmed/21961884)
 - Kraken:
 

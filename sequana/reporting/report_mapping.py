@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -20,11 +20,8 @@
 import os
 
 import pandas as pd
-import pysam
 
 from sequana.reporting.report_main import BaseReport
-from sequana.bamtools import SAMFlags
-
 from reports import HTMLTable
 
 
@@ -39,14 +36,14 @@ class MappingReport(BaseReport):
 
         r = MappingReport()
         r.set_data(mydata)
-        r.create_report() 
+        r.create_report()
 
     """
     def __init__(self, directory="report", sample="",
-            output_filename="report_mapping.html", **kargs):
+                 output_filename="report_mapping.html", **kargs):
         super(MappingReport, self).__init__(
-                jinja_filename="mapping/index.html", directory=directory,
-                output_filename=output_filename, **kargs)
+            jinja_filename="mapping/index.html", directory=directory,
+            output_filename=output_filename, **kargs)
         self.sample = sample
         self.jinja['title'] = "Mapping Report of {0}".format(sample)
 
@@ -55,7 +52,7 @@ class MappingReport(BaseReport):
         self.bam = bam
         self.quast = quast
 
-    def parse(self):        
+    def parse(self):
         self.jinja['main_link'] = 'index.html'
 
         if self.bam:
@@ -64,7 +61,7 @@ class MappingReport(BaseReport):
             # first, we store the flags
             df = self.bam.get_flags_as_df().sum()
             nb_mapped_read = len(self.bam) - (df.loc[4] + df.loc[256] +
-                    df.loc[2048])
+                                              df.loc[2048])
             html = ("<ul>\n"
                     "<li>Reads mapped: {0}</li>\n"
                     "<li>Reads mapped in a proper pair: {1}</li>\n"
@@ -74,43 +71,36 @@ class MappingReport(BaseReport):
                     "<li>Reads duplicated: {4}</li>\n"
                     "</ul>\n")
             self.jinja["summary_bam"] = html.format(nb_mapped_read, df.loc[2],
-                    df.loc[4], df.loc[2048], df.loc[1024])
-
-            # create table of flags summary
-            #df = df.to_frame()
-            #df.columns = ['counter']
-            #sf = SAMFlags()
-            #df['meaning'] = sf.get_meaning()
-            #df = df[['meaning', 'counter']]
-            #html = HTMLTable(df).to_html(index=True)
-            #self.jinja['flags_table'] = html
+                                                    df.loc[4], df.loc[2048],
+                                                    df.loc[1024])
 
             # create the bar plot with flags
             image_prefix = "images/" + self.sample
             self.jinja["bar_log_flag"] = image_prefix + "_bar_flags_logy.png"
             self.bam.plot_bar_flags(logy=True, filename=self.directory +
-                    os.sep + self.jinja["bar_log_flag"])
+                                    os.sep + self.jinja["bar_log_flag"])
             self.jinja["bar_flag"] = image_prefix + "_bar_flags.png"
             self.bam.plot_bar_flags(logy=False, filename=self.directory +
-                    os.sep + self.jinja["bar_flag"])
+                                    os.sep + self.jinja["bar_flag"])
             self.jinja["bar_mapq"] = image_prefix + "_bar_mapq.png"
-            self.bam.plot_bar_mapq(filename=self.directory + os.sep + 
-                    self.jinja["bar_mapq"])
+            self.bam.plot_bar_mapq(filename=self.directory + os.sep +
+                                   self.jinja["bar_mapq"])
 
         formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
         if self.quast:
             self.jinja['title'] = "Denovo Report of {0}".format(self.sample)
             self.jinja['quast_is_present'] = True
             quast_link = formatter.format("here", self.quast)
-            self.jinja['quast_link'] = "The report provides by quast " + \
-                "is {0}.".format(quast_link)
-        
-        # create table with links to chromosome reports 
+            self.jinja['quast_link'] = ("The report provides by quast " +
+                                        "is {0}.".format(quast_link))
+
+        # create table with links to chromosome reports
         link = "{0}_mapping.chrom{1}.html"
         df = pd.DataFrame([[formatter.format(chrom.chrom_name,
-                link.format(self.sample, chrom.chrom_index)),
-                chrom.get_size(), chrom.get_mean_cov(), chrom.get_var_coef()]
-                for chrom in self.chrom_list], columns=["chromosome", "size",
-                "mean_coverage", "coef_variation"])
+                          link.format(self.sample, chrom.chrom_index)),
+                          chrom.get_size(), chrom.get_mean_cov(),
+                          chrom.get_var_coef()] for chrom in self.chrom_list],
+                          columns=["chromosome", "size", "mean_coverage",
+                          "coef_variation"])
         html = HTMLTable(df)
         self.jinja['list_chromosome'] = html.to_html(index=False)

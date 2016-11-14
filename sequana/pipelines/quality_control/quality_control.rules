@@ -156,7 +156,11 @@ if manager.config.adapter_removal.do:
     expected_output += expand(__fastq_stats_cutadapt__output_done, sample=manager.samples)
 
 
-if manager.config.kraken.database:
+# if no database provided, let us make sure kraken option is off
+if manager.config.kraken.database is False:
+    manager.config.kraken.do = False
+
+if manager.config.kraken.do:
     if manager.config.adapter_removal.do:
         # todo: handle all adapter removal cases
         __kraken__input = __cutadapt__output
@@ -185,7 +189,16 @@ expected_output.extend(["dag.svg"])
 # Include rule graph for each sample
 __rulegraph__input = __snakefile__
 __rulegraph__output = "rulegraph.svg"
-__rulegraph__mapper = {"fastqc_samples": "fastqc_samples/"}
+__rulegraph__mapper = {
+    "fastqc_samples": "fastqc_samples/",
+    "fastqc_phix": "fastqc_phix/",
+    "fastqc_cutadapt": "fastqc_cutadapt",
+    "cutadapt": "cutadapt.html",
+    "kraken": "kraken/kraken.html",
+    "kraken_translate": "kraken/kraken.html",
+    "kraken_to_krona": "kraken/kraken.html",
+
+}
 include: sm.modules['rulegraph']
 expected_output.extend(["rulegraph.svg"])
 

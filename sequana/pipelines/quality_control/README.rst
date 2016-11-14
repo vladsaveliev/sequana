@@ -1,33 +1,19 @@
 :Overview: Quality control, trimming (adapter removal) and taxonomic overview
-:Input: FastQ raw data from Illumina Sequencer (either paired or not)
-:Output: 
-    - <SAMPLE>/<SAMPLE>_report_qc/<SAMPLE>_R1_.cutadapt.fastq.gz
-    - <SAMPLE>/<SAMPLE>_report_qc/<SAMPLE>_R1_.cutadapt.fastq.gz
-    - <SAMPLE>/<SAMPLE>_report_qc/kraken/kraken.html
-:Config file requirements:
-    - samples: file1
-    - samples: file2
-    - project:
-    - bwa_mem: reference
-    - kraken: database
-
+:Input: A set of FastQ (paired of single-end) 
+:Output: fastqc, cleanup FastQ files
 
 Usage
 ~~~~~~~
 
 ::
 
-    sequana --pipeline quality_control --file1 R1.fastq.gz --file2 R2.fastq.gz
-    python sequana_quality.py
+    sequana --pipeline quality_control --input-directory . --output-directory analysis
 
 
 Requirements
 ~~~~~~~~~~~~~~~~~~
 
-- bwa
-- samtools
-- kraken
-- krona
+.. include:: ../sequana/pipelines/quality_control/requirements.txt
 
 .. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/quality_control/dag.png
 
@@ -62,5 +48,33 @@ sequences are error tolerant (allowing errors such as
 mismatches, insertions and deletions). The level of error tolerance
 is 10% by default.
 
-:reference: cutadapt documentation
+Rules and configuration details
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here is a documented configuration file :download:`../sequana/pipelines/quality_control/config.yaml` to be used with the pipeline. Each rule used in the pipeline may have a section in the
+configuration file. Here are the rules and their developer and user documentation.
+
+
+
+FastQC
+^^^^^^^^^^^
+.. snakemakerule:: fastqc
+
+Cutadapt
+^^^^^^^^^
+.. snakemakerule:: cutadapt
+
+Kraken
+^^^^^^^
+.. snakemakerule:: kraken
+
+
+.. .. snakemakerule:: fastq_sampling
+.. .. snakemakerule:: bwa_mem_phix
+
+
+
+
+
+
 
