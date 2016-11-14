@@ -1,9 +1,8 @@
-__version__ = "$Rev: 10 $"
 import pkg_resources
 try:
     version = pkg_resources.require("sequana")[0].version
 except:
-    version = __version__
+    version = ">=0.13.0"
 
 from easydev import CustomConfig
 configuration = CustomConfig("sequana", verbose=False)

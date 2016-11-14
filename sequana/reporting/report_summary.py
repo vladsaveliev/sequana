@@ -172,11 +172,17 @@ class SequanaSummary(BaseReport):
                 self.jinja['sample_image_r1_href'] = filename.replace(
                     "fastq_stats_samples", "fastqc_samples").replace(
                     "boxplot.png", "fastqc.html")
+                df = pd.read_json(self.directory + "/fastq_stats_samples/%s._R1_.json" % self.sample)
+                self.jinja["sample_stats__samples_json"] = df.to_json()
+
+
             elif "R2" in filename:
                 self.jinja['sample_image_r2'] = filename
                 self.jinja['sample_image_r2_href'] = filename.replace(
                     "fastq_stats_samples", "fastqc_samples").replace(
                     "boxplot.png", "fastqc.html")
+                df = pd.read_json(self.directory + "/fastq_stats_samples/%s._R2_.json" % self.sample)
+                self.jinja["sample_stats__samples_json_R2"] = df.to_json()
 
     def include_kraken(self):
         self.jinja['kraken_pie'] = "kraken/kraken.png"
