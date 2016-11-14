@@ -55,6 +55,10 @@ rule bwa_mem_%(name)s:
             ln -sf $(pwd)/{input.reference} {output.reference}
         fi
 
+        # this ensures that the symlink is updated (see
+        # https://bitbucket.org/snakemake/snakemake/wiki/FAQ)
+        touch -h {output.reference}
+
         # Indexing
         bwa index {params.index} {output.reference} 2> {log.index}
         samtools faidx {output.reference}
