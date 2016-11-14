@@ -192,8 +192,8 @@ class SequanaGUI(QWidget):
         working_dir = self.working_dir.get_filenames()
         self.save_config_file()
         rules = self.get_rules(self.formular)
-        module = Module(self.choice_button.currentText())
-        self.snakemake_dialog.fill_options(rules)
+        snakefile = Module(self.choice_button.currentText()).snakefile
+        self.snakemake_dialog.fill_options(rules, working_dir, snakefile)
         self.snakemake_dialog.exec_()
 
 ###############
@@ -526,7 +526,9 @@ class SnakemakeOptionDialog(QDialog):
 
         return footer_widget
 
-    def fill_options(self, rules):
+    def fill_options(self, rules, working_dir, snakefile):
+        self.working_dir = working_dir
+        self.snakefile = snakefile
         self.forcerun_option.add_items(rules)
         self.until_option.add_items(rules)
 
@@ -557,13 +559,13 @@ class SnakemakeOptionDialog(QDialog):
             current_layout = current_tab.layout()
             widgets = (current_layout.itemAt(i).widget() for i in
                        range(current_layout.count()))
-            option_list = [this for w in widgets for this in w.get_tuple()]
+            option_list = [str(x) for w in widgets for x in w.get_tuple()]
         return option_list
 
     def run_snakemake(self):
         """ Run snakemake in the working directory.
         """
-        snakemake_line = ["snakemake"]
+        snakemake_line = ["snakemake", "-s", self.snakefile]
         options = self.get_snakemake_options()
         snakemake_line += options
         print(snakemake_line)
