@@ -16,16 +16,16 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-import pandas as pd
 import collections
-from sequana.databases import ENADownload
-from easydev import DevTools
 import os
 import ftplib
 import subprocess
 import sys
 import glob
-from easydev import execute, TempFile, Progress
+
+from sequana.databases import ENADownload
+from easydev import execute, TempFile, Progress, md5, DevTools
+import pandas as pd
 
 
 __all__ = ["KrakenBuilder"]
@@ -88,7 +88,7 @@ class KrakenBuilder():
         kb.params['max_db_size'] is tha max size of the DB files in Gb
         kb.params['minimizer_len']
 
-    To create a small DB quicly, we set those values::
+    To create a small DB quickly, we set those values::
 
         kb.params['kmer_length']  = 26
         kb.params['minimizer_len'] = 10
@@ -104,7 +104,7 @@ class KrakenBuilder():
         kb.clean_db()
 
     Kraken-build uses jellyfish. The **hash_size** parameter is the jellyfish
-    hash_size parameter. If you set it to 6400M, the memort reqquired it about
+    hash_size parameter. If you set it to 6400M, the memory required is about
     6.9bytes times 6400M that is 40Gb of memory. The default value used here
     means 3.5Gb are required.
 
@@ -140,7 +140,8 @@ class KrakenBuilder():
 
     Finally if you do not need to test it anymore, you may clean the DB once for
     all. This will remove useless files. The directory's name is the name of the
-    DB that should be used in e.g. quality_taxon pipeline.
+    DB that should be used in e.g. the quality_control pipeline. To clean the
+    data directory, type::
 
         kb.clean_db()
 
@@ -182,6 +183,7 @@ class KrakenBuilder():
         self._devtools.mkdir(self.fasta_path)
         self._devtools.mkdir(self.taxon_path)
 
+
     def download_accession(self, acc):
         """Donwload a specific Fasta from ENA given its accession number
 
@@ -191,15 +193,11 @@ class KrakenBuilder():
 
         """
         output = self.dbname+os.sep + "library" + os.sep + "added"
-        from sequana import databases
-        d = databases.ENADownload()
         """Download a specific FASTA file given its ENA accession number """
-        d.download_accession(acc, output=output)
+        self.enadb.download_accession(acc, output=output)
 
     def download_viruses(self):
-        from sequana.databases import ENADownload
-        ena = ENADownload()
-        ena.download_fasta("virus.txt", output_dir=self.fasta_path)
+        self.enadb.download_fasta("virus.txt", output_dir=self.fasta_path)
 
     def run(self, dbs=[], download_taxon=True):
         """Create the Custom Kraken DB
@@ -213,40 +211,57 @@ class KrakenBuilder():
         # Start with the FASTA
         self._download_dbs(dbs)
 
-        if download_taxon:
-            self.download_taxonomy()
-        else:
-            # search for taxon file. If not found, error
-            required = self.taxon_path + os.sep + "gi_taxid_nucl.dmp"
+        self.download_taxonomy()
 
-            if required not  in glob.glob(self.taxon_path + os.sep + "*"):
-                raise IOError("Taxon file not found. Please set download_taxon to True")
+        # search for taxon file. If not found, error
+        required = self.taxon_path + os.sep + "gi_taxid_nucl.dmp"
 
-        print("Depending on the input, this step may take a few hours to finish")
+        if required not  in glob.glob(self.taxon_path + os.sep + "*"):
+            raise IOError("Taxon file not found")
+
+        print("\nDepending on the input, this step may take a few hours to finish")
         self._build_kraken()
 
-    def download_taxonomy(self):
-        # download taxonomy
-        print('Downloading taxonomy files. Takes a while depending on your connection')
-        # We could use kraken-build --download-taxonomy + a subprocess but
-        # even simpler to get the file via ftp
-        FTP = "ftp.ncbi.nih.gov"
-        execute("wget %s/pub/taxonomy/gi_taxid_nucl.dmp.gz --directory-prefix %s"
-            % (FTP, self.taxon_path))
+    def download_taxonomy(self, force=False):
+        """Download kraken data
 
-        execute("wget %s/pub/taxonomy/taxdump.tar.gz --directory-prefix %s"
-            % (FTP, self.taxon_path))
+        The downloaded file is large (1.3Gb) and the unzipped file is about 9Gb.
 
-        # Unzip the files
-        try:
+        If already present, do not download the file except if the *force*
+        parameter is set to True.
+
+        """
+
+        # If the requested file exists, nothing to do
+        expected_filename = self.taxon_path + os.sep + "gi_taxid_nucl.dmp"
+        expected_md5 = "8c182ac2df452d836206ad13275cd8af"
+        print('\nDownloading taxonomy files. Takes a while depending on your connection')
+
+        if os.path.exists(expected_filename) is False or \
+                md5(expected_filename) != expected_md5:
+            # download taxonomy
+            # We could use kraken-build --download-taxonomy + a subprocess but
+            # even simpler to get the file via ftp
+            FTP = "ftp.ncbi.nih.gov"
+            execute("wget %s/pub/taxonomy/gi_taxid_nucl.dmp.gz --directory-prefix %s"
+                % (FTP, self.taxon_path))
+            # Unzip the files
             execute('unpigz %s/gi_taxid_nucl.dmp.gz' % self.taxon_path)
-        except:
-            pass # alreaqdy done
-        try:
+        else:
+            print("Found local expected file %s " % expected_filename)
+
+        expected_filename = self.taxon_path + os.sep + "names.dmp"
+        expected_md5 = "90d88912ad4c94f6ac07dfab0443da9b"
+        if os.path.exists(expected_filename) is False or \
+                md5(expected_filename) != expected_md5:
+
+            execute("wget %s/pub/taxonomy/taxdump.tar.gz --directory-prefix %s"
+                % (FTP, self.taxon_path))
+
             execute('tar xvfz %s/taxdump.tar.gz -C %s' %
                 (self.taxon_path, self.taxon_path))
-        except:
-            pass # already done
+        else:
+            print("Found local expected file %s " % expected_filename)
 
     def _download_dbs(self, dbs=[]):
         print("Downloading all Fasta files for %s" % dbs)
@@ -255,13 +270,14 @@ class KrakenBuilder():
         for db in dbs:
             if db not in self.valid_dbs and os.path.exists(db) is False:
                 msg = "db must be a local file with a list of ENA or one of"
-                for this in self.enadb._metadata.keys():
+                for this in self.ena._metadata.keys():
                     msg += " - %s" % this
                 raise ValueError(msg)
-            self.enadb.download_fasta(db, output_dir=self.fasta_path)
+            self.ena.download_fasta(db, output_dir=self.fasta_path)
 
     def _build_kraken(self):
         print('Building the kraken db ')
+        self.params['hash_size'] = int(self.params["hash_size"])
 
         cmd = """kraken-build  --rebuild -db %(dbname)s \
             --minimizer-len %(minimizer_len)s\
@@ -313,7 +329,6 @@ class KrakenBuilder():
         execute(cmd)
 
     def get_gis(self, extensions=['fa']):
-        import glob
         self.filenames = []
         root = self.dbname
         for extension in extensions:
@@ -350,7 +365,11 @@ class KrakenBuilder():
         N = 560  # with time this number will be deprecated but good for now
 
         local_gis = gis[:]
-        taxons = []
+
+        # We will found GI an order than different from the input gis list so
+        # we will need to keep track of the order
+        found_gis = []
+        taxons = [32644] * len(gis)   # 32644 means unidentified
         # we search for the unique gis. Once found, we remove them from the
         # vector and keep going until the vector is empty or there is no more
         # chunks. A good sanity check is that the final gis vector should be
@@ -363,13 +382,14 @@ class KrakenBuilder():
             chunk.set_index(0, inplace=True)
             chunk = chunk.ix[local_gis].dropna()
 
-            found_gis = list(chunk.index)
-            found_gis = [int(x) for x in list(chunk.index)]
-            for this in found_gis:
-                _ = local_gis.remove(this)
-
-            if len(found_gis)>0:
-                taxons.extend(chunk[1].values)
+            # keep the GI and Taxon
+            found_gis.extend([int(x) for x in list(chunk.index)])
+            
+            # update the remaining GIs and the taxons
+            for gi, tax in zip(chunk.index, chunk.values):
+                local_gis.remove(gi)
+                index = gis.index(gi)
+                taxons[index] = tax
 
             # no need to carry on if all GIs were found
             if len(local_gis) == 0:
@@ -377,18 +397,8 @@ class KrakenBuilder():
             pb.animate(i+1)
         print("")
 
-        # Some GIs may not be found if the taxon.dmp from NCBI is not synchrone
-        # with the FASTA list used in the build. In such case, we set to 32644
-        # (unidentified)
-        if len(local_gis) > 0:
-            print('Warning: those GIs were not found and set as undefined')
-            for this in local_gis:
-                print(this)
-            taxons += [32644] * len(local_gis)
-
         taxons = [int(x) for x in taxons]
         return taxons
-
 
 
 class NCBITaxonReader(object):

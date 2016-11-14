@@ -156,7 +156,11 @@ if manager.config.adapter_removal.do:
     expected_output += expand(__fastq_stats_cutadapt__output_done, sample=manager.samples)
 
 
-if manager.config.kraken.database:
+# if no database provided, let us make sure kraken option is off
+if manager.config.kraken.database is False:
+    manager.config.kraken.do = False
+
+if manager.config.kraken.do:
     if manager.config.adapter_removal.do:
         # todo: handle all adapter removal cases
         __kraken__input = __cutadapt__output

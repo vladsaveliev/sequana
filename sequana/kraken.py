@@ -49,6 +49,14 @@ class KrakenResults(object):
         k = KrakenResults("kraken.out")
         k.kraken_to_krona()
 
+    Then format expected looks like::
+
+        C	HISEQ:426:C5T65ACXX:5:2301:18719:16377	1	203	1:71 A:31 1:71
+        C	HISEQ:426:C5T65ACXX:5:2301:21238:16397	1	202	1:71 A:31 1:71
+
+    Where each row corresponds to one read. See kraken documentation for
+    details.
+
     .. note:: This takes care of fetching taxons and the corresponding lineages
         from online web services.
 
@@ -84,7 +92,6 @@ class KrakenResults(object):
             # This initialise the data
             self._parse_data()
             self._data_created = False
-
 
     def get_taxonomy_biokit(self, ids):
         """Retrieve taxons given a list of taxons
@@ -134,7 +141,6 @@ class KrakenResults(object):
         df = pd.DataFrame.from_records(results)
         df.index = ids
         df = df[list(ranks) + ['name']]
-
         df.index = df.index.astype(int)
 
         return df
@@ -182,9 +188,13 @@ class KrakenResults(object):
             return self._df
     df = property(_get_df)
 
+    def _get_df_with_taxon(self, dbname):
 
-    def _get_df_with_taxon(self):
-        df = self.get_taxonomy_biokit([int(x) for x in self.taxons])
+        # line 14500
+        # >gi|331784|gb|K01711.1|MEANPCG[331784] Measles virus (strain Edmonston), complete genome
+
+
+        df = self.get_taxonomy_biokit([int(x) for x in self.taxons.index])
         df['count'] = self.taxons.values
         df.reset_index(inplace=True)
         newrow = len(df)
@@ -192,18 +202,43 @@ class KrakenResults(object):
         df.ix[newrow, 'count'] = self.unclassified
         df.ix[newrow, 'index'] = -1
         df.rename(columns={"index":"taxon"}, inplace=True)
-        starter = ['taxon', 'count', 'percentage']
         df["percentage"] = df["count"] / df["count"].sum() * 100
-        df = df[starter + [x for x in df.columns if x not in starter]]
+
+        # Now get back all annotations from the database itself.
+        filename = dbname + os.sep + "annotations.csv"
+        if os.path.exists(filename):
+            annotations = pd.read_csv(filename)
+            annotations.set_index("taxon", inplace=True)
+
+            df2 = annotations.ix[df.taxon][['ena', 'gi', 'description']]
+            # There are duplicates sohow. let us keep the first one for now
+            df2 = df2.reset_index().drop_duplicates(subset="taxon",
+                keep="first").set_index("taxon")
+            self.df2 = df2
+            self.df1 = df.set_index("taxon")
+            df = pd.merge(self.df1, df2, left_index=True, right_index=True)
+            df.reset_index(inplace=True)
+            starter = ['percentage', 'name', 'ena', 'taxon', "gi", 'count']
+            df = df[starter + [x for x in df.columns if x not in starter and
+x!="description"] +  ["description"]]
+
+            df['gi'] = [int(x) for x in df['gi'].fillna(-1)]
+            from easydev import precision
+            df['percentage'] = [str(precision(x,2)) for x in df['percentage']]
+        else:
+            starter = ['taxon', 'count', 'percentage']
+            df = df[starter + [x for x in df.columns if x not in starter]]
+
+        df.sort_values(by="percentage", inplace=True, ascending=False)
         return df
 
-    def kraken_to_csv(self, filename):
-        df = self._get_df_with_taxon()
+    def kraken_to_csv(self, filename, dbname):
+        df = self._get_df_with_taxon(dbname)
         df.to_csv(filename, index=False)
         return df
 
-    def kraken_to_json(self, filename):
-        df = self._get_df_with_taxon()
+    def kraken_to_json(self, filename, dbname):
+        df = self._get_df_with_taxon(dbname)
         df.to_json(filename)
         return df
 
@@ -302,7 +337,6 @@ class KrakenResults(object):
         data = data[data>threshold]
         names = df.ix[data.index]['name']
 
-
         data.index = names.values
         data.ix['others'] = others
         try:
@@ -361,7 +395,8 @@ class KrakenPipeline(object):
         called sequana_taxonomy and can be used within a command shell.
 
     """
-    def __init__(self, fastq, database, threads=4, output="krona.html"):
+    def __init__(self, fastq, database, threads=4, output_directory="kraken",
+            verbose=True):
         """.. rubric:: Constructor
 
         :param fastq: either a fastq filename or a list of 2 fastq filenames
@@ -374,35 +409,39 @@ class KrakenPipeline(object):
         lineage and scientif names to store within a Krona formatted file.
         KtImportTex is then used to create the Krona page.
 
-        """
+        """ 
+        self.verbose = verbose
+        # Set and create output directory
+        self._devtools = DevTools()
+        self.output_directory = output_directory
+        self._devtools.mkdir(output_directory)
         self.ka = KrakenAnalysis(fastq, database, threads)
-        self.output = output
 
-    def run(self, output_png="kraken.png"):
+
+    def run(self):
         """Run the analysis using Kraken and create the Krona output"""
 
-        # Run Kraken
-        self.ka.run()
+        # Run Kraken (KrakenAnalysis)
+        kraken_results = self.output_directory + os.sep + "kraken.out"
+        self.ka.run(output_filename=kraken_results)
 
-        # Translate kraken output to a format understood by Krona
-        kraken_summary = TempFile()
-        kr = KrakenResults(self.ka.kraken_output.name)
+        # Translate kraken output to a format understood by Krona and save png
+        # image
+        self.kr = KrakenResults(kraken_results, verbose=self.verbose)
 
-        df = kr.plot(kind="pie")
+        df = self.kr.plot(kind="pie")
         from pylab import savefig
-        savefig(output_png)
+        savefig(self.output_directory + os.sep + "kraken.png")
 
-        kr.kraken_to_krona(output_filename=kraken_summary.name)
+        kraken_out_summary = self.output_directory + os.sep + "kraken.out.summary"
+        self.kr.kraken_to_krona(output_filename=kraken_out_summary)
+        self.kr.kraken_to_json(self.output_directory + os.sep + "kraken.json")
+        self.kr.kraken_to_csv(self.output_directory + os.sep + "kraken.csv")
 
-        # Transform to Krona
+        # Transform to Krona HTML
         from snakemake import shell
-        shell("ktImportText %s -o %s" % (kraken_summary.name, self.output))
-
-        print(self.ka.kraken_output.name)
-        print(kraken_summary.name)
-        #if keep_temporary_files is False:
-        #    self.ka.kraken_output.delete()
-        #    kraken_summary.delete()
+        kraken_html = self.output_directory + os.sep + "kraken.html"
+        shell("ktImportText %s -o %s" % (kraken_out_summary, kraken_html))
 
     def show(self):
         """Opens the filename defined in the constructor"""
@@ -476,14 +515,23 @@ class KrakenAnalysis(object):
         for this in self.fastq:
             self._devtools.check_exists(database)
 
-    def run(self):
-        self.kraken_output = TempFile()
+    def run(self, output_filename=None):
+        """Performs the kraken analysis
+
+        :param str output_filename: if not provided, a temporary file is used
+            and stored in :attr:`kraken_output`.
+
+        """
+        if output_filename is None:
+            self.kraken_output = TempFile().name
+        else:
+            self.kraken_output = output_filename
 
         params = {
             "database": self.database,
             "thread": self.threads,
             "file1": self.fastq[0],
-            "kraken_output": self.kraken_output.name,
+            "kraken_output": self.kraken_output,
             }
 
         if self.paired:
@@ -532,6 +580,7 @@ class KrakenDownload(object):
         else:
             raise ValueError("name must be toydb or minikraken, or sequana_db1")
 
+
     def _download_kraken_toydb(self, verbose=True):
         """Download the kraken DB toy example from sequana_data into
         .config/sequana directory
@@ -570,7 +619,6 @@ class KrakenDownload(object):
             else:
                 print("Downloading %s" % url)
                 wget(url, filename)
-
 
     def _download_minikraken(self, verbose=True):
         dv = DevTools()
@@ -650,6 +698,15 @@ class KrakenDownload(object):
         else:
             self._download_from_synapse('syn6171290', dir2)
         print('done. You should have a kraken DB in %s' % dir1)
+
+        # The annotations
+        wget("https://github.com/sequana/data/raw/master/sequana_db1/annotations.csv",
+            dir1 + os.sep + "annotations.csv")
+
+
+
+
+
 
 
 
