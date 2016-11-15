@@ -33,17 +33,16 @@ class SequanaGUI(QWidget):
         super().__init__()
         self.initUI()
 
-
     def initUI(self):
 
         # action quit
-        quitAction = QAction("Quit",self)
+        quitAction = QAction("Quit", self)
         quitAction.setShortcut('Ctrl+Q')
         quitAction.setStatusTip('Quit Sequana')
         quitAction.triggered.connect(self.quit)
 
         # action About
-        aboutAction = QAction("About",self)
+        aboutAction = QAction("About", self)
         aboutAction.setShortcut('Ctrl+A')
         aboutAction.triggered.connect(self.about)
 
@@ -58,7 +57,7 @@ class SequanaGUI(QWidget):
         self.snakemake_dialog = SnakemakeOptionDialog()
 
         # box to choose the pipeline
-        self.choice_flag = False
+        self.pipeline_is_chosen = False
         choice_layout = QHBoxLayout()
         self.create_choice_button()
         choice_layout.addWidget(self.choice_button)
@@ -105,8 +104,8 @@ class SequanaGUI(QWidget):
 
     def quit(self):
         quit_msg = WarningMessage("Do you really want to quit ?")
-        #quit_msg.setInformativeText("Do you want to overwrite the file?")
-        quit_msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No )
+        # quit_msg.setInformativeText("Do you want to overwrite the file?")
+        quit_msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         quit_msg.setDefaultButton(QMessageBox.No)
         quit_answer = quit_msg.exec_()
         if quit_answer == QMessageBox.Yes:
@@ -120,13 +119,12 @@ class SequanaGUI(QWidget):
         msg.setText("Sequana version %s " % version)
         msg.setInformativeText("""
             Online documentation on <a href="http://%(url)s">%(url)s</a>
-            """ % {"url":url})
+            """ % {"url": url})
         msg.setWindowTitle("Sequana")
-        #msg.setDetailedText("The details are as follows:")
+        # msg.setDetailedText("The details are as follows:")
         msg.setStandardButtons(QMessageBox.Ok)
-        #msg.buttonClicked.connect(self.msgbtn)
+        # msg.buttonClicked.connect(self.msgbtn)
         retval = msg.exec_()
-
 
     def clear_layout(self, layout):
         """ Clean all widget contained in a layout.
@@ -162,7 +160,7 @@ class SequanaGUI(QWidget):
             print("Could not parse the config file")
             return
         self.create_base_formular(self.config_dict)
-        self.choice_flag = True
+        self.pipeline_is_chosen = True
         self.switch_run()
 
     def create_base_formular(self, config_dict):
@@ -181,7 +179,7 @@ class SequanaGUI(QWidget):
                 self.formular.addWidget(rule_box)
             else:
                 self.necessary_dict = dict(self.necessary_dict,
-                                           **{rule: '"{0}"'.format(contains)})
+                                           **{rule: '{0}'.format(contains)})
 
     def create_tabs_browser(self):
         """ Generate file browser widget.
@@ -208,7 +206,7 @@ class SequanaGUI(QWidget):
         save_btn.clicked.connect(self.save_config_file)
 
         self.dag_btn = QPushButton("Show DAG")
-        #self.dag_btn.setEnabled(False)
+        # self.dag_btn.setEnabled(False)
         self.dag_btn.clicked.connect(self.show_dag)
 
         footer_widget = QWidget()
@@ -220,7 +218,7 @@ class SequanaGUI(QWidget):
 
     def show_dag(self):
         print("=============")
-        if self.choice_button.currentText() != "select pipeline":
+        if self.pipeline_is_chosen:
             snakefile = Module(self.choice_button.currentText()).snakefile
             print(snakefile)
         else:
@@ -234,7 +232,7 @@ class SequanaGUI(QWidget):
         snakemake_line += ["--rulegraph"]
 
         snakemake_proc = sp.Popen(snakemake_line,
-                                  cwd=self.working_dir.get_filenames(), 
+                                  cwd=self.working_dir.get_filenames(),
                                   stdout=sp.PIPE)
 
 #        from easydev import TempFile
@@ -245,7 +243,7 @@ class SequanaGUI(QWidget):
         dot_proc = sp.Popen(cmd, cwd=self.working_dir.get_filenames(),
                             stdin=snakemake_proc.stdout)
         dot_proc.communicate()
-        #print(fh.name)
+        # print(fh.name)
 
         diag = SVGDialog(filename)
         diag.exec_()
@@ -269,7 +267,7 @@ class SequanaGUI(QWidget):
         if self.working_dir.path_is_setup():
             if self.tabs_browser.currentWidget().path_is_setup():
                 if self.working_dir.path_is_setup():
-                    if self.choice_flag:
+                    if self.pipeline_is_chosen:
                         return self.run_btn.setEnabled(True)
         return self.run_btn.setEnabled(False)
 
@@ -301,8 +299,7 @@ class SequanaGUI(QWidget):
                     QMessageBox.Save | QMessageBox.Discard |
                     QMessageBox.Cancel)
                 save_msg.setDefaultButton(QMessageBox.Save)
-                save_answer = save_msg.exec_()
-                if save_answer == 2048:
+                if save_msg.exec_() == 2048:
                     yaml.save(yaml_path)
             else:
                 yaml.save(yaml_path)
@@ -322,7 +319,7 @@ class SequanaGUI(QWidget):
         config_file = path_directory + "/config.yaml"
         if not os.path.isfile(config_file):
             return False
-        if not self.choice_flag:
+        if not self.pipeline_is_chosen:
             msg = WarningMessage("A config.yaml file already exist in this "
                                  "directory. Please, choose a pipeline to "
                                  "know if the existing config file correspond "
@@ -342,7 +339,7 @@ class SequanaGUI(QWidget):
                 "A config file already exist in the working directory.\n"
                 "Do you want to merge this file ?",
                 QMessageBox.Yes | QMessageBox.No,
-                self, Qt.Dialog|Qt.CustomizeWindowHint)
+                self, Qt.Dialog | Qt.CustomizeWindowHint)
             if msg.exec_() == 16384:
                 self.config_dict.update(config_dict)
                 self.create_base_formular(self.config_dict)
@@ -363,12 +360,12 @@ class SequanaGUI(QWidget):
 
 class About(QMessageBox):
     """A resizable QMessageBox for the About dialog"""
-    def __init__(self, *args, **kwargs):            
+    def __init__(self, *args, **kwargs):
         super(About, self).__init__(*args, **kwargs)
         self.setSizeGripEnabled(True)
 
     def event(self, e):
-        result = super(About, self).event( e)
+        result = super(About, self).event(e)
 
         self.setMinimumHeight(0)
         self.setMaximumHeight(16777215)
@@ -377,12 +374,13 @@ class About(QMessageBox):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         textEdit = self.findChild(QTextEdit)
-        if textEdit != None :
+        if textEdit is not None:
             textEdit.setMinimumHeight(0)
             textEdit.setMaximumHeight(16777215)
             textEdit.setMinimumWidth(0)
             textEdit.setMaximumWidth(16777215)
-            textEdit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            textEdit.setSizePolicy(QSizePolicy.Expanding,
+                                   QSizePolicy.Expanding)
 
         return result
 
@@ -393,7 +391,7 @@ class About(QMessageBox):
 #        if details_box is not None:
 #            details_box.setFixedSize(details_box.sizeHint())
 #        return result
-    
+
 
 
 class FileBrowser(QWidget):
@@ -403,7 +401,7 @@ class FileBrowser(QWidget):
         super().__init__()
         # Set filter for file dialog
         self.filter = "Any file (*)"
-        if file_filter:
+        if file_filter is not None:
             self.filter = file_filter + ";;" + self.filter
         self.empty_msg = "No file selected"
         self.btn = QPushButton("Browse")
@@ -572,7 +570,7 @@ class TextOption(GeneralOption):
 
     def get_value(self):
         if not self.text.text():
-            return " "
+            return "''"
         return self.text.text()
 
 
@@ -612,7 +610,7 @@ class FileBrowserOption(GeneralOption):
 
     def get_value(self):
         if not self.browser.get_filenames():
-            return " "
+            return "''"
         return self.browser.get_filenames()
 
 
@@ -646,13 +644,13 @@ class SnakemakeOptionDialog(QDialog):
     """ Widget to set up options of snakemake and launch pipeline. It provides
     a progress bar to know how your jobs work.
     """
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
         self.main_layout = QVBoxLayout(self)
         self.setWindowTitle("Snakemake options")
 
         self.set_launch_options()
- 
+
         self.forcerun_option = ComboBoxOption("--forcerun")
         self.until_option = ComboBoxOption("--until")
 
@@ -681,7 +679,7 @@ class SnakemakeOptionDialog(QDialog):
         self.forcerun_option.add_items(rules)
         self.until_option.add_items(rules)
 
-    def set_launch_options(self): 
+    def set_launch_options(self):
         cores_option = NumberOption("--cores", 2)
         jobs_option = NumberOption("--jobs", 2)
         cluster_options = TextOption("--cluster", "")
@@ -723,8 +721,8 @@ class SnakemakeOptionDialog(QDialog):
 
 
 class WarningMessage(QMessageBox):
-    def __init__(self, msg):
-        super().__init__()
+    def __init__(self, msg, parent=None):
+        super().__init__(parent=parent)
         self.setWindowTitle("Warning message")
         self.setIcon(QMessageBox.Warning)
         self.setText(msg)
@@ -749,7 +747,7 @@ class DirectoryDialog(QFileDialog):
 def main():
     app = QApplication(sys.argv)
 
-    import os, time
+    import time
 
     filename = sequana_data("splash_loading.png", "../gui")
 
@@ -765,7 +763,7 @@ def main():
         progressBar.setValue(i)
         t = time.time()
         while time.time() < t + 1./100.:
-           app.processEvents()
+            app.processEvents()
 
     app.processEvents()
     sequana = SequanaGUI()
