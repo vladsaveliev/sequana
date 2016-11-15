@@ -6,11 +6,12 @@ import shutil
 import subprocess as sp
 import multiprocessing
 
-from PyQt5.QtCore import Qt, QCoreApplication, pyqtSlot, QEvent
+from PyQt5.QtCore import Qt, QCoreApplication, pyqtSlot, QEvent, QSize
 from PyQt5.QtWidgets import (QApplication, QPushButton, QComboBox, QWidget,
                              QLineEdit, QTabWidget, QLabel, QFrame, QGroupBox,
                              QCheckBox, QSpinBox, QDoubleSpinBox, QScrollArea,
-                             QMenuBar, QAction)
+                             QMenuBar, QAction, QSizePolicy, QTextEdit)
+from PyQt5.QtSvg import QSvgWidget
 from PyQt5.QtWidgets import QFileDialog, QDialog, QMessageBox
 from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QVBoxLayout, QBoxLayout
 from PyQt5.QtWidgets import QSplashScreen, QProgressBar
@@ -40,10 +41,12 @@ class SequanaGUI(QWidget):
         quitAction = QAction("Quit",self)
         quitAction.setShortcut('Ctrl+Q')
         quitAction.setStatusTip('Quit Sequana')
-        quitAction.triggered.connect(self.close)
+        quitAction.triggered.connect(self.quit)
 
         # action About
         aboutAction = QAction("About",self)
+        aboutAction.setShortcut('Ctrl+A')
+        aboutAction.triggered.connect(self.about)
 
         # set menu bar
         self.menu_bar = QMenuBar(self)
@@ -97,6 +100,31 @@ class SequanaGUI(QWidget):
         self.setGeometry(200, 200, 500, 500)
         self.setWindowTitle("Sequana")
         self.show()
+
+    def quit(self):
+        quit_msg = WarningMessage("Do you really want to quit ?")
+        #quit_msg.setInformativeText("Do you want to overwrite the file?")
+        quit_msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No )
+        quit_msg.setDefaultButton(QMessageBox.No)
+        quit_answer = quit_msg.exec_()
+        if quit_answer == QMessageBox.Yes:
+            self.close()
+
+    def about(self):
+        from sequana import version
+        url = 'gdsctools.readthedocs.io'
+        msg = About()
+        msg.setIcon(QMessageBox.Information)
+        msg.setText("Sequana version %s " % version)
+        msg.setInformativeText("""
+            Online documentation on <a href="http://%(url)s">%(url)s</a>
+            """ % {"url":url})
+        msg.setWindowTitle("Sequana")
+        #msg.setDetailedText("The details are as follows:")
+        msg.setStandardButtons(QMessageBox.Ok)
+        #msg.buttonClicked.connect(self.msgbtn)
+        retval = msg.exec_()
+
 
     def clear_layout(self, layout):
         """ Clean all widget contained in a layout.
@@ -176,15 +204,50 @@ class SequanaGUI(QWidget):
         save_btn = QPushButton("Save")
         save_btn.clicked.connect(self.save_config_file)
 
-        quit_btn = QPushButton("Quit")
-        quit_btn.clicked.connect(self.close)
+        self.dag_btn = QPushButton("Show DAG")
+        #self.dag_btn.setEnabled(False)
+        self.dag_btn.clicked.connect(self.show_dag)
 
         footer_widget = QWidget()
         footer_layout = QHBoxLayout(footer_widget)
         footer_layout.addWidget(self.run_btn)
         footer_layout.addWidget(save_btn)
-        footer_layout.addWidget(quit_btn)
+        footer_layout.addWidget(self.dag_btn)
         return footer_widget
+
+    def show_dag(self):
+        print("=============")
+        if self.choice_button.currentText() != "select pipeline":
+            snakefile = Module(self.choice_button.currentText()).snakefile
+            print(snakefile)
+        else:
+            return
+
+        snakefile = os.path.basename(snakefile)
+        options = self.snakemake_dialog.get_snakemake_options()
+
+        snakemake_line = ["snakemake", "-s", snakefile]
+        snakemake_line += options
+        snakemake_line += ["--rulegraph"]
+
+        snakemake_proc = sp.Popen(snakemake_line,
+            cwd=self.working_dir.get_filenames(), 
+            stdout=sp.PIPE)
+
+        #from easydev import TempFile
+        #with TempFile(suffix=".svg") as fh:
+
+        filename = "test.svg"
+        cmd = ["dot", "-Tsvg", "-o", filename]
+        dot_proc = sp.Popen(cmd, cwd=self.working_dir.get_filenames(),
+            stdin=snakemake_proc.stdout)
+        dot_proc.communicate()
+        #print(fh.name)
+
+        diag = SVGDialog(filename)
+        diag.exec_()
+
+
 
 ################
 
@@ -262,6 +325,42 @@ class SequanaGUI(QWidget):
         if event.type() == QEvent.Wheel and source is self.choice_button:
             return True
         return False
+
+
+
+class About(QMessageBox):
+    """A resizable QMessageBox for the About dialog"""
+    def __init__(self, *args, **kwargs):            
+        super(About, self).__init__(*args, **kwargs)
+        self.setSizeGripEnabled(True)
+
+    def event(self, e):
+        result = super(About, self).event( e)
+
+        self.setMinimumHeight(0)
+        self.setMaximumHeight(16777215)
+        self.setMinimumWidth(0)
+        self.setMaximumWidth(16777215)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        textEdit = self.findChild(QTextEdit)
+        if textEdit != None :
+            textEdit.setMinimumHeight(0)
+            textEdit.setMaximumHeight(16777215)
+            textEdit.setMinimumWidth(0)
+            textEdit.setMaximumWidth(16777215)
+            textEdit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        return result
+
+    """# We only need to extend resizeEvent, not every event.
+    def resizeEvent(self, event):
+        result = super(About, self).resizeEvent(event)
+        details_box = self.findChild(QTextEdit)
+        if details_box is not None:
+            details_box.setFixedSize(details_box.sizeHint())
+        return result
+    """
 
 
 class FileBrowser(QWidget):
@@ -495,6 +594,17 @@ class ComboBoxOption(GeneralOption):
     def get_value(self):
         return self.combobox.currentText()
 
+class SVGDialog(QDialog):
+    def __init__(self, filename):
+        super().__init__()
+        self.main_layout = QVBoxLayout(self)
+        self.setWindowTitle("DAG")
+
+        import os
+        if os.path.exists(filename):
+            widget = QSvgWidget(filename)
+            self.main_layout.addWidget(widget)
+
 
 class SnakemakeOptionDialog(QDialog):
     """ Widget to set up options of snakemake and launch pipeline. It provides
@@ -612,7 +722,7 @@ def main():
     for i in range(0, 100):
         progressBar.setValue(i)
         t = time.time()
-        while time.time() < t + 2/100.:
+        while time.time() < t + 1./100.:
            app.processEvents()
 
     app.processEvents()
