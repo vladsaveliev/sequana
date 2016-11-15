@@ -11,13 +11,11 @@ from PyQt5.QtWidgets import (QApplication, QPushButton, QComboBox, QWidget,
                              QLineEdit, QTabWidget, QLabel, QFrame, QGroupBox,
                              QCheckBox, QSpinBox, QDoubleSpinBox, QScrollArea,
                              QMenuBar, QAction, QSizePolicy, QTextEdit)
-from PyQt5.QtSvg import QSvgWidget
 from PyQt5.QtWidgets import QFileDialog, QDialog, QMessageBox
 from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QVBoxLayout, QBoxLayout
 from PyQt5.QtWidgets import QSplashScreen, QProgressBar
-
-from PyQt5 import QtGui
-
+from PyQt5.QtSvg import QSvgWidget
+from PyQt5.QtGui import QPixmap
 
 from sequana import snaketools, sequana_data
 from sequana.snaketools import Module
@@ -231,16 +229,16 @@ class SequanaGUI(QWidget):
         snakemake_line += ["--rulegraph"]
 
         snakemake_proc = sp.Popen(snakemake_line,
-            cwd=self.working_dir.get_filenames(), 
-            stdout=sp.PIPE)
+                                  cwd=self.working_dir.get_filenames(), 
+                                  stdout=sp.PIPE)
 
-        #from easydev import TempFile
-        #with TempFile(suffix=".svg") as fh:
+#        from easydev import TempFile
+#        with TempFile(suffix=".svg") as fh:
 
         filename = "test.svg"
         cmd = ["dot", "-Tsvg", "-o", filename]
         dot_proc = sp.Popen(cmd, cwd=self.working_dir.get_filenames(),
-            stdin=snakemake_proc.stdout)
+                            stdin=snakemake_proc.stdout)
         dot_proc.communicate()
         #print(fh.name)
 
@@ -353,48 +351,47 @@ class About(QMessageBox):
 
         return result
 
-    """# We only need to extend resizeEvent, not every event.
-    def resizeEvent(self, event):
-        result = super(About, self).resizeEvent(event)
-        details_box = self.findChild(QTextEdit)
-        if details_box is not None:
-            details_box.setFixedSize(details_box.sizeHint())
-        return result
-    """
+#    # We only need to extend resizeEvent, not every event.
+#    def resizeEvent(self, event):
+#        result = super(About, self).resizeEvent(event)
+#        details_box = self.findChild(QTextEdit)
+#        if details_box is not None:
+#            details_box.setFixedSize(details_box.sizeHint())
+#        return result
+    
 
 
 class FileBrowser(QWidget):
     """ Class to create a file browser in PyQT5.
     """
     def __init__(self, paired=False, directory=False,
-                 file_filter="Any file (*)"):
+                 file_filter=None):
         super().__init__()
-
-        self.paths = ""
-        self.setup = False
+        # Set filter for file dialog
+        self.filter = "Any file (*)"
+        if file_filter:
+            self.filter = file_filter + ";;" + self.filter
+        self.empty_msg = "No file selected"
         self.btn = QPushButton("Browse")
-        self.btn_filename = QLabel("No file selected")
         if directory:
-            self.btn_filename.setText("No directory selected")
+            self.empty_msg = "No directory selected"
             self.btn.clicked.connect(self.browse_directory)
         elif paired:
             self.btn.clicked.connect(self.browse_paired_file)
         else:
             self.btn.clicked.connect(self.browse_file)
-
+        self.btn_filename = QLabel(self.empty_msg)
+        self.empty_path()
         widget_layout = QHBoxLayout(self)
         widget_layout.addWidget(self.btn)
         widget_layout.addWidget(self.btn_filename)
 
     def browse_paired_file(self):
-        file_path = QFileDialog.getOpenFileNames(self,
-                                                 "Paired end File", ".")[0]
+        file_path = QFileDialog.getOpenFileNames(self, "Select a sample", ".",
+                                                 self.filter)[0]
         self.setup = False
-        if not file_path:
-            self.btn_filename.setText("No file selected")
-            self.paths = {"file1": "", "file2": ""}
-        elif len(file_path) > 2:
-            self.btn_filename.setText("No file selected")
+        if not file_path or len(file_path) > 2:
+            self.empty_path()
         else:
             self.paths = {"file{0}".format(i+1): file_path[i]
                           for i in range(0, len(file_path))}
@@ -403,39 +400,35 @@ class FileBrowser(QWidget):
             self.setup = True
 
     def browse_directory(self):
-        dialog = DirectoryDialog(
-            self, "Select a directory", ".",
-            self.file_filter)
-        dialog.exec_()
-        directory_path = dialog.selectedFiles()[0]
-        try:
+        dialog = DirectoryDialog(self, "Select a directory", ".", self.filter)
+        directory_path = dialog.get_directory_path()
+        if directory_path:
             self.btn_filename.setText(directory_path)
             self.paths = directory_path
             self.setup = True
-            if not directory_path:
-                self.setup = False
-        except IndexError:
-            self.btn_filename.setText("No directory selected")
-            self.paths = ""
-            self.setup = False
+        else:
+            self.empty_path()
 
     def browse_file(self):
         try:
-            file_path = QFileDialog.getOpenFileNames(self,
-                                                     "Single File", ".")[0][0]
+            file_path = QFileDialog.getOpenFileNames(self, "Single File", ".",
+                                                     self.filter)[0][0]
             self.btn_filename.setText(file_path)
             self.paths = file_path
             self.setup = True
         except IndexError:
-            self.btn_filename.setText("No file selected")
-            self.paths = ""
-            self.setup = False
+            self.empty_path()
 
     def get_filenames(self):
         return self.paths
 
     def path_is_setup(self):
         return self.setup
+
+    def empty_path(self):
+        self.btn_filename.setText(self.empty_msg)
+        self.paths = ""
+        self.setup = False
 
     def clicked_connect(self, function):
         """ Connect additionnal function on browser button. It is used to
@@ -595,6 +588,7 @@ class ComboBoxOption(GeneralOption):
     def get_value(self):
         return self.combobox.currentText()
 
+
 class SVGDialog(QDialog):
     def __init__(self, filename):
         super().__init__()
@@ -686,6 +680,7 @@ class SnakemakeOptionDialog(QDialog):
         snakemake_proc = sp.Popen(snakemake_line, cwd=self.working_dir)
         snakemake_proc.communicate()
 
+
 class WarningMessage(QMessageBox):
     def __init__(self, msg):
         super().__init__()
@@ -704,6 +699,11 @@ class DirectoryDialog(QFileDialog):
         self.setDirectory(directory)
         self.setNameFilter(file_filter)
 
+    def get_directory_path(self):
+        if self.exec_():
+            return self.selectedFiles()[0]
+        return None
+
 
 def main():
     app = QApplication(sys.argv)
@@ -712,7 +712,7 @@ def main():
 
     filename = sequana_data("splash_loading.png", "../gui")
 
-    splash_pix = QtGui.QPixmap(filename)
+    splash_pix = QPixmap(filename)
     splash = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
 
     progressBar = QProgressBar(splash)
