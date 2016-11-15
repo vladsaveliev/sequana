@@ -179,7 +179,7 @@ class SequanaGUI(QWidget):
                 self.formular.addWidget(rule_box)
             else:
                 self.necessary_dict = dict(self.necessary_dict,
-                                           **{rule: '"{0}"'.format(contains)})
+                                           **{rule: '{0}'.format(contains)})
 
     def create_tabs_browser(self):
         """ Generate file browser widget.
@@ -570,7 +570,7 @@ class TextOption(GeneralOption):
 
     def get_value(self):
         if not self.text.text():
-            return " "
+            return "''"
         return self.text.text()
 
 
@@ -610,7 +610,7 @@ class FileBrowserOption(GeneralOption):
 
     def get_value(self):
         if not self.browser.get_filenames():
-            return " "
+            return "''"
         return self.browser.get_filenames()
 
 
