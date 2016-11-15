@@ -27,6 +27,7 @@ class SequanaGUI(QWidget):
 
     _not_a_rule = {"requirements", "gatk_bin", "input_directory", "pattern",
                    "samples"}
+    _browser_keyword = {"reference", "database"}
 
     def __init__(self):
         super().__init__()
@@ -69,10 +70,13 @@ class SequanaGUI(QWidget):
         # select the working directory
         groupbox_layout = QHBoxLayout()
         self.working_dir = FileBrowser(directory=True)
-        self.working_dir.clicked_connect(self.switch_run)
         groupbox_layout.addWidget(self.working_dir)
         groupbox = QGroupBox("Working directory")
         groupbox.setLayout(groupbox_layout)
+
+        # connect fuction on working_dir browser
+        self.working_dir.clicked_connect(self.check_existing_config)
+        self.working_dir.clicked_connect(self.switch_run)
 
         # formular which contains all options the pipeline chosen
         widget_formular = QWidget()
@@ -152,19 +156,19 @@ class SequanaGUI(QWidget):
         config_file = snaketools.Module(index)._get_config()
         self.choice_button.removeItem(
             self.choice_button.findText("select pipeline"))
-        self.create_base_formular(config_file)
-        self.choice_flag = True
-        self.switch_run()
-
-    def create_base_formular(self, config_file):
-        """ Create formular with all options necessary for a pipeline.
-        """
-        self.clear_layout(self.formular)
         try:
-            config_dict = snaketools.SequanaConfig(config_file).config
+            self.config_dict = snaketools.SequanaConfig(config_file).config
         except AssertionError:
             print("Could not parse the config file")
             return
+        self.create_base_formular(self.config_dict)
+        self.choice_flag = True
+        self.switch_run()
+
+    def create_base_formular(self, config_dict):
+        """ Create formular with all options necessary for a pipeline.
+        """
+        self.clear_layout(self.formular)
         rules_list = list(config_dict.keys())
         rules_list.sort()
         self.necessary_dict = {}
@@ -177,20 +181,21 @@ class SequanaGUI(QWidget):
                 self.formular.addWidget(rule_box)
             else:
                 self.necessary_dict = dict(self.necessary_dict,
-                                           **{rule: contains})
+                                           **{rule: '"{0}"'.format(contains)})
 
     def create_tabs_browser(self):
         """ Generate file browser widget.
         """
         # create browser file
-        paired_tab = FileBrowser(paired=True)
-        directory_tab = FileBrowser(directory=True)
+        fastq_filter = "Fastq file (*.fastq *.fastq.gz *.fq *.fq.gz)"
+        paired_tab = FileBrowser(paired=True, file_filter=fastq_filter)
+        directory_tab = FileBrowser(directory=True, file_filter=fastq_filter)
         paired_tab.clicked_connect(self.switch_run)
         directory_tab.clicked_connect(self.switch_run)
         # create tab box
         self.tabs_browser = QTabWidget()
         self.tabs_browser.addTab(directory_tab, "Directory")
-        self.tabs_browser.addTab(paired_tab, "Paired end")
+        self.tabs_browser.addTab(paired_tab, "Sample")
 
     def create_footer_button(self):
         """ Create Run/Save/Quit buttons
@@ -312,6 +317,37 @@ class SequanaGUI(QWidget):
                          for w in widgets}
         return formular_dict
 
+    def check_existing_config(self):
+        path_directory = self.working_dir.get_filenames()
+        config_file = path_directory + "/config.yaml"
+        if not os.path.isfile(config_file):
+            return False
+        if not self.choice_flag:
+            msg = WarningMessage("A config.yaml file already exist in this "
+                                 "directory. Please, choose a pipeline to "
+                                 "know if the existing config file correspond "
+                                 "to your pipeline.")
+            self.working_dir.empty_path()
+            msg.exec_()
+            return False
+        try:
+            config_dict = snaketools.SequanaConfig(config_file).config
+        except AssertionError:
+            msg = WarningMessage("Could not parse the config file.")
+            msg.exec_()
+            return False
+        if set(self.config_dict.keys()) == set(config_dict.keys()):
+            msg = QMessageBox(
+                QMessageBox.Question, "Question",
+                "A config file already exist in the working directory.\n"
+                "Do you want to merge this file ?",
+                QMessageBox.Yes | QMessageBox.No,
+                self, Qt.Dialog|Qt.CustomizeWindowHint)
+            if msg.exec_() == 16384:
+                self.config_dict.update(config_dict)
+                self.create_base_formular(self.config_dict)
+        return True
+
     def get_rules(self, layout):
         widgets = (layout.itemAt(i).widget() for i in range(layout.count()))
         rules = [w.get_name() for w in widgets]
@@ -323,7 +359,6 @@ class SequanaGUI(QWidget):
         if event.type() == QEvent.Wheel and source is self.choice_button:
             return True
         return False
-
 
 
 class About(QMessageBox):
@@ -364,8 +399,7 @@ class About(QMessageBox):
 class FileBrowser(QWidget):
     """ Class to create a file browser in PyQT5.
     """
-    def __init__(self, paired=False, directory=False,
-                 file_filter=None):
+    def __init__(self, paired=False, directory=False, file_filter=None):
         super().__init__()
         # Set filter for file dialog
         self.filter = "Any file (*)"
@@ -422,6 +456,11 @@ class FileBrowser(QWidget):
     def get_filenames(self):
         return self.paths
 
+    def set_filenames(self, filename):
+        self.paths = filename
+        self.btn_filename.setText(filename)
+        self.setup = True
+
     def path_is_setup(self):
         return self.setup
 
@@ -446,8 +485,8 @@ class RuleFormular(QGroupBox):
         self.layout = QVBoxLayout(self)
 
         for option, value in self.rule_dict.items():
-            if option == "reference":
-                option = FileBrowserOption(option)
+            if option in SequanaGUI._browser_keyword:
+                option = FileBrowserOption(option, value)
             elif isinstance(value, bool):
                 option = BooleanOption(option, value)
             else:
@@ -564,10 +603,12 @@ class NumberOption(GeneralOption):
 
 
 class FileBrowserOption(GeneralOption):
-    def __init__(self, option):
+    def __init__(self, option, value=None):
         super().__init__(option)
         self.browser = FileBrowser()
         self.layout.addWidget(self.browser)
+        if value:
+            self.browser.set_filenames(value)
 
     def get_value(self):
         if not self.browser.get_filenames():
