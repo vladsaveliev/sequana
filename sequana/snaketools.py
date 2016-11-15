@@ -474,6 +474,7 @@ modules = _get_modules_snakefiles()
 pipeline_names = [m for m in modules if Module(m).is_pipeline()]
 
 
+
 class SequanaConfig(object):
     """Reads YAML (or json) config file and ease access to its contents
 
@@ -515,7 +516,11 @@ class SequanaConfig(object):
             self.config = AttrDict()
             mode = "others"
         elif isinstance(data, str):
-            config = load_configfile(data)
+            if os.path.exists(data):
+                config = load_configfile(data)
+            else:
+                raise IOError("input string must be an existing file")
+
             self.config = AttrDict(**config)
         else:
             self.config = AttrDict(**data)
@@ -674,6 +679,22 @@ class SequanaConfig(object):
                     return default
             else:
                 return default
+
+    def cleanup(self):
+        # assuming only 2 levels strip strings and remove the templates
+        # such as %(input_directory)s
+        for k1,v1 in self.config.items():
+            if isinstance(v1, dict):
+                for k2,v2 in self.config[k1].items():
+                    if isinstance(v2, str) and "%(" in v2:
+                        self.config[k1][k2] = ""
+                    elif isinstance(v2, str):
+                        self.config[k1][k2] = v2.strip()
+            elif isinstance(v1, str) and "%(" in v1:
+                self.config[k1] = ""
+            elif isinstance(v1, str):
+                self.config[k1] = v1.strip()
+
 
 
 class PipelineManager(object):
