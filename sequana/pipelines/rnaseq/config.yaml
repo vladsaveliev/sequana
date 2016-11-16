@@ -1,14 +1,28 @@
-
-
+# ============================================================================
+# Config file for RNA-seq
+#
+# ==========================================[ Sections for the users ]========
+#
+# One of input_directory, input_pattern and input_samples must be provided
+# If input_directory provided, use it otherwise if input_pattern provided,
+# use it, otherwise use input_samples.
+# If input_extension provided, use it otherwise assume fastq.gz
+# ============================================================================
 input_directory: "%(input_directory)s"
-pattern: "%(pattern)s"
-
-# =========================================== Sections for the users
-
-# list of your input file
-samples:
+input_extension: "%(input_extension)s"
+input_pattern: "%(input_pattern)s"
+input_samples:
     file1: "%(file1)s"
     file2: "%(file2)s"
+
+# if files are required for a pipeline and are within sequana or should
+# # be downloaded before the pipeline provide them in this section
+# # Note that sequana and url fields are followed by itemised files or links
+# using
+# # the front dashes
+requirements:
+    - phiX174.fa
+
 
 # =========================================== Sections related to external tools
 fastqc:
