@@ -13,6 +13,7 @@ sm.init("quality_control.rules", globals())
 
 # This must be defined before the include 
 configfile: "config.yaml"
+__snakefile__ = srcdir(__snakefile__)
 
 # Generic include of some dynamic modules
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
