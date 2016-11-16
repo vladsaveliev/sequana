@@ -637,7 +637,7 @@ def sequana_init(options):
         for requirement in cfg.config.requirements:
             if requirement.startswith('http') is False:
                 sa.print('Copying %s from sequana' % requirement)
-                shutil.copy(sequana_data(requirement, "data"), options.target_dir)
+                shutil.copy(sequana_data(requirement), options.target_dir)
             elif requirement.startswith("http"):
                 sa.print("This file %s will be needed" % requirement)
                 wget(requirement)
