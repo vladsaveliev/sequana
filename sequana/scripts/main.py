@@ -509,6 +509,13 @@ def copy_config_from_sequana(module, source="config.yaml",
               "library (%s pipeline)"
     print(txt)
 
+    # some pipelines (eg rnaseq) have also a multiqc_config.yaml file that we want to get
+    multiqc_config = module.path + os.sep + "multiqc_config.yaml"
+    if os.path.exists(multiqc_config):
+        shutil.copy(multiqc_config, target)
+        txt = "copied multiqc_config.yaml from sequana %s pipeline" % (module.name)
+        print(txt)
+
 
 def sequana_init(options):
     import sequana

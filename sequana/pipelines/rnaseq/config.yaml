@@ -22,7 +22,7 @@ input_samples:
 # # the front dashes
 requirements:
     - phiX174.fa
-
+    - Institut_Pasteur.png
 
 # =========================================== Sections related to external tools
 fastqc:
