@@ -498,7 +498,7 @@ def main(args=None):
 
 
 def copy_config_from_sequana(module, source="config.yaml", 
-                             target="config.yaml"):
+                             target="config.yaml", options=None):
     # identify config name from the requested module
     user_config = module.path + os.sep + source
     if os.path.exists(user_config):
@@ -512,7 +512,7 @@ def copy_config_from_sequana(module, source="config.yaml",
     # some pipelines (eg rnaseq) have also a multiqc_config.yaml file that we want to get
     multiqc_config = module.path + os.sep + "multiqc_config.yaml"
     if os.path.exists(multiqc_config):
-        shutil.copy(multiqc_config, "multiqc_config.yaml")
+        shutil.copy(multiqc_config, options.target_dir + os.sep + "multiqc_config.yaml")
         txt = "copied multiqc_config.yaml from sequana %s pipeline" % (module.name)
         print(txt)
 
@@ -588,7 +588,8 @@ def sequana_init(options):
         else: # or a sequana config file in the module path ?
             raise(IOError("Config file %s not found locally" % options.config))
     else:
-        copy_config_from_sequana(module, "config.yaml", config_filename)
+        copy_config_from_sequana(module, "config.yaml", config_filename,
+                                 options)
 
     # Update the config file if possible. first we read back the config file
     # requested
