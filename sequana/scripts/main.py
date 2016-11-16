@@ -586,9 +586,9 @@ def sequana_init(options):
         if os.path.exists(options.config):
             shutil.copy(options.config, config_filename)
         else: # or a sequana config file in the module path ?
-            copy_config_from_sequana(module, options.config, config_filename)
+            raise(IOError("Config file %s not found locally" % options.config))
     else:
-        shutil.copy(module.config, config_filename)
+        copy_config_from_sequana(module, options.config, config_filename)
 
     # Update the config file if possible. first we read back the config file
     # requested
