@@ -187,8 +187,8 @@ class SequanaSummary(BaseReport):
                 self.jinja["sample_stats__samples_json_R2"] = df.to_json()
 
     def include_kraken(self):
-        if "kraken" in self.config.config.keys() and self.config.config['kraken']['database']: 
-            self.jinja['kraken_pie'] = "kraken/kraken.png"
+        self.jinja['kraken_pie'] = "kraken/kraken.png"
+        try:
             self.jinja['kraken_database'] = os.path.basename(
                 self.config.config['kraken']['database'])
         except:
