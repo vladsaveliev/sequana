@@ -1,21 +1,22 @@
 # coding: utf-8
-
 import os
 import sys
+import tempfile
 import shutil
 import subprocess as sp
 import multiprocessing
 
+from PyQt5.Qt import QTemporaryDir
 from PyQt5.QtCore import Qt, QCoreApplication, pyqtSlot, QEvent, QSize
 from PyQt5.QtWidgets import (QApplication, QPushButton, QComboBox, QWidget,
                              QLineEdit, QTabWidget, QLabel, QFrame, QGroupBox,
                              QCheckBox, QSpinBox, QDoubleSpinBox, QScrollArea,
                              QMenuBar, QAction, QSizePolicy, QTextEdit)
-from PyQt5.QtWidgets import QFileDialog, QDialog, QMessageBox
+from PyQt5.QtWidgets import QFileDialog, QDialog, QMessageBox, QColorDialog
 from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QVBoxLayout, QBoxLayout
 from PyQt5.QtWidgets import QSplashScreen, QProgressBar
 from PyQt5.QtSvg import QSvgWidget
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QColor
 
 from sequana import snaketools, sequana_data
 from sequana.snaketools import Module
@@ -84,7 +85,7 @@ class SequanaGUI(QWidget):
         scroll_area = QScrollArea()
         scroll_area.setWidget(widget_formular)
         scroll_area.setWidgetResizable(True)
-        scroll_area.setMinimumHeight(250)
+        scroll_area.setMinimumHeight(300)
 
         # main layout
         vlayout = QVBoxLayout(self)
@@ -101,6 +102,8 @@ class SequanaGUI(QWidget):
         self.setGeometry(200, 200, 500, 500)
         self.setWindowTitle("Sequana")
         self.show()
+
+        self._tempdir = QTemporaryDir()
 
     def quit(self):
         quit_msg = WarningMessage("Do you really want to quit ?")
@@ -155,10 +158,13 @@ class SequanaGUI(QWidget):
         self.choice_button.removeItem(
             self.choice_button.findText("select pipeline"))
         try:
-            self.config_dict = snaketools.SequanaConfig(config_file).config
+            cfg = snaketools.SequanaConfig(config_file)
+            cfg.cleanup()
+            self.config_dict = cfg.config
         except AssertionError:
             print("Could not parse the config file")
             return
+
         self.create_base_formular(self.config_dict)
         self.pipeline_is_chosen = True
         self.switch_run()
@@ -170,12 +176,12 @@ class SequanaGUI(QWidget):
         rules_list = list(config_dict.keys())
         rules_list.sort()
         self.necessary_dict = {}
-        for rule in rules_list:
+        for count, rule in enumerate(rules_list):
             # Check if dictionnary or not
             contains = config_dict[rule]
             if isinstance(contains, dict) and (
                     rule not in SequanaGUI._not_a_rule):
-                rule_box = RuleFormular(rule, contains)
+                rule_box = RuleFormular(rule, contains, count)
                 self.formular.addWidget(rule_box)
             else:
                 self.necessary_dict = dict(self.necessary_dict,
@@ -195,6 +201,8 @@ class SequanaGUI(QWidget):
         self.tabs_browser.addTab(directory_tab, "Directory")
         self.tabs_browser.addTab(paired_tab, "Sample")
 
+        #self.tabs_browser.setContentsMargins(0,0,0,0)
+
     def create_footer_button(self):
         """ Create Run/Save/Quit buttons
         """
@@ -207,6 +215,9 @@ class SequanaGUI(QWidget):
 
         self.dag_btn = QPushButton("Show DAG")
         # self.dag_btn.setEnabled(False)
+        self.dag_btn.setToolTip("""<p>Pressing this button, a DAG is created and
+                                 shown. This is a good way to check your 
+                                 config file </p>""" )
         self.dag_btn.clicked.connect(self.show_dag)
 
         footer_widget = QWidget()
@@ -217,37 +228,47 @@ class SequanaGUI(QWidget):
         return footer_widget
 
     def show_dag(self):
-        print("=============")
+        print("Creating the DAG (takes a few seconds)")
         if self.pipeline_is_chosen:
             snakefile = Module(self.choice_button.currentText()).snakefile
-            print(snakefile)
         else:
+            print("Select a pipeline first")
             return
 
-        snakefile = os.path.basename(snakefile)
-        options = self.snakemake_dialog.get_snakemake_options()
+        if self.check_existing_config():
+            working_dir = self.working_dir.get_filenames()
+            cfgpath = working_dir + "/config.yaml"
+        else:
+            print("No config file found, save it")
+            return
 
-        snakemake_line = ["snakemake", "-s", snakefile]
-        snakemake_line += options
-        snakemake_line += ["--rulegraph"]
+        # Although the config and pipeline are in the working directory, we do
+        # not want to interfer with it. So, we use a temporary directory
+        """shutil.copy(snakefile, self._tempdir.path())
+        shutil.copy(cfgpath, self._tempdir.path() + os.sep + "config.yaml")
+        cwd = self._tempdir.path()
+        snakemake_line = ["snakemake", "-s", os.path.basename(snakefile)]
+        snakemake_line += ["--rulegraph", "--configfile", "config.yaml"]
+        """
+        try:
+            snakemake_line = ["snakemake", "-s", snakefile]
+            snakemake_line += ["--rulegraph", "--configfile", cfgpath]
+            cwd = working_dir
 
-        snakemake_proc = sp.Popen(snakemake_line,
-                                  cwd=self.working_dir.get_filenames(),
+            snakemake_proc = sp.Popen(snakemake_line,
+                                  cwd=cwd,
                                   stdout=sp.PIPE)
-
-#        from easydev import TempFile
-#        with TempFile(suffix=".svg") as fh:
-
-        filename = "test.svg"
-        cmd = ["dot", "-Tsvg", "-o", filename]
-        dot_proc = sp.Popen(cmd, cwd=self.working_dir.get_filenames(),
+    
+            filename = self._tempdir.path() + os.sep + "test.svg"
+            cmd = ["dot", "-Tsvg", "-o", filename]
+            dot_proc = sp.Popen(cmd, cwd=cwd,
                             stdin=snakemake_proc.stdout)
-        dot_proc.communicate()
-        # print(fh.name)
-
-        diag = SVGDialog(filename)
-        diag.exec_()
-
+            dot_proc.communicate()
+            if os.path.exists(filename):
+                diag = SVGDialog(filename)
+                diag.exec_()
+        except Exception as err:
+            print(err)
 
 
 ################
@@ -333,6 +354,12 @@ class SequanaGUI(QWidget):
             msg = WarningMessage("Could not parse the config file.")
             msg.exec_()
             return False
+        except Exception as err:
+            msg = WarningMessage(
+                "Unexpected error while checking the config file %s." % config_file + str(err))
+            msg.exec_()
+            return False
+    
         if set(self.config_dict.keys()) == set(config_dict.keys()):
             msg = QMessageBox(
                 QMessageBox.Question, "Question",
@@ -404,7 +431,15 @@ class FileBrowser(QWidget):
         if file_filter is not None:
             self.filter = file_filter + ";;" + self.filter
         self.empty_msg = "No file selected"
-        self.btn = QPushButton("Browse")
+        self.btn = QPushButton("Browse")    
+        self.btn.setFixedSize(200,20)
+
+        # Add default color
+        self._p = self.btn.palette()
+        self._p.setColor(self.btn.backgroundRole(), Qt.red)
+        self.btn.setPalette(self._p)
+        self.btn.setAutoFillBackground(True)
+
         if directory:
             self.empty_msg = "No directory selected"
             self.btn.clicked.connect(self.browse_directory)
@@ -417,6 +452,12 @@ class FileBrowser(QWidget):
         widget_layout = QHBoxLayout(self)
         widget_layout.addWidget(self.btn)
         widget_layout.addWidget(self.btn_filename)
+        
+    def _setup_true(self):
+        p = self.btn.palette()
+        p.setColor(self.btn.backgroundRole(), Qt.green)
+        self.btn.setPalette(p)
+        self.setup = True
 
     def browse_paired_file(self):
         file_path = QFileDialog.getOpenFileNames(self, "Select a sample", ".",
@@ -429,7 +470,7 @@ class FileBrowser(QWidget):
                           for i in range(0, len(file_path))}
             self.btn_filename.setText("\n".join([key + ": " + value
                                       for key, value in self.paths.items()]))
-            self.setup = True
+            self._setup_true()
 
     def browse_directory(self):
         dialog = DirectoryDialog(self, "Select a directory", ".", self.filter)
@@ -437,7 +478,7 @@ class FileBrowser(QWidget):
         if directory_path:
             self.btn_filename.setText(directory_path)
             self.paths = directory_path
-            self.setup = True
+            self._setup_true()
         else:
             self.empty_path()
 
@@ -447,7 +488,7 @@ class FileBrowser(QWidget):
                                                      self.filter)[0][0]
             self.btn_filename.setText(file_path)
             self.paths = file_path
-            self.setup = True
+            self._p.setColor(self.btn.backgroundRole(), Qt.green)
         except IndexError:
             self.empty_path()
 
@@ -457,7 +498,7 @@ class FileBrowser(QWidget):
     def set_filenames(self, filename):
         self.paths = filename
         self.btn_filename.setText(filename)
-        self.setup = True
+        self._setup_true()
 
     def path_is_setup(self):
         return self.setup
@@ -475,12 +516,22 @@ class FileBrowser(QWidget):
 
 
 class RuleFormular(QGroupBox):
-    def __init__(self, rule_name, rule_dict):
+    def __init__(self, rule_name, rule_dict, count=0):
         super().__init__(rule_name)
+
+        p = self.palette()
+        if count % 2 == 0 :
+            mycolor = QColor(0,.5,1,0)
+            p.setColor(self.backgroundRole(), mycolor)
+        else:
+            mycolor = QColor(.5,.5,.5,0)
+            p.setColor(self.backgroundRole(), mycolor)
+        self.setPalette(p)
 
         self.rule_name = rule_name
         self.rule_dict = rule_dict
         self.layout = QVBoxLayout(self)
+        self.setAutoFillBackground(True)
 
         for option, value in self.rule_dict.items():
             if option in SequanaGUI._browser_keyword:
