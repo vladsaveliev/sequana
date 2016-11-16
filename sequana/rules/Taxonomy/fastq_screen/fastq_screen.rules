@@ -1,0 +1,20 @@
+rule fastq_screen:
+    input:
+        __fastq_screen__input
+    log:
+        __fastq_screen__logs
+    output:
+        __fastq_screen__output
+    threads: 4
+    params:
+        configFile = config['fastq_screen']['conf'],
+        outdir = __fastq_screen__outdir
+    shell:
+        """
+        fastq_screen --subset 20000 \
+        --outdir {params.outdir} \
+        --threads {threads} \
+        --conf {params.configFile}  \
+        --aligner bowtie2  \
+        {input}
+        """

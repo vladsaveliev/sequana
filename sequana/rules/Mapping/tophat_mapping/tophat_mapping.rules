@@ -1,0 +1,20 @@
+rule tophat_mapping:
+    input:
+        fastq = __tophat_mapping__input
+    output:
+        bam = __tophat_mapping__outdir + "/accepted_hits.bam",
+        sort = __tophat_mapping__sort
+    log:
+        __tophat_mapping__logs
+    params:
+        outdir = __tophat_mapping__outdir,
+        prefix_index = config["tophat_mapping"]["prefix_index"],
+        options = config["tophat_mapping"]["options"]
+    threads:
+        config["tophat_mapping"]["threads"]
+    shell:
+        """
+        tophat2 --bowtie1 -p {threads} -o {params.outdir} {params.options} \
+        {params.prefix_index} {input.fastq}  \
+        && samtools sort -o {output.sort} {output.bam} 2> {log}
+        """

@@ -1,0 +1,24 @@
+rule clean_ngs:
+    input:
+        __clean_ngs__input
+    log:
+        __clean_ngs__logs
+    output:
+        fastq = __clean_ngs__output,
+        rej_files = __clean_ngs__rej_files
+    params:
+        adapters = config['adapter_removal']['fwd'],
+        min_len = config['adapter_removal']['m'],
+        max_len = config['adapter_removal']['M'],
+        quality = config['adapter_removal']['quality']
+    shell:
+        """
+        clean_ngs -if1 {input} \
+           -of1 {output.fastq} \
+           -rf1 {output.rej_files} \
+           -adf {params.adapters} \
+           -l   {params.min_len}\
+           -L   {params.max_len} \
+           -q3  {params.quality} \
+           -q5  {params.quality} > {log}
+        """

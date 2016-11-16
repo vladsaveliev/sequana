@@ -1,0 +1,24 @@
+rule bowtie2_mapping:
+    input:
+        __bowtie2_mapping__input
+    output:
+        sort = __bowtie2_mapping__sort
+    log:
+        __bowtie2_mapping__logs
+    params:
+        outdir = __bowtie2_mapping__outdir,
+        prefix_index = config["bowtie2_mapping"]["prefix_index"],
+        options = config["bowtie2_mapping"]["options"],
+        rg = __bowtie2_mapping__RG,
+        sam = temp(__bowtie2_mapping__sam)
+    threads:
+        config["bowtie2_mapping"]["threads"]
+    shell:
+        """
+
+        bowtie2 -p {threads} {params.rg} -X2000 --dovetail --no-mixed --no-discordant --end-to-end \
+        -D 20 -R 3 -N 1 -L 20 -i S,1,0.50 -x {params.prefix_index} \
+        -1 {input.R1} -2 {input.R2} -S {params.sam} 2> {log}
+
+        samtools view -bhS {params.sam} | samtools sort -o {output.sort} -
+        """

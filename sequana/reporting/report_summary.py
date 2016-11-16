@@ -92,8 +92,11 @@ class SequanaSummary(BaseReport):
         # include whatever is relevant
         if include_all:
             self.include_kraken()
-            self.include_phix()
-            self.include_sample_stats()
+            try:self.include_phix()
+            except:pass
+            
+            try:self.include_sample_stats()
+            except:pass
             self.include_adapters_stats()
             self.include_details()
             self.include_input_links()
@@ -190,6 +193,7 @@ class SequanaSummary(BaseReport):
                 self.config.config['kraken']['database'])
         except:
             self.jinja['kraken_database'] = "?"
+
 
         table = self.htmltable(pd.read_csv(self.directory + "/kraken/kraken.csv"), 
                               tablename="kraken")

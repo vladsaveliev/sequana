@@ -1149,7 +1149,8 @@ class FastQFactory(FileFactory):
         # project-name-bis_1
         candidates = [realpath for filename, realpath in
                       zip(self.filenames, self.realpaths)
-                      if rtag in filename and filename.startswith(tag+"_")]
+                      if rtag in filename and (filename.startswith(tag+"_R1") or
+                                               filename.startswith(tag+"_R2"))]
 
         if len(candidates) == 0 and rtag == "_R2_":
             # assuming there is no R2

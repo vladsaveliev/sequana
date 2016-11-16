@@ -1,0 +1,31 @@
+
+
+rule feature_counts:
+    """Feature counts (subread)
+
+    Input:
+
+    Output:
+
+    Config:
+
+    :reference: http://bioinf.wehi.edu.au/featureCounts/
+    """
+    input:
+        bam = __feature_counts__input
+    output:
+        count = __feature_counts__output_count,
+        gene_count = __feature_counts__output_gene_count
+    params:
+        gff = config['feature_counts']["gff"],
+        mapp = config['feature_counts']["options"]  # -t exon
+    log:
+        __feature_counts__log
+    threads:
+        config['star_mapping']['threads']
+    run:
+        shell("""featureCounts -T {threads} {params.mapp} \
+                 -a {params.gff} -o {output.count} {input.bam} 2> {log}""")
+
+        shell("""cut -f 1,7- {output.count} | awk 'NR > 2' | awk '{{gsub("samples/bam/","",$0); print}}'> {output.gene_count}""")
+      

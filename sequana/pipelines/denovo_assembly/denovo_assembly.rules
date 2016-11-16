@@ -16,6 +16,7 @@ sm.init("denovo_assembly.rules", globals())
 
 # load config file
 configfile: "config.yaml"
+__snakefile__ = srcdir(__snakefile__)
 
 final_output = []
 
@@ -54,6 +55,7 @@ if config["do_mapping_evaluation"]:
     __bwa_mem_ref__ref_input = __format_contigs__output
     __report_mapping__quast_input = __quast__output
     include: sm.modules["variant_calling"]
+
 
 final_output += [expand(__quast__output, sample=manager.samples),
                  expand(__format_contigs__output, sample=manager.samples)]

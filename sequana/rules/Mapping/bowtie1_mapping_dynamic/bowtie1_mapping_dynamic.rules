@@ -1,0 +1,54 @@
+# coding: utf-8
+"""Read mapping for either singel end and paired end data using Bowtie1.
+
+input:
+    fastq -> list with one or two fastq.gz
+    reference -> reference
+"""
+
+def bowtie1_mapping_dynamic(name, log_dir):
+    metadata = {"name": name, "log_dir": log_dir}
+
+    bowtie1_mapping_code = '''
+rule bowtie1_mapping_%(name)s:
+    input:
+        fastq = __bowtie1_mapping_%(name)s__input
+    output:
+        bam = __bowtie1_mapping_%(name)s__bam,
+        sort = __bowtie1_mapping_%(name)s__sort
+    log:
+        out = "%(log_dir)s/bowtie1_mapping_%(name)s/bowtie_stdout.log",
+        err = "%(log_dir)s/bowtie1_mapping_%(name)s/bowtie_stderr.log"
+    params: 
+        prefix_index = __bowtie1_mapping_%(name)s__prefix_index,
+        options = config["bowtie1_mapping_%(name)s"]["options"]
+    threads:
+        int(config["bowtie1_mapping_%(name)s"]["threads"])
+    run:
+        unzip_file = [filename[:-3] for filename in input.fastq]
+        cmd = "bowtie -S {params.options} -p {threads} {params.prefix_index}"
+        # paired end or single end unzip
+        if len(input.fastq) == 2:
+            bowtie_input = "-1 " + unzip_file[0] + " -2 " + unzip_file[1]
+        else:
+            bowtie_input = unzip_file[0]
+        cmd = cmd + " " + bowtie_input
+        # sam to bam
+        cmd = "%%s | samtools view -Sbh -> {output.bam}" %% cmd
+        
+        # logs
+        cmd = "(%%s) > {log.out} 2> {log.err}" %% cmd
+        
+        # sort result
+        cmd = "%%s && samtools sort -o {output.sort} {output.bam}" %% cmd
+        cmd = "%%s && samtools index {output.sort}" %% cmd
+
+        
+        shell("unpigz -fk {input.fastq} && " + cmd )
+    '''
+
+    from easydev import TempFile
+    tt = TempFile()
+    with open(tt.name, "w") as fh:
+        fh.write(bowtie1_mapping_code % metadata)
+    return fh.name

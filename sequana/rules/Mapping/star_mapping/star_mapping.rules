@@ -1,0 +1,75 @@
+# coding: utf-8
+"""Read mapping for either single end and paired end data using rna-star.
+
+input:
+    fastq -> list with one or two fastq.gz
+params:
+    index -> path to index of reference genome
+    ref -> path to the reference genome in fasta format
+    read_groups -> "ID:sample_id LB:library_id PL:platform PU:flowcell SM:sample_name"
+    RAM -> Star mapping on human genome requires at least 30 Gb of RAM
+    kwargs -> Star config. See https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf
+"""
+
+
+rule star_mapping:
+    input:
+        __star_mapping__input
+    log:
+        __star_mapping__logs
+    output:
+        __star_mapping__sort
+    params:
+        prefix1 = temp(__star_mapping__output_prefix1),
+        prefix2 = __star_mapping__output_prefix2,
+        index = config['star_mapping']['prefix_index'],
+        ref = config['star_mapping']['ref'],
+        #read_groups = __star_mapping__read_groups,
+        genome_dir = temp(__star_mapping__genome_dir),
+        splice_file = temp(__star_mapping__splice_file),
+        kwargs = config['star_mapping']['options']
+    threads:
+        config['star_mapping']['threads']
+    #Resources:
+    #    ram = config['star_mapping']['ram']
+    run:
+        shell(""" echo "Run rna-star 1st pass"
+        STAR --genomeDir {params.index} \
+             --readFilesIn {input}  \
+             --runThreadN {threads} \
+             --genomeLoad NoSharedMemory \
+             --outFilterMismatchNoverLmax 0.05 \
+             --outSAMunmapped Within  \
+             --outSAMtype BAM Unsorted \
+             --readFilesCommand zcat \
+             --seedSearchStartLmax 20 \
+             --outFileNamePrefix {params.prefix1} \
+            {params.kwargs}  2> {log}""")
+
+        shell(""" echo "run rna-star genome indexing"
+        if [ ! -d "{params.genome_dir}" ]; then
+            mkdir {params.genome_dir}
+        fi
+        STAR --runMode genomeGenerate \
+             --genomeDir {params.genome_dir} \
+             --genomeFastaFiles {params.ref} \
+             --sjdbFileChrStartEnd {params.splice_file} \
+             --sjdbOverhang 100 \
+             --runThreadN {threads}  2>> {log}""")
+
+
+        shell(""" echo "Run rna-star 2nd pass"
+        STAR --genomeDir {params.genome_dir} \
+             --readFilesIn {input}  \
+             --runThreadN {threads} \
+             --genomeLoad NoSharedMemory \
+             --sjdbFileChrStartEnd {params.splice_file} \
+             --outFilterMismatchNoverLmax 0.05 \
+             --outSAMunmapped Within  \
+             --outSAMtype BAM Unsorted \
+             --readFilesCommand zcat \
+             --outFileNamePrefix {params.prefix2} \
+             {params.kwargs}  2>> {log}""")
+
+
+        shell(""" samtools sort {params.prefix2}Aligned.out.bam > {output}""")

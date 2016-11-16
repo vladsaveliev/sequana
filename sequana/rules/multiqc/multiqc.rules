@@ -1,0 +1,22 @@
+rule multiqc:
+    """Run MultiQC on an input directory
+
+    __multiqc__input_dir: an input directory where to find data and logs
+    __multiqc__output: multiqc_report.html in the input directory
+
+    :note: if the directory exists, it is overwritten
+    """
+    input:
+        __multiqc__input
+    log:
+        __multiqc__logs
+    output:
+        __multiqc__output
+    params:
+        inputdir = __multiqc__input_dir,
+        excluded = config['multiqc']['excluded'],
+        outdir = config['multiqc']['output-directory']
+    shell:
+        """
+        multiqc -d -dd -1 {params.inputdir} -o {params.outdir} {params.excluded} -f -c multiqc_config.yaml 2> {log}
+        """
