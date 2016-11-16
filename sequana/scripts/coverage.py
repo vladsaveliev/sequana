@@ -16,278 +16,261 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-""".. rubric:: Standalone application dedicated to coverage"""
-import os
-import shutil
-import glob
-import sys
-from optparse import OptionParser
-import argparse
-from argparse import RawTextHelpFormatter
+import math
+import numpy as np
 
 
-from sequana import bedtools
-from sequana.reporting import report_mapping
-from sequana.reporting import report_chromosome
-from sequana.reporting import report_main
-
-from easydev import shellcmd
-
-from pylab import show, figure, savefig
-
-from easydev.console import purple
-
-# http://stackoverflow.com/questions/18462610/argumentparser-epilog-and-description-formatting-in-conjunction-with-argumentdef
-class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
-    pass
+__all__ = ["Coverage"]
 
 
-class Options(argparse.ArgumentParser):
-    def  __init__(self, prog="sequana_coverage"):
-        usage = purple("""\nWelcome to SEQUANA -- Coverage standalone
+class Coverage(object):
+    r"""Utilities related to Lander and Waterman theory
 
-    sequana_coverage --input file.bed --window-median 1001
-    sequana_coverage --input file.bam --window-median 1001 -r <REFERENCE.fa>
-        """)
+    We denote :math:`G` the genome length in nucleotides and :math:`L` the read
+    length in nucleotides. These two numbers are in principle well defined since
+    :math:`G` is defined by biology and :math:`L` by the sequencing machine.
 
-        epilog = purple("""
-----
+    The total number of reads sequenced during an experiment is denoted
+    :math:`N`. Therefore the total number of nucleotides is simply :math:`NL`.
 
-AUTHORS: Thomas Cokelaer, Dimitri Desvillechabrol
-Documentation: http://sequana.readthedocs.io
-Issues: http://github.com/sequana/sequana
-        """)
+    The depth of coverage (DOC) at a given nucleotide position is the number of 
+    times that a nucleotide is covered by a mapped read.
 
-        description = """DESCRIPTION:
+    The theoretical fold-coverage is defined as :
+
+    .. math:: a = NL/G
+
+    that is the average number of times each nucleotide is expected to be sequenced (in the 
+    whole genome). The fold-coverage is often denoted :math:`aX` (e.g., 50X).
+
+    In the :class:`Coverage` class, :math:`G` and :math:`N` are fixed at 
+    the beginning. Then, if one changes :math:`a`, then :math:`N` is updated and
+    vice-versa so that the relation :math:`a=NL/G` is always true::
+
+        >>> cover = Coverage(G=1000000, L=100)
+        >>> cover.N = 100000    # number of reads
+        >>> cover.a             # What is the mean coverage
+        10
+        >>> cover.a = 50
+        >>> cover.N
+        500000
+
+    From the equation aforementionned, and assuming the reads are uniformly
+    distributed, we can answer a few interesting questions using probabilities.
+
+    In each chromosome, a read of length :math:`L` could start at any position
+    (except the last position L-1). So in a genome :math:`G` with :math:`n_c`
+    chromosomes, there are :math:`G - n_c (L-1)` possible starting positions.
+    In general  :math:`G >> n_c (L-1)` so the probability that one of the
+    :math:`N` read starts at any specific nucleotide is :math:`N/G`.
+
+    The probability that a read (of length :math:`L`) covers a given 
+    position is :math:`L/G`. The probability of **not** covering that location 
+    is :math:`1-L/G`. For :math:`N` fragments, we obtain the probability
+    :math:`\left(1-L/G\right)^N`. So, the probability of covering a given
+    location with at least one read is :
+
+    .. math:: P = 1 - \left(1- \frac{L}{G}\right)^N
+
+    Since in general, N>>1, we have:
+
+    .. math::  P = 1- \exp^{-NL/G}
+
+    From this equation, we can derive the fold-coverage required to have 
+    e.g., :math:`E=99\%` of the genome covered:
+
+    .. math:: a = log(-1/(E-1)
+
+    .. indeed e^x = lim (1+x/N)^N when N goes to infinite so for x -> -x.N
+        e^-Nx = lim (1-x)^N when N goes to infinite
+
+    equivalent to
+
+    .. math:: a = -log(1-E)
+
+    The method :meth:`get_required_coverage` uses this equation. However, for
+    numerical reason, one should not provide :math:`E` as an argument but (1-E). 
+    See :meth:`get_required_coverage`
+
+    Other information can also be derived using the methods
+    :meth:`get_mean_number_contigs`, :meth:`get_mean_contig_length`,
+    :meth:`get_mean_contig_length`.
+
+    .. seealso:: :meth:`get_table` that provides a summary of all these
+        quantities for a range of coverage.
+
+    :reference: http://www.math.ucsd.edu/~gptesler/283/FA14/slides/shotgun_14-handout.pdf
+
+    """
+    def __init__(self, N=None, L=None, G=None, a=None):
+        self._a = None  # coverage
+        self._L = L  # length of each read
+        self._N = N  # number of reads
+        self._G = G  # length target genome
+
+    def __repr__(self):
+        if self._N is None: 
+            N = "undefined"
+        else:
+            N = self._N
+        if self._a is None:
+            a = "undefined"
+        else:
+            a = self._a
+        return "Coverage(N=%s, L=%s, G=%s, a=%s) "% (N, self.L, self.G,a)
+
+    def _get_a(self):
+        return self._N * self._L / float(self._G)
+    def _set_a(self, value):
+        assert value > 0
+        self._a = value
+        self._N = self._a * self._G / float(self._L)
+    a = property(_get_a, _set_a, doc="coverage defined as NL/G")
+
+    def _get_L(self):
+        return self._L
+    def _set_L(self, value):
+        assert value >0
+        self._L = value
+    L = property(_get_L, _set_L, doc="length of the reads")
+
+    def _get_N(self):
+        return self._N
+    def _set_N(self, value):
+        assert value >0
+        self._N = value
+    N = property(_get_N, _set_N, doc="number of reads defined as aG/L")
+
+    def _get_G(self):
+        return self._G
+    def _set_G(self, value):
+        assert value >0
+        self._G = value
+    G = property(_get_G, _set_G, doc="genome length")
+
+    def get_required_coverage(self, M=0.01):
+        """Return the required coverage to ensure the genome is covered
+
+        A general question is what should be the coverage to make sure
+        that e.g. E=99% of the genome is covered by at least a read.
+
+        The answer is:
+
+        .. math:: \log^{-1/(E-1)}
+
+        This equation is correct but have a limitation due to floating precision. 
+        If one provides E=0.99, the answer is 4.6 but we are limited to a
+        maximum coverage of about 36 when one provides E=0.9999999999999999
+        after which E is rounded to 1 on most computers. Besides, it is no
+        convenient to enter all those numbers. A scientific notation would be better but
+        requires to work with :math:`M=1-E` instead of :math:`E`.
+
+        .. math:: \log^{-1/ - M}
+
+        So instead of asking the question what is the
+        requested fold coverage to have 99% of the genome covered, we ask the question what
+        is the requested fold coverage to have 1% of the genome not covered.
+        This allows us to use :math:`M` values as low as 1e-300 that is a fold coverage 
+        as high as 690.
+
+
+        :param float M: this is the fraction of the genome not covered by
+            any reads (e.g. 0.01 for 1%). See note above.
+        :return: the required fold coverage
+
+        .. plot::
+
+            import pylab
+            from sequana import Coverage
+            cover = Coverage()
+            misses = np.array([1e-1, 1e-2, 1e-3, 1e-4,1e-5,1e-6])
+            required_coverage = cover.get_required_coverage(misses)
+            pylab.semilogx(misses, required_coverage, 'o-')
+            pylab.ylabel("Required coverage", fontsize=16)
+            pylab.xlabel("Uncovered genome", fontsize=16)
+            pylab.grid()
+
+        # The inverse equation is required fold coverage = [log(-1/(E - 1))]
+        """
+        # What should be the fold coverage to have 99% of the genome sequenced ?
+        # It is the same question as equating 1-e^{-(NL/G}) == 0.99, we need NL/G = 4.6
+        if isinstance(M, float) or isinstance(M, int):
+            assert M < 1
+            assert M >=0
+        else:
+            M = np.array(M)
+        # Here we do not use log(-1/(E-1)) but log(-1/(1-E-1)) to allow
+        # for using float down to 1e-300 since 0.999999999999999 == 1
+        return np.log(-1/(-M))
+
+    def get_mean_number_contigs(self):
+        r"""Expected number of contigs
+
+
+        A binomial distribution with parameters :math:`N` and :math:`p`
+
+        .. math:: (aG/L) \exp^{-a}
+
+        """
+        return self.G/float(self.L) * self.a * math.exp(-self.a)
+
+    def get_mean_contig_length(self):
+        r"""Expected length of the contigs
+
+        .. math:: \frac{e^a-1)L}{a}
+        
+        """
+        return (math.exp(self.a) - 1) * self.L / self.a
+
+    def get_mean_reads_per_contig(self):
+        """Expected number of reads per contig
+
+        Number of reads divided by expected number of contigs:
+
+        .. math:: N / (N\exp^{-a}) = e^a
+
+
+        """
+        return math.exp(self.a)
+    def get_percent_genome_sequenced(self):
+        """Return percent of the genome covered
+
+        .. math:: 100 (1-\exp{-a})
+        """
+        return 100*(1 - math.exp(-self.a))
+
+    def get_summary(self):
+        """Return a summary (dictionary) for the current fold coverage :attr:`a`"""
+        data = {}
+        data['coverage'] = self.a
+        data['reads'] = self.N
+        data['nucleotides'] = self.a * self.G
+        data['% genome sequenced'] = self.get_percent_genome_sequenced()
+        data['mean number of contigs'] = self.get_mean_number_contigs()
+        data['mean contig length'] = self.get_mean_contig_length()
+        data['mean reads per contig'] = self.get_mean_reads_per_contig()
+        return data
+
+    def get_table(self, coverage=None):
+        """Return a summary dataframe for a set of fold coverage
+
+        :param list coverage: if None, coverage list starts at 0.5 and ends at
+            10 with a step of 0.5
         """
 
-        super(Options, self).__init__(usage=usage, prog=prog,
-                description=description, epilog=epilog,
-                formatter_class=CustomFormatter)
+        if coverage is None:
+            X = np.arange(0.5,10.5,0.5)
+        else:
+            X = coverage
 
-        # options to fill the config file
-        group = self.add_argument_group("Required argument")
-        group.add_argument("-i", "--input", dest="input", type=str,
-            help=("Input file in BED or BAM format. If a BAM file is "
-                 "provided, it will be converted locally to a BED file "
-                 "using genomecov, which must be installed."))
+        a_buf = self.a
 
-        group = self.add_argument_group("Optional biological arguments")
-        group.add_argument('-c', "--chromosome", dest="chromosome", type=int,
-            default=1,
-            help=(  "Chromosome number (if only one, no need to use: the first"
-                    "and only chromosome is chosen automatically). Default is "
-                    "first chromosome found in the BED file"))
-        group.add_argument('-o', "--circular", dest="circular",
-            default=False, action="store_true",
-            help="""If the DNA of the organism is circular (typically
-            viruses or bacteria), set to True""")
+        results = []
+        for this in X:
+            self.a = this
+            results.append(self.get_summary())
 
-        group = self.add_argument_group("General")
-        group.add_argument('--show', dest="show", default=False,
-            action='store_true', help="""Show the pictures (matplotlib)""")
-        group.add_argument('--show-html', dest="show_html", default=False,
-            action='store_true',
-            help="""When report is created, you can open
-            the main page automatically with this option (default is False)""")
-        group.add_argument("-q", "--quiet", dest="verbose",
-            default=True, action="store_false")
-        group.add_argument('--no-report', dest="create_report",
-            default=True, action='store_false',
-            help="""Do not create any HTML report""")
-
-        # Group related to GC content
-        group = self.add_argument_group("GC content related")
-        group.add_argument('-r', "--reference", dest="reference", type=str,
-            default=None,
-            help="""If available, you can provide a reference (ENA/NCBI). It
-                 must have the same length as the one used to create the
-                 BAM or BED file. If provided, it is used to create the
-                 coverage versus GC content image""")
-        group.add_argument("-g", "--window-gc", dest="w_gc", type=int,
-            help="""Length of the running window to compute the GC content""", default=200)
-        group.add_argument('-n', "--nlevels", dest="levels", type=int,
-            default=3, help="""Number of levels in the contour""")
-
-        #group running median
-        group = self.add_argument_group("Running Median related")
-        group.add_argument("-w", "--window-median", dest="w_median", type=int,
-            help="""Length of the running median window (default 4001,
-                 recommended for viruses).  For long genome, 20001
-                 or 30001 is recommended but larger windows may be
-                 useful in the presence of long deleted regions.""",
-            default=4001)
-
-        group.add_argument("-k", "--mixture-models", dest="k", type=int,
-            help="""Number of mixture models to use (default 2, although if sequencing
-        depth is below 8, k is set to 1 automatically). To ignore that behaviour
-        set k to the required value""",
-            default=None)
-
-        group.add_argument("-L", "--low-threshold", dest="low_threshold",
-            default=None, type=float,
-            help=("lower threshold (zscore) of the confidence interval. "
-                "Overwrite value given by --threshold/-T"))
-        group.add_argument("-H", "--high-threshold", dest="high_threshold",
-            default=None, type=float,
-            help=("higher threshold (zscore) of the confidence interval. "
-                "Overwrite value given by --threshold/-T"))
-        group.add_argument("-T", "--threshold", dest="threshold",
-            default=4, type=float,
-            help="""set lower and higher thresholds of the confidence interval.""")
-
-        group = self.add_argument_group("Download reference")
-        group.add_argument("--download-reference", dest="accession",
-            default=None, type=str)
-        group.add_argument("--database", dest="database",
-            default="ENA", type=str,
-            choices=["ENA", "EUtils"],
-            help="Download the reference from one of these database (default ENA)")
-
-
-def main(args=None):
-
-    if args is None:
-        args = sys.argv[:]
-
-    user_options = Options(prog="sequana")
-
-    # If --help or no options provided, show the help
-    if len(args) == 1:
-        user_options.parse_args(["prog", "--help"])
-    else:
-        options = user_options.parse_args(args[1:])
-
-    if options.accession:
-        print("Download accession %s from %s\n" %
-            (options.accession, options.database))
-
-        from bioservices.apps import download_fasta as df
-        df.download_fasta(options.accession, method=options.database)
-        return
-
-    # We put the import here to make the --help faster
-    from sequana import GenomeCov
-    if options.verbose:
-        print("Reading %s" % options.input)
-
-    if options.input.endswith(".bam"):
-        bedfile = options.input.replace(".bam", ".bed")
-        if options.verbose:
-            print("Converting BAM into BED file")
-        shellcmd("bedtools genomecov -d -ibam %s > %s" % (options.input, bedfile))
-    elif options.input.endswith(".bed"):
-        bedfile = options.input
-    else:
-        raise ValueError("Input file must be a BAM or BED file")
-
-    if options.low_threshold is None:
-        options.low_threshold = -options.threshold
-
-    if options.high_threshold is None:
-        options.high_threshold = options.threshold
-
-    gc = GenomeCov(bedfile, options.low_threshold, options.high_threshold, 
-            0.5, 0.5)
-
-    if options.reference:
-        print('Computing GC content')
-        gc.compute_gc_content(options.reference, options.w_gc)
-
-    if len(gc.chr_list) == 1:
-        if options.verbose:
-            print("There is only one chromosome")
-        chrom = gc.chr_list[0]
-    elif options.chromosome < 0 or options.chromosome > len(gc.chr_list):
-        raise ValueError("invalid --chromosome value ; must be in [1-%s]" % len(gc.chr_list)+1)
-    else:
-        print("There are %s chromosomes/contigs. Selected the chromosome %s" %
-            (len(gc.chr_list), options.chromosome))
-        chrom = gc.chr_list[options.chromosome-1]
-
-    if options.verbose:
-        print(chrom)
-
-    if options.verbose:
-        print('Computing running median')
-
-    chrom.running_median(n=options.w_median, circular=options.circular)
-
-    stats = chrom.get_stats()
-    DOC = stats['DOC']
-    if options.k is None and DOC < 8:
-        options.k = 1
-    elif options.k is None:
-        options.k = 2
-
-    if options.verbose:
-        print("Number of mixture model %s " % options.k)
-        print('Computing zscore')
-    chrom.compute_zscore(k=options.k, verbose=options.verbose)
-
-    if options.verbose:
-        print("Computing centralness")
-
-    # Let us save the thresholds first and then change it to compute centralness
-    thresholds = chrom.thresholds.copy()
-
-    chrom.thresholds.low = -3
-    chrom.thresholds.high = 3
-    c3 = chrom.get_centralness()
-
-    chrom.thresholds.low = -4
-    chrom.thresholds.high = 4
-    c4 = chrom.get_centralness()
-    chrom.thresholds = thresholds.copy()   # Get back to the original values
-
-    if options.verbose:
-        print(chrom.thresholds)
-
-    if options.verbose:
-        res = chrom._get_best_gaussian()
-        print("sigma and mu of the central distribution: mu=%s, sigma=%s" %
-(round(res["mu"],3), round(res['sigma'],3)))
-        print("Evenness: %8.3f" % chrom.get_evenness())
-        print("Centralness (3 sigma): %f" % round(c3,3))
-        print("Centralness (4 sigma): %f" % round(c4,4))
-
-    if options.verbose:
-        print("\n\n")
-
-
-    figure(1)
-    chrom.plot_coverage()
-
-    # With the reference, we can plot others plots such as GC versus coverage
-    if options.reference:
-        figure(2)
-        chrom.plot_gc_vs_coverage(Nlevels=options.levels, fontsize=20)
-        savefig("coverage_vs_gc.png")
-
-    if options.show:
-        show()
-
-    # Report chromosomes
-    if options.verbose:
-        print("Creating report")
-
-    if options.create_report:
-        r = report_chromosome.ChromosomeMappingReport(chrom,
-            directory="report", project="coverage")
-        if options.reference:
-            from snakemake import shell
-            shell("cp coverage_vs_gc.png report/images")
-            r.jinja['coverage_vs_gc'] = """<img src="images/coverage_vs_gc.png">"""
-
-        r.jinja['standalone_command'] = " ".join(sys.argv)
-        r.create_report()
-        print("Report created. See ./report directory content and look for the HTML file. You can also use --show-html option")
-        if options.show_html:
-            from easydev import onweb
-            onweb("report/coverage_mapping.chrom%s.html" % options.chromosome)
-
-
-if __name__ == "__main__":
-   import sys
-   main()#sys.argv)
-
+        import pandas as pd
+        df = pd.DataFrame.from_records(results)
+        df.set_index("coverage", inplace=True)
+        return df

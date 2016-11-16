@@ -33,15 +33,15 @@ help_input = """Missing input data.
 
 Input data must be provided with one of the following parameter:
 
-  1- For multiple samples, use --input-directory <PATH> where <PATH> is 
-     the path where to find the FastQ files. By default, extension are 
-     expected to be fastq.gz but one can use --extension to override this 
+  1- For multiple samples, use --input-directory <PATH> where <PATH> is
+     the path where to find the FastQ files. By default, extension are
+     expected to be fastq.gz but one can use --extension to override this
      behaviour
   2- For one sample, you can use --file1 and --file2 (paired sample)
-  3- A global pattern using --pattern  <PATTERN> where <PATTERN> should be 
+  3- A global pattern using --pattern  <PATTERN> where <PATTERN> should be
      a correct regular expression with wildcards between quotes. For instance,
      "*.fastq.gz" or "/home/user/DATA/*/fastq.gz"
-  4- You may already have a valid configuration file. If so, use --config 
+  4- You may already have a valid configuration file. If so, use --config
 """
 
 class Tools(object):
@@ -78,7 +78,7 @@ class Tools(object):
 class SmartFormatter(argparse.HelpFormatter):
     def _split_lines(self, text, width):
         if text.startswith('FORMAT|'):
-            return text[7:].splitlines() 
+            return text[7:].splitlines()
         # this is the RawTextHelpFormatter._split_lines
         return argparse.HelpFormatter._split_lines(self, text, width)
 
@@ -90,12 +90,12 @@ class Options(argparse.ArgumentParser):
         If you want to analyse several samples distributed in sub-directories,
         use:
 
-            sequana --pipeline quality_control --pattern "./*/*fastq.gz" 
+            sequana --pipeline quality_control --pattern "./*/*fastq.gz"
                 --design SampleSheetUsed.csv  --adapters PCRFree
 
         If all samples are in the current directory:
 
-            sequana --pipeline quality_control --input-directory . 
+            sequana --pipeline quality_control --input-directory .
                 --design SampleSheetUsed.csv  --adapters PCRFree
 
         If you want to analyse a specific pair of files:
@@ -114,7 +114,7 @@ class Options(argparse.ArgumentParser):
             sequana --show-pipelines
 
         If multiple samples are found, sub-directories are created for each
-        sample. 
+        sample.
 
 AUTHORS: Thomas Cokelaer and Dimitri Devilleschabrol
 Documentation: http://sequana.readthedocs.io
@@ -238,7 +238,7 @@ define the type of cluster command to use
                 fills automatically the project and file1/file2 fields in the config
                 file. To be used with --init option. If more than two files or not
                 files ending in fastq.gz are found, an error is raised.""")
-        group.add_argument("-e", "--extension", type=str, default="fastq.gz", 
+        group.add_argument("-e", "--extension", type=str, default="fastq.gz",
             help="""To be used with --input-directory only""")
         group.add_argument("-o", "--output-directory", dest="target_dir", type=str,
             default="analysis",
@@ -260,12 +260,12 @@ define the type of cluster command to use
         group.add_argument("--adapters", dest="adapters", type=str, default="",
             help="""When using --design, you must also provide the type of
                 adapters using this parameter. Valid values are either Nextera or PCRFree
-                Corresponding files can be found in 
+                Corresponding files can be found in
                 github.com/sequana/sequana/resources/data/adapters
                 """)
         group.add_argument("--no-adapters", dest="no_adapters",
             action="store_true", default=False,
-            help="""If provided, no removal of adapters will be 
+            help="""If provided, no removal of adapters will be
                  performed. Trimming quality is still performed.
                  Value must be set in the config file or using --config-params""")
         group.add_argument("--kraken", dest="kraken", type=str,
@@ -294,7 +294,7 @@ def main(args=None):
     else:
         options = user_options.parse_args(args[1:])
 
-    # these imports must be local. This also speed up the --help 
+    # these imports must be local. This also speed up the --help
     import sequana
     from sequana.misc import textwrap
     from sequana.snaketools import Module
@@ -497,7 +497,7 @@ def main(args=None):
     sequana_init(options)
 
 
-def copy_config_from_sequana(module, source="config.yaml", 
+def copy_config_from_sequana(module, source="config.yaml",
                              target="config.yaml"):
     # identify config name from the requested module
     user_config = module.path + os.sep + source
@@ -537,7 +537,7 @@ def sequana_init(options):
     # Copying snakefile
     sa.print("Copying snakefile")
     sa.mkdir(options.target_dir)
-    shutil.copy(module.snakefile, options.target_dir + os.sep + 
+    shutil.copy(module.snakefile, options.target_dir + os.sep +
                 options.pipeline + ".rules")
 
     # Creating README to print on the screen and in a file
