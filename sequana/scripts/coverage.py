@@ -120,6 +120,10 @@ Issues: http://github.com/sequana/sequana
             default=True, action='store_false',
             help="""Do not create any HTML report""")
 
+        group = self.add_argument_group('Annotation')
+        group.add_argument("-b", "--genbank", dest="genbank",
+            type=str, default=None, help='a valida genbank annotation')
+
         # Group related to GC content
         group = self.add_argument_group("GC content related")
         group.add_argument('-r', "--reference", dest="reference", type=str,
@@ -163,6 +167,8 @@ Issues: http://github.com/sequana/sequana
         group = self.add_argument_group("Download reference")
         group.add_argument("--download-reference", dest="accession",
             default=None, type=str)
+        group.add_argument("--download-genbank", dest="download_genbank",
+            default=None, type=str)
         group.add_argument("--database", dest="database",
             default="ENA", type=str,
             choices=["ENA", "EUtils"],
@@ -190,8 +196,20 @@ def main(args=None):
         df.download_fasta(options.accession, method=options.database)
         return
 
+    if options.download_genbank:
+        from sequana.snpeff import download_fasta_and_genbank
+        download_fasta_and_genbank(options.download_genbank,
+                                   options.download_genbank, 
+                                   genbank=True, fasta=False)
+        return
+
     # We put the import here to make the --help faster
     from sequana import GenomeCov
+
+    if options.genbank:
+        assert os.path.exists(options.genbank), \
+            "%s does not exists" % options.genbank
+
     if options.verbose:
         print("Reading %s" % options.input)
 
@@ -295,10 +313,22 @@ def main(args=None):
     if options.verbose:
         print("Creating report")
 
+    print(options.genbank)
+
+    if options.genbank:
+        from sequana.tools import genbank_features_parser
+        features = genbank_features_parser(options.genbank)
+        print(features)
+    else:
+        features = None
+
     if options.create_report:
         sample_name = "coverage"
         r = report_chromosome.ChromosomeMappingReport(chrom,
-            directory="report", project="coverage", sample=sample_name)
+                directory="report", project="coverage", 
+                sample=sample_name, features=features)
+
+
         if options.reference:
             from snakemake import shell
             shell("cp coverage_vs_gc.png report/images")
