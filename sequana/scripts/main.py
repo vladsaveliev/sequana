@@ -667,7 +667,8 @@ def sequana_init(options):
         cfg.save(config_filename)
 
     # Creating a unique runme.sh file
-    with open(options.target_dir + os.sep + "runme.sh", "w") as fout:
+    runme_filename = options.target_dir + os.sep + "runme.sh"
+    with open(runme_filename, "w") as fout:
         cmd = "#!/bin/sh\n"
         cmd += "# generated with sequana version %s with this command:\n" % sequana.version
         cmd += "# %s\n" % " ".join(sys.argv)
@@ -682,6 +683,9 @@ def sequana_init(options):
             cmd += " 1>run.out 2>run.err"
         fout.write(cmd % {'project':options.pipeline , 'jobs':options.jobs,
             "version": sequana.version})
+    # change permission of runme.sh to 755 
+    st = os.stat(runme_filename)
+    os.chmod(runme_filename, st.st_mode | 0o755)
 
     sa.green("Initialisation of %s succeeded" % options.target_dir)
     sa.green("Please, go to the project directory ")
@@ -689,6 +693,8 @@ def sequana_init(options):
     sa.green("Check out the README and config.yaml files")
     sa.green("A basic script to run the analysis is named runme.sh ")
     sa.purple("\n    sh runme.sh\n")
+    sa.purple("On a slurm cluster, you may type:")
+    sa.purple("\n  srun --qos normal runme.sh\n")
     sa.green("In case of trouble, please post an issue on https://github.com/sequana/sequana/issue ")
     sa.green("or type sequana --issue and fill a post with the error and the config file (NO DATA PLEASE)")
 
