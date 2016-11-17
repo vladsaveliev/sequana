@@ -740,7 +740,7 @@ class PipelineManager(object):
             glob_dir = cfg.config.input_pattern
         else:
             glob_dir = [cfg.config.input_samples.file1]
-            if cfg.config.samples.file2:
+            if cfg.config.input_samples.file2:
                 glob_dir += [cfg.config.input_samples.file2]
 
         self.ff = FastQFactory(glob_dir)
