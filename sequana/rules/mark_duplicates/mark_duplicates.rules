@@ -17,8 +17,8 @@ rule mark_duplicates:
         bam = __mark_duplicates__output,
         metrics = __mark_duplicates__metrics
     log:
-        out = "logs/mark_duplicates/stdout.logs",
-        err = "logs/mark_duplicates/stderr.logs"
+        out = __mark_duplicates__log_std,
+        err = __mark_duplicates__log_err
     params:
         options = config["mark_duplicates"]["options"]
     shell:
