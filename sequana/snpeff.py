@@ -200,24 +200,28 @@ class SnpEff(object):
                 fp.write(contigs)
 
 
-def download_fasta_and_genbank(identifier, tag):
+def download_fasta_and_genbank(identifier, tag, genbank=True,
+        fasta=True):
     """
 
     :param identifier: valid identifier to retrieve from NCBI (genbank) and 
         ENA (fasta)
     :param tag: name of the filename for the genbank and fasta files.
     """
-    from bioservices import EUtils
-    eu = EUtils()
-    data = eu.EFetch(db="nuccore",id=identifier, rettype="gbwithparts",
-        retmode="text")
-    with open("%s.gbk" %  tag, "w") as fout:
-        fout.write(data.decode())
+    if genbank:
+        from bioservices import EUtils
+        eu = EUtils()
+        data = eu.EFetch(db="nuccore",id=identifier, rettype="gbwithparts",
+            retmode="text")
+        with open("%s.gbk" %  tag, "w") as fout:
+            fout.write(data.decode())
 
-    from bioservices import ENA
-    ena = ENA()
-    data = ena.get_data(identifier, 'fasta')
-    with open("%s.fa" % tag, "w") as fout:
-        fout.write(data.decode())
+    if fasta:
+        from bioservices import ENA
+        ena = ENA()
+        data = ena.get_data(identifier, 'fasta')
+        with open("%s.fa" % tag, "w") as fout:
+            fout.write(data.decode())
+
 
 
