@@ -34,8 +34,8 @@ The full list of dependencies will be maintained in the :ref:`installation`
 section.
 
 
-Installation
------------------
+Installation issues
+-----------------------
 
 
 As explained in the previous section, most of the dependencies can be installed
@@ -58,6 +58,20 @@ Alternatively, get the source code from their GitHub (takes a while)::
     git clone https://github.com/ablab/quast
     cd quast
     python setup.py install
+
+graphviz
+~~~~~~~~~~~~~~~~~~
+
+graphviz provides an executable called **dot**. If you type **dot** in a shell
+and get this error message::
+
+    Warning: Could not load
+    ...lib/graphviz/libgvplugin_gd.so.6" - file not found
+
+This may be solved by re-installation graphviz using the main anaconda channel
+(instead of bioconda)::
+
+    conda install --override-channels -c anaconda graphviz=2.38.0 
 
 
 Expected input format
