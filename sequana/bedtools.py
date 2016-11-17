@@ -25,7 +25,7 @@ from biokit.stats import mixture
 
 from sequana import running_median
 from sequana.tools import gc_content
-from sequana.tools import genbank_features_parser
+#from sequana.tools import genbank_features_parser
 
 
 __all__ = ["GenomeCov", "ChromosomeCov", "DoubleThresholds"]
@@ -507,6 +507,12 @@ class ChromosomeCov(object):
             query = "zscore > @second_high or zscore < @second_low"
 
             if features:
+                if self.chrom_name not in features.keys():
+                    features = None
+                    print("Genbank name not found in list of chromosomes. " +\
+    " Make sure the chromosome names in the genbank match those in the "+\
+    " BED/BAM files.")
+            if features:
                 return FilteredGenomeCov(self.df.query(query), self.thresholds, 
                     features[self.chrom_name])
             else:
@@ -727,6 +733,8 @@ class FilteredGenomeCov(object):
         :param int threshold: a :class:`~sequana.bedtools.DoubleThresholds` instance.
 
         """
+        if isinstance(feature_list, list) and len(feature_list) == 0:
+            feature_list = None
         region_list = self._merge_region(df, threshold=threshold)
         if feature_list:
             region_list = self._add_annotation(region_list, feature_list)
