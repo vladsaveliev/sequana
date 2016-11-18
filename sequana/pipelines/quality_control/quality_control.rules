@@ -158,7 +158,7 @@ if manager.config.adapter_removal.do:
 
 
 # if no database provided, let us make sure kraken option is off
-if manager.config.kraken.database is False:
+if manager.config.kraken.database_directory is False:
     manager.config.kraken.do = False
 
 if manager.config.kraken.do:
@@ -241,7 +241,7 @@ onsuccess:
             this.read_data(proj + "/logs/cutadapt/{0}.txt".format("cutadapt"))
             this.create_report()
 
-        if manager.config.kraken.database:
+        if manager.config.kraken.database_directory:
             shell('cp -r %s/kraken/ %s' % (proj, report_dir))
         shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
         shell('cp -r %s/fastq_stats*/ %s' % (proj, report_dir))

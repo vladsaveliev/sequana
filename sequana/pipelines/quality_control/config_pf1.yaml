@@ -74,4 +74,4 @@ adapter_removal:
 kraken:
     # To skip kraken step, just set database field to an empty value
     # database:
-    database: "%(kraken_database)s"
+    database_directory: "%(kraken_database)s"
