@@ -35,40 +35,12 @@ class SequanaGUI(QWidget):
         super().__init__()
         self.initUI()
 
-    def initUI(self): 
-        # action quit
-        quitAction = QAction("Quit", self)
-        quitAction.setShortcut('Ctrl+Q')
-        quitAction.setStatusTip('Quit Sequana')
-        quitAction.triggered.connect(self.quit)
-
-        # action About
-        aboutAction = QAction("About", self)
-        aboutAction.setShortcut('Ctrl+A')
-        aboutAction.triggered.connect(self.about)
-
-        # snakemake dialog windows
+    def initUI(self):
+        # snakemake cluster/local option dialog windows
         self.snakemake_dialog = SnakemakeOptionDialog(self)
 
-        # action Options
-        optionAction = QAction("&Option", self)
-        optionAction.setShortcut('Ctrl+O')
-        optionAction.triggered.connect(self.snakemake_dialog.exec_)
-
-        # action import config file
-        importAction = QAction("&Import", self)
-        importAction.setShortcut('Ctrl+I')
-        importAction.triggered.connect(self.import_config)
-
-        # set menu bar
-        menu_bar = QMenuBar(self)
-        menu_bar.setMinimumWidth(500)
-        options_menu = menu_bar.addMenu("&File")
-        options_menu.addAction(quitAction)
-        options_menu = menu_bar.addMenu("&About")
-        options_menu.addAction(aboutAction)
-        menu_bar.addAction(optionAction)
-        menu_bar.addAction(importAction)
+        # create menu bar
+        self.create_menu_bar()
 
         # box to choose the pipeline
         self.pipeline_is_chosen = False
@@ -85,7 +57,18 @@ class SequanaGUI(QWidget):
         self.working_dir = FileBrowser(directory=True)
         groupbox_layout.addWidget(self.working_dir)
         groupbox = QGroupBox("Working directory")
+        groupbox.setContentsMargins(0, 5, 0, 0)
         groupbox.setLayout(groupbox_layout)
+
+        # "until" and "starting" combobox
+        control_widget = QGroupBox("Pipeline control")
+        control_widget.setContentsMargins(0, 3, 0, -3)
+        control_layout = QVBoxLayout(control_widget)
+        control_layout.setSpacing(0)
+        until_box = ComboBoxOption("Until")
+        starting_box = ComboBoxOption("Starting")
+        control_layout.addWidget(starting_box)
+        control_layout.addWidget(until_box)
 
         # connect fuction on working_dir browser
         self.working_dir.clicked_connect(self.check_existing_config)
@@ -108,6 +91,7 @@ class SequanaGUI(QWidget):
         vlayout.addLayout(choice_layout)
         vlayout.addWidget(self.tabs_browser)
         vlayout.addWidget(groupbox)
+        vlayout.addWidget(control_widget)
         vlayout.addWidget(scroll_area)
         vlayout.addWidget(self.create_footer_button())
 
@@ -120,7 +104,6 @@ class SequanaGUI(QWidget):
 
     def quit(self):
         quit_msg = WarningMessage("Do you really want to quit ?")
-        # quit_msg.setInformativeText("Do you want to overwrite the file?")
         quit_msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         quit_msg.setDefaultButton(QMessageBox.No)
         quit_answer = quit_msg.exec_()
@@ -154,6 +137,41 @@ class SequanaGUI(QWidget):
                 child.widget().deleteLater()
             elif child.layout() is not None:
                 self.clear_layout(child.layout())
+
+    def create_menu_bar(self):
+        """ Create menu bar.
+        """
+        # action quit
+        quitAction = QAction("Quit", self)
+        quitAction.setShortcut('Ctrl+Q')
+        quitAction.setStatusTip('Quit Sequana')
+        quitAction.triggered.connect(self.quit)
+
+        # action About
+        aboutAction = QAction("About", self)
+        aboutAction.setShortcut('Ctrl+A')
+        aboutAction.triggered.connect(self.about)
+
+        # action Options
+        optionAction = QAction("Option", self)
+        optionAction.setShortcut('Ctrl+O')
+        optionAction.triggered.connect(self.snakemake_dialog.exec_)
+
+        # action import config file
+        importAction = QAction("Import", self)
+        importAction.setShortcut('Ctrl+I')
+        importAction.triggered.connect(self.import_config)
+
+        # set menu bar
+        menu_bar = QMenuBar(self)
+        menu_bar.setMinimumWidth(500)
+        options_menu = menu_bar.addMenu("&File")
+        options_menu.addAction(importAction)
+        options_menu.addAction(quitAction)
+        options_menu = menu_bar.addMenu("&Option")
+        options_menu.addAction(optionAction)
+        options_menu = menu_bar.addMenu("&About")
+        options_menu.addAction(aboutAction)
 
     def create_choice_button(self):
         """ Create button to select the wished pipeline.
@@ -217,8 +235,6 @@ class SequanaGUI(QWidget):
         self.tabs_browser.addTab(directory_tab, "Directory")
         self.tabs_browser.addTab(paired_tab, "Sample")
 
-        #self.tabs_browser.setContentsMargins(0,0,0,0)
-
     def create_footer_button(self):
         """ Create Run/Save/Quit buttons
         """
@@ -231,8 +247,8 @@ class SequanaGUI(QWidget):
 
         self.dag_btn = QPushButton("Show DAG")
         # self.dag_btn.setEnabled(False)
-        self.dag_btn.setToolTip("""<p>Pressing this button, a DAG is created and
-                                 shown. This is a good way to check your 
+        self.dag_btn.setToolTip("""<p>Pressing this button, a DAG is created
+                                 and shown. This is a good way to check your
                                  config file </p>""" )
         self.dag_btn.clicked.connect(self.show_dag)
 
@@ -260,12 +276,12 @@ class SequanaGUI(QWidget):
 
         # Although the config and pipeline are in the working directory, we do
         # not want to interfer with it. So, we use a temporary directory
-        """shutil.copy(snakefile, self._tempdir.path())
-        shutil.copy(cfgpath, self._tempdir.path() + os.sep + "config.yaml")
-        cwd = self._tempdir.path()
-        snakemake_line = ["snakemake", "-s", os.path.basename(snakefile)]
-        snakemake_line += ["--rulegraph", "--configfile", "config.yaml"]
-        """
+        # shutil.copy(snakefile, self._tempdir.path())
+        # shutil.copy(cfgpath, self._tempdir.path() + os.sep + "config.yaml")
+        # cwd = self._tempdir.path()
+        # snakemake_line = ["snakemake", "-s", os.path.basename(snakefile)]
+        # snakemake_line += ["--rulegraph", "--configfile", "config.yaml"]
+        
         try:
             snakemake_line = ["snakemake", "-s", snakefile]
             snakemake_line += ["--rulegraph", "--configfile", cfgpath]
@@ -364,7 +380,7 @@ class SequanaGUI(QWidget):
                                  "directory. Please, choose a pipeline to "
                                  "know if the existing config file correspond "
                                  "to your pipeline.", self)
-            self.working_dir.empty_path()
+            self.working_dir.set_empty_path()
             msg.exec_()
             return False
         try:
@@ -452,7 +468,7 @@ class FileBrowser(QWidget):
             self.filter = file_filter + ";;" + self.filter
         self.empty_msg = "No file selected"
         self.btn = QPushButton("Browse")    
-        self.btn.setFixedSize(200,20)
+        self.btn.setFixedSize(100,20)
 
         # Add default color
         self.btn.setStyleSheet("QPushButton {background-color: #AA0000; "
@@ -466,8 +482,9 @@ class FileBrowser(QWidget):
         else:
             self.btn.clicked.connect(self.browse_file)
         self.btn_filename = QLabel(self.empty_msg)
-        self.empty_path()
+        self.set_empty_path()
         widget_layout = QHBoxLayout(self)
+        widget_layout.setContentsMargins(0, 3, 0, 3)
         widget_layout.addWidget(self.btn)
         widget_layout.addWidget(self.btn_filename)
     
@@ -485,8 +502,12 @@ class FileBrowser(QWidget):
     def browse_paired_file(self):
         file_path = QFileDialog.getOpenFileNames(self, "Select a sample", ".",
                                                  self.filter)[0]
-        if not file_path or len(file_path) > 2:
-            self.empty_path()
+        if not file_path:
+            self.set_empty_path()
+        elif len(file_path) > 2:
+            msg = WarningMessage("You must pick only one sample", self)
+            self.set_empty_path()
+            msg.exec_()
         else:
             self.paths = {"file{0}".format(i+1): file_path[i]
                           for i in range(0, len(file_path))}
@@ -501,7 +522,7 @@ class FileBrowser(QWidget):
         if directory_path:
             self.set_filenames(directory_path)
         else:
-            self.empty_path()
+            self.set_empty_path()
 
     def browse_file(self):
         try:
@@ -509,15 +530,21 @@ class FileBrowser(QWidget):
                                                      self.filter)[0][0]
             self.set_filenames(file_path)
         except IndexError:
-            self.empty_path()
+            self.set_empty_path()
 
     def get_filenames(self):
         return self.paths
 
     def set_filenames(self, filename):
         self.paths = filename
-        self.btn_filename.setText(filename)
+        self.btn_filename.setText(".../" + filename.split("/")[-1])
         self._setup_true()
+        self.setup_color()
+
+    def set_empty_path(self):
+        self.btn_filename.setText(self.empty_msg)
+        self.paths = ""
+        self.setup = False
         self.setup_color()
 
     def set_enable(self, switch_bool):
@@ -531,12 +558,6 @@ class FileBrowser(QWidget):
     def path_is_setup(self):
         return self.setup
 
-    def empty_path(self):
-        self.btn_filename.setText(self.empty_msg)
-        self.paths = ""
-        self.setup = False
-        self.setup_color()
-
     def clicked_connect(self, function):
         """ Connect additionnal function on browser button. It is used to
         activate run button in Sequana GUI.
@@ -548,16 +569,6 @@ class RuleFormular(QGroupBox):
     do_option = "do"
     def __init__(self, rule_name, rule_dict, count=0):
         super().__init__(rule_name)
-
-        p = self.palette()
-        if count % 2 == 0 :
-            mycolor = QColor(0,.5,1,0)
-            p.setColor(self.backgroundRole(), mycolor)
-        else:
-            mycolor = QColor(.5,.5,.5,0)
-            p.setColor(self.backgroundRole(), mycolor)
-        self.setPalette(p)
-        
         # to handle recursive case
         self.do_widget = None
 
@@ -616,8 +627,8 @@ class GeneralOption(QWidget):
     def __init__(self, option):
         super().__init__()
         self.option = option
-
         self.layout = QHBoxLayout(self)
+        self.layout.setContentsMargins(0, 3, 0, 3)
         self.layout.addWidget(QLabel(option))
 
     def get_name(self):
@@ -724,6 +735,7 @@ class NumberOption(GeneralOption):
 class FileBrowserOption(GeneralOption):
     def __init__(self, option, value=None):
         super().__init__(option)
+        self.layout.setContentsMargins(0, 0, 0, 0)
         self.browser = FileBrowser()
         self.layout.addWidget(self.browser)
         if value:
