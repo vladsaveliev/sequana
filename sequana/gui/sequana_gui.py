@@ -545,7 +545,7 @@ class FileBrowser(QWidget):
 
     def set_filenames(self, filename):
         self.paths = filename
-        self.btn_filename.setText(".../" + filename.split("/")[-1])
+        self.btn_filename.setText("....../" + filename.split("/")[-1])
         self._setup_true()
         self.setup_color()
 
