@@ -39,11 +39,14 @@ Here is an overview (see details here below)
 import os
 import json
 import glob
+import shutil
 
 from easydev import get_package_location as gpl
 from easydev import load_configfile, AttrDict
 import pylab
 
+from sequana.misc import wget
+from sequana import sequana_data
 
 __all__ = ["DOTParser", "FastQFactory", "FileFactory",
            "Module", "PipelineManager", "SnakeMakeStats",
@@ -695,6 +698,16 @@ class SequanaConfig(object):
             elif isinstance(v1, str):
                 self.config[k1] = v1.strip()
 
+    def copy_requirements(self, target):
+        print(target)
+        if 'requirements' in self.config.keys():
+            for requirement in self.config.requirements:
+                if requirement.startswith('http') is False:
+                    print('Copying %s from sequana' % requirement)
+                    shutil.copy(sequana_data(requirement, "data"), target)
+                elif requirement.startswith("http"):
+                    print("This file %s will be needed" % requirement)
+                    wget(requirement)
 
 
 class PipelineManager(object):

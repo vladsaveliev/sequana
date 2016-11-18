@@ -29,7 +29,7 @@ class SequanaGUI(QWidget):
 
     _not_a_rule = {"requirements", "gatk_bin", "input_directory", "pattern",
                    "samples"}
-    _browser_keyword = {"reference", "database"}
+    _browser_keyword = {"reference"}
 
     def __init__(self):
         super().__init__()
@@ -218,7 +218,12 @@ class SequanaGUI(QWidget):
                 rule_box = RuleFormular(rule, contains, count)
                 self.formular.addWidget(rule_box)
             else:
-                self.necessary_dict = dict(self.necessary_dict,
+
+                if isinstance(contains, list):
+                    self.necessary_dict = dict(self.necessary_dict,
+                                           **{rule: contains})
+                else:
+                    self.necessary_dict = dict(self.necessary_dict,
                                            **{rule: '{0}'.format(contains)})
 
     def create_tabs_browser(self):
@@ -260,6 +265,7 @@ class SequanaGUI(QWidget):
         return footer_widget
 
     def show_dag(self):
+
         print("Creating the DAG (takes a few seconds)")
         if self.pipeline_is_chosen:
             snakefile = Module(self.choice_button.currentText()).snakefile
@@ -335,6 +341,7 @@ class SequanaGUI(QWidget):
             msg = WarningMessage("You must choose a pipeline before saving.")
             msg.exec_()
             return
+
         # get samples names or input_directory
         if self.tabs_browser.currentIndex() == 1:
             formular_dict["samples"] = (
@@ -346,6 +353,7 @@ class SequanaGUI(QWidget):
                                         test_requirements=False)
         if self.working_dir.path_is_setup():
             yaml_path = self.working_dir.get_filenames() + "/config.yaml"
+            yaml.copy_requirements(target=self.working_dir.get_filenames())
             if os.path.isfile(yaml_path):
                 save_msg = WarningMessage(
                     "The file {0} already exist".format(yaml_path))
@@ -569,6 +577,7 @@ class RuleFormular(QGroupBox):
     do_option = "do"
     def __init__(self, rule_name, rule_dict, count=0):
         super().__init__(rule_name)
+
         # to handle recursive case
         self.do_widget = None
 
@@ -579,8 +588,12 @@ class RuleFormular(QGroupBox):
         self.setAutoFillBackground(True)
 
         for option, value in self.rule_dict.items():
-            if option in SequanaGUI._browser_keyword:
-                option_widget = FileBrowserOption(option, value)
+            if option.endswith("_directory"):
+                option_widget = FileBrowserOption(option, value,
+                                                  directory=True)
+            elif option in SequanaGUI._browser_keyword:
+                option_widget = FileBrowserOption(option, value,
+                                                  directory=False)
             elif isinstance(value, bool):
                 option_widget = BooleanOption(option, value)
                 if option == RuleFormular.do_option:
@@ -733,10 +746,10 @@ class NumberOption(GeneralOption):
 
 
 class FileBrowserOption(GeneralOption):
-    def __init__(self, option, value=None):
+    def __init__(self, option, value=None, directory=False):
         super().__init__(option)
         self.layout.setContentsMargins(0, 0, 0, 0)
-        self.browser = FileBrowser()
+        self.browser = FileBrowser(directory=directory)
         self.layout.addWidget(self.browser)
         if value:
             self.browser.set_filenames(value)

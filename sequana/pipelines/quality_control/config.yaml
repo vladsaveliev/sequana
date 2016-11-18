@@ -76,4 +76,4 @@ adapter_removal:
 # For taxonomy. Used in quality_control pipeline
 kraken:
     do: True
-    database: "%(kraken_database)s"
+    database_directory: "%(kraken_database)s"
