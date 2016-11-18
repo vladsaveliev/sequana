@@ -46,8 +46,32 @@ class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana_coverage"):
         usage = purple("""\nWelcome to SEQUANA -- Coverage standalone
 
-    sequana_coverage --input file.bed --window-median 1001
-    sequana_coverage --input file.bam --window-median 1001 -r <REFERENCE.fa>
+    The input file should be one of the following:
+    - a BED file that is a tabulated file at least 3 columns.
+      The first column being the reference, the second is the position 
+      and the third column contains the coverage itself. 
+    - a BAM file that is converted automatically
+      into a BED file using the following command:
+
+        samtools depth -aa input.bam > output.bed
+
+    If the reference is provided, an additional plot showing the coverage versus
+    GC content is also shown
+
+        sequana_coverage --input file.bed --window-median 1001
+        sequana_coverage --input file.bam --window-median 1001 -r <REFERENCE.fa>
+
+    An other interesting option is to provide a BED file with 4 columns. The
+    fourth column being another coverage data created with a filter. One can
+    create such a file only from the BAM file using samtools as follows:
+
+        samtools view -q 35  -o data.filtered.bam input.fa.sorted.bam
+        samtools depth data.filtered.bam input.fa.sorted.bam  -aa > test.bed
+        sequana_coverage --input test.bed --show-html -o
+
+    Note that the first file is the filtered one, and the second file is the
+    unfiltered one.
+
         """)
 
         epilog = purple("""
@@ -96,6 +120,10 @@ Issues: http://github.com/sequana/sequana
             default=True, action='store_false',
             help="""Do not create any HTML report""")
 
+        group = self.add_argument_group('Annotation')
+        group.add_argument("-b", "--genbank", dest="genbank",
+            type=str, default=None, help='a valida genbank annotation')
+
         # Group related to GC content
         group = self.add_argument_group("GC content related")
         group.add_argument('-r', "--reference", dest="reference", type=str,
@@ -139,6 +167,8 @@ Issues: http://github.com/sequana/sequana
         group = self.add_argument_group("Download reference")
         group.add_argument("--download-reference", dest="accession",
             default=None, type=str)
+        group.add_argument("--download-genbank", dest="download_genbank",
+            default=None, type=str)
         group.add_argument("--database", dest="database",
             default="ENA", type=str,
             choices=["ENA", "EUtils"],
@@ -166,8 +196,20 @@ def main(args=None):
         df.download_fasta(options.accession, method=options.database)
         return
 
+    if options.download_genbank:
+        from sequana.snpeff import download_fasta_and_genbank
+        download_fasta_and_genbank(options.download_genbank,
+                                   options.download_genbank, 
+                                   genbank=True, fasta=False)
+        return
+
     # We put the import here to make the --help faster
     from sequana import GenomeCov
+
+    if options.genbank:
+        assert os.path.exists(options.genbank), \
+            "%s does not exists" % options.genbank
+
     if options.verbose:
         print("Reading %s" % options.input)
 
@@ -271,9 +313,22 @@ def main(args=None):
     if options.verbose:
         print("Creating report")
 
+    print(options.genbank)
+
+    if options.genbank:
+        from sequana.tools import genbank_features_parser
+        features = genbank_features_parser(options.genbank)
+        print(features)
+    else:
+        features = None
+
     if options.create_report:
+        sample_name = "coverage"
         r = report_chromosome.ChromosomeMappingReport(chrom,
-            directory="report", project="coverage")
+                directory="report", project="coverage", 
+                sample=sample_name, features=features)
+
+
         if options.reference:
             from snakemake import shell
             shell("cp coverage_vs_gc.png report/images")
@@ -284,7 +339,8 @@ def main(args=None):
         print("Report created. See ./report directory content and look for the HTML file. You can also use --show-html option")
         if options.show_html:
             from easydev import onweb
-            onweb("report/coverage_mapping.chrom%s.html" % options.chromosome)
+            onweb("report/%s_mapping.chrom%s.html" % (sample_name,
+                  options.chromosome))
 
 
 if __name__ == "__main__":
