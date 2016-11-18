@@ -515,7 +515,6 @@ def sequana_init(options):
     from sequana.misc import textwrap
     from sequana import Module
     from sequana import SequanaConfig, sequana_data
-    from sequana.misc import wget
     sa = Tools(verbose=options.verbose)
 
     # Check that the pipeline is well defined
@@ -626,14 +625,7 @@ def sequana_init(options):
 
     # figure out from the config file if any files are required
     cfg = SequanaConfig(config_filename)
-    if 'requirements' in cfg.config.keys():
-        for requirement in cfg.config.requirements:
-            if requirement.startswith('http') is False:
-                sa.print('Copying %s from sequana' % requirement)
-                shutil.copy(sequana_data(requirement, "data"), options.target_dir)
-            elif requirement.startswith("http"):
-                sa.print("This file %s will be needed" % requirement)
-                wget(requirement)
+    cfg.copy_requirements(target=options.target_dir)
 
     # FIXME If invalid, no error raised
     if options.config_params:
