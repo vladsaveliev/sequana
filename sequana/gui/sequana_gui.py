@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import (QApplication, QPushButton, QComboBox, QWidget,
                              QMenuBar, QAction, QSizePolicy, QTextEdit)
 from PyQt5.QtWidgets import QFileDialog, QDialog, QMessageBox, QColorDialog
 from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QVBoxLayout, QBoxLayout
-from PyQt5.QtWidgets import QSplashScreen, QProgressBar
+from PyQt5.QtWidgets import QSplashScreen, QProgressBar, QErrorMessage
 from PyQt5.QtSvg import QSvgWidget
 from PyQt5.QtGui import QPixmap, QColor
 
@@ -266,47 +266,45 @@ class SequanaGUI(QWidget):
 
     def show_dag(self):
 
-        print("Creating the DAG (takes a few seconds)")
         if self.pipeline_is_chosen:
             snakefile = Module(self.choice_button.currentText()).snakefile
         else:
-            print("Select a pipeline first")
+            msg = CriticalMessage("Please select a pipeline first")
+            msg.exec_()
             return
 
-        if self.check_existing_config():
-            working_dir = self.working_dir.get_filenames()
-            cfgpath = working_dir + "/config.yaml"
-        else:
-            print("No config file found, save it")
+        if self.config_dict is None:
+            msg = CriticalMessage("Please select the input and working directory")
+            msg.exec_()
             return
 
-        # Although the config and pipeline are in the working directory, we do
-        # not want to interfer with it. So, we use a temporary directory
-        # shutil.copy(snakefile, self._tempdir.path())
-        # shutil.copy(cfgpath, self._tempdir.path() + os.sep + "config.yaml")
-        # cwd = self._tempdir.path()
-        # snakemake_line = ["snakemake", "-s", os.path.basename(snakefile)]
-        # snakemake_line += ["--rulegraph", "--configfile", "config.yaml"]
-        
+        working_dir = self.working_dir.get_filenames()
+        cfg = snaketools.SequanaConfig(self.config_dict)
+        cfgpath = self._tempdir.path() + os.sep + "config.yaml"
+        cfg.save(cfgpath)
+
+        snakemake_line = ["snakemake", "-s", snakefile]
+        snakemake_line += ["--rulegraph", "--configfile", cfgpath]
+
         try:
-            snakemake_line = ["snakemake", "-s", snakefile]
-            snakemake_line += ["--rulegraph", "--configfile", cfgpath]
-            cwd = working_dir
-
+            msg = InfoMessage("Creating the dag")
             snakemake_proc = sp.Popen(snakemake_line,
-                                  cwd=cwd,
+                                  cwd=working_dir,
                                   stdout=sp.PIPE)
-    
+
             filename = self._tempdir.path() + os.sep + "test.svg"
             cmd = ["dot", "-Tsvg", "-o", filename]
-            dot_proc = sp.Popen(cmd, cwd=cwd,
+            dot_proc = sp.Popen(cmd, cwd=working_dir,
                             stdin=snakemake_proc.stdout)
             dot_proc.communicate()
             if os.path.exists(filename):
                 diag = SVGDialog(filename)
                 diag.exec_()
         except Exception as err:
-            print(err)
+            message = str(err)
+            msg = CriticalMessage(message)
+            msg.exec_()
+            return
 
 
 ################
@@ -317,7 +315,7 @@ class SequanaGUI(QWidget):
         rules = self.get_rules(self.formular)
         snakefile = Module(self.choice_button.currentText()).snakefile
         shutil.copy(snakefile, working_dir)
-        snakemake_line = ["snakemake", "-s", snakefile]
+        snakemake_line = ["snakemake", "-s", snakefile, "--stat", "stats.txt"]
         options = self.snakemake_dialog.get_snakemake_options()
         snakemake_line += options
         snakemake_proc = sp.Popen(snakemake_line, cwd=working_dir)
@@ -403,7 +401,7 @@ class SequanaGUI(QWidget):
                 % config_file + str(err))
             msg.exec_()
             return False
-    
+
         if set(self.config_dict.keys()) == set(config_dict.keys()):
             msg = QMessageBox(
                 QMessageBox.Question, "Question",
@@ -872,11 +870,25 @@ class SnakemakeOptionDialog(QDialog):
         return option_list
 
 
+class CriticalMessage(QMessageBox):
+    def __init__(self, msg, parent=None):
+        super().__init__(parent=parent)
+        self.setWindowTitle("Error message")
+        self.setIcon(QMessageBox.Critical)
+        self.setText(msg)
+
 class WarningMessage(QMessageBox):
     def __init__(self, msg, parent=None):
         super().__init__(parent=parent)
         self.setWindowTitle("Warning message")
         self.setIcon(QMessageBox.Warning)
+        self.setText(msg)
+
+class InfoMessage(QMessageBox):
+    def __init__(self, msg, parent=None):
+        super().__init__(parent=parent)
+        self.setWindowTitle("Info")
+        self.setIcon(QMessageBox.Information)
         self.setText(msg)
 
 
