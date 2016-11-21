@@ -71,8 +71,8 @@ def test_sequana_config():
     s = snaketools.Module("quality_control")
     config = snaketools.SequanaConfig(s.config)
 
-    assert config.get("kraken:database", "test") == "%(kraken_database)s"
-    assert config.get("kraken:database", "test") == "%(kraken_database)s"
+    assert config.get("kraken:database_directory", "test") == "%(kraken_database)s"
+    assert config.get("kraken:database_directory", "test") == "%(kraken_database)s"
     assert config.get("kraken:dummy", "test") == "test"
     assert config.get("kraken:dummy") == None
 
