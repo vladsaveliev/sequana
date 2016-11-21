@@ -21,7 +21,6 @@ from sequana.gui.browser import MyBrowser
 from sequana.gui.ipython import QIPythonWidget
 
 
-
 class SequanaGUI(QW.QWidget):
     """ Sequana GUI !
     """
@@ -64,10 +63,10 @@ class SequanaGUI(QW.QWidget):
         control_widget.setContentsMargins(0, 3, 0, -3)
         control_layout = QW.QVBoxLayout(control_widget)
         control_layout.setSpacing(0)
-        until_box = ComboBoxOption("Until")
-        starting_box = ComboBoxOption("Starting")
-        control_layout.addWidget(starting_box)
-        control_layout.addWidget(until_box)
+        self.until_box = ComboBoxOption("Until")
+        self.starting_box = ComboBoxOption("Starting")
+        control_layout.addWidget(self.starting_box)
+        control_layout.addWidget(self.until_box)
 
         # connect fuction on working_dir browser
         self.working_dir.clicked_connect(self.check_existing_config)
@@ -87,7 +86,8 @@ class SequanaGUI(QW.QWidget):
         vlayout.insertSpacing(0, 10)
 
         # ipython widget
-        ipyConsole = QIPythonWidget(customBanner="Welcome to the embedded ipython console\n")
+        ipyConsole = QIPythonWidget(
+            customBanner="Welcome to the embedded ipython console\n")
         ipyConsole.pushVariables({"x": 10})
         ipyConsole.pushVariables({"gui": self})
         ipyConsole.printText("The variable 'foo' andion.")
@@ -230,8 +230,16 @@ class SequanaGUI(QW.QWidget):
             return
 
         self.create_base_formular(self.config_dict)
+        self.fill_combobox(self.rule_list)
         self.pipeline_is_chosen = True
         self.switch_run()
+
+    def fill_combobox(self, rules_list):
+        """ Fill combobox with available rules.
+        """
+        active_list = [w.get_name() for w in self.rule_list if w.get_do_rule()]
+        self.until_box.add_items(active_list)
+        self.starting_box.add_items(active_list)
 
     def create_base_formular(self, config_dict):
         """ Create formular with all options necessary for a pipeline.
@@ -240,6 +248,7 @@ class SequanaGUI(QW.QWidget):
         rules_list = list(config_dict.keys())
         rules_list.sort()
         self.necessary_dict = {}
+        self.rule_list = []
         for count, rule in enumerate(rules_list):
             # Check if dictionnary or not
             contains = config_dict[rule]
@@ -247,6 +256,8 @@ class SequanaGUI(QW.QWidget):
                     rule not in SequanaGUI._not_a_rule):
                 rule_box = RuleFormular(rule, contains, count)
                 self.formular.addWidget(rule_box)
+                self.rule_list.append(rule_box)
+                rule_box.connect_do(self.fill_combobox)
             else:
 
                 if isinstance(contains, list):
@@ -360,8 +371,6 @@ class SequanaGUI(QW.QWidget):
             msg = WarningMessage("no working directory selected yet")
             msg.exec_()
 
-
-################
     def snakemake_data(self):
         cursor = self.output.textCursor()
         cursor.movePosition(cursor.End)
@@ -431,8 +440,6 @@ class SequanaGUI(QW.QWidget):
         print("end_progress")
         self.progressBar.setValue(100)
         QtGui.QMessageBox.information(self, "Done")
-
-###############
 
     def switch_run(self):
         if self.working_dir.path_is_setup():
@@ -728,8 +735,21 @@ class RuleFormular(QW.QGroupBox):
     def get_layout(self):
         return self.layout
 
+    def get_do_rule(self):
+        """ If there are no "do widget", rules must be done. Else, it gets value
+        of check box.
+        """
+        if self.do_widget is None:
+            return True
+        else:
+            self.do_widget.get_value()
+
     def is_option(self):
         return False
+
+    def connect_do(self, task):
+        if self.do_widget:
+            self.do_widget.connect(task)
 
     def _widget_lock(self, switch_bool):
         widget_list = (self.layout.itemAt(i).widget() for i in
@@ -767,8 +787,6 @@ class GeneralOption(QW.QWidget):
 
     def set_enable(self):
         pass
-
-
 
 
 class BooleanOption(GeneralOption):
@@ -881,6 +899,8 @@ class ComboBoxOption(GeneralOption):
         self.layout.addWidget(self.combobox)
 
     def add_items(self, items_list):
+        """ Fill the combobox with a list of string
+        """
         self.combobox.clear()
         self.combobox.addItems([None] + items_list)
 
@@ -984,8 +1004,6 @@ class SnakemakeOptionDialog(QW.QDialog):
             widgets = (current_layout.itemAt(i).widget() for i in
                        range(current_layout.count()))
             option_list = [str(x) for w in widgets for x in w.get_tuple()]
-
-
         return option_list
 
 
