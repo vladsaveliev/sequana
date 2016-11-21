@@ -6,13 +6,6 @@ import shutil
 import subprocess as sp
 import multiprocessing
 
-"""from PyQt5 import QtCore, QtGui
-from PyQt5 import QtWidgets as QW
-from PyQt5.Qt import QTemporaryDir
-from PyQt5.QtCore import Qt
-from PyQt5.QtSvg import QSvgWidget
-from PyQt5.QtWebKitWidgets import QWebView
-"""
 
 # Import the console machinery from ipython
 from qtconsole.rich_ipython_widget import RichJupyterWidget

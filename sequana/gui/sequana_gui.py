@@ -538,32 +538,6 @@ class SequanaGUI(QW.QWidget):
         return False
 
 
-class SequanaThread(QtCore.QThread):
-    # Only QObject can have Signal, not QWidget
-    taskFinished = QtCore.pyqtSignal()
-
-    def __init__(self, cmd, cwd):
-        QtCore.QThread.__init__(self)
-        self.cmd = cmd
-        self.cwd = cwd
-
-    def __del__(self):
-        self.wait()
-
-    def run(self):
-        snakemake_proc = sp.Popen(self.cmd, cwd=self.cwd, stderr=subprocess.PIPE)
-        while True:
-            snakemake_proc.communicate()
-            error = snakemake.proc.stderr.readline()
-            value = [x for x in error if "steps" in x]
-            if value:
-                print(value)
-                step = 0.5
-                self.emit(SIGNAL('waiting(QString)'), step)
-
-        #self.taskFinished.emit('snakemake(QString)')
-
-
 class About(QW.QMessageBox):
     """A resizable QMessageBox for the About dialog"""
     def __init__(self, *args, **kwargs):
@@ -941,7 +915,6 @@ class SnakemakeOptionDialog(QW.QDialog):
         self._jobs = settings.value("jobs", 2, type=int)
         self._cluster = settings.value("cluster", "", type=str)
         self._tab_pos = settings.value("tab_pos", 0, type=int)
-        self._snakemake_forceall = settings.value("forceall", False, type=bool)
 
         self.set_launch_options()
 
@@ -955,7 +928,6 @@ class SnakemakeOptionDialog(QW.QDialog):
         settings.setValue("jobs", self.jobs_option.get_value())
         settings.setValue("cluster", self.cluster_options.get_value())
         settings.setValue("tab_pos", self.tabs.currentIndex())
-        settings.setValue("forceall", self.tabs.currentIndex())
         self.close()
 
     def cancel_event(self):
@@ -982,7 +954,6 @@ class SnakemakeOptionDialog(QW.QDialog):
         self.cores_option = NumberOption("--cores", self._cores)
         self.jobs_option = NumberOption("--jobs", self._jobs)
         self.cluster_options = TextOption("--cluster", self._cluster)
-        self.forceall_options = BooleanOption("--forceall", self._snakemake_forceall)
 
         launch_cluster_widget = QW.QWidget()
         launch_cluster_layout = QW.QVBoxLayout(launch_cluster_widget)
@@ -991,7 +962,6 @@ class SnakemakeOptionDialog(QW.QDialog):
 
         general_options_widget = QW.QWidget()
         general_options_layout = QW.QVBoxLayout(general_options_widget)
-        general_options_layout.addWidget(self.forceall_options)
 
         self.jobs_option.set_range(1, 10000)
         self.cores_option.set_range(1, multiprocessing.cpu_count())
@@ -1015,11 +985,6 @@ class SnakemakeOptionDialog(QW.QDialog):
                        range(current_layout.count()))
             option_list = [str(x) for w in widgets for x in w.get_tuple()]
 
-        try:
-            option_list.remove("--forceall")
-            option_list.remove("True")
-            option_list.remove("False")
-        except:pass
 
         return option_list
 
