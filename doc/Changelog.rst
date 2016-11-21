@@ -8,11 +8,17 @@ Changelog
 
 * CHANGES:
 
+    - sequana_compressor: add --keep-going option by default so that if a file
+      fails, other independent files are processed.
     - snaketools: 
           - remove SnakeMakeProfile (not used)
           - remove sequana_check_config (not used)
           - remove deprecated __get_tagname
           - remove ExpandedSnakefile since not required anymore
+          - Fix sample_file2 option that was not encoded properly
+    - sequana_coverage: add back the sample name as prefix of the HTML report
+      name
+
     - Simplify combos of input_directory, input_patter, input_samples, the new
       possible mutually exclusive input parameters of sequana standalone and all
       pipelines. 

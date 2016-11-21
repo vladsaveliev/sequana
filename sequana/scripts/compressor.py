@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -25,7 +25,7 @@ from optparse import OptionParser
 import argparse
 
 from snakemake import shell
-#from easydev import TempFile 
+#from easydev import TempFile
 import tempfile
 
 from sequana.scripts.tools import SequanaOptions
@@ -81,6 +81,10 @@ fq.dsrc""")
         self.add_argument("--jobs", dest="jobs",
             default=4,
             help="""number of jobs to use at most (4) """)
+        self.add_argument("--snakemake-options", dest="snakemake",
+            default="--keep-going",
+            help="""any valid list of options accepted by snakemake except
+            -s and -j and -p""")
         self.add_version(self)
         self.add_verbose(self)
         self.add_cluster(self)
@@ -103,22 +107,22 @@ def main(args=None):
         print(sequana.version)
         sys.exit()
     # valid codecs:
-    valid_extensions = [("fastq." + ext2).rstrip(".") 
+    valid_extensions = [("fastq." + ext2).rstrip(".")
                         for ext2 in ['', 'bz2', 'gz', 'dsrc']]
 
-    valid_extensions += [("fq." + ext2).rstrip(".") 
+    valid_extensions += [("fq." + ext2).rstrip(".")
                         for ext2 in ['', 'bz2', 'gz', 'dsrc']]
 
     valid_combos = [(x, y) for x in valid_extensions
                            for y in valid_extensions
-                           if x!=y] 
+                           if x!=y]
 
     if (options.source, options.target) not in valid_combos:
-        raise ValueError("""--target and --source combo not valid. 
+        raise ValueError("""--target and --source combo not valid.
 Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
 
     from easydev import TempFile
-    # Create the config file locally 
+    # Create the config file locally
     with TempFile(suffix=".yaml", dir=".") as temp:
         fh = open(temp.name, "w")
         fh.write("compressor:\n")
@@ -131,18 +135,19 @@ Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
         from sequana import Module
         rule = Module("compressor").path + os.sep +  "compressor.rules"
 
+        cmd = 'snakemake -s %s  --configfile %s -j %s -p ' % \
+                (rule, temp.name, options.jobs)
+
         if options.cluster:
-            cluster = '--cluster "%s"' % options.cluster
-        else:
-            cluster = ""
+            cluster = ' --cluster "%s" ' % options.cluster
+            cmd += cluster
+
+        if options.snakemake:
+            cmd += options.snakemake
 
         if options.verbose:
-            cmd = 'snakemake -s %s  --configfile %s -j %s -p %s' % \
-                (rule, temp.name, options.jobs, cluster)
             print(cmd)
-        else:
-            cmd = 'snakemake -s %s  --configfile %s -j %s -p %s' % \
-                (rule, temp.name, options.jobs, cluster)
+
         shell(cmd)
         fh.close()
 

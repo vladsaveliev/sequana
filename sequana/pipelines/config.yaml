@@ -2,14 +2,20 @@
 
 
 # =========================================== Sections for the users
-
-# list of your input file
-samples:
+input_directory: "%(input_directory)s"
+input_extension: "%(input_extension)s"
+input_pattern: "%(input_pattern)s"
+input_samples:
     file1: "%(file1)s"
     file2: "%(file2)s"
 
+# list of your input file
+#samples:
+#    file1: "%(file1)s"
+#:    file2: "%(file2)s"
 
-project: "%(project)s"
+
+#project: "%(project)s"
 
 # if files are required for a pipeline and are within sequana or should
 # # be downloaded before the pipeline provide them in this section
@@ -165,5 +171,5 @@ quast:
 compressor:
     source: fastq.gz
     target: fastq.bz2
-
+    recursive: True
 
