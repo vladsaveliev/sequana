@@ -97,8 +97,9 @@ class SequanaSummary(BaseReport):
             try:self.include_phix()
             except:pass
             
-            try:self.include_sample_stats()
-            except:pass
+            #try:
+            self.include_sample_stats()
+            #except:pass
             self.include_adapters_stats()
             self.include_details()
             self.include_input_links()
@@ -177,7 +178,8 @@ class SequanaSummary(BaseReport):
                 self.jinja['sample_image_r1_href'] = filename.replace(
                     "fastq_stats_samples", "fastqc_samples").replace(
                     "boxplot.png", "fastqc.html")
-                df = pd.read_json(self.directory + "/fastq_stats_samples/%s_R1_001.json" % self.sample)
+                newfilename  = self.directory + "/fastq_stats_samples/%s._R1_.json" % self.sample
+                df = pd.read_json(newfilename)
                 self.jinja["sample_stats__samples_json"] = df.to_json()
 
             elif "R2" in filename:
@@ -185,7 +187,8 @@ class SequanaSummary(BaseReport):
                 self.jinja['sample_image_r2_href'] = filename.replace(
                     "fastq_stats_samples", "fastqc_samples").replace(
                     "boxplot.png", "fastqc.html")
-                df = pd.read_json(self.directory + "/fastq_stats_samples/%s_R2_001.json" % self.sample)
+                newfilename  = self.directory + "/fastq_stats_samples/%s._R2_.json" % self.sample
+                df = pd.read_json(newfilename)
                 self.jinja["sample_stats__samples_json_R2"] = df.to_json()
 
     def include_kraken(self):
@@ -195,7 +198,6 @@ class SequanaSummary(BaseReport):
                 self.config.config['kraken']['database'])
         except:
             self.jinja['kraken_database'] = "?"
-
 
         table = self.htmltable(pd.read_csv(self.directory + "/kraken/kraken.csv"), 
                               tablename="kraken")
