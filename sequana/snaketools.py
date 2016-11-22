@@ -1258,7 +1258,7 @@ for this in directories:
         print('Deleting %s' % this)
         time.sleep(0.1)
         shellcmd("rm -rf %s" % this)
-shellcmd("rm -f  README config.yaml snakejob.*")
+shellcmd("rm -f  README config.yaml snakejob.* slurm-*")
 shellcmd("rm -f .sequana_cleanup.py")
 shellcmd("rm -rf .snakemake")
 """)
