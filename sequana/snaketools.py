@@ -672,7 +672,6 @@ class SequanaConfig(object):
             level1, level2 = field.split(":", 1)
             if level1 not in cfg.keys():
                 raise ValueError("first level key (%s) not found " % level1)
-            print("Found :")
             return self.get(level2, default=default, cfg=cfg[level1])
         else:
             if isinstance(cfg, dict) and field in cfg.keys():
