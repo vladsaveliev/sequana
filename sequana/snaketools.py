@@ -666,6 +666,19 @@ class SequanaConfig(object):
                         assert item in self.config.keys()
 
     def get(self, field, default=None, cfg=None):
+        """Return the content of a config file field (with default)
+
+        The idea here is to ease the retrieval of a field in a config file
+        (YAML). The underlying data is a dictionary so one could type
+        e.g self.config['level1']['level2']. Here, we can type 
+        self.get("level1:level2", default_value).
+
+        :param field: a string level1:level2
+        :param cfg: by default, the config contain in this instance, 
+            but one may provide another one.
+
+        .. warning:: only 2 levels accepted.
+        """
         if cfg is None:
             cfg = self.config
         if ":" in field:
