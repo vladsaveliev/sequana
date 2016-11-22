@@ -19,8 +19,14 @@ rule kraken_translate:
         k = KrakenResults(input[0])
         k.kraken_to_krona(output_filename=output.summary)
         df = k.plot(kind='pie')
-        from pylab import savefig
-        savefig(output.png)
+        if df is not None and len(df):
+            from pylab import savefig
+            savefig(output.png)
+        else:
+            from sequana import sequana_data
+            import shutil
+            filename = sequana_data("no_data.jpg", "images")
+            shutil.copy(filename, output.png)
 
 
 rule kraken:

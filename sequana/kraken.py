@@ -103,17 +103,20 @@ class KrakenResults(object):
         .. note:: the first call first loads all taxons in memory and takes a
             few seconds but subsequent calls are much faster
         """
-        if self.verbose:
-            print('Retrieving taxon using biokit.Taxonomy')
-
-        if isinstance(ids, list) is False:
-            ids = [ids]
-
         # filter the lineage to keep only information from one of the main rank
         # that is superkingdom, kingdom, phylum, class, order, family, genus and
         # species
         ranks = ('kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
         lineage = [self.tax.get_lineage_and_rank(x) for x in ids]
+
+        if len(ids) == 0:
+            return pd.DataFrame()
+
+        if self.verbose:
+            print('Retrieving taxon using biokit.Taxonomy')
+
+        if isinstance(ids, list) is False:
+            ids = [ids]
 
         # Now, we filter each lineage to keep only relevant ranks
         # We drop the 'no rank' and create a dictionary
@@ -192,7 +195,7 @@ class KrakenResults(object):
 
         # line 14500
         # >gi|331784|gb|K01711.1|MEANPCG[331784] Measles virus (strain Edmonston), complete genome
-
+        
 
         df = self.get_taxonomy_biokit([int(x) for x in self.taxons.index])
         df['count'] = self.taxons.values
@@ -249,6 +252,9 @@ x!="description"] +  ["description"]]
 
         if len(taxon_to_find) == 0:
             print("No reads were identified. You will need a more complete database")
+            self.output_filename = output_filename
+            with open(output_filename, "w") as fout:
+                fout.write("%s\t%s" % (self.unclassified, "Unclassified"))
             return
         # classified reads as root  (1)
         try:
@@ -304,6 +310,8 @@ x!="description"] +  ["description"]]
                 textcolor="red", **kargs):
         """A simple non-interactive plot of taxons
 
+        :return: None if no taxon were found and a dataframe otherwise
+
         A Krona Javascript output is also available in :meth:`kraken_to_krona`
 
         .. plot::
@@ -325,10 +333,14 @@ x!="description"] +  ["description"]]
             return
         # This may have already been called but maybe not. This is not time
         # consuming, so we call it again here
+
+        if len(self.taxons.index) == 0:
+            return None
+
+
         df = self.get_taxonomy_biokit(list(self.taxons.index))
         df.ix[-1] = ["Unclassified"] * 8
         data = self.taxons.copy()
-
         data.ix[-1] = self.unclassified
 
         data = data/data.sum()*100
