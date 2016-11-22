@@ -315,7 +315,7 @@ def main(args=None):
             int(bool(options.pipeline)),
             int(bool(options.get_config))
             ), 2)
-    if flag not in [1,2,4,8,16,3]:
+    if flag not in [1,2,4,8,16,3,32]:
         sa.error("You must use one of --pipeline, --info, "
             "--show-pipelines, --issue, --version, --get-config")
 
