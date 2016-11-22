@@ -76,15 +76,5 @@ rule fastqc_%(name)s:
         s.create_report()
 
     '''
-    from easydev import TempFile
-    tt = TempFile()
-    fh = open(tt.name, "w")
-    fh.write(fastqc_code % metadata)
-    fh.close()
-    return fh.name
-
-
-
-
-
-
+    from sequana.snaketools import build_dynamic_rule
+    return build_dynamic_rule(fastqc_code % metadata)

@@ -1262,3 +1262,27 @@ shellcmd("rm -f  README config.yaml snakejob.* slurm-*")
 shellcmd("rm -f .sequana_cleanup.py")
 shellcmd("rm -rf .snakemake")
 """)
+
+
+
+def build_dynamic_rule(code):
+    """Create a rule in a unique file in .snakameke/sequana
+
+    The filenames must be unique, and stored in .snakemake to not
+    pollute /tmp
+
+    """
+    import os, uuid
+    # Create directory if it does not exist
+    from easydev import mkdirs
+    mkdirs(".snakemake/sequana")
+    # a unique identifier
+    filename = os.sep.join([".snakemake", "sequana", str(uuid.uuid4())])
+    filename += ".rules"
+    # Create the file and return its name so that it can be used inside a
+    # pipeline
+    fh = open(filename, "w")
+    fh.write(code)
+    fh.close()
+    return filename
+
