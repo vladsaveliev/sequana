@@ -84,7 +84,6 @@ def main(args=None):
 
     user_options = Options(prog="sequana")
 
-
     print("the usage of the summary tool may change significantly in the future")
 
     # If --help or no options provided, show the help

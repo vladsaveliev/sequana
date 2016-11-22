@@ -582,54 +582,36 @@ def sequana_init(options):
     else:
         shutil.copy(module.config, config_filename)
 
-    # Update the config file if possible. first we read back the config file
-    # requested
-    with open(config_filename, "r") as fin:
-        config_txt = fin.read()
-
-
-    # and save it back filling it with relevant information provided by the user
-    with open(config_filename, "w") as fout:
-        from collections import defaultdict
-        params = defaultdict(str)
-
-        # TODO: copy design file in the working directory ?
-        params['input_directory'] = options.input_directory
-        params['input_pattern'] = options.pattern
-        params['input_extension'] = options.extension
-        if options.file1: params['file1'] = options.file1
-        if options.file2: params['file2'] = options.file2
-
-        if options.pipeline == "quality_control":
-            if options.design:
-                shutil.copy(options.design, options.target_dir + os.sep )
-                params['adapter_design'] = os.path.basename(options.design)
-            else:
-                params['adapter_design'] = ""
-
-            if options.kraken:
-                params['kraken'] = os.path.abspath(options.kraken)
-            else:
-                params['kraken'] = ""
-
-            if options.reference:
-                params['reference'] = os.path.abspath(options.reference)
-            else:
-                params['reference'] = None
-
-            params["adapter_fwd"] = options.adapter_fwd
-            params["adapter_rev"] = options.adapter_rev
-            params["adapter_type"] = options.adapters
-
-        fout.write(config_txt % params)
-
-    # figure out from the config file if any files are required
+    # The input 
     cfg = SequanaConfig(config_filename)
+    cfg.config.input_directory = options.input_directory
+    cfg.config.input_pattern = options.pattern
+    cfg.config.input_extension = options.extension
+    cfg.config.input_samples.file1 = options.file1
+    cfg.config.input_samples.file2 = options.file2
+    if options.pipeline == "quality_control":
+        if options.design:
+            shutil.copy(options.design, options.target_dir + os.sep )
+            cfg.config.adapter_removal.design = os.path.basename(options.design)
+
+        if options.kraken:
+            cfg.config.kraken.database_directory = os.path.abspath(options.kraken)
+            cfg.config.kraken.do = True
+        else:
+            cfg.config.kraken.do = False
+
+        if options.reference:
+            cfg.config.bwa_mem.reference = os.path.abspath(options.reference)
+
+        cfg.config.adapter_removal.fwd = options.adapter_fwd
+        cfg.config.adapter_removal.rev = options.adapter_rev
+        cfg.config.adapter_removal.adapter_type = options.adapters
+
+
     cfg.copy_requirements(target=options.target_dir)
 
     # FIXME If invalid, no error raised
     if options.config_params:
-        cfg = SequanaConfig(config_filename)
         params = [this.strip() for this in options.config_params.split(",")]
         for param in params:
             if param.count(":") not in [1,2, 3]:
@@ -648,7 +630,8 @@ def sequana_init(options):
             elif param.count(":") == 3:
                 k1,k2,k3,v = param.split(":")
                 cfg.config[k1][k2][k3] = v
-        cfg.save(config_filename)
+    cfg.save(config_filename)
+
 
     # Creating a unique runme.sh file
     with open(options.target_dir + os.sep + "runme.sh", "w") as fout:

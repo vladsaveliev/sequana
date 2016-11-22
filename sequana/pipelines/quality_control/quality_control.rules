@@ -241,7 +241,7 @@ onsuccess:
             this.read_data(proj + "/logs/cutadapt/{0}.txt".format("cutadapt"))
             this.create_report()
 
-        if manager.config.kraken.database_directory:
+        if manager.config.kraken.do:
             shell('cp -r %s/kraken/ %s' % (proj, report_dir))
         shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
         shell('cp -r %s/fastq_stats*/ %s' % (proj, report_dir))
@@ -267,6 +267,10 @@ onsuccess:
 
         # Create a cleanup python file to clean a sub-directory
         sm.create_cleanup(proj)
+
+    try: shell("sequana_summary -m")
+    except: pass
+
 
     garbage = ['snakemake_stats.png',  "rulegraph.svg", "requirements.txt"]
     for filename in garbage:

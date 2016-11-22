@@ -97,9 +97,9 @@ class SequanaSummary(BaseReport):
             try:self.include_phix()
             except:pass
             
-            #try:
-            self.include_sample_stats()
-            #except:pass
+            try: self.include_sample_stats()
+            except:pass
+
             self.include_adapters_stats()
             self.include_details()
             self.include_input_links()
@@ -199,12 +199,15 @@ class SequanaSummary(BaseReport):
         except:
             self.jinja['kraken_database'] = "?"
 
-        table = self.htmltable(pd.read_csv(self.directory + "/kraken/kraken.csv"), 
-                              tablename="kraken")
+        df = pd.read_csv(self.directory + "/kraken/kraken.csv")
+        self.jinja['kraken_json'] = df.to_json()
+
+        table = self.htmltable(df, tablename="kraken")
         if "ena" in table.df.columns:
             table.add_href('ena', url="http://www.ebi.ac.uk/ena/data/view/")
         table.name = "kraken/kraken"
         self.jinja['kraken_html_table'] = table.to_html(index=False)
+
 
     def include_phix(self):
         filename=self.directory + "/bwa_bam_to_fastq/bwa_mem_stats.json"

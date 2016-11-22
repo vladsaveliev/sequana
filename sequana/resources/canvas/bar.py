@@ -76,19 +76,23 @@ chart.render();
 
 
 class CanvasBar(object):
-    def __init__(self, data, title="", tag="", xlabel="",
-        ylabel_max_length=20, **kargs):
+    """
 
+    """
+    def __init__(self, data, title="", tag="", xlabel="",
+        ylabel_max_length=20, links=None, **kargs):
+        """
+
+        :param data: a dataframe with name, value, url
+        """
         self.title = title
         self.tag = tag
 
-        if isinstance(data, dict):
-            dataitems = "["
-            for label, value in data.items():
-                dataitems += '{y:%s,label:"%s"},' % (value, label)
-            dataitems += "]"
-        else:
-            raise NotImplementedError
+        dataitems = "["
+        for x, y  in data.iterrows():
+            formatter = '{y:%(value)s,label:"%(name)s",click:onClick,url:"%(url)s"},' 
+            dataitems += formatter % y
+        dataitems += "]"
 
         self.metadata = {
             "dataitems": dataitems,
@@ -96,7 +100,7 @@ class CanvasBar(object):
             "xlabel":xlabel,
             "tag": self.tag}
 
-    def to_html(self):
+    def to_html(self, options={'maxrange':None}):
         script = """
     var chart = new CanvasJS.Chart("chartContainer%(tag)s",
     {
@@ -106,8 +110,11 @@ class CanvasBar(object):
       },
       animationEnabled: true,
       axisY:{
-        title: "%(xlabel)s"
+        title: "%(xlabel)s",
+        %(axisYmaximum)s
       },
+      exportFileName: "summary",
+      exportEnabled: true,
       legend :{
         horizontalAlign: 'center',
         verticalAlign: 'bottom'
@@ -126,6 +133,16 @@ class CanvasBar(object):
 chart.render();
 
 """
-        return script % self.metadata
+
+        params = self.metadata.copy()
+        if options['maxrange']:
+            params['axisYmaximum'] = "maximum:%s," % options['maxrange']
+        else:
+            params['axisYmaximum'] = ""
+        return script % params
 #<div id="chartContainer%(tag)s" style="height: 300px; width: 100%%;">
+
+
+
+
 
