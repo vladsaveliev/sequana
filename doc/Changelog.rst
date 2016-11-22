@@ -8,6 +8,7 @@ Changelog
 
 * CHANGES:
 
+    - multi_summary fixed and available for the quality_control pipeline
     - sequana_compressor: add --keep-going option by default so that if a file
       fails, other independent files are processed.
     - snaketools:
@@ -23,6 +24,12 @@ Changelog
     - Simplify combos of input_directory, input_patter, input_samples, the new
       possible mutually exclusive input parameters of sequana standalone and all
       pipelines.
+
+* BUGS:
+
+    - Kraken: if no reads classified at all, errors were raised and
+      quality_control summary report would fail. This is fixed now with a "nodata"
+      image being shown.
 
 * NEWS
 
