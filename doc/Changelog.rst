@@ -10,25 +10,26 @@ Changelog
 
     - sequana_compressor: add --keep-going option by default so that if a file
       fails, other independent files are processed.
-    - snaketools: 
+    - snaketools:
           - remove SnakeMakeProfile (not used)
           - remove sequana_check_config (not used)
           - remove deprecated __get_tagname
           - remove ExpandedSnakefile since not required anymore
           - Fix sample_file2 option that was not encoded properly
-    - sequana_coverage: add back the sample name as prefix of the HTML report
-      name
-
+    - sequana_coverage: -- add back the sample name as prefix of the HTML report
+      name -- a BED with two coverage columns is now accepted --
+      --download-genbank option added
+    - sequana_summary works for the quality_control pipeline
     - Simplify combos of input_directory, input_patter, input_samples, the new
       possible mutually exclusive input parameters of sequana standalone and all
-      pipelines. 
-   
+      pipelines.
+
 * NEWS
 
+    - GUI (draft version)
     - fq.gz are now allowed in the pipelines and should be supported in the
       future
-    - More tests in particular a ./test/pipelines/ new directory 
- 
+    - More tests in particular a ./test/pipelines/ new directory
 
 
 0.1.13
