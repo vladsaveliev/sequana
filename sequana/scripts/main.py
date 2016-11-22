@@ -634,7 +634,8 @@ def sequana_init(options):
 
 
     # Creating a unique runme.sh file
-    with open(options.target_dir + os.sep + "runme.sh", "w") as fout:
+    runme_filename = options.target_dir + os.sep + "runme.sh"
+    with open(runme_filename, "w") as fout:
         cmd = "#!/bin/sh\n"
         cmd += "# generated with sequana version %s with this command:\n" % sequana.version
         cmd += "# %s\n" % " ".join(sys.argv)
@@ -660,7 +661,10 @@ def sequana_init(options):
     sa.green("or type sequana --issue and fill a post with the error and the config file (NO DATA PLEASE)")
 
     # Change permission
-    os.chmod("runme.sh", 0o755)
+    try: #python 3
+        os.chmod(runme_filename, 0o755)
+    except:
+        print("Please use Python3. Change the mode of %s manually to 755" % runme_filename)
 
 
 
