@@ -659,7 +659,8 @@ def sequana_init(options):
     sa.green("In case of trouble, please post an issue on https://github.com/sequana/sequana/issue ")
     sa.green("or type sequana --issue and fill a post with the error and the config file (NO DATA PLEASE)")
 
-    ## --cluster "qsub -cwd -qQUEUE -V -e -o "
+    # Change permission
+    os.chmod("runme.sh", 0o755)
 
 
 
