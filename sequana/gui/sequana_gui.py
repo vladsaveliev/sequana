@@ -336,6 +336,8 @@ class SequanaGUI(QW.QWidget):
 
         snakemake_line = ["snakemake", "-s", snakefile]
         snakemake_line += ["--rulegraph", "--configfile", cfgpath]
+        options = self.get_untill_starting_option()
+        snakemake_line += options
 
         try:
             msg = InfoMessage("Creating the dag")
@@ -399,6 +401,18 @@ class SequanaGUI(QW.QWidget):
             except:
                 pass
 
+    def get_untill_starting_option(self):
+        """ Return list with starting rule and end rule.
+        """
+        until_rule = self.until_box.get_value()
+        starting_rule = self.starting_box.get_value()
+        option = []
+        if until_rule:
+            option += ["--no-hooks", "-U", until_rule]
+        if starting_rule:
+            option += ["-R", starting_rule]
+        return option
+
     def start_sequana(self):
         msg = CriticalMessage("Starting Sequana")
         msg.exec_()
@@ -408,12 +422,14 @@ class SequanaGUI(QW.QWidget):
         rules = self.get_rules(self.formular)
         snakefile = Module(self.choice_button.currentText()).snakefile
         shutil.copy(snakefile, working_dir)
-        snakemake_line = ["snakemake", "-s", snakefile, "--stat", "stats.txt"]
+        snakemake_line = ["-s", snakefile, "--stat", "stats.txt"]
         options = self.snakemake_dialog.get_snakemake_options()
+        snakemake_line += options
+        options = self.get_untill_starting_option()
         snakemake_line += options
         self.process.setWorkingDirectory(working_dir)
 
-        self.process.start("snakemake", snakemake_line[1:])
+        self.process.start("snakemake", snakemake_line)
 
         self.process.readyRead.connect(self.snakemake_data)
         print("starting analysis")
@@ -484,7 +500,8 @@ class SequanaGUI(QW.QWidget):
             else:
                 yaml.save(yaml_path)
         else:
-            msg = WarningMessage("You must indicate your working directory")
+            msg = WarningMessage("You must indicate your working directory",
+                                 self)
             msg.exec_()
 
     def create_formular_dict(self, layout):
@@ -530,6 +547,7 @@ class SequanaGUI(QW.QWidget):
             if msg.exec_() == 16384:
                 self.config_dict.update(config_dict)
                 self.create_base_formular(self.config_dict)
+                self.fill_combobox(self.rule_list)
         return True
 
     def get_rules(self, layout):
@@ -742,7 +760,7 @@ class RuleFormular(QW.QGroupBox):
         if self.do_widget is None:
             return True
         else:
-            self.do_widget.get_value()
+            return self.do_widget.get_value()
 
     def is_option(self):
         return False
