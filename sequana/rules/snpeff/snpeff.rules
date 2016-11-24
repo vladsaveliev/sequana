@@ -21,15 +21,11 @@ rule snpeff:
     output:
         ann = __snpeff__output
     log:
-        build_err = "logs/snpeff/snpeff_build.err",
-        build_out = "logs/snpeff/snpeff_build.out",
-        launch = "logs/snpeff/snpeff_launch.err"
+        log = __snpeff__log
     params:
         options = config["snpeff"]["options"]
     run:
         from sequana import SnpEff
 
-        mydata = SnpEff(reference=input.ann, 
-            stdout=log.build_out, stderr=log.build_err)
-        mydata.launch_snpeff(input.vcf, output.ann, log.launch, 
-            options=params.options)
+        mydata = SnpEff(reference=input.ann, logs=log.log)
+        mydata.launch_snpeff(input.vcf, output.ann, options=params.options)

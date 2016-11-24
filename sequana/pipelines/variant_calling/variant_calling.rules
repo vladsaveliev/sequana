@@ -12,18 +12,17 @@ from sequana.snaketools import SequanaConfig
 from sequana import SnpEff
 sm.init("variant_calling.rules", globals())
 
-# This must be defined before the include 
+# This must be defined before the include
 configfile: "config.yaml"
-
+manager = sm.PipelineManager("variant_calling", config)
 __snakefile__ = srcdir(__snakefile__)
-
 final_output = []
 
 # If annotation file is not provided
 __report_mapping__ann = None
 __report_mapping__ann_format = None
 
-manager = sm.PipelineManager("variant_calling", config)
+# check if the pipeline is called by denovo pipeline
 try:
     report_dir
 except NameError:
@@ -42,10 +41,11 @@ except NameError:
 
 # Generate data directory for SnpEff and annotation file for coverage
 if config["snpeff"]["do"]:
-    tmp = SnpEff(config["snpeff"]["reference"])
+    tmp = SnpEff(config["snpeff"]["reference"], log="snpeff_build.log")
     __add_locus_in_fasta__fasta_input = __bwa_mem_ref__ref_input
-    __add_locus_in_fasta__output = manager.getname("add_locus_in_fasta", 
-            ".fasta")
+    __add_locus_in_fasta__output = manager.getname("add_locus_in_fasta",
+                                                   ".fasta")
+    __add_locus_in_fasta__log = manager.getlogdir("add_locus_in_fasta")
     include: sm.modules["add_locus_in_fasta"]
     __bwa_mem_ref__ref_input = __add_locus_in_fasta__output
     __report_mapping__ann_input = config["snpeff"]["reference"]
@@ -57,64 +57,76 @@ __bwa_mem_ref__input = __rawdata__input
 __bwa_mem_ref__reference = manager.getname("reference", ".fasta")
 __bwa_mem_ref__mem_output = manager.getname("bwa_mem_ref", ".bam")
 __bwa_mem_ref__sort_output = manager.getname("bwa_mem_ref", ".sorted.bam")
+__bwa_mem_ref__log = manager.getlogdir("bwa_mem_ref")
 include: bwa_mem_dynamic("ref", manager.sample)
-# set input of next rules 
-__indel_realigner__input = __bwa_mem_ref__sort_output
-__mark_duplicates__input = __bwa_mem_ref__sort_output
-__bam_quality_filter__input = __bwa_mem_ref__sort_output
-__freebayes__input = __bwa_mem_ref__sort_output
+
+# Add read groups of sample
+__add_read_group__input = __bwa_mem_ref__sort_output
+__add_read_group__output = manager.getname("add_read_group/", ".rg.sorted.bam")
+__add_read_group__log_err = manager.getlogdir("add_read_group.err")
+__add_read_group__log_std = manager.getlogdir("add_read_group.std")
+__add_read_group__rg = "ID=%s LB=%s PL=%s PU=%s SM=%s" % (
+    manager.sample, manager.sample, manager.config.sequencing.platform,
+    manager.config.sequencing.flowcell, manager.sample)
+include: sm.modules["add_read_group"]
+
+# set input of next rules
+__indel_realigner__input = __add_read_group__output
+__mark_duplicates__input = __add_read_group__output
+__bam_quality_filter__input = __add_read_group__output
+__samtools_depth__input = __add_read_group__output
+__report_mapping__bam_input = __add_read_group__output
+__freebayes__input = __add_read_group__output
 
 # Indel realigner
 if config["indel_realigner"]["do"]:
-    # create_sequence_dictionary input
     __create_sequence_dictionary__reference = __bwa_mem_ref__reference
-    # create_sequence_dictionary output
     __create_sequence_dictionary__output = __bwa_mem_ref__reference.split(
-            ".fa")[0] + ".dict"
+        ".fa")[0] + ".dict"
+    __create_sequence_dictionary__log = manager.getlogdir(
+        "create_sequence_dictionary")
     include: sm.modules["create_sequence_dictionary"]
-    # indel_realigner inputs
+
     __indel_realigner__reference = __bwa_mem_ref__reference
     __indel_realigner__ref_dict = __create_sequence_dictionary__output
-    # indel_realigner outputs
     __indel_realigner__output = manager.getname("indel_realigner", ".bam")
-    __indel_realigner__intervals = manager.getname("indel_realigner", 
-            ".intervals")
+    __indel_realigner__intervals = manager.getname("indel_realigner",
+                                                   ".intervals")
+    __indel_realigner__log = manager.getlogdir("indel_realigner")
     include: sm.modules["indel_realigner"]
     __mark_duplicates__input = __indel_realigner__output
     __bam_quality_filter__input = __indel_realigner__output
     __freebayes__input = __indel_realigner__output
+    __samtools_depth__input = __indel_realigner__output
+    __report_mapping__bam_input = __indel_realigner__output
 
 # Mark duplicates
 if config["mark_duplicates"]["do"]:
     __mark_duplicates__output = manager.getname("mark_duplicates", ".bam")
     __mark_duplicates__metrics = manager.getname("mark_duplicates", ".metrics")
+    __mark_duplicates__log = manager.getlogdir("mark_duplicates")
     include: sm.modules["mark_duplicates"]
     __bam_quality_filter__input = __mark_duplicates__output
     __freebayes__input = __mark_duplicates__output
+    __samtools_depth__input = __mark_duplicates__output
+    __report_mapping__bam_input = __mark_duplicates__output
 
 # bam quality filter
 if config["bam_quality_filter"]["do"]:
     __bam_quality_filter__output = manager.getname("bam_quality_filter",
                                                    ".filter.bam")
+    __bam_quality_filter__log = manager.getlogdir("bam_quality_filter")
     include: sm.modules["bam_quality_filter"]
     __freebayes__input = __bam_quality_filter__output
+    __samtools_depth__input = [__bam_quality_filter__output,
+                               __bam_quality_filter__input]
 
 # Mapping report
 if config["report_mapping"]["do"]:
-    __samtools_depth__input = __bwa_mem_ref__sort_output
-    if config["bam_quality_filter"]["do"]:
-        __samtools_depth__input = [__bam_quality_filter__output, 
-                                   __bam_quality_filter__input]
-        __report_mapping__bam_input = __bam_quality_filter__output
-    elif config["mark_duplicates"]["do"]:
-        __report_mapping__bam_input = __mark_duplicates__output
-    else:
-        __report_mapping__bam_input = __bwa_mem_ref__sort_output
-
     __samtools_depth__output = manager.getname("samtools_depth", ".bed")
+    __samtools_depth__log = manager.getlogdir("samtools_depth")
     include: sm.modules["samtools_depth"]
     __report_mapping__input = __samtools_depth__output
-
     __report_mapping__sample_dict = manager.samples
     __report_mapping__sample = manager.sample
     __report_mapping__directory = report_dir
@@ -122,16 +134,18 @@ if config["report_mapping"]["do"]:
     include: sm.modules["report_mapping"]
     final_output.append(expand(__report_mapping__output,
                                sample=manager.samples))
-    
+
 # Variant calling
 __freebayes__reference = __bwa_mem_ref__reference
 __freebayes__output = manager.getname("freebayes", ".vcf")
+__freebayes__log = manager.getlogdir("freebayes")
 include: sm.modules["freebayes"]
 
 # snpEff
-if config["snpeff"]["do"]: 
+if config["snpeff"]["do"]:
     __snpeff__input = __freebayes__output
     __snpeff__output = manager.getname("snpeff", ".ann.vcf")
+    __snpeff__log = manager.getlogdir("snpeff")
     include: sm.modules["snpeff"]
     __vcf_filter__input = __snpeff__output
 else:
@@ -147,9 +161,8 @@ __report_variant__directory = report_dir
 __report_variant__html_output = report_dir + "report_variant.html"
 __report_variant__csv_output = report_dir + "variants.csv"
 include: sm.modules["report_variant"]
-final_output.append(expand(__report_variant__html_output, 
-        sample=manager.samples))
-
+final_output.append(expand(__report_variant__html_output,
+                           sample=manager.samples))
 
 include: sm.modules["conda"] # Create requirements.txt(dependencies)
 __dag__input = __snakefile__

@@ -12,13 +12,15 @@ rule samtools_depth:
 
     Config file:
         No section required
-
     """
     input:
         __samtools_depth__input
     output:
         __samtools_depth__output
+    log:
+        __samtools_depth__log
     shell:
         """
-        samtools depth -aa {input} > {output}
+        samtools depth -aa {input} > {output} 2> {log}
+        samtools index {output}
         """

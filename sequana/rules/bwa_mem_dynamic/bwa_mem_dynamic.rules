@@ -20,7 +20,7 @@ except:
 bwa_exe = "bwa"
 
 def bwa_mem_dynamic(name, project):
-    metadata = {'name':name, 'project':project}
+    metadata = {'name':name}
 
     bwa_mem_code = '''
 rule bwa_mem_%(name)s:
@@ -36,16 +36,13 @@ rule bwa_mem_%(name)s:
         sort = __bwa_mem_%(name)s__sort_output,
         reference = __bwa_mem_%(name)s__reference
     log:
-        mem = "%(project)s/logs/bwa_mem_%(name)s/bwa_mem.logs",
-        index = "%(project)s/logs/bwa_mem_%(name)s/bwa_index.logs",
-        sort = "%(project)s/logs/bwa_mem_%(name)s/samtools_sort.logs"
+        __bwa_mem_%(name)s__log
     params:
-        index = config["bwa_mem_%(name)s"]["index"]["options"],
-        mem = config["bwa_mem_%(name)s"]["mem"]["options"],
-        rg = config["bwa_mem_%(name)s"]["mem"]["read_groups"],
+        index = config["bwa_mem_%(name)s"]["index_algorithm"],
+        mem = config["bwa_mem_%(name)s"]["options"],
         bwa_exe = bwa_exe
     threads:
-        int(config["bwa_mem_%(name)s"]["mem"]["threads"])
+        int(config["bwa_mem_%(name)s"]["threads"])
     shell:
         """
         # Symbolic link of the reference
@@ -61,17 +58,17 @@ rule bwa_mem_%(name)s:
         touch -h {output.reference}
 
         # Indexing
-        bwa index {params.index} {output.reference} 2> {log.index}
+        bwa index -a {params.index} {output.reference} 2> {log}
         samtools faidx {output.reference}
 
         # Mapping
-        ({params.bwa_exe} mem -t {threads} -R {params.rg} {params.mem} \
+        ({params.bwa_exe} mem -t {threads} {params.mem} \
         {output.reference} {input.fastq} | \
-        samtools view -Sbh -> {output.mem}) 2> {log.mem}
+        samtools view -Sbh -> {output.mem}) 2>> {log}
  
         # Sorting
-        samtools sort -o {output.sort} {output.mem} 2> {log.sort}
-        samtools index {output.sort} 2>> {log.sort}
+        samtools sort -o {output.sort} {output.mem} 2>> {log}
+        samtools index {output.sort} 2>> {log}
         """
     '''
     from sequana.snaketools import build_dynamic_rule

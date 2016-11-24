@@ -35,13 +35,17 @@ class SnpEff(object):
 
     """
     extension = {"genbank": ".gbk", "gff": ".gff", "gtf": ".gtf"}
-    def __init__(self, reference, file_format="", stdout=None, stderr=None):
+    def __init__(self, reference, file_format="", log=None):
         """
 
         :param vcf_filename: the input vcf file.
         :param reference: annotation reference.
         :param file_format: format of your file. ('genbank'/'gff3'/'gtf22')
         """
+        self.log_file = log
+        if log is not None:
+            if os.path.isfile(log):
+                os.remove(log)
         self.reference = reference
         self.ref_name = reference.split("/")[-1]
         # Check if snpEff.config is present
@@ -56,7 +60,7 @@ class SnpEff(object):
             if not os.path.exists("data" + os.sep + self.ref_name + os.sep +
                         "snpEffectPredictor.bin"):
                 # Build snpEff predictor
-                self._add_custom_db(stdout, stderr)
+                self._add_custom_db()
         # Check if reference is present in snpEff database
         elif self._check_database(self.ref_name):
             if not os.path.exists("data" + os.sep + self.ref_name):
@@ -73,18 +77,18 @@ class SnpEff(object):
                   "snpEff.config.\n")
 
     def _check_format(self):
-        # set regex for gff and gtf files
-        self.regex = re.compile("^([^\s#]+)[ \t\v]")
+        # # set regex for gff and gtf files
+        # self.regex = re.compile("^([^\s#]+)[ \t\v]")
         with open(self.reference, "r") as fp:
             first_line = fp.readline()
             if first_line.startswith('LOCUS'):
                 self.file_format = "genbank"
                 # set regex for genbank file
                 self.regex = re.compile("^LOCUS\s+([^\s]+)")
-            elif re.search('gff-version', first_line):
-                self.file_format = "gff"
-            elif first_line.startswith('#!'):
-                self.file_format = "gtf"
+            # elif re.search('gff-version', first_line):
+            #     self.file_format = "gff"
+            # elif first_line.startswith('#!'):
+            #     self.file_format = "gtf"
             else:
                 print("The format can not be determined, please relaunch " 
                       "the script with the file_format argument")
@@ -104,7 +108,7 @@ class SnpEff(object):
         gunzip_proc = sp.Popen(["gunzip", "snpEff.config.gz"])
         gunzip_proc.wait()
         
-    def _add_custom_db(self, stdout=None, stderr=None):
+    def _add_custom_db(self):
         """ Add your custom file in the local snpEff database.
 
         """
@@ -120,28 +124,32 @@ class SnpEff(object):
         # add new annotation file in config file
         with open("snpEff.config", "a") as fp:
             fp.write(self.ref_name + ".genome : " + self.ref_name)
-        
+       
+        snpeff_build_line = ["snpEff", "build", "-" + self.file_format,
+                             self.ref_name]
         try:
-            with open(stdout, "wb") as out, open(stderr, "wb") as err:
-                snp_build = sp.Popen(["snpEff", "build", "-" + self.file_format,
-                    self.ref_name], stderr=err, stdout=out)
+            with open(self.log_file, "ab") as fl:
+                snp_build = sp.Popen(snpeff_build_line, stderr=fl, stdout=fl)
         except TypeError:
-            snp_build = sp.Popen(["snpEff", "build", "-" + self.file_format, 
-                self.ref_name], stderr=None, stdout=None)
+            snp_build = sp.Popen(snpeff_build_line)
         snp_build.wait()
         rc = snp_build.returncode
         if rc != 0:
             print("snpEff build return a non-zero code")
             sys.exit(rc)
 
-    def launch_snpeff(self, vcf_filename, output, stderr="annot.err",
-            options=""):
+    def launch_snpeff(self, vcf_filename, output, options=""):
         """ Launch snpEff
         
         """
         args_ann = ["snpEff", "-formatEff", options, self.ref_name, 
                 vcf_filename]
-        with open(output, "wb") as fp:
+        filout = open(output, "wb")
+        try:
+            with open(self.log_file, "ab") as fl:
+                proc_ann = sp.Popen(args_ann, stdout=fp, stderr=fl)
+                proc_ann.wait()
+        except TypeError:
             proc_ann = sp.Popen(args_ann, stdout=fp)
             proc_ann.wait()
 
