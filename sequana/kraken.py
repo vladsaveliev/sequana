@@ -80,7 +80,7 @@ class KrakenResults(object):
             class Taxonomy(object):
                 from sequana import sequana_data # must be local
                 df = pd.read_csv(sequana_data("test_taxon_rtd.csv"),
-                    index_col=0)
+                        index_col=0)
                 def get_lineage_and_rank(self, x):
                     # Note that we add the name as well here
                     ranks = ['kingdom', 'phylum', 'class', 'order',
@@ -107,7 +107,9 @@ class KrakenResults(object):
         # that is superkingdom, kingdom, phylum, class, order, family, genus and
         # species
         ranks = ('kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
-        lineage = [self.tax.get_lineage_and_rank(x) for x in ids]
+
+        if isinstance(ids, int):
+            ids = [ids]
 
         if len(ids) == 0:
             return pd.DataFrame()
@@ -118,6 +120,7 @@ class KrakenResults(object):
         if isinstance(ids, list) is False:
             ids = [ids]
 
+        lineage = [self.tax.get_lineage_and_rank(x) for x in ids]
         # Now, we filter each lineage to keep only relevant ranks
         # We drop the 'no rank' and create a dictionary
         # Not nice but works for now
