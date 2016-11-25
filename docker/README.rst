@@ -3,22 +3,31 @@
 For end-users
 ----------------
 
-We will demonstrate the usage of the docker using the sequana_coverage
-standalone. Other applications and the entire sequana library are also
-available.
+In order to allows anyone to use **Sequana** without needs for complex installation, we provide a 
+`Docker <https://www.docker.com/>` image. It is synchronized on the *master*
+branch on the source code, which means on official releases.
+
+
+Here below, we provide a quick tutorial that will guide you on using **Sequana**
+thanks to the docker. To do so, we will focus on one standalone application
+called **sequana_coverage**. In bried, the standalone takes as input a BED file
+that contains the genome coverage of a set of mapped DNA reads onto a reference
+genome. Then, the standalone creates a report with relevant information about
+the coverage (See `Sequana documentation <sequana.readthedocs.org>`_ for details.
+
+Get the docker image
+-------------------------
 
 A docker image is provided on `hub.docker <https://hub.docker.com/r/cokelaer/sequana/>`_.
 
-We assume you have install docker on your system. 
+We assume you have install docker on your system.
 
 
-You would then need a login on hub.docker.com 
-
-Then, type::
+First, you need a login on `docker <hub.docker.com>`_. Then, in a shell, type::
 
     docker login
 
-This will allow you to obtain the sequana docker image using::
+This will allow you to obtain the **Sequana** docker image using::
 
     docker pull cokelaer/sequana
 

@@ -26,12 +26,12 @@ conda config --add channels bioconda
 conda install numpy matplotlib pandas cutadapt pysam pyvcf snpeff -y
 conda install snakemake biokit bioservices spades khmer -y
 conda install bwa bcftools samtools==1.3.0 bedtools picard freebayes fastqc -y
-conda install kraken krona scipy  graphviz -y
+conda install kraken krona scipy graphviz -y
 
 conda install ipython -y
 
 # Finally, Sequana release itself
-pip install sequana==0.1.12
+pip install sequana==0.1.14
 
 #git clone https://github.com/sequana/sequana
 
