@@ -991,7 +991,7 @@ class FastQC(object):
         Hist2D(self.tiles['x'], self.tiles['y']).plot()
 
     @run_info
-    def histogram_sequence_lengths(self):
+    def histogram_sequence_lengths(self, logy=True):
         """Histogram sequence lengths
 
         .. plot::
@@ -1007,7 +1007,13 @@ class FastQC(object):
         data = [len(x) for x in self.sequences]
         bary, barx = np.histogram(data, bins=range(max(data)+1))
 
-        pylab.bar(barx[1:], pylab.log(bary))
+        # get rid of zeros to avoid warnings
+        bx = [x for x,y in zip(barx, bary) if y!=0]
+        by = [y for x,y in zip(barx, bary) if y!=0]
+        if logy:
+            pylab.bar(bx, pylab.log10(by))
+        else:
+            pylab.bar(bx, by)
 
         pylab.xlim([1,max(data)+1])
 
