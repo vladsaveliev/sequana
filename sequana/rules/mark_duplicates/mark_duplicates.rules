@@ -22,4 +22,5 @@ rule mark_duplicates:
         """
         picard MarkDuplicates I={input} \
         O={output.bam} M={output.metrics} > {log.out} 2> {log.err}
+        samtools index {output.bam}
         """
