@@ -89,7 +89,8 @@ if config["indel_realigner"]["do"]:
 
     __indel_realigner__reference = __bwa_mem_ref__reference
     __indel_realigner__ref_dict = __create_sequence_dictionary__output
-    __indel_realigner__output = manager.getname("indel_realigner", ".bam")
+    __indel_realigner__output = manager.getname("indel_realigner",
+                                                ".indel_realign.sorted.bam")
     __indel_realigner__intervals = manager.getname("indel_realigner",
                                                    ".intervals")
     __indel_realigner__log = manager.getlogdir("indel_realigner")
@@ -102,9 +103,11 @@ if config["indel_realigner"]["do"]:
 
 # Mark duplicates
 if config["mark_duplicates"]["do"]:
-    __mark_duplicates__output = manager.getname("mark_duplicates", ".bam")
+    __mark_duplicates__output = manager.getname("mark_duplicates",
+                                                ".rmdup.sorted.bam")
     __mark_duplicates__metrics = manager.getname("mark_duplicates", ".metrics")
-    __mark_duplicates__log = manager.getlogdir("mark_duplicates")
+    __mark_duplicates__log_err = manager.getlogdir("mark_duplicates.err")
+    __mark_duplicates__log_std = manager.getlogdir("mark_duplicates.std")
     include: sm.modules["mark_duplicates"]
     __bam_quality_filter__input = __mark_duplicates__output
     __freebayes__input = __mark_duplicates__output
@@ -114,7 +117,7 @@ if config["mark_duplicates"]["do"]:
 # bam quality filter
 if config["bam_quality_filter"]["do"]:
     __bam_quality_filter__output = manager.getname("bam_quality_filter",
-                                                   ".filter.bam")
+                                                   ".filter.sorted.bam")
     __bam_quality_filter__log = manager.getlogdir("bam_quality_filter")
     include: sm.modules["bam_quality_filter"]
     __freebayes__input = __bam_quality_filter__output
@@ -137,7 +140,7 @@ if config["report_mapping"]["do"]:
 
 # Variant calling
 __freebayes__reference = __bwa_mem_ref__reference
-__freebayes__output = manager.getname("freebayes", ".vcf")
+__freebayes__output = manager.getname("freebayes", ".raw.vcf")
 __freebayes__log = manager.getlogdir("freebayes")
 include: sm.modules["freebayes"]
 
@@ -145,6 +148,7 @@ include: sm.modules["freebayes"]
 if config["snpeff"]["do"]:
     __snpeff__input = __freebayes__output
     __snpeff__output = manager.getname("snpeff", ".ann.vcf")
+    __snpeff__html = manager.getname("snpeff", ".snpeff.html")
     __snpeff__log = manager.getlogdir("snpeff")
     include: sm.modules["snpeff"]
     __vcf_filter__input = __snpeff__output
@@ -170,24 +174,24 @@ __rulegraph__output = "dag.svg"
 __rulegraph__mapper = {"report_mapping":"report_mapping.html",
                        "report_variant":"report_variant.html"}
 include: sm.modules["rulegraph"]
-final_output.extend(["requirements.txt", "dag.svg"])
+final_output += ["requirements.txt", "dag.svg"]
+
+file_to_copy = [__freebayes__input, __freebayes__input + ".bai",
+                __vcf_filter__output, __vcf_filter__input, __snakefile__,
+                "config.yaml"]
+try:
+    file_to_copy.append(__snpeff__html)
+except NameError:
+    pass
+
+__copy_multiple_files__input = file_to_copy
+__copy_multiple_files__output = report_dir
+__copy_multiple_files__done = manager.sample + os.sep + "copy.done"
+include: sm.modules["copy_multiple_files"]
+final_output.append(expand(__copy_multiple_files__done,
+                           sample=manager.samples))
 
 
 rule pipeline_variant:
     input:
         final_output
-
-
-onsuccess: 
-    sm.plot_stats()
-    report_dir_format = "%(proj)s/report_vc_%(proj)s/"
-    for proj in manager.samples.keys():
-        report_dir = report_dir_format % {"proj": proj}
-        shell("cp %s %s/" % (__snakefile__, report_dir))
-        shell("cp %s %s/" % ("requirements.txt", report_dir))
-        shell("cp %s %s/" % ("dag.svg", report_dir))
-        shell("cp config.yaml %s/" % report_dir)
-        shell("cp %s %s" % (proj + "/freebayes/*vcf", report_dir))
-        shell("cp %s %s" % (proj + "/vcf_filter/*vcf", report_dir))
-        if config["snpeff"]["do"]:
-            shell("cp %s %s" % ("snpEff_summary.html", report_dir))
