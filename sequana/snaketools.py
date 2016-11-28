@@ -579,7 +579,11 @@ class SequanaConfig(object):
                 target[key] = comments.CommentedMap(
                     self._recursive_update(target[key], data[key]))
             else:
-                target[key] = value
+                try:
+                    target[key] = value
+                except KeyError:
+                    msg = "%s not found in your config file" % key
+                    raise KeyError(msg)
         return target
 
     def _update_yaml(self):
@@ -778,7 +782,7 @@ class PipelineManager(object):
 
             if "input_extension" in cfg.config.keys() and \
                     cfg.config['input_extension'] not in (None, ""):
-                glob_dir = directory + os.sep + cfg.config['input_extension']
+                glob_dir = directory + os.sep + "*"+cfg.config['input_extension']
             else:
                 glob_dir = directory + os.sep + pattern
         # otherwise, the input_pattern can be used

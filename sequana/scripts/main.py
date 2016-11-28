@@ -630,6 +630,9 @@ def sequana_init(options):
             elif param.count(":") == 3:
                 k1,k2,k3,v = param.split(":")
                 cfg.config[k1][k2][k3] = v
+
+    # important to update yaml with content of config
+    cfg._update_yaml()
     cfg.save(config_filename)
 
 
