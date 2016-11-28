@@ -60,7 +60,7 @@ expected_output.extend(expand(__fastq_stats_samples__output_done, sample=manager
 if manager.config.bwa_mem_phix.do:
     # Mapping input / output
     __bwa_mem_phix__input = __data__input
-    __bwa_mem_phix__ref_input = config["bwa_mem_phix"]["reference"]
+    __bwa_mem_phix__ref_input = config["bwa_mem_phix"]["reference_file"]
     __bwa_mem_phix__reference = manager.getname("reference",".fasta")
     __bwa_mem_phix__mem_output = manager.getname("bwa_mem_phix", ".bam")
     __bwa_mem_phix__sort_output = manager.getname("bwa_mem_phix", ".sorted.bam")
@@ -128,7 +128,7 @@ if manager.config.adapter_removal.do:
         else:
             __cutadapt__rev = manager.config.adapter_removal.rev
 
-        __cutadapt__design = manager.config.adapter_removal.design
+        __cutadapt__design = manager.config.adapter_removal.design_file
         __cutadapt__design_adapter = manager.config.adapter_removal.adapter_type
         __cutadapt__options = manager.config.adapter_removal.options
         __cutadapt__mode = manager.config.adapter_removal.mode
@@ -246,7 +246,7 @@ onsuccess:
         shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
         shell('cp -r %s/fastq_stats*/ %s' % (proj, report_dir))
         shell('cp -r %s/bwa_bam_to_fastq/ %s' % (proj, report_dir))
-        shell('rm -f %s/bwa_bam_to_fastq/*fastq ' % (report_dir))
+        #shell('rm -f %s/bwa_bam_to_fastq/*fastq ' % (report_dir))
 
         # Copy the fastq files 
         if manager.config.adapter_removal.do:
@@ -260,15 +260,14 @@ onsuccess:
             output_filename="summary.html", 
             snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
             manager=manager)
-        # This is probably not needed and buggy anymway. creates a report/ in
-        # the top tree directory indeed
-        #summary.copy_images_to_report(proj + "/*/images/*png")
         summary.create_report()
 
         # Create a cleanup python file to clean a sub-directory
         sm.create_cleanup(proj)
 
-    try: shell("sequana_summary -m")
+    try: 
+        print("Create multi summary file")
+        shell("sequana_summary -m")
     except: pass
 
 
