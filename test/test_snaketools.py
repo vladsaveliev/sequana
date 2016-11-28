@@ -61,7 +61,6 @@ def test_valid_config():
 
     s = snaketools.Module("quality_control")
     config = snaketools.SequanaConfig(s.config)
-    config.check({})
 
     from easydev import TempFile
     with TempFile() as fh:
@@ -71,10 +70,10 @@ def test_sequana_config():
     s = snaketools.Module("quality_control")
     config = snaketools.SequanaConfig(s.config)
 
-    assert config.get("kraken:database_directory") is None
-    assert config.get("kraken:database_directory", "test") == "test"
-    assert config.get("kraken:dummy", "test") == "test"
-    assert config.get("kraken:dummy") == None
+    #assert config.config.get("kraken:kraken_database_directory") == '%(kraken_database_directory)s'
+    #assert config.config.get("kraken:kraken_database_directory", "test") == "test"
+    assert config.config.get("kraken:dummy", "test") == "test"
+    assert config.config.get("kraken:dummy") == None
 
 
 def test_file_name_factory():
