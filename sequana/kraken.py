@@ -23,8 +23,6 @@ from easydev import execute, TempFile
 
 import pandas as pd
 
-import pylab
-
 from sequana.misc import wget
 from sequana import sequana_config_path
 
@@ -328,6 +326,7 @@ x!="description"] +  ["description"]]
         .. seealso:: to generate the data see :class:`KrakenPipeline`
             or the standalone application **sequana_taxonomy**.
         """
+        import pylab
         if self._data_created == False:
             self.kraken_to_krona()
 
@@ -435,7 +434,7 @@ class KrakenPipeline(object):
 
     def run(self):
         """Run the analysis using Kraken and create the Krona output"""
-
+        import pylab
         # Run Kraken (KrakenAnalysis)
         kraken_results = self.output_directory + os.sep + "kraken.out"
         self.ka.run(output_filename=kraken_results)
@@ -445,8 +444,7 @@ class KrakenPipeline(object):
         self.kr = KrakenResults(kraken_results, verbose=self.verbose)
 
         df = self.kr.plot(kind="pie")
-        from pylab import savefig
-        savefig(self.output_directory + os.sep + "kraken.png")
+        pylab.savefig(self.output_directory + os.sep + "kraken.png")
 
         kraken_out_summary = self.output_directory + os.sep + "kraken.out.summary"
         self.kr.kraken_to_krona(output_filename=kraken_out_summary)
