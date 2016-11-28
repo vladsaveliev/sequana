@@ -43,10 +43,14 @@ import shutil
 
 from easydev import get_package_location as gpl
 from easydev import load_configfile, AttrDict
-import pylab
+
+
+import ruamel.yaml
+from ruamel.yaml import comments
 
 from sequana.misc import wget
 from sequana import sequana_data
+from sequana.errors import SequanaException
 
 __all__ = ["DOTParser", "FastQFactory", "FileFactory",
            "Module", "PipelineManager", "SnakeMakeStats",
@@ -97,6 +101,7 @@ class SnakeMakeStats(object):
 
     def plot(self, fontsize=16):
         """Create the barplot from the stats file"""
+        import pylab
         from pandas import DataFrame
         pylab.clf()
         df = DataFrame(self._parse_data()['rules'])
@@ -114,6 +119,7 @@ class SnakeMakeStats(object):
 
     def plot_and_save(self, filename="snakemake_stats.png",
                       outputdir="report"):
+        import pylab
         self.plot()
         pylab.savefig(outputdir + os.sep + filename)
 
@@ -477,9 +483,8 @@ modules = _get_modules_snakefiles()
 pipeline_names = [m for m in modules if Module(m).is_pipeline()]
 
 
-
 class SequanaConfig(object):
-    """Reads YAML (or json) config file and ease access to its contents
+    """Reads YAML config file and ease access to its contents
 
     This can also be used to check the validity of the config file
 
@@ -502,31 +507,39 @@ class SequanaConfig(object):
     replace  None with empty strings, which is probably what was expected from
     the user. Similarly, in snakemake when settings the config file, one
     can override a value with a False but this is interepted as "False"
-    This will transform back the "True" into True
+    This will transform back the "True" into True.
 
     """
     def __init__(self, data=None, test_requirements=True,
                  converts_none_to_str=True, mode="NGS"):
-        """Could be a json or a yaml
+        """Could be a JSON or a YAML file
 
-        :param str filename: filename to a config file in json or yaml format.
+        :param str filename: filename to a config file in json or YAML format.
 
         mode NGS means the following fields are expected: project, sample,
         file1, file2
         """
+        # Create a dummy YAML code to hold data in case the input is a json
+        # or a dictionary structure.
         if data is None:
-            config = None
             self.config = AttrDict()
             mode = "others"
+            self._yaml_code = comments.CommentedMap()
         elif isinstance(data, str):
             if os.path.exists(data):
+                if data.endswith(".yaml"):
+                    self._yaml_code = ruamel.yaml.load(open(data, "r").read(),
+                                                ruamel.yaml.RoundTripLoader)
+                else:
+                    raise NotImplementedError(
+                            "JSON not supported, please use a YAML file")
                 config = load_configfile(data)
             else:
                 raise IOError("input string must be an existing file")
-
             self.config = AttrDict(**config)
-        else:
+        else: # a dictionary ?
             self.config = AttrDict(**data)
+            self._yaml_code = comments.CommentedMap(self.config.copy())
 
         if converts_none_to_str and mode == "NGS":
             self._set_none_to_empty_string(self.config)
@@ -534,7 +547,7 @@ class SequanaConfig(object):
         self._converts_boolean(self.config)
 
         if test_requirements and mode == "NGS":
-            requirements = ["input_directory", 
+            requirements = ["input_directory",
                             "input_samples",
                             "input_extension",
                             "input_pattern",
@@ -546,62 +559,34 @@ class SequanaConfig(object):
                     "Your config must contain %s" % this
 
     def save(self, filename="config.yaml"):
-        """Export config into YAML file
+        """Save the yaml code in _yaml_code with comments"""
+        # This works only if the input data was a yaml
+        self.cleanup() # this changes the config and yaml_code to remove %()s
 
-        Save the config file into a config file in YAML format.
-        The initial input file is in JSON format
-        """
-        # Using yaml.dump, the cases with arguments starting with - prevents
-        # yaml.dump to understand that it is a field and so quotes are missing.
-        # So we do it by hand assuming two levels at most
+        # get the YAML formatted code and save it
+        newcode = ruamel.yaml.dump(self._yaml_code,
+                    Dumper=ruamel.yaml.RoundTripDumper,
+                    default_style="", block_seq_indent=4)
 
-        # We do not put quotes except when we find a space, a % (e.g for
-        # templating with "%(param)s" case, a \\ (e.g. bwa_ref case)
-        txt = ""
+        with open(filename, "w") as fh:
+            fh.write(newcode)
 
-        def special(string):
-            if isinstance(string, str) is False:
-                return False
-            if " " in string:
-                return True
-            if "%" in string or "\\" in string:
-                return True
-            return False
-
-        for k1 in sorted(self.config.keys()):
-            v1 = self.config[k1]
-            if isinstance(v1, dict):
-                txt += "%s:\n" % k1
-                for k2, v2 in v1.items():
-                    if isinstance(v2, dict):
-                        txt += "    %s:\n" % k2
-                        for k3, v3 in v2.items():
-                            if special(v3):
-                                txt += "        %s: '%s'\n" % (k3, v3)
-                            else:
-                                txt += "        %s: %s\n" % (k3, v3)
-                    elif isinstance(v2, list):
-                        txt += "    %s: '%s'\n" % (k2, self.config[k1][k2])
-                    else:
-                        if special(v2):
-                            txt += '    %s: "%s"\n' % (k2, v2)
-                        else:
-                            txt += '    %s: %s\n' % (k2, v2)
-            elif isinstance(v1, list):
-                txt += "%s:\n" % k1
-                for item in self.config[k1]:
-                    if special(item):
-                        txt += "    - '%s'\n" % item
-                    else:
-                        txt += "    - %s\n" % item
+    def _recursive_update(self, target, data):
+        # recursive update of target using data. Both target and data must have
+        # same items
+        for key, value in data.items():
+            if isinstance(value, dict):
+                target[key] = comments.CommentedMap(
+                    self._recursive_update(target[key], data[key]))
             else:
-                if special(v1):
-                    txt += '%s: %s\n' % (k1, v1)
-                else:
-                    txt += '%s: "%s"\n' % (k1, v1)
-            txt += "\n"
-            with open(filename, "w") as fout:
-                fout.write(txt)
+                target[key] = value
+        return target
+
+    def _update_yaml(self):
+        self._recursive_update(self._yaml_code, self.config)
+
+    def _update_config(self):
+        self._recursive_update(self.config, self._yaml_code)
 
     def _converts_boolean(self, subdic):
         for key, value in subdic.items():
@@ -624,12 +609,8 @@ class SequanaConfig(object):
                     subdic[key] = ""
         return subdic
 
-    @staticmethod
-    def from_dict(dic):
-        return SequanaConfig(dic)
-
     def check(self, requirements_dict):
-        """a dcitionary in the form
+        """a dictionary in the form
 
         ::
 
@@ -643,8 +624,9 @@ class SequanaConfig(object):
                 - subparam2:
                     - subparam3: 10
 
-
         """
+        raise NotImplementedError
+        # will be removed
         dd = requirements_dict
 
         # check that each field request is present
@@ -670,15 +652,16 @@ class SequanaConfig(object):
 
         The idea here is to ease the retrieval of a field in a config file
         (YAML). The underlying data is a dictionary so one could type
-        e.g self.config['level1']['level2']. Here, we can type 
+        e.g self.config['level1']['level2']. Here, we can type
         self.get("level1:level2", default_value).
 
         :param field: a string level1:level2
-        :param cfg: by default, the config contain in this instance, 
+        :param cfg: by default, the config contain in this instance,
             but one may provide another one.
 
         .. warning:: only 2 levels accepted.
         """
+        raise NotImplementedError('to be removed')
         if cfg is None:
             cfg = self.config
         if ":" in field:
@@ -696,24 +679,31 @@ class SequanaConfig(object):
                 return default
 
     def cleanup(self):
-        # assuming only 2 levels strip strings and remove the templates
-        # such as %(input_directory)s
-        for k1,v1 in self.config.items():
+        # assuming only 2 levels strip strings. Remove the templates
+        #  %(input_directory)s and set all empty strings to None
+
+        for k1,v1 in self._yaml_code.items():
             if isinstance(v1, dict):
-                for k2,v2 in self.config[k1].items():
+                for k2,v2 in self._yaml_code[k1].items():
                     if isinstance(v2, str) and "%(" in v2:
-                        self.config[k1][k2] = ""
+                        self._yaml_code[k1][k2] = None
                     elif isinstance(v2, str):
-                        self.config[k1][k2] = v2.strip()
+                        if len(v2.strip()):
+                            self._yaml_code[k1][k2] = v2.strip()
+                        else:
+                            self._yaml_code[k1][k2] = None
             elif isinstance(v1, str) and "%(" in v1:
-                self.config[k1] = ""
+                self._yaml_code[k1] = None
             elif isinstance(v1, str):
-                self.config[k1] = v1.strip()
+                if len(v1.strip()):
+                    self._yaml_code[k1] = v1.strip()
+                else:
+                    self._yaml_code[k1] = None
+        self._update_config()
 
     def copy_requirements(self, target):
-        print(target)
-        if 'requirements' in self.config.keys():
-            for requirement in self.config.requirements:
+        if 'requirements' in self._yaml_code.keys():
+            for requirement in self._yaml_code['requirements']:
                 if requirement.startswith('http') is False:
                     print('Copying %s from sequana' % requirement)
                     shutil.copy(sequana_data(requirement, "data"), target)
@@ -762,9 +752,7 @@ class PipelineManager(object):
     and "{sample}/rulename/{sample}". See the following methods :meth:``
 
 
-    The methods:
-
-    See Developer Guide for details.
+    For developers: the config attribute should use for getter only
 
     """
     def __init__(self, name, config, pattern="*.fastq.gz"):
@@ -778,18 +766,37 @@ class PipelineManager(object):
         cfg = SequanaConfig(config)
         cfg.config.pipeline_name = name
 
-        # Default mode is the glob/pattern. 
-        if cfg.config.input_directory.strip():
-            glob_dir = cfg.config.input_directory + os.sep + \
-                        "*" + cfg.get('input_extension', pattern)
+        # Default mode is the input directory .
+        if "input_directory" not in cfg.config.keys():
+            self.error("input_directory must be found in the config.yaml file")
+
+        # First, one may provide the input_directory field
+        if cfg.config.input_directory:
+            directory = cfg.config.input_directory.strip()
+            if os.path.isdir(directory) is False:
+                self.errror("The (%s) directory does not exist." % directory)
+
+            if "input_extension" in cfg.config.keys() and \
+                    cfg.config['input_extension'] not in (None, ""):
+                glob_dir = directory + os.sep + cfg.config['input_extension']
+            else:
+                glob_dir = directory + os.sep + pattern
+        # otherwise, the input_pattern can be used
         elif cfg.config.input_pattern:
             glob_dir = cfg.config.input_pattern
-        else:
+        # otherwise file1
+        elif cfg.config.input_samples.file1:
             glob_dir = [cfg.config.input_samples.file1]
             if cfg.config.input_samples.file2:
                 glob_dir += [cfg.config.input_samples.file2]
+        # finally, if none were provided, this is an error
+        else:
+            self.error("No valid input provided in the config file")
+
 
         self.ff = FastQFactory(glob_dir)
+        if self.ff.filenames == 0:
+            self.error("No files were found.")
 
         R1 = [1 for this in self.ff.filenames if "_R1_" in this]
         R2 = [1 for this in self.ff.filenames if "_R2_" in this]
@@ -835,6 +842,12 @@ class PipelineManager(object):
         # finally, keep track of the config file
         self.config = cfg.config
 
+    def error(self, msg):
+        msg += ("\nPlease check the content of your config file. You must have "
+                "input_directory set, or input_pattern, or input_samples:file1 "
+                "(and optionally input_samples:file2).")
+        raise SequanaException(msg)
+
     def getname(self, rulename, suffix=None):
         """Returns basename % rulename + suffix"""
         if suffix is None:
@@ -876,7 +889,6 @@ class PipelineManager(object):
             else:
                 raise FileNotFoundError("%s not found" % file2)
         return filenames
-
 
 
 def message(mes):
@@ -1034,7 +1046,7 @@ class FileFactory(object):
             except:
                 print("Recursive glob does not work in Python 2.X. Do not use **")
                 self._glob = glob.glob(pattern)
-                
+
         # a list of files
         elif isinstance(pattern, list):
             for this in pattern:
@@ -1119,7 +1131,7 @@ class FastQFactory(FileFactory):
         len(ff)
 
     """
-    def __init__(self, pattern, extension=["fq.gz", "fastq.gz"], 
+    def __init__(self, pattern, extension=["fq.gz", "fastq.gz"],
                  strict=True, verbose=False):
         """.. rubric:: Constructor
 
