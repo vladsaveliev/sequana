@@ -14,12 +14,12 @@ rule mark_duplicates:
         bam = __mark_duplicates__output,
         metrics = __mark_duplicates__metrics
     log:
-        __mark_duplicates__log
+        out = __mark_duplicates__log_std,
+        err = __mark_duplicates__log_err
     params:
         options = config["mark_duplicates"]["options"]
     shell:
         """
         picard MarkDuplicates I={input} \
-        O={output.bam} M={output.metrics} > {log} 2>&1
-        samtools index {output.bam}
+        O={output.bam} M={output.metrics} > {log.out} 2> {log.err}
         """
