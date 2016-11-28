@@ -32,6 +32,21 @@ sequana_coverage
 
 :Description: Show coverage and interval of confidence to identify under and
     over represented genomic regions.
+:Help: please use sequana_coverage --help
+
+
+Starting from a BED file and its reference, one can use this command in a
+shell::
+
+    sequana_coverage  --input JB409847.sorted.bed -o
+                      --reference JB409847.fa --show-html
+
+It creates an HTML reports with various images showing the coverage and GC
+versus coverage plots. It also provides a set of CSV files with low or high
+coverage regions (as compared to the average coverage).
+
+.. seealso:: the underlying algorithm is described in details in the documentation
+    (:mod:`sequana.bedtools.GenomeCov`).
 
 
 sequana_summary

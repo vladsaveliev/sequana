@@ -23,8 +23,6 @@ from easydev import execute, TempFile
 
 import pandas as pd
 
-import pylab
-
 from sequana.misc import wget
 from sequana import sequana_config_path
 
@@ -80,7 +78,7 @@ class KrakenResults(object):
             class Taxonomy(object):
                 from sequana import sequana_data # must be local
                 df = pd.read_csv(sequana_data("test_taxon_rtd.csv"),
-                    index_col=0)
+                        index_col=0)
                 def get_lineage_and_rank(self, x):
                     # Note that we add the name as well here
                     ranks = ['kingdom', 'phylum', 'class', 'order',
@@ -107,7 +105,9 @@ class KrakenResults(object):
         # that is superkingdom, kingdom, phylum, class, order, family, genus and
         # species
         ranks = ('kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
-        lineage = [self.tax.get_lineage_and_rank(x) for x in ids]
+
+        if isinstance(ids, int):
+            ids = [ids]
 
         if len(ids) == 0:
             return pd.DataFrame()
@@ -118,6 +118,7 @@ class KrakenResults(object):
         if isinstance(ids, list) is False:
             ids = [ids]
 
+        lineage = [self.tax.get_lineage_and_rank(x) for x in ids]
         # Now, we filter each lineage to keep only relevant ranks
         # We drop the 'no rank' and create a dictionary
         # Not nice but works for now
@@ -325,6 +326,7 @@ x!="description"] +  ["description"]]
         .. seealso:: to generate the data see :class:`KrakenPipeline`
             or the standalone application **sequana_taxonomy**.
         """
+        import pylab
         if self._data_created == False:
             self.kraken_to_krona()
 
@@ -432,7 +434,7 @@ class KrakenPipeline(object):
 
     def run(self):
         """Run the analysis using Kraken and create the Krona output"""
-
+        import pylab
         # Run Kraken (KrakenAnalysis)
         kraken_results = self.output_directory + os.sep + "kraken.out"
         self.ka.run(output_filename=kraken_results)
@@ -442,8 +444,7 @@ class KrakenPipeline(object):
         self.kr = KrakenResults(kraken_results, verbose=self.verbose)
 
         df = self.kr.plot(kind="pie")
-        from pylab import savefig
-        savefig(self.output_directory + os.sep + "kraken.png")
+        pylab.savefig(self.output_directory + os.sep + "kraken.png")
 
         kraken_out_summary = self.output_directory + os.sep + "kraken.out.summary"
         self.kr.kraken_to_krona(output_filename=kraken_out_summary)

@@ -73,6 +73,20 @@ This may be solved by re-installation graphviz using the main anaconda channel
 
     conda install --override-channels -c anaconda graphviz=2.38.0 
 
+matplotlib
+~~~~~~~~~~~~~~~~~
+
+If you get errors related to the X connection, you may need to change the
+backend of matplotlib. To do so, go in your home directory and in this directory
+
+    /home/user/.config/matplotlib ,
+
+add a file called **matplotlibrc** with the following content::
+
+    backend: Agg
+
+Save, exit the shell, start a new shell.
+
 
 Expected input format
 ----------------------------

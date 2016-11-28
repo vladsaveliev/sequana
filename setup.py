@@ -62,9 +62,9 @@ setup(
     # pillow, sphinx-gallery and numpydoc are  for the doc only
     # mock is for the test only
     install_requires = ["easydev>=0.9.28", "reports>=0.2.0", "matplotlib",
-        "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14", "biokit>=0.3.2", 
+        "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14", "biokit>=0.3.2",
         "pysam", "pyVCF", "docutils", "sphinx-gallery", "mock", "numpydoc", "pillow",
-        "blist", "sphinx", "pyyaml"],
+        "blist", "sphinx", "pyyaml", "ruamel.yaml"],
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively

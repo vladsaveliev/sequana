@@ -8,12 +8,12 @@
 # use it, otherwise use input_samples.
 # If input_extension provided, use it otherwise assume fastq.gz
 # ============================================================================
-input_directory:
-input_extension:
-input_pattern:
+input_directory: "%(input_directory)s"
+input_extension: "%(input_extension)s"
+input_pattern: "%(input_pattern)s"
 input_samples:
-    file1:
-    file2:
+    file1: "%(file1)s"
+    file2: "%(file2)s"
 
 # if files are required for a pipeline and are within sequana or should
 # # be downloaded before the pipeline provide them in this section
@@ -32,8 +32,6 @@ fastq_sampling:
     N: 2500
 
 # =========================================== Sections related to external tools
-
-
 fastqc:
     options: "--nogroup"
 
@@ -44,7 +42,7 @@ fastqc:
 ##################################################################
 bwa_mem_phix:
     do: yes
-    reference: "phiX174.fa"
+    reference_file: "phiX174.fa"
     index:
         options: '-a is'
     mem:
@@ -63,17 +61,17 @@ bwa_mem_phix:
 adapter_removal:
     do: yes
     tool: cutadapt
-    design:
-    adapter_type:
+    adapter_type: ""  # None, PCRFree, Nextera
+    design_file:
     fwd:
     rev:
     m: 20   # cutoff
     mode: "b"   # g for 5' adapter, a for 3' and b for both 5'/3'
-    quality: 30
     options: "-O 6 --trim-n"
+    quality: 30
 
 ########################################################### Kraken
 # For taxonomy. Used in quality_control pipeline
 kraken:
     do: False
-    database_directory:
+    database_directory:  "%(kraken_database_directory)s"

@@ -8,6 +8,8 @@ Changelog
 
 * CHANGES:
 
+    - fastqc.histogram_sequence_lengths (log2 scale to log10)
+    - multi_summary fixed and available for the quality_control pipeline
     - sequana_compressor: add --keep-going option by default so that if a file
       fails, other independent files are processed.
     - snaketools:
@@ -16,6 +18,7 @@ Changelog
           - remove deprecated __get_tagname
           - remove ExpandedSnakefile since not required anymore
           - Fix sample_file2 option that was not encoded properly
+          - PipelineManager and SequanaConfig use new yaml parser
     - sequana_coverage: -- add back the sample name as prefix of the HTML report
       name -- a BED with two coverage columns is now accepted --
       --download-genbank option added
@@ -23,6 +26,12 @@ Changelog
     - Simplify combos of input_directory, input_patter, input_samples, the new
       possible mutually exclusive input parameters of sequana standalone and all
       pipelines.
+
+* BUGS:
+
+    - Kraken: if no reads classified at all, errors were raised and
+      quality_control summary report would fail. This is fixed now with a "nodata"
+      image being shown.
 
 * NEWS
 

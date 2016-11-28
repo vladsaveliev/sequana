@@ -60,7 +60,7 @@ rule cutadapt:
     run:
         executable = config['adapter_removal']['tool'] # could be cutadapt or atropos
 
-        if config['adapter_removal']['design']:
+        if config['adapter_removal']['design_file']:
             from sequana import FindAdaptersFromIndex
             sample = params.sample.split("_")[0]
             fa = FindAdaptersFromIndex(params.design, params.design_adapter)
