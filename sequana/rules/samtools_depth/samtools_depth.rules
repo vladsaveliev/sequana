@@ -22,5 +22,4 @@ rule samtools_depth:
     shell:
         """
         samtools depth -aa {input} > {output} 2> {log}
-        samtools index {output}
         """
