@@ -38,9 +38,9 @@ class SnpEff(object):
     def __init__(self, reference, file_format="", log=None):
         """
 
-        :param vcf_filename: the input vcf file.
         :param reference: annotation reference.
-        :param file_format: format of your file. ('genbank'/'gff3'/'gtf22')
+        :param file_format: format of your file. ('only genbank actually')
+        :param log: log file
         """
         self.log_file = log
         if log is not None:
@@ -138,20 +138,27 @@ class SnpEff(object):
             print("snpEff build return a non-zero code")
             sys.exit(rc)
 
-    def launch_snpeff(self, vcf_filename, output, options=""):
-        """ Launch snpEff
+    def launch_snpeff(self, vcf_filename, output, html_output=None,
+                      options=""):
+        """ Launch snpEff.
         
+        :param vcf_filename: 
         """
-        args_ann = ["snpEff", "-formatEff", options, self.ref_name, 
-                vcf_filename]
-        filout = open(output, "wb")
+        # Create command line for Popen
+        args_ann = ["snpEff", "eff"]
+        if html_output is not None:
+            args_ann += ["-s", html_output]
+        args_ann += [options, self.ref_name, vcf_filename]
+
+        # Launch snpEff
         try:
-            with open(self.log_file, "ab") as fl:
+            with open(self.log_file, "ab") as fl, open(output, "wb") as fp:
                 proc_ann = sp.Popen(args_ann, stdout=fp, stderr=fl)
                 proc_ann.wait()
         except TypeError:
-            proc_ann = sp.Popen(args_ann, stdout=fp)
-            proc_ann.wait()
+            with open(output, "wb") as fp:
+                proc_ann = sp.Popen(args_ann, stdout=fp)
+                proc_ann.wait()
 
     def _get_seq_ids(self):
         # genbank case
