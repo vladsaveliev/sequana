@@ -388,7 +388,7 @@ or open a Python shell and type::
             Second element is the list of missing executables.
         """
         if self.requirements is None:
-            return True
+            return True, []
 
         executable = True
         missing = []
