@@ -380,7 +380,7 @@ class BAM(pysam.AlignmentFile):
         if filename:
             pylab.savefig(filename)
 
-    def barplot_to_json(self, filename):
+    def mapq_barplot_to_json(self, filename):
         """ Create json to create a canvaJS barplot.
         """
         df = self.get_mapq_as_df()
