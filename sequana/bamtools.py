@@ -30,12 +30,13 @@
 
 """
 import os
-import pandas as pd
-import pylab
-import pysam
-
 from collections import Counter
 from collections import OrderedDict
+
+import pandas as pd
+import numpy as np
+import pylab
+import pysam
 import json
 
 """
@@ -383,11 +384,13 @@ class BAM(pysam.AlignmentFile):
         """ Create json to create a canvaJS barplot.
         """
         df = self.get_mapq_as_df()
-        mapq_list = df.to_list()
+        mapq_list = df["mapq"].tolist()
         counter = Counter(mapq_list)
-        mapq_count = OrderedDict(
-            [(str(key), counter.pop(key))if key in counter else (str(key), 0)
-            for key, value in range(0, max(counter) + 1)])
+        def dict_key_value(key, value):
+            return OrderedDict([("label", key), ("y", value)])
+        mapq_count = [dict_key_value(key, np.log10(counter.pop(key)))
+                      if key in counter else dict_key_value(key, 0) for key in
+                      range(max(counter) + 1)]
         return json.dumps(mapq_count)
 
     @seek
