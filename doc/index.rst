@@ -6,12 +6,15 @@ Sequana documentation
 
 .. raw:: html
 
-    <div style="width:40%">
-    <a href="https://pypi.python.org/pypi/sequana"> <img src="https://badge.fury.io/py/sequana.svg"></a> 
+    <div style="width:80%"><p>    <a href="https://pypi.python.org/pypi/sequana"> <img src="https://badge.fury.io/py/sequana.svg"></a> 
     <a href="https://travis-ci.org/sequana/sequana"> <img src="https://travis-ci.org/sequana/sequana.svg?branch=master"></a>
     <a href="https://coveralls.io/github/sequana/sequana?branch=master"> <img src="https://coveralls.io/repos/github/sequana/sequana/badge.svg?branch=master"></a>
-    <a href="http://sequana.readthedocs.org/en/master/?badge=master"> <img src="http://readthedocs.org/projects/sequana/badge/?version=master"></a>
+    <a href="http://sequana.readthedocs.org/en/master/?badge=master"> <img src="http://readthedocs.org/projects/sequana/badge/?version=master"></a> 
+    </p><p>
+    <a href="https://microbadger.com/images/cokelaer/sequana"> <img src="https://images.microbadger.com/badges/image/cokelaer/sequana.svg"> </a> 
+    <a href="https://microbadger.com/images/cokelaer/sequana"> <img src="https://images.microbadger.com/badges/version/cokelaer/sequana.svg"> </a></p>
     </div>
+
 
 :Python version: Python 3.5 although some modules are Python2.7 compatible
 :Source: See  `http://github.com/sequana/sequana <https://github.com/sequana/sequana/>`_.
@@ -87,7 +90,7 @@ install everything in one go)::
     (Snakemake) is only available for Python 3.5. However, many core
     functionalities would work under Python 2.7
 
-.. note:: We also provide a docker file with release 0.11 of Sequana pre-installed.
+.. note:: We also provide a docker file with release >=0.14 of Sequana pre-installed.
     Please see https://github.com/sequana/sequana/tree/master/docker for
     details.
 
