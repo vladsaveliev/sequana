@@ -34,6 +34,10 @@ import pandas as pd
 import pylab
 import pysam
 
+from collections import Counter
+from collections import OrderedDict
+import json
+
 """
 #http://www.acgt.me/blog/2014/12/16/understanding-mapq-scores-in-sam-files-does-37-42#
 #http://biofinysics.blogspot.fr/2014/05/how-does-bowtie2-assign-mapq-scores.html
@@ -374,6 +378,17 @@ class BAM(pysam.AlignmentFile):
             pass
         if filename:
             pylab.savefig(filename)
+
+    def barplot_to_json(self, filename):
+        """ Create json to create a canvaJS barplot.
+        """
+        df = self.get_mapq_as_df()
+        mapq_list = df.to_list()
+        counter = Counter(mapq_list)
+        mapq_count = OrderedDict(
+            [(str(key), counter.pop(key))if key in counter else (str(key), 0)
+            for key, value in range(0, max(counter) + 1)])
+        return json.dumps(mapq_count)
 
     @seek
     def get_gc_content(self):
