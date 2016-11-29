@@ -1,12 +1,12 @@
 
 
 input_directory: "%(input_directory)s"
-pattern: "%(pattern)s"
-
+input_pattern: "%(input_pattern)s"
+input_extension: "%(input_extension)s"
 # =========================================== Sections for the users
 
 # list of your input file
-samples:
+input_samples:
     file1: "%(file1)s"
     file2: "%(file2)s"
 

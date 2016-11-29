@@ -384,12 +384,14 @@ or open a Python shell and type::
         introspectied to check if all executables are available;
 
         :param verbose:
-        :return: a boolean
+        :return: a tuple. First element is a boolean to tell if it executable.
+            Second element is the list of missing executables.
         """
         if self.requirements is None:
             return True
 
         executable = True
+        missing = []
         import easydev
 
         # reads the file and interpret it to figure out the
@@ -426,23 +428,24 @@ or open a Python shell and type::
                     if verbose:
                         print("%s not found !!" % req)
                     executable = False
+                    missing.append(req)
                 else:
                     if verbose:
                         print("%s python package" % req)
-        return executable
+        return executable, missing
 
     def check(self, mode="warning"):
-        if self.is_executable(verbose=False):
-            #print("All requirements fulfilled for %s pipeline/rule." % self._name)
-            return
-        else:
-            self.is_executable(verbose=True)
+        executable, missing = self.is_executable(verbose=False)
+        if executable is False:
+            _  = self.is_executable(verbose=True)
             txt = "Some executable or Python packages are not available:\n"
             txt += "Some functionalities may not work "
             if mode == "warning":
                 print(txt)
             elif mode == "error":
-                txt += "Use \n conda install missing_package_name"
+                txt += "Use \n conda install missing_package_name;"
+                for this in missing:
+                    txt += "- %s\n" % this
                 raise ValueError(txt)
 
     def _get_description(self):

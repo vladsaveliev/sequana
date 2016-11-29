@@ -3,7 +3,7 @@
 For end-users
 ----------------
 
-In order to allows anyone to use **Sequana** without needs for complex installation, we provide a 
+In order to allows anyone to use **Sequana** without needs for complex installation, we provide a
 `Docker <https://www.docker.com/>` image. It is synchronized on the *master*
 branch on the source code, which means on official releases.
 
