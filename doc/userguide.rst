@@ -5,10 +5,11 @@ User Guide
 
 **Sequana** provides standalone applications (e.g., **sequana_coverage**,
 **sequana_taxonomy**) and pipelines in the form of Snakefiles. Although the standalone
-applications are usually simpler, they do not have all features or flexibilities offered by the
-pipelines.
+applications are usually simpler, they may not have all features or parameters
+offered by the pipelines.
 
-The :ref:`Tutorial`, :ref:`pipelines`, :ref:`Gallery` and :ref:`case_examples` sections provide many examples on their usage. 
+The :ref:`Tutorial`, :ref:`pipelines`, :ref:`Gallery` and :ref:`case_examples` 
+sections provide many examples on their usage. 
 
 
 This section will not describe all available standalones and pipelines.

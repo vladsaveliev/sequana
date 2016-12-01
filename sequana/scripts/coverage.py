@@ -108,6 +108,8 @@ Issues: http://github.com/sequana/sequana
             viruses or bacteria), set to True""")
 
         group = self.add_argument_group("General")
+        group.add_argument("--output-directory", dest="output_directory",
+            default="report", help="name of the output (report) directory.")
         group.add_argument('--show', dest="show", default=False,
             action='store_true', help="""Show the pictures (matplotlib)""")
         group.add_argument('--show-html', dest="show_html", default=False,
@@ -255,8 +257,10 @@ def main(args=None):
 
     chrom.running_median(n=options.w_median, circular=options.circular)
 
-    stats = chrom.get_stats()
-    DOC = stats['DOC']
+    stats = chrom.get_stats(output="datagframe")
+    stats.set_index("name", inplace=True)
+
+    DOC = stats.ix['DOC'].Value
     if options.k is None and DOC < 8:
         options.k = 1
     elif options.k is None:
@@ -282,7 +286,7 @@ def main(args=None):
     c4 = chrom.get_centralness()
     chrom.thresholds = thresholds.copy()   # Get back to the original values
 
-    if options.verbose:
+    if options.verbose and chrom.thresholds:
         print(chrom.thresholds)
 
     if options.verbose:
@@ -311,11 +315,12 @@ def main(args=None):
 
     # Report chromosomes
     if options.verbose:
-        print("Creating report")
+        print("Creating report in %s" % options.output_directory)
 
-    print(options.genbank)
 
     if options.genbank:
+        if options.verbose:
+            print('Genbank: %s' % options.genbank)
         from sequana.tools import genbank_features_parser
         features = genbank_features_parser(options.genbank)
         print(features)
@@ -325,9 +330,8 @@ def main(args=None):
     if options.create_report:
         sample_name = "coverage"
         r = report_chromosome.ChromosomeMappingReport(chrom,
-                directory="report", project="coverage", 
-                sample=sample_name, features=features)
-
+                directory=options.output_directory, project="coverage", 
+                sample=sample_name, features=features, verbose=options.verbose)
 
         if options.reference:
             from snakemake import shell
@@ -336,7 +340,8 @@ def main(args=None):
 
         r.jinja['standalone_command'] = " ".join(sys.argv)
         r.create_report()
-        print("Report created. See ./report directory content and look for the HTML file. You can also use --show-html option")
+        if options.verbose:
+            print("Report created. See ./report directory content and look for the HTML file. You can also use --show-html option")
         if options.show_html:
             from easydev import onweb
             onweb("report/%s_mapping.chrom%s.html" % (sample_name,

@@ -8,7 +8,7 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 1
-_MICRO               = 14
+_MICRO               = 15
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -64,7 +64,7 @@ setup(
     install_requires = ["easydev>=0.9.28", "reports>=0.2.0", "matplotlib",
         "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14", "biokit>=0.3.2",
         "pysam", "pyVCF", "docutils", "sphinx-gallery", "mock", "numpydoc", "pillow",
-        "blist", "sphinx", "pyyaml", "ruamel.yaml"],
+        "blist", "sphinx", "ruamel.yaml>=0.13.2"],
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively

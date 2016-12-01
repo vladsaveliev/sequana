@@ -28,7 +28,7 @@ class TestPipeline(object):
         filename = sequana_data('virus.bed', 'data')
         df = summary.main([self.prog, '--file', filename])
         len(df)
-        
+
         filename = sequana_data('test.fastq', "testing")
         df = summary.main([self.prog, '--file', filename])
 

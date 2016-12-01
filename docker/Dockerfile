@@ -16,6 +16,7 @@ WORKDIR /home/sequana
 
 ENV PATH $PATH:/home/sequana/miniconda3/bin
 ENV MATPLOTLIBRC=/home/sequana
+ENV MPLBACKEND="agg"
 CMD ["/bin/bash"]
 
 
