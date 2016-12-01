@@ -19,8 +19,9 @@ Quick start
 
 For Standalones, please see:
 
-    - sequana_coverage
-    - :ref:`sequana_coverage` 
+    - sequana_coverage_
+
+.. _sequana_coverage: sequana_coverage/README.rst
 
 
 Details for end-users
