@@ -1,5 +1,5 @@
 # Sequana docker builder
-FROM sequana
+FROM cokelaer/sequana
 MAINTAINER Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
 
 
