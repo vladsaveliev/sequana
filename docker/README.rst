@@ -1,22 +1,30 @@
-Docker for **Sequana**
-=============================
+Docker images for **Sequana**
+=================================
+
+.. content::
 
 Quick start
 ----------------
 
-Sequana itself (all library, pipelines and standalone)::
+**Sequana** itself (all library, pipelines and standalones)::
 
+    # Get the docker image
     docker pull cokelaer/sequana
+    # Rename it
+    docker tag cokelaer/sequana sequana
+    sudo docker rmi cokelaer/sequana
+    # Use it
+    cd <Directory_with_bed_files>
+    docker run -v $PWD:/home/sequana/data -it sequana
 
-For Standalones, plase see::
+For Standalones, please see:
 
     - sequana_coverage
+    - :ref:`sequana_coverage` 
 
-       
 
-
-For end-users
-----------------
+Details for end-users
+---------------------------
 
 In order to allows anyone to use **Sequana** without needs for complex installation, we provide a
 `Docker <https://www.docker.com/>`_ image. It is synchronized on the *master*
