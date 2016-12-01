@@ -25,6 +25,7 @@ from biokit.stats import mixture
 
 from sequana import running_median
 from sequana.tools import gc_content
+from sequana import jsontool
 #from sequana.tools import genbank_features_parser
 
 
@@ -715,6 +716,10 @@ class ChromosomeCov(object):
             stats['GC'] = self.df['gc'].mean() * 100
 
         return stats
+
+    def get_json_stats(self):
+        stats = self.get_stats()
+        return jsontool.dict_to_json(stats)
 
 
 class FilteredGenomeCov(object):

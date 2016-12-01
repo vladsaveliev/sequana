@@ -54,4 +54,8 @@ rule mapping_analysis:
         from sequana.reporting import report_main
         from sequana.tools import genbank_features_parser
 
+        json_dict = {}
+
         bam = BAM(input.bam)
+        json_dict["bam_stats"] = bam.get_stats()
+        
