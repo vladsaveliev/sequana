@@ -1,10 +1,25 @@
+Docker for **Sequana**
+=============================
+
+Quick start
+----------------
+
+Sequana itself (all library, pipelines and standalone)::
+
+    docker pull cokelaer/sequana
+
+For Standalones, plase see::
+
+    - sequana_coverage
+
+       
 
 
 For end-users
 ----------------
 
 In order to allows anyone to use **Sequana** without needs for complex installation, we provide a
-`Docker <https://www.docker.com/>` image. It is synchronized on the *master*
+`Docker <https://www.docker.com/>`_ image. It is synchronized on the *master*
 branch on the source code, which means on official releases.
 
 

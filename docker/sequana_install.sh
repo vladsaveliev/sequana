@@ -13,7 +13,6 @@ apt-get install libpng-dev -y
 apt-get install zlib1g-dev -y
 apt-get install make -y
 apt-get install xvfb -y
-apt-get install firefox -y
 
 wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
 chmod 755 Miniconda3-latest-Linux-x86_64.sh
