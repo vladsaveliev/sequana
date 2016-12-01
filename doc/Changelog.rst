@@ -12,7 +12,10 @@ Changelog
     - coverage: https://github.com/sequana/sequana/issues/302
       add histogram, better stats table. add --output-directory
     - Update docker (add bowtie, subread, firefox)
-
+    - snaketools:
+          - empty strings are kept as empty strings (not None)
+          - remove check() method in SequanaConfig
+          - cleanup (removing of templates) ca be switch off
 
 0.1.14
 ------------
