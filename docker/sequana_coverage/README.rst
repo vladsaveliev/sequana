@@ -5,22 +5,28 @@
 This docker creates a single entry point for the sequana_coverage **standalone**.
 
 
-
-Get the docker image::
+#. Get the docker image::
 
     docker pull cokelaer/sequana_coverage
 
+#. To get some help::
 
-
-Assuming you have a BED file in your local directory (pwd), type::
 
     docker run --user 1000 -v $(pwd):/home/sequana/data -w /home/sequana/data -it sequana_coverage
 
-to get some help, or type::
+#. Analyse a BED file and create a report
+
+Assuming that:
+
+#. you have a BED file in your local directory (pwd)
+#. Your bed file is named *JB409847.bed*
 
     docker run --user 1000 -v $(pwd):/home/sequana/data -w /home/sequana/data -it sequana_coverage --input *JB409847.bed*
 
-to analyse the local file named *JB409847.bed*
+You may want to create an alias::
+
+    alias sequana_cov = "docker run --user 1000 -v $(pwd):/home/sequana/data -w /home/sequana/data -it sequana_coverage"
+
 
 
 

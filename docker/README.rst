@@ -5,15 +5,22 @@ Docker images for **Sequana**
 
 Quick start
 ----------------
+Assuming you have installed `Docker <https://www.docker.com>`_ on your system, first login::
 
-**Sequana** itself (all library, pipelines and standalones)::
+    docker login
+
+**Sequana** itself (all library, pipelines and standalones) is provided on
+`Docker <https://www.dockerhub.com>`_ . Type those commands to install the
+image itself::
 
     # Get the docker image
     docker pull cokelaer/sequana
     # Rename it
     docker tag cokelaer/sequana sequana
     sudo docker rmi cokelaer/sequana
-    # Use it
+
+Now, Use it::
+
     cd <Directory_with_bed_files>
     docker run -v $PWD:/home/sequana/data -it sequana
 
@@ -34,10 +41,11 @@ branch on the source code, which means on official releases.
 
 Here below, we provide a quick tutorial that will guide you on using **Sequana**
 thanks to the docker. To do so, we will focus on one standalone application
-called **sequana_coverage**. In bried, the standalone takes as input a BED file
+called **sequana_coverage**. In brief, the standalone takes as input a BED file
 that contains the genome coverage of a set of mapped DNA reads onto a reference
 genome. Then, the standalone creates a report with relevant information about
-the coverage (See `Sequana documentation <sequana.readthedocs.org>`_ for details.
+the coverage (See `Sequana documentation <sequana.readthedocs.org>`_ for 
+more information).
 
 Get the docker image
 -------------------------
