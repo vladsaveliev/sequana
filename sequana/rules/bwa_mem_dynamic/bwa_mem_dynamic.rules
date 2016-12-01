@@ -7,25 +7,25 @@ input:
     ref -> reference's fastq file
 """
 
-"""
-from easydev import shellcmd
-try:
-    ret = shellcmd("which pbwa") # for IP cluster
-    bwa_exe = "pbwa"
-except:
-    ret = shellcmd("which bwa")
-    bwa_exe = "bwa"
-"""
-
-bwa_exe = "bwa"
 
 def bwa_mem_dynamic(name, project):
     metadata = {'name':name}
+
+    from easydev import shellcmd
+    try:
+        ret = shellcmd("which pbwa") # for IP cluster
+        metadata['executable'] = "pbwa"
+    except:
+        ret = shellcmd("which bwa")
+        metadata['executable'] = "bwa"
 
     bwa_mem_code = '''
 rule bwa_mem_%(name)s:
     """BWA MEM
 
+    By default uses *bwa* as the executable. If *pbwa* is available, 
+    (like on Institut Pasteur Cluster), then it is used in place of *bwa*.
+    It has the same behaviour but is a parallel version of *bwa*.
 
     """
     input:
@@ -40,7 +40,7 @@ rule bwa_mem_%(name)s:
     params:
         index = config["bwa_mem_%(name)s"]["index_algorithm"],
         mem = config["bwa_mem_%(name)s"]["options"],
-        bwa_exe = bwa_exe
+        bwa_exe = "%(executable)s"
     threads:
         int(config["bwa_mem_%(name)s"]["threads"])
     shell:

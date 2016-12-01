@@ -97,9 +97,10 @@ class ChromosomeMappingReport(BaseReport):
         # Stats of chromosome
         if self.verbose:
             print("Creating stats")
-        df = pd.Series(self.mapping.get_stats()).to_frame()
-        df.index.name = "Metric"
-        df = df.reset_index()
+        df = self.mapping.get_stats(output="dataframe")
+        #df.set_index("name", inplace=True)
+        #df.index.name = "Metric"
+        df = df[['name', 'Value', 'Description']]
         self.jinja["nc_stats"] = HTMLTable(df).to_html(index=False, header=True)
 
         # Coverage plot
@@ -107,8 +108,12 @@ class ChromosomeMappingReport(BaseReport):
             print("Creating coverage plot")
         self.jinja["cov_plot"] = "images/{0}_coverage.chrom{1}.png".format(
                 self.sample, self.chrom_index)
+        self.jinja["cov_hist"] = "images/{0}_coverage_hist.chrom{1}.png".format(
+                self.sample, self.chrom_index)
         self.mapping.plot_coverage(filename=self.directory + os.sep + 
                 self.jinja["cov_plot"])
+        self.mapping.plot_hist_coverage(filename=self.directory + os.sep +
+                self.jinja["cov_hist"])
 
         # Barplot of normalized coverage with predicted gaussians
         if self.verbose:

@@ -30,7 +30,7 @@ class Options(argparse.ArgumentParser):
 
             sequana_mapping --file1 R1.fastq --file2 R2.fastq --reference reference
 
-    This is a simple mapper for quick test. The commands ran are as follows::
+    This is a simple mapper for quick test. The commands are as follows::
 
         # Indexing
         bwa index REFERENCE

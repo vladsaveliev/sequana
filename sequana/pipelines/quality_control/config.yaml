@@ -61,14 +61,14 @@ bwa_mem_phix:
 adapter_removal:
     do: yes
     tool: cutadapt
-    adapter_type: ""  # None, PCRFree, Nextera
+    adapter_type:               # None, PCRFree, Nextera
     design_file:
     fwd:
     rev:
-    m: 20   # cutoff
+    m: 20                       # cutoff value; must be > 0
     mode: "b"   # g for 5' adapter, a for 3' and b for both 5'/3'
     options: "-O 6 --trim-n"
-    quality: 30
+    quality: 30                 # must be > 0 and < 40
 
 ########################################################### Kraken
 # For taxonomy. Used in quality_control pipeline

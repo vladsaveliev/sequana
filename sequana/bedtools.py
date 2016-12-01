@@ -216,19 +216,24 @@ class GenomeCov(object):
             chrom.df["gc"] = gc_dict[chrom.chrom_name]
             chrom._ws_gc = window_size
 
-    def get_stats(self):
+    def get_stats(self, output="json"):
         """Return basic statistics for each chromosome
 
         :return: dictionary with chromosome names as keys
             and statistics as values.
 
-
         .. seealso:: :class:`ChromosomeCov`.
         """
         stats = {}
         for chrom in self.chr_list:
-            stats[chrom.chrom_name] = chrom.get_stats()
+            stats[chrom.chrom_name] = chrom.get_stats(output=output)
         return stats
+
+    def hist(self, logx=True, logy=True, fignum=1, N=20, lw=2):
+        for chrom in self.chr_list:
+            chrom.plot_hist_coverage(logx=logx, logy=logy, fignum=fignum, N=N,
+                histtype='step', hold=True, lw=lw)
+            pylab.legend()
 
 
 class ChromosomeCov(object):
@@ -282,15 +287,17 @@ class ChromosomeCov(object):
 
 
     def __str__(self):
-        stats = self.get_stats()
-        BOC = stats['BOC']
-        CV = stats['CV']
+        stats = self.get_stats(output="dataframe")
+        stats.set_index("name", inplace=True)
+        def _getter(data, key):
+            return data.ix[key].Value
+
         txt = "\nGenome length: %s" % int(len(self.df))
-        txt += "\nSequencing depth (DOC): %8.2f " % stats['DOC']
-        txt += "\nSequencing depth (median): %8.2f " % stats['median']
-        txt += "\nBreadth of coverage (BOC): %.2f " % BOC
-        txt += "\nGenome coverage standard deviation : %8.2f " % stats['std']
-        txt += "\nGenome coverage coefficient variation : %8.2f " % CV
+        txt += "\nSequencing depth (DOC): %8.2f " % _getter(stats,'DOC')
+        txt += "\nSequencing depth (median): %8.2f " % _getter(stats, 'Median')
+        txt += "\nBreadth of coverage (BOC) (percent): %.2f " % _getter(stats,'BOC')
+        txt += "\nGenome coverage standard deviation : %8.2f " % _getter(stats,'STD')
+        txt += "\nGenome coverage coefficient variation : %8.2f " % _getter(stats,'CV')
         return txt
 
     def __len__(self):
@@ -613,6 +620,49 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
+    def plot_hist_coverage(self, logx=True, logy=True, fontsize=16, N=20,
+        fignum=1, hold=False, alpha=0.5, filename=None, **kw_hist):
+        """
+
+
+        """
+        if hold is False:
+            pylab.figure(fignum)
+            pylab.clf()
+        ax = pylab.gca()
+        ax.set_axis_bgcolor('#eeeeee')
+
+        data = self.df['cov'].values
+
+        maxcov = data.max()
+        if logx is True and logy is True:
+            bins = pylab.logspace(0, pylab.log10(maxcov), N)
+            pylab.hist(data, bins=bins, log=True, label=self.chrom_name,
+                alpha=alpha, **kw_hist)
+            pylab.semilogx()
+            pylab.xlabel("Coverage (log scale)", fontsize=fontsize)
+            pylab.ylabel("Count (log scale)", fontsize=fontsize)
+        elif logx is False and logy is True:
+            pylab.hist(data, bins=N, log=True, label=self.chrom_name,
+                alpha=alpha, **kw_hist)
+            pylab.xlabel("Coverage", fontsize=fontsize)
+            pylab.ylabel("Count (log scale)", fontsize=fontsize)
+        elif logx is True and logy is False:
+            bins = pylab.logspace(0, pylab.log10(maxcov), N)
+            pylab.hist(data, bins=N, label=self.chrom_name, alpha=alpha,
+                **kw_hist)
+            pylab.xlabel("Coverage (log scale)", fontsize=fontsize)
+            pylab.ylabel("Count", fontsize=fontsize)
+            pylab.semilogx()
+        else:
+            pylab.hist(data, bins=N, label=self.chrom_name, alpha=alpha,
+                **kw_hist)
+            pylab.xlabel("Coverage", fontsize=fontsize)
+            pylab.ylabel("Count", fontsize=fontsize)
+        pylab.grid(True)
+        if filename:
+            pylab.savefig(filename)
+
     def write_csv(self, filename, start=None, stop=None, header=True):
         """ Write CSV file of the dataframe.
 
@@ -697,25 +747,43 @@ class ChromosomeCov(object):
         pylab.grid()
         return res[0]
 
-    def get_stats(self):
+    def get_stats(self, output="json"):
         """Return basic stats about the coverage data"""
         data = self.df
 
         stats ={
             'DOC': self.df['cov'].mean(),
-            'std': self.df['cov'].std(),
-            'median': self.df['cov'].median(),
-            'BOC': sum(self.df['cov'] > 0) / float(len(self.df)) }
-        stats['CV'] = stats['std'] /  stats['DOC']
+            'STD': self.df['cov'].std(),
+            'Median': self.df['cov'].median(),
+            'BOC': 100 * sum(self.df['cov'] > 0) / float(len(self.df)) }
+        stats['CV'] = stats['STD'] /  stats['DOC']
         stats['MAD'] = np.median(abs(data['cov'].median() - data['cov']).dropna())
 
-        if 'scale' in self.df.columns:
-            MAD = np.median(abs(data['scale'].median() - data['scale']).dropna())
-            stats['MAD_normed'] = MAD
+        names = ['BOC','CV', 'DOC', 'MAD', 'Median', "STD"]
+        descriptions = [("breadth of coverage: the proportion (in %s) of the "
+            "genome covered by at least one read. "),
+            ("the coefficient of variation"),
+            ("the sequencing depth (Depth of Coverage), that is the average of"
+            "the genome coverage"),
+            ("median of the absolute median deviation median(|X-median(X)|)"),
+            ("Median of the coverage"),
+            ("standard deviation")
+        ]
+
         if 'gc' in self.df.columns:
             stats['GC'] = self.df['gc'].mean() * 100
+            names.append('GC')
+            descriptions.append("GC content in %")
 
-        return stats
+        df = pd.DataFrame({
+            "name":names, 
+            "Value":[stats[x] for x in names],
+            "Description": descriptions})
+
+        if output == "json":
+            return df.to_json()
+        else:
+            return df
 
     def get_json_stats(self):
         stats = self.get_stats()
