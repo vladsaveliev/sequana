@@ -11,6 +11,7 @@ Changelog
 
     - coverage: https://github.com/sequana/sequana/issues/302
       add histogram, better stats table. add --output-directory
+    - Update docker (add bowtie, subread, firefox)
 
 
 0.1.14

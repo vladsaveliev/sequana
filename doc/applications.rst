@@ -27,6 +27,8 @@ Valid pipelines can be found using::
 There are many more options and documentation. Please use the ``--help``
 option for more information.
 
+.. _standalone_sequana_coverage:
+
 sequana_coverage
 --------------------
 
