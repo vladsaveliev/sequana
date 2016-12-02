@@ -12,13 +12,6 @@ rule indel_realigner:
         __indel_realigner__output: bam file
         __indel_realigner__intervals: intervals file. Must have ".intervals" 
             extension.
-
-    Required parameter:
-        config["gatk_bin"]: path of the gatk bin
-        (default: "java -jar /path/to/GenomeAnalysisTK.jar" )
-
-    Contributors:
-        Sequana consortium
     """
     input:
         bam = __indel_realigner__input,
@@ -28,16 +21,16 @@ rule indel_realigner:
         bam = __indel_realigner__output,
         intervals = __indel_realigner__intervals
     log:
-        out = "logs/gatk/IndelRealigner/stdout.logs",
-        err = "logs/gatk/IndelRealigner/stderr.logs"
-    params:
-        gatk = config["gatk_bin"]
+        __indel_realigner__log
     shell:
         """
-        {params.gatk} -T RealignerTargetCreator -R {input.ref} \
-        -I {input.bam} -o {output.intervals} > {log.out} 2> {log.err}
+        # BAM must be indexed to realign INDEL
+        samtools index {input.bam}
 
-        {params.gatk} -T IndelRealigner -R {input.ref} -I {input.bam} \
-        -targetIntervals {output.intervals} -o {output.bam} >> {log.out} \
-        2>> {log.err}
+        GenomeAnalysisTK -T RealignerTargetCreator -R {input.ref} \
+        -I {input.bam} -o {output.intervals} > {log} 2>&1
+
+        GenomeAnalysisTK -T IndelRealigner -R {input.ref} -I {input.bam} \
+        -targetIntervals {output.intervals} -o {output.bam} >> {log} \
+        2>&1
         """

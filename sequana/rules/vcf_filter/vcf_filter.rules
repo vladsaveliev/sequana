@@ -16,9 +16,6 @@ rule vcf_filter:
         config["vcf_filter"]["reverse_depth"]: minimal coverage depth of reverse strand
         config["vcf_filter"]["strand_ratio"]: minimal strand ratio [0:0.5]
 
-    Contributors:
-        Sequana consortium
-
     """
     input:
         vcf = __vcf_filter__input
