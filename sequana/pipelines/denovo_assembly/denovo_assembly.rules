@@ -66,20 +66,3 @@ final_output += [expand(__quast__output, sample=manager.samples),
 rule pipeline_denovo:
     input:
         final_output
-
-onsuccess:
-    report_dir_format = "%(proj)s/report_da_%(proj)s/"
-    for proj in manager.samples.keys():
-        report_dir = report_dir_format % {"proj": proj}
-        shell("cp %s %s/" % ("requirements.txt", report_dir))
-        shell("cp %s %s/" % ("dag.svg", report_dir))
-        shell("cp %s %s/" % (__snakefile__, report_dir))
-        shell("cp config.yaml %s/" % report_dir)
-        sm.plot_stats()
-
-        if config["do_mapping_evaluation"]:
-            shell("cp %s %s" % (proj + "/freebayes/*vcf", report_dir))
-
-        shell("cp -r %s %s" % (proj + "/quast_" + proj, report_dir))
-        shell("cp %s %s" % (proj + "/format_contigs/*fasta", report_dir))
-        shell("cp %s %s" % (proj + "/spades/*fasta", report_dir))
