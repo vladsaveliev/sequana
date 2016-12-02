@@ -6,24 +6,22 @@ Data: paired end or single reads
 Run: snakemake -s variant_calling.rules
 """
 
-import sequana
-from sequana import snaketools as sm
-from sequana.snaketools import SequanaConfig
-from sequana import SnpEff
-
-# This must be defined before the include
-
 # Check if it is pipeline denovo
 try:
     manager
 except NameError:
+    import sequana
+    from sequana import snaketools as sm
+    from sequana.snaketools import SequanaConfig
+    from sequana import SnpEff
+    
+
     sm.init("variant_calling.rules", globals())
     configfile: "config.yaml"
     manager = sm.PipelineManager("variant_calling", config)
     __snakefile__ = srcdir(__snakefile__)
     final_output = []
     report_dir = manager.getreportdir("vc")
-    exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
 # If annotation file is not provided
 __report_mapping__ann = None
@@ -32,6 +30,7 @@ __report_mapping__ann_format = None
 
 __rawdata__input = manager.getrawdata()
 
+exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
 # we must check if we are in the case of denovo assembly:
 try:
