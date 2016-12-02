@@ -139,6 +139,8 @@ if config["report_mapping"]["do"]:
                                sample=manager.samples))
 
 # Variant calling
+# bai file is setup in freebayes rule for multi_copy_file rule
+__freebayes__bai = __freebayes__input + ".bai"
 __freebayes__reference = __bwa_mem_ref__reference
 __freebayes__output = manager.getname("freebayes", ".raw.vcf")
 __freebayes__log = manager.getlogdir("freebayes")
@@ -176,9 +178,9 @@ __rulegraph__mapper = {"report_mapping":"report_mapping.html",
 include: sm.modules["rulegraph"]
 final_output += ["requirements.txt", "dag.svg"]
 
-file_to_copy = [__freebayes__input, __freebayes__input + ".bai",
+file_to_copy = [__freebayes__input, __freebayes__bai, __freebayes__output,
                 __vcf_filter__output, __vcf_filter__input, __snakefile__,
-                "config.yaml"]
+                "config.yaml", __rulegraph__output, "requirements.txt"]
 try:
     file_to_copy.append(__snpeff__html)
 except NameError:

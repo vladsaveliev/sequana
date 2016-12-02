@@ -12,11 +12,10 @@ def bwa_mem_dynamic(name, project):
     metadata = {'name':name}
 
     from easydev import shellcmd
-    try:
-        ret = shellcmd("which pbwa") # for IP cluster
+    ret = shellcmd("which pbwa") # for IP cluster
+    if ret:
         metadata['executable'] = "pbwa"
-    except:
-        ret = shellcmd("which bwa")
+    else:
         metadata['executable'] = "bwa"
 
     bwa_mem_code = '''
@@ -68,7 +67,6 @@ rule bwa_mem_%(name)s:
  
         # Sorting
         samtools sort -o {output.sort} {output.mem} 2>> {log}
-        samtools index {output.sort} 2>> {log}
         """
     '''
     from sequana.snaketools import build_dynamic_rule
