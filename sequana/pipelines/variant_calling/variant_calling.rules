@@ -10,7 +10,6 @@ import sequana
 from sequana import snaketools as sm
 from sequana.snaketools import SequanaConfig
 from sequana import SnpEff
-sm.init("variant_calling.rules", globals())
 
 # This must be defined before the include
 configfile: "config.yaml"
@@ -19,6 +18,7 @@ configfile: "config.yaml"
 try:
     manager
 except NameError:
+    sm.init("variant_calling.rules", globals())
     manager = sm.PipelineManager("variant_calling", config)
     __snakefile__ = srcdir(__snakefile__)
     final_output = []
