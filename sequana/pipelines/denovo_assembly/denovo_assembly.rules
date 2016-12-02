@@ -16,12 +16,14 @@ sm.init("denovo_assembly.rules", globals())
 
 # load config file
 configfile: "config.yaml"
-__snakefile__ = srcdir(__snakefile__)
 manager = sm.PipelineManager("denovo_assembly", config)
+__snakefile__ = srcdir(__snakefile__)
 report_dir = manager.getreportdir("da")
 final_output = []
 
 __rawdata__input = manager.getrawdata()
+
+exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
 if config["digital_normalisation"]["do"]:
     __digital_normalisation__input = __rawdata__input
@@ -48,6 +50,9 @@ __format_contigs__input = __spades__contigs
 __format_contigs__output = manager.getname("format_contigs", ".fasta")
 include: sm.modules["format_contigs"]
 
+__copy_multiple_files__input = [__quast__output, __spades__contigs,
+                                __spades__scaffolds]
+
 if config["do_mapping_evaluation"]:
     # remove snpeff analysis
     config = dict(config, **{"snpeff": {"do": False}})
@@ -63,20 +68,3 @@ final_output += [expand(__quast__output, sample=manager.samples),
 rule pipeline_denovo:
     input:
         final_output
-
-onsuccess:
-    report_dir_format = "%(proj)s/report_da_%(proj)s/"
-    for proj in manager.samples.keys():
-        report_dir = report_dir_format % {"proj": proj}
-        shell("cp %s %s/" % ("requirements.txt", report_dir))
-        shell("cp %s %s/" % ("dag.svg", report_dir))
-        shell("cp %s %s/" % (__snakefile__, report_dir))
-        shell("cp config.yaml %s/" % report_dir)
-        sm.plot_stats()
-
-        if config["do_mapping_evaluation"]:
-            shell("cp %s %s" % (proj + "/freebayes/*vcf", report_dir))
-
-        shell("cp -r %s %s" % (proj + "/quast_" + proj, report_dir))
-        shell("cp %s %s" % (proj + "/format_contigs/*fasta", report_dir))
-        shell("cp %s %s" % (proj + "/spades/*fasta", report_dir))
