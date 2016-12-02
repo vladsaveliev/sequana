@@ -2,7 +2,8 @@
 ===============================
 
 
-This docker creates a single entry point for the sequana_coverage **standalone**.
+This docker creates a single entry point for the sequana_coverage **standalone**. It is a simple layer on top 
+of the **sequana** image, which makes available the **sequana_coverage** standalone only. For the full library, please see the main docker image.
 
 
 #. Get the docker image::
