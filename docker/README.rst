@@ -23,9 +23,9 @@ Now, Use it::
     cd <Directory_with_bed_files>
     docker run -v $PWD:/home/sequana/data -it sequana
 
-For Standalones, please see:
-
-    - sequana_coverage_
+Standalone
+----------------
+- sequana_coverage_
 
 .. _sequana_coverage: sequana_coverage/README.rst
 
