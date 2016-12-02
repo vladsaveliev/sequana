@@ -561,15 +561,16 @@ class SequanaConfig(object):
                 assert this in self.config.keys(),\
                     "Your config must contain %s" % this
 
-    def save(self, filename="config.yaml"):
+    def save(self, filename="config.yaml", cleanup=True):
         """Save the yaml code in _yaml_code with comments"""
         # This works only if the input data was a yaml
-        self.cleanup() # this changes the config and yaml_code to remove %()s
+        if cleanup:
+            self.cleanup() # this changes the config and yaml_code to remove %()s
 
         # get the YAML formatted code and save it
         newcode = ruamel.yaml.dump(self._yaml_code,
                     Dumper=ruamel.yaml.RoundTripDumper,
-                    default_style="", block_seq_indent=4)
+                    default_style="", indent=4, block_seq_indent=4)
 
         with open(filename, "w") as fh:
             fh.write(newcode)
@@ -654,58 +655,20 @@ class SequanaConfig(object):
                         # actually a key here
                         assert item in self.config.keys()
 
-    def get(self, field, default=None, cfg=None):
-        """Return the content of a config file field (with default)
-
-        The idea here is to ease the retrieval of a field in a config file
-        (YAML). The underlying data is a dictionary so one could type
-        e.g self.config['level1']['level2']. Here, we can type
-        self.get("level1:level2", default_value).
-
-        :param field: a string level1:level2
-        :param cfg: by default, the config contain in this instance,
-            but one may provide another one.
-
-        .. warning:: only 2 levels accepted.
-        """
-        raise NotImplementedError('to be removed')
-        if cfg is None:
-            cfg = self.config
-        if ":" in field:
-            level1, level2 = field.split(":", 1)
-            if level1 not in cfg.keys():
-                raise ValueError("first level key (%s) not found " % level1)
-            return self.get(level2, default=default, cfg=cfg[level1])
-        else:
-            if isinstance(cfg, dict) and field in cfg.keys():
-                if cfg[field]:
-                    return cfg[field]
-                else:
-                    return default
-            else:
-                return default
-
     def cleanup(self):
-        # assuming only 2 levels strip strings. Remove the templates
-        #  %(input_directory)s and set all empty strings to None
-
+        # assuming only 2 levels, remove the templates
+        #  %(input_directory)s and strip the strings.
         for k1,v1 in self._yaml_code.items():
             if isinstance(v1, dict):
                 for k2,v2 in self._yaml_code[k1].items():
                     if isinstance(v2, str) and "%(" in v2:
                         self._yaml_code[k1][k2] = None
                     elif isinstance(v2, str):
-                        if len(v2.strip()):
-                            self._yaml_code[k1][k2] = v2.strip()
-                        else:
-                            self._yaml_code[k1][k2] = None
+                        self._yaml_code[k1][k2] = v2.strip()
             elif isinstance(v1, str) and "%(" in v1:
                 self._yaml_code[k1] = None
             elif isinstance(v1, str):
-                if len(v1.strip()):
-                    self._yaml_code[k1] = v1.strip()
-                else:
-                    self._yaml_code[k1] = None
+                self._yaml_code[k1] = v1.strip()
         self._update_config()
 
     def copy_requirements(self, target):
@@ -781,7 +744,7 @@ class PipelineManager(object):
         if cfg.config.input_directory:
             directory = cfg.config.input_directory.strip()
             if os.path.isdir(directory) is False:
-                self.errror("The (%s) directory does not exist." % directory)
+                self.error("The (%s) directory does not exist." % directory)
 
             if "input_extension" in cfg.config.keys() and \
                     cfg.config['input_extension'] not in (None, ""):
