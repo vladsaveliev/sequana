@@ -735,6 +735,7 @@ class PipelineManager(object):
         """
         cfg = SequanaConfig(config)
         cfg.config.pipeline_name = name
+        self.pipeline_dir = os.getcwd()
 
         # Default mode is the input directory .
         if "input_directory" not in cfg.config.keys():
@@ -1252,7 +1253,7 @@ shellcmd("rm -rf .snakemake")
 
 
 
-def build_dynamic_rule(code):
+def build_dynamic_rule(code, directory):
     """Create a rule in a unique file in .snakameke/sequana
 
     The filenames must be unique, and stored in .snakemake to not
@@ -1262,9 +1263,10 @@ def build_dynamic_rule(code):
     import os, uuid
     # Create directory if it does not exist
     from easydev import mkdirs
-    mkdirs(".snakemake/sequana")
+    mkdirs(directory + ".snakemake/sequana")
     # a unique identifier
-    filename = os.sep.join([".snakemake", "sequana", str(uuid.uuid4())])
+    filename = directory
+    filename += os.sep.join([".snakemake", "sequana", str(uuid.uuid4())])
     filename += ".rules"
     # Create the file and return its name so that it can be used inside a
     # pipeline
@@ -1272,4 +1274,3 @@ def build_dynamic_rule(code):
     fh.write(code)
     fh.close()
     return filename
-

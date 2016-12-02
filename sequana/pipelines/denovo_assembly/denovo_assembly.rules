@@ -14,12 +14,11 @@ from sequana.snaketools import SequanaConfig
 sm.init("denovo_assembly.rules", globals())
 
 
-# load config file
+# This must be defined before the include
 configfile: "config.yaml"
 manager = sm.PipelineManager("denovo_assembly", config)
 __snakefile__ = srcdir(__snakefile__)
 report_dir = manager.getreportdir("da")
-final_output = []
 
 __rawdata__input = manager.getrawdata()
 
@@ -28,9 +27,9 @@ exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 if config["digital_normalisation"]["do"]:
     __digital_normalisation__input = __rawdata__input
     __digital_normalisation__prefix = manager.getname("digital_normalisation")
-    __digital_normalisation__output = [manager.getname("digital_normalisation",
-                                       "_R%i_.dn.fastq.gz") % i
-                                       for i in (1, 2)]
+    __digital_normalisation__output = [
+        manager.getname("digital_normalisation_R%i_.dn.fastq.gz") % i
+        for i in (1, 2)]
     include: sm.modules["digital_normalisation"]
     __spades__input = __digital_normalisation__output
 else:
