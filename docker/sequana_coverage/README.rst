@@ -8,11 +8,11 @@ of the **sequana** image, which makes available the **sequana_coverage** standal
 
 #. Get the docker image and rename it::
 
-    docker pull cokelaer/sequana_coverage
+    docker pull cokelaer/sequana:sequana_coverage
     
     # Rename it (optional but simplifies the code hereafter)
-    docker tag cokelaer/sequana_coverage sequana_coverage
-    sudo docker rmi cokelaer/sequana_coverage
+    # docker tag cokelaer/sequana_coverage sequana_coverage
+    # sudo docker rmi cokelaer/sequana_coverage
 
 #. To get some help::
 
