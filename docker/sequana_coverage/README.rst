@@ -6,12 +6,15 @@ This docker creates a single entry point for the sequana_coverage **standalone**
 of the **sequana** image, which makes available the **sequana_coverage** standalone only. For the full library, please see the main docker image.
 
 
-#. Get the docker image::
+#. Get the docker image and rename it::
 
     docker pull cokelaer/sequana_coverage
+    
+    # Rename it (optional but simplifies the code hereafter)
+    docker tag cokelaer/sequana_coverage sequana_coverage
+    sudo docker rmi cokelaer/sequana_coverage
 
 #. To get some help::
-
 
     docker run --user 1000 -v $(pwd):/home/sequana/data -w /home/sequana/data -it sequana_coverage
 
@@ -20,7 +23,7 @@ of the **sequana** image, which makes available the **sequana_coverage** standal
 Assuming that:
 
 #. you have a BED file in your local directory (pwd)
-#. Your bed file is named *JB409847.bed*
+#. Your bed file is named *JB409847.bed*::
 
     docker run --user 1000 -v $(pwd):/home/sequana/data -w /home/sequana/data -it sequana_coverage --input *JB409847.bed*
 
