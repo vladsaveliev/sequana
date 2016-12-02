@@ -10,7 +10,7 @@ Assuming you have installed `Docker <https://www.docker.com>`_ on your system, f
     docker login
 
 **Sequana** itself (all library, pipelines and standalones) is provided on
-`Docker <https://www.dockerhub.com>`_ . Type those commands to install the
+`Hub Docker <https://www.hub.docker.com>`_ . Type those commands to install the
 image itself::
 
     # Get the docker image

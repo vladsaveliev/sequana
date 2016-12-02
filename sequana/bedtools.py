@@ -25,6 +25,7 @@ from biokit.stats import mixture
 
 from sequana import running_median
 from sequana.tools import gc_content
+from sequana.errors import SequanaException
 #from sequana.tools import genbank_features_parser
 
 
@@ -212,8 +213,16 @@ class GenomeCov(object):
         """
         gc_dict = gc_content(fasta_file, window_size, circular)
         for chrom in self.chr_list:
-            chrom.df["gc"] = gc_dict[chrom.chrom_name]
-            chrom._ws_gc = window_size
+            if chrom.chrom_name in gc_dict.keys():
+                chrom.df["gc"] = gc_dict[chrom.chrom_name]
+                chrom._ws_gc = window_size
+            else:
+                msg = ("The chromosome (or contig) %s in your"
+                       " BED/BAM file was not found in the reference provided."
+                       " Make sure your input reference file is the same"
+                       " as the one used to perform the mapping or just"
+                       " remove the --reference parameter.")
+                raise SequanaException(msg % chrom.chrom_name)
 
     def get_stats(self, output="json"):
         """Return basic statistics for each chromosome

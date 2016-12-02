@@ -46,17 +46,25 @@ class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana_coverage"):
         usage = purple("""\nWelcome to SEQUANA -- Coverage standalone
 
+    Extract and plot coverage of one or more chromosomes/contigs in a BED or BAM
+    file. In addition, running median used in conjunction with double thresholds
+    extract regions of interests (low or high coverage). A reference may be
+    provided to plot the coverage versus GC content. 
+
     The input file should be one of the following:
+
     - a BED file that is a tabulated file at least 3 columns.
       The first column being the reference, the second is the position 
       and the third column contains the coverage itself. 
-    - a BAM file that is converted automatically
+    - or a BAM file that is converted automatically
       into a BED file using the following command:
 
         samtools depth -aa input.bam > output.bed
 
     If the reference is provided, an additional plot showing the coverage versus
-    GC content is also shown
+    GC content is also shown.
+
+    Here are some examples
 
         sequana_coverage --input file.bed --window-median 1001
         sequana_coverage --input file.bam --window-median 1001 -r <REFERENCE.fa>
@@ -67,7 +75,7 @@ class Options(argparse.ArgumentParser):
 
         samtools view -q 35  -o data.filtered.bam input.fa.sorted.bam
         samtools depth data.filtered.bam input.fa.sorted.bam  -aa > test.bed
-        sequana_coverage --input test.bed --show-html -o
+        sequana_coverage --input test.bed --show-html 
 
     Note that the first file is the filtered one, and the second file is the
     unfiltered one.
@@ -100,8 +108,10 @@ Issues: http://github.com/sequana/sequana
         group.add_argument('-c', "--chromosome", dest="chromosome", type=int,
             default=1,
             help=(  "Chromosome number (if only one, no need to use: the first"
-                    "and only chromosome is chosen automatically). Default is "
-                    "first chromosome found in the BED file"))
+                    " and only chromosome is chosen automatically). Default is"
+                    " first chromosome found in the BED file. You may want to"
+                    " analyse all chromosome at the same time. If so, set this"
+                    " parameter to -1"))
         group.add_argument('-o', "--circular", dest="circular",
             default=False, action="store_true",
             help="""If the DNA of the organism is circular (typically
@@ -240,14 +250,33 @@ def main(args=None):
 
     if len(gc.chr_list) == 1:
         if options.verbose:
-            print("There is only one chromosome")
+            print("There is only one chromosome. Selected automatically.")
         chrom = gc.chr_list[0]
-    elif options.chromosome < 0 or options.chromosome > len(gc.chr_list):
+        run_analysis(gc, chrom, 1, options) 
+    elif options.chromosome <-1 or options.chromosome > len(gc.chr_list) or\
+            options.chromosome == 0:
         raise ValueError("invalid --chromosome value ; must be in [1-%s]" % len(gc.chr_list)+1)
     else:
-        print("There are %s chromosomes/contigs. Selected the chromosome %s" %
-            (len(gc.chr_list), options.chromosome))
-        chrom = gc.chr_list[options.chromosome-1]
+        # For uses, we start at position 1 but in python, we start at zero
+        if options.chromosome == -1:
+            chromosomes = [this for this in range(len(gc.chr_list)) ]
+        else:
+            chromosomes = [options.chromosomes-1]
+
+
+        N = len(chromosomes)
+        for i,chrom_index in enumerate(chromosomes):
+            if options.verbose:
+                print("==================== analysing chrom/contig %s/%s" % (i+1,N))
+            chrom = gc.chr_list[chrom_index]
+            chrom_name = gc.chr_list[chrom_index].chrom_name
+            if options.verbose:
+                print("There are %s chromosomes/contigs. Analysing the chromosome %s (%s)" %
+                    (len(gc.chr_list), chrom_index, chrom_name))
+            run_analysis(gc, chrom, chrom_index, options)
+
+
+def run_analysis(gc, chrom, chrom_index, options):
 
     if options.verbose:
         print(chrom)
@@ -257,7 +286,7 @@ def main(args=None):
 
     chrom.running_median(n=options.w_median, circular=options.circular)
 
-    stats = chrom.get_stats(output="datagframe")
+    stats = chrom.get_stats(output="dataframe")
     stats.set_index("name", inplace=True)
 
     DOC = stats.ix['DOC'].Value
@@ -300,7 +329,6 @@ def main(args=None):
     if options.verbose:
         print("\n\n")
 
-
     figure(1)
     chrom.plot_coverage()
 
@@ -308,7 +336,8 @@ def main(args=None):
     if options.reference:
         figure(2)
         chrom.plot_gc_vs_coverage(Nlevels=options.levels, fontsize=20)
-        savefig("coverage_vs_gc.png")
+        filename_gc_cov = "coverage_vs_gc.chrom{0}.png".format(chrom_index)
+        savefig(filename_gc_cov)
 
     if options.show:
         show()
@@ -335,8 +364,8 @@ def main(args=None):
 
         if options.reference:
             from snakemake import shell
-            shell("cp coverage_vs_gc.png report/images")
-            r.jinja['coverage_vs_gc'] = """<img src="images/coverage_vs_gc.png">"""
+            shell("cp %s report/images" %  filename_gc_cov)
+            r.jinja['coverage_vs_gc'] = """<img src="images/%s">""" % filename_gc_cov
 
         r.jinja['standalone_command'] = " ".join(sys.argv)
         r.create_report()
@@ -345,7 +374,7 @@ def main(args=None):
         if options.show_html:
             from easydev import onweb
             onweb("report/%s_mapping.chrom%s.html" % (sample_name,
-                  options.chromosome))
+                  chrom_index))
 
 
 if __name__ == "__main__":
