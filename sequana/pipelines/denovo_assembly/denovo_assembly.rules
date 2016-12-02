@@ -16,8 +16,8 @@ sm.init("denovo_assembly.rules", globals())
 
 # load config file
 configfile: "config.yaml"
-__snakefile__ = srcdir(__snakefile__)
 manager = sm.PipelineManager("denovo_assembly", config)
+__snakefile__ = srcdir(__snakefile__)
 report_dir = manager.getreportdir("da")
 final_output = []
 
@@ -47,6 +47,9 @@ include: sm.modules["quast"]
 __format_contigs__input = __spades__contigs
 __format_contigs__output = manager.getname("format_contigs", ".fasta")
 include: sm.modules["format_contigs"]
+
+__copy_multiple_files__input = [__quast__output, __spades__contigs,
+                                __spades__scaffolds]
 
 if config["do_mapping_evaluation"]:
     # remove snpeff analysis
