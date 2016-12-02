@@ -14,21 +14,20 @@ from sequana.snaketools import SequanaConfig
 sm.init("denovo_assembly.rules", globals())
 
 
-# load config file
+# This must be defined before the include
 configfile: "config.yaml"
 __snakefile__ = srcdir(__snakefile__)
 manager = sm.PipelineManager("denovo_assembly", config)
 report_dir = manager.getreportdir("da")
-final_output = []
 
 __rawdata__input = manager.getrawdata()
 
 if config["digital_normalisation"]["do"]:
     __digital_normalisation__input = __rawdata__input
     __digital_normalisation__prefix = manager.getname("digital_normalisation")
-    __digital_normalisation__output = [manager.getname("digital_normalisation",
-                                       "_R%i_.dn.fastq.gz") % i
-                                       for i in (1, 2)]
+    __digital_normalisation__output = [
+        manager.getname("digital_normalisation_R%i_.dn.fastq.gz") % i
+        for i in (1, 2)]
     include: sm.modules["digital_normalisation"]
     __spades__input = __digital_normalisation__output
 else:
@@ -63,20 +62,3 @@ final_output += [expand(__quast__output, sample=manager.samples),
 rule pipeline_denovo:
     input:
         final_output
-
-onsuccess:
-    report_dir_format = "%(proj)s/report_da_%(proj)s/"
-    for proj in manager.samples.keys():
-        report_dir = report_dir_format % {"proj": proj}
-        shell("cp %s %s/" % ("requirements.txt", report_dir))
-        shell("cp %s %s/" % ("dag.svg", report_dir))
-        shell("cp %s %s/" % (__snakefile__, report_dir))
-        shell("cp config.yaml %s/" % report_dir)
-        sm.plot_stats()
-
-        if config["do_mapping_evaluation"]:
-            shell("cp %s %s" % (proj + "/freebayes/*vcf", report_dir))
-
-        shell("cp -r %s %s" % (proj + "/quast_" + proj, report_dir))
-        shell("cp %s %s" % (proj + "/format_contigs/*fasta", report_dir))
-        shell("cp %s %s" % (proj + "/spades/*fasta", report_dir))

@@ -11,8 +11,8 @@ input:
 def bwa_mem_dynamic(name, project):
     metadata = {'name':name}
 
-    from easydev import shellcmd
-    ret = shellcmd("which pbwa") # for IP cluster
+    from easydev import cmd_exists
+    ret = cmd_exists("pbwa") # for IP cluster
     if ret:
         metadata['executable'] = "pbwa"
     else:
@@ -70,5 +70,5 @@ rule bwa_mem_%(name)s:
         """
     '''
     from sequana.snaketools import build_dynamic_rule
-    return build_dynamic_rule(bwa_mem_code % metadata)
+    return build_dynamic_rule(bwa_mem_code % metadata, project.pipeline_dir)
 
