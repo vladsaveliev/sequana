@@ -13,17 +13,16 @@ rule add_locus_in_fasta:
 
     Required parameters:
         config["snpeff"]["reference"]
-
-    Contributors:
-        Sequana consortium
     """
     input:
         fasta = __add_locus_in_fasta__fasta_input,
         ann = config["snpeff"]["reference"]
     output:
         fasta = __add_locus_in_fasta__output
+    log:
+        log = __add_locus_in_fasta__log
     run:
         from sequana import SnpEff
         
-        snpeff = SnpEff(reference=input.ann)
+        snpeff = SnpEff(reference=input.ann, log=log.log)
         snpeff.add_locus_in_fasta(input.fasta, output.fasta)
