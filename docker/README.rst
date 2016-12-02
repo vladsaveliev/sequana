@@ -10,11 +10,11 @@ We have posted images/containers on `Hub Docker <https://www.hub.docker.com>`_ .
 
     docker login
 
-**Sequana** itself (all library, pipelines and standalones) is available and can be downloaded as follows (1.5Gb)
+**Sequana** itself (all library, pipelines and standalones) is available and can be downloaded as follows (1.5Gb)::
 
     # Get the docker image
     docker pull cokelaer/sequana
-    # Rename it
+    # Rename it (optional but simplifies the code hereafter)
     docker tag cokelaer/sequana sequana
     sudo docker rmi cokelaer/sequana
 
