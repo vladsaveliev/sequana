@@ -1,17 +1,16 @@
-Docker images for **Sequana**
-=================================
+Docker containers for **Sequana**
+====================================
 
-.. content::
+Docker containers wrap a piece of software in a complete filesystem that contains everything needed to run (code, system libraries). Assuming you have it installed on your system (see  `Docker <https://www.docker.com>`_ otherwise), then you should be able to try **Sequana** in no time. 
+
 
 Quick start
 ----------------
-Assuming you have installed `Docker <https://www.docker.com>`_ on your system, first login::
+We have posted images/containers on `Hub Docker <https://www.hub.docker.com>`_ . You will first need to sign up to be able to login as follows::
 
     docker login
 
-**Sequana** itself (all library, pipelines and standalones) is provided on
-`Hub Docker <https://www.hub.docker.com>`_ . Type those commands to install the
-image itself::
+**Sequana** itself (all library, pipelines and standalones) is available and can be downloaded as follows (1.5Gb)
 
     # Get the docker image
     docker pull cokelaer/sequana
