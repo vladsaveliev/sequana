@@ -94,9 +94,4 @@ Run the image::
     sudo docker run -it sequana
 
 
-sudo docker run -v $PWD:/tempdir -it sequana3
-exit
-
-
-.. seealso:: to avoid sudo
-    http://askubuntu.com/questions/477551/how-can-i-use-docker-without-sudo
+To avoid using sudo, check out various forum. Seefor example:  http://askubuntu.com/questions/477551/how-can-i-use-docker-without-sudo
