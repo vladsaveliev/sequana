@@ -23,6 +23,8 @@ final_output = []
 
 __rawdata__input = manager.getrawdata()
 
+exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
+
 if config["digital_normalisation"]["do"]:
     __digital_normalisation__input = __rawdata__input
     __digital_normalisation__prefix = manager.getname("digital_normalisation")

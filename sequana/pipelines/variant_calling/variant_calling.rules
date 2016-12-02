@@ -23,6 +23,7 @@ except NameError:
     __snakefile__ = srcdir(__snakefile__)
     final_output = []
     report_dir = manager.getreportdir("vc")
+    exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
 # If annotation file is not provided
 __report_mapping__ann = None
@@ -31,7 +32,6 @@ __report_mapping__ann_format = None
 
 __rawdata__input = manager.getrawdata()
 
-exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
 # we must check if we are in the case of denovo assembly:
 try:
