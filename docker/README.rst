@@ -1,7 +1,10 @@
 Docker containers for **Sequana**
 ====================================
 
-Docker containers wrap a piece of software in a complete filesystem that contains everything needed to run (code, system libraries). Assuming you have it installed on your system (see  `Docker <https://www.docker.com>`_ otherwise), then you should be able to try **Sequana** in no time. 
+Docker containers wrap a piece of software in a complete filesystem that contains everything needed to run (code, system libraries). We assume you have installed Docker on your system (see  `Docker <https://www.docker.com>`_ otherwise).
+
+In order to allows anyone to use **Sequana** without needs for complex installation, we provide a
+`Docker image, which is synchronized on the *master* branch on the source code, which means on official releases.
 
 
 Quick start
@@ -30,13 +33,8 @@ Standalone
 .. _sequana_coverage: sequana_coverage/README.rst
 
 
-Details for end-users
+Usage
 ---------------------------
-
-In order to allows anyone to use **Sequana** without needs for complex installation, we provide a
-`Docker <https://www.docker.com/>`_ image. It is synchronized on the *master*
-branch on the source code, which means on official releases.
-
 
 Here below, we provide a quick tutorial that will guide you on using **Sequana**
 thanks to the docker. To do so, we will focus on one standalone application
@@ -46,28 +44,10 @@ genome. Then, the standalone creates a report with relevant information about
 the coverage (See `Sequana documentation <sequana.readthedocs.org>`_ for 
 more information).
 
-Get the docker image
--------------------------
+Use the **sequana** Docker image
+---------------------------------------
 
-A docker image is provided on `hub.docker <https://hub.docker.com/r/cokelaer/sequana/>`_.
-
-We assume you have install docker on your system.
-
-
-First, you need a login on `docker <hub.docker.com>`_. Then, in a shell, type::
-
-    docker login
-
-This will allow you to obtain the **Sequana** docker image using::
-
-    docker pull cokelaer/sequana
-
-Let us rename it into *sequana*::
-
-    docker tag cokelaer/sequana sequana
-    sudo docker rmi cokelaer/sequana
-
-You can then enter into the image as follows::
+Once you downloaded the **sequana** image, you can then enter into the image as follows::
 
     docker run -it sequana
 
