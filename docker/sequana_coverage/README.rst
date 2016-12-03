@@ -14,8 +14,8 @@ of the **sequana** image, which makes available the **sequana_coverage** standal
     docker pull cokelaer/sequana:sequana_coverage
     
     # Rename it (optional but simplifies the code hereafter)
-    # docker tag cokelaer/sequana_coverage sequana_coverage
-    # sudo docker rmi cokelaer/sequana_coverage
+    docker tag cokelaer/sequana sequana
+    sudo docker rmi cokelaer/sequana
 
 #. To get some help::
 
