@@ -3,31 +3,36 @@ Docker containers for **Sequana**
 
 Docker containers wrap a piece of software in a complete filesystem that contains everything needed to run (code, system libraries). We assume you have installed Docker on your system (see  `Docker <https://www.docker.com>`_ otherwise).
 
-In order to allows anyone to use **Sequana** without needs for complex installation, we provide a
-`Docker image, which is synchronized on the *master* branch on the source code, which means on official releases.
+In order to allows anyone to use **Sequana** without needs for complex installation, we provide 
+`Docker images <https://hub.docker.com/u/sequana>`, which are synchronized on the *master* 
+branch of the source code.
 
 
 Quick start
 ----------------
-We have posted images/containers on `Hub Docker <https://www.hub.docker.com>`_ . You will first need to sign up to be able to login as follows::
+Since images are on `Hub Docker <https://www.hub.docker.com>`_ , you will first need to 
+sign up to be able to login as follows::
 
     docker login
 
 **Sequana** itself (all library, pipelines and standalones) is available and can be downloaded as follows (1.5Gb)::
 
     # Get the docker image
-    docker pull cokelaer/sequana
-    # Rename it (optional but simplifies the code hereafter)
-    docker tag cokelaer/sequana sequana
-    sudo docker rmi cokelaer/sequana
+    docker pull sequana/sequana
 
-Now, Use it::
+Now, you can use it as a developer to access for instance to executables,
+pipelines or the Python library itself::
 
     cd <Directory_with_bed_files>
-    docker run -v $PWD:/home/sequana/data -it sequana
+    docker run -v $PWD:/home/sequana/data -it sequana/sequana
 
 Standalone
 ----------------
+
+The primary goal of the docker is to make it possible to quickyl test the
+standalones. For now, we expose only one but more will come. For specific
+standalone, please see links here below:
+
 - sequana_coverage_
 
 .. _sequana_coverage: sequana_coverage/README.rst
