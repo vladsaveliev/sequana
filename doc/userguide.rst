@@ -21,6 +21,9 @@ information about the coverage of a set of mapped reads onto a reference.
 **Sequana** library
 ========================
 
+Example 1 : running median on coverage
+----------------------------------------
+
 **Sequana** is a Python library. It contains many functionalities, which are
 fully documented and available in the :ref:`references` section. We can first
 look at the coverage contained within a BED file using the library. First, we
@@ -62,7 +65,28 @@ and finally plot the coverage together with confidence interval (3 sigma)::
     chrom.plot_coverage()
 
 
-This example shows how **Sequana** can be used from a command line interface.
+Example2: read a fastq file
+------------------------------
+
+Let us use the :class:`FastQC` class to get the distribution of the bases ACGT
+across all reads of a FastQ file.
+
+
+.. plot::
+
+    from sequana import FastQC
+    from sequana import sequana_data
+    filename = sequana_data("test.fastq")
+
+    fastqc = FastQC(filename)
+    print(fastqc.fastq)
+    for x in 'ACGT': 
+        fastqc.get_actg_content()[x].hist(alpha=0.5, label=x, histtype='step', lw=3, bins=10)
+
+    from pylab import legend
+    legend()
+
+
 
 Many more functionalities are available. The reference guide should help you.
 
