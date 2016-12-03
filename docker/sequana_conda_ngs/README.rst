@@ -1,8 +1,30 @@
 Docker **sequana_conda_ngs**
 ====================================
 
-This is a Docker image on top on sequana_conda_ngs that install conda and all sequana
-dependencies. 
+Overview
+---------
+
+This is a Docker image on top on sequana/sequana_ngs that installs 
+conda packages (NGS specific) for **Sequana**.
+
+
+Description
+----------------
+
+Se the sequana_install.sh for detailled list of packages.
+
+Here are some of them:
+
+
+- snakemake
+- bioservices
+- pyvcf
+- spades
+- bwa
+- freebates
+- kraken
+- bowtie2
+
 
 
 
@@ -13,13 +35,11 @@ Build the image::
 
     git clone https://github.com/sequana/sequana
     cd sequana/docker/sequana_conda_ngs
-    sudo docker  build  -t="sequana_conda_ngs" .
+    sh build.sh
 
+Push on hub.docker.com::
 
-Tag and push on hub.docker.com::
-
-   docker tag sequana_conda_ngs sequana/sequana_conda_ngs
-   docker push sequana/sequana_conda_ngs
+    sh push.sh
 
 Run the local image (not a pulled one in this example)::
 

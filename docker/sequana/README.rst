@@ -1,8 +1,9 @@
-Docker **sequana_conda_ngs**
+Docker **sequana**
 ====================================
 
-This is a Docker image on top on sequana_conda_ngs that install conda and all sequana
-dependencies. 
+Overview
+------------
+Main docker image of **Sequana** on top of sequana_conda_ngs layer.
 
 
 
@@ -13,16 +14,12 @@ Build the image::
 
     git clone https://github.com/sequana/sequana
     cd sequana/docker/sequana
-    sudo docker  build  -t="sequana" .
+    build.sh
 
 
-Tag and push on hub.docker.com::
+Push on hub.docker.com::
 
-   docker tag sequana sequana/sequana
-   docker push sequana/sequana
+   sh push.sh
 
-Run the local image (not a pulled one in this example)::
-
-    sudo docker run -it sequana
 
 

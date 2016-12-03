@@ -1,8 +1,27 @@
 Docker **sequana_conda_core**
 ====================================
 
-This is a Docker image on top on sequana_conda_core that install conda and all sequana
-dependencies. 
+Overview
+---------
+
+This is a Docker image on top on sequana/sequana_core that installs 
+conda and common scientific Python packages.
+
+Description
+----------------
+This sets conda and the following packages:
+
+- numpy
+- matplotlib
+- pandas
+- scipy
+- graphviz
+- ipython
+
+This installs other libraries such as pyqt5.
+
+The environmental variables for matplotlib are also setup such as the back end
+set to Agg
 
 
 
@@ -13,13 +32,11 @@ Build the image::
 
     git clone https://github.com/sequana/sequana
     cd sequana/docker/sequana_conda_core
-    sudo docker  build  -t="sequana_conda_core" .
+    sh build.sh
 
+Push on hub.docker.com::
 
-Tag and push on hub.docker.com::
-
-   docker tag sequana_conda_core sequana/sequana_conda_core
-   docker push sequana/sequana_conda_core
+    sh push.sh
 
 Run the local image (not a pulled one in this example)::
 
