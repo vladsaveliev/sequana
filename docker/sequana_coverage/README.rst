@@ -2,47 +2,34 @@
 ===============================
 
 
-This docker creates a single entry point for the sequana_coverage **standalone**. It is a simple layer on top 
-of the **sequana** image, which makes available the **sequana_coverage** standalone only. For the full library, please see the main docker image.
+This docker creates a single entry point for the sequana_coverage **standalone**. It is a simple layer on top of the **sequana** image, which makes available the **sequana_coverage** standalone only. For the full library, please see the main docker image.
 
 
 #. Get the docker image and rename it::
 
-    docker pull cokelaer/sequana_coverage
-    
-    # Rename it (optional but simplifies the code hereafter)
-    docker tag cokelaer/sequana_coverage sequana_coverage
-    sudo docker rmi cokelaer/sequana_coverage
+    docker pull sequana/sequana_coverage
 
-#. To get some help::
+#. Assuming you have a bed file named test.bed, type::
 
-    docker run --user 1000 -v $(pwd):/home/sequana/data -w /home/sequana/data -it sequana_coverage
+    docker run --user 1000 -v $(pwd):/home/sequana/data -w /home/sequana/data -it sequana/sequana_coverage --input test.bed
 
-#. Analyse a BED file and create a report
+and browse the report in ./report
 
-Assuming that:
+You may want to create an alias as follows::
 
-#. you have a BED file in your local directory (pwd)
-#. Your bed file is named *JB409847.bed*::
-
-    docker run --user 1000 -v $(pwd):/home/sequana/data -w /home/sequana/data -it sequana_coverage --input *JB409847.bed*
-
-You may want to create an alias::
-
-    alias sequana_cov = "docker run --user 1000 -v $(pwd):/home/sequana/data -w /home/sequana/data -it sequana_coverage"
-
-
-
+    alias sequana_cov = "docker run --user 1000 -v $(pwd):/home/sequana/data -w /home/sequana/data -it sequana/sequana_coverage"
 
 For developers
 -----------------
 
-Create the docker as follows::
+Build the image::
 
-    sudo docker build -t="sequana_coverage" .
+    git clone https://github.com/sequana/sequana
+    cd sequana/docker/sequana/sequana_coverage
+    sh build.sh
 
-It is a layer on top of the **sequana** docker.
+Push it on hub.docker.com::
 
-
+    sh push.sh
 
 
