@@ -1,2 +1,2 @@
-docker  build  -t="sequana_core" .
-docker tag sequana_core sequana/sequana_core
+docker  build  -t="sequana_conda_core" .
+docker tag sequana_conda_core sequana/sequana_conda_core
