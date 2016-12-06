@@ -1,7 +1,7 @@
 cd /home/sequana
 
 # Finally, Sequana release itself
-pip install sequana==0.1.14
+pip install sequana==0.1.16
 
 
 # Some dummy data to play with
