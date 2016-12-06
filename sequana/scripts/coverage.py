@@ -110,7 +110,7 @@ Issues: http://github.com/sequana/sequana
             help=(  "Chromosome number (if only one, no need to use: the first"
                     " and only chromosome is chosen automatically). Default is"
                     " first chromosome found in the BED file. You may want to"
-                    " analyse all chromosome at the same time. If so, set this"
+                    " analyse all chromosomes at the same time. If so, set this"
                     " parameter to -1"))
         group.add_argument('-o', "--circular", dest="circular",
             default=False, action="store_true",
@@ -266,13 +266,11 @@ def main(args=None):
 
         N = len(chromosomes)
         for i,chrom_index in enumerate(chromosomes):
-            if options.verbose:
-                print("==================== analysing chrom/contig %s/%s" % (i+1,N))
             chrom = gc.chr_list[chrom_index]
             chrom_name = gc.chr_list[chrom_index].chrom_name
             if options.verbose:
-                print("There are %s chromosomes/contigs. Analysing the chromosome %s (%s)" %
-                    (len(gc.chr_list), chrom_index, chrom_name))
+                print("There are %s chromosomes/contigs." % len(gc.chr_list))
+                print("==================== analysing chrom/contig %s/%s (%s)" % (i+1,N,chrom_name))
             run_analysis(gc, chrom, chrom_index, options)
 
 
