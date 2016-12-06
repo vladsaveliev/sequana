@@ -20,7 +20,7 @@ and browse the report in ./report
 
 You may want to create an alias as follows::
 
-    alias sequana_cov = "docker run --user 1000 -v $(pwd):/home/sequana/data -w /home/sequana/data -it sequana/sequana_coverage"
+    alias sequana_cov="docker run --user 1000 -v $(pwd):/home/sequana/data -w /home/sequana/data -it sequana/sequana_coverage"
 
 For developers
 -----------------

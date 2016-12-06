@@ -10,7 +10,7 @@ branch of the source code.
 We assume that:
 
 #. You have installed Docker on your system (see  `Docker <https://www.docker.com>`_ otherwise).
-#. You have an account on  `Hub Docker <https://www.hub.docker.com>`_ .
+#. You have an account on  `Hub Docker <https://hub.docker.com>`_ .
 
 
 Quick start
@@ -37,8 +37,10 @@ standalones. For now, we expose only one but more will come. Please see specific
 documentation following the links here below:
 
 - sequana_coverage_
+- sequana_taxonomy_
 
-.. _sequana_coverage: sequana_coverage/README.rst
+.. _sequana_coverage: (https://github.com/sequana/sequana/tree/master/docker/sequana_coverage)
+.. _sequana_taxonomy: (https://github.com/sequana/sequana/tree/master/docker/sequana_taxonomy)
 
 
 More advanced Usage
@@ -49,7 +51,7 @@ thanks to the docker. To do so, we will focus on one standalone application
 called **sequana_coverage**. In brief, the standalone takes as input a BED file
 that contains the genome coverage of a set of mapped DNA reads onto a reference
 genome. Then, the standalone creates a report with relevant information about
-the coverage (See `Sequana documentation <sequana.readthedocs.org>`_ for
+the coverage (See `Sequana documentation <http://sequana.readthedocs.org>`_ for
 more information).
 
 Use the **sequana** Docker image
@@ -131,11 +133,11 @@ Each layer is built on top of the previous one
 
   - sequana_coverage_ (sequana + sequana_coverage standalone)
 
-.. _sequana_core: sequana_core/README.rst
-.. _sequana_conda_core: sequana_conda_core/README.rst
-.. _sequana_conda_ngs: sequana_conda_ngs/README.rst
-.. _sequana: sequana/README.rst
-.. _sequana_coverage: sequana_coverage/README.rst
+.. _sequana_core: https://github.com/sequana/sequana/tree/master/docker/sequana_core
+.. _sequana_conda_core: https://github.com/sequana/sequana/tree/master/docker/sequana_conda_core
+.. _sequana_conda_ngs: https://github.com/sequana/sequana/tree/master/docker/sequana_conda_ngs
+.. _sequana: https://github.com/sequana/sequana/tree/master/docker/sequana
+.. _sequana_coverage: https://github.com/sequana/sequana/tree/master/docker/sequana_coverage
 
 
 

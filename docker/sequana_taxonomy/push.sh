@@ -1,2 +1,2 @@
-docker push sequana/sequana_coverage
+docker push sequana/sequana_taxonomy
 
