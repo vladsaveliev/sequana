@@ -37,6 +37,8 @@ class SequanaSummary(BaseReport):
     config and pipeline files are not required.
 
 
+    Note that you may provide a manager to tell if paired or not.
+
     """
     def __init__(self,  sample, directory="report", output_filename="summary.html",
                     configfile="config.yaml", snakefile=None,
@@ -53,13 +55,15 @@ class SequanaSummary(BaseReport):
 
         self.workdir = workdir
         self.devtools = DevTools()
-        self.manager = manager
         self.sample = sample
 
         self.title = "Summary Report"
         self.jinja['title'] = "Summary report"
 
-        if manager.paired is True:
+        self.manager = manager
+        
+
+        if self.manager.paired is True:
             self.jinja['type'] = "Paired-end"
         else:
             self.jinja['type'] = "Single-end"
@@ -87,7 +91,9 @@ class SequanaSummary(BaseReport):
         if snakefile: self.read_snakefile(snakefile)
 
         # This is a string representation of the config file
-        if configfile: self.read_configfile(configfile)
+        if configfile: 
+            try:self.read_configfile(configfile)
+            except:pass
 
         # include whatever is relevant
         if include_all:
@@ -100,7 +106,9 @@ class SequanaSummary(BaseReport):
             try: self.include_sample_stats()
             except:pass
 
-            self.include_adapters_stats()
+            try:self.include_adapters_stats()
+            except:pass
+
             self.include_details()
             self.include_input_links()
             self.include_output_links()
