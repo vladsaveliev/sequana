@@ -34,7 +34,7 @@ class SequanaGUI(QW.QWidget):
     """ Sequana GUI !
     """
 
-    _not_a_rule = {"requirements", "gatk_bin", "input_directory", "input_samples", "input_pattern",}
+    _not_a_rule = {"requirements", "gatk_bin", "input_directory", "input_samples", "input_pattern"}
     _browser_keyword = {"reference"}
 
     def __init__(self, ipython=True):
@@ -74,15 +74,14 @@ class SequanaGUI(QW.QWidget):
 
         # select the working directory
         groupbox_layout = QW.QHBoxLayout()
+        groupbox_layout.setContentsMargins(0, 5, 0, 5)
         self.working_dir = FileBrowser(directory=True)
         groupbox_layout.addWidget(self.working_dir)
         groupbox = QW.QGroupBox("Working directory")
-        groupbox.setContentsMargins(0, 5, 0, 0)
         groupbox.setLayout(groupbox_layout)
 
         # "until" and "starting" combobox
         control_widget = QW.QGroupBox("Pipeline control")
-        control_widget.setContentsMargins(0, 3, 0, -3)
         control_layout = QW.QVBoxLayout(control_widget)
         control_layout.setSpacing(0)
         self.until_box = ComboBoxOption("Until")
@@ -852,7 +851,7 @@ class FileBrowser(QW.QWidget):
         self.btn_filename = QW.QLabel(self.empty_msg)
         self.set_empty_path()
         widget_layout = QW.QHBoxLayout(self)
-        widget_layout.setContentsMargins(0, 3, 0, 3)
+        widget_layout.setContentsMargins(3, 3, 3, 3)
         widget_layout.addWidget(self.btn)
         widget_layout.addWidget(self.btn_filename)
 
