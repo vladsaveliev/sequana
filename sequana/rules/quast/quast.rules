@@ -18,10 +18,14 @@ rule quast:
         fasta = __quast__input
     output:
         __quast__output
+    log:
+        __quast__log
     params:
         options = config["quast"]["options"],
         directory = __quast__outdir
     shell:
         """
-        quast.py {params.options} {input.fasta} -o {params.directory}
+        quast.py {params.options} {input.fasta} -o {params.directory} > {log} \
+            2>&1
+        mv {params.directory}report.html {output}
         """

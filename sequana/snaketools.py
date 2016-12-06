@@ -735,7 +735,7 @@ class PipelineManager(object):
         """
         cfg = SequanaConfig(config)
         cfg.config.pipeline_name = name
-        self.pipeline_dir = os.getcwd()
+        self.pipeline_dir = os.getcwd() + os.sep
 
         # Default mode is the input directory .
         if "input_directory" not in cfg.config.keys():
@@ -826,12 +826,12 @@ class PipelineManager(object):
         return self.basename % rulename + suffix
 
     def getreportdir(self, acronym):
-        """
+        """Create the report directory.
         """
         return "{1}{0}report_{2}_{1}{0}".format(os.sep, self.sample, acronym)
 
     def getwkdir(self, rulename):
-        return self.sample + os.sep + rulename
+        return self.sample + os.sep + rulename + os.sep
 
     def getlogdir(self, rulename):
         """ Create log directory: */sample/logs/sample_rule.logs

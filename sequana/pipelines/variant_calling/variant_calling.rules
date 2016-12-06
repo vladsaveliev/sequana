@@ -189,7 +189,7 @@ try:
     file_to_copy.append(__snpeff__html)
 except NameError:
     pass
-# Check if there are files from another pipeline to copy
+# Check if there are files from denovo assembly pipeline to copy
 try:
     __copy_multiple_files__input += file_to_copy
 except NameError:
