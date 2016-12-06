@@ -261,7 +261,7 @@ def main(args=None):
         if options.chromosome == -1:
             chromosomes = [this for this in range(len(gc.chr_list)) ]
         else:
-            chromosomes = [options.chromosomes-1]
+            chromosomes = [options.chromosome-1]
 
 
         N = len(chromosomes)
