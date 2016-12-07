@@ -65,7 +65,7 @@ class ExpDesignAdapter(object):
 class ExpDesignBase(object):
 
     def check(self):
-        """Check the presence of the Sample_ID columnd"""
+        """Check the presence of the Sample_ID column"""
         for this in ["Sample_ID"]:
             if this not in self.df.columns:
                 print(self.df.columns)
