@@ -620,44 +620,6 @@ class SequanaConfig(object):
                     subdic[key] = ""
         return subdic
 
-    def check(self, requirements_dict):
-        """a dictionary in the form
-
-        ::
-
-            rule_name:["param1", ":param2", ":kwargs:N"]
-
-        in a config::
-
-            param1: 1
-            param2:
-                - subparam1
-                - subparam2:
-                    - subparam3: 10
-
-        """
-        raise NotImplementedError
-        # will be removed
-        dd = requirements_dict
-
-        # check that each field request is present
-        for k, vlist in dd.items():
-            k = k.replace('__sequana__', '')
-            if k not in self.config.keys():
-                raise KeyError("Expected section %s not found" % k)
-            else:
-                for item in vlist:
-                    # with : , this means a sub field field
-                    if item.startswith(":") and item.count(":") == 1:
-                        assert item[1:] in self.config[k].keys()
-                    elif item.count(":") > 1:
-                        raise NotImplementedError(
-                            "2 hierarchy checks in config not implemented ")
-                    else:
-                        # without : , this means a normal field so item is
-                        # actually a key here
-                        assert item in self.config.keys()
-
     def cleanup(self):
         # assuming only 2 levels, remove the templates
         #  %(input_directory)s and strip the strings.
@@ -691,7 +653,7 @@ class DummyManager(object):
         if isinstance(filenames, list) and len(filenames) == 2:
             self.paired = True
             self.samples = {samplename: filenames}
-        if isinstance(filenames, list) and len(filenames) == 1:
+        elif isinstance(filenames, list) and len(filenames) == 1:
             self.paired = False
             self.samples = {samplename: filenames}
         elif isinstance(filenames, str):
@@ -772,10 +734,10 @@ class PipelineManager(object):
         elif cfg.config.input_pattern:
             glob_dir = cfg.config.input_pattern
         # otherwise file1
-        elif cfg.config.input_samples.file1:
-            glob_dir = [cfg.config.input_samples.file1]
-            if cfg.config.input_samples.file2:
-                glob_dir += [cfg.config.input_samples.file2]
+        elif cfg.config.input_samples['file1']:
+            glob_dir = [cfg.config.input_samples['file1']]
+            if cfg.config.input_samples['file2']:
+                glob_dir += [cfg.config.input_samples['file2']]
         # finally, if none were provided, this is an error
         else:
             self.error("No valid input provided in the config file")
