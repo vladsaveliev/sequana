@@ -1230,7 +1230,6 @@ shellcmd("rm -rf .snakemake")
 """)
 
 
-
 def build_dynamic_rule(code, directory):
     """Create a rule in a unique file in .snakameke/sequana
 

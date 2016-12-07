@@ -45,7 +45,7 @@ else:
 __fastqc_samples__input_fastq = __data__input
 __fastqc_samples__output_done = manager.getname("fastqc_samples", ".done")
 __fastqc_samples__wkdir       = manager.getwkdir("fastqc_samples")
-include: fastqc_dynamic("samples", manager.sample)
+include: fastqc_dynamic("samples", manager)
 expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samples))
 
 
@@ -53,7 +53,7 @@ expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samp
 __fastq_stats_samples__input_fastq = __data__input
 __fastq_stats_samples__output_done = manager.getname("fastq_stats_samples", ".done")
 __fastq_stats_samples__wkdir       = manager.getwkdir("fastq_stats_samples")
-include: fastq_stats_dynamic("samples", manager.sample)
+include: fastq_stats_dynamic("samples", manager)
 expected_output.extend(expand(__fastq_stats_samples__output_done, sample=manager.samples))
 
 
@@ -66,7 +66,7 @@ if manager.config.bwa_mem_phix.do:
     __bwa_mem_phix__sort_output = manager.getname("bwa_mem_phix", ".sorted.bam")
     __bwa_mem_phix__log = manager.getlogdir("bwa_mem_phix")
 
-    include: bwa_mem_dynamic("phix", manager.sample)
+    include: bwa_mem_dynamic("phix", manager)
 
     # BWA_BAM_TO_FASTQ 
     __bwa_bam_to_fastq__input = __bwa_mem_phix__sort_output
@@ -98,13 +98,13 @@ if manager.config.bwa_mem_phix.do:
     __fastqc_phix__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output if "unmapped" in x]
     __fastqc_phix__output_done = manager.getname("fastqc_phix", ".fastqc.done")
     __fastqc_phix__wkdir = manager.getwkdir("fastqc_phix")
-    include: fastqc_dynamic("phix", manager.sample)
+    include: fastqc_dynamic("phix", manager)
     expected_output.extend(expand(__fastqc_phix__output_done, sample=manager.samples))
 
     __fastq_stats_phix__input_fastq = __bwa_bam_to_fastq__fastq_output
     __fastq_stats_phix__output_done = manager.getname("fastq_stats_phix", ".done")
     __fastq_stats_phix__wkdir = manager.getwkdir("fastq_stats_phix")
-    include: fastq_stats_dynamic("phix", manager.sample)
+    include: fastq_stats_dynamic("phix", manager)
     expected_output.extend(expand(__fastq_stats_phix__output_done, sample=manager.samples))
 
 
@@ -148,13 +148,13 @@ if manager.config.adapter_removal.do:
     __fastqc_cutadapt__input_fastq = __cutadapt__output
     __fastqc_cutadapt__output_done = manager.getname("fastqc_cutadapt", ".done")
     __fastqc_cutadapt__wkdir = manager.getwkdir("fastqc_cutadapt")
-    include: fastqc_dynamic(adapter_removal, manager.sample)
+    include: fastqc_dynamic(adapter_removal, manager)
     expected_output += expand(__fastqc_cutadapt__output_done, sample=manager.samples)
 
     __fastq_stats_cutadapt__input_fastq = __cutadapt__output
     __fastq_stats_cutadapt__output_done = manager.getname("fastq_stats_cutadapt", ".done")
     __fastq_stats_cutadapt__wkdir = manager.getwkdir("fastq_stats_cutadapt")
-    include: fastq_stats_dynamic(adapter_removal, manager.sample)
+    include: fastq_stats_dynamic(adapter_removal, manager)
     expected_output += expand(__fastq_stats_cutadapt__output_done, sample=manager.samples)
 
 
@@ -234,7 +234,8 @@ onsuccess:
         shell("cp rulegraph.svg %s/dag.svg" % (report_dir))
         shell("cp config.yaml %s" % report_dir)
         shell("cp requirements.txt %s" % report_dir)
-        shell("cp snakemake_stats.png %s" % report_dir)
+        try:shell("cp snakemake_stats.png %s" % report_dir)
+        except:print("Could not copy snakemake_stats.png. use --stat stats.txt next time")
 
         if manager.config.adapter_removal.do:
             from sequana.reporting import report_cutadapt
