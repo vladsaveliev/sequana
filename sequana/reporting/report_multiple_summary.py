@@ -153,7 +153,8 @@ class SequanaMultipleSummary(BaseReport):
         except:pass
         try:self.populate_mean_quality()
         except:pass
-        self.populate_adapters()
+        try:self.populate_adapters()
+        except:print("no adapter removal section could be parsed")
 
 
         self.jinja['canvas'] += """
