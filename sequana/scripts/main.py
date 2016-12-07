@@ -87,6 +87,31 @@ class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana"):
         usage = """Welcome to SEQUANA standalone
 
+        The sequana utility has two purposes. First, it downloads/copy
+        a pipeline and its configuration file. Second, it fills the
+        configuration file so that it is functional.
+
+        All pipelines require the location of the data to be analysed. This is
+        done with one of the following parameter
+
+            --input-directory <Location of the fastq.gz files>
+            --pattern <A wildcard to retrieve fastq.gz files>
+            --file1 FILE1 --file2 FILE2
+
+        In addition, each pipeline may have its own specific options. For
+        instance the parameter in the quality_control section are for the
+        quality_control pipeline only.
+
+        The sequana utility creates a directory ('analysis' by default) where
+        the pipeline and config.yaml file are stored. The configuration file
+        can be edited.
+
+        Pipelines available can be shown using:
+
+            sequana --show-pipelines
+
+        Here are some examples:
+
         If you want to analyse several samples distributed in sub-directories,
         use:
 
@@ -244,11 +269,34 @@ define the type of cluster command to use
             default="analysis",
             help="directory where to create files and store results")
 
-        group.add_argument_group("SPECIFIC")
+        group = self.add_argument_group("BWA SPECIFIC")
         group.add_argument("--reference", dest="reference", type=str,
-            help=""" Fills the *reference* in bwa_ref section. To be used with --init option""")
+            help=""" Fills the *reference* in bwa_ref section. """)
 
-        group = self.add_argument_group("QUALITY_CONTROL Pipeline")
+        group = self.add_argument_group("""QUALITY_CONTROL Pipeline\n\n
+    This section is for the quality control only. It mostly concerns
+    the removal of adapters.
+
+    If you have no adapters, use:
+
+        --no-adapters
+
+    If you have a design file (see documentation about --design here
+    below), use --design and --adapters:
+
+       --design DESIGNFILE
+       --adapters Nextera/PCRFree
+
+    If you have your own adapter files, use
+
+        --adapter-fwd file:<FILENAME>
+        --adapter-rev file:<FILENAME>
+
+     If you have only one sample or one adapter, you may want to provide
+     the string using
+
+            --adapter-fwd STRING
+            --adapter-rev STRING""")
         group.add_argument("--adapter-fwd", dest="adapter_fwd", type=str,
             help="""A string representing the forward adapter. Can be a file
                 in FASTA format""")
@@ -256,12 +304,56 @@ define the type of cluster command to use
             help="""A string representing the forward adapter. Can be a file
                 in FASTA format""")
         group.add_argument("--design", dest="design", type=str,
-            help="""a CSV file with 3 columns named 'sample name', 'index1','index2' """)
+            help="""FORMAT|The design file is a CSV file. There are 3 formats accepted.
+
+Generic
+--------
+The generic format is a CSV file with these columns:
+
+    Sample_ID, Index_Seq, Index1_ID, Index2_ID
+
+The Index2_Id is optional.
+
+MiSeq sequencer file
+-----------------------
+
+MiSeq sequencer file are accepted per se. The format looks like
+
+
+    [Header]
+    IEMFileVersion,4
+    Experiment Name,160104-SR-310v2-std
+    Assay,NEXTFlex-PCRfree
+
+    [Reads]
+    315
+
+    [Settings]
+    Adapter,AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
+    AdapterRead2,AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
+
+    [Data]
+    Sample_ID,Sample_Name,Sample_Plate,Sample_Well,I7_Index_ID,index,Sample_....
+    CR81-L1236-P1,,,,NF01,CGATGT,,
+    CR81-L1236-P10,,,,NF03,ACAGTG,,
+
+Standard HiSeq
+------------------
+For back compatibility we also accept this format. Here, the SampleIF,
+"Index Seq" and FCID columns are used. Others are ignored.
+
+    FCID,Lane,SampleID,SampleRef,Index Seq,Description,Control,Recipe,Operator
+    C0PCWACXX,1,553-iH2-1,SLX050-01,TTAGGC,,N,R1,PF2
+    C0PCWACXX,1,539-st2,SLX050-01,,,N,R1,PF2
+    C0PCWACXX,2,107-st2,SLX050-01,ACTTGA-GATCAG,,N,R1,PF2
+
+        """)
         group.add_argument("--adapters", dest="adapters", type=str, default="",
-            help="""When using --design, you must also provide the type of
-                adapters using this parameter. Valid values are either Nextera or PCRFree
-                Corresponding files can be found in
-                github.com/sequana/sequana/resources/data/adapters
+            help="""FORMAT|When using --design, you must also provide the type of
+adapters. Valid values are [Nextera, PCRFree] . The files
+are part os Sequana and can be found here: 
+
+     http:\\github.com/sequana/sequana/resources/data/adapters
                 """)
         group.add_argument("--no-adapters", dest="no_adapters",
             action="store_true", default=False,
@@ -582,7 +674,7 @@ def sequana_init(options):
     else:
         shutil.copy(module.config, config_filename)
 
-    # The input 
+    # The input
     cfg = SequanaConfig(config_filename)
     cfg.config.input_directory = options.input_directory
     cfg.config.input_pattern = options.pattern
@@ -592,7 +684,7 @@ def sequana_init(options):
     if options.pipeline == "quality_control":
         if options.design:
             shutil.copy(options.design, options.target_dir + os.sep )
-            cfg.config.adapter_removal.design = os.path.basename(options.design)
+            cfg.config.adapter_removal.design_file = os.path.basename(options.design)
 
         if options.kraken:
             cfg.config.kraken.database_directory = os.path.abspath(options.kraken)

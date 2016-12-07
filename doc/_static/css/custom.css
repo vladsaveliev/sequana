@@ -56,12 +56,12 @@ table.longtable.docutils {
     width: 20%;
 }
  .span_1_of_3 {
-    width: 29%;
+    width: 35%;
     float:left;
 }
  .span_2_of_3 {
-    width: 65%;
-    margin-left: -5%;
+    width: 60%;
+    margin-left: 0%;
     float:left;
 }
 

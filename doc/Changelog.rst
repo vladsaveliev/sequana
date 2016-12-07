@@ -4,6 +4,20 @@ Changelog
 .. contents::
 
 
+0.1.16
+-----------
+
+* BUG Fixes:
+
+    - Fix sequana_taxonomy (https://github.com/sequana/sequana/issues/308)
+    - Fix typo in sequana_coverage for multiple chromosome (https://github.com/sequana/sequana/issues/307)
+
+* NEWs:
+
+    - SequanaConfig can read back a SequanaConfig instace
+    - Added a DummyManager for minimalist manager to create reports
+
+
 0.1.15
 ------------
 

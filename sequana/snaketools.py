@@ -540,6 +540,9 @@ class SequanaConfig(object):
             else:
                 raise IOError("input string must be an existing file")
             self.config = AttrDict(**config)
+        elif isinstance(data, SequanaConfig): 
+            self.config = AttrDict(**data.config)
+            self._yaml_code = comments.CommentedMap(self.config.copy())
         else: # a dictionary ?
             self.config = AttrDict(**data)
             self._yaml_code = comments.CommentedMap(self.config.copy())
@@ -617,44 +620,6 @@ class SequanaConfig(object):
                     subdic[key] = ""
         return subdic
 
-    def check(self, requirements_dict):
-        """a dictionary in the form
-
-        ::
-
-            rule_name:["param1", ":param2", ":kwargs:N"]
-
-        in a config::
-
-            param1: 1
-            param2:
-                - subparam1
-                - subparam2:
-                    - subparam3: 10
-
-        """
-        raise NotImplementedError
-        # will be removed
-        dd = requirements_dict
-
-        # check that each field request is present
-        for k, vlist in dd.items():
-            k = k.replace('__sequana__', '')
-            if k not in self.config.keys():
-                raise KeyError("Expected section %s not found" % k)
-            else:
-                for item in vlist:
-                    # with : , this means a sub field field
-                    if item.startswith(":") and item.count(":") == 1:
-                        assert item[1:] in self.config[k].keys()
-                    elif item.count(":") > 1:
-                        raise NotImplementedError(
-                            "2 hierarchy checks in config not implemented ")
-                    else:
-                        # without : , this means a normal field so item is
-                        # actually a key here
-                        assert item in self.config.keys()
-
     def cleanup(self):
         # assuming only 2 levels, remove the templates
         #  %(input_directory)s and strip the strings.
@@ -681,6 +646,19 @@ class SequanaConfig(object):
                     print("This file %s will be needed" % requirement)
                     wget(requirement)
 
+
+class DummyManager(object):
+    def __init__(self, filenames=None, samplename="custom"):
+        self.config = {}
+        if isinstance(filenames, list) and len(filenames) == 2:
+            self.paired = True
+            self.samples = {samplename: filenames}
+        elif isinstance(filenames, list) and len(filenames) == 1:
+            self.paired = False
+            self.samples = {samplename: filenames}
+        elif isinstance(filenames, str):
+            self.samples = {samplename: [filenames]}
+            self.paired = False
 
 class PipelineManager(object):
     """Utility to manage easily the snakemake pipeline
@@ -756,10 +734,10 @@ class PipelineManager(object):
         elif cfg.config.input_pattern:
             glob_dir = cfg.config.input_pattern
         # otherwise file1
-        elif cfg.config.input_samples.file1:
-            glob_dir = [cfg.config.input_samples.file1]
-            if cfg.config.input_samples.file2:
-                glob_dir += [cfg.config.input_samples.file2]
+        elif cfg.config.input_samples['file1']:
+            glob_dir = [cfg.config.input_samples['file1']]
+            if cfg.config.input_samples['file2']:
+                glob_dir += [cfg.config.input_samples['file2']]
         # finally, if none were provided, this is an error
         else:
             self.error("No valid input provided in the config file")
@@ -1250,7 +1228,6 @@ shellcmd("rm -f  README config.yaml snakejob.* slurm-*")
 shellcmd("rm -f .sequana_cleanup.py")
 shellcmd("rm -rf .snakemake")
 """)
-
 
 
 def build_dynamic_rule(code, directory):

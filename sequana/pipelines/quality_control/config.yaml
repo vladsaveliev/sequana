@@ -49,10 +49,16 @@ bwa_mem_phix:
 
 #################################################################
 # Quality trimming and adapter removal
+#   - adapter_type can only be PCRFRee or Nextera
+#   - design_file: a valid CSV file with mapping of index and 
+#       sample name
 #   - quality: 0 means no trimming, 30 means keep base with quality
 #       above 30
 #   - m: 20 means discard trimmed reads that are shorter than 20.
 #   - tool: only cutadapt supported for now
+#
+#   - if design_file is provided, fwd and rev are ignored
+#
 #   ref: http://cutadapt.readthedocs.io/
 #################################################################
 adapter_removal:
