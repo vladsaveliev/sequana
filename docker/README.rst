@@ -1,92 +1,92 @@
-Docker images for **Sequana**
-=================================
+Docker containers for **Sequana**
+====================================
 
-.. content::
+`Docker <http://www.docker.com>`_ containers wrap a piece of software in a complete filesystem that contains everything needed to run the software.
+
+In order to allow anyone to use **Sequana** without needs for complex installation, we provide
+`Docker images <https://hub.docker.com/u/sequana>`, which are synchronized on the *master*
+branch of the source code.
+
+We assume that:
+
+#. You have installed Docker on your system (see  `Docker <https://www.docker.com>`_ otherwise).
+#. You have an account on  `Hub Docker <https://hub.docker.com>`_ .
+
 
 Quick start
 ----------------
-Assuming you have installed `Docker <https://www.docker.com>`_ on your system, first login::
+With your hub.docker account, first login::
 
     docker login
 
-**Sequana** itself (all library, pipelines and standalones) is provided on
-`Hub Docker <https://www.hub.docker.com>`_ . Type those commands to install the
-image itself::
+Then download (pull) a **Sequana** image (all library, pipelines and standalones) as follows (2Gb image in total)::
 
-    # Get the docker image
-    docker pull cokelaer/sequana
-    # Rename it
-    docker tag cokelaer/sequana sequana
-    sudo docker rmi cokelaer/sequana
+    docker pull sequana/sequana
 
-Now, Use it::
+Now, you should be ready to try it. To start an interactive session, type::
 
-    cd <Directory_with_bed_files>
-    docker run -v $PWD:/home/sequana/data -it sequana
+    cd <Directory_with_data>
+    docker run -v $PWD:/home/sequana/data -it sequana/sequana
+    
 
-For Standalones, please see:
+Standalone
+----------------
 
-    - sequana_coverage_
+The primary goal of the docker is to make it possible to quickly test the
+standalones. For now, we expose only one but more will come. Please see specific 
+documentation following the links here below:
 
-.. _sequana_coverage: sequana_coverage/README.rst
+- sequana_coverage_
+- sequana_taxonomy_
+
+.. _sequana_coverage: (https://github.com/sequana/sequana/tree/master/docker/sequana_coverage)
+.. _sequana_taxonomy: (https://github.com/sequana/sequana/tree/master/docker/sequana_taxonomy)
 
 
-Details for end-users
+More advanced Usage
 ---------------------------
-
-In order to allows anyone to use **Sequana** without needs for complex installation, we provide a
-`Docker <https://www.docker.com/>`_ image. It is synchronized on the *master*
-branch on the source code, which means on official releases.
-
 
 Here below, we provide a quick tutorial that will guide you on using **Sequana**
 thanks to the docker. To do so, we will focus on one standalone application
 called **sequana_coverage**. In brief, the standalone takes as input a BED file
 that contains the genome coverage of a set of mapped DNA reads onto a reference
 genome. Then, the standalone creates a report with relevant information about
-the coverage (See `Sequana documentation <sequana.readthedocs.org>`_ for 
+the coverage (See `Sequana documentation <http://sequana.readthedocs.org>`_ for
 more information).
 
-Get the docker image
--------------------------
+Use the **sequana** Docker image
+---------------------------------------
 
-A docker image is provided on `hub.docker <https://hub.docker.com/r/cokelaer/sequana/>`_.
+Once you downloaded the **sequana** image, you can then enter into the image as follows::
 
-We assume you have install docker on your system.
+    docker run -it sequana/sequana
 
+This opens an interactive shell with latest sequana library pre-installed. For instance, you can
+start an IPython shell::
 
-First, you need a login on `docker <hub.docker.com>`_. Then, in a shell, type::
+    ipython
+    
+and import the library::
 
-    docker login
+    import sequana
 
-This will allow you to obtain the **Sequana** docker image using::
+See sequana.readthedocs.org for examples.
 
-    docker pull cokelaer/sequana
-
-Let us rename it into *sequana*::
-
-    docker tag cokelaer/sequana sequana
-    sudo docker rmi cokelaer/sequana
-
-You can then enter into the image as follows::
-
-    docker run -it sequana
-
-This opens an interactive shell with sequana v0.2 pre-installed. Have a go with
-the test file called virus.bed::
+Or within the unix shell, you can use standalones. For instance there is a test
+BED file that can be analysed as follows to get a coverage report::
 
     sequana_coverage --input virus.bed
 
 This should print information and create a report/ directory. This is not very
 practical if you have your own files or want to open the HTML page stored in
-./reports. So, let us quit::
+./report. So, let us quit the docker::
 
     exit
 
-and do it the proper way. Go to a working directory and start the docker image again as
-follows::
+and do it the proper way. Go to a working directory (or your computer )and start the 
+docker image again as follows::
 
-    docker run -v $PWD:/home/sequana/data -it sequana
+    docker run -v $PWD:/home/sequana/data -it sequana/sequana
 
 This should start the docker image again but you should now have a *./data*
 directory. **Be aware that if you modify data here (in the image),
@@ -94,30 +94,54 @@ you will also modify the data in your local data file.**
 
 Now, you can run sequana_coverage in this directory::
 
-   sequana_coverage --input yourfile.bed
+    cd data
+    sequana_coverage --input yourfile.bed
 
 This analyses the data and creates a report/ directory. The container has no
 display but you can now go back to your computer in /home/user/mydatapath and
 browse the HTML page that was created.
 
+Each time, we entered in the image but you can also use the images as
+executables (see standalone section above).
+
 
 For developers:
 ------------------
 
+
 Build the image::
 
     git clone https://github.com/sequana/sequana
-    cd sequana/docker
-    sudo docker  build  -t="sequana" .
+    cd sequana/docker/sequana_core
+    sudo docker  build  -t="sequana/sequana_core" .
 
 Run the image::
 
-    sudo docker run -it sequana
+    sudo docker run -it sequana/sequana_core
 
 
-sudo docker run -v $PWD:/tempdir -it sequana3
-exit
+Layers
+~~~~~~~~~~~
+Here are the layers made available on hub.docker.com/u/sequana organizations.
+Each layer is built on top of the previous one
+
+- sequana_core_  (only ubuntu + some packages)
+- sequana_conda_core_ (sequana_core + conda + common scientific packages)
+- sequana_conda_ngs_ (sequana_conda_core + NGS conda packages)
+- sequana_ (sequana_conda_ngs + sequana specific version)
+- Standalone Layers:
+
+  - sequana_coverage_ (sequana + sequana_coverage standalone)
+
+.. _sequana_core: https://github.com/sequana/sequana/tree/master/docker/sequana_core
+.. _sequana_conda_core: https://github.com/sequana/sequana/tree/master/docker/sequana_conda_core
+.. _sequana_conda_ngs: https://github.com/sequana/sequana/tree/master/docker/sequana_conda_ngs
+.. _sequana: https://github.com/sequana/sequana/tree/master/docker/sequana
+.. _sequana_coverage: https://github.com/sequana/sequana/tree/master/docker/sequana_coverage
 
 
-.. seealso:: to avoid sudo
-    http://askubuntu.com/questions/477551/how-can-i-use-docker-without-sudo
+
+Sudo
+~~~~~~~~~
+
+To avoid using sudo, check out various forum. See for example:  http://askubuntu.com/questions/477551/how-can-i-use-docker-without-sudo

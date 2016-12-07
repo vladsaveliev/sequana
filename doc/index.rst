@@ -11,10 +11,10 @@ Sequana documentation
     <a href="https://coveralls.io/github/sequana/sequana?branch=master"> <img src="https://coveralls.io/repos/github/sequana/sequana/badge.svg?branch=master"></a>
     <a href="http://sequana.readthedocs.org/en/master/?badge=master"> <img src="http://readthedocs.org/projects/sequana/badge/?version=master"></a>
     </p><p>
-    <a href="https://microbadger.com/images/cokelaer/sequana" title="Get your own image badge on microbadger.com">
-    <img src="https://images.microbadger.com/badges/image/cokelaer/sequana.svg"></a>
-    <a href="https://microbadger.com/images/cokelaer/sequana" title="Get your own version badge on microbadger.com"><img
-    src="https://images.microbadger.com/badges/version/cokelaer/sequana.svg"></a>
+    <a href="https://microbadger.com/images/sequana/sequana" title="Get your own image badge on microbadger.com">
+    <img src="https://images.microbadger.com/badges/image/sequana/sequana.svg"></a>
+    <a href="https://microbadger.com/images/sequana/sequana" title="Get your own version badge on microbadger.com"><img
+    src="https://images.microbadger.com/badges/version/sequana/sequana.svg"></a>
     </p>
     </div>
 
@@ -52,55 +52,73 @@ section for more information.
 form of applications ready for production.
 
 
-Would you like to join us, please let us know on the github website.
-
-.. _installation:
-
-Installation
-#################
-
-If you have already installed **Sequana** dependencies, this command
-should install the latest release posted on http://pypi.python.org/pypi/sequana website::
-
-    pip install sequana --upgrade
-
-If not, be aware that Sequana relies on many dependencies that needs
-to be compiled (i.e., it is time consumming and requires proper C compilator).
-For example, we use Matplotlib, Pandas, cutadapt that are Python libraries.
-However, many pipelines rely on third-party software such as BWA, Spades that are not
-Python libraries. In practice, we do use `Anaconda <https://anaconda.org/>`_ and in
-particular the **bioconda** channel, which can be
-added to your environment as follows (once Anaconda is installed)::
-
-    conda config --add channels r
-    conda config --add channels bioconda
-
-Some packages musts be installed::
-
-    conda install numpy matplotlib pandas snakemake graphviz scipy
-
-Then, depending on the pipelines or standalone applications you want to use,
-you will need to install other packages. Here is a non exhaustive list
-of dependencies that should be enough to run most of the current
-pipelines (commands are split on several lines but you can also
-install everything in one go)::
-
-    conda install pysam pyvcf snpeff biokit bioservices spades khmer
-    conda install bwa bcftools samtools bedtools picard freebayes fastqc
-    conda install kraken krona pigz
+To join the project, please let us know on `github
+<https://github.com/sequana/sequana/issues/306>`_.
 
 
-.. note:: the denovo_assembly pipelines uses Quast tool. We ported the package to
-   python 3.5 but this is not yet in bioconda. One can
-   install it from the quast github (sept 2016).
 
-.. note:: **Sequana** is not fully compatible with Python 2.7 since a dependency
-    (Snakemake) is only available for Python 3.5. However, many core
-    functionalities would work under Python 2.7
+.. Here we are building the carrousel
 
-.. note:: We also provide a docker file with release >=0.14 of Sequana pre-installed.
-    Please see https://github.com/sequana/sequana/tree/master/docker for
-    details.
+.. |bam| image::
+      _images/sphx_glr_plot_bam_001.png
+   :target: auto_examples/plot_bam.html
+
+.. |coverage| image::
+      _images/sphx_glr_plot_coverage_001.png
+   :target: auto_examples/plot_coverage.html
+
+.. |fastqc| image::
+      _images/sphx_glr_plot_fastqc_hist_001.png
+   :target: auto_examples/plot_fastqc_hist.html
+
+.. |kraken| image::
+      _images/sphx_glr_plot_kraken_001.png
+   :target: auto_examples/plot_kraken.html
+
+
+.. raw:: html
+
+    <div class="body">
+   <div id="index-grid" class="section group">
+    <div class="col span_1_of_3">
+        <h3><a href="installation.html">Installation</a></h3>
+        <p>Using conda or docker</p>
+        <h3><a href="auto_examples/index.html">Examples</a></h3>
+        <p>Visit our example gallery to use the Python library</p>
+        <h3><a href="pipelines.html">NGS pipelines</a></h3>
+        <p>Learn about available Snakemake pipelines</p>
+        <h3><a href="applications.html">Standalone applications</a></h3>
+        <p>Standalone applications</p>
+    </div>
+    <div class="col span_2_of_3">
+    <div class="jcarousel-wrapper">
+    <div class="jcarousel">
+
+* |coverage|
+* |fastqc|
+* |kraken|
+* |bam|
+
+.. raw:: html
+
+            </div>
+        <a href="#" class="jcarousel-control-prev">&lsaquo;</a>
+        <a href="#" class="jcarousel-control-next">&rsaquo;</a>
+        <p class="jcarousel-pagination">
+        </p>
+        </div>
+        </div>
+        </div>
+   </div>
+   <div style="clear: left"></div>
+
+
+
+
+
+
+
+
 
 .. _quick_start:
 
@@ -121,7 +139,7 @@ files that contain only 1500 reads. Copy them in a local directory.
 First, run the sequana standalone application to initialise the pipeline
 **quality_control**::
 
-    sequana --pipeline quality_control --input-dir . --output-directory TEST --adapters PCRFree
+    sequana --pipeline quality_control --output-directory TEST --adapters PCRFree
 
 This command downloads the required configuration file(s) in particular
 the config file and the pipeline itself. This example should work out of
@@ -131,9 +149,7 @@ reference to the *phix* (by default we use *phix174.fa*, which is provided in Se
 change the adapter_removal section to your needs (cutadapt parameters, in
 particular the forward and reverse complement list of adapters; None by default).
 
-Note that the ``--output-directory`` parameter is optional. If not provided, the directory is named  **analysis**.
-
-Then, run the pipeline and wait for completion.::
+By default, the output directory is called **analysis** and ca be overwritten with the ``--output-directory`` parameter. Then, run the pipeline and wait for completion.::
 
     cd TEST
     snakemake -s quality_control.rules --stats stats.txt -p -j 4 --forceall
@@ -141,8 +157,7 @@ Then, run the pipeline and wait for completion.::
 The -p option shows the commands, -j 4 means use 4 threads when possible.
 Alternatively, there is also a **runme.sh** script.
 
-Check the output and if there is no errors, you should be able to open the HTML report
-corresponding to the sample::
+You should now have a directory with a HTML report correspinding to the sample::
 
     open Hm2_GTGAAA_L005/report_qc_Hm2_GTGAAA_L005/summary.html
 
@@ -156,6 +171,7 @@ User guide and reference
     :numbered:
     :maxdepth: 2
 
+    installation.rst
     userguide
     tutorial
     pipelines

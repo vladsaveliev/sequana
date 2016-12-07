@@ -540,6 +540,9 @@ class SequanaConfig(object):
             else:
                 raise IOError("input string must be an existing file")
             self.config = AttrDict(**config)
+        elif isinstance(data, SequanaConfig): 
+            self.config = AttrDict(**data.config)
+            self._yaml_code = comments.CommentedMap(self.config.copy())
         else: # a dictionary ?
             self.config = AttrDict(**data)
             self._yaml_code = comments.CommentedMap(self.config.copy())
@@ -681,6 +684,19 @@ class SequanaConfig(object):
                     print("This file %s will be needed" % requirement)
                     wget(requirement)
 
+
+class DummyManager(object):
+    def __init__(self, filenames=None, samplename="custom"):
+        self.config = {}
+        if isinstance(filenames, list) and len(filenames) == 2:
+            self.paired = True
+            self.samples = {samplename: filenames}
+        if isinstance(filenames, list) and len(filenames) == 1:
+            self.paired = False
+            self.samples = {samplename: filenames}
+        elif isinstance(filenames, str):
+            self.samples = {samplename: [filenames]}
+            self.paired = False
 
 class PipelineManager(object):
     """Utility to manage easily the snakemake pipeline
