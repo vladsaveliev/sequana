@@ -501,44 +501,6 @@ class SequanaGUI(QW.QWidget):
             msg = WarningMessage("no working directory selected yet")
             msg.exec_()
 
-    def snakemake_data(self):
-        cursor = self.output.textCursor()
-        cursor.movePosition(cursor.End)
-        data = str(self.process.readAllStandardOutput())
-        error = str(self.process.readAllStandardError())
-        self.shell += data
-        self.shell_error += error
-
-        for this in data.split("\\n"):
-            line = this.strip()
-            if line and len(line) > 3 and "complete in" not in line: # prevent all b'' strings
-                line = line.replace("\\r","")
-                line = line.replace("\\t","    ")
-                cursor.insertHtml('<p style="color:blue">' + line +'</p><br>')
-                cursor.movePosition(cursor.End)
-
-        for this in error.split("\\n"):
-            line = this.strip()
-            if line and len(line) > 3 and "complete in" not in line: # prevent all b'' strings
-                line = line.replace("\\r","")
-                line = line.replace("\\t","    ")
-                cursor.insertHtml('<p style="color:red">' + line +'</p><br>')
-                cursor.movePosition(cursor.End)
-
-        step = [x for x in self.shell_error.split("\\n") if "steps" in x]
-        if len(step):
-            step = step[-1]
-            start, end = step.split(" of ")
-            try:
-                start = int(start.strip() )
-                end = int(end.strip().split(" ")[0].strip())
-                step = int(start) / float(end) * 100
-                if step<1:
-                    step=1
-                self.progressBar.setValue(step)
-            except:
-                pass
-
     def snakemake_data_stdout(self):
         """ Read standard output of snakemake process
         """
@@ -625,12 +587,10 @@ class SequanaGUI(QW.QWidget):
 
         self.process.setWorkingDirectory(working_dir)
         self.process.start("snakemake", snakemake_args)
-        # self.process.readyRead.connect(self.snakemake_data)
         self.process.readyReadStandardOutput.connect(
             self.snakemake_data_stdout)
         self.process.readyReadStandardError.connect(self.snakemake_data_error)
         self.process.finished.connect(self.end_run)
-        #self.process.waitForFinished()
 
     def unlock_snakemake(self):
         working_dir = self.working_dir.get_filenames()
