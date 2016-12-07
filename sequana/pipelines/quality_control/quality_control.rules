@@ -253,7 +253,7 @@ onsuccess:
         # Copy the fastq files 
         if manager.config.adapter_removal.do:
             shell('cp -r %s/cutadapt %s' % (proj, report_dir))
-            shell('mv  %s/cutadapt/*fastq.gz %s' % (report_dir, report_dir))
+            #shell('mv  %s/cutadapt/*fastq.gz %s' % (report_dir, report_dir))
         elif manager.config.bwa_mem_phix.do:
             shell('cp -r %s/bwa_bam_to_fastq/*unmapped* %s' % (proj, report_dir))
 

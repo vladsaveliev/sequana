@@ -550,8 +550,6 @@ class SequanaConfig(object):
         if converts_none_to_str and mode == "NGS":
             self._set_none_to_empty_string(self.config)
 
-        self._converts_boolean(self.config)
-
         if test_requirements and mode == "NGS":
             requirements = ["input_directory",
                             "input_samples",
@@ -598,17 +596,6 @@ class SequanaConfig(object):
 
     def _update_config(self):
         self._recursive_update(self.config, self._yaml_code)
-
-    def _converts_boolean(self, subdic):
-        for key, value in subdic.items():
-            if isinstance(value, dict):
-                subdic[key] = self._converts_boolean(value)
-            else:
-                if value in ['True', 'true', 'TRUE']:
-                    subdic[key] = True
-                if value in ['False', 'false', 'FALSE']:
-                    subdic[key] = False
-        return subdic
 
     def _set_none_to_empty_string(self, subdic):
         # recursively set parameter (None) to ""
