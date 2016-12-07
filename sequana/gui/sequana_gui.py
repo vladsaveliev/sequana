@@ -129,7 +129,6 @@ class SequanaGUI(QW.QWidget):
 
         # Run snakemake/sequana
         self.process = QtCore.QProcess(self)
-        self.process.readyRead.connect(self.snakemake_data)
 
         self.process.started.connect(lambda: self.run_btn.setEnabled(False))
         self.process.started.connect(lambda: self.stop_btn.setEnabled(True))
@@ -138,6 +137,11 @@ class SequanaGUI(QW.QWidget):
         self.process.finished.connect(lambda: self.run_btn.setEnabled(True))
         self.process.finished.connect(lambda: self.stop_btn.setEnabled(False))
         self.process.finished.connect(lambda: self.end_progress)
+
+        self.process.readyReadStandardOutput.connect(
+            self.snakemake_data_stdout)
+        self.process.readyReadStandardError.connect(self.snakemake_data_error)
+        self.process.finished.connect(self.end_run)
 
         self.output = QW.QTextEdit()
         self.output.setWindowTitle("logger")
@@ -540,7 +544,6 @@ class SequanaGUI(QW.QWidget):
         """
         grouprex = self._step_regex.findall(line)
         if grouprex:
-            print(grouprex[0])
             step = int(grouprex[0][0]) / float(grouprex[0][1]) * 100
             self.progressBar.setValue(step)
 
@@ -587,10 +590,6 @@ class SequanaGUI(QW.QWidget):
 
         self.process.setWorkingDirectory(working_dir)
         self.process.start("snakemake", snakemake_args)
-        self.process.readyReadStandardOutput.connect(
-            self.snakemake_data_stdout)
-        self.process.readyReadStandardError.connect(self.snakemake_data_error)
-        self.process.finished.connect(self.end_run)
 
     def unlock_snakemake(self):
         working_dir = self.working_dir.get_filenames()
@@ -629,7 +628,10 @@ class SequanaGUI(QW.QWidget):
         else:
             pal.setColor(QtGui.QPalette.Highlight, self._colors['red'])
             self.progressBar.setPalette(pal)
-            text = 'Run manually to check the exact error or check the log'
+            text = 'Run manually to check the exact error or check the log.'
+            if "--unlock" in self.shell_error:
+                text += "<br>You may need to unlock the directory. "
+                text += "click on Unlock button"
             msg = CriticalMessage(text, self.process.readAllStandardError())
             msg.exec_()
             return
@@ -659,6 +661,7 @@ class SequanaGUI(QW.QWidget):
     def end_progress(self):
         self.progressBar.setValue(100)
         QtGui.QMessageBox.information(self, "Done")
+        self.run_btn.setEnabled(True)
 
     def switch_run(self):
         if self.working_dir.path_is_setup():
@@ -973,12 +976,6 @@ class RuleFormular(QW.QGroupBox):
                                                   directory=False)
             elif isinstance(value, bool) or option=="do":
                 # for the do option, we need to check its value
-                if value in ["yes", "YES", "True", "TRUE"]:
-                    value = True
-                elif value in ["no", "NO", "False", "FALSE"]:
-                    value = False
-                else:
-                    print("Incorrect value found in config file for 'do'")
                 option_widget = BooleanOption(option, value)
                 if option == RuleFormular.do_option:
                     self.do_widget = option_widget
@@ -1061,6 +1058,12 @@ class BooleanOption(GeneralOption):
     """ Wrapp QCheckBox class
     """
     def __init__(self, option, value):
+        # Make sure the value is a boolean
+        if isinstance(value, str):
+            if value.lower() in ['yes', "true", "on"]:
+                value = True
+            elif value in ['no', "false", "off"]:
+                value = False
         super().__init__(option)
 
         self.check_box = QW.QCheckBox()
