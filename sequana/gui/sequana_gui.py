@@ -1,6 +1,7 @@
 # coding: utf-8
 import os
 import sys
+import re
 import time
 import tempfile
 import shutil
@@ -49,9 +50,9 @@ class SequanaGUI(QW.QWidget):
         self.initUI()
 
         self._colors = {
-            'green': QtGui.QColor(0,102,0),
-            'red': QtGui.QColor(255,0,0),
-            'blue': QtGui.QColor(0,0,255),
+            'green': QtGui.QColor(0,170,0),
+            'red': QtGui.QColor(170,0,0),
+            'blue': QtGui.QColor(0,90,154),
         }
 
     def initUI(self):
@@ -388,6 +389,8 @@ class SequanaGUI(QW.QWidget):
         directory_tab.clicked_connect(self.switch_run)
         # create tab box
         self.tabs_browser = QW.QTabWidget()
+        self.tabs_browser.setSizePolicy(QW.QSizePolicy.Minimum,
+                                        QW.QSizePolicy.Minimum)
         self.tabs_browser.addTab(directory_tab, "Directory")
         self.tabs_browser.addTab(paired_tab, "Sample")
 
@@ -536,6 +539,49 @@ class SequanaGUI(QW.QWidget):
             except:
                 pass
 
+    def snakemake_data_stdout(self):
+        """ Read standard output of snakemake process
+        """
+        cursor = self.output.textCursor()
+        cursor.movePosition(cursor.End)
+        data = str(self.process.readAllStandardOutput())
+        self.shell += data
+        self.update_progress_bar(data)
+
+        for this in data.split("\\n"):
+            line = this.strip()
+            if line and len(line) > 3 and "complete in" not in line: # prevent all b'' strings
+                line = line.replace("\\r","")
+                line = line.replace("\\t","    ")
+                cursor.insertHtml('<p style="color:blue">' + line +'</p><br>')
+                cursor.movePosition(cursor.End)
+
+    def snakemake_data_error(self):
+        """ Read error output of snakemake process
+        """
+        cursor = self.output.textCursor()
+        cursor.movePosition(cursor.End)
+        error = str(self.process.readAllStandardError())
+        self.shell_error += error
+        self.update_progress_bar(error)
+
+        for this in error.split("\\n"):
+            line = this.strip()
+            if line and len(line) > 3 and "complete in" not in line: # prevent all b'' strings
+                line = line.replace("\\r","")
+                line = line.replace("\\t","    ")
+                cursor.insertHtml('<p style="color:red">' + line +'</p><br>')
+                cursor.movePosition(cursor.End) 
+
+    def update_progress_bar(self, line):
+        """ Parse with a regex to retrieve current step and total step.
+        """
+        grouprex = self._step_regex.findall(line)
+        if grouprex:
+            print(grouprex[0])
+            step = int(grouprex[0][0]) / float(grouprex[0][1]) * 100
+            self.progressBar.setValue(step)
+
     def get_until_starting_option(self):
         """ Return list with starting rule and end rule.
         """
@@ -561,6 +607,9 @@ class SequanaGUI(QW.QWidget):
         self.progressBar.setPalette(pal)
         self.progressBar.setValue(1)
 
+        # Set the regex to catch steps
+        self._step_regex = re.compile("([0-9]+) of ([0-9]+) steps")
+
         # Prepare the command and working directory.
         working_dir = self.working_dir.get_filenames()
         self.save_config_file()
@@ -576,7 +625,10 @@ class SequanaGUI(QW.QWidget):
 
         self.process.setWorkingDirectory(working_dir)
         self.process.start("snakemake", snakemake_args)
-        self.process.readyRead.connect(self.snakemake_data)
+        # self.process.readyRead.connect(self.snakemake_data)
+        self.process.readyReadStandardOutput.connect(
+            self.snakemake_data_stdout)
+        self.process.readyReadStandardError.connect(self.snakemake_data_error)
         self.process.finished.connect(self.end_run)
         #self.process.waitForFinished()
 
