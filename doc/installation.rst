@@ -13,16 +13,14 @@ should install the latest release posted on http://pypi.python.org/pypi/sequana 
 
 If not, be aware that Sequana relies on many dependencies that needs
 to be compiled (i.e., it is time consumming and requires proper C compilator).
-For example, we use Matplotlib, Pandas, cutadapt that are Python libraries.
-However, many pipelines rely on third-party software such as BWA, Spades that are not
-Python libraries. In practice, we do use `Anaconda <https://anaconda.org/>`_ and in
+In practice, to avoid spending time on compilation, we do use `Anaconda <https://anaconda.org/>`_ and in
 particular the **bioconda** channel, which can be
 added to your environment as follows (once Anaconda is installed)::
 
     conda config --add channels r
     conda config --add channels bioconda
 
-Some packages musts be installed::
+Some packages must be installed::
 
     conda install numpy matplotlib pandas snakemake graphviz scipy
 
