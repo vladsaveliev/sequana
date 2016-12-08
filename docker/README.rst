@@ -39,8 +39,8 @@ documentation following the links here below:
 - sequana_coverage_
 - sequana_taxonomy_
 
-.. _sequana_coverage: (https://github.com/sequana/sequana/tree/master/docker/sequana_coverage)
-.. _sequana_taxonomy: (https://github.com/sequana/sequana/tree/master/docker/sequana_taxonomy)
+.. _sequana_coverage: https://github.com/sequana/sequana/tree/master/docker/sequana_coverage
+.. _sequana_taxonomy: https://github.com/sequana/sequana/tree/master/docker/sequana_taxonomy
 
 
 More advanced Usage
