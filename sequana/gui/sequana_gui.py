@@ -1,4 +1,21 @@
 # coding: utf-8
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016 - Sequana Development Team
+#
+#  File author(s):
+#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
+#          <d.desvillechabrol@gmail.com>
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  website: https://github.com/sequana/sequana
+#  documentation: http://sequana.readthedocs.io
+#
+##############################################################################
 import os
 import sys
 import re
@@ -94,12 +111,12 @@ class SequanaGUI(QW.QWidget):
         self.working_dir.clicked_connect(self.check_existing_config)
         self.working_dir.clicked_connect(self.switch_run)
 
-        # formular which contains all options the pipeline chosen
-        widget_formular = QW.QWidget()
-        self.formular = QW.QVBoxLayout(widget_formular)
-        self.formular.setSpacing(10)
+        # form which contains all options the pipeline chosen
+        widget_form = QW.QWidget()
+        self.form = QW.QVBoxLayout(widget_form)
+        self.form.setSpacing(10)
         scroll_area = QW.QScrollArea()
-        scroll_area.setWidget(widget_formular)
+        scroll_area.setWidget(widget_form)
         scroll_area.setWidgetResizable(True)
         scroll_area.setMinimumHeight(300)
 
@@ -232,7 +249,7 @@ class SequanaGUI(QW.QWidget):
         except AssertionError:
             print("Warning: could not parse the config file")
             return
-        self.create_base_formular()
+        self.create_base_form()
 
     def import_config(self):
         if self.pipeline_is_chosen is False:
@@ -333,7 +350,7 @@ class SequanaGUI(QW.QWidget):
 
     @QtCore.pyqtSlot(str)
     def on_pipeline_choice(self, index):
-        """ Change options formular when user change the pipeline.
+        """ Change options form when user change the pipeline.
         """
         config_file = snaketools.Module(index)._get_config()
         self.choice_button.removeItem(
@@ -351,10 +368,10 @@ class SequanaGUI(QW.QWidget):
         self.until_box.add_items(active_list)
         self.starting_box.add_items(active_list)
 
-    def create_base_formular(self):
-        """ Create formular with all options necessary for a pipeline.
+    def create_base_form(self):
+        """ Create form with all options necessary for a pipeline.
         """
-        self.clear_layout(self.formular)
+        self.clear_layout(self.form)
         rules_list = list(self.sequana_config._yaml_code.keys())
         rules_list.sort()
         self.necessary_dict = {}
@@ -364,8 +381,8 @@ class SequanaGUI(QW.QWidget):
             contains = self.sequana_config._yaml_code[rule]
             if isinstance(contains, dict) and (
                     rule not in SequanaGUI._not_a_rule):
-                rule_box = RuleFormular(rule, contains, count)
-                self.formular.addWidget(rule_box)
+                rule_box = Ruleform(rule, contains, count)
+                self.form.addWidget(rule_box)
                 self.rule_list.append(rule_box)
                 rule_box.connect_do(self.fill_combobox)
             else:
@@ -578,7 +595,7 @@ class SequanaGUI(QW.QWidget):
         # Prepare the command and working directory.
         working_dir = self.working_dir.get_filenames()
         self.save_config_file()
-        rules = self.get_rules(self.formular)
+        rules = self.get_rules(self.form)
         snakefile = Module(self.choice_button.currentText()).snakefile
 
         new_snakefile = working_dir + os.sep + os.path.basename(snakefile)
@@ -639,7 +656,7 @@ class SequanaGUI(QW.QWidget):
     def start_sequana2(self):
         working_dir = self.working_dir.get_filenames()
         self.save_config_file()
-        rules = self.get_rules(self.formular)
+        rules = self.get_rules(self.form)
         snakefile = Module(self.choice_button.currentText()).snakefile
 
         new_snakefile = working_dir + os.sep + os.path.basename(snakefile)
@@ -673,7 +690,7 @@ class SequanaGUI(QW.QWidget):
 
     def save_config_file(self):
         try:
-            formular_dict = dict(self.create_formular_dict(self.formular),
+            form_dict = dict(self.create_form_dict(self.form),
                                  **self.necessary_dict)
         except AttributeError:
             msg = WarningMessage("You must choose a pipeline before saving.")
@@ -682,14 +699,14 @@ class SequanaGUI(QW.QWidget):
 
         # get samples names or input_directory
         if self.tabs_browser.currentIndex() == 1:
-            formular_dict["samples"] = (
+            form_dict["samples"] = (
                 self.tabs_browser.currentWidget().get_filenames())
         else:
-            formular_dict["input_directory"] = (
+            form_dict["input_directory"] = (
                 self.tabs_browser.currentWidget().get_filenames())
 
         # Let us update tha attribute with the content of the form
-        self.sequana_config._yaml_code.update(formular_dict)
+        self.sequana_config._yaml_code.update(form_dict)
 
         if self.working_dir.path_is_setup():
             yaml_path = self.working_dir.get_filenames() + "/config.yaml"
@@ -718,7 +735,7 @@ class SequanaGUI(QW.QWidget):
             msg = WarningMessage("You must set a working directory", self)
             msg.exec_()
 
-    def create_formular_dict(self, layout):
+    def create_form_dict(self, layout):
         def _cleaner(value):
             # This is to save the YAML file correctly since the widgets tend to
             # convert None and empty strings as '""' or "''"
@@ -728,10 +745,10 @@ class SequanaGUI(QW.QWidget):
                 return value
 
         widgets = (layout.itemAt(i).widget() for i in range(layout.count()))
-        formular_dict = {w.get_name(): _cleaner(w.get_value()) if w.is_option()
-                         else self.create_formular_dict(w.get_layout())
+        form_dict = {w.get_name(): _cleaner(w.get_value()) if w.is_option()
+                         else self.create_form_dict(w.get_layout())
                          for w in widgets}
-        return formular_dict
+        return form_dict
 
     def check_existing_config(self):
         config_file = self.working_dir.get_filenames() + "/config.yaml"
@@ -772,7 +789,7 @@ class SequanaGUI(QW.QWidget):
                 self, Qt.Dialog | Qt.CustomizeWindowHint)
             if msg.exec_() == 16384:
                 self.sequana_config._yaml_code.update(config_dict)
-                self.create_base_formular()
+                self.create_base_form()
                 self.fill_combobox(self.rule_list)
         return True
 
@@ -950,7 +967,7 @@ class FileBrowser(QW.QWidget):
         self.btn.clicked.connect(function)
 
 
-class RuleFormular(QW.QGroupBox):
+class Ruleform(QW.QGroupBox):
     do_option = "do"
     def __init__(self, rule_name, rule_dict, count=0):
         super().__init__(rule_name)
@@ -977,7 +994,7 @@ class RuleFormular(QW.QGroupBox):
             elif isinstance(value, bool) or option=="do":
                 # for the do option, we need to check its value
                 option_widget = BooleanOption(option, value)
-                if option == RuleFormular.do_option:
+                if option == Ruleform.do_option:
                     self.do_widget = option_widget
                     option_widget.connect(self._widget_lock)
             else:
@@ -987,7 +1004,7 @@ class RuleFormular(QW.QGroupBox):
                     try:
                         option_widget = TextOption(option, value)
                     except TypeError:
-                        option_widget = RuleFormular(option, value)
+                        option_widget = Ruleform(option, value)
             self.layout.addWidget(option_widget)
         try:
             self._widget_lock(self.do_widget.get_value())
