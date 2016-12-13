@@ -14,7 +14,7 @@
 #
 #  website: https://github.com/sequana/sequana
 #  documentation: http://sequana.readthedocs.io
-# éééééééééé
+#
 ##############################################################################
 import os
 import sys
