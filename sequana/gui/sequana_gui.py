@@ -1,6 +1,7 @@
 # coding: utf-8
 import os
 import sys
+import re
 import time
 import tempfile
 import shutil
@@ -34,7 +35,7 @@ class SequanaGUI(QW.QWidget):
     """ Sequana GUI !
     """
 
-    _not_a_rule = {"requirements", "gatk_bin", "input_directory", "input_samples", "input_pattern",}
+    _not_a_rule = {"requirements", "gatk_bin", "input_directory", "input_samples", "input_pattern"}
     _browser_keyword = {"reference"}
 
     def __init__(self, ipython=True):
@@ -49,9 +50,9 @@ class SequanaGUI(QW.QWidget):
         self.initUI()
 
         self._colors = {
-            'green': QtGui.QColor(0,102,0),
-            'red': QtGui.QColor(255,0,0),
-            'blue': QtGui.QColor(0,0,255),
+            'green': QtGui.QColor(0,170,0),
+            'red': QtGui.QColor(170,0,0),
+            'blue': QtGui.QColor(0,90,154),
         }
 
     def initUI(self):
@@ -74,15 +75,14 @@ class SequanaGUI(QW.QWidget):
 
         # select the working directory
         groupbox_layout = QW.QHBoxLayout()
+        groupbox_layout.setContentsMargins(0, 5, 0, 5)
         self.working_dir = FileBrowser(directory=True)
         groupbox_layout.addWidget(self.working_dir)
         groupbox = QW.QGroupBox("Working directory")
-        groupbox.setContentsMargins(0, 5, 0, 0)
         groupbox.setLayout(groupbox_layout)
 
         # "until" and "starting" combobox
         control_widget = QW.QGroupBox("Pipeline control")
-        control_widget.setContentsMargins(0, 3, 0, -3)
         control_layout = QW.QVBoxLayout(control_widget)
         control_layout.setSpacing(0)
         self.until_box = ComboBoxOption("Until")
@@ -129,7 +129,6 @@ class SequanaGUI(QW.QWidget):
 
         # Run snakemake/sequana
         self.process = QtCore.QProcess(self)
-        self.process.readyRead.connect(self.snakemake_data)
 
         self.process.started.connect(lambda: self.run_btn.setEnabled(False))
         self.process.started.connect(lambda: self.stop_btn.setEnabled(True))
@@ -138,6 +137,11 @@ class SequanaGUI(QW.QWidget):
         self.process.finished.connect(lambda: self.run_btn.setEnabled(True))
         self.process.finished.connect(lambda: self.stop_btn.setEnabled(False))
         self.process.finished.connect(lambda: self.end_progress)
+
+        self.process.readyReadStandardOutput.connect(
+            self.snakemake_data_stdout)
+        self.process.readyReadStandardError.connect(self.snakemake_data_error)
+        self.process.finished.connect(self.end_run)
 
         self.output = QW.QTextEdit()
         self.output.setWindowTitle("logger")
@@ -389,6 +393,8 @@ class SequanaGUI(QW.QWidget):
         directory_tab.clicked_connect(self.switch_run)
         # create tab box
         self.tabs_browser = QW.QTabWidget()
+        self.tabs_browser.setSizePolicy(QW.QSizePolicy.Minimum,
+                                        QW.QSizePolicy.Minimum)
         self.tabs_browser.addTab(directory_tab, "Directory")
         self.tabs_browser.addTab(paired_tab, "Sample")
 
@@ -499,13 +505,14 @@ class SequanaGUI(QW.QWidget):
             msg = WarningMessage("no working directory selected yet")
             msg.exec_()
 
-    def snakemake_data(self):
+    def snakemake_data_stdout(self):
+        """ Read standard output of snakemake process
+        """
         cursor = self.output.textCursor()
         cursor.movePosition(cursor.End)
         data = str(self.process.readAllStandardOutput())
-        error = str(self.process.readAllStandardError())
         self.shell += data
-        self.shell_error += error
+        self.update_progress_bar(data)
 
         for this in data.split("\\n"):
             line = this.strip()
@@ -515,27 +522,30 @@ class SequanaGUI(QW.QWidget):
                 cursor.insertHtml('<p style="color:blue">' + line +'</p><br>')
                 cursor.movePosition(cursor.End)
 
+    def snakemake_data_error(self):
+        """ Read error output of snakemake process
+        """
+        cursor = self.output.textCursor()
+        cursor.movePosition(cursor.End)
+        error = str(self.process.readAllStandardError())
+        self.shell_error += error
+        self.update_progress_bar(error)
+
         for this in error.split("\\n"):
             line = this.strip()
             if line and len(line) > 3 and "complete in" not in line: # prevent all b'' strings
                 line = line.replace("\\r","")
                 line = line.replace("\\t","    ")
                 cursor.insertHtml('<p style="color:red">' + line +'</p><br>')
-                cursor.movePosition(cursor.End)
+                cursor.movePosition(cursor.End) 
 
-        step = [x for x in self.shell_error.split("\\n") if "steps" in x]
-        if len(step):
-            step = step[-1]
-            start, end = step.split(" of ")
-            try:
-                start = int(start.strip() )
-                end = int(end.strip().split(" ")[0].strip())
-                step = int(start) / float(end) * 100
-                if step<1:
-                    step=1
-                self.progressBar.setValue(step)
-            except:
-                pass
+    def update_progress_bar(self, line):
+        """ Parse with a regex to retrieve current step and total step.
+        """
+        grouprex = self._step_regex.findall(line)
+        if grouprex:
+            step = int(grouprex[0][0]) / float(grouprex[0][1]) * 100
+            self.progressBar.setValue(step)
 
     def get_until_starting_option(self):
         """ Return list with starting rule and end rule.
@@ -562,6 +572,9 @@ class SequanaGUI(QW.QWidget):
         self.progressBar.setPalette(pal)
         self.progressBar.setValue(1)
 
+        # Set the regex to catch steps
+        self._step_regex = re.compile("([0-9]+) of ([0-9]+) steps")
+
         # Prepare the command and working directory.
         working_dir = self.working_dir.get_filenames()
         self.save_config_file()
@@ -577,9 +590,6 @@ class SequanaGUI(QW.QWidget):
 
         self.process.setWorkingDirectory(working_dir)
         self.process.start("snakemake", snakemake_args)
-        self.process.readyRead.connect(self.snakemake_data)
-        self.process.finished.connect(self.end_run)
-        #self.process.waitForFinished()
 
     def unlock_snakemake(self):
         working_dir = self.working_dir.get_filenames()
@@ -618,7 +628,10 @@ class SequanaGUI(QW.QWidget):
         else:
             pal.setColor(QtGui.QPalette.Highlight, self._colors['red'])
             self.progressBar.setPalette(pal)
-            text = 'Run manually to check the exact error or check the log'
+            text = 'Run manually to check the exact error or check the log.'
+            if "--unlock" in self.shell_error:
+                text += "<br>You may need to unlock the directory. "
+                text += "click on Unlock button"
             msg = CriticalMessage(text, self.process.readAllStandardError())
             msg.exec_()
             return
@@ -648,6 +661,7 @@ class SequanaGUI(QW.QWidget):
     def end_progress(self):
         self.progressBar.setValue(100)
         QtGui.QMessageBox.information(self, "Done")
+        self.run_btn.setEnabled(True)
 
     def switch_run(self):
         if self.working_dir.path_is_setup():
@@ -852,7 +866,7 @@ class FileBrowser(QW.QWidget):
         self.btn_filename = QW.QLabel(self.empty_msg)
         self.set_empty_path()
         widget_layout = QW.QHBoxLayout(self)
-        widget_layout.setContentsMargins(0, 3, 0, 3)
+        widget_layout.setContentsMargins(3, 3, 3, 3)
         widget_layout.addWidget(self.btn)
         widget_layout.addWidget(self.btn_filename)
 
@@ -962,12 +976,6 @@ class RuleFormular(QW.QGroupBox):
                                                   directory=False)
             elif isinstance(value, bool) or option=="do":
                 # for the do option, we need to check its value
-                if value in ["yes", "YES", "True", "TRUE"]:
-                    value = True
-                elif value in ["no", "NO", "False", "FALSE"]:
-                    value = False
-                else:
-                    print("Incorrect value found in config file for 'do'")
                 option_widget = BooleanOption(option, value)
                 if option == RuleFormular.do_option:
                     self.do_widget = option_widget
@@ -1050,6 +1058,12 @@ class BooleanOption(GeneralOption):
     """ Wrapp QCheckBox class
     """
     def __init__(self, option, value):
+        # Make sure the value is a boolean
+        if isinstance(value, str):
+            if value.lower() in ['yes', "true", "on"]:
+                value = True
+            elif value in ['no', "false", "off"]:
+                value = False
         super().__init__(option)
 
         self.check_box = QW.QCheckBox()

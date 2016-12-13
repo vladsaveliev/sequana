@@ -6,6 +6,11 @@ Data: paired end or single reads
 Run: snakemake -s variant_calling.rules
 """
 
+
+""" This pipeline can be used as standalone or after a denovo assembly to
+evaluate contigs.
+"""
+
 import sequana
 from sequana import snaketools as sm
 from sequana.snaketools import SequanaConfig
@@ -22,22 +27,18 @@ final_output = []
 __report_mapping__ann = None
 __report_mapping__ann_format = None
 
+
 # check if the pipeline is called by denovo pipeline
 try:
-    report_dir
+    __report_mapping__quast_input = __quast__output
 except NameError:
     report_dir = manager.getreportdir("vc")
+    __bwa_mem_ref__ref_input = config["bwa_mem_ref"]["reference"]
+    __report_mapping__quast_input = []
 
 __rawdata__input = manager.getrawdata()
 
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
-
-# we must check if we are in the case of denovo assembly:
-try:
-    __report_mapping__quast_input = __quast__output
-except NameError:
-    __bwa_mem_ref__ref_input = config["bwa_mem_ref"]["reference"]
-    __report_mapping__quast_input = []
 
 # Generate data directory for SnpEff and annotation file for coverage
 if config["snpeff"]["do"]:
@@ -58,7 +59,7 @@ __bwa_mem_ref__reference = manager.getname("reference", ".fasta")
 __bwa_mem_ref__mem_output = manager.getname("bwa_mem_ref", ".bam")
 __bwa_mem_ref__sort_output = manager.getname("bwa_mem_ref", ".sorted.bam")
 __bwa_mem_ref__log = manager.getlogdir("bwa_mem_ref")
-include: bwa_mem_dynamic("ref", manager.sample)
+include: bwa_mem_dynamic("ref", manager)
 
 # Add read groups of sample
 __add_read_group__input = __bwa_mem_ref__sort_output
@@ -139,6 +140,8 @@ if config["report_mapping"]["do"]:
                                sample=manager.samples))
 
 # Variant calling
+# bai file is setup in freebayes rule for multi_copy_file rule
+__freebayes__bai = __freebayes__input + ".bai"
 __freebayes__reference = __bwa_mem_ref__reference
 __freebayes__output = manager.getname("freebayes", ".raw.vcf")
 __freebayes__log = manager.getlogdir("freebayes")
@@ -176,15 +179,22 @@ __rulegraph__mapper = {"report_mapping":"report_mapping.html",
 include: sm.modules["rulegraph"]
 final_output += ["requirements.txt", "dag.svg"]
 
-file_to_copy = [__freebayes__input, __freebayes__input + ".bai",
+
+file_to_copy = [__freebayes__input, __freebayes__bai, __freebayes__output,
                 __vcf_filter__output, __vcf_filter__input, __snakefile__,
-                "config.yaml"]
+                "config.yaml", __rulegraph__output, "requirements.txt"]
+
+# Check if snpeff is done
 try:
     file_to_copy.append(__snpeff__html)
 except NameError:
     pass
+# Check if there are files from denovo assembly pipeline to copy
+try:
+    __copy_multiple_files__input += file_to_copy
+except NameError:
+    __copy_multiple_files__input = file_to_copy
 
-__copy_multiple_files__input = file_to_copy
 __copy_multiple_files__output = report_dir
 __copy_multiple_files__done = manager.sample + os.sep + "copy.done"
 include: sm.modules["copy_multiple_files"]

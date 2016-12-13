@@ -21,6 +21,8 @@ rule digital_normalisation:
     output:
         fastq_dn = __digital_normalisation__output,
         graph = temp(__digital_normalisation__prefix + "/graph.ct")
+    log:
+        __digital_normalisation__log
     params:
         prefix = __digital_normalisation__prefix,
         ksize = config["digital_normalisation"]["ksize"],
@@ -32,26 +34,38 @@ rule digital_normalisation:
         config["digital_normalisation"]["threads"]
     shell:
         """
+        # Files name without .gz extension
+        fastq="{input.fastq}"
+        fastq=${{fastq//.gz/}}
+        echo $fastq
+
+        # Uncompress fastq file
+        unpigz -fk {input.fastq} 
+
         # concatenate R1 and R2
-        interleave-reads.py {input.fastq} --output {params.prefix}.pe
+        interleave-reads.py $fastq --output {params.prefix}.pe > {log} 2>&1
 
         # digital norm
         normalize-by-median.py --paired --ksize {params.ksize} \
             --cutoff {params.cutoff} --n_table {params.n_tables} \
             --max-tablesize {params.max_ts} {params.options} \
             --savegraph {output.graph} {params.prefix}.pe \
-            --output {params.prefix}.pe.keep
+            --output {params.prefix}.pe.keep >> {log} 2>&1
 
         # filter abundance
         filter-abund.py --threads {threads} -V {output.graph} \
-            {params.prefix}.pe.keep --output {params.prefix}.pe.filter
+            {params.prefix}.pe.keep --output {params.prefix}.pe.filter \
+            >> {log} 2>&1
 
         # extract paired reads
         extract-paired-reads.py {params.prefix}.pe.filter \
             --output-paired {params.prefix}.dn.pe \
-            --output-single {params.prefix}.dn.se
+            --output-single {params.prefix}.dn.se >> {log} 2>&1
 
         # split paired reads
-        split-paired-reads.py {params.prefix}.dn.pe --gzip \
-            -1 {output.fastq_dn[0]} -2 {output.fastq_dn[1]}
+        split-paired-reads.py {params.prefix}.dn.pe \
+            -1 {output.fastq_dn[0]} -2 {output.fastq_dn[1]} >> {log} 2>&1
+
+        # remove fastq file
+        rm $fastq
         """

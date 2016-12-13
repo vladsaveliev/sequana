@@ -410,7 +410,7 @@ class KrakenPipeline(object):
 
     """
     def __init__(self, fastq, database, threads=4, output_directory="kraken",
-            verbose=True):
+            verbose=True, dbname=None):
         """.. rubric:: Constructor
 
         :param fastq: either a fastq filename or a list of 2 fastq filenames
@@ -423,7 +423,7 @@ class KrakenPipeline(object):
         lineage and scientif names to store within a Krona formatted file.
         KtImportTex is then used to create the Krona page.
 
-        """ 
+        """
         self.verbose = verbose
         # Set and create output directory
         self._devtools = DevTools()
@@ -431,6 +431,10 @@ class KrakenPipeline(object):
         self._devtools.mkdir(output_directory)
         self.ka = KrakenAnalysis(fastq, database, threads)
 
+        if dbname is None:
+            self.dbname = os.path.basename(database)
+        else:
+            self.dbname = dbname
 
     def run(self):
         """Run the analysis using Kraken and create the Krona output"""
@@ -446,15 +450,16 @@ class KrakenPipeline(object):
         df = self.kr.plot(kind="pie")
         pylab.savefig(self.output_directory + os.sep + "kraken.png")
 
-        kraken_out_summary = self.output_directory + os.sep + "kraken.out.summary"
-        self.kr.kraken_to_krona(output_filename=kraken_out_summary)
-        self.kr.kraken_to_json(self.output_directory + os.sep + "kraken.json")
-        self.kr.kraken_to_csv(self.output_directory + os.sep + "kraken.csv")
+        prefix = self.output_directory + os.sep
+
+        self.kr.kraken_to_krona(output_filename=prefix+"kraken.out.summary")
+        self.kr.kraken_to_json(prefix + "kraken.json", self.dbname)
+        self.kr.kraken_to_csv(prefix + "kraken.csv", self.dbname)
 
         # Transform to Krona HTML
         from snakemake import shell
         kraken_html = self.output_directory + os.sep + "kraken.html"
-        shell("ktImportText %s -o %s" % (kraken_out_summary, kraken_html))
+        shell("ktImportText %s -o %s" % (prefix+"kraken.out.summary", kraken_html))
 
     def show(self):
         """Opens the filename defined in the constructor"""

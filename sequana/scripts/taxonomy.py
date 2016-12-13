@@ -108,7 +108,7 @@ def main(args=None):
        options = user_options.parse_args(args[1:])
 
     # We put the import here to make the --help faster
-    from sequana import KrakenPipeline
+    from sequana import KrakenPipeline, SequanaConfig
     from easydev import DevTools
     devtools = DevTools()
 
@@ -155,53 +155,35 @@ def main(args=None):
 
     k.run()
 
-    if 1==1:
-        # Here we create a simple temporary config file to be read by the Summary
-        # report
-        from easydev import TempFile
+    cfg = SequanaConfig()
+    cfg.config.input_directory = None
+    cfg.config.input_samples = {"file1": options.file1, "file2": options.file2}
+    cfg.config.input_pattern = None
+    cfg.config.input_extension = None
+    cfg.config.kraken = {"database": options.database}
 
-        config_txt = "input_directory:\n"
-        config_txt += "samples:\n"
-        config_txt += '    file1: "%s"\n' % options.file1
-        if options.file2:
-            config_txt += '    file2: "%s"\n'% options.file2
-        config_txt += "project: Taxonomic Content\n"
-        config_txt += "kraken:\n"
-        config_txt += "    do: yes\n"
-        config_txt += "    database: %s\n" % options.database
+    from sequana import SequanaSummary
+    from sequana.snaketools import DummyManager
 
-        tf = TempFile()
-        fh = open(tf.name, "w")
-        fh.write(config_txt)
-        fh.close()
+    filenames = [options.file1]
+    if options.file2:
+        filenames.append(options.file1)
+    manager = DummyManager(filenames)
 
-        from sequana import SequanaSummary
-        class DummyManager(object):
-            def __init__(self, options):
-                if options.file1 and options.file2:
-                    self.paired = True
-                    self.samples = {'custom': [options.file1,options.file2]}
-                else:
-                    self.samples = {'test': [options.file1]}
-                    self.paired = False
+    sample = "custom"
+    ss = SequanaSummary(sample, options.directory, output_filename="summary.html",
+        configfile=cfg,
+        include_all=False, workflow=False, manager=manager)
 
-        manager = DummyManager(options)
-        sample = "custom"
-        ss = SequanaSummary(sample, options.directory, output_filename="summary.html",
-            configfile=tf.name,
-            include_all=False, workflow=False, manager=manager)
-        ss.include_input_links()
-        output_png = options.directory + os.sep + "kraken.png"
-        ss.jinja['kraken_pie'] = output_png
-        ss.create_report()
+    ss.include_kraken()
+    ss.create_report()
 
-        if options.verbose:
-            print("Open ./%s/summary.html" % options.directory)
-            print("or ./%s/kraken/kraken.html" % options.directory)
+    if options.verbose:
+        print("Open ./%s/summary.html" % options.directory)
+        print("or ./%s/kraken/kraken.html" % options.directory)
 
     if options.html is True:
         ss.onweb()
-
 
 if __name__ == "__main__":
    import sys

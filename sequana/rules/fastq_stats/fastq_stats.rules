@@ -1,8 +1,8 @@
 
 
-def fastq_stats_dynamic(name, project):
+def fastq_stats_dynamic(name, manager):
 
-    metadata = {'name':name, 'project': project}
+    metadata = {'name':name}
 
     fastq_stats_code = '''
 rule fastq_stats_%(name)s:
@@ -59,13 +59,4 @@ rule fastq_stats_%(name)s:
 
     '''
     from sequana.snaketools import build_dynamic_rule
-    return build_dynamic_rule(fastq_stats_code % metadata)
-                                                              
-
-
-
-
-
-
-
-
+    return build_dynamic_rule(fastq_stats_code % metadata, manager.pipeline_dir)

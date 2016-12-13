@@ -24,11 +24,13 @@ rule indel_realigner:
         __indel_realigner__log
     shell:
         """
+        # BAM must be indexed to realign INDEL
+        samtools index {input.bam}
+
         GenomeAnalysisTK -T RealignerTargetCreator -R {input.ref} \
         -I {input.bam} -o {output.intervals} > {log} 2>&1
 
         GenomeAnalysisTK -T IndelRealigner -R {input.ref} -I {input.bam} \
         -targetIntervals {output.intervals} -o {output.bam} >> {log} \
         2>&1
-        samtools index {output.bam}
         """

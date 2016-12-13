@@ -540,14 +540,15 @@ class SequanaConfig(object):
             else:
                 raise IOError("input string must be an existing file")
             self.config = AttrDict(**config)
+        elif isinstance(data, SequanaConfig): 
+            self.config = AttrDict(**data.config)
+            self._yaml_code = comments.CommentedMap(self.config.copy())
         else: # a dictionary ?
             self.config = AttrDict(**data)
             self._yaml_code = comments.CommentedMap(self.config.copy())
 
         if converts_none_to_str and mode == "NGS":
             self._set_none_to_empty_string(self.config)
-
-        self._converts_boolean(self.config)
 
         if test_requirements and mode == "NGS":
             requirements = ["input_directory",
@@ -561,15 +562,16 @@ class SequanaConfig(object):
                 assert this in self.config.keys(),\
                     "Your config must contain %s" % this
 
-    def save(self, filename="config.yaml"):
+    def save(self, filename="config.yaml", cleanup=True):
         """Save the yaml code in _yaml_code with comments"""
         # This works only if the input data was a yaml
-        self.cleanup() # this changes the config and yaml_code to remove %()s
+        if cleanup:
+            self.cleanup() # this changes the config and yaml_code to remove %()s
 
         # get the YAML formatted code and save it
         newcode = ruamel.yaml.dump(self._yaml_code,
                     Dumper=ruamel.yaml.RoundTripDumper,
-                    default_style="", block_seq_indent=4)
+                    default_style="", indent=4, block_seq_indent=4)
 
         with open(filename, "w") as fh:
             fh.write(newcode)
@@ -595,17 +597,6 @@ class SequanaConfig(object):
     def _update_config(self):
         self._recursive_update(self.config, self._yaml_code)
 
-    def _converts_boolean(self, subdic):
-        for key, value in subdic.items():
-            if isinstance(value, dict):
-                subdic[key] = self._converts_boolean(value)
-            else:
-                if value in ['True', 'true', 'TRUE']:
-                    subdic[key] = True
-                if value in ['False', 'false', 'FALSE']:
-                    subdic[key] = False
-        return subdic
-
     def _set_none_to_empty_string(self, subdic):
         # recursively set parameter (None) to ""
         for key, value in subdic.items():
@@ -616,96 +607,20 @@ class SequanaConfig(object):
                     subdic[key] = ""
         return subdic
 
-    def check(self, requirements_dict):
-        """a dictionary in the form
-
-        ::
-
-            rule_name:["param1", ":param2", ":kwargs:N"]
-
-        in a config::
-
-            param1: 1
-            param2:
-                - subparam1
-                - subparam2:
-                    - subparam3: 10
-
-        """
-        raise NotImplementedError
-        # will be removed
-        dd = requirements_dict
-
-        # check that each field request is present
-        for k, vlist in dd.items():
-            k = k.replace('__sequana__', '')
-            if k not in self.config.keys():
-                raise KeyError("Expected section %s not found" % k)
-            else:
-                for item in vlist:
-                    # with : , this means a sub field field
-                    if item.startswith(":") and item.count(":") == 1:
-                        assert item[1:] in self.config[k].keys()
-                    elif item.count(":") > 1:
-                        raise NotImplementedError(
-                            "2 hierarchy checks in config not implemented ")
-                    else:
-                        # without : , this means a normal field so item is
-                        # actually a key here
-                        assert item in self.config.keys()
-
-    def get(self, field, default=None, cfg=None):
-        """Return the content of a config file field (with default)
-
-        The idea here is to ease the retrieval of a field in a config file
-        (YAML). The underlying data is a dictionary so one could type
-        e.g self.config['level1']['level2']. Here, we can type
-        self.get("level1:level2", default_value).
-
-        :param field: a string level1:level2
-        :param cfg: by default, the config contain in this instance,
-            but one may provide another one.
-
-        .. warning:: only 2 levels accepted.
-        """
-        raise NotImplementedError('to be removed')
-        if cfg is None:
-            cfg = self.config
-        if ":" in field:
-            level1, level2 = field.split(":", 1)
-            if level1 not in cfg.keys():
-                raise ValueError("first level key (%s) not found " % level1)
-            return self.get(level2, default=default, cfg=cfg[level1])
-        else:
-            if isinstance(cfg, dict) and field in cfg.keys():
-                if cfg[field]:
-                    return cfg[field]
-                else:
-                    return default
-            else:
-                return default
-
     def cleanup(self):
-        # assuming only 2 levels strip strings. Remove the templates
-        #  %(input_directory)s and set all empty strings to None
-
+        # assuming only 2 levels, remove the templates
+        #  %(input_directory)s and strip the strings.
         for k1,v1 in self._yaml_code.items():
             if isinstance(v1, dict):
                 for k2,v2 in self._yaml_code[k1].items():
                     if isinstance(v2, str) and "%(" in v2:
                         self._yaml_code[k1][k2] = None
                     elif isinstance(v2, str):
-                        if len(v2.strip()):
-                            self._yaml_code[k1][k2] = v2.strip()
-                        else:
-                            self._yaml_code[k1][k2] = None
+                        self._yaml_code[k1][k2] = v2.strip()
             elif isinstance(v1, str) and "%(" in v1:
                 self._yaml_code[k1] = None
             elif isinstance(v1, str):
-                if len(v1.strip()):
-                    self._yaml_code[k1] = v1.strip()
-                else:
-                    self._yaml_code[k1] = None
+                self._yaml_code[k1] = v1.strip()
         self._update_config()
 
     def copy_requirements(self, target):
@@ -718,6 +633,19 @@ class SequanaConfig(object):
                     print("This file %s will be needed" % requirement)
                     wget(requirement)
 
+
+class DummyManager(object):
+    def __init__(self, filenames=None, samplename="custom"):
+        self.config = {}
+        if isinstance(filenames, list) and len(filenames) == 2:
+            self.paired = True
+            self.samples = {samplename: filenames}
+        elif isinstance(filenames, list) and len(filenames) == 1:
+            self.paired = False
+            self.samples = {samplename: filenames}
+        elif isinstance(filenames, str):
+            self.samples = {samplename: [filenames]}
+            self.paired = False
 
 class PipelineManager(object):
     """Utility to manage easily the snakemake pipeline
@@ -772,6 +700,7 @@ class PipelineManager(object):
         """
         cfg = SequanaConfig(config)
         cfg.config.pipeline_name = name
+        self.pipeline_dir = os.getcwd() + os.sep
 
         # Default mode is the input directory .
         if "input_directory" not in cfg.config.keys():
@@ -781,7 +710,7 @@ class PipelineManager(object):
         if cfg.config.input_directory:
             directory = cfg.config.input_directory.strip()
             if os.path.isdir(directory) is False:
-                self.errror("The (%s) directory does not exist." % directory)
+                self.error("The (%s) directory does not exist." % directory)
 
             if "input_extension" in cfg.config.keys() and \
                     cfg.config['input_extension'] not in (None, ""):
@@ -792,10 +721,10 @@ class PipelineManager(object):
         elif cfg.config.input_pattern:
             glob_dir = cfg.config.input_pattern
         # otherwise file1
-        elif cfg.config.input_samples.file1:
-            glob_dir = [cfg.config.input_samples.file1]
-            if cfg.config.input_samples.file2:
-                glob_dir += [cfg.config.input_samples.file2]
+        elif cfg.config.input_samples['file1']:
+            glob_dir = [cfg.config.input_samples['file1']]
+            if cfg.config.input_samples['file2']:
+                glob_dir += [cfg.config.input_samples['file2']]
         # finally, if none were provided, this is an error
         else:
             self.error("No valid input provided in the config file")
@@ -862,12 +791,12 @@ class PipelineManager(object):
         return self.basename % rulename + suffix
 
     def getreportdir(self, acronym):
-        """
+        """Create the report directory.
         """
         return "{1}{0}report_{2}_{1}{0}".format(os.sep, self.sample, acronym)
 
     def getwkdir(self, rulename):
-        return self.sample + os.sep + rulename
+        return self.sample + os.sep + rulename + os.sep
 
     def getlogdir(self, rulename):
         """ Create log directory: */sample/logs/sample_rule.logs
@@ -1288,8 +1217,7 @@ shellcmd("rm -rf .snakemake")
 """)
 
 
-
-def build_dynamic_rule(code):
+def build_dynamic_rule(code, directory):
     """Create a rule in a unique file in .snakameke/sequana
 
     The filenames must be unique, and stored in .snakemake to not
@@ -1299,9 +1227,10 @@ def build_dynamic_rule(code):
     import os, uuid
     # Create directory if it does not exist
     from easydev import mkdirs
-    mkdirs(".snakemake/sequana")
+    mkdirs(directory + ".snakemake/sequana")
     # a unique identifier
-    filename = os.sep.join([".snakemake", "sequana", str(uuid.uuid4())])
+    filename = directory
+    filename += os.sep.join([".snakemake", "sequana", str(uuid.uuid4())])
     filename += ".rules"
     # Create the file and return its name so that it can be used inside a
     # pipeline
@@ -1309,4 +1238,3 @@ def build_dynamic_rule(code):
     fh.write(code)
     fh.close()
     return filename
-

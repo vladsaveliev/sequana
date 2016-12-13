@@ -43,19 +43,22 @@ fastqc:
 bwa_mem_phix:
     do: yes
     reference_file: "phiX174.fa"
-    index:
-        options: '-a is'
-    mem:
-        options: '-T 30'
-        read_groups: '@RG\\tID:1\\tSM:1\\tPL:illumina'
-        threads: 2
+    index_algorithm: "is"
+    options: '-T 30'
+    threads: 2
 
 #################################################################
 # Quality trimming and adapter removal
+#   - adapter_type can only be PCRFRee or Nextera
+#   - design_file: a valid CSV file with mapping of index and 
+#       sample name
 #   - quality: 0 means no trimming, 30 means keep base with quality
 #       above 30
 #   - m: 20 means discard trimmed reads that are shorter than 20.
 #   - tool: only cutadapt supported for now
+#
+#   - if design_file is provided, fwd and rev are ignored
+#
 #   ref: http://cutadapt.readthedocs.io/
 #################################################################
 adapter_removal:
