@@ -37,6 +37,8 @@ class SequanaSummary(BaseReport):
     config and pipeline files are not required.
 
 
+    Note that you may provide a manager to tell if paired or not.
+
     """
     def __init__(self,  sample, directory="report", output_filename="summary.html",
                     configfile="config.yaml", snakefile=None,
@@ -53,13 +55,15 @@ class SequanaSummary(BaseReport):
 
         self.workdir = workdir
         self.devtools = DevTools()
-        self.manager = manager
         self.sample = sample
 
         self.title = "Summary Report"
         self.jinja['title'] = "Summary report"
 
-        if manager.paired is True:
+        self.manager = manager
+        
+
+        if self.manager.paired is True:
             self.jinja['type'] = "Paired-end"
         else:
             self.jinja['type'] = "Single-end"
@@ -87,20 +91,31 @@ class SequanaSummary(BaseReport):
         if snakefile: self.read_snakefile(snakefile)
 
         # This is a string representation of the config file
-        if configfile: self.read_configfile(configfile)
+        if configfile: 
+            try:self.read_configfile(configfile)
+            except:pass
 
         # include whatever is relevant
         if include_all:
+<<<<<<< HEAD
             try:
                 self.include_kraken()
             except FileNotFoundError:
                 pass
+=======
+            try: self.include_kraken()
+            except: pass
+
+>>>>>>> develop
             try:self.include_phix()
             except:pass
             
-            try:self.include_sample_stats()
+            try: self.include_sample_stats()
             except:pass
-            self.include_adapters_stats()
+
+            try:self.include_adapters_stats()
+            except:pass
+
             self.include_details()
             self.include_input_links()
             self.include_output_links()
@@ -178,7 +193,8 @@ class SequanaSummary(BaseReport):
                 self.jinja['sample_image_r1_href'] = filename.replace(
                     "fastq_stats_samples", "fastqc_samples").replace(
                     "boxplot.png", "fastqc.html")
-                df = pd.read_json(self.directory + "/fastq_stats_samples/%s_R1_001.json" % self.sample)
+                newfilename  = self.directory + "/fastq_stats_samples/%s._R1_.json" % self.sample
+                df = pd.read_json(newfilename)
                 self.jinja["sample_stats__samples_json"] = df.to_json()
 
             elif "R2" in filename:
@@ -186,7 +202,8 @@ class SequanaSummary(BaseReport):
                 self.jinja['sample_image_r2_href'] = filename.replace(
                     "fastq_stats_samples", "fastqc_samples").replace(
                     "boxplot.png", "fastqc.html")
-                df = pd.read_json(self.directory + "/fastq_stats_samples/%s_R2_001.json" % self.sample)
+                newfilename  = self.directory + "/fastq_stats_samples/%s._R2_.json" % self.sample
+                df = pd.read_json(newfilename)
                 self.jinja["sample_stats__samples_json_R2"] = df.to_json()
 
     def include_kraken(self):
@@ -197,12 +214,15 @@ class SequanaSummary(BaseReport):
         except:
             self.jinja['kraken_database'] = "?"
 
-        table = self.htmltable(pd.read_csv(self.directory + "/kraken/kraken.csv"), 
-                              tablename="kraken")
+        df = pd.read_csv(self.directory + "/kraken/kraken.csv")
+        self.jinja['kraken_json'] = df.to_json()
+
+        table = self.htmltable(df, tablename="kraken")
         if "ena" in table.df.columns:
             table.add_href('ena', url="http://www.ebi.ac.uk/ena/data/view/")
         table.name = "kraken/kraken"
         self.jinja['kraken_html_table'] = table.to_html(index=False)
+
 
     def include_phix(self):
         filename=self.directory + "/bwa_bam_to_fastq/bwa_mem_stats.json"

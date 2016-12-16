@@ -1,0 +1,17 @@
+rule copy_multiple_files:
+    """
+    Rule to copy all necessary file in a directory.
+    """
+    input:
+        file_list = __copy_multiple_files__input
+    output:
+        directory = __copy_multiple_files__output,
+        done = __copy_multiple_files__done
+    shell:
+        """
+        for fl in {input.file_list}
+        do
+            cp $fl {output.directory}
+        done
+        touch {output.done}
+        """

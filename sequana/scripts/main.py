@@ -33,15 +33,15 @@ help_input = """Missing input data.
 
 Input data must be provided with one of the following parameter:
 
-  1- For multiple samples, use --input-directory <PATH> where <PATH> is 
-     the path where to find the FastQ files. By default, extension are 
-     expected to be fastq.gz but one can use --extension to override this 
+  1- For multiple samples, use --input-directory <PATH> where <PATH> is
+     the path where to find the FastQ files. By default, extension are
+     expected to be fastq.gz but one can use --extension to override this
      behaviour
   2- For one sample, you can use --file1 and --file2 (paired sample)
-  3- A global pattern using --pattern  <PATTERN> where <PATTERN> should be 
+  3- A global pattern using --pattern  <PATTERN> where <PATTERN> should be
      a correct regular expression with wildcards between quotes. For instance,
      "*.fastq.gz" or "/home/user/DATA/*/fastq.gz"
-  4- You may already have a valid configuration file. If so, use --config 
+  4- You may already have a valid configuration file. If so, use --config
 """
 
 class Tools(object):
@@ -78,7 +78,7 @@ class Tools(object):
 class SmartFormatter(argparse.HelpFormatter):
     def _split_lines(self, text, width):
         if text.startswith('FORMAT|'):
-            return text[7:].splitlines() 
+            return text[7:].splitlines()
         # this is the RawTextHelpFormatter._split_lines
         return argparse.HelpFormatter._split_lines(self, text, width)
 
@@ -87,15 +87,40 @@ class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana"):
         usage = """Welcome to SEQUANA standalone
 
+        The sequana utility has two purposes. First, it downloads/copy
+        a pipeline and its configuration file. Second, it fills the
+        configuration file so that it is functional.
+
+        All pipelines require the location of the data to be analysed. This is
+        done with one of the following parameter
+
+            --input-directory <Location of the fastq.gz files>
+            --pattern <A wildcard to retrieve fastq.gz files>
+            --file1 FILE1 --file2 FILE2
+
+        In addition, each pipeline may have its own specific options. For
+        instance the parameter in the quality_control section are for the
+        quality_control pipeline only.
+
+        The sequana utility creates a directory ('analysis' by default) where
+        the pipeline and config.yaml file are stored. The configuration file
+        can be edited.
+
+        Pipelines available can be shown using:
+
+            sequana --show-pipelines
+
+        Here are some examples:
+
         If you want to analyse several samples distributed in sub-directories,
         use:
 
-            sequana --pipeline quality_control --pattern "./*/*fastq.gz" 
+            sequana --pipeline quality_control --pattern "./*/*fastq.gz"
                 --design SampleSheetUsed.csv  --adapters PCRFree
 
         If all samples are in the current directory:
 
-            sequana --pipeline quality_control --input-directory . 
+            sequana --pipeline quality_control --input-directory .
                 --design SampleSheetUsed.csv  --adapters PCRFree
 
         If you want to analyse a specific pair of files:
@@ -114,7 +139,7 @@ class Options(argparse.ArgumentParser):
             sequana --show-pipelines
 
         If multiple samples are found, sub-directories are created for each
-        sample. 
+        sample.
 
 AUTHORS: Thomas Cokelaer and Dimitri Devilleschabrol
 Documentation: http://sequana.readthedocs.io
@@ -238,17 +263,40 @@ define the type of cluster command to use
                 fills automatically the project and file1/file2 fields in the config
                 file. To be used with --init option. If more than two files or not
                 files ending in fastq.gz are found, an error is raised.""")
-        group.add_argument("-e", "--extension", type=str, default="fastq.gz", 
+        group.add_argument("-e", "--extension", type=str, default="fastq.gz",
             help="""To be used with --input-directory only""")
         group.add_argument("-o", "--output-directory", dest="target_dir", type=str,
             default="analysis",
             help="directory where to create files and store results")
 
-        group.add_argument_group("SPECIFIC")
+        group = self.add_argument_group("BWA SPECIFIC")
         group.add_argument("--reference", dest="reference", type=str,
-            help=""" Fills the *reference* in bwa_ref section. To be used with --init option""")
+            help=""" Fills the *reference* in bwa_ref section. """)
 
-        group = self.add_argument_group("QUALITY_CONTROL Pipeline")
+        group = self.add_argument_group("""QUALITY_CONTROL Pipeline\n\n
+    This section is for the quality control only. It mostly concerns
+    the removal of adapters.
+
+    If you have no adapters, use:
+
+        --no-adapters
+
+    If you have a design file (see documentation about --design here
+    below), use --design and --adapters:
+
+       --design DESIGNFILE
+       --adapters Nextera/PCRFree
+
+    If you have your own adapter files, use
+
+        --adapter-fwd file:<FILENAME>
+        --adapter-rev file:<FILENAME>
+
+     If you have only one sample or one adapter, you may want to provide
+     the string using
+
+            --adapter-fwd STRING
+            --adapter-rev STRING""")
         group.add_argument("--adapter-fwd", dest="adapter_fwd", type=str,
             help="""A string representing the forward adapter. Can be a file
                 in FASTA format""")
@@ -256,16 +304,60 @@ define the type of cluster command to use
             help="""A string representing the forward adapter. Can be a file
                 in FASTA format""")
         group.add_argument("--design", dest="design", type=str,
-            help="""a CSV file with 3 columns named 'sample name', 'index1','index2' """)
+            help="""FORMAT|The design file is a CSV file. There are 3 formats accepted.
+
+Generic
+--------
+The generic format is a CSV file with these columns:
+
+    Sample_ID, Index_Seq, Index1_ID, Index2_ID
+
+The Index2_Id is optional.
+
+MiSeq sequencer file
+-----------------------
+
+MiSeq sequencer file are accepted per se. The format looks like
+
+
+    [Header]
+    IEMFileVersion,4
+    Experiment Name,160104-SR-310v2-std
+    Assay,NEXTFlex-PCRfree
+
+    [Reads]
+    315
+
+    [Settings]
+    Adapter,AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
+    AdapterRead2,AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
+
+    [Data]
+    Sample_ID,Sample_Name,Sample_Plate,Sample_Well,I7_Index_ID,index,Sample_....
+    CR81-L1236-P1,,,,NF01,CGATGT,,
+    CR81-L1236-P10,,,,NF03,ACAGTG,,
+
+Standard HiSeq
+------------------
+For back compatibility we also accept this format. Here, the SampleIF,
+"Index Seq" and FCID columns are used. Others are ignored.
+
+    FCID,Lane,SampleID,SampleRef,Index Seq,Description,Control,Recipe,Operator
+    C0PCWACXX,1,553-iH2-1,SLX050-01,TTAGGC,,N,R1,PF2
+    C0PCWACXX,1,539-st2,SLX050-01,,,N,R1,PF2
+    C0PCWACXX,2,107-st2,SLX050-01,ACTTGA-GATCAG,,N,R1,PF2
+
+        """)
         group.add_argument("--adapters", dest="adapters", type=str, default="",
-            help="""When using --design, you must also provide the type of
-                adapters using this parameter. Valid values are either Nextera or PCRFree
-                Corresponding files can be found in 
-                github.com/sequana/sequana/resources/data/adapters
+            help="""FORMAT|When using --design, you must also provide the type of
+adapters. Valid values are [Nextera, PCRFree] . The files
+are part os Sequana and can be found here: 
+
+     http:\\github.com/sequana/sequana/resources/data/adapters
                 """)
         group.add_argument("--no-adapters", dest="no_adapters",
             action="store_true", default=False,
-            help="""If provided, no removal of adapters will be 
+            help="""If provided, no removal of adapters will be
                  performed. Trimming quality is still performed.
                  Value must be set in the config file or using --config-params""")
         group.add_argument("--kraken", dest="kraken", type=str,
@@ -294,7 +386,7 @@ def main(args=None):
     else:
         options = user_options.parse_args(args[1:])
 
-    # these imports must be local. This also speed up the --help 
+    # these imports must be local. This also speed up the --help
     import sequana
     from sequana.misc import textwrap
     from sequana.snaketools import Module
@@ -315,7 +407,7 @@ def main(args=None):
             int(bool(options.pipeline)),
             int(bool(options.get_config))
             ), 2)
-    if flag not in [1,2,4,8,16,3]:
+    if flag not in [1,2,4,8,16,3,32]:
         sa.error("You must use one of --pipeline, --info, "
             "--show-pipelines, --issue, --version, --get-config")
 
@@ -497,8 +589,13 @@ def main(args=None):
     sequana_init(options)
 
 
+<<<<<<< HEAD
 def copy_config_from_sequana(module, source="config.yaml", 
                              target="config.yaml", options=None):
+=======
+def copy_config_from_sequana(module, source="config.yaml",
+                             target="config.yaml"):
+>>>>>>> develop
     # identify config name from the requested module
     user_config = module.path + os.sep + source
     if os.path.exists(user_config):
@@ -522,7 +619,6 @@ def sequana_init(options):
     from sequana.misc import textwrap
     from sequana import Module
     from sequana import SequanaConfig, sequana_data
-    from sequana.misc import wget
     sa = Tools(verbose=options.verbose)
 
     # Check that the pipeline is well defined
@@ -544,7 +640,7 @@ def sequana_init(options):
     # Copying snakefile
     sa.print("Copying snakefile")
     sa.mkdir(options.target_dir)
-    shutil.copy(module.snakefile, options.target_dir + os.sep + 
+    shutil.copy(module.snakefile, options.target_dir + os.sep +
                 options.pipeline + ".rules")
 
     # Creating README to print on the screen and in a file
@@ -591,47 +687,33 @@ def sequana_init(options):
         copy_config_from_sequana(module, "config.yaml", config_filename,
                                  options)
 
-    # Update the config file if possible. first we read back the config file
-    # requested
-    with open(config_filename, "r") as fin:
-        config_txt = fin.read()
+    # The input
+    cfg = SequanaConfig(config_filename)
+    cfg.config.input_directory = options.input_directory
+    cfg.config.input_pattern = options.pattern
+    cfg.config.input_extension = options.extension
+    cfg.config.input_samples.file1 = options.file1
+    cfg.config.input_samples.file2 = options.file2
+    if options.pipeline == "quality_control":
+        if options.design:
+            shutil.copy(options.design, options.target_dir + os.sep )
+            cfg.config.adapter_removal.design_file = os.path.basename(options.design)
+
+        if options.kraken:
+            cfg.config.kraken.database_directory = os.path.abspath(options.kraken)
+            cfg.config.kraken.do = True
+        else:
+            cfg.config.kraken.do = False
+
+        if options.reference:
+            cfg.config.bwa_mem.reference = os.path.abspath(options.reference)
+
+        cfg.config.adapter_removal.fwd = options.adapter_fwd
+        cfg.config.adapter_removal.rev = options.adapter_rev
+        cfg.config.adapter_removal.adapter_type = options.adapters
 
 
-    # and save it back filling it with relevant information provided by the user
-    with open(config_filename, "w") as fout:
-        from collections import defaultdict
-        params = defaultdict(str)
-
-        # TODO: copy design file in the working directory ?
-        params['input_directory'] = options.input_directory
-        params['input_pattern'] = options.pattern
-        params['input_extension'] = options.extension
-        if options.file1: params['file1'] = options.file1
-        if options.file2: params['file2'] = options.file2
-
-        if options.pipeline == "quality_control":
-            if options.design:
-                shutil.copy(options.design, options.target_dir + os.sep )
-                params['adapter_design'] = os.path.basename(options.design)
-            else:
-                params['adapter_design'] = ""
-
-            if options.kraken:
-                params['kraken'] = os.path.abspath(options.kraken)
-            else:
-                params['kraken'] = ""
-
-            if options.reference:
-                params['reference'] = os.path.abspath(options.reference)
-            else:
-                params['reference'] = None
-
-            params["adapter_fwd"] = options.adapter_fwd
-            params["adapter_rev"] = options.adapter_rev
-            params["adapter_type"] = options.adapters
-
-        fout.write(config_txt % params)
-
+<<<<<<< HEAD
     # figure out from the config file if any files are required
     cfg = SequanaConfig(config_filename)
     if 'requirements' in cfg.config.keys():
@@ -642,10 +724,12 @@ def sequana_init(options):
             elif requirement.startswith("http"):
                 sa.print("This file %s will be needed" % requirement)
                 wget(requirement)
+=======
+    cfg.copy_requirements(target=options.target_dir)
+>>>>>>> develop
 
     # FIXME If invalid, no error raised
     if options.config_params:
-        cfg = SequanaConfig(config_filename)
         params = [this.strip() for this in options.config_params.split(",")]
         for param in params:
             if param.count(":") not in [1,2, 3]:
@@ -664,7 +748,11 @@ def sequana_init(options):
             elif param.count(":") == 3:
                 k1,k2,k3,v = param.split(":")
                 cfg.config[k1][k2][k3] = v
-        cfg.save(config_filename)
+
+    # important to update yaml with content of config
+    cfg._update_yaml()
+    cfg.save(config_filename)
+
 
     # Creating a unique runme.sh file
     runme_filename = options.target_dir + os.sep + "runme.sh"
@@ -698,7 +786,11 @@ def sequana_init(options):
     sa.green("In case of trouble, please post an issue on https://github.com/sequana/sequana/issue ")
     sa.green("or type sequana --issue and fill a post with the error and the config file (NO DATA PLEASE)")
 
-    ## --cluster "qsub -cwd -qQUEUE -V -e -o "
+    # Change permission
+    try: #python 3
+        os.chmod(runme_filename, 0o755)
+    except:
+        print("Please use Python3. Change the mode of %s manually to 755" % runme_filename)
 
 
 

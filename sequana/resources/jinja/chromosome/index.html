@@ -24,58 +24,41 @@ Sequencing depth and genome coverage report <br>
 <div class="section" id="Coverage">
     <h2><a class="toc-backref" href="#id1">Coverage</a></h2>
     <div>
-    The graphics shows the coverage as function of the position in the genome.
+    The following figure shows the per-base coverage along the reference genome
+(black line). The blue line indicates the running median. From the normalised
+coverage, we estimate z-scores on a per-base level. The red lines indicates the
+z-scores at plus or minus N standard deviations, where N is chosen by the user
+(default:4).
 
     </div>
-    <img src={{ cov_plot }}> </>
+    <img src={{ cov_plot }}> 
 </div>
 
 <div class="section" id="Submapping list"> 
-Interactive plots are available in the following table. Note that the whole
-    reference is split into sub-regions (500,000 bp length at max).
-
+The image above is a static image. However, interactive plots are available from
+the table here below. To allows interactions, we split the data into  chunks of 
+500,000 bp length at max. The names contains the start and end positions.
     {{ list_submapping }}
 </div>
 
+<div class="section" id="histogram">    
+
+<div>The following figure contains the histogram of the genome coverage. The X and Y
+axis being in log scale.</div>
+<img style="width:45%"  src={{ cov_hist_loglog }}> 
+<img style="width:45%" src={{ cov_hist_logy }}> 
+</div>
+    
+
+
 
 <div class="section" id="Basic stats">
-
     <h2><a class="toc-backref" href="#id1">Basic stats</a></h2>
-<p>The following table gives some basic statistics about the genome coverage. 
-
-{{ nc_stats }}
-
-Here are some definitions used:
-<ul>
-<li>BOC: breadth of coverage, that is proportion is percent of the genome
-covered by at least one read. Values below 1 indicates the presence of deleted
-regions.</li>
-<li>CV: the coefficient of variation</li>
-<li>DOC: the sequencing depth (Depth of Coverage), that is the avearge of the
-genome coverage shown here above</li>
-<li>MAD: median of the absolute median deviation median(|X-median(X)|)</li>
-<li>std: standard deviation</li>
-</ul>
-<br>    
-</p>
+        <p>The following table gives some basic statistics about the genome coverage. 
+            {{ nc_stats }}
 </div>
 
 
-<div class="section" id="Normalized coverage">
-    <h2><a class="toc-backref" href="#id1">Normalized coverage</a></h2>
-    {{ nc_paragraph }}
-    <div>
-        <img src={{ nc_plot }}> </>
-    </div>
-</div>
-
-<div class="section" id="Z-Score distribution">
-    <h2><a class="toc-backref" href="#id1">Z-Score distribution</a></h2>
-    {{ bp_paragraph }}
-<div>    
-    <img src={{ bp_plot }}> </>
-</div>
-</div>
 
 <h2><a class="toc-backref" href="#id1">Regions of Interest</a></h2>
 Running median is the median computed along the genome using a sliding window.
@@ -107,6 +90,21 @@ The following tables give regions of interest detected by sequana. Here is some 
 </div>
 {% endif %}
 
+<div class="section" id="Normalized coverage">
+    <h2><a class="toc-backref" href="#id1">Normalized coverage</a></h2>
+    {{ nc_paragraph }}
+    <div>
+        <img src={{ nc_plot }}> </>
+    </div>
+</div>
+
+<div class="section" id="Z-Score distribution">
+    <h2><a class="toc-backref" href="#id1">Z-Score distribution</a></h2>
+    {{ bp_paragraph }}
+    <div>    
+        <img src={{ bp_plot }}> </>
+    </div>
+</div>
 
 
 

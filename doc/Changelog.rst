@@ -3,26 +3,70 @@ Changelog
 
 .. contents::
 
+
+0.1.16
+-----------
+
+* BUG Fixes:
+
+    - Fix sequana_taxonomy (https://github.com/sequana/sequana/issues/308)
+    - Fix typo in sequana_coverage for multiple chromosome (https://github.com/sequana/sequana/issues/307)
+
+* NEWs:
+
+    - SequanaConfig can read back a SequanaConfig instace
+    - Added a DummyManager for minimalist manager to create reports
+
+
+0.1.15
+------------
+
+* CHANGES:
+
+    - coverage: https://github.com/sequana/sequana/issues/302
+      add histogram, better stats table. add --output-directory
+    - Update docker (add bowtie, subread, firefox)
+    - snaketools:
+          - empty strings are kept as empty strings (not None)
+          - remove check() method in SequanaConfig
+          - cleanup (removing of templates) ca be switch off
+
 0.1.14
 ------------
 
 * CHANGES:
 
-    - snaketools: 
+    - fastqc.histogram_sequence_lengths (log2 scale to log10)
+    - multi_summary fixed and available for the quality_control pipeline
+    - sequana_compressor: add --keep-going option by default so that if a file
+      fails, other independent files are processed.
+    - snaketools:
           - remove SnakeMakeProfile (not used)
           - remove sequana_check_config (not used)
           - remove deprecated __get_tagname
           - remove ExpandedSnakefile since not required anymore
+          - Fix sample_file2 option that was not encoded properly
+          - PipelineManager and SequanaConfig use new yaml parser
+    - sequana_coverage: -- add back the sample name as prefix of the HTML report
+      name -- a BED with two coverage columns is now accepted --
+      --download-genbank option added
+    - sequana_summary works for the quality_control pipeline
     - Simplify combos of input_directory, input_patter, input_samples, the new
       possible mutually exclusive input parameters of sequana standalone and all
-      pipelines. 
-   
+      pipelines.
+
+* BUGS:
+
+    - Kraken: if no reads classified at all, errors were raised and
+      quality_control summary report would fail. This is fixed now with a "nodata"
+      image being shown.
+
 * NEWS
 
+    - GUI (draft version)
     - fq.gz are now allowed in the pipelines and should be supported in the
       future
-    - More tests in particular a ./test/pipelines/ new directory 
- 
+    - More tests in particular a ./test/pipelines/ new directory
 
 
 0.1.13

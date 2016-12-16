@@ -4,8 +4,8 @@
 # should be called after bwa_mem and bwa_bam
 
 
-def fastqc_dynamic(name, project):
-    metadata = {'name':name, 'project':project}
+def fastqc_dynamic(name, manager):
+    metadata = {'name':name, "project":manager.sample}
     fastqc_code = '''
 
 rule fastqc_%(name)s:
@@ -44,7 +44,7 @@ rule fastqc_%(name)s:
         kargs = config['fastqc']['options']
     threads: 4
     log:
-        fastqc = "%(project)s/logs/fastqc_%(name)s/fastqc.log",
+        fastqc = "logs/fastqc_%(name)s/fastqc.log",
     run:
         # if the content of the file is empty, this will fail. We need to
         # touch  a file in such case.
@@ -76,15 +76,5 @@ rule fastqc_%(name)s:
         s.create_report()
 
     '''
-    from easydev import TempFile
-    tt = TempFile()
-    fh = open(tt.name, "w")
-    fh.write(fastqc_code % metadata)
-    fh.close()
-    return fh.name
-
-
-
-
-
-
+    from sequana.snaketools import build_dynamic_rule
+    return build_dynamic_rule(fastqc_code % metadata, manager.pipeline_dir)

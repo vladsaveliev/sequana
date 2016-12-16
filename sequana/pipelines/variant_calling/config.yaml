@@ -15,14 +15,12 @@ input_samples:
     file1: "%(file1)s"
     file2: "%(file2)s"
 
+# =========================================== Sequencing information
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GenomeAnalysisTK
-
-# GATK is absent in conda because it is not a free software
-# You must set the GATK bin path.
-# gatk_bin: "java -jar /path/to/GenomeAnalysisTK.jar"
-
-gatk_bin: GenomeAnalysisTK
+sequencing:
+    platform: "Illumina"
+    instrument: "Hiseq2500"
+    flowcell: "Unknown"
 
 # =========================================== Sections related to variant calling
 
@@ -30,14 +28,10 @@ gatk_bin: GenomeAnalysisTK
 
 bwa_mem_ref:
     reference: "%(reference)s"  # Genome of reference
-    index:      # Options for bwa index
-        options: '-a is'
-    mem:        # Options for bwa mem
-        options: '-T 30'
-        # -R option for GATK
-        read_groups: '@RG\\tID:1\\tSM:1\\tPL:illumina'
-        # -t option (number thread)
-        threads: 2 
+    # IS is for small genome and bwtsw for large genome (like human)
+    index_algorithm: 'is' # Algorithm for constructing index [is|bwtsw]
+    options: '-T 30'
+    threads: 2
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SnpEff
 
@@ -56,9 +50,6 @@ snpeff:
 
 freebayes:
     ploidy: 1  # Set the ploidy of your sample (default:2)
-    # . This can comfortably be set
-    # to half the read length. (default: 3)
-    max-complex-gap: 3 
     # Additional options
     options: ''
 

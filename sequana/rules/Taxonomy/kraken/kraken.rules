@@ -19,8 +19,14 @@ rule kraken_translate:
         k = KrakenResults(input[0])
         k.kraken_to_krona(output_filename=output.summary)
         df = k.plot(kind='pie')
-        from pylab import savefig
-        savefig(output.png)
+        if df is not None and len(df):
+            from pylab import savefig
+            savefig(output.png)
+        else:
+            from sequana import sequana_data
+            import shutil
+            filename = sequana_data("no_data.jpg", "images")
+            shutil.copy(filename, output.png)
 
 
 rule kraken:
@@ -39,7 +45,7 @@ rule kraken:
         .. code-block:: yaml
 
             kraken:
-                database:       # a valid path to a Kraken database
+                database_directory:  # a valid path to a Kraken database
 
     See `KrakenBuilder <http://sequana.readthedocs.io/en/master/references.html#sequana.kraken_builder.KrakenBuilder>`_ to build your own database or visit 
     https://github.com/sequana/data for a database toy example.
@@ -56,7 +62,7 @@ rule kraken:
         kraken_csv = __kraken__output_csv,
         kraken_json = __kraken__output_json
     params:
-        database = config['kraken']['database']
+        database = config['kraken']['database_directory']
     threads: 4
     run:
         if len(input) == 1:

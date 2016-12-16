@@ -23,8 +23,6 @@ from easydev import execute, TempFile
 
 import pandas as pd
 
-import pylab
-
 from sequana.misc import wget
 from sequana import sequana_config_path
 
@@ -80,7 +78,7 @@ class KrakenResults(object):
             class Taxonomy(object):
                 from sequana import sequana_data # must be local
                 df = pd.read_csv(sequana_data("test_taxon_rtd.csv"),
-                    index_col=0)
+                        index_col=0)
                 def get_lineage_and_rank(self, x):
                     # Note that we add the name as well here
                     ranks = ['kingdom', 'phylum', 'class', 'order',
@@ -103,18 +101,24 @@ class KrakenResults(object):
         .. note:: the first call first loads all taxons in memory and takes a
             few seconds but subsequent calls are much faster
         """
+        # filter the lineage to keep only information from one of the main rank
+        # that is superkingdom, kingdom, phylum, class, order, family, genus and
+        # species
+        ranks = ('kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
+
+        if isinstance(ids, int):
+            ids = [ids]
+
+        if len(ids) == 0:
+            return pd.DataFrame()
+
         if self.verbose:
             print('Retrieving taxon using biokit.Taxonomy')
 
         if isinstance(ids, list) is False:
             ids = [ids]
 
-        # filter the lineage to keep only information from one of the main rank
-        # that is superkingdom, kingdom, phylum, class, order, family, genus and
-        # species
-        ranks = ('kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species')
         lineage = [self.tax.get_lineage_and_rank(x) for x in ids]
-
         # Now, we filter each lineage to keep only relevant ranks
         # We drop the 'no rank' and create a dictionary
         # Not nice but works for now
@@ -192,7 +196,7 @@ class KrakenResults(object):
 
         # line 14500
         # >gi|331784|gb|K01711.1|MEANPCG[331784] Measles virus (strain Edmonston), complete genome
-
+        
 
         df = self.get_taxonomy_biokit([int(x) for x in self.taxons.index])
         df['count'] = self.taxons.values
@@ -249,6 +253,9 @@ x!="description"] +  ["description"]]
 
         if len(taxon_to_find) == 0:
             print("No reads were identified. You will need a more complete database")
+            self.output_filename = output_filename
+            with open(output_filename, "w") as fout:
+                fout.write("%s\t%s" % (self.unclassified, "Unclassified"))
             return
         # classified reads as root  (1)
         try:
@@ -304,6 +311,8 @@ x!="description"] +  ["description"]]
                 textcolor="red", **kargs):
         """A simple non-interactive plot of taxons
 
+        :return: None if no taxon were found and a dataframe otherwise
+
         A Krona Javascript output is also available in :meth:`kraken_to_krona`
 
         .. plot::
@@ -317,6 +326,7 @@ x!="description"] +  ["description"]]
         .. seealso:: to generate the data see :class:`KrakenPipeline`
             or the standalone application **sequana_taxonomy**.
         """
+        import pylab
         if self._data_created == False:
             self.kraken_to_krona()
 
@@ -325,10 +335,14 @@ x!="description"] +  ["description"]]
             return
         # This may have already been called but maybe not. This is not time
         # consuming, so we call it again here
+
+        if len(self.taxons.index) == 0:
+            return None
+
+
         df = self.get_taxonomy_biokit(list(self.taxons.index))
         df.ix[-1] = ["Unclassified"] * 8
         data = self.taxons.copy()
-
         data.ix[-1] = self.unclassified
 
         data = data/data.sum()*100
@@ -396,7 +410,7 @@ class KrakenPipeline(object):
 
     """
     def __init__(self, fastq, database, threads=4, output_directory="kraken",
-            verbose=True):
+            verbose=True, dbname=None):
         """.. rubric:: Constructor
 
         :param fastq: either a fastq filename or a list of 2 fastq filenames
@@ -409,7 +423,7 @@ class KrakenPipeline(object):
         lineage and scientif names to store within a Krona formatted file.
         KtImportTex is then used to create the Krona page.
 
-        """ 
+        """
         self.verbose = verbose
         # Set and create output directory
         self._devtools = DevTools()
@@ -417,10 +431,14 @@ class KrakenPipeline(object):
         self._devtools.mkdir(output_directory)
         self.ka = KrakenAnalysis(fastq, database, threads)
 
+        if dbname is None:
+            self.dbname = os.path.basename(database)
+        else:
+            self.dbname = dbname
 
     def run(self):
         """Run the analysis using Kraken and create the Krona output"""
-
+        import pylab
         # Run Kraken (KrakenAnalysis)
         kraken_results = self.output_directory + os.sep + "kraken.out"
         self.ka.run(output_filename=kraken_results)
@@ -430,18 +448,18 @@ class KrakenPipeline(object):
         self.kr = KrakenResults(kraken_results, verbose=self.verbose)
 
         df = self.kr.plot(kind="pie")
-        from pylab import savefig
-        savefig(self.output_directory + os.sep + "kraken.png")
+        pylab.savefig(self.output_directory + os.sep + "kraken.png")
 
-        kraken_out_summary = self.output_directory + os.sep + "kraken.out.summary"
-        self.kr.kraken_to_krona(output_filename=kraken_out_summary)
-        self.kr.kraken_to_json(self.output_directory + os.sep + "kraken.json")
-        self.kr.kraken_to_csv(self.output_directory + os.sep + "kraken.csv")
+        prefix = self.output_directory + os.sep
+
+        self.kr.kraken_to_krona(output_filename=prefix+"kraken.out.summary")
+        self.kr.kraken_to_json(prefix + "kraken.json", self.dbname)
+        self.kr.kraken_to_csv(prefix + "kraken.csv", self.dbname)
 
         # Transform to Krona HTML
         from snakemake import shell
         kraken_html = self.output_directory + os.sep + "kraken.html"
-        shell("ktImportText %s -o %s" % (kraken_out_summary, kraken_html))
+        shell("ktImportText %s -o %s" % (prefix+"kraken.out.summary", kraken_html))
 
     def show(self):
         """Opens the filename defined in the constructor"""

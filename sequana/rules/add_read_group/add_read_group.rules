@@ -12,6 +12,10 @@ rule add_read_group:
         """
         picard AddOrReplaceReadGroups I={input.bam} O={output.rgbam} \
         {params.rg} > {log.out} 2> {log.err}
+<<<<<<< HEAD
+=======
+        samtools index {output.rgbam}
+>>>>>>> develop
         """
 
 

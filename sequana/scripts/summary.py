@@ -51,22 +51,18 @@ Issues: http://github.com/sequana/sequana
             help="""Several files may be processed in parallel. By default 4
                 threads are used""")
 
-
 def get_fastq_stats(filename, sample=1e16):
     from sequana import FastQC
     ff = FastQC(filename, max_sample=sample, verbose=False)
     stats = ff.get_stats()
     return stats
 
-
 def get_bed_stats(filename):
     from sequana import GenomeCov
     import pandas as pd
     bed = GenomeCov(filename)
-    stats = bed.get_stats()
-    df = pd.DataFrame(stats).T
-    return df
-
+    stats = bed.get_stats("dataframe")
+    return stats[list(stats.keys())[0]]
 
 def get_bam_stats(filename):
     from sequana import BAM
@@ -76,14 +72,12 @@ def get_bam_stats(filename):
     df = pd.Series(stats).to_frame().T
     return df
 
-
 def main(args=None):
 
     if args is None:
         args = sys.argv[:]
 
     user_options = Options(prog="sequana")
-
 
     print("the usage of the summary tool may change significantly in the future")
 
@@ -155,15 +149,12 @@ def main(args=None):
     try:df.index = ff.filenames
     except:pass
 
-
     # For the bed files only
     try:
-        p = pd.Panel(results)
-        df = p.swapaxes(0,2).swapaxes(1,2).to_frame()
+        df = pd.concat([this.set_index("name").Value for this in results.values()], axis=1)
+        df.columns = [i for i in range(len(results))]
     except Exception as err:
         print(err)
-
-
 
     print()
     print(df)

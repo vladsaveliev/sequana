@@ -10,23 +10,18 @@ rule create_sequence_dictionary:
 
     Required output:
         __create_sequence_dictionary__output: dict file with ".dict" extension.
-
-    Contributors:
-        Sequana consortium
     """
     input:
         ref = __create_sequence_dictionary__reference
     output:
         __create_sequence_dictionary__output
     log:
-        out = "logs/picard_tools/CreateSequenceDictionary/stdout.logs",
-        err = "logs/picard_tools/CreateSequenceDictionary/stderr.logs"
+        __create_sequence_dictionary__log
     shell:
         """
 	    if [[ -a {output} ]];
         then
             rm {output}
         fi
-        picard CreateSequenceDictionary \
-        R={input.ref} O={output} > {log.out} 2> {log.err}
+        picard CreateSequenceDictionary R={input.ref} O={output} > {log} 2>&1
         """

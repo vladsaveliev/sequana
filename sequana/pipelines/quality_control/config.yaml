@@ -32,8 +32,6 @@ fastq_sampling:
     N: 2500
 
 # =========================================== Sections related to external tools
-
-
 fastqc:
     options: "--nogroup"
 
@@ -44,36 +42,39 @@ fastqc:
 ##################################################################
 bwa_mem_phix:
     do: yes
-    reference: "phiX174.fa"
-    index:
-        options: '-a is'
-    mem:
-        options: '-T 30'
-        read_groups: '@RG\\tID:1\\tSM:1\\tPL:illumina'
-        threads: 2
+    reference_file: "phiX174.fa"
+    index_algorithm: "is"
+    options: '-T 30'
+    threads: 2
 
 #################################################################
 # Quality trimming and adapter removal
+#   - adapter_type can only be PCRFRee or Nextera
+#   - design_file: a valid CSV file with mapping of index and 
+#       sample name
 #   - quality: 0 means no trimming, 30 means keep base with quality
 #       above 30
 #   - m: 20 means discard trimmed reads that are shorter than 20.
 #   - tool: only cutadapt supported for now
+#
+#   - if design_file is provided, fwd and rev are ignored
+#
 #   ref: http://cutadapt.readthedocs.io/
 #################################################################
 adapter_removal:
     do: yes
     tool: cutadapt
-    design: "%(adapter_design)s"
-    adapter_type: "%(adapter_type)s"
-    fwd: "%(adapter_fwd)s"
-    rev: "%(adapter_rev)s"
-    m: 20   # cutoff
-    mode: "g"   # g for 5' adapter, a for 3' and b for both 5'/3'
-    quality: "30"
+    adapter_type:               # None, PCRFree, Nextera
+    design_file:
+    fwd:
+    rev:
+    m: 20                       # cutoff value; must be > 0
+    mode: "b"   # g for 5' adapter, a for 3' and b for both 5'/3'
     options: "-O 6 --trim-n"
+    quality: 30                 # must be > 0 and < 40
 
 ########################################################### Kraken
 # For taxonomy. Used in quality_control pipeline
 kraken:
-    do: True
-    database: "%(kraken_database)s"
+    do: False
+    database_directory:  "%(kraken_database_directory)s"

@@ -35,13 +35,17 @@ class SnpEff(object):
 
     """
     extension = {"genbank": ".gbk", "gff": ".gff", "gtf": ".gtf"}
-    def __init__(self, reference, file_format="", stdout=None, stderr=None):
+    def __init__(self, reference, file_format="", log=None):
         """
 
-        :param vcf_filename: the input vcf file.
         :param reference: annotation reference.
-        :param file_format: format of your file. ('genbank'/'gff3'/'gtf22')
+        :param file_format: format of your file. ('only genbank actually')
+        :param log: log file
         """
+        self.log_file = log
+        if log is not None:
+            if os.path.isfile(log):
+                os.remove(log)
         self.reference = reference
         self.ref_name = reference.split("/")[-1]
         # Check if snpEff.config is present
@@ -56,7 +60,7 @@ class SnpEff(object):
             if not os.path.exists("data" + os.sep + self.ref_name + os.sep +
                         "snpEffectPredictor.bin"):
                 # Build snpEff predictor
-                self._add_custom_db(stdout, stderr)
+                self._add_custom_db()
         # Check if reference is present in snpEff database
         elif self._check_database(self.ref_name):
             if not os.path.exists("data" + os.sep + self.ref_name):
@@ -73,18 +77,18 @@ class SnpEff(object):
                   "snpEff.config.\n")
 
     def _check_format(self):
-        # set regex for gff and gtf files
-        self.regex = re.compile("^([^\s#]+)[ \t\v]")
+        # # set regex for gff and gtf files
+        # self.regex = re.compile("^([^\s#]+)[ \t\v]")
         with open(self.reference, "r") as fp:
             first_line = fp.readline()
             if first_line.startswith('LOCUS'):
                 self.file_format = "genbank"
                 # set regex for genbank file
                 self.regex = re.compile("^LOCUS\s+([^\s]+)")
-            elif re.search('gff-version', first_line):
-                self.file_format = "gff"
-            elif first_line.startswith('#!'):
-                self.file_format = "gtf"
+            # elif re.search('gff-version', first_line):
+            #     self.file_format = "gff"
+            # elif first_line.startswith('#!'):
+            #     self.file_format = "gtf"
             else:
                 print("The format can not be determined, please relaunch " 
                       "the script with the file_format argument")
@@ -104,7 +108,7 @@ class SnpEff(object):
         gunzip_proc = sp.Popen(["gunzip", "snpEff.config.gz"])
         gunzip_proc.wait()
         
-    def _add_custom_db(self, stdout=None, stderr=None):
+    def _add_custom_db(self):
         """ Add your custom file in the local snpEff database.
 
         """
@@ -120,30 +124,41 @@ class SnpEff(object):
         # add new annotation file in config file
         with open("snpEff.config", "a") as fp:
             fp.write(self.ref_name + ".genome : " + self.ref_name)
-        
+       
+        snpeff_build_line = ["snpEff", "build", "-" + self.file_format,
+                             self.ref_name]
         try:
-            with open(stdout, "wb") as out, open(stderr, "wb") as err:
-                snp_build = sp.Popen(["snpEff", "build", "-" + self.file_format,
-                    self.ref_name], stderr=err, stdout=out)
+            with open(self.log_file, "ab") as fl:
+                snp_build = sp.Popen(snpeff_build_line, stderr=fl, stdout=fl)
         except TypeError:
-            snp_build = sp.Popen(["snpEff", "build", "-" + self.file_format, 
-                self.ref_name], stderr=None, stdout=None)
+            snp_build = sp.Popen(snpeff_build_line)
         snp_build.wait()
         rc = snp_build.returncode
         if rc != 0:
             print("snpEff build return a non-zero code")
             sys.exit(rc)
 
-    def launch_snpeff(self, vcf_filename, output, stderr="annot.err",
-            options=""):
-        """ Launch snpEff
+    def launch_snpeff(self, vcf_filename, output, html_output=None,
+                      options=""):
+        """ Launch snpEff.
         
+        :param vcf_filename: 
         """
-        args_ann = ["snpEff", "-formatEff", options, self.ref_name, 
-                vcf_filename]
-        with open(output, "wb") as fp:
-            proc_ann = sp.Popen(args_ann, stdout=fp)
-            proc_ann.wait()
+        # Create command line for Popen
+        args_ann = ["snpEff", "eff"]
+        if html_output is not None:
+            args_ann += ["-s", html_output]
+        args_ann += [options, self.ref_name, vcf_filename]
+
+        # Launch snpEff
+        try:
+            with open(self.log_file, "ab") as fl, open(output, "wb") as fp:
+                proc_ann = sp.Popen(args_ann, stdout=fp, stderr=fl)
+                proc_ann.wait()
+        except TypeError:
+            with open(output, "wb") as fp:
+                proc_ann = sp.Popen(args_ann, stdout=fp)
+                proc_ann.wait()
 
     def _get_seq_ids(self):
         # genbank case
@@ -200,24 +215,28 @@ class SnpEff(object):
                 fp.write(contigs)
 
 
-def download_fasta_and_genbank(identifier, tag):
+def download_fasta_and_genbank(identifier, tag, genbank=True,
+        fasta=True):
     """
 
     :param identifier: valid identifier to retrieve from NCBI (genbank) and 
         ENA (fasta)
     :param tag: name of the filename for the genbank and fasta files.
     """
-    from bioservices import EUtils
-    eu = EUtils()
-    data = eu.EFetch(db="nuccore",id=identifier, rettype="gbwithparts",
-        retmode="text")
-    with open("%s.gbk" %  tag, "w") as fout:
-        fout.write(data.decode())
+    if genbank:
+        from bioservices import EUtils
+        eu = EUtils()
+        data = eu.EFetch(db="nuccore",id=identifier, rettype="gbwithparts",
+            retmode="text")
+        with open("%s.gbk" %  tag, "w") as fout:
+            fout.write(data.decode())
 
-    from bioservices import ENA
-    ena = ENA()
-    data = ena.get_data(identifier, 'fasta')
-    with open("%s.fa" % tag, "w") as fout:
-        fout.write(data.decode())
+    if fasta:
+        from bioservices import ENA
+        ena = ENA()
+        data = ena.get_data(identifier, 'fasta')
+        with open("%s.fa" % tag, "w") as fout:
+            fout.write(data.decode())
+
 
 

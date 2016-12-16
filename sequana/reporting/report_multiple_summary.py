@@ -43,12 +43,32 @@ class ReadSummary(object):
     def get_fastq_stats_samples(self):
         return json.loads(self.data["sample_stats__samples_json"])
 
-    def get_mean_quality__samples(self):
-        return json.loads(self.data["sample_stats__samples_json"])["mean quality"]['0']
+    def get_mean_quality_samples(self):
+        this = json.loads(self.data["sample_stats__samples_json"])
+        return this["mean quality"]['0']
+
+    def get_nreads_raw(self):
+        this = json.loads(self.data["sample_stats__samples_json"])
+        return this["n_reads"]['0']
+
+    def get_average_read_length(self):
+        this = json.loads(self.data["sample_stats__samples_json"])
+        return this["average read length"]['0']
 
     def get_trimming_percent(self):
         d = self.get_cutadapt_stats()
-        trimming = d["percent"]["Pairs too short"]
+        try:
+            trimming = d["percent"]["Pairs too short"]
+        except:
+            trimming = d["percent"]["Reads too short"]
+        return float(trimming.replace("%", "").replace("(","").replace(")","").strip())
+
+    def get_adapters_percent(self):
+        d = self.get_cutadapt_stats()
+        try:
+            trimming = d["percent"]["Pairs too short"]
+        except:
+            trimming = d["percent"]["Reads with adapters"]
         return float(trimming.replace("%", "").replace("(","").replace(")","").strip())
 
     def get_read1_with_adapters_percent(self):
@@ -71,6 +91,20 @@ class SequanaMultipleSummary(BaseReport):
     directory. Also used by the standalone application, in which case
     config and pipeline files are not required.
 
+    For developers:
+
+    1. In class Summary:
+
+    2 In class SequanaMultipleSummary:
+        
+        try:self.populate_gc()
+        except:pass
+        def populate_gc():
+            do something
+        def get_gc(self):
+            return [x.get_gc() for x in self.summaries]
+
+    3: update the jinja file report_multiple_summay
 
     """
     def __init__(self, pattern="**/summary.json", verbose=True, **kargs):
@@ -108,6 +142,9 @@ class SequanaMultipleSummary(BaseReport):
         self.jinja['canvas'] += """<script type="text/javascript">
             window.onload = function () {"""
 
+        # The order does not matter here, everything is done in JINJA
+        try:self.populate_nreads_raw()
+        except:pass
         try:self.populate_phix()
         except:pass
         try:self.populate_gc_samples()
@@ -116,50 +153,71 @@ class SequanaMultipleSummary(BaseReport):
         except:pass
         try:self.populate_mean_quality()
         except:pass
+        try:self.populate_adapters()
+        except:print("no adapter removal section could be parsed")
 
-        self.jinja['canvas'] += "}</script>"
+
+        self.jinja['canvas'] += """
+    function onClick(e){
+        window.open(e.dataPoint.url)
+    }
+}</script>"""
+
+    def _get_div(self, name):
+        div = '<div id="chartContainer' + name
+        div += '" style="height: 200px; width: 80%;">'
+        return div
+
+    def _get_df(self, method_name):
+        data = getattr(self, method_name)()
+        df = pd.DataFrame({
+            "name": self.get_projects(),
+            "value": data, 
+            "url": self.get_urls()})
+        return df
+
+    def populate_adapters(self):
+        df = self._get_df("get_adapters_percent")
+        cb = CanvasBar(df, "Adapters content", "adapters", xlabel="Percentage")
+        self.jinja['canvas'] += cb.to_html()
+        self.jinja['adapters'] =  self._get_div("adapters")
+
+    def populate_nreads_raw(self):
+        df = self._get_df("get_nreads_raw")
+        cb = CanvasBar(df, "Number of reads (raw data)", "nreads_raw", xlabel="N reads")
+        self.jinja['canvas'] += cb.to_html()
+        self.jinja['nreads_raw'] =  self._get_div("nreads_raw")
 
     def populate_mean_quality(self):
-        datadict = dict([(k, v) for k,v in zip(self.get_unique_names(), 
-            self.get_mean_quality__samples())])
-        cb = CanvasBar(datadict, "Mean quality", "_mean_quality", xlabel="mean quality")
-        self.jinja['canvas'] += cb.to_html()
-        self.jinja['mean_quality'] =  '<div id="chartContainer_mean_quality" style="height: 300px; width: 100%%;">'
+        df = self._get_df("get_mean_quality_samples")
+        cb = CanvasBar(df, "Mean quality", "mean_quality", xlabel="mean quality")
+        self.jinja['canvas'] += cb.to_html(options={'maxrange':40})
+        self.jinja['mean_quality'] =  self._get_div("mean_quality")
 
     def populate_gc_samples(self):
-        datadict = dict([(k, v) for k,v in zip(self.get_unique_names(), 
-            self.get_gc_content_samples())])
-        cb = CanvasBar(datadict, "GC content", "populate_gc_samples", xlabel="Percentage")
-        self.jinja['canvas'] += cb.to_html()
-        self.jinja['gc'] =  '<div id="chartContainerpopulate_gc_samples" style="height: 300px; width: 100%%;">'
+        df = self._get_df("get_gc_content_samples")
+        cb = CanvasBar(df, "GC content", "populate_gc_samples", xlabel="Percentage")
+        self.jinja['canvas'] += cb.to_html(options={"maxrange":100})
+        self.jinja['gc'] =  self._get_div("populate_gc_samples")
 
     def populate_phix(self):
-        # Phix content
-        datadict = dict([(k, v) for k,v in zip(self.get_unique_names(), self.get_phix_percent())])
-        from sequana.resources.canvas.bar import CanvasBar
-        # dictionary is not sorted...
-        cb = CanvasBar(datadict, "Phix content", "phix", xlabel="Percentage")
+        df = self._get_df("get_phix_percent")
+        cb = CanvasBar(df, "Phix content", "phix", xlabel="Percentage")
         self.jinja['canvas'] += cb.to_html() 
-        self.jinja['phix'] =  '<div id="chartContainerphix" style="height: 300px; width: 100%%;">'
+        self.jinja['phix'] =  self._get_div("phix")
 
     def populate_trimming(self):
-        # Phix content
-        datadict = dict([(k, v) for k,v in zip(self.get_unique_names(),
-            self.get_trimming_percent())])
-        from sequana.resources.canvas.bar import CanvasBar
-        # dictionary is not sorted...
-        cb = CanvasBar(datadict, "Trimming", "trimming", xlabel="Percentage")
+        df = self._get_df("get_trimming_percent")
+        cb = CanvasBar(df, "Trimming", "trimming", xlabel="Percentage")
         self.jinja['canvas'] += cb.to_html() 
-        self.jinja['trimming'] =  '<div id="chartContainertrimming" style="height: 300px; width: 100%%;">'
+        self.jinja['trimming'] =  self._get_div("trimming")
 
-    def get_cutadapt_stats1(self):
-        return [x.get_cutadapt_stats() for x in self.summaries]
-
-    def get_phix_percent(self):
-        return [x.get_phix_percent() for x in self.summaries]
 
     def get_projects(self):
         return [x.data['project'] for x in self.summaries]
+
+    def get_urls(self):
+        return [x.replace("summary.json", "summary.html") for x in self.get_unique_names()]
 
     def get_unique_names(self):
         """reduce the filenames length removing the common suffix
@@ -171,14 +229,26 @@ class SequanaMultipleSummary(BaseReport):
         else:
             return self.filenames
 
+    ##########################################################################
+    # The retrieval of all specific data for all summaries
+
+    def get_adapters_percent(self):
+        return [x.get_adapters_percent() for x in self.summaries]
+
+    def get_nreads_raw(self):
+        return [x.get_nreads_raw() for x in self.summaries]
+
+    def get_phix_percent(self):
+        return [x.get_phix_percent() for x in self.summaries]
+
     def get_gc_content_samples(self):
         return [x.get_fastq_stats_samples()['GC content']["0"] for x in self.summaries]
 
     def get_trimming_percent(self):
         return [x.get_trimming_percent() for x in self.summaries]
 
-    def get_mean_quality__samples(self):
-        return [x.get_mean_quality__samples() for x in self.summaries]
+    def get_mean_quality_samples(self):
+        return [x.get_mean_quality_samples() for x in self.summaries]
 
     def parse(self):
         pass
