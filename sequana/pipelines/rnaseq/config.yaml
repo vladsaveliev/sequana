@@ -9,16 +9,11 @@
 # If input_extension provided, use it otherwise assume fastq.gz
 # ============================================================================
 input_directory: "%(input_directory)s"
-<<<<<<< HEAD
-input_extension: "%(input_extension)s"
-input_pattern: "%(input_pattern)s"
-=======
 input_pattern: "%(input_pattern)s"
 input_extension: "%(input_extension)s"
 # =========================================== Sections for the users
 
 # list of your input file
->>>>>>> develop
 input_samples:
     file1: "%(file1)s"
     file2: "%(file2)s"

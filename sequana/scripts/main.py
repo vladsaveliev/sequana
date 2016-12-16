@@ -589,13 +589,8 @@ def main(args=None):
     sequana_init(options)
 
 
-<<<<<<< HEAD
-def copy_config_from_sequana(module, source="config.yaml", 
-                             target="config.yaml", options=None):
-=======
 def copy_config_from_sequana(module, source="config.yaml",
                              target="config.yaml"):
->>>>>>> develop
     # identify config name from the requested module
     user_config = module.path + os.sep + source
     if os.path.exists(user_config):
