@@ -15,7 +15,7 @@ rule bowtie2_mapping:
     shell:
         """
 
-        bowtie2 -p {threads} {params.rg} -X2000  --end-to-end \
+        bowtie2 -p {threads} -X2000  --end-to-end \
         -D 20 -R 3 -N 1 -L 20 -i S,1,0.50 -x {params.prefix_index} \
         -1 {input.R1} -2 {input.R2} -S {params.sam} 2> {log}
 

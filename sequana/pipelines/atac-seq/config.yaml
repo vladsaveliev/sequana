@@ -1,5 +1,5 @@
 # ============================================================================
-# Config file for RNA-seq
+# Config file for ATAC-seq
 #
 # ==========================================[ Sections for the users ]========
 #
@@ -9,8 +9,11 @@
 # If input_extension provided, use it otherwise assume fastq.gz
 # ============================================================================
 input_directory: "%(input_directory)s"
-input_extension: "%(input_extension)s"
 input_pattern: "%(input_pattern)s"
+input_extension: "%(input_extension)s"
+# =========================================== Sections for the users
+
+# list of your input file
 input_samples:
     file1: "%(file1)s"
     file2: "%(file2)s"
@@ -37,6 +40,7 @@ sequencing:
     instrument: "Hiseq2500"
     flowcell: "H35CTBCXY"
 
+
 bowtie2_mapping:
     do: no
     prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/cryptNeo
@@ -44,16 +48,11 @@ bowtie2_mapping:
     options: ""
     threads: 4
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Mark duplicates (picard-tools)
-
-mark_duplicates:
-    do: yes
-    options: ''
 
 
 #################################################################
 # Quality trimming and adapter removal
-#   - quality: 0 means no trimming, 30 means keep base with quality 
+#   - quality: 0 means no trimming, 30 means keep base with quality
 #       above 30
 #   - m: 20 means discard trimmed reads that are shorter than 20.
 #   - tool: only cutadapt supported for now
@@ -64,7 +63,7 @@ adapter_removal:
     tool: cutadapt
     design: "%(adapter_design)s"
     adapter_type: "%(adapter_type)s"
-    fwd: "%(adapter_fwd)s"     
+    fwd: "%(adapter_fwd)s"
     rev: "%(adapter_rev)s"
     m: 20   # min length cutoff
     M: 120  # max length cutoff
@@ -78,7 +77,13 @@ adapter_removal:
 ##################################################################
 
 multiqc:
-    excluded: "-x *_init_* -x *left_kept_reads* -x *report_rnaseq*"
+    excluded: "-x *_init_* -x *left_kept_reads* -x *report_atac-seq*"
     output-directory: "multiqc"
 
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Mark duplicates (picard-tools)
+
+mark_duplicates:
+    do: yes
+    remove: 'True' ## may be False
+    tmp: 'TMP_DIR=/local/scratch/' ## on Slurm cluster at Pasteur
