@@ -91,7 +91,10 @@ class SequanaSummary(BaseReport):
 
         # include whatever is relevant
         if include_all:
-            self.include_kraken()
+            try:
+                self.include_kraken()
+            except FileNotFoundError:
+                pass
             try:self.include_phix()
             except:pass
             
