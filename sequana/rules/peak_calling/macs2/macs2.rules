@@ -1,0 +1,29 @@
+
+rule macs2:
+    """
+    macs2 peak caller https://github.com/taoliu/MACS. Main MACS2 Function to Call peaks from alignment results.
+
+    Required input:
+        __macs2__input: bam file
+
+    Required output:
+        __macs2__output: peak file
+    """
+
+    input:
+        bam = __macs2__input
+    params:
+        gsize = config["macs"]["genomeSize"],
+        readLength = config["macs"]["readLength"],
+        qval = config["macs"]["qval"],
+        input = "-c "+__macs2__input_bam
+    log:
+        out = __macs2__log_std,
+        err = __macs2__log_err
+    output:
+        peaks_bed = __macs2__output
+    threads: 1
+    shell:
+        """
+        macs2 callpeak -t {input.bam} {params.input}  -f BAM -g {params.gsize} -n {output} --nomodel --extsize={params.readLength} -q {params.pval}  2> {log}
+        """
