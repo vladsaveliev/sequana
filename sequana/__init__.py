@@ -16,7 +16,8 @@ from .snaketools import SequanaConfig
 from .snaketools import Module, ModuleFinder, FastQFactory
 
 # various utilities for IO/data analysis
-from .adapters import AdapterReader, FindAdaptersFromIndex, Adapter
+from .adapters import AdapterReader, FindAdaptersFromDesign, Adapter
+from .designexp import ExpDesignAdapter
 from .bamtools import BAM, SAMFlags
 from .bedtools import GenomeCov
 from .coverage import Coverage
@@ -29,6 +30,7 @@ from .phred import Quality
 from .running_median import RunningMedian
 from .snpeff import SnpEff
 from .vcf_filter import VCF
+
 
 # Reports
 from sequana.reporting.report_bam import BAMReport
