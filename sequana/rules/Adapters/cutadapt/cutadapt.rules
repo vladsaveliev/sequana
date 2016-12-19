@@ -80,12 +80,12 @@ rule cutadapt:
 
             mode2 = params.mode.upper()
 
-            if params.fwd:
+            if fwd:
                 cmd += " -{params.mode} %s " % fwd
             else:
                 cmd += " -{params.mode} XXXX "
 
-            if params.rev:
+            if rev:
                 cmd += " -%s %s " % (mode2, rev)
             else:
                 cmd += " -%s XXXX " % mode2
@@ -95,7 +95,7 @@ rule cutadapt:
             shell(cmd)
         else:
             cmd = "%s {input.fastq[0]}" % executable
-            if params.fwd:
+            if fwd:
                 cmd += "    -{params.mode} %s " % fwd
             else:
                 cmd += "    -{params.mode} XXXX "
