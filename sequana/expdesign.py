@@ -49,7 +49,7 @@ import io
 import pandas as pd
 
 
-__all__ = ["ExpDesignAdapter", "ExpDesignIllumina", "ExpDesignHiSeq",
+__all__ = ["ExpDesignAdapter", "ExpDesignMiSeq", "ExpDesignHiSeq",
            "ExpDesignBase"]
 
 
@@ -66,7 +66,7 @@ class ExpDesignAdapter(object):
     possible as defined in
 
     - :class:`ExpDesignGeneric`
-    - :class:`ExpDesignIllumina` (MiSeq)
+    - :class:`ExpDesignMiSeq` 
     - :class:`ExpDesignHiSeq` (2500)
 
     The dataframe index is the list of sample identifiers (Sample_ID).
@@ -98,9 +98,9 @@ class ExpDesignAdapter(object):
 
     def _factory(self, filename):
         try:
-            exp = ExpDesignIllumina(filename)
+            exp = ExpDesignMiSeq(filename)
             if self.verbose:
-                print("Found Illumina/MiSeq design file")
+                print("Found MiSeq design file")
         except Exception as err:
             try:
                 exp = ExpDesignHiSeq(filename)
@@ -137,7 +137,7 @@ class ExpDesignBase(object):
 
     Derived class must define at least **Index1_Seq**  and possibly **Index2_Seq**.
 
-    Examples of specialised classes are :class:`ExpDesignIllumina`,
+    Examples of specialised classes are :class:`ExpDesignMiSeq`,
     :class:`ExpDesignHiSeq`.
 
     """
@@ -232,10 +232,10 @@ class ExpDesignHiSeq(ExpDesignBase):
         self.check()
 
 
-class ExpDesignIllumina(ExpDesignBase):
+class ExpDesignMiSeq(ExpDesignBase):
     """Dedicated experimental design format from Illumina MiSeq sequencers
 
-    This Illumina design format has the following format::
+    This MiSeq design format has the following format::
 
         [Header]
         blabla
@@ -266,14 +266,14 @@ class ExpDesignIllumina(ExpDesignBase):
     ::
 
         filename = sequana_data("test_expdesign_miseq_illumina_1.csv")
-        ff = ExpDesignIllumina(filename)
+        ff = ExpDesignMiSeq(filename)
         ff.df
 
 
     """
     def __init__(self, filename):
-        super(ExpDesignIllumina, self).__init__(filename)
-        self.name = "ExpDesignIllumina"
+        super(ExpDesignMiSeq, self).__init__(filename)
+        self.name = "ExpDesignMiSeq"
 
         data = {}
         # shlex removes all white lines and split by return carriage
@@ -291,7 +291,7 @@ class ExpDesignIllumina(ExpDesignBase):
 
         for this in ["Header", "Reads", "Settings", "Data"]:
             if this not in data.keys():
-                print("%s not found in the DesignExpIllumina file" % this)
+                print("%s not found in the DesignExpMiSeq file" % this)
 
         self.data = data
         self.df = pd.read_csv(io.StringIO(data["Data"]))
