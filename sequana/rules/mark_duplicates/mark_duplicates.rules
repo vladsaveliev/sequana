@@ -16,8 +16,10 @@ rule mark_duplicates:
     log:
         out = __mark_duplicates__log_std,
         err = __mark_duplicates__log_err
+    params:
+        options = config["mark_duplicates"]["options"]
     shell:
         """
         picard MarkDuplicates I={input} \
-        O={output.bam} M={output.metrics} > {log.out} 2> {log.err}
+        O={output.bam} M={output.metrics} {params.options} > {log.out} 2> {log.err}
         """

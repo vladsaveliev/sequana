@@ -602,6 +602,13 @@ def copy_config_from_sequana(module, source="config.yaml",
               "library (%s pipeline)"
     print(txt)
 
+    # some pipelines (eg rnaseq) have also a multiqc_config.yaml file that we want to get
+    multiqc_config = module.path + os.sep + "multiqc_config.yaml"
+    if os.path.exists(multiqc_config):
+        shutil.copy(multiqc_config, options.target_dir + os.sep + "multiqc_config.yaml")
+        txt = "copied multiqc_config.yaml from sequana %s pipeline" % (module.name)
+        print(txt)
+
 
 def sequana_init(options):
     import sequana
@@ -671,9 +678,10 @@ def sequana_init(options):
         if os.path.exists(options.config):
             shutil.copy(options.config, config_filename)
         else: # or a sequana config file in the module path ?
-            copy_config_from_sequana(module, options.config, config_filename)
+            raise(IOError("Config file %s not found locally" % options.config))
     else:
-        shutil.copy(module.config, config_filename)
+        copy_config_from_sequana(module, "config.yaml", config_filename,
+                                 options)
 
     # The input
     cfg = SequanaConfig(config_filename)
@@ -744,6 +752,9 @@ def sequana_init(options):
             cmd += " 1>run.out 2>run.err"
         fout.write(cmd % {'project':options.pipeline , 'jobs':options.jobs,
             "version": sequana.version})
+    # change permission of runme.sh to 755 
+    st = os.stat(runme_filename)
+    os.chmod(runme_filename, st.st_mode | 0o755)
 
     sa.green("Initialisation of %s succeeded" % options.target_dir)
     sa.green("Please, go to the project directory ")
@@ -751,6 +762,8 @@ def sequana_init(options):
     sa.green("Check out the README and config.yaml files")
     sa.green("A basic script to run the analysis is named runme.sh ")
     sa.purple("\n    sh runme.sh\n")
+    sa.purple("On a slurm cluster, you may type:")
+    sa.purple("\n  srun --qos normal runme.sh\n")
     sa.green("In case of trouble, please post an issue on https://github.com/sequana/sequana/issue ")
     sa.green("or type sequana --issue and fill a post with the error and the config file (NO DATA PLEASE)")
 

@@ -35,7 +35,7 @@ def sequana_data(filename=None, where=None):
     """
     sequana_path = easydev.get_package_location('sequana')
     sharedir = os.sep.join([sequana_path , "sequana", 'resources'])
-    directories = ['data', 'testing', 'data/adapters']
+    directories = ['data', 'testing', 'data/adapters', 'images']
 
     if filename is None:
         for thisdir in directories:
