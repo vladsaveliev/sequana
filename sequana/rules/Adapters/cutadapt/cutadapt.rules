@@ -61,9 +61,9 @@ rule cutadapt:
         executable = config['adapter_removal']['tool'] # could be cutadapt or atropos
 
         if config['adapter_removal']['design_file']:
-            from sequana import FindAdaptersFromIndex
+            from sequana import FindAdaptersFromDesign
             sample = params.sample.split("_")[0]
-            fa = FindAdaptersFromIndex(params.design, params.design_adapter)
+            fa = FindAdaptersFromDesign(params.design, params.design_adapter)
             fwd, rev = fa.save_adapters_to_fasta(sample, output_dir=params.wkdir)
             fwd = "file:%s" % fwd
             rev = "file:%s" % rev

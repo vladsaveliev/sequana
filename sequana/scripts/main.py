@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 #
 #  This file is part of Sequana software
 #
@@ -392,7 +393,7 @@ def main(args=None):
     from sequana.snaketools import Module
     from sequana.snaketools import pipeline_names as valid_pipelines
     from sequana.snaketools import FastQFactory
-    from sequana.adapters import FindAdaptersFromIndex, AdapterReader
+    from sequana.adapters import FindAdaptersFromDesign, AdapterReader
     from sequana import SequanaConfig, sequana_data
 
     sa = Tools(verbose=options.verbose)
@@ -562,12 +563,12 @@ def main(args=None):
                     options.adapter_rev = "TCTAGCCTTCTCGCAGCACATCCCTTTCTCACATCTAGAGCCACCAGCGGCATAGTAA"
                 # flag 4
                 elif options.adapters == "PCRFree":
-                    options.adapter_fwd = "file:" + _get_adap('adapters_PCR-free_PF1_220616_fwd.fa')
-                    options.adapter_rev = "file:" + _get_adap('adapters_PCR-free_PF1_220616_rev.fa')
+                    options.adapter_fwd = "file:" + _get_adap('adapters_PCRFree_fwd.fa')
+                    options.adapter_rev = "file:" + _get_adap('adapters_PCRFree_rev.fa')
                 # flag 4
                 elif options.adapters == "Nextera":
-                    options.adapter_fwd = "file:" + _get_adap("adapters_Nextera_PF1_220616_fwd.fa")
-                    options.adapter_rev = "file:" + _get_adap("adapters_Nextera_PF1_220616_rev.fa")
+                    options.adapter_fwd = "file:" + _get_adap("adapters_Nextera_fwd.fa")
+                    options.adapter_rev = "file:" + _get_adap("adapters_Nextera_rev.fa")
             # flag 2/3
             else:
                 if options.adapter_fwd:
@@ -699,7 +700,6 @@ def sequana_init(options):
         cfg.config.adapter_removal.rev = options.adapter_rev
         cfg.config.adapter_removal.adapter_type = options.adapters
 
-
     cfg.copy_requirements(target=options.target_dir)
 
     # FIXME If invalid, no error raised
@@ -726,7 +726,6 @@ def sequana_init(options):
     # important to update yaml with content of config
     cfg._update_yaml()
     cfg.save(config_filename)
-
 
     # Creating a unique runme.sh file
     runme_filename = options.target_dir + os.sep + "runme.sh"
@@ -760,7 +759,6 @@ def sequana_init(options):
         os.chmod(runme_filename, 0o755)
     except:
         print("Please use Python3. Change the mode of %s manually to 755" % runme_filename)
-
 
 
 if __name__ == "__main__":
