@@ -3,6 +3,14 @@ Changelog
 
 .. contents::
 
+0.1.17
+----------
+
+* BUG Fixes:
+
+    - experimental design and adapters API simplified fixing a few bugs in the
+      process. Doc and tested finalised.
+
 
 0.1.16
 -----------
