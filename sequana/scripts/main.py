@@ -547,6 +547,11 @@ def main(args=None):
             raise ValueError("When using --design, you must also "
                 "provide the type of adapters using --adapters (set to "
                 "Nextera or PCRFree)")
+        if options.design and options.adapters:
+            from sequana import FindAdaptersFromDesign
+            fa = FindAdaptersFromDesign(options.design, options.adapters)
+            fa.check()
+
         # flag 12 (design + adapters with correct args)
         elif options.design and options.adapters in ["Nextera", "PCRFree"]:
             options.adapters_fwd = options.adapters
@@ -583,7 +588,7 @@ def main(args=None):
                         options.adapter_rev = "file:%s" % options.adapter_rev
         if options.design:
             # Just check the format
-            adapter_finder = FindAdaptersFromIndex(options.design,
+            adapter_finder = FindAdaptersFromDesign(options.design,
                                 options.adapters)
 
     # If all options are valid, we can now create the tree structure
