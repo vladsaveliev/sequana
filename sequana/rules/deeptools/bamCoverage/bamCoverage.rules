@@ -1,0 +1,23 @@
+rule bamCoverage:
+    """
+    Bam coverage file in bigwig format. Is part of deeptools http://deeptools.readthedocs.io/en/latest/index.html
+
+    Required input:
+        __bamCoverage__input: list of bam files
+
+    Required output:
+        __bamCoverage__output: normalized bigwig file
+    """
+    input:
+        __bamCoverage__input
+    params:
+        bs = config['coverage']['binSize'],
+        gs = config['coverage']['genomeSize'],
+        fragmentLength = config['coverage']['fragmentLength']
+    log:
+        __bamCoverage__log
+    output:
+        __bamCoverage__output
+    threads: 4
+    run:
+        shell("bamCoverage --bam {input} -o {output} --binSize {params.binSize} --normalizeTo1x {params.genomeSize} --fragmentLength {params.fragmentLength}  2> {log}")
