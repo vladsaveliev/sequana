@@ -21,9 +21,9 @@
 Adapters removal can be performed by many different tools such as CutAdapt,
 AlienTrimmer, Trimmomatic. Unfortunately, they tend to use different formats
 from FASTA to text files. Moreover outputs are generally also reported in
-different formats. 
+different formats.
 
-Tools to extract specific adapters from FASTA files would also be handy. For 
+Tools to extract specific adapters from FASTA files would also be handy. For
 instance, you may have all your adapters in a single file.
 
 In this module, we provide:
@@ -31,7 +31,7 @@ In this module, we provide:
 - tools to manipulate adapters stored in Fasta format (:class:`AdapterReader`).
 - tools to export Fasta files with adapter content into other formats required
   by various adapter removal software
-- A tool used to extract adapters from a FASTA file given their identifier, or 
+- A tool used to extract adapters from a FASTA file given their identifier, or
   sequence :class:`FindAdaptersFromDesign`.
 
 Our convention is to store list of adapters in FASTA format, which can be read using
@@ -234,7 +234,7 @@ class Adapter(object):
 
     def _get_seq(self):
         return self._get_value_from_identifier("seq")
-    index_sequence = property(_get_seq, 
+    index_sequence = property(_get_seq,
         doc="Read only access to the index sequence")
 
     def _get_comment(self):
@@ -284,7 +284,7 @@ class AdapterReader(object):
     .. note:: sequences are all in big caps.
 
     .. note:: the universal adapter has no index so does not need to have the
-        any tags for the name of index sequence. However, it must be 
+        any tags for the name of index sequence. However, it must be
         called *Universal_Adapter*
 
     .. doctest::
@@ -303,7 +303,7 @@ class AdapterReader(object):
         is raised
 
     :sources: document illumina #1000000002694  v01
-    :sources: For NextFlex PCR-Free adapters, there are 48 barcodes. 
+    :sources: For NextFlex PCR-Free adapters, there are 48 barcodes.
         http://www.biooscientific.com/Portals/0/IEM/Bioo-Scientific-PCR-Free-Barcode-Indices-v1-1-15.pdf
 
     """
@@ -385,7 +385,7 @@ class AdapterReader(object):
         :return: name and sequence in FASTA format that have the user *sequence*
             contained in their sequence
 
-        If the subsequence is short, it may return more than 1 adapters. Besides, 
+        If the subsequence is short, it may return more than 1 adapters. Besides,
         the sequence is searched for without position information right now.
         """
         found = [i for i,x in enumerate(self.sequences) if subsequence in x]
@@ -604,7 +604,7 @@ class FindAdaptersFromDesign(object):
         New adapters files can be added on request. Currently, Nextera and
         PCRFree are available. Rubicon and TruSeq will be added soon.
         """
-        from sequana.designexp import ExpDesignAdapter
+        from sequana.expdesign import ExpDesignAdapter
         self.design = ExpDesignAdapter(design_filename)
 
         if self.design.df.index.name == "Sample_ID" or \
@@ -652,7 +652,7 @@ class FindAdaptersFromDesign(object):
         # ExpDesignAdapter class. However, Index2_ID may not always be present
         # In which case index2 remains empty
 
-        # Then, two types of design are accepted, using the adapter index 
+        # Then, two types of design are accepted, using the adapter index
         # ID or the sequence itself. The sequence is more robust since
         # experimentalist may change the ID (but not the seq). So we start with
         # the sequence first.

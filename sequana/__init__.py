@@ -17,7 +17,7 @@ from .snaketools import Module, ModuleFinder, FastQFactory
 
 # various utilities for IO/data analysis
 from .adapters import AdapterReader, FindAdaptersFromDesign, Adapter
-from .designexp import ExpDesignAdapter
+from .expdesign import ExpDesignAdapter
 from .bamtools import BAM, SAMFlags
 from .bedtools import GenomeCov
 from .coverage import Coverage
