@@ -412,10 +412,13 @@ div#tabs p.tab3:target {display:block;}
 .multicolumns ul li:first-child
 {
     margin-top:0px;
-    overflow:hidden;
 }
 
 
+.multicolumns ul li
+{
+    overflow:hidden;
+}
 
 
 

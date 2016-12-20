@@ -96,7 +96,7 @@ class SequanaMultipleSummary(BaseReport):
     1. In class Summary:
 
     2 In class SequanaMultipleSummary:
-        
+
         try:self.populate_gc()
         except:pass
         def populate_gc():
@@ -142,19 +142,32 @@ class SequanaMultipleSummary(BaseReport):
         self.jinja['canvas'] += """<script type="text/javascript">
             window.onload = function () {"""
 
+        self.jinja['sections'] = []
+
         # The order does not matter here, everything is done in JINJA
         try:self.populate_nreads_raw()
-        except:pass
+        except Exception as err:
+            print(err)
+
         try:self.populate_phix()
-        except:pass
+        except Exception as err:
+            print(err)
+
         try:self.populate_gc_samples()
-        except:pass
+        except Exception as err:
+            print(err)
+
         try: self.populate_trimming()
-        except:pass
+        except Exception as err:
+            print(err)
+
         try:self.populate_mean_quality()
-        except:pass
+        except Exception as err:
+            print(err)
+
         try:self.populate_adapters()
-        except:print("no adapter removal section could be parsed")
+        except Exception as err:
+            print(err)
 
 
         self.jinja['canvas'] += """
@@ -163,9 +176,10 @@ class SequanaMultipleSummary(BaseReport):
     }
 }</script>"""
 
-    def _get_div(self, name):
-        div = '<div id="chartContainer' + name
-        div += '" style="height: 200px; width: 80%;">'
+    def _get_div(self, name, title):
+        div = "<h2>%s</h2>" %  title
+        div += '<div id="chartContainer' + name
+        div += '" style="height: 300px; width: 90%;"></div></hr>'
         return div
 
     def _get_df(self, method_name):
@@ -177,40 +191,47 @@ class SequanaMultipleSummary(BaseReport):
         return df
 
     def populate_adapters(self):
+        title = "Adapters content"
         df = self._get_df("get_adapters_percent")
         cb = CanvasBar(df, "Adapters content", "adapters", xlabel="Percentage")
         self.jinja['canvas'] += cb.to_html()
-        self.jinja['adapters'] =  self._get_div("adapters")
+        self.jinja['sections'].append(self._get_div("adapters", title))
 
     def populate_nreads_raw(self):
         df = self._get_df("get_nreads_raw")
-        cb = CanvasBar(df, "Number of reads (raw data)", "nreads_raw", xlabel="N reads")
+        cb = CanvasBar(df, "Number of reads (raw data)", "nreads_raw", 
+                    xlabel="Number of reads")
         self.jinja['canvas'] += cb.to_html()
-        self.jinja['nreads_raw'] =  self._get_div("nreads_raw")
+        self.jinja['sections'].append(self._get_div("nreads_raw", 
+                                                    "Number of reads"))
 
     def populate_mean_quality(self):
+        title = "Mean quality"
         df = self._get_df("get_mean_quality_samples")
-        cb = CanvasBar(df, "Mean quality", "mean_quality", xlabel="mean quality")
+        cb = CanvasBar(df, title, "mean_quality", xlabel="mean quality")
         self.jinja['canvas'] += cb.to_html(options={'maxrange':40})
-        self.jinja['mean_quality'] =  self._get_div("mean_quality")
+        self.jinja['sections'].append(self._get_div("mean_quality", title))
 
     def populate_gc_samples(self):
+        title = "GC content"
         df = self._get_df("get_gc_content_samples")
-        cb = CanvasBar(df, "GC content", "populate_gc_samples", xlabel="Percentage")
+        cb = CanvasBar(df, title, "populate_gc_samples", xlabel="Percentage")
         self.jinja['canvas'] += cb.to_html(options={"maxrange":100})
-        self.jinja['gc'] =  self._get_div("populate_gc_samples")
+        self.jinja['sections'].append(self._get_div("populate_gc_samples",title))
 
     def populate_phix(self):
+        title = "Phix content"
         df = self._get_df("get_phix_percent")
-        cb = CanvasBar(df, "Phix content", "phix", xlabel="Percentage")
+        cb = CanvasBar(df, title, "phix", xlabel="Percentage")
         self.jinja['canvas'] += cb.to_html() 
-        self.jinja['phix'] =  self._get_div("phix")
+        self.jinja['sections'].append(self._get_div("phix", title))
 
     def populate_trimming(self):
+        title = "Trimming"
         df = self._get_df("get_trimming_percent")
-        cb = CanvasBar(df, "Trimming", "trimming", xlabel="Percentage")
+        cb = CanvasBar(df, title, "trimming", xlabel="Percentage")
         self.jinja['canvas'] += cb.to_html() 
-        self.jinja['trimming'] =  self._get_div("trimming")
+        self.jinja['sections'].append(self._get_div("trimming", title))
 
 
     def get_projects(self):
