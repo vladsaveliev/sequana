@@ -208,7 +208,10 @@ def test_wrong_design():
         assert True
 
 
-
+def test_rubicon():
+    design = ExpDesignAdapter("test_expdesign_rubicon.csv")
+    fa = FindAdaptersFromDesign(design, "Rubicon")
+    fa.check()
 
 
 
