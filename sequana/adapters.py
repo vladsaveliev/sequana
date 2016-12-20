@@ -618,7 +618,7 @@ class FindAdaptersFromDesign(object):
         file2 = sequana_data("adapters_%s_revcomp.fa" % adapters)
 
         self._adapters_fwd = AdapterReader(file1)
-        self._adapters_rev = AdapterReader(file2)  # !!! revcomp
+        self._adapters_revc = AdapterReader(file2)  # !!! revcomp
 
     def _get_samples(self):
         return list(self.design.df.index)
@@ -678,7 +678,7 @@ class FindAdaptersFromDesign(object):
 
             # Reverse version
             from sequana.tools import reverse_complement as revcomp
-            seq = self._adapters_rev.get_adapter_by_index_seq(revcomp(index))
+            seq = self._adapters_revc.get_adapter_by_index_seq(revcomp(index))
             if seq is None: #Index2 is optional so no error raised
                 pass
             else:
@@ -693,17 +693,17 @@ class FindAdaptersFromDesign(object):
                 print("Usage of IDs for indexing adaptesr is deprecated. See adapters module")
                 index1 = data.ix['Index1_ID']
                 res['index1']['fwd'] = self._adapters_fwd.get_adapter_by_index_name(index1)
-                res['index1']['rev'] = self._adapters_rev.get_adapter_by_index_name(index1)
+                res['index1']['rev'] = self._adapters_revc.get_adapter_by_index_name(index1)
             if "Index2_ID" in data.index:
                 print("Usage of IDs for indexing adaptesr is deprecated. See adapters module")
                 index2 = data.ix['Index2_ID']
                 res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index_name(index2)
-                res['index2']['rev'] = self._adapters_rev.get_adapter_by_index_name(index2)
+                res['index2']['rev'] = self._adapters_revc.get_adapter_by_index_name(index2)
 
         if include_universal:
             res['universal']['fwd'] = self._adapters_fwd.get_adapter_by_identifier(
                 'Universal_Adapter')
-            res['universal']['rev'] = self._adapters_rev.get_adapter_by_identifier(
+            res['universal']['rev'] = self._adapters_revc.get_adapter_by_identifier(
                 'Universal_Adapter')
 
         if include_transposase and self.adapters == "Nextera":
@@ -711,9 +711,9 @@ class FindAdaptersFromDesign(object):
                 'Nextera_transposase_seq_1'))
             res['transposase']['fwd'] += "\n" + str(self._adapters_fwd.get_adapter_by_identifier(
                 'Nextera_transposase_seq_2'))
-            res['transposase']['rev'] = str(self._adapters_rev.get_adapter_by_identifier(
+            res['transposase']['rev'] = str(self._adapters_revc.get_adapter_by_identifier(
                 'Nextera_transposase_seq_1'))
-            res['transposase']['rev'] += "\n"+str(self._adapters_rev.get_adapter_by_identifier(
+            res['transposase']['rev'] += "\n"+str(self._adapters_revc.get_adapter_by_identifier(
                 'Nextera_transposase_seq_1'))
 
         # FIXME changes the dictionary in the loop. May not be wise
