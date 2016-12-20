@@ -209,7 +209,7 @@ def test_wrong_design():
 
 
 def test_rubicon():
-    design = ExpDesignAdapter("test_expdesign_rubicon.csv")
+    design = sequana_data("test_expdesign_rubicon.csv")
     fa = FindAdaptersFromDesign(design, "Rubicon")
     fa.check()
 

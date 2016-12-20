@@ -12,6 +12,9 @@ Changelog
       process. Doc and tested finalised.
     - Fix cutadapt rules, which was not filling the fwd and rev properly anymore
       when using the design file.
+    - in sequana main script, --reference was used by quality_pipeline only.
+      Now, available for all.
+
 
 * CHANGES:
 

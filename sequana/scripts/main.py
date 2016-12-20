@@ -29,7 +29,7 @@ import argparse
 from easydev.console import red, purple, green, blue
 from easydev import DevTools
 
-adapters_choice = ["Nextera", "Rubicon", "PCRFree"]:
+adapters_choice = ["Nextera", "Rubicon", "PCRFree"]
 
 help_input = """Missing input data.
 
@@ -694,6 +694,8 @@ def sequana_init(options):
     cfg.config.input_extension = options.extension
     cfg.config.input_samples.file1 = options.file1
     cfg.config.input_samples.file2 = options.file2
+
+    # Dedicated section for quality control section
     if options.pipeline == "quality_control":
         if options.design:
             shutil.copy(options.design, options.target_dir + os.sep )
@@ -705,12 +707,13 @@ def sequana_init(options):
         else:
             cfg.config.kraken.do = False
 
-        if options.reference:
-            cfg.config.bwa_mem.reference = os.path.abspath(options.reference)
-
         cfg.config.adapter_removal.fwd = options.adapter_fwd
         cfg.config.adapter_removal.rev = options.adapter_rev
         cfg.config.adapter_removal.adapter_type = options.adapters
+
+    # For all pipeline using BWA
+    if options.reference:
+        cfg.config.bwa_mem.reference = os.path.abspath(options.reference)
 
     cfg.copy_requirements(target=options.target_dir)
 
