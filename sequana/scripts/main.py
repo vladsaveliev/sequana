@@ -302,7 +302,7 @@ define the type of cluster command to use
             help="""A string representing the forward adapter. Can be a file
                 in FASTA format""")
         group.add_argument("--adapter-rev", dest="adapter_rev", type=str,
-            help="""A string representing the forward adapter. Can be a file
+            help="""A string representing the reverse COMPLEMENT adapter. Can be a file
                 in FASTA format""")
         group.add_argument("--design", dest="design", type=str,
             help="""FORMAT|The design file is a CSV file. There are 3 formats accepted.
