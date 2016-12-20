@@ -388,9 +388,45 @@ div.copyright{
  * └──────────────────────────────────────────────────────────────────────────┘
  */
 div#tabs p{display:none;}
-
 div#tabs p.tab1:target {display:block;}
 div#tabs p.tab2:target {display:block;}
 div#tabs p.tab3:target {display:block;}
+
+
+/* multi columns */
+
+.multicolumns
+{ 
+    -moz-column-width: 11.5em; /* Firefox */
+    -webkit-column-width: 11.5em; /* webkit, Safari, Chrome */
+    column-width: 11.5em;
+}
+/*remove standard list and bullet formatting from ul*/
+.multicolumns ul
+{
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+/* correct webkit/chrome uneven margin on the first column*/
+.multicolumns ul li:first-child
+{
+    margin-top:0px;
+}
+
+
+.multicolumns ul li
+{
+    overflow:hidden;
+}
+
+
+
+
+
+
+
+
+
 
 

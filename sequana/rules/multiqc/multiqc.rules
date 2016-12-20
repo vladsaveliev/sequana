@@ -20,3 +20,4 @@ rule multiqc:
         """
         multiqc -d -dd -1 {params.inputdir} -o {params.outdir} {params.excluded} -f -c multiqc_config.yaml 2> {log}
         """
+

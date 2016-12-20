@@ -2,11 +2,12 @@ import os
 from sequana import adapters
 from sequana import sequana_data, FastA
 from easydev import TempFile
+from sequana.adapters import FindAdaptersFromDesign
 
 
 def test_fasta_fwd_rev_to_columns():
-    a1 = sequana_data("adapters_PCR-free_PF1_220616_fwd.fa", "data/adapters")
-    a2 = sequana_data("adapters_PCR-free_PF1_220616_rev.fa", "data/adapters")
+    a1 = sequana_data("adapters_PCRFree_fwd.fa")
+    a2 = sequana_data("adapters_PCRFree_rev.fa")
     f1 = FastA(a1)
     f2 = FastA(a2)
     assert f1 == f1
@@ -25,7 +26,7 @@ def test_fasta_fwd_rev_to_columns():
 
 
 def test_clean_ngs():
-    a1 = sequana_data("adapters_PCR-free_PF1_220616_fwd.fa", "data/adapters")
+    a1 = sequana_data("adapters_PCRFree_fwd.fa")
     with TempFile() as fh:
         adapters.adapters_to_clean_ngs(a1, fh.name)
 
@@ -45,13 +46,26 @@ def test_adapter():
         assert False
     except ValueError:
         assert True
-    
+
     a1 = adapters.Adapter("test", "ACGT", "comment")
     a1.sequence = "other"
     assert a1.sequence == "other"
     a1.identifier = "new"
     a1.comment = "new"
 
+    # constructor with dictionary
+    adapters.Adapter({"identifier":"test", "comment":"ACGT", "sequence":"ACFT"})
+
+    # constructor with an adapter
+    adapters.Adapter(a1)
+
+    # check some attributes
+    ad = adapters.Adapter("Nextera|name:N505|seq:ACGT","AAAACGTTTTT","comment")
+    assert ad.name == 'N505'
+    assert ad.index_sequence == 'ACGT'
+    # case where there is no extra field
+    ad = adapters.Adapter("Nextera|seq:ACGT","AAAACGTTTTT","comment")
+    assert ad.name is None
 
 
 def test_adapters_removal_parser():
@@ -69,13 +83,14 @@ def test_adapter_reader():
     except ValueError:
         pass
 
-
-    data1 = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", "data/adapters")
-    data2 = sequana_data("adapters_Nextera_PF1_220616_rev.fa", "data/adapters")
-    data3 = sequana_data("adapters_Nextera_PF1_220616_revcomp.fa", "data/adapters")
+    data1 = sequana_data("adapters_Nextera_fwd.fa")
+    data2 = sequana_data("adapters_Nextera_rev.fa")
+    data3 = sequana_data("adapters_Nextera_revcomp.fa")
 
     # try different constructors
     ar1 = AR(data1)
+    ar1.__repr__()
+    ar1.index_sequences
     ar_same = AR(ar1._data)    # from a list of dictionaries
     assert ar1 == ar_same
     ar_same = AR(ar1)           # from a AR instance
@@ -88,8 +103,8 @@ def test_adapter_reader():
     ar1.sequences, ar1.identifiers, ar1.comments
 
     ar1.get_adapter_by_sequence("ACGT")
-    assert ar1.get_adapter_by_index("dummy") is None
-    assert ar1.get_adapter_by_identifier("Nextera_index_N517|index_dna:N517")
+    assert ar1.get_adapter_by_index_name("dummy") is None
+    assert ar1.get_adapter_by_identifier("Nextera_index_N517")
 
     ar2 = AR(data2)
     ar2.reverse()
@@ -104,39 +119,99 @@ def test_adapter_reader():
     with TempFile() as fh:
         ar1.to_fasta(fh.name)
 
-def test_find_adapters_from_index_mapper():
-    from sequana.adapters import FindAdaptersFromIndex
+
+def test_nextera():
+    # simple indexing
     design = sequana_data("test_index_mapper.csv")
-    ad = FindAdaptersFromIndex(design, "Nextera")
-    assert ad.get_adapters("C4405-M1-EC1")
+    ad = FindAdaptersFromDesign(design, "Nextera")
+    results = ad.get_adapters_from_sample("C4405-M1-EC1")
+    assert results['index1']['fwd'][0].identifier  == 'Nextera_index_N703|name:N703|seq:AGGCAGAA'
+
+    ad.check()  # all samples are used in get_adapters_from_sample
     ad.sample_names
 
     fwd, rev = ad.save_adapters_to_fasta("C4405-M1-EC1")
     os.remove(fwd)
     os.remove(rev)
 
+    # double indexing
+    design = sequana_data("test_expdesign_hiseq_doubleindex.csv")
+    fa = FindAdaptersFromDesign(design, "Nextera")
+
+def test_pcrfree():
+    design = sequana_data("test_index_mapper.csv")
+
     try:
-        ad = FindAdaptersFromIndex(design, "error")
+        ad = FindAdaptersFromDesign(design, "error")
         assert False
-    except ValueError:
+    except Exception:
         assert True
 
     # Other input from PCRFree
-    ad = FindAdaptersFromIndex(design, "PCRFree")
+    ad = FindAdaptersFromDesign(design, "PCRFree")
 
-    # Other type of designs
-
+    # Test the index1/2_seq with 3 cases
+    # index1 present only,
+    # no index at all (None)
+    # index1 and index2 present
     design1 = sequana_data("test_expdesign_hiseq.csv")
-    ad1 = FindAdaptersFromIndex(design1, "Nextera")   
-    ad1.get_adapters("553-iH2-1")
+    ad1 = FindAdaptersFromDesign(design1, "PCRFree")
+    ad1.check()
+    res1 = ad1.get_adapters_from_sample("553-iH2-1")
+    res2 = ad1.get_adapters_from_sample("539-st2")
+    res3 = ad1.get_adapters_from_sample("107-st2")
 
-    design2 = sequana_data("test_expdesign_miseq_illumina2.csv")
-    ad2 = FindAdaptersFromIndex(design2, "PCRFree")
-    assert ad2.get_adapters('M2')['index2']['fwd'].identifier == \
-            'NextFlex_PCR_Free_adapter13|index_dna:13'
+    assert res1['index1']['fwd'].identifier == "NextFlex_PCR_Free_adapter8|name:8|seq:TTAGGC"
+    assert res1['index1']['fwd'].name == "8"
+    assert res1['index1']['rev'].name == "8"
 
-    design3 = sequana_data("test_expdesign_miseq_illumina.csv")
-    ad3 = FindAdaptersFromIndex(design3, "PCRFree")
-    res = ad3.get_adapters("CR81-L1236-P1")
-    assert res['index1']['fwd'].identifier == 'NextFlex_PCR_Free_adapter1|index_dna:1'
+    assert list(res2.keys()) == ["universal"]
+
+    assert res3['index1']['fwd'].name == "9"
+    assert res3['index1']['rev'].name == "9"
+    assert res3['index2']['fwd'].name == "10"
+    assert res3['index2']['rev'].name == "10"
+
+    # double indexing
+    # This is a double indexing for PCRFree, which has not been tested
+    # since it requires 16S adapters not yet in sequana
+    """design2 = sequana_data("test_expdesign_miseq_illumina2.csv")
+    ad2 = FindAdaptersFromDesign(design2, "PCRFree")
+    assert ad2.get_adapters_from_sample('M2')['index1']['fwd'].identifier == \
+            'NextFlex_PCR_Free_adapter2|name:2|seq:TGACCA'
+    assert ad2.get_adapters_from_sample('M2')['index2']['fwd'].identifier == \
+            'NextFlex_PCR_Free_adapter13|name:13|seq:AGTCAA'
+    """
+
+
+    design = sequana_data("test_expdesign_miseq_illumina.csv")
+    ad = FindAdaptersFromDesign(design, "PCRFree")
+    res = ad.get_adapters_from_sample("CR81-L1236-P1")
+    assert res['index1']['fwd'].identifier == 'NextFlex_PCR_Free_adapter1|name:1|seq:CGATGT'
+
+
+
+    design1 = sequana_data("test_expdesign_miseq_illumina_1.csv")
+    ad = FindAdaptersFromDesign(design1, "PCRFree")
+    ad.check() # all sample names must be found
+    res = ad.get_adapters_from_sample("CM-2685")['index1']['fwd']
+    assert res.name == "3"
+
+
+def test_wrong_design():
+    design = sequana_data("test_expdesign_wrong.csv")
+    ad = FindAdaptersFromDesign(design, "PCRFree")
+    try:
+        ad.check()
+        assert False
+    except:
+        assert True
+
+
+def test_rubicon():
+    design = sequana_data("test_expdesign_rubicon.csv")
+    fa = FindAdaptersFromDesign(design, "Rubicon")
+    fa.check()
+
+
 

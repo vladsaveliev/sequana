@@ -1,5 +1,5 @@
 # ============================================================================
-# Config file for Quality Control
+# Config file for RNA-seq
 #
 # ==========================================[ Sections for the users ]========
 #
@@ -22,64 +22,63 @@ input_samples:
 # # the front dashes
 requirements:
     - phiX174.fa
-
-
-# =========================================== For testing only
-# If True, only a subset of the reads (N) are used
-
-fastq_sampling:
-    do: no
-    N: 2500
+    - Institut_Pasteur.png
 
 # =========================================== Sections related to external tools
 fastqc:
     options: "--nogroup"
 
 ##################################################################
-# Use by Phix_removal pipeline to remove reads with the
-# phix found in the bwa_phix:reference section
-#
+#       MAPPING SECTION
+#     Don't forgot to fill sequencing information
 ##################################################################
-bwa_mem_phix:
+sequencing:
+    platform: "Illumina"
+    instrument: "Hiseq2500"
+    flowcell: "H35CTBCXY"
+
+bowtie2_mapping:
+    do: no
+    prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/cryptNeo
+    #options: "--dovetail --no-mixed --no-discordant " for paired-end data
+    options: ""
+    threads: 4
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Mark duplicates (picard-tools)
+
+mark_duplicates:
     do: yes
-    reference_file: "phiX174.fa"
-    index_algorithm: "is"
-    options: '-T 30'
-    threads: 2
+    options: ''
+
 
 #################################################################
 # Quality trimming and adapter removal
-#   - adapter_type can only be PCRFRee or Nextera
-#   - design_file: a valid CSV file with mapping of index and 
-#       sample name
-#   - quality: 0 means no trimming, 30 means keep base with quality
+#   - quality: 0 means no trimming, 30 means keep base with quality 
 #       above 30
 #   - m: 20 means discard trimmed reads that are shorter than 20.
-#        must be >0 and <40
 #   - tool: only cutadapt supported for now
-#
-#   - if design_file is provided, fwd and rev are ignored
-#    - mode: must be set to one of
-#       - g for 5' 
-#       - a for 3'
-#       - b for both 5'/3'
-#
 #   ref: http://cutadapt.readthedocs.io/
 #################################################################
 adapter_removal:
     do: yes
     tool: cutadapt
-    adapter_type:               # None, PCRFree, Nextera
-    design_file:
-    fwd:
-    rev:
-    m: 20                       # {"strict_min":0}
-    mode: "b"                   # {"values": [b,g,a]}
+    design: "%(adapter_design)s"
+    adapter_type: "%(adapter_type)s"
+    fwd: "%(adapter_fwd)s"     
+    rev: "%(adapter_rev)s"
+    m: 20   # min length cutoff
+    M: 120  # max length cutoff
+    mode: "g"   # g for 5' adapter, a for 3' and b for both 5'/3'
+    quality: "30"
     options: "-O 6 --trim-n"
-    quality: 30                 # {"range": [0,40]}
 
-########################################################### Kraken
-# For taxonomy. Used in quality_control pipeline
-kraken:
-    do: False
-    database_directory:  "%(kraken_database_directory)s"
+##################################################################
+#       REPORTING SECTION WITH MULTIQC
+#
+##################################################################
+
+multiqc:
+    excluded: "-x *_init_* -x *left_kept_reads* -x *report_rnaseq*"
+    output-directory: "multiqc"
+
+
