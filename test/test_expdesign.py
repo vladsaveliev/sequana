@@ -1,6 +1,6 @@
 from sequana import sequana_data
-from sequana.designexp import ExpDesignAdapter
-from sequana.designexp import ExpDesignHiSeq, ExpDesignMiSeq
+from sequana.expdesign import ExpDesignAdapter
+from sequana.expdesign import ExpDesignHiSeq, ExpDesignMiSeq
 
 
 def test_designHiSeq():
