@@ -29,6 +29,7 @@ import argparse
 from easydev.console import red, purple, green, blue
 from easydev import DevTools
 
+adapters_choice = ["Nextera", "Rubicon", "PCRFree"]:
 
 help_input = """Missing input data.
 
@@ -286,7 +287,7 @@ define the type of cluster command to use
     below), use --design and --adapters:
 
        --design DESIGNFILE
-       --adapters Nextera/PCRFree
+       --adapters Nextera/PCRFree/Rubicon
 
     If you have your own adapter files, use
 
@@ -351,11 +352,11 @@ For back compatibility we also accept this format. Here, the SampleIF,
         """)
         group.add_argument("--adapters", dest="adapters", type=str, default="",
             help="""FORMAT|When using --design, you must also provide the type of
-adapters. Valid values are [Nextera, PCRFree] . The files
+adapters. Valid values are %s . The files
 are part os Sequana and can be found here: 
 
      http:\\github.com/sequana/sequana/resources/data/adapters
-                """)
+                """ % adapters_choice)
         group.add_argument("--no-adapters", dest="no_adapters",
             action="store_true", default=False,
             help="""If provided, no removal of adapters will be
@@ -537,23 +538,23 @@ def main(args=None):
                      " or Nextera), or provide the adapters directly as a "
                      " string (or a file) using --adapter_fwd (AND --adapter_"
                      "rev for paired-end data). A third way is to set --adapters"
-                     " to either Nextera, PCRFree or universal in which case "
+                     " to either Nextera, PCRFree, Rubicon or universal in which case "
                     " all adapters will be used (slower). Finally, you may use "
                     " --no-adapters for testing purpose or if you know there "
                     " is no adapters")
 
         # flag 12 (design + adapters when wrong args provided)
-        if options.design and options.adapters not in ["Nextera", "PCRFree"]:
+        if options.design and options.adapters not in adapters_choice:
             raise ValueError("When using --design, you must also "
                 "provide the type of adapters using --adapters (set to "
-                "Nextera or PCRFree)")
+                "one of %s )" % adapters_choice)
         if options.design and options.adapters:
             from sequana import FindAdaptersFromDesign
             fa = FindAdaptersFromDesign(options.design, options.adapters)
             fa.check()
 
         # flag 12 (design + adapters with correct args)
-        elif options.design and options.adapters in ["Nextera", "PCRFree"]:
+        elif options.design and options.adapters in adapters_choice:
             options.adapters_fwd = options.adapters
             options.adapters_rev = options.adapters
         elif options.no_adapters:
@@ -561,19 +562,18 @@ def main(args=None):
             options.adapter_rev = "XXXX"
         else:
             if options.adapter_fwd is None:
-                assert options.adapters in ["universal", "PCRFree", "Nextera"]
+                assert options.adapters in ["universal"] + adapters_choice
                 # flag 4
                 if options.adapters == "universal":
                     options.adapter_fwd = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCGATGTATCTCGTATGCCGTCTTCTGC"
                     options.adapter_rev = "TCTAGCCTTCTCGCAGCACATCCCTTTCTCACATCTAGAGCCACCAGCGGCATAGTAA"
                 # flag 4
-                elif options.adapters == "PCRFree":
-                    options.adapter_fwd = "file:" + _get_adap('adapters_PCRFree_fwd.fa')
-                    options.adapter_rev = "file:" + _get_adap('adapters_PCRFree_rev.fa')
-                # flag 4
-                elif options.adapters == "Nextera":
-                    options.adapter_fwd = "file:" + _get_adap("adapters_Nextera_fwd.fa")
-                    options.adapter_rev = "file:" + _get_adap("adapters_Nextera_rev.fa")
+                else:
+                    options.adapter_fwd = "file:" + _get_adap(
+                        'adapters_%s_fwd.fa' % options.adapters)
+                    # !!!!!!! revcomp to be used
+                    options.adapter_rev = "file:" + _get_adap(
+                        'adapters_%s_revcomp.fa' % options.adapters)
             # flag 2/3
             else:
                 if options.adapter_fwd:
