@@ -145,7 +145,7 @@ class SnpEff(object):
         :param vcf_filename: 
         """
         # Create command line for Popen
-        args_ann = ["snpEff", "eff"]
+        args_ann = ["snpEff", "-formatEff"]
         if html_output is not None:
             args_ann += ["-s", html_output]
         args_ann += [options, self.ref_name, vcf_filename]
