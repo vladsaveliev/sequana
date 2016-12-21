@@ -35,11 +35,11 @@ class GenericModule(object):
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(template))
         self.j_template = env.get_template("base.html")
 
-    def dataframe_to_html_table(self, dataframe, index):
+    def dataframe_to_html_table(self, dataframe, kwargs=dict()):
         """
         """
         html = HTMLTable(dataframe)
-        return html.to_html(index=index)
+        return html.to_html(**kwargs)
 
     def create_embed_png(self, plot_function, kwargs=dict(), style=None):
         """ Take as a plot function as input and create a html embed png image.
