@@ -800,7 +800,7 @@ class FilteredGenomeCov(object):
 
     :target: developers only
     """
-    _feature_wanted = {"CDS", None}
+    _feature_not_wanted = {"gene", "regulatory", "source"}
     def __init__(self, df, threshold, feature_list=None):
         """ .. rubric:: constructor
 
@@ -896,7 +896,7 @@ class FilteredGenomeCov(object):
         iter_feature = iter(feature_list)
         feature = next(iter_feature)
         # pass "source" feature
-        while feature["type"] not in FilteredGenomeCov._feature_wanted:
+        while feature["type"] in FilteredGenomeCov._feature_not_wanted:
             try:
                 feature = next(iter_feature)
             except StopIteration:
@@ -930,6 +930,8 @@ class FilteredGenomeCov(object):
                         feature["product"] = feature["note"]
                     except:
                         feature["product"] = "None"
+                if region["start"] == 237433:
+                    print(dict(region, **feature))
                 region_ann.append(dict(region, **feature))
                 try:
                     feature = next(iter_feature)
@@ -960,8 +962,8 @@ class FilteredGenomeCov(object):
         if annotation:
             merge_df.rename(columns = {"gene": "gene_name"}, inplace=True)
             # maybe let the user set what he wants
-            return merge_df.loc[merge_df["type"].isin(
-                FilteredGenomeCov._feature_wanted)]
+            return merge_df.loc[~merge_df["type"].isin(
+                FilteredGenomeCov._feature_not_wanted)]
         return merge_df
 
     def get_low_roi(self):
