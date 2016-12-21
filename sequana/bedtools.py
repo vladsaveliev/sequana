@@ -800,7 +800,7 @@ class FilteredGenomeCov(object):
 
     :target: developers only
     """
-    _feature_wanted = {"CDS"}
+    _feature_wanted = {"CDS", None}
     def __init__(self, df, threshold, feature_list=None):
         """ .. rubric:: constructor
 
@@ -905,12 +905,15 @@ class FilteredGenomeCov(object):
                 return region_ann
         # merge regions and annotations
         for region in region_list:
+            feature_exist = False
             while feature["gene_end"] <= region["start"]:
                 try:
                     feature = next(iter_feature)
                 except:
                     break
             while feature["gene_start"] < region["end"]:
+                # A feature exist for detected ROI
+                feature_exist = True
                 # put locus_tag in gene field if gene doesn't exist
                 try: 
                     feature["gene"]
@@ -932,6 +935,13 @@ class FilteredGenomeCov(object):
                     feature = next(iter_feature)
                 except StopIteration:
                     break
+            if feature_exist is False:
+                region_ann.append(dict(region, **{"gene_start": None,
+                                                  "gene_end": None,
+                                                  "type": None,
+                                                  "gene": None,
+                                                  "strand": None,
+                                                  "product": None}))
         return region_ann
 
     def _dict_to_df(self, region_list, annotation):
@@ -939,8 +949,8 @@ class FilteredGenomeCov(object):
         """
         if annotation:
             colnames = ["chr", "start", "end", "size", "mean_cov", "mean_rm", 
-                    "mean_zscore", "max_zscore", "gene_start", "gene_end", "type", "gene", 
-                    "strand", "product"]
+                        "mean_zscore", "max_zscore", "gene_start", "gene_end",
+                        "type", "gene", "strand", "product"]
         else:
             colnames = ["chr", "start", "end", "size", "mean_cov", "mean_rm",
                     "mean_zscore", "max_zscore"]
