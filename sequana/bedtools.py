@@ -34,7 +34,8 @@ __all__ = ["GenomeCov", "ChromosomeCov", "DoubleThresholds"]
 
 
 class DoubleThresholds(object):
-    """Simple structure to handle the double threshold for negative and positive sides
+    """Simple structure to handle the double threshold for negative and
+    positive sides
 
     Used yb GenomeCov and related classes.
 
@@ -43,15 +44,16 @@ class DoubleThresholds(object):
         dt = DoubleThresholds(-3,4,0.5,0.5)
 
     This means the low threshold is -3 while the high threshold is 4. The two
-    following values must be between 0 and 1 and are used to define the value of
-    the double threshold set to half the value of th the main threshold by default.
+    following values must be between 0 and 1 and are used to define the value
+    of the double threshold set to half the value of th the main threshold by
+    default.
 
     Internally, the main thresholds are stored in the low and high attributes.
     The secondary thresholds are derived from the main thresholds and the
-    two ratios. The ratios are named ldtr and hdtr for low double threshold ratio
-    and high double threshold ration. The secondary thresholds are denoted low2 and
-    high2 are are update automatically if low, high, ldtr or hdtr are changed.
-
+    two ratios. The ratios are named ldtr and hdtr for low double threshold
+    ratio and high double threshold ration. The secondary thresholds are
+    denoted low2 and high2 are are update automatically if low, high, ldtr or
+    hdtr are changed.
 
     """
     def __init__(self, low=-3, high=3, ldtr=0.5, hdtr=0.5):
@@ -70,6 +72,7 @@ class DoubleThresholds(object):
 
     def _get_ldtr(self):
         return self._ldtr
+
     def _set_ldtr(self, ldtr):
         self._ldtr = ldtr
         self._low2 = self._low * self._ldtr
@@ -77,6 +80,7 @@ class DoubleThresholds(object):
 
     def _get_hdtr(self):
         return self._hdtr
+    
     def _set_hdtr(self, hdtr):
         self._hdtr = hdtr
         self._high2 = self._high * self._hdtr
@@ -84,19 +88,21 @@ class DoubleThresholds(object):
 
     def _get_low(self):
         return self._low
+    
     def _set_low(self, value):
         assert value < 0.
         self._low = value
         self._low2 = self._low * self._ldtr
-    low = property(_get_low,_set_low)
+    low = property(_get_low, _set_low)
 
     def _get_high(self):
         return self._high
+    
     def _set_high(self, value):
         assert value > 0.
         self._high = value
         self._high2 = self._high * self._ldtr
-    high = property(_get_high,_set_high)
+    high = property(_get_high, _set_high)
 
     def _get_low2(self):
         return self._low * self._ldtr
@@ -105,6 +111,10 @@ class DoubleThresholds(object):
     def _get_high2(self):
         return self._high * self._hdtr
     high2 = property(_get_high2)
+
+    def get_args(self):
+        return "%.2f,%.2f,%.2f,%.2f" % (self.low, self.high, self.ldtr,
+                                     self.hdtr)
 
     def copy(self):
         thresholds = DoubleThresholds(self.low, self.high, 
@@ -155,7 +165,7 @@ class GenomeCov(object):
     """
 
     def __init__(self, input_filename=None,
-        low_threshold=-3, high_threshold=3, ldtr=0.5, hdtr=0.5):
+                 low_threshold=-3, high_threshold=3, ldtr=0.5, hdtr=0.5):
         """.. rubric:: constructor
 
         :param str input_filename: the input data with results of a bedtools
@@ -174,21 +184,30 @@ class GenomeCov(object):
             between 0 and 1.
 
         """
-        self.thresholds = DoubleThresholds(low_threshold, high_threshold,
-            ldtr, hdtr)
-
-        df = pd.read_table(input_filename, header=None)
+        is_bed = True
+        # check is the input is a csv of a previous analysis
         try:
-            df = df.rename(columns={0: "chr", 1: "pos", 2: "cov", 3: "mapq0"})
-            df = df.set_index("chr", drop=False)
-            # Create a list of ChromosomeCov for each chromosome present in the
-            # bedtools.
-            self.chr_list = [ChromosomeCov(df.loc[key], self.thresholds) for key in
-                    df.index.unique()]
-            ChromosomeCov.count = 0
+            with open(input_filename, "r") as fp:
+                line = fp.readline()
+                if line.startswith("# thresholds:"):
+                    thresholds = line.split(":")[1].split(",")
+                    thresholds = [float(f) for f in thresholds]
+                    self.thresholds = DoubleThresholds(*thresholds)
+                    df = pd.read_csv(fp)
+                    is_bed = False
         except IOError as e:
             print("I/0 error({0}): {1}".format(e.errno, e.strerror))
-
+        if is_bed:
+            self.thresholds = DoubleThresholds(low_threshold, high_threshold,
+                                               ldtr, hdtr)
+            df = pd.read_table(input_filename, header=None)
+            df = df.rename(columns={0: "chr", 1: "pos", 2: "cov", 3: "mapq0"})
+            # Create a list of ChromosomeCov for each chromosome present in the
+            # bedtools.
+        df = df.set_index("chr", drop=False)
+        self.chr_list = [ChromosomeCov(df.loc[key], self.thresholds) for key in
+                         df.index.unique()]
+        ChromosomeCov.count = 0
         # Set the link to this instance in each chromosome
         # useful if one wants to recompute GC content with different window
         for chrom in self.chr_list:
@@ -243,6 +262,13 @@ class GenomeCov(object):
             chrom.plot_hist_coverage(logx=logx, logy=logy, fignum=fignum, N=N,
                 histtype='step', hold=True, lw=lw)
             pylab.legend()
+
+    def to_csv(self, output_filename):
+        df_list = [chrom.get_df() for chrom in self.chr_list]
+        df = pd.concat(df_list)
+        with open(output_filename, "w") as fp:
+            print("# thresholds:%s" % self.thresholds.get_args(), file=fp)
+            df.to_csv(fp, float_format="%.3g")
 
 
 class ChromosomeCov(object):
@@ -311,6 +337,9 @@ class ChromosomeCov(object):
 
     def __len__(self):
         return self.df.__len__()
+
+    def get_df(self):
+        return self.df.set_index("chr", drop=True)
 
     def get_size(self):
         return self.__len__()
