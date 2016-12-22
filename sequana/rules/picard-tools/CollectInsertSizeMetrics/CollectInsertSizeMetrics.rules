@@ -16,10 +16,7 @@ rule CollectInsertSizeMetrics:
     log:
         out = __CollectInsertSizeMetrics__log_std,
         err = __CollectInsertSizeMetrics__log_err
-    params:
-        remove = config["mark_duplicates"]["remove"], ## TRUE/FALSE
-        tmpdir = config["mark_duplicates"]["tmpdir"]  ## /local/scratch on TARS
     shell:
         """
-        CollectInsertSizeMetrics I={input} O={output.pdf} H={output.pdf} M=0.5 > {log.out} 2> {log.err}
+        CollectInsertSizeMetrics I={input} O={output.pdf} H={output.metrics} M=0.5 > {log.out} 2> {log.err}
         """

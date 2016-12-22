@@ -42,13 +42,28 @@ sequencing:
 
 
 bowtie2_mapping:
-    do: no
+    do: yes
     prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/cryptNeo
-    #options: "--dovetail --no-mixed --no-discordant " for paired-end data
+    #options: "--dovetail --no-mixed --no-discordant " ##for paired-end data
     options: ""
     threads: 4
 
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Mark duplicates (picard-tools)
+
+mark_duplicates:
+    remove: 'True' ## may be False
+    tmp: 'TMP_DIR=/local/scratch/' ## on Slurm cluster at Pasteur
+
+##################################################################
+#       PEAK CALLING SECTION
+#     Go to https://github.com/taoliu/MACS for more explanation
+##################################################################
+macs2:
+    genomeSize: "mm"
+    readLength: 100
+    qval: 0.1 ## cutoff on q-value
+    options: ""
 
 #################################################################
 # Quality trimming and adapter removal
@@ -81,9 +96,17 @@ multiqc:
     output-directory: "multiqc"
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Mark duplicates (picard-tools)
 
-mark_duplicates:
-    do: yes
-    remove: 'True' ## may be False
-    tmp: 'TMP_DIR=/local/scratch/' ## on Slurm cluster at Pasteur
+
+##### DEEPTOOLS SECTION
+
+correlation:
+    binSize: 10000
+    type: "scatterplot"
+    metyhode: "pearson"
+
+coverage:
+    binSize: 10
+    genomeSize: 121400000
+    fragmentLength: 120
+
