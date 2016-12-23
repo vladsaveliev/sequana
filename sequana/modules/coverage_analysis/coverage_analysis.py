@@ -18,10 +18,10 @@
 ##############################################################################
 """Module to write coverage report"""
 from sequana import bedtools
-from sequana.modules import GenericModule
+from sequana.modules.base_module import SequanaBaseModule
 
 
-class CoverageModule(object):
+class SequanaModule(object):
     """ Write HTML report of coverage analysis. This class takes either a
     :class:`GenomeCov` instances or a csv file where analysis are stored.
     """
@@ -51,7 +51,7 @@ class CoverageModule(object):
             jinja = ChromosomeCoverageModule(chrom, template, output_dir)
 
 
-class ChromosomeCoverageModule(GenericModule.GenericModule):
+class ChromosomeCoverageModule(SequanaBaseModule):
     """ Write HTML report of coverage analysis for each chromosome. It is
     created by CoverageModule.
     """
@@ -77,8 +77,8 @@ class ChromosomeCoverageModule(GenericModule.GenericModule):
         # self.submappings()
         self.basic_stats()
         self.regions_of_interest()
-        # self.normalized_coverage()
-        # self.zscore_distribution()
+        self.normalized_coverage()
+        self.zscore_distribution()
 
     def create_html(self, template, output_directory):
         """ Create html with Jinja2.
@@ -101,7 +101,7 @@ class ChromosomeCoverageModule(GenericModule.GenericModule):
                 "running median. From the normalised coverage, we estimate "
                 "z-scores on a per-base level. The red lines indicates the "
                 "z-scores at plus or minus N standard deviations, where N is "
-                "chosen by the user (default:4)</p>\n{0}".format(image))
+                "chosen by the user. (default:4)</p>\n{0}".format(image))
         })
 
     def coverage_barplot(self):
@@ -169,4 +169,34 @@ class ChromosomeCoverageModule(GenericModule.GenericModule):
                 "<h3>Low coverage region</h3>\n{0}\n{1}\n"
                 "<h3>High coverage region</h3>\n{2}\n{3}\n").format(
                 low_paragraph, html_low_roi, high_paragraph, html_high_roi)
+        })
+
+    def normalized_coverage(self):
+        """
+        """
+        image = self.create_embed_png(
+            self.chromosome.plot_hist_normalized_coverage)
+        self.sections.append({
+            "name": "Normalized coverage",
+            "anchor": "normalized_coverage",
+            "content": (
+                "<p>Distribution of the normalized coverage with predicted "
+                "Gaussian. The red line should be followed the trend of the "
+                "barplot.</p>\n{0}".format(image))
+        })
+
+    def zscore_distribution(self):
+        """
+        """
+        image = self.create_embed_png(self.chromosome.plot_hist_zscore)
+        self.sections.append({
+            "name": "Z-Score distribution",
+            "anchor": "zscore_distribution",
+            "content": (
+                "<p>Distribution of the z-score (normalised coverage); You "
+                "should see a Gaussian distribution centered around 0. The "
+                "estimated parameters are mu={0:.2f} and sigma={1:.2f}.</p>\n"
+                "{2}".format(self.chromosome.best_gaussian["mu"],
+                             self.chromosome.best_gaussian["sigma"],
+                             image))
         })

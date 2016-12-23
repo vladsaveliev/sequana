@@ -189,7 +189,7 @@ class GenomeCov(object):
         try:
             with open(input_filename, "r") as fp:
                 line = fp.readline()
-                if line.startswith("# thresholds:"):
+                if line.startswith("# sequana_coverage_analysis"):
                     thresholds = line.split(":")[1].split(",")
                     thresholds = [float(f) for f in thresholds]
                     self.thresholds = DoubleThresholds(*thresholds)
@@ -267,7 +267,8 @@ class GenomeCov(object):
         df_list = [chrom.get_df() for chrom in self.chr_list]
         df = pd.concat(df_list)
         with open(output_filename, "w") as fp:
-            print("# thresholds:%s" % self.thresholds.get_args(), file=fp)
+            print("# sequana_coverage_analysis thresholds:%s" %
+                  self.thresholds.get_args(), file=fp)
             df.to_csv(fp, float_format="%.3g")
 
 

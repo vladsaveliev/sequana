@@ -24,7 +24,7 @@ import base64
 from reports import HTMLTable
 
 
-class GenericModule(object):
+class SequanaBaseModule(object):
     """ Generic Module to write HTML reports.
     """
     def __init__(self,
