@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -119,7 +119,7 @@ class SequanaMultipleSummary(BaseReport):
               "  tested with the quality_control pipeline only for now.")
         self.verbose = verbose
         workdir = "."
-        self.jinja['title'] = "Sequana multiple summary" 
+        self.jinja['title'] = "Sequana multiple summary"
         self.env.loader.searchpath.extend([workdir])
         self.devtools = DevTools()
 
@@ -186,7 +186,7 @@ class SequanaMultipleSummary(BaseReport):
         data = getattr(self, method_name)()
         df = pd.DataFrame({
             "name": self.get_projects(),
-            "value": data, 
+            "value": data,
             "url": self.get_urls()})
         return df
 
@@ -199,10 +199,10 @@ class SequanaMultipleSummary(BaseReport):
 
     def populate_nreads_raw(self):
         df = self._get_df("get_nreads_raw")
-        cb = CanvasBar(df, "Number of reads (raw data)", "nreads_raw", 
+        cb = CanvasBar(df, "Number of reads (raw data)", "nreads_raw",
                     xlabel="Number of reads")
         self.jinja['canvas'] += cb.to_html()
-        self.jinja['sections'].append(self._get_div("nreads_raw", 
+        self.jinja['sections'].append(self._get_div("nreads_raw",
                                                     "Number of reads"))
 
     def populate_mean_quality(self):
@@ -223,16 +223,15 @@ class SequanaMultipleSummary(BaseReport):
         title = "Phix content"
         df = self._get_df("get_phix_percent")
         cb = CanvasBar(df, title, "phix", xlabel="Percentage")
-        self.jinja['canvas'] += cb.to_html() 
+        self.jinja['canvas'] += cb.to_html()
         self.jinja['sections'].append(self._get_div("phix", title))
 
     def populate_trimming(self):
         title = "Trimming"
         df = self._get_df("get_trimming_percent")
         cb = CanvasBar(df, title, "trimming", xlabel="Percentage")
-        self.jinja['canvas'] += cb.to_html() 
+        self.jinja['canvas'] += cb.to_html()
         self.jinja['sections'].append(self._get_div("trimming", title))
-
 
     def get_projects(self):
         return [x.data['project'] for x in self.summaries]
