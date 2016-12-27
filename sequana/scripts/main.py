@@ -679,8 +679,7 @@ def sequana_init(options):
         else: # or a sequana config file in the module path ?
             raise(IOError("Config file %s not found locally" % options.config))
     else:
-        copy_config_from_sequana(module, "config.yaml", config_filename,
-                                 options)
+        copy_config_from_sequana(module, "config.yaml", config_filename)
 
     # The input
     cfg = SequanaConfig(config_filename)
