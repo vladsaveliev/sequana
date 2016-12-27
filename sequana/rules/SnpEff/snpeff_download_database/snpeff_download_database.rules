@@ -1,0 +1,22 @@
+rule snpeff_download_database:
+    """
+    SnpEff needs snpEff.config file and could download some database. It is
+    used as local rule to have internet connection.
+
+    Required output:
+        __snpeff_download_database__output: "snpEff.config"
+        __snpeff_download_database__log: log file
+
+    Required parameters:
+        config["snpeff"]["reference"]
+    """
+    input:
+        ann = config["snpeff"]["reference"]
+    output:
+        config = __snpeff_download_database__output
+    log:
+        l = __snpeff_download_database__log
+    run:
+        from sequana import SnpEff
+
+        snpeff = SnpEff(reference=input.ann, log=log.l)

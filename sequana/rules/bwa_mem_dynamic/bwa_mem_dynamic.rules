@@ -33,7 +33,8 @@ rule bwa_mem_%(name)s:
     output:
         mem = __bwa_mem_%(name)s__mem_output,
         sort = __bwa_mem_%(name)s__sort_output,
-        reference = __bwa_mem_%(name)s__reference
+        reference = __bwa_mem_%(name)s__reference,
+        fai = __bwa_mem_%(name)s__fai
     log:
         __bwa_mem_%(name)s__log
     params:

@@ -19,7 +19,7 @@ input_samples:
 
 sequencing:
     platform: "Illumina"
-    instrument: "Hiseq2500"
+    instrument: "Unknown"
     flowcell: "Unknown"
 
 # =========================================== Sections related to variant calling

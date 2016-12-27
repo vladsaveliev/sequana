@@ -1,5 +1,5 @@
 rule snpeff:
-    """ Snpeff adds annotation of variants detected in a VCF file.
+    """ snpeff adds annotation of variants detected in a VCF file.
 
     Required input:
         - __snpeff__input: vcf file
@@ -17,7 +17,8 @@ rule snpeff:
     """
     input:
         vcf = __snpeff__input, 
-        ann = config["snpeff"]["reference"]
+        ann = config["snpeff"]["reference"],
+        config = __snpeff__config
     output:
         ann = __snpeff__output,
         html = __snpeff__html
