@@ -719,7 +719,7 @@ def sequana_init(options):
 
     cfg.copy_requirements(target=options.target_dir)
 
-    # FIXME If invalid, no error raised
+# FIXME If invalid, no error raised
     if options.config_params:
         params = [this.strip() for this in options.config_params.split(",")]
         for param in params:

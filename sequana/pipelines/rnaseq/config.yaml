@@ -123,3 +123,9 @@ multiqc:
 mark_duplicates:
     do: yes
     options: ''
+
+
+coverage:
+    binSize: 10
+    genomeSize : mm
+    fragmentLength: 65

@@ -1,4 +1,14 @@
 rule bamPEFragmentSize:
+    """
+    Bam Fragment size computing (PE mode). Is part of deeptools http://deeptools.readthedocs.io/en/latest/index.html
+
+    Required input:
+        __bamPEFragmentSize__input_bams: list of bam files
+
+    Required output:
+        __bamPEFragmentSize__output: png file
+    """
+
     input:
         bam = __bamPEFragmentSize__input_bams #expand(DIRECTORY + "{sample}_rmdp_sorted.bam", sample=SAMPLES),
     params:

@@ -629,7 +629,10 @@ class SequanaConfig(object):
             for requirement in self._yaml_code['requirements']:
                 if requirement.startswith('http') is False:
                     print('Copying %s from sequana' % requirement)
-                    shutil.copy(sequana_data(requirement, "data"), target)
+                    if requirement.endswith('.png') :
+                        shutil.copy(sequana_data(requirement, "images"), target)
+                    else:
+                        shutil.copy(sequana_data(requirement, "data"), target)
                 elif requirement.startswith("http"):
                     print("This file %s will be needed" % requirement)
                     wget(requirement)
