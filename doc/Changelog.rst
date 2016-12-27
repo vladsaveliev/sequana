@@ -3,6 +3,27 @@ Changelog
 
 .. contents::
 
+0.1.17
+----------
+
+* BUG Fixes:
+
+    - experimental design and adapters API simplified fixing a few bugs in the
+      process. Doc and tested finalised.
+    - Fix cutadapt rules, which was not filling the fwd and rev properly anymore
+      when using the design file.
+    - in sequana main script, --reference was used by quality_pipeline only.
+      Now, available for all.
+
+
+* CHANGES:
+
+    - remove pipetools module (obsolet)
+    
+
+* NEWS:
+
+    - add rubicon adapters
 
 0.1.16
 -----------
@@ -14,7 +35,7 @@ Changelog
 
 * NEWs:
 
-    - SequanaConfig can read back a SequanaConfig instace
+    - SequanaConfig can read back a SequanaConfig instance
     - Added a DummyManager for minimalist manager to create reports
 
 

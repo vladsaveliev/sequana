@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -35,8 +35,8 @@ class Options(argparse.ArgumentParser):
             fastq_head input.fastq 10000 output.fastq
 
         you can also use named arguments::
-           
-            fastq_head --input input.fastq.gz --input 10000 --ouput output.fastq.gz
+
+            fastq_head --input input.fastq.gz --nlines 10000 --ouput output.fastq.gz
 
         """
         super(Options, self).__init__(usage=usage,  prog=prog)
@@ -44,10 +44,10 @@ class Options(argparse.ArgumentParser):
                           help="Number of lines to extract.")
         self.add_argument("--input", dest='input_filename', type=str,
                             required=True, help="input fastq gzipped or not")
-        self.add_argument("--output", dest='output_filename', type=str, 
-                            required=True, 
+        self.add_argument("--output", dest='output_filename', type=str,
+                            required=True,
                             help="output file with .gz extension or not")
- 
+
 def main(args=None):
     import sys
     if args is None:
@@ -71,10 +71,7 @@ def main(args=None):
                    output_filename=options.output_filename)
 
 
-
-
-
 if __name__ == "__main__":
    import sys
    main(sys.argv)
-   
+

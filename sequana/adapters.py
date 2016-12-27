@@ -23,18 +23,47 @@ AlienTrimmer, Trimmomatic. Unfortunately, they tend to use different formats
 from FASTA to text files. Moreover outputs are generally also reported in
 different formats.
 
-In this module we provide utilities to help building the input files but also
-other tools to e.g. merge several list of adapters making sure there is no
-duplicates. One goal is also to ease the conversion of outputs reports into
-a common type of reports.
+Tools to extract specific adapters from FASTA files would also be handy. For
+instance, you may have all your adapters in a single file.
 
-We also store list of adapters in FASTA format, which can be read using 
+In this module, we provide:
+
+- tools to manipulate adapters stored in Fasta format (:class:`AdapterReader`).
+- tools to export Fasta files with adapter content into other formats required
+  by various adapter removal software
+- A tool used to extract adapters from a FASTA file given their identifier, or
+  sequence :class:`FindAdaptersFromDesign`.
+
+Our convention is to store list of adapters in FASTA format, which can be read using
 the :class:`AdapterReader`::
 
     from sequana import sequana_data, AdapterReader
-    filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa")
+    filename = sequana_data("adapters_Nextera_fwd.fa")
     ar = AdapterReader(filename)
-    ar.get_adapter_by_index("index_dna:N501")
+    ar.get_adapter_by_index("N501")
+
+Given a design file (see mod:`sequana.expdesign`), and a name for the type of
+adapters, one can easily extract the subset of relevant adapters to be used for
+a sample. Currently, the following set of adapters/design are available:
+
+    - Nextera single and double indexing
+    - Rubicon single indexing
+    - PCRFree single indexing
+
+For instance given a design file that gives the mapping between samples and a
+set of Nextera adapters, one would use:
+
+.. doctest::
+
+    >>> from sequana import *
+    >>> filename = sequana_data("test_expdesign_hiseq.csv")
+    >>> design = ExpDesignAdapter(filename)
+    >>> fa = FindAdaptersFromDesing(design, "PCRFree")
+    >>> print(fa.sample_names[0])
+    '553-iH2-1
+    >>> fa.get_adapters_from_sample("553-iH2-1")
+
+See :class:`FindAdaptersFromDesign` for details.
 
 """
 import pysam
@@ -50,7 +79,7 @@ def fasta_fwd_rev_to_columns(file1, file2=None, output_filename=None):
     this kind of format
 
     :param str filename1: FASTA format
-    :param str filename2: FASTA format (optional)
+    :param stsr filename2: FASTA format (optional)
 
     The files must have a one-to-one mapping
     """
@@ -100,7 +129,7 @@ def adapters_to_clean_ngs(input_filename, output_filename="adapters_ngs.txt"):
 
 
 def adapter_removal_parser(filename):
-    """Parses output of AdapterRemoval
+    """Parses output of AdapterRemoval software
 
     .. doctest::
 
@@ -124,7 +153,7 @@ def adapter_removal_parser(filename):
     return results
 
 
-class Adapter():
+class Adapter(object):
     """Class to store one adapter
 
     An adapter is just a sequence from a FASTA file. It contains
@@ -132,13 +161,44 @@ class Adapter():
 
     .. warning:: The identifier provided must not contain the starting
         ">" character, which is added automatically when needed.
+
+    One can check if an adapter is equal to another. Only the sequence is
+    checked for equality though.
+
+    Some Sequana notation have been added in the identifier to ease retrieval
+    of index's name and index's sequence::
+
+        >NextFlex_PCR_Free_adapter1|name:1|seq:CGATGT
+
+    Of course the string CGATGT must be found in the sequence itself.
+
+    ::
+
+        ar = AdapterReader(sequana_data("adapters_PCRFree_fwd.fa"))
+        adapter = Adapter(ar[0])
+        adapter.identifier
+        adapter.comment
+        adapter.index_sequence
+        adapter.sequence
+        adapter.name
+
     """
-    def __init__(self, identifier, sequence, comment=""):
-        if comment is None:
-            comment = ""
-        self._comment = comment.strip()
-        self._sequence = sequence.strip()
-        self._identifier = identifier.strip()
+    def __init__(self, identifier, sequence=None, comment=None):
+        if isinstance(identifier, dict):
+            self._identifier = identifier['identifier'].strip()
+            self._comment = identifier['comment'].strip()
+            self._sequence = identifier['sequence'].strip()
+        elif isinstance(identifier, Adapter):
+            self._identifier = identifier.identifier
+            self._comment = identifier.comment
+            self._sequence = identifier.sequence
+        else:
+            if comment is None: comment = ""
+            if sequence is None: sequence = ""
+            self._comment = comment.strip()
+            self._sequence = sequence.strip()
+            self._identifier = identifier.strip()
+
         if self.identifier.startswith(">"):
             error = "identifier must be a string without starting > character"
             raise ValueError(error)
@@ -147,27 +207,47 @@ class Adapter():
         return self._sequence
     def _set_sequence(self, sequence):
         self._sequence = sequence
-    sequence = property(_get_sequence, _set_sequence, 
+    sequence = property(_get_sequence, _set_sequence,
         doc="R/W adapter's sequence")
 
     def _get_identifier(self):
         return self._identifier
     def _set_identifier(self, identifier):
         self._identifier = identifier
-    identifier = property(_get_identifier, _set_identifier, 
+    identifier = property(_get_identifier, _set_identifier,
         doc="R/W adapter's identifier")
+
+    def _get_value_from_identifier(self, tag):
+        assert tag in ["name", "seq"]
+        entries = [this for this in self.identifier.split('|')
+                    if this.startswith(tag + ":")]
+        assert len(entries) <= 1
+        if len(entries) == 0:
+            return None
+        else:
+            name = entries[0]
+            return name.split(":")[1]
+
+    def _get_name(self):
+        return self._get_value_from_identifier("name")
+    name = property(_get_name, doc="Read only access to the inedx name")
+
+    def _get_seq(self):
+        return self._get_value_from_identifier("seq")
+    index_sequence = property(_get_seq,
+        doc="Read only access to the index sequence")
 
     def _get_comment(self):
         return self._comment
     def _set_comment(self, comment):
         self._comment = comment
-    comment = property(_get_comment, _set_comment, 
+    comment = property(_get_comment, _set_comment,
         doc="R/W adapter's identifier")
 
     def __str__(self):
         txt = ">%(identifier)s\t%(comment)s\n"
         txt+= "%(sequence)s"
- 
+
         txt = txt % {"identifier":self.identifier,
                 "comment":self.comment, "sequence":self.sequence}
         return txt
@@ -188,33 +268,44 @@ class Adapter():
 class AdapterReader(object):
     """Reader of FASTA file dedicated to adapters
 
-    Header of the FASTA must be of the form::
+    A Fasta is just a set of this kind of paired-lines::
 
-        >Nextera_index_N501|index_dna:N501 optional comment
+        >Nextera_index_N501|name:N501|seq:ACGT optional comment
+        ACGTACGTACGT
+
+    where the *optional comment* is separated from the identifier by a
+    tabulation.
 
     In the FASTA identifier, the first pipe delimits the official name (left
-    hand side) from the index_dna tag. The information on this example may
-    be redundant but the *index_dna* will be used throughout the
+    hand side) from the name tag. The information on this example may
+    be redundant but the *name* will be used throughout the
     **Sequana** code to ensure reproductibility.
 
+    .. note:: sequences are all in big caps.
+
     .. note:: the universal adapter has no index so does not need to have the
-        index_dna tag. However, it must be called *Universal_Adapter*
+        any tags for the name of index sequence. However, it must be
+        called *Universal_Adapter*
 
     .. doctest::
 
         >>> from sequana import sequana_data, AdapterReader
         >>> filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa")
         >>> ar = AdapterReader(filename)
-        >>> candidate = ar.get_adapter_by_index("index_dna:S505")
+        >>> candidate = ar.get_adapter_by_index("S505")
         >>> print(candidate)
-        >Nextera_index_S505|index_dna:S505
+        >Nextera_index_S505|name:S505
         AATGATACGGCGACCACCGAGATCTACACGTAAGGAGTCGTCGGCAGCGTC
         >>> len(ar)
         56
 
-
     .. note:: Checks for uniqueness of the identifers. It not unique, an error
         is raised
+
+    :sources: document illumina #1000000002694  v01
+    :sources: For NextFlex PCR-Free adapters, there are 48 barcodes.
+        http://www.biooscientific.com/Portals/0/IEM/Bioo-Scientific-PCR-Free-Barcode-Indices-v1-1-15.pdf
+
     """
     def __init__(self, filename):
         """.. rubric:: Constructor
@@ -237,6 +328,27 @@ class AdapterReader(object):
     def __len__(self):
         return len(self._data)
 
+    def __getitem__(self, i):
+        return self._data[i]
+
+    def __repr__(self):
+        txt = 'AdapterReader. List of %s adapters' % len(self)
+        return txt
+
+    def _get_field(self, tag):
+        # usage: _get_field("seq")
+        matches = []
+        tag = tag + ":"
+        for this in self.identifiers:
+            if tag in this:
+                for field in this.split("|"):
+                    field = field.strip()
+                    if field.startswith(tag):
+                        matches.append(field.replace(tag, ""))
+            else:
+                matches.append(None)
+        return matches
+
     def _get_identifiers(self):
         return [this.identifier for this in self._data]
     identifiers = property(_get_identifiers)
@@ -249,6 +361,14 @@ class AdapterReader(object):
         return [this.comment for this in self._data]
     comments = property(_get_comments)
 
+    def _get_index_sequences(self):
+        return self._get_field("seq")
+    index_sequences = property(_get_index_sequences)
+
+    def _get_index_names(self):
+        return self._get_field("name")
+    index_names = property(_get_index_names)
+
     def _sanity_check(self):
         """Check that all identifiers are unique"""
         if len(set(self.identifiers)) != len(self.identifiers):
@@ -258,24 +378,28 @@ class AdapterReader(object):
             msg += "Check those identifiers for duplicates %s " % identifiers
             raise ValueError(msg)
 
-    def get_adapter_by_sequence(self, sequence):
-        """Return one or several adapters that have the sequence in them
+    def get_adapter_by_sequence(self, subsequence):
+        """Return one or several adapters with sub-sequence in their sequence
 
-        :param str sequence: a string (ACGT letters)
-        :return: Name and sequence in FASTA format that have the user *sequence*
+        :param str subsequence: a string (ACGT letters)
+        :return: name and sequence in FASTA format that have the user *sequence*
             contained in their sequence
+
+        If the subsequence is short, it may return more than 1 adapters. Besides,
+        the sequence is searched for without position information right now.
         """
-        adapters = []
-        for this in self._data:
-            if sequence in this.sequence:
-                this_adapter = Adapter(identifier=this.identifier,
-                                       sequence=this.sequence,
-                                       comment=this.comment)
-                adapters.append(this_adapter)
-        if len(adapters) == 0:
+        found = [i for i,x in enumerate(self.sequences) if subsequence in x]
+        if len(found) == 0:
             return None
-        else:
-            return adapters
+
+        adapters = []
+        for index in found:
+            this = self._data[index]
+            this_adapter = Adapter(identifier=this.identifier,
+                                   sequence=this.sequence,
+                                   comment=this.comment)
+            adapters.append(this_adapter)
+        return adapters
 
     def get_adapter_by_identifier(self, text):
         """Return adapter whose identifier matches the user text
@@ -285,6 +409,7 @@ class AdapterReader(object):
             file with all adapters is not correctly formatted.
         :return: the adapter that match the index_name (if any) otherwise
             returns None
+
         """
         adapters = []
         for this in self._data:
@@ -298,9 +423,11 @@ class AdapterReader(object):
             raise ValueError("No matching identifier found with this pattern: %s" % text)
         elif len(adapters) == 1:
             return adapters[0]
+        else:
+            raise ValueError("Found two adapters matching the identifier. This should not happen")
 
-    def get_adapter_by_index(self, index_name):
-        """Return adapter corresponding to the unique index 
+    def _get_adapter_by_index(self, index_name, prefix):
+        """Return adapter corresponding to the unique index
 
         :param index_name: the unique index name to be found. If several
             sequence do match, this is an error meaning the fasta file
@@ -313,13 +440,13 @@ class AdapterReader(object):
             from sequana import sequana_data, AdapterReader
             filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa")
             ar = AdapterReader(filename)
-            ar.get_adapter_by_identifier("index_dna:N712")
+            ar.get_adapter_by_identifier("N712")
 
         """
         # there should be only one
         adapters = []
         for this in self._data:
-            if index_name in this.identifier.split("|"):
+            if prefix + str(index_name) in this.identifier.split("|"):
                 this_adapter = Adapter(identifier=this.identifier,
                                        sequence=this.sequence,
                                        comment=this.comment)
@@ -327,15 +454,37 @@ class AdapterReader(object):
 
         if len(adapters) == 0:
             return None
-        elif len(adapters) == 1:
-            return adapters[0]
-        else:
-            raise ValueError("index_name %s found several times" % index_name)
+        return adapters
+
+    def get_adapter_by_index_name(self, index_name):
+        """Return adapter for the index name provided
+
+        Can be used only if the identifier contains the tag::
+
+            |name:an_index_to_be_found
+
+        For instance::
+
+            >Nextera_blabal|name:N505|seq:ACGT
+            >Nextera_blabal|seq:ACGT|name:N505
+            >Nextera_blabal|name:N505
+
+        are valid identifiers
+
+        """
+        return self._get_adapter_by_index(index_name, prefix="name:")
+
+    def get_adapter_by_index_seq(self, index_name):
+        """See :meth:`get_adapter_by_index_name`."""
+        return self._get_adapter_by_index(index_name, prefix="seq:")
 
     def _to_read(self, this):
         from easydev import AttrDict
         d = AttrDict()
         d.sequence = this.sequence
+        if this.comment is None:
+            this.comment  = ""
+
         d.comment = this.comment
         try:
             #pysam format
@@ -345,13 +494,9 @@ class AdapterReader(object):
             d.identifier = this.identifier
         return d
 
-    def __getitem__(self, i):
-        return self._data[i]
-
     def to_dict(self):
         """Returns dictionary with key as identifier and values as
         list with comments and sequences
-
         """
         d1 = [(this.identifier, [this.comment, this.sequence])
               for this in self._data]
@@ -362,6 +507,21 @@ class AdapterReader(object):
         d1 = self.to_dict()
         d2 = other.to_dict()
         return d1 == d2
+
+    def _reverse_comp(self, this):
+        from sequana.sequence import DNA
+        if this.startswith("seq:"):
+            tag, seq = this.split(":")
+            return tag + ":" + DNA(seq[:]).get_reverse_complement()
+        else:
+            return this
+
+    def _reverse(self, this):
+        if this.startswith("seq:"):
+            tag, seq = this.split(":")
+            return tag + ":" + seq[::-1]
+        else:
+            return this
 
     def reverse(self):
         """Reverse all sequences inplace
@@ -378,8 +538,12 @@ class AdapterReader(object):
             True
 
         """
+        # Reverse in place
         for this in self._data:
             this.sequence = this.sequence[::-1]
+            fields = this.identifier.split("|")
+            identifier = "|".join([self._reverse(field) for field in fields])
+            this.identifier = identifier
 
     def reverse_complement(self):
         """Reverse-complement all sequences inplace
@@ -399,146 +563,147 @@ class AdapterReader(object):
         from sequana.sequence import DNA
         for this in self._data:
             this.sequence = DNA(this.sequence[:]).get_reverse_complement()
+            fields = this.identifier.split("|")
+            identifier = "|".join([self._reverse_comp(field) for field in fields])
+            this.identifier = identifier
 
     def to_fasta(self, filename):
-        """Save sequences into fasta file
-
-        .. todo:: if no comment, currently None is written. Would be better to
-            simply skip it
-        """
+        """Save sequences into fasta file"""
         with open(filename, "w") as fout:
             for i, this in enumerate(self._data):
                 if i > 0:
                     fout.write("\n")
-                fout.write(">%s\t%s\n%s" % (this.identifier, this.comment,
+                comment = this.comment
+                if comment is None or comment == "":
+                    fout.write(">%s\n%s" % (this.identifier, this.sequence))
+                else:
+                    fout.write(">%s\t%s\n%s" % (this.identifier, comment,
                                             this.sequence))
 
 
-class FindAdaptersFromIndex(object):
-    """Used to identify one or two indices from a design experimental structure
+class FindAdaptersFromDesign(object):
+    """Extract adapter(s) corresponding to an experimental design file
 
     Used by sequana main script to build the adapter files for multi-samples
-    projects. 
+    projects as input to various adapter removal software.
 
     """
     def __init__(self, design_filename, adapters):
         """.. rubric:: Constructor
 
         :param str design_filename: a CSV file that is compatible
-            with our :class:`sequana.designexp.ExpDesignAdapter`
-            header projet,index1,index2,sample_name (index2 is optional)
-        :param adapters: the type of adapters (PCRFree or Nextera)
-
-        PCRfree indices are just numbers stored as index_dna:XY
-        Nextera indices have NXYZ or SXYZ tags.
+            with our :class:`sequana.expdesign.ExpDesignAdapter`
+        :param adapters: the type of adapters (PCRFree or Nextera, or Rubicon)
 
         The files of adapters are stored in Sequana and accessible with the
         sequana_data function. So, for instance if adapters is set to Nextera,
         the following file is used to identify the adapters::
 
-            sequana_data("adapters_Nextera_PF1_220616_fwd.fa",
-                        "data/adapters")
+            sequana_data("adapters_Nextera_fwd.fa")
 
-        New adapters files can be added on request.
+        New adapters files can be added on request. Currently, Nextera and
+        PCRFree are available. Rubicon and TruSeq will be added soon.
         """
-        from sequana.designexp import ExpDesignAdapter
-        self.design = ExpDesignAdapter(design_filename).df
-        self.design.set_index("Sample_ID", inplace=True)
+        from sequana.expdesign import ExpDesignAdapter
+        self.design = ExpDesignAdapter(design_filename)
+
+        if self.design.df.index.name == "Sample_ID" or \
+            "Sample_ID" in self.design.df.columns:
+            self.design.df.set_index("Sample_ID", inplace=True)
+        else:
+            raise ValueError("Incorrect design file. Missing Sample_ID field")
 
         self.adapters = adapters
-        if adapters == "Nextera":
-            file1 = sequana_data("adapters_Nextera_PF1_220616_fwd.fa", 
-                "data/adapters")
-            file2 = sequana_data("adapters_Nextera_PF1_220616_revcomp.fa",
-                "data/adapters")
-        elif adapters == "PCRFree":
-            file1 = sequana_data("adapters_PCR-free_PF1_220616_fwd.fa", 
-                "data/adapters")
-            file2 = sequana_data("adapters_PCR-free_PF1_220616_revcomp.fa",
-                "data/adapters")
-        else:
-            raise ValueError("Unknown set of adapters. Use Nextera or ",
-                             "PCRFree (note the small/big caps)")
+        file1 = sequana_data("adapters_%s_fwd.fa" % adapters)
+        file2 = sequana_data("adapters_%s_revcomp.fa" % adapters)
 
         self._adapters_fwd = AdapterReader(file1)
-        self._adapters_rev = AdapterReader(file2)  # !!! revcomp
+        self._adapters_revc = AdapterReader(file2)  # !!! revcomp
 
     def _get_samples(self):
-        return list(self.design.index)
-    sample_names = property(_get_samples)
+        return list(self.design.df.index)
+    sample_names = property(_get_samples,
+        doc="return all sample names contained in the design file")
 
-    def get_indices(self, sample_name):
-        if sample_name not in self.design.index:
+    def get_sample(self, sample_name):
+        """Return basic info about the sample name (from the design file)"""
+        if sample_name not in self.design.df.index:
             raise ValueError("%s not valid. Use one of %s" % (sample_name,
                                                               self.sample_names))
-        return self.design.ix[sample_name]
+        return self.design.df.ix[sample_name]
 
-    def get_adapters(self, sample_name, include_universal=True,
+    def get_adapters_from_sample(self, sample_name, include_universal=True,
             include_transposase=True):
+        """Return a dictionary with adapters corresponding to the sample name
 
-        data = self.get_indices(sample_name)
+        :param str sample_name: a valid sample name as found in the design
+            file. One can check the content of the :attr:`sample_names`
+            attribute.
+        :param bool include_transposase: include transposase if found
+        :param bool include_universal: include universal adapter if found
+        :return: a dictionary with the adapters in forward, reverse, reverse
+            complement for index1 and index2 (if relevant).
+
+        """
+        data = self.get_sample(sample_name)
         res = {'index1': {}, 'index2': {}, 'universal': {}, 'transposase': {}}
 
         # Index1_Seq must always be present. This is part of the API of the
         # ExpDesignAdapter class. However, Index2_ID may not always be present
-        if "Index1_ID" in data.index:
-            index1 = "index_dna:%s" % data.ix['Index1_ID']
-            res['index1']['fwd'] = self._adapters_fwd.get_adapter_by_index(index1)
-            res['index1']['rev'] = self._adapters_rev.get_adapter_by_index(index1)
-        elif "Index1_Seq" in data.index:
-            index = data.ix['Index1_Seq']
-            # FIXME this should not happen
+        # In which case index2 remains empty
+
+        # Then, two types of design are accepted, using the adapter index
+        # ID or the sequence itself. The sequence is more robust since
+        # experimentalist may change the ID (but not the seq). So we start with
+        # the sequence first.
+        for column in ["Index1_Seq", "Index2_Seq"]:
+            if column not in data.index:
+                continue
+            key = column.split("_")[0].lower()
+
+            index = data.ix[column]
             if index is None:
-                index = "ZZZZZ"
-
-            seq = self._adapters_fwd.get_adapter_by_sequence(index)
+                continue
+            seq = self._adapters_fwd.get_adapter_by_index_seq(index)
             if seq is None:
-                # FIXME this should not happen
-                pass
-            elif len(seq) == 1:
-                res['index1']['fwd'] = seq[0]
-            else:
-                raise ValueError("Found 2 sequences with index %s " % index)
+                raise ValueError("Found no index for %s (sample %s)" % (index,sample_name))
 
+            # drop potential duplicates
+            uniques = set([this.sequence for this in seq])
+            if len(uniques) > 1:
+                raise ValueError("Found 2 sequences with index %s " % (index, sample_name))
+
+            # If there are duplicates, or not, just take first element
+            res[key]['fwd'] = seq[0]
+
+            # Reverse version
             from sequana.tools import reverse_complement as revcomp
-            seq = self._adapters_rev.get_adapter_by_sequence(revcomp(index))
-            if seq is None:
+            seq = self._adapters_revc.get_adapter_by_index_seq(revcomp(index))
+            if seq is None: #Index2 is optional so no error raised
                 pass
-            elif len(seq) == 1:
-                res['index1']['rev'] = seq[0]
             else:
-                raise ValueError("Found 2 sequences with index %s " % index)
+                uniques = set([this.sequence for this in seq])
+                if len(uniques) > 1:
+                    raise ValueError("Found 2 sequences with index %s " % (index, sample_name))
+                res[key]['rev'] = seq[0]
 
-        if "Index2_ID" in data.index:
-            index2 = "index_dna:%s" % data.ix['Index2_ID']
-            res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index(index2)
-            res['index2']['rev'] = self._adapters_rev.get_adapter_by_index(index2)
-        elif "Index2_Seq" in data.index:
-            index = data.ix['Index2_Seq']
-            if index is None:
-                index = "ZZZZZ"
-
-            seq = self._adapters_fwd.get_adapter_by_sequence(index)
-            if seq is None:
-                pass
-            elif len(seq) == 1:
-                res['index2']['fwd'] = seq[0]
-            else:
-                raise ValueError("Found 2 sequences with index %s " % index)
-
-            from sequana.tools import reverse_complement as revcomp
-            seq = self._adapters_rev.get_adapter_by_sequence(revcomp(index))
-            if seq is None:
-                pass
-            elif len(seq) == 1:
-                res['index2']['rev'] = seq[0]
-            else:
-                raise ValueError("Found 2 sequences with index %s " % index)
+        # If Index1_Seq not in the index, then we should use the IDs
+        if "Index1_Seq" not in data.index:
+            if "Index1_ID" in data.index:
+                print("Usage of IDs for indexing adaptesr is deprecated. See adapters module")
+                index1 = data.ix['Index1_ID']
+                res['index1']['fwd'] = self._adapters_fwd.get_adapter_by_index_name(index1)
+                res['index1']['rev'] = self._adapters_revc.get_adapter_by_index_name(index1)
+            if "Index2_ID" in data.index:
+                print("Usage of IDs for indexing adaptesr is deprecated. See adapters module")
+                index2 = data.ix['Index2_ID']
+                res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index_name(index2)
+                res['index2']['rev'] = self._adapters_revc.get_adapter_by_index_name(index2)
 
         if include_universal:
             res['universal']['fwd'] = self._adapters_fwd.get_adapter_by_identifier(
                 'Universal_Adapter')
-            res['universal']['rev'] = self._adapters_rev.get_adapter_by_identifier(
+            res['universal']['rev'] = self._adapters_revc.get_adapter_by_identifier(
                 'Universal_Adapter')
 
         if include_transposase and self.adapters == "Nextera":
@@ -546,19 +711,31 @@ class FindAdaptersFromIndex(object):
                 'Nextera_transposase_seq_1'))
             res['transposase']['fwd'] += "\n" + str(self._adapters_fwd.get_adapter_by_identifier(
                 'Nextera_transposase_seq_2'))
-            res['transposase']['rev'] = str(self._adapters_rev.get_adapter_by_identifier(
+            res['transposase']['rev'] = str(self._adapters_revc.get_adapter_by_identifier(
                 'Nextera_transposase_seq_1'))
-            res['transposase']['rev'] += "\n"+str(self._adapters_rev.get_adapter_by_identifier(
+            res['transposase']['rev'] += "\n"+str(self._adapters_revc.get_adapter_by_identifier(
                 'Nextera_transposase_seq_1'))
 
-        # FIXME changes the dictionary ion the loop. May not be wise
+        # FIXME changes the dictionary in the loop. May not be wise
         res = dict([(k,v) for k,v in res.items() if len(v)!=0])
         return res
+
+    def check(self):
+        found = 0
+        for sample in self.sample_names:
+            try:
+                self.get_adapters_from_sample(sample)
+                found += 1
+            except:
+                print("No index found for sample %s" % sample)
+        if found == 0:
+            raise ValueError("None of the sample match any of the adapters")
 
     def save_adapters_to_fasta(self, sample_name, include_universal=True,
             include_transposase=True, output_dir='.'):
         """Get index1, index2 and universal adapter"""
-        adapters = self.get_adapters(sample_name, include_universal=include_universal)
+        adapters = self.get_adapters_from_sample(sample_name,
+                       include_universal=include_universal)
 
         file_fwd = output_dir + os.sep + "%s_adapters_fwd.fa"% sample_name
         with open(file_fwd, "w") as fout:
@@ -583,42 +760,3 @@ class FindAdaptersFromIndex(object):
                 fout.write(str(adapters['index2']['rev'])+"\n")
 
         return file_fwd, file_rev
-
-
-'''class AdapterRemoval(object):
-    """Possible data structure for future usage. """
-    def __init__(self, file1, file2=None, adapter1=None, adapter2=None,
-        quality_cutoff1=30, quality_cutoff2=None):
-
-        self.file1 = file1
-        self.file2 = file2
-        self.qual1 = quality_cutoff1
-        self.qual2 = quality_cutoff2
-        self.adapter1 = adapter1
-        self.adapter2 = adapter2
-
-    def save_adapters_to_fasta(self, sample_name, include_universal=True, output_dir='.'):
-        """Get index1, index2 and universal adapter"""
-        adapters = self.get_adapters(sample_name, include_universal=include_universal)
-
-        file_fwd = output_dir + os.sep + "%s_adapters_fwd.fa"% sample_name
-        with open(file_fwd, "w") as fout:
-            if include_universal:
-                fout.write(str(adapters['universal']['fwd'])+"\n")
-            fout.write(str(adapters['index1']['fwd'])+"\n")
-            if self.mode == "multi_index":
-                fout.write(str(adapters['index2']['fwd'])+"\n")
-
-        file_rev = output_dir + os.sep + "%s_adapters_rev.fa" % sample_name
-        with open(file_rev, "w") as fout:
-            if include_universal:
-                fout.write(str(adapters['universal']['rev'])+"\n")
-            fout.write(str(adapters['index1']['rev'])+"\n")
-            if self.mode == "multi_index":
-                fout.write(str(adapters['index2']['rev'])+"\n")
-
-        return file_fwd, file_rev
-'''
-
-
-

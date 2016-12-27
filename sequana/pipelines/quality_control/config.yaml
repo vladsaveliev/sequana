@@ -55,9 +55,14 @@ bwa_mem_phix:
 #   - quality: 0 means no trimming, 30 means keep base with quality
 #       above 30
 #   - m: 20 means discard trimmed reads that are shorter than 20.
+#        must be >0 and <40
 #   - tool: only cutadapt supported for now
 #
 #   - if design_file is provided, fwd and rev are ignored
+#    - mode: must be set to one of
+#       - g for 5' 
+#       - a for 3'
+#       - b for both 5'/3'
 #
 #   ref: http://cutadapt.readthedocs.io/
 #################################################################
@@ -68,10 +73,10 @@ adapter_removal:
     design_file:
     fwd:
     rev:
-    m: 20                       # cutoff value; must be > 0
-    mode: "b"   # g for 5' adapter, a for 3' and b for both 5'/3'
+    m: 20                       # {"strict_min":0}
+    mode: "b"                   # {"values": [b,g,a]}
     options: "-O 6 --trim-n"
-    quality: 30                 # must be > 0 and < 40
+    quality: 30                 # {"range": [0,40]}
 
 ########################################################### Kraken
 # For taxonomy. Used in quality_control pipeline

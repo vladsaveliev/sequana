@@ -41,7 +41,7 @@ Access to online database (e.g. ENA)
 
 Experimental design
 ----------------------------
-.. automodule:: sequana.designexp
+.. automodule:: sequana.expdesign
     :members:
     :undoc-members:
 
