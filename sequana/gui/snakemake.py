@@ -17,6 +17,8 @@
 #
 ##############################################################################
 """Snakemake Dialog for the main GUI application"""
+import multiprocessing
+
 from sequana.gui.ui_snakemake import Ui_Snakemake
 
 from PyQt5 import QtWidgets as QW
@@ -31,92 +33,81 @@ class SnakemakeDialog(QW.QDialog):
         super().__init__(parent=parent)
         self.ui = Ui_Snakemake()
         self.ui.setupUi(self)
+        self._application = "sequana_gui"
+        self._section = "snakemake_dialog"
+        self.read_settings()
 
-        settings = QtCore.QSettings("Sequana", "snakemake_options")
-        #self._cores = settings.value("cores", 2, type=int)
-        #self._jobs = settings.value("jobs", 2, type=int)
-        #self._cluster = settings.value("cluster", "", type=str)
-        self._tab_pos = settings.value("tab_pos", 0, type=int)
+        # Set maximum of local cores to be used
+        cpu = multiprocessing.cpu_count()
+        self.ui.snakemake_options_local_cores_value.setMaximum(cpu)
 
-        print(self._tab_pos)
+    def read_settings(self):
+        settings = QtCore.QSettings(self._application, self._section)
+        for key in settings.allKeys():
+            value = settings.value(key)
+            try:
+                # This is required to skip the tab_position key/value
+                this = getattr(self.ui, key)
+            except:
+                continue
+            if isinstance(this, QW.QLineEdit):
+                this.setText(value)
+            elif isinstance(this, QW.QSpinBox):
+                this.setValue(int(value))
+            elif isinstance(this, QW.QCheckBox):
+                if value in ['false']:
+                    this.setChecked(False)
+                else:
+                    this.setChecked(True)
+            else:
+                print('could not handle : %s' % this)
+        # The last tab position
+        self._tab_pos = settings.value("tab_position", 0, type=int)
         self.ui.tabs.setCurrentIndex(self._tab_pos)
-        #footer = self.footer_button()
 
-    def ok_event(self):
-        settings = QtCore.QSettings("Sequana", "snakemake_options")
-        items = self.get_items()
-        for k,v in self.get_items().items():
-            print(k,v)
+    def write_settings(self):
+        settings = QtCore.QSettings(self._application, self._section)
+        items = self.get_settings()
+        for k,v in self.get_settings().items():
             settings.setValue(k, v)
-        settings.setValue("tab_pos", self.ui.tabs.currentIndex())
-        self.close()
+        settings.setValue("tab_position", self.ui.tabs.currentIndex())
 
-    def cancel_event(self):
-        #self.cores_option.set_value(self._cores)
-        #self.jobs_option.set_value(self._jobs)
-        #self.cluster_options.set_value(self._cluster)
-        self.ui.tabs.setCurrentIndex(self._tab_pos)
-        self.close()
+    def accept(self):
+        self.write_settings()
+        super().accept()
 
-    def _footer_button(self):
-        ok_btn = QW.QPushButton("Ok")
-        ok_btn.clicked.connect(self.ok_event)
-        cancel_btn = QW.QPushButton("Cancel")
-        cancel_btn.clicked.connect(self.cancel_event)
+    def reject(self):
+        self.read_settings()
+        super().reject()
 
-        footer_widget = QW.QWidget()
-        footer_layout = QW.QHBoxLayout(footer_widget)
-        footer_layout.addWidget(ok_btn)
-        footer_layout.addWidget(cancel_btn)
+    def _get_widget_names(self, prefix="snakemake_options"):
+        names = [this for this in dir(self.ui) if this.startswith(prefix)]
+        names = [this for this in names if this.endswith('_value')]
+        return names
 
-        return footer_widget
-
-    def _set_launch_options(self):
-        self.cores_option = NumberOption("--cores", self._cores)
-        self.jobs_option = NumberOption("--jobs", self._jobs)
-        self.cluster_options = TextOption("--cluster", self._cluster)
-
-        launch_cluster_widget = QW.QWidget()
-        launch_cluster_layout = QW.QVBoxLayout(launch_cluster_widget)
-        launch_cluster_layout.addWidget(self.cluster_options)
-        launch_cluster_layout.addWidget(self.jobs_option)
-
-        general_options_widget = QW.QWidget()
-        general_options_layout = QW.QVBoxLayout(general_options_widget)
-
-        self.jobs_option.set_range(1, 10000)
-        self.cores_option.set_range(1, multiprocessing.cpu_count())
-
-        # create tab
-        self.tabs = QW.QTabWidget()
-        self.tabs.addTab(self.cores_option, "Local")
-        self.tabs.addTab(launch_cluster_widget, "Cluster")
-        self.tabs.addTab(general_options_widget, "General")
-        self.tabs.setCurrentIndex(self._tab_pos)
-
-    def get_items(self):
+    def get_settings(self):
         # get all items to save in settings
         items = {}
-        names = [this for this in dir(self.ui) if this.startswith("snakemake_options")]
-        names = [this for this in widgets if this.endswith('_value')]
-        values = [getattr(gui.snakemake_dialog.ui, x).text() for x in values]
-
-        for name, val in zip(names, values):
-            items[name] = val
+        names = self._get_widget_names()
+        for name in names:
+            widget = getattr(self.ui, name)
+            if isinstance(widget, QW.QLineEdit):
+                value = widget.text()
+            elif isinstance(widget, QW.QSpinBox):
+                value = widget.value()
+            elif isinstance(widget, QW.QCheckBox):
+                value = widget.isChecked()
+            else:
+                raise NotImplementedError("for developers")
+            items[name] = value
         return items
-
-    def set_items(self):
-        # set all items 
-        pass
 
     def get_widgets(self, prefix):
         # identify names of the widget objects
-        widgets = [this for this in dir(self.ui) if this.startswith(prefix)]
-        widgets = [this for this in widgets if this.endswith('_value')]
+        names = self._get_widget_names(prefix)
 
         # Get the objects themselves
-        names = [this for this in widgets]
-        widgets = [getattr(self.ui, this) for this in widgets]
+        widgets = [getattr(self.ui, this) for this in names]
 
         names = [this.replace(prefix + "_", "") for this in names]
         names = [this.rstrip("_value") for this in names]
@@ -135,12 +126,15 @@ class SnakemakeDialog(QW.QDialog):
         return options
 
     def get_snakemake_local_options(self):
+        """Return local snakemake parameters as list of strings"""
         return self._get_options("snakemake_options_local")
 
     def get_snakemake_cluster_options(self):
+        """Return cluster-related snakemake parameters as list of strings"""
         return self._get_options("snakemake_options_cluster")
 
     def get_snakemake_general_options(self):
+        """Return general snakemake parameters as list of strings"""
         return self._get_options("snakemake_options_general")
 
 
