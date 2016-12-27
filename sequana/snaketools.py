@@ -629,7 +629,7 @@ class SequanaConfig(object):
                 if requirement.startswith('http') is False:
                     print('Copying %s from sequana' % requirement)
                     if requirement.endswith('.png') :
-                        shutil.copy(sequana_data(requirement, "image"), target)
+                        shutil.copy(sequana_data(requirement, "images"), target)
                     else:
                         shutil.copy(sequana_data(requirement, "data"), target)
                 elif requirement.startswith("http"):
