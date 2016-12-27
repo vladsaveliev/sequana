@@ -706,12 +706,12 @@ def sequana_init(options):
         cfg.config.adapter_removal.fwd = options.adapter_fwd
         cfg.config.adapter_removal.rev = options.adapter_rev
         cfg.config.adapter_removal.adapter_type = options.adapters
-       	# Foir all pipeline using BWA
+        # Foir all pipeline using BWA
         if options.reference:
             cfg.config.bwa_mem.reference = os.path.abspath(options.reference)
     if options.pipeline == "variant_calling":
         if options.reference:
-	    cfg.config.bwa_mem_ref.reference = os.path.abspath(options.reference)
+            cfg.config.bwa_mem_ref.reference = os.path.abspath(options.reference)
 
 
     cfg.copy_requirements(target=options.target_dir)
