@@ -1,0 +1,26 @@
+rule plotCorrelation:
+    """
+    Tool for the analysis and visualization of sample correlations based on the output of multiBamSummary.
+    Is part of deeptools http://deeptools.readthedocs.io/en/latest/index.html
+
+    Required input:
+        __plotCorrelation__input: output of multiBAMSummary
+
+    Required output:
+        __plotCorrelation__output: svg file
+    """
+    input:
+        __plotCorrelation__input
+    params:
+        bs = config['correlation']['binSize'],
+        plot = config['correlation']['type'],
+        corr_methode = config['correlation']['methode']
+    log:
+        __plotCorrelation__log
+    output:
+        __plotCorrelation__output
+    threads: 4
+    shell:
+        """
+        plotCorrelation --corData {input} --whatToPlot {params.plot} --corMethod {params.corr_methode} -o {output} --plotFileFormat svg 2> {log}')
+        """

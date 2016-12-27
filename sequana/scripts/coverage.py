@@ -350,7 +350,6 @@ def run_analysis(gc, chrom, chrom_index, options):
             print('Genbank: %s' % options.genbank)
         from sequana.tools import genbank_features_parser
         features = genbank_features_parser(options.genbank)
-        print(features)
     else:
         features = None
 

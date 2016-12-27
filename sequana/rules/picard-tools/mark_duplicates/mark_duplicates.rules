@@ -7,6 +7,13 @@ rule mark_duplicates:
 
     Required output:
         __mark_duplicates__output: bam file
+
+    Required configuration:
+        .. code-block:: yaml
+
+            mark_duplicates:
+                remove:  # yes/no
+                tmpdir:  # temporary directory
     """
     input:
         __mark_duplicates__input
@@ -16,8 +23,12 @@ rule mark_duplicates:
     log:
         out = __mark_duplicates__log_std,
         err = __mark_duplicates__log_err
+    params:
+        remove = config["mark_duplicates"]["remove"],
+        tmpdir = config["mark_duplicates"]["tmpdir"]
     shell:
         """
-        picard MarkDuplicates I={input} \
-        O={output.bam} M={output.metrics} > {log.out} 2> {log.err}
+        picard MarkDuplicates I={input} O={output.bam} \
+            M={output.metrics} REMOVE_DUPLICATES={params.remove} \
+            {params.tmpdir} > {log.out} 2> {log.err}
         """
