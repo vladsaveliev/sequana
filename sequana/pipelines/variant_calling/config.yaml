@@ -63,7 +63,8 @@ indel_realigner:
 
 mark_duplicates:
     do: yes
-    options: ''
+    remove: no # yes/no
+    tmpdir: "" # temporary directory
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bam quality filter
 
