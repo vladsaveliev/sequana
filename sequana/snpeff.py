@@ -127,10 +127,10 @@ class SnpEff(object):
        
         snpeff_build_line = ["snpEff", "build", "-" + self.file_format,
                              self.ref_name]
-        try:
+        if self.log_file:
             with open(self.log_file, "ab") as fl:
                 snp_build = sp.Popen(snpeff_build_line, stderr=fl, stdout=fl)
-        except TypeError:
+        else:
             snp_build = sp.Popen(snpeff_build_line)
         snp_build.wait()
         rc = snp_build.returncode
@@ -151,11 +151,11 @@ class SnpEff(object):
         args_ann += [options, self.ref_name, vcf_filename]
 
         # Launch snpEff
-        try:
+        if self.log_file:
             with open(self.log_file, "ab") as fl, open(output, "wb") as fp:
                 proc_ann = sp.Popen(args_ann, stdout=fp, stderr=fl)
                 proc_ann.wait()
-        except TypeError:
+        else:
             with open(output, "wb") as fp:
                 proc_ann = sp.Popen(args_ann, stdout=fp)
                 proc_ann.wait()
