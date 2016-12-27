@@ -109,17 +109,21 @@ class Ui_Snakemake(object):
         self.buttonBox.accepted.connect(Snakemake.accept)
         self.buttonBox.rejected.connect(Snakemake.reject)
         QtCore.QMetaObject.connectSlotsByName(Snakemake)
+        Snakemake.setTabOrder(self.tabs, self.snakemake_options_local_cores_value)
+        Snakemake.setTabOrder(self.snakemake_options_local_cores_value, self.snakemake_options_cluster_cluster_value)
+        Snakemake.setTabOrder(self.snakemake_options_cluster_cluster_value, self.snakemake_options_cluster_jobs_value)
+        Snakemake.setTabOrder(self.snakemake_options_cluster_jobs_value, self.snakemake_options_general_quiet_value)
 
     def retranslateUi(self, Snakemake):
         _translate = QtCore.QCoreApplication.translate
         Snakemake.setWindowTitle(_translate("Snakemake", "Snakemake options"))
         self.snakemake_options_local_cores_label.setText(_translate("Snakemake", "cores"))
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_local), _translate("Snakemake", "Local"))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_local), _translate("Snakemake", "&Local"))
         self.snakemake_options_cluster_cluster_label.setToolTip(_translate("Snakemake", "<html><head/><body><p>Execute snakemake rules with the given submit command,</p><p>e.g. qsub. Snakemake compiles jobs into scripts that</p><p>are submitted to the cluster with the given command,</p><p>once all input files for a particular job are present.</p><p>The submit command can be decorated to make it aware</p><p>of certain job properties (input, output, params,</p><p>wildcards, log, threads and dependencies (see the</p><p>argument below)), e.g.: $ snakemake --cluster \'qsub</p><p>-pe threaded {threads}\'.</p><p><br/></p></body></html>"))
         self.snakemake_options_cluster_cluster_label.setText(_translate("Snakemake", "cluster"))
         self.snakemake_options_cluster_jobs_label.setText(_translate("Snakemake", "jobs"))
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_cluster), _translate("Snakemake", "Cluster"))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_cluster), _translate("Snakemake", "&Cluster"))
         self.snakemake_options_general_quiet_value.setToolTip(_translate("Snakemake", "Do not output any progress or rule information"))
         self.snakemake_options_general_quiet_value.setText(_translate("Snakemake", "Quiet"))
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_general), _translate("Snakemake", "General"))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_general), _translate("Snakemake", "&General"))
 

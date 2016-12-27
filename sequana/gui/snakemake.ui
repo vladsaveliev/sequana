@@ -61,7 +61,7 @@
       </property>
       <widget class="QWidget" name="tab_local">
        <attribute name="title">
-        <string>Local</string>
+        <string>&amp;Local</string>
        </attribute>
        <widget class="QWidget" name="verticalLayoutWidget_2">
         <property name="geometry">
@@ -136,7 +136,7 @@
       </widget>
       <widget class="QWidget" name="tab_cluster">
        <attribute name="title">
-        <string>Cluster</string>
+        <string>&amp;Cluster</string>
        </attribute>
        <widget class="QWidget" name="verticalLayoutWidget_3">
         <property name="geometry">
@@ -219,7 +219,7 @@
       </widget>
       <widget class="QWidget" name="tab_general">
        <attribute name="title">
-        <string>General</string>
+        <string>&amp;General</string>
        </attribute>
        <widget class="QWidget" name="formLayoutWidget_3">
         <property name="geometry">
@@ -262,6 +262,13 @@
    </layout>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>tabs</tabstop>
+  <tabstop>snakemake_options_local_cores_value</tabstop>
+  <tabstop>snakemake_options_cluster_cluster_value</tabstop>
+  <tabstop>snakemake_options_cluster_jobs_value</tabstop>
+  <tabstop>snakemake_options_general_quiet_value</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

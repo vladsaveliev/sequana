@@ -64,6 +64,8 @@ class Ui_Preferences(object):
         self.buttonBox.accepted.connect(Preferences.accept)
         self.buttonBox.rejected.connect(Preferences.reject)
         QtCore.QMetaObject.connectSlotsByName(Preferences)
+        Preferences.setTabOrder(self.tabWidget, self.preferences_options_browser)
+        Preferences.setTabOrder(self.preferences_options_browser, self.checkBox)
 
     def retranslateUi(self, Preferences):
         _translate = QtCore.QCoreApplication.translate

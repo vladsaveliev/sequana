@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>734</width>
-    <height>815</height>
+    <width>591</width>
+    <height>613</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -559,13 +559,13 @@ This is a good way to check your config file .</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>734</width>
+     <width>591</width>
      <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="separator"/>
     <addaction name="actionImportConfig"/>
@@ -573,14 +573,14 @@ This is a good way to check your config file .</string>
    </widget>
    <widget class="QMenu" name="menuOption">
     <property name="title">
-     <string>Option</string>
+     <string>&amp;Option</string>
     </property>
     <addaction name="actionSnakemake"/>
     <addaction name="actionPreferences"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="actionHelp"/>
     <addaction name="actionAbout"/>
@@ -659,6 +659,23 @@ This is a good way to check your config file .</string>
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget_framework</tabstop>
+  <tabstop>choice_button</tabstop>
+  <tabstop>tabs_browser</tabstop>
+  <tabstop>until_box</tabstop>
+  <tabstop>starting_box</tabstop>
+  <tabstop>comboBox_local</tabstop>
+  <tabstop>qtab_widget</tabstop>
+  <tabstop>run_btn</tabstop>
+  <tabstop>stop_btn</tabstop>
+  <tabstop>unlock_btn</tabstop>
+  <tabstop>report_btn</tabstop>
+  <tabstop>save_report</tabstop>
+  <tabstop>dag_btn</tabstop>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>scrollArea_2</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

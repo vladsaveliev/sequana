@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(734, 815)
+        MainWindow.resize(591, 613)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -256,7 +256,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.addLayout(self.vlayout)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 734, 19))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 591, 19))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -301,6 +301,20 @@ class Ui_MainWindow(object):
         self.tabs_browser.setCurrentIndex(0)
         self.qtab_widget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.tabWidget_framework, self.choice_button)
+        MainWindow.setTabOrder(self.choice_button, self.tabs_browser)
+        MainWindow.setTabOrder(self.tabs_browser, self.until_box)
+        MainWindow.setTabOrder(self.until_box, self.starting_box)
+        MainWindow.setTabOrder(self.starting_box, self.comboBox_local)
+        MainWindow.setTabOrder(self.comboBox_local, self.qtab_widget)
+        MainWindow.setTabOrder(self.qtab_widget, self.run_btn)
+        MainWindow.setTabOrder(self.run_btn, self.stop_btn)
+        MainWindow.setTabOrder(self.stop_btn, self.unlock_btn)
+        MainWindow.setTabOrder(self.unlock_btn, self.report_btn)
+        MainWindow.setTabOrder(self.report_btn, self.save_report)
+        MainWindow.setTabOrder(self.save_report, self.dag_btn)
+        MainWindow.setTabOrder(self.dag_btn, self.scrollArea)
+        MainWindow.setTabOrder(self.scrollArea, self.scrollArea_2)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -338,15 +352,15 @@ class Ui_MainWindow(object):
 "This is a good way to check your config file ."))
         self.dag_btn.setText(_translate("MainWindow", "Show Dag"))
         self.progressBar.setToolTip(_translate("MainWindow", "<p>Progress of the pipeline. color codes:\n"
-"            <ul>\n"
-"                <li style=\"color:red\">Red: an error occured</li>\n"
-"                <li style=\"color:green\">Green: completed with success</li>\n"
-"                <li style=\"color:blue\">Blue: in progress</li>\n"
-"            </ul>\n"
-"            </p>\""))
-        self.menuFile.setTitle(_translate("MainWindow", "File"))
-        self.menuOption.setTitle(_translate("MainWindow", "Option"))
-        self.menuHelp.setTitle(_translate("MainWindow", "Help"))
+"    <ul>\n"
+"        <li style=\"color:red\">Red: an error occured</li>\n"
+"        <li style=\"color:green\">Green: completed with success</li>\n"
+"        <li style=\"color:blue\">Blue: in progress</li>\n"
+"    </ul>\n"
+"</p>"))
+        self.menuFile.setTitle(_translate("MainWindow", "&File"))
+        self.menuOption.setTitle(_translate("MainWindow", "&Option"))
+        self.menuHelp.setTitle(_translate("MainWindow", "&Help"))
         self.actionImportConfig.setText(_translate("MainWindow", "&Import Config File"))
         self.actionImportConfig.setShortcut(_translate("MainWindow", "Ctrl+I"))
         self.actionQuit.setText(_translate("MainWindow", "&Quit"))
