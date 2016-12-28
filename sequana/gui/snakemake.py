@@ -20,7 +20,6 @@
 import multiprocessing
 
 from sequana.gui.ui_snakemake import Ui_Snakemake
-
 from PyQt5 import QtWidgets as QW
 from PyQt5 import QtCore
 
@@ -31,6 +30,7 @@ class SnakemakeDialog(QW.QDialog):
     """
     def __init__(self, parent=None):
         super().__init__(parent=parent)
+
         self.ui = Ui_Snakemake()
         self.ui.setupUi(self)
         self._application = "sequana_gui"
@@ -40,67 +40,6 @@ class SnakemakeDialog(QW.QDialog):
         # Set maximum of local cores to be used
         cpu = multiprocessing.cpu_count()
         self.ui.snakemake_options_local_cores_value.setMaximum(cpu)
-
-    def read_settings(self):
-        settings = QtCore.QSettings(self._application, self._section)
-        for key in settings.allKeys():
-            value = settings.value(key)
-            try:
-                # This is required to skip the tab_position key/value
-                this = getattr(self.ui, key)
-            except:
-                continue
-            if isinstance(this, QW.QLineEdit):
-                this.setText(value)
-            elif isinstance(this, QW.QSpinBox):
-                this.setValue(int(value))
-            elif isinstance(this, QW.QCheckBox):
-                if value in ['false']:
-                    this.setChecked(False)
-                else:
-                    this.setChecked(True)
-            else:
-                print('could not handle : %s' % this)
-        # The last tab position
-        self._tab_pos = settings.value("tab_position", 0, type=int)
-        self.ui.tabs.setCurrentIndex(self._tab_pos)
-
-    def write_settings(self):
-        settings = QtCore.QSettings(self._application, self._section)
-        items = self.get_settings()
-        for k,v in self.get_settings().items():
-            settings.setValue(k, v)
-        settings.setValue("tab_position", self.ui.tabs.currentIndex())
-
-    def accept(self):
-        self.write_settings()
-        super().accept()
-
-    def reject(self):
-        self.read_settings()
-        super().reject()
-
-    def _get_widget_names(self, prefix="snakemake_options"):
-        names = [this for this in dir(self.ui) if this.startswith(prefix)]
-        names = [this for this in names if this.endswith('_value')]
-        return names
-
-    def get_settings(self):
-        # get all items to save in settings
-        items = {}
-        names = self._get_widget_names()
-        for name in names:
-            widget = getattr(self.ui, name)
-            if isinstance(widget, QW.QLineEdit):
-                value = widget.text()
-            elif isinstance(widget, QW.QSpinBox):
-                value = widget.value()
-            elif isinstance(widget, QW.QCheckBox):
-                value = widget.isChecked()
-            else:
-                raise NotImplementedError("for developers")
-            items[name] = value
-        return items
 
     def get_widgets(self, prefix):
         # identify names of the widget objects
@@ -136,6 +75,67 @@ class SnakemakeDialog(QW.QDialog):
     def get_snakemake_general_options(self):
         """Return general snakemake parameters as list of strings"""
         return self._get_options("snakemake_options_general")
+
+    def accept(self):
+        self.write_settings()
+        super().accept()
+
+    def reject(self):
+        self.read_settings()
+        super().reject()
+
+    def read_settings(self):
+        settings = QtCore.QSettings(self._application, self._section)
+        for key in settings.allKeys():
+            value = settings.value(key)
+            try:
+                # This is required to skip the tab_position key/value
+                this = getattr(self.ui, key)
+            except:
+                continue
+            if isinstance(this, QW.QLineEdit):
+                this.setText(value)
+            elif isinstance(this, QW.QSpinBox):
+                this.setValue(int(value))
+            elif isinstance(this, QW.QCheckBox):
+                if value in ['false']:
+                    this.setChecked(False)
+                else:
+                    this.setChecked(True)
+            else:
+                print('could not handle : %s' % this)
+        # The last tab position
+        self._tab_pos = settings.value("tab_position", 0, type=int)
+        self.ui.tabs.setCurrentIndex(self._tab_pos)
+
+    def write_settings(self):
+        settings = QtCore.QSettings(self._application, self._section)
+        items = self.get_settings()
+        for k,v in self.get_settings().items():
+            settings.setValue(k, v)
+
+    def _get_widget_names(self, prefix="snakemake_options"):
+        names = [this for this in dir(self.ui) if this.startswith(prefix)]
+        names = [this for this in names if this.endswith('_value')]
+        return names
+
+    def get_settings(self):
+        # get all items to save in settings
+        items = {}
+        names = self._get_widget_names()
+        for name in names:
+            widget = getattr(self.ui, name)
+            if isinstance(widget, QW.QLineEdit):
+                value = widget.text()
+            elif isinstance(widget, QW.QSpinBox):
+                value = widget.value()
+            elif isinstance(widget, QW.QCheckBox):
+                value = widget.isChecked()
+            else:
+                raise NotImplementedError("for developers")
+            items[name] = value
+        items["tab_position"] = self.ui.tabs.currentIndex()
+        return items
 
 
 class SOptions(object):
@@ -174,4 +174,5 @@ class SOptions(object):
                 return []
             else:
                 return ["--" + self.name, value]
+
 

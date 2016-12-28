@@ -105,7 +105,7 @@ class Ui_Snakemake(object):
         self.verticalLayout.addWidget(self.tabs)
 
         self.retranslateUi(Snakemake)
-        self.tabs.setCurrentIndex(2)
+        self.tabs.setCurrentIndex(1)
         self.buttonBox.accepted.connect(Snakemake.accept)
         self.buttonBox.rejected.connect(Snakemake.reject)
         QtCore.QMetaObject.connectSlotsByName(Snakemake)
