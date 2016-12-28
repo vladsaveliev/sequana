@@ -37,6 +37,7 @@ Here is an overview (see details here below)
 
 """
 import os
+import re
 import json
 import glob
 import shutil
@@ -880,13 +881,19 @@ class DOTParser(object):
         imshow(imread("test.png")); xticks([]) ;yticks([])
 
     """
+    
+    _name_to_drops = {'dag', 'conda', 'rulegraph', 'copy_multiple_files'}
+
     def __init__(self, filename):
         """.. rubric:: constructor
 
          :param str filename: a DAG in dot format created by snakemake
 
-         """
+        """
         self.filename = filename
+        self.re_index = re.compile('(\d+)\[')
+        self.re_name = re.compile('label = "(\w+)"')
+        self.re_arrow = re.compile('(\d+) -> (\d+)')
 
     def add_urls(self, output_filename=None, mapper={}):
         """Change the dot file adding URL on some nodes
@@ -904,43 +911,42 @@ class DOTParser(object):
             import os
             output_filename = os.path.basename(self.filename)
 
+        def drop_arrow(index, indices_to_drop):
+            for i in index:
+                if i in indices_to_drop:
+                    return True
+            return False
+
         # The DOT parsing
         with open(output_filename.replace(".dot", ".ann.dot"), "w") as fout:
-            indices_to_drop = []
+            indices_to_drop = set()
             for line in data.split("\n"):
-                if "[label =" not in line:
-                    if " -> " in line:
-                        label = line.split(" -> ")[0].strip()
-                        if label not in indices_to_drop:
+                name = self.re_name.search(line)
+                if name:
+                    name = name.group(1)
+                    if name in self._name_to_drops:
+                        index = self.re_index.search(line).group(1)
+                        indices_to_drop.add(index)
+                    elif name in mapper.keys():
+                        url = mapper[name]
+                        newline = (' URL="%s", target="_parent", color="blue"'
+                                   '];\n') % url
+                        newline = line.replace('];', newline)
+                        newline = newline.replace("dashed", "")
+                        fout.write(newline)
+                    # else, we color in orange
+                    else:
+                        newline = line.replace('];', ',color="orange"];\n')
+                        fout.write(newline)
+                else:
+                    arrow = self.re_arrow.findall(line)
+                    if arrow:
+                        index = arrow[0]
+                        if not drop_arrow(index, indices_to_drop):
                             fout.write(line + "\n")
                     else:
                         line = line.replace("dashed", "")
                         fout.write(line + "\n")
-                else:
-                    separator = "color ="
-                    lhs, rhs = line.split(separator)
-                    name = lhs.split("label =")[1]
-                    name = name.replace(",", "")
-                    name = name.replace('"', "")
-                    name = name.strip()
-                    # These nodes are removed
-                    if name in ['dag', 'conda', "rulegraph"]:
-                        index = lhs.split("[")[0]
-                        indices_to_drop.append(index.strip())
-                    # if a mapping is available, adds a URL and color the node
-                    # in blue
-                    elif name in mapper.keys():
-                        url = mapper[name]
-                        newline = lhs + (' URL="%s"'
-                                         ' target="_parent", ') % url
-                        newline += separator + rhs
-                        newline = newline.replace("dashed", "")
-                        newline = newline.replace('];', 'color="blue"];')
-                        fout.write(newline + "\n")
-                    # else, we color in orange
-                    else:
-                        newline = line.replace('];', 'color="orange"];')
-                        fout.write(newline + "\n")
 
 
 class FileFactory(object):

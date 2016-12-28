@@ -61,6 +61,9 @@ class SnpEff(object):
                         "snpEffectPredictor.bin"):
                 # Build snpEff predictor
                 self._add_custom_db()
+            else:
+                # Add db in config if it was removed
+                self._add_db_in_config()
         # Check if reference is present in snpEff database
         elif self._check_database(self.ref_name):
             if not os.path.exists("data" + os.sep + self.ref_name):
@@ -122,8 +125,7 @@ class SnpEff(object):
                 SnpEff.extension[self.file_format])
 
         # add new annotation file in config file
-        with open("snpEff.config", "a") as fp:
-            fp.write(self.ref_name + ".genome : " + self.ref_name)
+        self._add_db_in_config()
        
         snpeff_build_line = ["snpEff", "build", "-" + self.file_format,
                              self.ref_name]
@@ -137,6 +139,13 @@ class SnpEff(object):
         if rc != 0:
             print("snpEff build return a non-zero code")
             sys.exit(rc)
+
+    def _add_db_in_config(self):
+        """ Add new annotation at the end of snpEff.config file.
+        """
+        if not self._check_database(self.ref_name):
+            with open("snpEff.config", "a") as fp:
+                fp.write(self.ref_name + ".genome : " + self.ref_name)
 
     def launch_snpeff(self, vcf_filename, output, html_output=None,
                       options=""):
