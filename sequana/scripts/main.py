@@ -607,14 +607,6 @@ def copy_config_from_sequana(module, source="config.yaml",
               "library (%s pipeline)"
     print(txt)
 
-    # some pipelines (eg rnaseq) have also a multiqc_config.yaml file that we want to get
-    multiqc_config = module.path + os.sep + "multiqc_config.yaml"
-    if os.path.exists(multiqc_config):
-        shutil.copy(multiqc_config, options.target_dir + os.sep + "multiqc_config.yaml")
-        txt = "copied multiqc_config.yaml from sequana %s pipeline" % (module.name)
-        print(txt)
-
-
 def sequana_init(options):
     import sequana
     from sequana.misc import textwrap
@@ -686,6 +678,14 @@ def sequana_init(options):
             raise(IOError("Config file %s not found locally" % options.config))
     else:
         copy_config_from_sequana(module, "config.yaml", config_filename)
+
+    # Copy multiqc if it is available
+    multiqc_filename = options.target_dir + os.sep + "multiqc_config.yaml"
+    try:
+        copy_config_from_sequana(module, "multiqc_config.yaml",
+                                 multiqc_filename)
+    except FileNotFoundError:
+        pass
 
     # The input
     cfg = SequanaConfig(config_filename)
