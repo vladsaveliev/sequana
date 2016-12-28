@@ -601,11 +601,11 @@ def copy_config_from_sequana(module, source="config.yaml",
     user_config = module.path + os.sep + source
     if os.path.exists(user_config):
         shutil.copy(user_config, target)
-        txt = "copied %s from sequana %s pipeline" % (source, module.name)
+        txt = "copied %s from sequana %s pipeline"
     else:
-        txt = "%s does not exists locally or within Sequana "+\
+        txt = "%s does not exists locally or within Sequana " + \
               "library (%s pipeline)"
-    print(txt)
+    print(txt % (source, module.name))
 
 def sequana_init(options):
     import sequana
@@ -681,11 +681,7 @@ def sequana_init(options):
 
     # Copy multiqc if it is available
     multiqc_filename = options.target_dir + os.sep + "multiqc_config.yaml"
-    try:
-        copy_config_from_sequana(module, "multiqc_config.yaml",
-                                 multiqc_filename)
-    except FileNotFoundError:
-        pass
+    copy_config_from_sequana(module, "multiqc_config.yaml", multiqc_filename)
 
     # The input
     cfg = SequanaConfig(config_filename)
