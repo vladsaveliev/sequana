@@ -612,7 +612,7 @@ def copy_config_from_sequana(module, source="config.yaml",
     if os.path.exists(multiqc_config):
         #shutil.copy(multiqc_config, options.target_dir + os.sep + "multiqc_config.yaml")
         shutil.copy(multiqc_config,  "multiqc_config.yaml")
-	txt = "copied multiqc_config.yaml from sequana %s pipeline" % (module.name)
+        txt = "copied multiqc_config.yaml from sequana %s pipeline" % (module.name)
         print(txt)
 
 
