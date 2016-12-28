@@ -122,7 +122,8 @@ multiqc:
 
 mark_duplicates:
     do: yes
-    options: ''
+    remove: 'True' ## may be False
+    tmpdir: 'TMP_DIR=/local/scratch/' ## on Slurm cluster at Pasteur
 
 
 coverage:
