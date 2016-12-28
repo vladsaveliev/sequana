@@ -602,10 +602,7 @@ def copy_config_from_sequana(module, source="config.yaml",
     if os.path.exists(user_config):
         shutil.copy(user_config, target)
         txt = "copied %s from sequana %s pipeline"
-    else:
-        txt = "%s does not exists locally or within Sequana " + \
-              "library (%s pipeline)"
-    print(txt % (source, module.name))
+        print(txt % (source, module.name))
 
 def sequana_init(options):
     import sequana
