@@ -17,16 +17,25 @@ class SequanaGUITest(unittest.TestCase):
     def tearDown(self):
         self.form.close()
 
-    def test_help(self):
-        pass
-        # blocking need a way to close it
-        # self.form.help() 
-        #QTest.mouseClick(okWidget, Qt.LeftButton)
+    def _test_help(self):
+        self.form.menuHelp()
+
+    def _test_about(self):
+        self.form.menuAbout()
+        OK = self.form.preferences_dialog.ui.buttonBox.Ok
+        okWidget = self.form.preferences_dialog.ui.buttonBox.button(OK)
+        QTest.mouseClick(okWidget, Qt.LeftButton)
 
     def test_choose_pipeline(self):
-        self.form.on_pipeline_choice("quality_control")
+        self.form.on_sequana_pipeline_choice("quality_control")
         assert self.form.pipeline_is_chosen == True
 
+    def _test_generic_pipeline(self):
+        from sequana import sequana_data
+        self.snakefile = sequana_data("test_snakefile")
+
+    def _test_config(self):
+        self.form.ui.tabWidget_framework.setCurrentIndex(1)
 
 
 if __name__ == "__main__":
