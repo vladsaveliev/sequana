@@ -13,7 +13,7 @@ class FileBrowser(QW.QWidget):
             self.filter = file_filter + ";;" + self.filter
         self.empty_msg = "No file selected"
         self.btn = QW.QPushButton("Browse")
-        self.btn.setFixedSize(100,20)
+        self.btn.setFixedSize(100, 20)
 
         # Add default color
         self.btn.setStyleSheet("QPushButton {background-color: #AA0000; "
@@ -45,9 +45,8 @@ class FileBrowser(QW.QWidget):
                                    "color: #EEEEEE}")
 
     def browse_paired_file(self):
-        file_path = QW.QFileDialog.getOpenFileNames(self, "Select a sample",
-".",
-                                                 self.filter)[0]
+        file_path = QW.QFileDialog.getOpenFileNames(self, 
+            "Select a sample", ".", self.filter)[0]
         if not file_path:
             self.set_empty_path()
         elif len(file_path) > 2:
@@ -59,11 +58,11 @@ class FileBrowser(QW.QWidget):
                           for i in range(0, len(file_path))}
             self.btn_filename.setText("\n".join([key + ": " + value
                                       for key, value in self.paths.items()]))
-            self._setup_true()
-            self.setup_color()
+            self.set_green()
 
     def browse_directory(self):
-        dialog = DirectoryDialog(self, "Select a directory", ".", self.filter)
+        dialog = DirectoryDialog(self, "Select a directory", ".", 
+                                 self.filter)
         directory_path = dialog.get_directory_path()
         if directory_path:
             self.set_filenames(directory_path)
@@ -72,9 +71,8 @@ class FileBrowser(QW.QWidget):
 
     def browse_file(self):
         try:
-            file_path = QW.QFileDialog.getOpenFileNames(self, "Single File",
-".",
-                                                     self.filter)[0][0]
+            file_path = QW.QFileDialog.getOpenFileNames(self, 
+                "Single File", ".",  self.filter)[0][0]
             self.set_filenames(file_path)
         except IndexError:
             self.set_empty_path()
@@ -84,18 +82,16 @@ class FileBrowser(QW.QWidget):
 
     def set_filenames(self, filename):
         self.paths = filename
-        if len(filename) > 20:
-            self.btn_filename.setText("...." + filename[-20:])
+        if len(filename) > 30:
+            self.btn_filename.setText("...." + filename[-30:])
         else:
             self.btn_filename.setText(filename)
-        self._setup_true()
-        self.setup_color()
+        self.set_green()
 
     def set_empty_path(self):
         self.btn_filename.setText(self.empty_msg)
         self.paths = ""
-        self.setup = False
-        self.setup_color()
+        self.set_red()
 
     def set_enable(self, switch_bool):
         if switch_bool:
@@ -107,6 +103,15 @@ class FileBrowser(QW.QWidget):
 
     def path_is_setup(self):
         return self.setup
+
+    def set_red(self):
+        self.setup = False
+        self.setup_color()
+
+    def set_green(self):
+        self.setup = True
+        self.setup_color()
+
 
     def clicked_connect(self, function):
         """ Connect additionnal function on browser button. It is used to

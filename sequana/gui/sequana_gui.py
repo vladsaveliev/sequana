@@ -14,10 +14,7 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-"""Sequana GUI. Can also be used for any snakemake pipeline
-
-
-"""
+"""Sequana GUI. Can also be used for any snakemake pipeline"""
 import sys
 import os
 import re
@@ -25,9 +22,14 @@ import time
 import subprocess as sp
 import shutil
 
-from PyQt5.QtWidgets import QWidget
 from ui_mainwindow import Ui_MainWindow
-from ui_preferences import Ui_Preferences
+from sequana.gui.browser import MyBrowser
+from sequana.gui.ipython import QIPythonWidget
+from sequana.gui.about import About
+from sequana.gui.file_browser import FileBrowser
+from sequana.gui.widgets import Ruleform
+from sequana.gui.messages import *
+from sequana.gui.preferences import PreferencesDialog
 from sequana.gui.snakemake import SnakemakeDialog
 
 from PyQt5 import QtCore, QtGui
@@ -35,19 +37,17 @@ from PyQt5 import QtWidgets as QW
 from PyQt5.Qt import QTemporaryDir, QMainWindow
 from PyQt5.QtCore import Qt
 from PyQt5.QtSvg import QSvgWidget
-from PyQt5.QtWebKitWidgets import QWebView
 
 from sequana import snaketools, sequana_data
 from sequana.snaketools import Module
-from sequana.gui.browser import MyBrowser
-from sequana.gui.ipython import QIPythonWidget
-from sequana.gui.about import About
-from sequana.gui.file_browser import FileBrowser
-from sequana.gui.widgets import *
-from sequana.gui.messages import *
 
+import colorlog
+import logging
 
 import signal
+
+END = QtGui.QTextCursor.End
+
 def sigint_handler(*args):
     """Handler for the SIGINT signal."""
     sys.stderr.write('\r')
@@ -57,18 +57,27 @@ def sigint_handler(*args):
         QW.QApplication.quit()
 
 
+class QPlainTextEditLogger(colorlog.StreamHandler):
+    def __init__(self, parent):
+        super().__init__()
+        self.widget = QW.QPlainTextEdit(parent)
+        self.widget.setReadOnly(True)
+
+    def emit(self, record):
+        msg = self.format(record)
+        self.widget.appendPlainText(msg)
+        self.widget.moveCursor(END)
+
 class SequanaGUI(QMainWindow):
     """
 
+    If quiet, progress bar cannot work.
 
-    - save_config_file does not seem to work when we press it manually
-    - settings in preferences and snakemake options
-    - import config file
     - Generic pipelines
     - do not copy again requirements if already there
-    - extension of the different widgets
+    - extension of the different widgets ?
     - cursor in the snakemake output must follow the progress and be at the
-      bottom all the time
+      bottom all the time. Same for the logger
 
 
     Developer Guide
@@ -85,8 +94,8 @@ class SequanaGUI(QMainWindow):
     _not_a_rule = {"requirements", "gatk_bin", "input_directory", "input_samples", "input_pattern"}
     _browser_keyword = {"reference"}
 
-    def __init__(self):
-        super(SequanaGUI, self).__init__()
+    def __init__(self, parent=None):
+        super(SequanaGUI, self).__init__(parent=parent)
 
         self._tempdir = QTemporaryDir()
         self.shell = ""
@@ -98,10 +107,20 @@ class SequanaGUI(QMainWindow):
         }
 
         # some global attributes
-        self.sequana_config = None
         self.pipeline_is_chosen = False
+        self._undefined_section = "Parameters in no sections/rules"
 
         self.initUI()
+        self.read_settings()
+
+        self.setStyleSheet("""QToolTip {
+                           background-color: white;
+                           color: black;
+                           border-style: double;
+                           border-width: 3px;
+                           border-color: green;
+                           margin:3px;
+                           }""")
 
     def initUI(self):
 
@@ -110,15 +129,13 @@ class SequanaGUI(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        # Now we add what could not be added in the designer
-        # First the preferences and snakemake dialogs
-        self.preferences_dialog = PreferencesDialog()
-        self.snakemake_dialog = SnakemakeDialog()
+        # 2 more dialogs from designer
+        self.preferences_dialog = PreferencesDialog(self)
+        self.snakemake_dialog = SnakemakeDialog(self)
 
         # The IPython dialog, which is very useful for debugging
         self.ipyConsole = QIPythonWidget(
             customBanner="Welcome to the embedded ipython console\n")
-        self.ipyConsole.pushVariables({"x": 10})
         self.ipyConsole.printText("The variable 'foo' andion.")
         self.ipyConsole.execute("from sequana import *")
         self.ipyConsole.execute("import sequana")
@@ -136,10 +153,25 @@ class SequanaGUI(QMainWindow):
 
         # layout for the snakemake output
         self.output = QW.QTextEdit()
+        self.output.setReadOnly(True)
         self.ui.layout_snakemake.addWidget(self.output)
 
-        self.logger = QW.QTextEdit()
-        self.ui.layout_logger.addWidget(self.logger)
+        # Add the new logging box widget to the layout
+        self.logTextBox = QPlainTextEditLogger(self)
+        self.logTextBox.setFormatter(colorlog.ColoredFormatter(
+            '%(log_color)s%(asctime)s - %(levelname)s - %(message)s',
+            log_colors={
+            'DEBUG': 'cyan',
+            'INFO': 'green',
+            'WARNING': 'yellow',
+            'ERROR': 'red',
+            'CRITICAL': 'red,bg_white',
+            }
+            ))
+        colorlog.getLogger().addHandler(self.logTextBox)
+        # You can control the logging level
+        colorlog.getLogger().setLevel(logging.INFO)
+        self.ui.layout_logger.addWidget(self.logTextBox.widget)
 
         # A file browser for the working directory layout
         self.working_dir = FileBrowser(directory=True)
@@ -151,11 +183,12 @@ class SequanaGUI(QMainWindow):
         self.ui.actionQuit.triggered.connect(self.menuQuit)
         self.ui.actionHelp.triggered.connect(self.menuHelp)
         self.ui.actionAbout.triggered.connect(self.menuAbout)
-        self.ui.actionImportConfig.triggered.connect(self.menuImportConfig)
+        #self.ui.actionImportConfig.triggered.connect(self.menuImportConfig)
         self.ui.actionSnakemake.triggered.connect(self.snakemake_dialog.exec_)
         self.ui.actionPreferences.triggered.connect(self.preferences_dialog.exec_)
 
         self.set_sequana_pipeline()
+        self.set_generic_pipeline()
 
         # The run/save/dag footer buttons
         self.connect_footer_buttons()
@@ -168,13 +201,11 @@ class SequanaGUI(QMainWindow):
 
         self.process.finished.connect(lambda: self.ui.run_btn.setEnabled(True))
         self.process.finished.connect(lambda: self.ui.stop_btn.setEnabled(False))
-        self.process.finished.connect(lambda: self.end_progress)
 
         self.process.readyReadStandardOutput.connect(
             self.snakemake_data_stdout)
         self.process.readyReadStandardError.connect(self.snakemake_data_error)
         self.process.finished.connect(self.end_run)
-
 
     #|-----------------------------------------------------|
     #|                       MENU related                  |
@@ -215,6 +246,15 @@ class SequanaGUI(QMainWindow):
             <li> Run the analysis</li>
             <li> Open the report if successful</li>
 
+
+            <h2>Format of the config file</h2>
+            For Sequana, config file are downloaded automatically so work out of
+            the box. If you decide to change them (locally), every rule has only
+            one level.
+
+            For the generic file, only one level of heararchy is interpreted for
+            now. If more than one level, the raw config file is provided.
+
             </p>
             """ % {"url": url})
         msg.setWindowTitle("Sequana")
@@ -230,32 +270,15 @@ class SequanaGUI(QMainWindow):
         if quit_answer == QW.QMessageBox.Yes:
             self.close()
 
-    def menuImportConfig(self):
-        if self.pipeline_is_chosen is False:
-            msg = CriticalMessage("Please select a pipeline first")
-            msg.exec_()
-            return
-        def _local_read_config():
-            config_file = self.tab.get_filenames()
-            if config_file:
-                self._read_config(config_file)
-        self.tab = FileBrowser(paired=False,
-                               file_filter="YAML file (*.yaml)")
-        self.tab.clicked_connect(_local_read_config)
-        self.tab.clicked_connect(self.tab.close)
-        self.tab.show()
-
     # ---------------------------------------------------------------
-    #
+    # More GUI / reading the snakefile (sequana or generic)
     # ---------------------------------------------------------------
-
     def set_sequana_pipeline(self):
         # Fill the pipelines
         snaketools.pipeline_names.sort()
-        self.ui.choice_button.addItems(["select pipeline"] +
-            snaketools.pipeline_names)
+        self.ui.choice_button.addItems(snaketools.pipeline_names)
         self.ui.choice_button.currentIndexChanged[str].connect(
-            self.on_pipeline_choice)
+            self.on_sequana_pipeline_choice)
         self.ui.choice_button.installEventFilter(self)
 
         # Set the file browser
@@ -264,86 +287,51 @@ class SequanaGUI(QMainWindow):
         directory_tab = FileBrowser(directory=True)
         paired_tab.clicked_connect(self.switch_run)
         directory_tab.clicked_connect(self.switch_run)
+
         # fill the tabs_browser
         self.ui.tabs_browser.addTab(directory_tab, "Directory")
         self.ui.tabs_browser.addTab(paired_tab, "Sample")
         self.ui.tabs_browser.removeTab(0)
         self.ui.tabs_browser.removeTab(0)
 
-
     @QtCore.pyqtSlot(str)
-    def on_pipeline_choice(self, index):
-        """ Change options form when user change the pipeline.
-        """
-        config_file = snaketools.Module(index)._get_config()
-        self.ui.choice_button.removeItem(
-            self.ui.choice_button.findText("select pipeline"))
-
-        self._read_config(config_file)
-        self.fill_combobox(self.rule_list)
+    def on_sequana_pipeline_choice(self, index):
+        """ Change options form when user change the pipeline."""
+        self.info("Reading sequana %s pipeline" % index)
+        module = snaketools.Module(index)
+        config_file = module._get_config()
+        self.snakefile = module.snakefile
+        self._read_sequana_config(config_file)
+        self.fill_until_starting(self.rule_list)
         self.pipeline_is_chosen = True
         self.switch_run()
 
-    def fill_combobox(self, whatever):
-        active_list = [w.get_name() for w in self.rule_list if w.get_do_rule()]
+    def set_generic_pipeline(self):
+        # Set the file browser
+        self._generic_snakefile = FileBrowser(directory=False)
+        self._generic_config = FileBrowser(directory=False,
+            file_filter="YAML file (*.json *.yaml)")
+        self._generic_snakefile.clicked_connect(self._read_generic_snakefile)
+        # no switch run for the config file, which is optional
+        self._generic_config.clicked_connect(self._read_generic_config)
 
-        self.ui.until_box.clear()
-        self.ui.until_box.addItems([None] + active_list)
+        # fill the tabs_browser
+        self.ui.tabs_browser_2.addTab(self._generic_snakefile, "Snakefile")
+        self.ui.tabs_browser_2.addTab(self._generic_config, "Config file")
+        self.ui.tabs_browser_2.removeTab(0)
+        self.ui.tabs_browser_2.removeTab(0)
 
-        self.ui.starting_box.clear()
-        self.ui.starting_box.addItems([None] + active_list)
-
-    def _read_config(self, config_file):
-        try:
-            self.sequana_config = snaketools.SequanaConfig(config_file)
-            self.sequana_config.cleanup() # set all empty strings and %()s to None
-        except AssertionError:
-            print("Warning: could not parse the config file")
-            return
-        self.create_base_form()
-
-    def import_config(self):
-        if self.pipeline_is_chosen is False:
-            msg = CriticalMessage("Please select a pipeline first")
-            msg.exec_()
-            return
-        def _local_read_config():
-            config_file = self.tab.get_filenames()
-            if config_file:
-                self._read_config(config_file)
-        self.tab = FileBrowser(paired=False,
-                               file_filter="YAML file (*.yaml)")
-        self.tab.clicked_connect(_local_read_config)
-        self.tab.clicked_connect(self.tab.close)
-        self.tab.show()
-
-    def clear_layout(self, layout):
-        """ Clean all widget contained in a layout.
-        """
-        while layout.count():
-            child = layout.takeAt(0)
-            if child.widget() is not None:
-                child.widget().deleteLater()
-            elif child.layout() is not None:
-                self.clear_layout(child.layout())
-
-        # action import config file
-        importAction = QW.QAction("Import", self)
-        importAction.setShortcut('Ctrl+I')
-        importAction.triggered.connect(self.import_config)
-
-    @QtCore.pyqtSlot(str)
-    def on_pipeline_choice(self, index):
-        """ Change options form when user change the pipeline.
-        """
-        config_file = snaketools.Module(index)._get_config()
-        self.ui.choice_button.removeItem(
-            self.ui.choice_button.findText("select pipeline"))
-
-        self._read_config(config_file)
-        self.fill_combobox(self.rule_list)
-        self.pipeline_is_chosen = True
+    def _read_generic_snakefile(self):
+        filename = self._generic_snakefile.get_filenames()
+        if len(filename):
+            self.snakefile = filename
+        else:
+            self.snakefile = None
         self.switch_run()
+
+    # ---------------------------------------------------------------------
+    # Fotter connectors
+    # ---------------------------------------------------------------------
 
     def connect_footer_buttons(self):
         self.ui.run_btn.setEnabled(False)
@@ -359,24 +347,113 @@ class SequanaGUI(QMainWindow):
         self.ui.report_btn.setEnabled(True)
         self.ui.report_btn.clicked.connect(self.open_report)
 
-        self.ui.save_btn = QW.QPushButton("Save Config")
         self.ui.save_btn.clicked.connect(self.save_config_file)
 
         self.ui.dag_btn.setEnabled(False)
         self.ui.dag_btn.clicked.connect(self.show_dag)
 
-    def _log(self, text, color="blue"):
-        print(text)
-        cursor = self.logger.textCursor()
-        cursor.movePosition(cursor.End)
-        cursor.insertHtml('<p style="color:%s">%s</p><br>' % (color, text))
-        cursor.movePosition(cursor.End)
+    # -----------------------------------------------------------------
+    # functionalities
+    # -----------------------------------------------------------------
+
+    def _get_mode(self):
+        # figure out if we are dealing with a sequana pipeline
+        # or a generic one based solely on focused top tab
+        index = self.ui.tabWidget_framework.currentIndex()
+        if index == 0:
+            return "sequana"
+        elif index == 1:
+            return "generic"
+    mode = property(_get_mode)
+
+    def info(self, text):
+        colorlog.info(text)
+    def error(self, text):
+        colorlog.error(text)
+    def debug(self, text):
+        colorlog.debug(text)
+    def critical(self, text):
+        colorlog.critical(text)
+    def warning(self, text):
+        colorlog.warning(text)
+
+    # ----------------------------------------------------------------------
+    # Snakemake related (config, running)
+    # ----------------------------------------------------------------------
+
+    def fill_until_starting(self, whatever):
+        active_list = [w.get_name() for w in self.rule_list if w.get_do_rule()]
+
+        self.ui.until_box.clear()
+        self.ui.until_box.addItems([None] + active_list)
+
+        self.ui.starting_box.clear()
+        self.ui.starting_box.addItems([None] + active_list)
+
+    # ----------------------------------------------------------
+    #  Config file related
+    # ---------------------------------------------------------
+
+    def _set_focus_on_config_tab(self):
+        # Set focus on config file
+        self.ui.tabs.setCurrentIndex(3)
+
+    def _get_configfile(self):
+        if self.mode == "sequana" and self._configfile is None:
+            msg = CriticalMessage("Please select the input and working directory")
+            msg.exec_()
+            return
+        else:
+            return self._configfile
+    configfile = property(_get_configfile)
+
+    def _read_sequana_config(self, config_file):
+        try:
+            configfile = snaketools.SequanaConfig(config_file)
+            configfile.cleanup() # set all empty strings and %()s to None
+            self._configfile = configfile
+        except AssertionError:
+            self._configfile = None
+            self.clear_layout(self.form)
+            print("Warning: could not parse the config file")
+        self.create_base_form()
+        self._set_focus_on_config_tab()
+
+    def _read_generic_config(self):
+        print("selected config file")
+        filename = self._generic_config.get_filenames()
+        if len(filename):
+            try:
+                configfile = snaketools.SequanaConfig(filename, mode="generic")
+            except AssertionError:
+                print("Warning: could not parse the config file")
+                return
+            self._configfile = configfile
+            self.create_base_form()
+            self._set_focus_on_config_tab()
+        else:
+            self._configfile = None
+            self.clear_layout(self.form)
+
+    # --------------------------------------------------------------------
+    # Others
+    # --------------------------------------------------------------------
+
+    def clear_layout(self, layout):
+        """ Clean all widgets contained in a layout. """
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget() is not None:
+                child.widget().deleteLater()
+            elif child.layout() is not None:
+                self.clear_layout(child.layout())
+
+    # --------------------------------------------------------------------
+    # Running snakemake
+    # --------------------------------------------------------------------
 
     def snakemake_data_stdout(self):
-        """ Read standard output of snakemake process
-        """
-        cursor = self.output.textCursor()
-        cursor.movePosition(cursor.End)
+        """ Read standard output of snakemake process """
         data = str(self.process.readAllStandardOutput())
         self.shell += data
         self.update_progress_bar(data)
@@ -384,27 +461,27 @@ class SequanaGUI(QMainWindow):
         for this in data.split("\\n"):
             line = this.strip()
             if line and len(line) > 3 and "complete in" not in line: # prevent all b'' strings
+                if line.startswith("b'"):
+                    line = line[2:]
                 line = line.replace("\\r","")
-                line = line.replace("\\t","    ")
-                cursor.insertHtml('<p style="color:blue">' + line +'</p><br>')
-                cursor.movePosition(cursor.End)
+                line = line.replace("\\t", "&nbsp;"*4)
+                self.output.append('<p style="color:blue">' + line +'</p>')
+            self.output.moveCursor(END)
 
     def snakemake_data_error(self):
-        """ Read error output of snakemake process
-        """
-        cursor = self.output.textCursor()
-        cursor.movePosition(cursor.End)
+        """ Read error output of snakemake process """
         error = str(self.process.readAllStandardError())
         self.shell_error += error
         self.update_progress_bar(error)
-
         for this in error.split("\\n"):
             line = this.strip()
             if line and len(line) > 3 and "complete in" not in line: # prevent all b'' strings
+                if line.startswith("b'"):
+                    line = line[2:]
                 line = line.replace("\\r","")
-                line = line.replace("\\t","    ")
-                cursor.insertHtml('<p style="color:red">' + line +'</p>')
-                cursor.movePosition(cursor.End) 
+                line = line.replace("\\t","&nbsp;"*4)
+                self.output.append('<p style="color:red">' + line +'</p>')
+                self.output.moveCursor(END)
 
     def get_until_starting_option(self):
         """ Return list with starting rule and end rule.
@@ -418,24 +495,79 @@ class SequanaGUI(QMainWindow):
             option += ["-R", starting_rule]
         return option
 
+    def _get_snakemake_command(self, snakefile):
+        dialog = self.snakemake_dialog      # an alias
+        snakemake_line = ["-s", snakefile, "--stat", "stats.txt"]
+
+        if self.ui.comboBox_local.currentText() == "local":
+            snakemake_line += dialog.get_snakemake_local_options()
+        elif self.ui.comboBox_local.currentText() == "cluster":
+            snakemake_line += dialog.get_snakemake_cluster_options()
+
+        snakemake_line += dialog.get_snakemake_general_options()
+        snakemake_line += self.get_until_starting_option()
+
+        return snakemake_line
+
+    def start_sequana(self):
+        # set focus on the snakemake output
+        self.ui.tabs.setCurrentIndex(0)
+        self.shell_error = ""
+        self.shell = ""
+
+        # the progress bar
+        pal = self.ui.progressBar.palette()
+        pal.setColor(QtGui.QPalette.Highlight, self._colors['blue'])
+        self.ui.progressBar.setPalette(pal)
+        self.ui.progressBar.setValue(1)
+
+        # Set the regex to catch steps
+        self._step_regex = re.compile("([0-9]+) of ([0-9]+) steps")
+
+        # Prepare the command and working directory.
+        working_dir = self.working_dir.get_filenames()
+        snakefile = working_dir + os.sep + "Snakefile"
+        assert os.path.exists(snakefile)
+
+        snakemake_args = self._get_snakemake_command(snakefile)
+
+        self.info("Starting process with %s " % snakemake_args)
+
+        pref = self.preferences_dialog.ui
+        process = pref.preferences_options_general_process_value.currentText()
+
+        if process == "qt":
+            self.process.setWorkingDirectory(working_dir)
+            self.process.start("snakemake", snakemake_args)
+        else:
+            self.cmd = ['snakemake'] + snakemake_args
+            self.cwd = working_dir
+            snakemake_proc = sp.Popen(self.cmd,
+                cwd=working_dir)
+
+    # -------------------------------------------------------------------
+    # Create the base form
+    # -------------------------------------------------------------------
+
     def create_base_form(self):
         """ Create form with all options necessary for a pipeline.
         """
-        self._log("Interpreting config file")
+        self.info("Interpreting config file")
         self.clear_layout(self.form)
-        rules_list = list(self.sequana_config._yaml_code.keys())
+        rules_list = list(self._configfile._yaml_code.keys())
         rules_list.sort()
         self.necessary_dict = {}
         self.rule_list = []
+
         for count, rule in enumerate(rules_list):
             # Check if this is a dictionnary
-            contains = self.sequana_config._yaml_code[rule]
+            contains = self._configfile._yaml_code[rule]
             if isinstance(contains, dict) and (
                     rule not in SequanaGUI._not_a_rule):
                 rule_box = Ruleform(rule, contains, count, self._browser_keyword)
                 self.form.addWidget(rule_box)
                 self.rule_list.append(rule_box)
-                rule_box.connect_do(self.fill_combobox)
+                rule_box.connect_do(self.fill_until_starting)
             else:
                 if isinstance(contains, list):
                     self.necessary_dict = dict(self.necessary_dict,
@@ -447,8 +579,18 @@ class SequanaGUI(QMainWindow):
                     self.necessary_dict = dict(self.necessary_dict,
                                            **{rule: '{0}'.format(contains)})
 
+        if self.mode == "generic" and len(self.necessary_dict):
+            rule_box = Ruleform(self._undefined_section, self.necessary_dict,
+                                -1, generic=True)
+            self.form.addWidget(rule_box)
+
+    # ----------------------------------------------------------
+    # STOP footer button
+    # ----------------------------------------------------------
+
     def click_stop(self):
-        print("stopped manually")
+        """The stop button"""
+        print("stopped snakemake manually")
         pal = self.ui.progressBar.palette()
         pal.setColor(QtGui.QPalette.Highlight, self._colors['red'])
         self.ui.progressBar.setPalette(pal)
@@ -457,6 +599,10 @@ class SequanaGUI(QMainWindow):
         self.ui.stop_btn.setEnabled(False)
         self.process.close()
 
+    # --------------------------------------------------------------------
+    # Progress bar
+    # --------------------------------------------------------------------
+
     def update_progress_bar(self, line):
         """ Parse with a regex to retrieve current step and total step.
         """
@@ -464,6 +610,11 @@ class SequanaGUI(QMainWindow):
         if grouprex:
             step = int(grouprex[0][0]) / float(grouprex[0][1]) * 100
             self.ui.progressBar.setValue(step)
+        if "Nothing to be done" in line:
+            self.ui.progressBar.setValue(100)
+
+    def start_progress(self):
+        self.ui.progressBar.setRange(0,1)
 
     def end_run(self):
         pal = self.ui.progressBar.palette()
@@ -482,16 +633,9 @@ class SequanaGUI(QMainWindow):
             msg.exec_()
             return
 
-    def start_progress(self):
-        self.ui.progressBar.setRange(0,1)
-
-    def end_progress(self):
-        self.ui.progressBar.setValue(100)
-        QtGui.QMessageBox.information(self, "Done")
-        self.ui.run_btn.setEnabled(True)
-
     def save_config_file(self):
-        print("hello")
+        self.info("Saving config file")
+
         try:
             form_dict = dict(self.create_form_dict(self.form),
                                  **self.necessary_dict)
@@ -500,23 +644,26 @@ class SequanaGUI(QMainWindow):
             msg.exec_()
             return
 
-        # get samples names or input_directory
-        # TODO
-        if self.ui.tabs_browser.currentIndex() == 1:
-            form_dict["samples"] = (
-                self.ui.tabs_browser.currentWidget().get_filenames())
-        else:
-            form_dict["input_directory"] = (
-                self.ui.tabs_browser.currentWidget().get_filenames())
+        if self._undefined_section in form_dict.keys():
+            del form_dict[self._undefined_section]
 
-        # Let us update tha attribute with the content of the form
-        self.sequana_config._yaml_code.update(form_dict)
+        # get samples names or input_directory
+        if self.mode == "sequana":
+            if self.ui.tabs_browser.currentIndex() == 1:
+                form_dict["samples"] = (
+                    self.ui.tabs_browser.currentWidget().get_filenames())
+            else:
+                form_dict["input_directory"] = (
+                    self.ui.tabs_browser.currentWidget().get_filenames())
+
+        # Let us update the attribute with the content of the form
+        self.configfile._yaml_code.update(form_dict)
 
         if self.working_dir.path_is_setup():
-            print(1)
             yaml_path = self.working_dir.get_filenames() + "/config.yaml"
-            self.sequana_config.copy_requirements(target=self.working_dir.get_filenames())
-            print(yaml_path)
+            if self.mode == "sequana":
+                self.warning("copy requirements (if any)")
+                self.configfile.copy_requirements(target=self.working_dir.get_filenames())
 
             if os.path.isfile(yaml_path):
                 save_msg = WarningMessage(
@@ -530,92 +677,50 @@ class SequanaGUI(QMainWindow):
                 # Yes == 16384
                 # Save == 2048
                 if save_msg.exec_() in [16384, 2048]:
-                    self.sequana_config.cleanup()
-                    self.sequana_config.save(yaml_path)
+                    self.configfile.save(yaml_path, cleanup=False)
                     self.ui.dag_btn.setEnabled(True)
             else:
-                self.sequana_config.cleanup()
-                self.sequana_config.save(yaml_path)
+                self.configfile.save(yaml_path, cleanup=False)
                 self.ui.dag_btn.setEnabled(True)
         else:
             msg = WarningMessage("You must set a working directory", self)
             msg.exec_()
 
-    def _get_snakemake_command(self, snakefile):
-        dialog = self.snakemake_dialog      # an alias
-        snakemake_line = ["-s", snakefile, "--stat", "stats.txt"]
-
-        if self.ui.comboBox_local.currentText() == "local":
-            snakemake_line += dialog.get_snakemake_local_options()
-        elif self.ui.comboBox_local.currentText() == "cluster":
-            snakemake_line += dialog.get_snakemake_cluster_options()
-
-        snakemake_line += dialog.get_snakemake_general_options()
-
-        snakemake_line += self.get_until_starting_option()
-
-        return snakemake_line
-
-    def start_sequana2(self):
-        # Is it still working ? Can we switch this option from the GUI ?
-        working_dir = self.working_dir.get_filenames()
-        self.save_config_file()
-        rules = self.get_rules(self.form)
-        snakefile = Module(self.ui.choice_button.currentText()).snakefile
-
-        new_snakefile = working_dir + os.sep + os.path.basename(snakefile)
-        if os.path.exists(new_snakefile) is False:
-            shutil.copy(snakefile, working_dir)
-        snakefile = new_snakefile
-
-        snakemake_args = self._get_snakemake_command(snakefile)
-
-        self.cmd = ['snakemake'] + snakemake_args
-
-        #self.
-        self.cwd = working_dir
-        snakemake_proc = sp.Popen(self.cmd,
-            cwd=os.path.basename(working_dir))
-        #snakemake_proc.communicate()
-
-
-    def start_sequana(self):
-        pal = self.ui.progressBar.palette()
-        pal.setColor(QtGui.QPalette.Highlight, self._colors['blue'])
-        self.ui.progressBar.setPalette(pal)
-        self.ui.progressBar.setValue(1)
-
-        # Set the regex to catch steps
-        self._step_regex = re.compile("([0-9]+) of ([0-9]+) steps")
-
-        # Prepare the command and working directory.
-        working_dir = self.working_dir.get_filenames()
-        self.save_config_file()
-        rules = self.get_rules(self.form)
-        snakefile = Module(self.ui.choice_button.currentText()).snakefile
-
-        new_snakefile = working_dir + os.sep + os.path.basename(snakefile)
-        if os.path.exists(new_snakefile) is False:
-            shutil.copy(snakefile, working_dir)
-        snakefile = new_snakefile
-
-        snakemake_args = self._get_snakemake_command(snakefile)
-
-        self._log("Starting process with %s " % snakemake_args)
-        self.process.setWorkingDirectory(working_dir)
-        self.process.start("snakemake", snakemake_args)
+    def _copy_snakefile(self):
+        if self.working_dir.path_is_setup():
+            if self.snakefile:
+                working_dir = self.working_dir.get_filenames()
+                working_dir += os.sep + "Snakefile"
+                self.info("Copying snakefile in %s " % working_dir)
+                try:
+                    shutil.copy(self.snakefile, working_dir)
+                except:
+                    self.warning("cannot overwrite existing (identical) file")
+                    pass
 
     def switch_run(self):
+        # This functions copies the snakefile in the working directory
+        # if possible.
+        self._copy_snakefile()
+
+        # Run is on if working dir is on and
+        # 1. snakefile is present and config file if sequana mode
+        # 2. snakefile is present irrespective on config file in generic mode
         if self.working_dir.path_is_setup():
-            #TODO
-            if self.ui.tabs_browser.currentWidget().path_is_setup():
-                if self.working_dir.path_is_setup():
+            if self.mode == "sequana":
+                # requires the directory or samples to be set
+                if self.ui.tabs_browser.currentWidget().path_is_setup():
                     if self.pipeline_is_chosen:
                         return self.ui.run_btn.setEnabled(True)
+            else: # generic
+                if self.snakefile:
+                    return self.ui.run_btn.setEnabled(True)
         return self.ui.run_btn.setEnabled(False)
 
+    # -----------------------------------------------------------------------
+    # UNLOCK footer button
+    # -----------------------------------------------------------------------
 
-    #@requires("working_dir")
     def unlock_snakemake(self):
 
         if self.working_dir.get_filenames() == "":
@@ -623,13 +728,11 @@ class SequanaGUI(QMainWindow):
 
         working_dir = self.working_dir.get_filenames()
 
-        # TODO: this is sequana specific
-        snakefile = Module(self.ui.choice_button.currentText()).snakefile
-        new_snakefile = working_dir + os.sep + os.path.basename(snakefile)
-        if os.path.exists(new_snakefile) is False:
+        snakefile = self._get_snakefile()
+
+        if os.path.exists(snakefile) is False:
             print("config not found. should not happen")
         else:
-            snakefile = new_snakefile
             self.cmd = ['snakemake', "-s", snakefile, "--unlock"]
             self.cwd = working_dir
             print(self.cmd)
@@ -637,23 +740,27 @@ class SequanaGUI(QMainWindow):
             print(working_dir)
             snakemake_proc = sp.Popen(self.cmd,
                 cwd=working_dir)
-#                cwd=os.path.basename(working_dir))
         self.ui.run_btn.setEnabled(True)
         self.ui.stop_btn.setEnabled(False)
-        #snakemake_proc.communicate()
+
+    def _get_snakefile(self):
+        if self.mode == "sequana":
+            if self.pipeline_is_chosen:
+                snakefile = Module(self.ui.choice_button.currentText()).snakefile
+            else:
+                msg = CriticalMessage("Please select a pipeline first")
+                msg.exec_()
+                return
+        else:
+            snakefile = self._generic_config.get_filenames()
+        return snakefile
+
+    # -----------------------------------------------------------------------
+    # DAG footer button
+    # -----------------------------------------------------------------------
 
     def show_dag(self):
-        if self.pipeline_is_chosen:
-            snakefile = Module(self.ui.choice_button.currentText()).snakefile
-        else:
-            msg = CriticalMessage("Please select a pipeline first")
-            msg.exec_()
-            return
-
-        if self.sequana_config is None:
-            msg = CriticalMessage("Please select the input and working directory")
-            msg.exec_()
-            return
+        snakefile = self._get_snakefile()
 
         # The config must have been saved, so we just need to copy it
         working_dir = self.working_dir.get_filenames()
@@ -665,7 +772,10 @@ class SequanaGUI(QMainWindow):
         svg_filename = self._tempdir.path() + os.sep + "test.svg"
 
         snakemake_line = ["snakemake", "-s", snakefile]
-        snakemake_line += ["--rulegraph", "--configfile", "config.yaml"]
+        snakemake_line += ["--rulegraph"]
+        if self.configfile:
+            # make sure to copy the config file
+            snakemake_line += ["--configfile", "config.yaml"]
         snakemake_line += self.get_until_starting_option()
 
         self.process1 = QtCore.QProcess(self)
@@ -676,8 +786,8 @@ class SequanaGUI(QMainWindow):
         self.process1.start("snakemake", snakemake_line[1:])
         self.process2.start("dot", ["-Tsvg", "-o", svg_filename])
 
-        self.process1.waitForFinished(10000)
-        self.process2.waitForFinished(10000)
+        self.process1.waitForFinished(50000)
+        self.process2.waitForFinished(50000)
 
         if os.path.exists(svg_filename):
             diag = SVGDialog(svg_filename)
@@ -698,7 +808,7 @@ class SequanaGUI(QMainWindow):
                 Most probably the analysis did not finish correctly""")
                 return
             url = "file://" + filename
-            browser = dialog.preferences_options_browser.currentText()
+            browser = dialog.preferences_options_general_browser_value.currentText()
 
             if browser == "pyqt5":
                 self.browser = MyBrowser()
@@ -711,7 +821,7 @@ class SequanaGUI(QMainWindow):
                         verbose=False)
                 except:
                     msg = CriticalMessage("Error browser",
-                        "Could not open %s with %s. Is %s on your system or path ?" % 
+                        "Could not open %s with %s. Is %s on your system or path ?" %
                         (url, browser,browser))
                     msg.exec_()
                     return
@@ -735,23 +845,36 @@ class SequanaGUI(QMainWindow):
         return form_dict
 
     def check_existing_config(self):
-        config_file = self.working_dir.get_filenames() + "/config.yaml"
-        if not os.path.isfile(config_file):
-            return False
 
-        if not self.pipeline_is_chosen:
-            msg = WarningMessage("A config.yaml file already exist in this "
+        if self.mode == "sequana":
+            config_file = self.working_dir.get_filenames() + "/config.yaml"
+            if not os.path.isfile(config_file):
+                return False
+            if not self.pipeline_is_chosen:
+                msg = WarningMessage("A config.yaml file already exist in this "
                                  "directory. Please, choose a pipeline to "
                                  "know if the existing config file correspond "
                                  "to your pipeline.", self)
-            self.working_dir.set_empty_path()
-            msg.exec_()
-            return False
+                self.working_dir.set_empty_path()
+                msg.exec_()
+                return False
+        else:
+            snakefile = self._generic_snakefile.get_filenames()
+            config_file = self._generic_config.get_filenames()
+            working_dir = self.working_dir.get_filenames()
+            if len(config_file) == 0 or len(snakefile) == 0:
+                msg = WarningMessage("You must set the pipeline first")
+                msg.exec_()
+                self.working_dir.set_empty_path()
+                return False
 
         try:
             # Load the existing config
-            cfg = snaketools.SequanaConfig(config_file)
-            cfg.cleanup() # set all empty strings and %()s to None
+            if self.mode == "sequana":
+                cfg = snaketools.SequanaConfig(config_file)
+                cfg.cleanup() # set all empty strings and %()s to None
+            else:
+                cfg = snaketools.SequanaConfig(config_file, mode="generic")
             config_dict = cfg.config
         except AssertionError:
             msg = WarningMessage("Could not parse the config file.")
@@ -764,7 +887,7 @@ class SequanaGUI(QMainWindow):
             msg.exec_()
             return False
 
-        if set(self.sequana_config._yaml_code.keys()) == set(config_dict.keys()):
+        if set(self.configfile._yaml_code.keys()) == set(config_dict.keys()):
             msg = QW.QMessageBox(
                 QW.QMessageBox.Question, "Question",
                 "A config file already exist in the working directory.\n"
@@ -772,16 +895,10 @@ class SequanaGUI(QMainWindow):
                 QW.QMessageBox.Yes | QW.QMessageBox.No,
                 self, Qt.Dialog | Qt.CustomizeWindowHint)
             if msg.exec_() == 16384:
-                self.sequana_config._yaml_code.update(config_dict)
+                self.configfile._yaml_code.update(config_dict)
                 self.create_base_form()
-                self.fill_combobox(self.rule_list)
+                self.fill_until_starting(self.rule_list)
         return True
-
-
-    def get_rules(self, layout):
-        widgets = (layout.itemAt(i).widget() for i in range(layout.count()))
-        rules = [w.get_name() for w in widgets]
-        return rules
 
     def eventFilter(self, source, event):
         """ Inactivate wheel event of combobox
@@ -790,27 +907,38 @@ class SequanaGUI(QMainWindow):
             return True
         return False
 
-    def closeEvent(self, event):
-        #Close button (red X)
+    # ---------------------------------------------------
+    #  settings and close
+    # ---------------------------------------------------
+
+    def read_settings(self):
+        settings = QtCore.QSettings("sequana_gui", "mainapp")
+
+        # tab snakemake output/logger/ipython
+        index = settings.value("tab_position")
+        self.ui.tabs.setCurrentIndex(int(index))
+
+    def write_settings(self):
+        settings = QtCore.QSettings("sequana_gui", "mainapp")
+
+        # tab snakemake output/logger/ipython
+        index = self.ui.tabs.currentIndex()
+        settings.setValue("tab_position", index)
+
+    def _close(self):
+        self.write_settings()
         self._tempdir.remove()
         try:self.browser.close()
         except:pass
+
+    def closeEvent(self, event):
+        #Close button (red X)
+        self._close()
 
     def close(self):
         # Menu or ctrl+q
-        self._tempdir.remove()
-        try:self.browser.close()
-        except:pass
-        print("bye now.")
+        self._close()
         super().close()
-
-
-class PreferencesDialog(QW.QDialog):
-    """FIXME May not be required anymore"""
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
-        self.ui = Ui_Preferences()
-        self.ui.setupUi(self)
 
 
 class SVGDialog(QW.QDialog):
@@ -836,26 +964,27 @@ def main():
         sequana.show()
         if "--nosplash" in sys.argv is False:
             splash.finish(sequana)
-        sys.exit(app.exec_())
     else:
         # Show the splash screen for a few seconds
         splash_pix = QtGui.QPixmap(filename)
         splash = QW.QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
-        #progressBar = QW.QProgressBar(splash)
         splash.setMask(splash_pix.mask())
         splash.show()
-        #progressBar.show()
-        """for i in range(0, 100):
-            #progressBar.setValue(i)
+
+        for i in range(0, 100):
             t = time.time()
-            while time.time() < t + 2./100.:
+            while time.time() < t + 0.5/100.:
                 app.processEvents()
-        """
+
         app.processEvents()
         sequana = SequanaGUI()
         sequana.show()
         splash.finish(sequana)
-        sys.exit(app.exec_())
+
+    # Make sure the main window is the active one
+    sequana.raise_()
+    sequana.activateWindow()
+    sys.exit(app.exec_())
 
 
 if __name__ == "__main__":

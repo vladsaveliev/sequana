@@ -11,7 +11,8 @@ __all__ = ["Ruleform", "GeneralOption", "BooleanOption",
 
 class Ruleform(QW.QGroupBox):
     do_option = "do"
-    def __init__(self, rule_name, rule_dict, count=0, browser_keywords=[]):
+    def __init__(self, rule_name, rule_dict, count=0, browser_keywords=[],
+                 generic=False):
         super().__init__(rule_name)
 
         # to handle recursive case
@@ -23,7 +24,16 @@ class Ruleform(QW.QGroupBox):
         self.layout.setSpacing(2)
         self.setAutoFillBackground(True)
 
-        for option, value in self.rule_dict.items():
+        rules = list(self.rule_dict.keys())
+        rules.sort()
+        if "do" in rules:
+            rules.remove("do")
+            rules.insert(0, "do")
+
+        for rule in rules:
+            option = rule
+            value = self.rule_dict[rule]
+
             if option.endswith("_directory"):
                 option_widget = FileBrowserOption(option, value,
                                                   directory=True)
@@ -33,12 +43,15 @@ class Ruleform(QW.QGroupBox):
             elif option in browser_keywords:
                 option_widget = FileBrowserOption(option, value,
                                                   directory=False)
-            elif isinstance(value, bool) or option=="do":
+            elif isinstance(value, bool) or option == "do":
                 # for the do option, we need to check its value
                 option_widget = BooleanOption(option, value)
                 if option == Ruleform.do_option:
                     self.do_widget = option_widget
                     option_widget.connect(self._widget_lock)
+            elif generic is True:
+                value = str(value)
+                option_widget = TextOption(option, value)
             else:
                 try:
                     option_widget = NumberOption(option, value)
