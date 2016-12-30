@@ -44,7 +44,6 @@ import shutil
 from easydev import get_package_location as gpl
 from easydev import load_configfile, AttrDict
 
-
 import ruamel.yaml
 from ruamel.yaml import comments
 
@@ -610,9 +609,9 @@ class SequanaConfig(object):
     def cleanup(self):
         # assuming only 2 levels, remove the templates
         #  %(input_directory)s and strip the strings.
-        for k1,v1 in self._yaml_code.items():
+        for k1, v1 in self._yaml_code.items():
             if isinstance(v1, dict):
-                for k2,v2 in self._yaml_code[k1].items():
+                for k2, v2 in self._yaml_code[k1].items():
                     if isinstance(v2, str) and "%(" in v2:
                         self._yaml_code[k1][k2] = None
                     elif isinstance(v2, str):
