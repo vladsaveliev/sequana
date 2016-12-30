@@ -918,7 +918,8 @@ class SequanaGUI(QMainWindow):
 
     def read_settings(self):
         settings = QtCore.QSettings("sequana_gui", "mainapp")
-
+        if settings.value("tab_position") is None:
+            return
         # tab snakemake output/logger/ipython
         index = settings.value("tab_position")
         self.ui.tabs.setCurrentIndex(int(index))
