@@ -14,12 +14,13 @@ Changelog
       when using the design file.
     - in sequana main script, --reference was used by quality_pipeline only.
       Now, available for all.
+    - Fix the main script for the reference in variant calling pipeline.
 
 
 * CHANGES:
 
     - remove pipetools module (obsolet)
-    
+    -  
 
 * NEWS:
 
