@@ -40,15 +40,19 @@ __rawdata__input = manager.getrawdata()
 
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
-# Generate data directory for SnpEff and annotation file for coverage
 if config["snpeff"]["do"]:
-    tmp = SnpEff(config["snpeff"]["reference"], log="snpeff_build.log")
-    __add_locus_in_fasta__fasta_input = __bwa_mem_ref__ref_input
-    __add_locus_in_fasta__output = manager.getname("add_locus_in_fasta",
-                                                   ".fasta")
-    __add_locus_in_fasta__log = manager.getlogdir("add_locus_in_fasta")
-    include: sm.modules["add_locus_in_fasta"]
-    __bwa_mem_ref__ref_input = __add_locus_in_fasta__output
+    __snpeff_download_database__output = "snpEff.config"
+    __snpeff_download_database__log = manager.getlogdir(
+        "snpeff_download_database")
+    include: sm.modules["snpeff_download_database"]
+    __snpeff_add_locus_in_fasta__config = __snpeff_download_database__output
+    __snpeff_add_locus_in_fasta__fasta_input = __bwa_mem_ref__ref_input
+    __snpeff_add_locus_in_fasta__output = manager.getname(
+        "snpeff_add_locus_in_fasta", ".fasta")
+    __snpeff_add_locus_in_fasta__log = manager.getlogdir(
+        "snpeff_add_locus_in_fasta")
+    include: sm.modules["snpeff_add_locus_in_fasta"]
+    __bwa_mem_ref__ref_input = __snpeff_add_locus_in_fasta__output
     __report_mapping__ann_input = config["snpeff"]["reference"]
 else:
     __report_mapping__ann_input = []
@@ -56,6 +60,7 @@ else:
 # Mapping
 __bwa_mem_ref__input = __rawdata__input
 __bwa_mem_ref__reference = manager.getname("reference", ".fasta")
+__bwa_mem_ref__fai = __bwa_mem_ref__reference + ".fai"
 __bwa_mem_ref__mem_output = manager.getname("bwa_mem_ref", ".bam")
 __bwa_mem_ref__sort_output = manager.getname("bwa_mem_ref", ".sorted.bam")
 __bwa_mem_ref__log = manager.getlogdir("bwa_mem_ref")
@@ -150,6 +155,7 @@ include: sm.modules["freebayes"]
 # snpEff
 if config["snpeff"]["do"]:
     __snpeff__input = __freebayes__output
+    __snpeff__config = __snpeff_download_database__output
     __snpeff__output = manager.getname("snpeff", ".ann.vcf")
     __snpeff__html = manager.getname("snpeff", ".snpeff.html")
     __snpeff__log = manager.getlogdir("snpeff")
@@ -182,7 +188,8 @@ final_output += ["requirements.txt", "dag.svg"]
 
 file_to_copy = [__freebayes__input, __freebayes__bai, __freebayes__output,
                 __vcf_filter__output, __vcf_filter__input, __snakefile__,
-                "config.yaml", __rulegraph__output, "requirements.txt"]
+                "config.yaml", __rulegraph__output, "requirements.txt",
+                __bwa_mem_ref__reference, __bwa_mem_ref__fai]
 
 # Check if snpeff is done
 try:
@@ -201,6 +208,9 @@ include: sm.modules["copy_multiple_files"]
 final_output.append(expand(__copy_multiple_files__done,
                            sample=manager.samples))
 
+# These rules don't need to be submit on a node.
+# Snpeff_download_database could be need an internet connection
+localrules: snpeff_download_database, conda, rulegraph
 
 rule pipeline_variant:
     input:

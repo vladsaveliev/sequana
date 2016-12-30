@@ -1,0 +1,22 @@
+rule CollectInsertSizeMetrics:
+    """
+    CollectInsertSizeMetrics on BAM files. This tool provides useful metrics for validating library construction including the insert size distribution and read orientation of paired-end libraries.
+
+    Required input:
+        __CollectInsertSizeMetrics__input: bam file
+
+    Required output:
+        __CollectInsertSizeMetrics__output: pdf file
+    """
+    input:
+        __CollectInsertSizeMetrics__input
+    output:
+        pdf = __CollectInsertSizeMetrics__output,
+        metrics = __CollectInsertSizeMetrics__metrics
+    log:
+        out = __CollectInsertSizeMetrics__log_std,
+        err = __CollectInsertSizeMetrics__log_err
+    shell:
+        """
+        CollectInsertSizeMetrics I={input} O={output.pdf} H={output.metrics} M=0.5 > {log.out} 2> {log.err}
+        """

@@ -601,19 +601,8 @@ def copy_config_from_sequana(module, source="config.yaml",
     user_config = module.path + os.sep + source
     if os.path.exists(user_config):
         shutil.copy(user_config, target)
-        txt = "copied %s from sequana %s pipeline" % (source, module.name)
-    else:
-        txt = "%s does not exists locally or within Sequana "+\
-              "library (%s pipeline)"
-    print(txt)
-
-    # some pipelines (eg rnaseq) have also a multiqc_config.yaml file that we want to get
-    multiqc_config = module.path + os.sep + "multiqc_config.yaml"
-    if os.path.exists(multiqc_config):
-        shutil.copy(multiqc_config, options.target_dir + os.sep + "multiqc_config.yaml")
-        txt = "copied multiqc_config.yaml from sequana %s pipeline" % (module.name)
-        print(txt)
-
+        txt = "copied %s from sequana %s pipeline"
+        print(txt % (source, module.name))
 
 def sequana_init(options):
     import sequana
@@ -687,6 +676,10 @@ def sequana_init(options):
     else:
         copy_config_from_sequana(module, "config.yaml", config_filename)
 
+    # Copy multiqc if it is available
+    multiqc_filename = options.target_dir + os.sep + "multiqc_config.yaml"
+    copy_config_from_sequana(module, "multiqc_config.yaml", multiqc_filename)
+
     # The input
     cfg = SequanaConfig(config_filename)
     cfg.config.input_directory = options.input_directory
@@ -719,7 +712,7 @@ def sequana_init(options):
 
     cfg.copy_requirements(target=options.target_dir)
 
-    # FIXME If invalid, no error raised
+# FIXME If invalid, no error raised
     if options.config_params:
         params = [this.strip() for this in options.config_params.split(",")]
         for param in params:

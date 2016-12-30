@@ -19,7 +19,7 @@ input_samples:
 
 sequencing:
     platform: "Illumina"
-    instrument: "Hiseq2500"
+    instrument: "Unknown"
     flowcell: "Unknown"
 
 # =========================================== Sections related to variant calling
@@ -63,7 +63,8 @@ indel_realigner:
 
 mark_duplicates:
     do: yes
-    options: ''
+    remove: no # yes/no
+    tmpdir: "" # temporary directory
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bam quality filter
 
