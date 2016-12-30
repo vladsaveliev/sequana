@@ -29,7 +29,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtSvg import QSvgWidget
 from PyQt5.QtWebKitWidgets import QWebView
 
-from ui_preferences import Ui_Preferences
+from sequana.gui.ui_preferences import Ui_Preferences
 
 
 class PreferencesDialog(QW.QDialog):

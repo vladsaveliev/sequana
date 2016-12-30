@@ -22,7 +22,7 @@ import time
 import subprocess as sp
 import shutil
 
-from ui_mainwindow import Ui_MainWindow
+from sequana.gui.ui_mainwindow import Ui_MainWindow
 from sequana.gui.browser import MyBrowser
 from sequana.gui.ipython import QIPythonWidget
 from sequana.gui.about import About
@@ -94,7 +94,7 @@ class SequanaGUI(QMainWindow):
     _not_a_rule = {"requirements", "gatk_bin", "input_directory", "input_samples", "input_pattern"}
     _browser_keyword = {"reference"}
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ipython=True):
         super(SequanaGUI, self).__init__(parent=parent)
 
         self._tempdir = QTemporaryDir()
@@ -110,6 +110,7 @@ class SequanaGUI(QMainWindow):
         self.pipeline_is_chosen = False
         self._undefined_section = "Parameters in no sections/rules"
 
+        self._ipython_tab = ipython
         self.initUI()
         self.read_settings()
 
@@ -134,14 +135,15 @@ class SequanaGUI(QMainWindow):
         self.snakemake_dialog = SnakemakeDialog(self)
 
         # The IPython dialog, which is very useful for debugging
-        self.ipyConsole = QIPythonWidget(
-            customBanner="Welcome to the embedded ipython console\n")
-        self.ipyConsole.printText("The variable 'foo' andion.")
-        self.ipyConsole.execute("from sequana import *")
-        self.ipyConsole.execute("import sequana")
-        self.ipyConsole.execute("")
-        self.ipyConsole.pushVariables({"gui": self})
-        self.ui.layout_ipython.addWidget(self.ipyConsole)
+        if self._ipython_tab is True:
+            self.ipyConsole = QIPythonWidget(
+                customBanner="Welcome to the embedded ipython console\n")
+            self.ipyConsole.printText("The variable 'foo' andion.")
+            self.ipyConsole.execute("from sequana import *")
+            self.ipyConsole.execute("import sequana")
+            self.ipyConsole.execute("")
+            self.ipyConsole.pushVariables({"gui": self})
+            self.ui.layout_ipython.addWidget(self.ipyConsole)
 
         # layout for config file parameters
         widget_form = QW.QWidget()
@@ -213,18 +215,18 @@ class SequanaGUI(QMainWindow):
     def menuAbout(self):
         from sequana import version
         url = 'sequana.readthedocs.io'
-        msg = About()
-        msg.setIcon(QW.QMessageBox.Information)
-        msg.setText("Sequana version %s " % version)
-        msg.setInformativeText("""
+        self.msg = About()
+        self.msg.setIcon(QW.QMessageBox.Information)
+        self.msg.setText("Sequana version %s " % version)
+        self.msg.setInformativeText("""
             Online documentation on <a href="http://%(url)s">%(url)s</a>
             <br>
             <br>
             Authors: Thomas Cokelaer and Dimitri Desvillechabrol, 2016
             """ % {"url": url})
-        msg.setWindowTitle("Sequana")
-        msg.setStandardButtons(QW.QMessageBox.Ok)
-        retval = msg.exec_()
+        self.msg.setWindowTitle("Sequana")
+        self.msg.setStandardButtons(QW.QMessageBox.Ok)
+        retval = self.msg.exec_()
 
     def menuHelp(self):
         url = 'sequana.readthedocs.io'
@@ -396,7 +398,10 @@ class SequanaGUI(QMainWindow):
 
     def _set_focus_on_config_tab(self):
         # Set focus on config file
-        self.ui.tabs.setCurrentIndex(3)
+        if self._ipython_tab:
+            self.ui.tabs.setCurrentIndex(3)
+        else:
+            self.ui.tabs.setCurrentIndex(2)
 
     def _get_configfile(self):
         if self.mode == "sequana" and self._configfile is None:
@@ -799,10 +804,10 @@ class SequanaGUI(QMainWindow):
             msg.exec_()
             return
 
-    def open_report(self):
+    def open_report(self, filename="multi_summary.html"):
         dialog = self.preferences_dialog.ui # an alias
         if self.pipeline_is_chosen and self.working_dir.get_filenames():
-            filename = self.working_dir.get_filenames() + "/multi_summary.html"
+            filename = self.working_dir.get_filenames() + filename
             if os.path.exists(filename) is False:
                 WarningMessage("""multi_summary.html not found.
                 Most probably the analysis did not finish correctly""")
