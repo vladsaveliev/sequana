@@ -804,10 +804,13 @@ class SequanaGUI(QMainWindow):
             msg.exec_()
             return
 
-    def open_report(self, filename="multi_summary.html"):
+    def open_report(self):
+        filename = "multi_summary.html"
         dialog = self.preferences_dialog.ui # an alias
         if self.pipeline_is_chosen and self.working_dir.get_filenames():
-            filename = self.working_dir.get_filenames() + filename
+            print(self.working_dir.get_filenames())
+            print(filename)
+            filename = self.working_dir.get_filenames() + os.sep + filename
             if os.path.exists(filename) is False:
                 WarningMessage("""multi_summary.html not found.
                 Most probably the analysis did not finish correctly""")
