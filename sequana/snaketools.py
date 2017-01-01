@@ -52,6 +52,8 @@ from sequana.misc import wget
 from sequana import sequana_data
 from sequana.errors import SequanaException
 
+import colorlog
+
 __all__ = ["DOTParser", "FastQFactory", "FileFactory",
            "Module", "PipelineManager", "SnakeMakeStats",
            "SequanaConfig"]
@@ -60,7 +62,7 @@ try:
     # This is for python2.7
     import snakemake
 except:
-    print("Snakemake must be installed. Available for Python3 only")
+    colorlog.warning("Snakemake must be installed. Available for Python3 only")
     class MockSnakeMake(object):
         def __init__(self):
             pass
@@ -126,13 +128,13 @@ class SnakeMakeStats(object):
 
 def plot_stats(inputdir=".", outputdir=".",
                filename="snakemake_stats.png", N=1):
-    print("Workflow finished. Creating stats image")
+    colorlog.info("Workflow finished. Creating stats image")
     try:
         SnakeMakeStats("%s/stats.txt" % inputdir, N=N).plot_and_save(
             outputdir=outputdir, filename=filename)
     except Exception as err:
-        print(err)
-        print("INFO: Could not process %s/stats.txt file" % inputdir)
+        colorlog.error(err)
+        colorlog.error("Could not process %s/stats.txt file" % inputdir)
 
 
 class ModuleFinder(object):
@@ -152,7 +154,6 @@ class ModuleFinder(object):
             False
 
         """
-
         # names for each directory
         self._paths = {}
         self._type = {}
@@ -540,7 +541,7 @@ class SequanaConfig(object):
             else:
                 raise IOError("input string must be an existing file")
             self.config = AttrDict(**config)
-        elif isinstance(data, SequanaConfig): 
+        elif isinstance(data, SequanaConfig):
             self.config = AttrDict(**data.config)
             self._yaml_code = comments.CommentedMap(self.config.copy())
         else: # a dictionary ?
@@ -624,17 +625,28 @@ class SequanaConfig(object):
         self._update_config()
 
     def copy_requirements(self, target):
+        """Copy files to run the pipeline
+
+        If a requirement file exists, it is copied in the target directory.
+        If not, it can be either an http resources or a sequana resources.
+
+        """
         if 'requirements' in self._yaml_code.keys():
             for requirement in self._yaml_code['requirements']:
-                if requirement.startswith('http') is False:
-                    print('Copying %s from sequana' % requirement)
-                    if requirement.endswith('.png') :
-                        shutil.copy(sequana_data(requirement, "images"), target)
-                    else:
-                        shutil.copy(sequana_data(requirement, "data"), target)
+                if os.path.exists(requirement):
+                    try:
+                        shutil.copy(requirement, target)
+                    except:
+                        pass # the target and input may be the same
+                elif requirement.startswith('http') is False:
+                    colorlog.info('Copying %s from sequana' % requirement)
+                    shutil.copy(sequana_data(requirement, "data"), target)
                 elif requirement.startswith("http"):
-                    print("This file %s will be needed" % requirement)
-                    wget(requirement)
+                    colorlog.info("This file %s will be needed. Downloading" % requirement)
+                    output = requirement.split("/")[-1]
+                    wget(requirement, target + os.sep + output)
+                else:
+                    colorlog.error("This requirement %s was not found" % requirement)
 
 
 class DummyManager(object):
@@ -880,7 +892,7 @@ class DOTParser(object):
         imshow(imread("test.png")); xticks([]) ;yticks([])
 
     """
-    
+
     _name_to_drops = {'dag', 'conda', 'rulegraph', 'copy_multiple_files'}
 
     def __init__(self, filename):
@@ -1180,6 +1192,11 @@ def init(filename, namespace):
 
 
 def create_recursive_cleanup(filename=".sequana_cleanup.py"):
+    """
+
+
+    .. todo:: set a directory
+    """
     with open(filename, "w") as fh:
         fh.write("""
 import subprocess
@@ -1204,7 +1221,8 @@ shellcmd("rm  *.rules" )
 
 def create_cleanup(targetdir):
     """A script to include in directory created by the different pipelines"""
-    with open(targetdir + os.sep + ".sequana_cleanup.py", "w") as fout:
+    filename = targetdir + os.sep + ".sequana_cleanup.py"
+    with open(filename, "w") as fout:
         fout.write("""
 import glob
 import os
@@ -1223,6 +1241,7 @@ shellcmd("rm -f  README config.yaml snakejob.* slurm-*")
 shellcmd("rm -f .sequana_cleanup.py")
 shellcmd("rm -rf .snakemake")
 """)
+    return filename
 
 
 def build_dynamic_rule(code, directory):
