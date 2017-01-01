@@ -48,11 +48,12 @@ from easydev import load_configfile, AttrDict
 import ruamel.yaml
 from ruamel.yaml import comments
 
+
 from sequana.misc import wget
 from sequana import sequana_data
 from sequana.errors import SequanaException
 
-import colorlog
+from sequana import logger
 
 __all__ = ["DOTParser", "FastQFactory", "FileFactory",
            "Module", "PipelineManager", "SnakeMakeStats",
@@ -62,7 +63,7 @@ try:
     # This is for python2.7
     import snakemake
 except:
-    colorlog.warning("Snakemake must be installed. Available for Python3 only")
+    logger.warning("Snakemake must be installed. Available for Python3 only")
     class MockSnakeMake(object):
         def __init__(self):
             pass
@@ -128,13 +129,13 @@ class SnakeMakeStats(object):
 
 def plot_stats(inputdir=".", outputdir=".",
                filename="snakemake_stats.png", N=1):
-    colorlog.info("Workflow finished. Creating stats image")
+    logger.info("Workflow finished. Creating stats image")
     try:
         SnakeMakeStats("%s/stats.txt" % inputdir, N=N).plot_and_save(
             outputdir=outputdir, filename=filename)
     except Exception as err:
-        colorlog.error(err)
-        colorlog.error("Could not process %s/stats.txt file" % inputdir)
+        logger.error(err)
+        logger.error("Could not process %s/stats.txt file" % inputdir)
 
 
 class ModuleFinder(object):
@@ -639,14 +640,14 @@ class SequanaConfig(object):
                     except:
                         pass # the target and input may be the same
                 elif requirement.startswith('http') is False:
-                    colorlog.info('Copying %s from sequana' % requirement)
+                    logger.info('Copying %s from sequana' % requirement)
                     shutil.copy(sequana_data(requirement, "data"), target)
                 elif requirement.startswith("http"):
-                    colorlog.info("This file %s will be needed. Downloading" % requirement)
+                    logger.info("This file %s will be needed. Downloading" % requirement)
                     output = requirement.split("/")[-1]
                     wget(requirement, target + os.sep + output)
                 else:
-                    colorlog.error("This requirement %s was not found" % requirement)
+                    logger.error("This requirement %s was not found" % requirement)
 
 
 class DummyManager(object):
