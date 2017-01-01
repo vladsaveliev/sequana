@@ -27,7 +27,7 @@ from optparse import OptionParser
 import argparse
 
 from easydev.console import red, purple, green, blue
-from easydev import DevTools
+from easydev import DevTools, SmartFormatter
 
 adapters_choice = ["Nextera", "Rubicon", "PCRFree"]
 
@@ -76,13 +76,6 @@ class Tools(object):
     def print(self, txt, force=False):
         if self.verbose or force: print(txt)
 
-
-class SmartFormatter(argparse.HelpFormatter):
-    def _split_lines(self, text, width):
-        if text.startswith('FORMAT|'):
-            return text[7:].splitlines()
-        # this is the RawTextHelpFormatter._split_lines
-        return argparse.HelpFormatter._split_lines(self, text, width)
 
 
 class Options(argparse.ArgumentParser):
