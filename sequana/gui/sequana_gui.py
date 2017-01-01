@@ -153,19 +153,21 @@ class SequanaGUI(QMainWindow):
                            }""")
 
         # User option
-        if "wkdir" in user_options:
+        print(user_options)
+        if "wkdir" in user_options and user_options.wkdir is not None:
             self.info("Setting working directory")
             if os.path.exists(user_options.wkdir) is False:
                 easydev.mkdirs(user_options.wkdir)
             self.working_dir.set_filenames(user_options.wkdir)
 
-        if "pipeline" in user_options:
+        if "pipeline" in user_options and user_options.pipeline is not None:
             self.info("Setting Sequana pipeline")
             index = self.ui.choice_button.findText(user_options.pipeline)
             self.ui.choice_button.setCurrentIndex(index)
             self._set_focus_on_pipeline_tab()
 
-        if "input_directory" in user_options:
+        if "input_directory" in user_options and \
+                user_options.input_directory is not None:
             directory = user_options.input_directory
             self.info("Setting Sequana input directory")
             print(directory)
