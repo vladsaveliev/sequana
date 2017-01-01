@@ -89,11 +89,17 @@ class Ui_Snakemake(object):
         self.layout_general = QtWidgets.QFormLayout(self.formLayoutWidget_3)
         self.layout_general.setContentsMargins(0, 0, 0, 0)
         self.layout_general.setObjectName("layout_general")
+        self.snakemake_options_general_forceall_value = QtWidgets.QCheckBox(self.formLayoutWidget_3)
+        self.snakemake_options_general_forceall_value.setObjectName("snakemake_options_general_forceall_value")
+        self.layout_general.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.snakemake_options_general_forceall_value)
         self.snakemake_options_general_quiet_value = QtWidgets.QCheckBox(self.formLayoutWidget_3)
         self.snakemake_options_general_quiet_value.setObjectName("snakemake_options_general_quiet_value")
-        self.layout_general.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.snakemake_options_general_quiet_value)
+        self.layout_general.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.snakemake_options_general_quiet_value)
+        self.snakemake_options_general_no__hooks_value = QtWidgets.QCheckBox(self.formLayoutWidget_3)
+        self.snakemake_options_general_no__hooks_value.setObjectName("snakemake_options_general_no__hooks_value")
+        self.layout_general.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.snakemake_options_general_no__hooks_value)
         spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.layout_general.setItem(1, QtWidgets.QFormLayout.FieldRole, spacerItem2)
+        self.layout_general.setItem(3, QtWidgets.QFormLayout.FieldRole, spacerItem2)
         self.tabs.addTab(self.tab_general, "")
         self.verticalLayout.addWidget(self.tabs)
         self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
@@ -104,14 +110,13 @@ class Ui_Snakemake(object):
         self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
 
         self.retranslateUi(Snakemake)
-        self.tabs.setCurrentIndex(1)
+        self.tabs.setCurrentIndex(2)
         self.buttonBox.accepted.connect(Snakemake.accept)
         self.buttonBox.rejected.connect(Snakemake.reject)
         QtCore.QMetaObject.connectSlotsByName(Snakemake)
         Snakemake.setTabOrder(self.tabs, self.snakemake_options_local_cores_value)
         Snakemake.setTabOrder(self.snakemake_options_local_cores_value, self.snakemake_options_cluster_cluster_value)
         Snakemake.setTabOrder(self.snakemake_options_cluster_cluster_value, self.snakemake_options_cluster_jobs_value)
-        Snakemake.setTabOrder(self.snakemake_options_cluster_jobs_value, self.snakemake_options_general_quiet_value)
 
     def retranslateUi(self, Snakemake):
         _translate = QtCore.QCoreApplication.translate
@@ -123,7 +128,15 @@ class Ui_Snakemake(object):
         self.snakemake_options_cluster_cluster_label.setText(_translate("Snakemake", "cluster"))
         self.snakemake_options_cluster_jobs_label.setText(_translate("Snakemake", "jobs"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_cluster), _translate("Snakemake", "&Cluster"))
+        self.snakemake_options_general_forceall_value.setToolTip(_translate("Snakemake", "--forceall Force the execution of the selected (or the first)\n"
+"rule and all rules it is dependent on regardless of\n"
+"already created output.\n"
+""))
+        self.snakemake_options_general_forceall_value.setText(_translate("Snakemake", "forceall"))
         self.snakemake_options_general_quiet_value.setToolTip(_translate("Snakemake", "Do not output any progress or rule information"))
         self.snakemake_options_general_quiet_value.setText(_translate("Snakemake", "Quiet"))
+        self.snakemake_options_general_no__hooks_value.setToolTip(_translate("Snakemake", "--no-hooks : Do not invoke onstart, onsuccess or onerror hooks   after execution.\n"
+""))
+        self.snakemake_options_general_no__hooks_value.setText(_translate("Snakemake", "nohooks"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_general), _translate("Snakemake", "&General"))
 

@@ -37,7 +37,7 @@
         <string>Snakemake parameters related to the cluster</string>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="tab_local">
         <attribute name="title">
@@ -211,7 +211,20 @@
           </rect>
          </property>
          <layout class="QFormLayout" name="layout_general">
-          <item row="0" column="1">
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="snakemake_options_general_forceall_value">
+            <property name="toolTip">
+             <string>--forceall Force the execution of the selected (or the first)
+rule and all rules it is dependent on regardless of
+already created output.
+</string>
+            </property>
+            <property name="text">
+             <string>forceall</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
            <widget class="QCheckBox" name="snakemake_options_general_quiet_value">
             <property name="toolTip">
              <string>Do not output any progress or rule information</string>
@@ -221,7 +234,18 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="snakemake_options_general_no__hooks_value">
+            <property name="toolTip">
+             <string>--no-hooks : Do not invoke onstart, onsuccess or onerror hooks   after execution.
+</string>
+            </property>
+            <property name="text">
+             <string>nohooks</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
            <spacer name="verticalSpacer_3">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -258,7 +282,6 @@
   <tabstop>snakemake_options_local_cores_value</tabstop>
   <tabstop>snakemake_options_cluster_cluster_value</tabstop>
   <tabstop>snakemake_options_cluster_jobs_value</tabstop>
-  <tabstop>snakemake_options_general_quiet_value</tabstop>
  </tabstops>
  <resources/>
  <connections>

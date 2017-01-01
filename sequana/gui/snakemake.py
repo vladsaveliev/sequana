@@ -48,8 +48,12 @@ class SnakemakeDialog(QW.QDialog):
         # Get the objects themselves
         widgets = [getattr(self.ui, this) for this in names]
 
+        # the double underescore __  is used i nplace or dash - in qt designer
+        # because dash is not acceptable within the object name. so we must
+        # replace it. We also strip the prefix and suffix (_value)
         names = [this.replace(prefix + "_", "") for this in names]
-        names = [this.rstrip("_value") for this in names]
+        names = [this.replace("__", "-") for this in names]
+        names = [this.replace("_value", "") for this in names]
 
         options = []
         for name, widget in zip(names, widgets):

@@ -84,6 +84,7 @@ class FileBrowser(QW.QWidget):
         self.paths = filename
         if len(filename) > 30:
             self.btn_filename.setText("...." + filename[-30:])
+            self.btn_filename.setToolTip(filename)
         else:
             self.btn_filename.setText(filename)
         self.set_green()
@@ -112,13 +113,11 @@ class FileBrowser(QW.QWidget):
         self.setup = True
         self.setup_color()
 
-
     def clicked_connect(self, function):
         """ Connect additionnal function on browser button. It is used to
         activate run button in Sequana GUI.
         """
         self.btn.clicked.connect(function)
-
 
 
 class DirectoryDialog(QW.QFileDialog):

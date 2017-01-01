@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>836</width>
-    <height>849</height>
+    <width>655</width>
+    <height>536</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -42,7 +42,7 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QTabWidget" name="tabWidget_framework">
+       <widget class="QTabWidget" name="tabs_pipeline">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -59,7 +59,7 @@
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You can run a Sequana pipeline (left tab) or a generic Snakemake file (right tab).&lt;/p&gt;&lt;p&gt;In the &lt;span style=&quot; font-weight:600;&quot;&gt;Sequana pipeline section, f&lt;/span&gt;irst, on the left hand side, select a pipeline in the dropbox. Second, on the right hand side, select either the input directory where to find the FastQ files, or select a specific set of input sample (one or two files for paired-end data).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab_6">
          <property name="sizePolicy">
@@ -333,7 +333,7 @@ If you have selected a file, click on the button again, and once the file browse
       <item>
        <widget class="QTabWidget" name="tabs">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -360,7 +360,7 @@ If you have selected a file, click on the button again, and once the file browse
          <string>&lt;p&gt;This is an IPython shell included in the GUI. The entire Sequana GUI is accessible as the variable &lt;span style=&quot; font-weight:600;&quot;&gt;gui.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;For instance, you can access to layout or values set in the graphical interface with:&lt;/p&gt;&lt;p&gt;    gui.ui&lt;/p&gt;&lt;p&gt;More generally, this is a pure IPython code, so you use e.g. matplotlib/pylab:&lt;/p&gt;&lt;p&gt;  import pylab&lt;br&gt;pylab.plot([1,2,3])&lt;/p&gt;</string>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="snakemake">
          <property name="sizePolicy">
@@ -370,7 +370,7 @@ If you have selected a file, click on the button again, and once the file browse
           </sizepolicy>
          </property>
          <attribute name="title">
-          <string>Snakemake output</string>
+          <string>&amp;Snakemake output</string>
          </attribute>
          <layout class="QGridLayout" name="gridLayout_5">
           <item row="0" column="0">
@@ -386,7 +386,7 @@ If you have selected a file, click on the button again, and once the file browse
           </sizepolicy>
          </property>
          <attribute name="title">
-          <string>IPython shell</string>
+          <string>&amp;IPython shell</string>
          </attribute>
          <layout class="QGridLayout" name="gridLayout">
           <item row="0" column="0">
@@ -403,7 +403,7 @@ If you have selected a file, click on the button again, and once the file browse
         </widget>
         <widget class="QWidget" name="logger">
          <attribute name="title">
-          <string>Logger</string>
+          <string>&amp;Logger</string>
          </attribute>
          <layout class="QGridLayout" name="gridLayout_3">
           <item row="0" column="0">
@@ -413,7 +413,7 @@ If you have selected a file, click on the button again, and once the file browse
         </widget>
         <widget class="QWidget" name="tab_3">
          <attribute name="title">
-          <string>Config parameters</string>
+          <string>&amp;Config parameters</string>
          </attribute>
          <layout class="QGridLayout" name="gridLayout_4">
           <item row="0" column="0">
@@ -438,8 +438,8 @@ If you have selected a file, click on the button again, and once the file browse
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>784</width>
-               <height>383</height>
+               <width>603</width>
+               <height>70</height>
               </rect>
              </property>
             </widget>
@@ -496,15 +496,24 @@ If you have selected a file, click on the button again, and once the file browse
              <property name="text">
               <string>Stop</string>
              </property>
+             <property name="shortcut">
+              <string>Ctrl+S</string>
+             </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="unlock_btn">
              <property name="toolTip">
-              <string>Unlock the directory where the pipeline is run</string>
+              <string>Unlock the directory where the pipeline is run.
+This launch snakemake with the following arguments: 
+
+snakemake -s Snakefile --unlock </string>
              </property>
              <property name="text">
               <string>Unlock</string>
+             </property>
+             <property name="shortcut">
+              <string>Ctrl+U</string>
              </property>
             </widget>
            </item>
@@ -512,6 +521,9 @@ If you have selected a file, click on the button again, and once the file browse
             <widget class="QPushButton" name="report_btn">
              <property name="text">
               <string>Open Report</string>
+             </property>
+             <property name="shortcut">
+              <string>Ctrl+R</string>
              </property>
             </widget>
            </item>
@@ -536,6 +548,9 @@ This is a good way to check your config file .</string>
              </property>
              <property name="text">
               <string>Show Dag</string>
+             </property>
+             <property name="shortcut">
+              <string>Ctrl+D</string>
              </property>
             </widget>
            </item>
@@ -575,7 +590,7 @@ This is a good way to check your config file .</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>836</width>
+     <width>655</width>
      <height>19</height>
     </rect>
    </property>
@@ -675,7 +690,7 @@ This is a good way to check your config file .</string>
   </action>
  </widget>
  <tabstops>
-  <tabstop>tabWidget_framework</tabstop>
+  <tabstop>tabs_pipeline</tabstop>
   <tabstop>choice_button</tabstop>
   <tabstop>tabs_browser</tabstop>
   <tabstop>until_box</tabstop>
