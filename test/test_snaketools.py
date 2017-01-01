@@ -1,6 +1,7 @@
 from sequana import snaketools, sequana_data
 from sequana.snaketools import DOTParser
-import os
+import os, shutil
+import tempfile
 from nose.plugins.attrib import attr
 from sequana import Module, SequanaConfig
 
@@ -208,3 +209,63 @@ def test_file_name_factory():
     ff.get_file1(ff.tags[0])
     ff.get_file2(ff.tags[0])
     assert len(ff) == 1
+
+
+def test_copy_requirements():
+    # We need 4 cases:
+    # 1- http 
+    # 2- a sequana file (phix)
+    # 3- an existing file elsewhere (here just a temporary file)
+    # 4- an existing file in the same directory as the target dir
+
+    from easydev import TempFile
+    fh = tempfile.TemporaryDirectory()
+    targetdir = fh.name
+
+    # Case 3: a temporary file
+    temprequire = TempFile()
+
+    # Case 4: a local file (copy of the temp file) 
+    # TODO
+    #localfile = temprequire.name.split(os.sep)[-1]
+    #shutil.copy(temprequire.name, targetdir)
+
+    cfg = snaketools.SequanaConfig()
+    cfg.config.requirements = ["phiX174.fa", temprequire.name, 
+        #localfile,
+        "https://raw.githubusercontent.com/sequana/sequana/master/README.rst"]
+    cfg._update_yaml()
+
+    cfg.copy_requirements(target=fh.name)
+
+def test_create_cleanup():
+    fh = tempfile.TemporaryDirectory()
+    directory = fh.name
+    filename = snaketools.create_cleanup(directory)
+
+def test_create_recursive_cleanup():
+    fh = tempfile.TemporaryDirectory()
+    directory = fh.name
+    snaketools.create_recursive_cleanup()
+
+def test_build_dynamic_rule():
+
+    code = "whatever"
+    fh = tempfile.TemporaryDirectory()
+    directory = fh.name
+    snaketools.build_dynamic_rule(code, directory)
+
+def test_init():
+    snaketools.init("quality_control.rules", globals())
+    assert "expected_output" in globals()
+
+
+
+
+
+
+
+
+
+
+
