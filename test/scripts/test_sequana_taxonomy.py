@@ -3,15 +3,20 @@ from nose.plugins.attrib import attr
 from sequana import sequana_data
 
 
-df = taxonomy.main([self.prog, '--download', 'toydb'])
 
 class TestPipeline(object):
 
     @classmethod
     def setup_class(klass):
-        """This method is run once for each class before any tests are run"""
         klass.prog = "sequana_taxonomy"
         klass.params = {'prog': klass.prog}
+    
+
+    def setUp(self):
+        try:
+            taxonomy.main(["taxonomy", '--download', 'toydb'])
+        except SystemExit:
+            pass
 
 
     def test_help(self):
