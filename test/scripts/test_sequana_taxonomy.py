@@ -3,6 +3,8 @@ from nose.plugins.attrib import attr
 from sequana import sequana_data
 
 
+df = taxonomy.main([self.prog, '--download', 'toydb'])
+
 class TestPipeline(object):
 
     @classmethod
