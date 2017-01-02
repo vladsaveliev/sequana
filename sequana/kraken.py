@@ -25,6 +25,7 @@ import pandas as pd
 
 from sequana.misc import wget
 from sequana import sequana_config_path
+from sequana import logger
 
 from easydev import md5
 
@@ -113,7 +114,7 @@ class KrakenResults(object):
             return pd.DataFrame()
 
         if self.verbose:
-            print('Retrieving taxon using biokit.Taxonomy')
+            logger.info('Retrieving taxon using biokit.Taxonomy')
 
         if isinstance(ids, list) is False:
             ids = [ids]
@@ -153,7 +154,7 @@ class KrakenResults(object):
         taxonomy = {}
 
         if self.verbose:
-            print("Reading kraken data")
+            logger.info("Reading kraken data")
         # we select only col 0,2,3 to save memoty, which is required on very
         # large files
         self._df = pd.read_csv(self.filename, sep="\t", header=None,
@@ -252,7 +253,7 @@ x!="description"] +  ["description"]]
         taxon_to_find = list(self.taxons.index)
 
         if len(taxon_to_find) == 0:
-            print("No reads were identified. You will need a more complete database")
+            self.warning("No reads were identified. You will need a more complete database")
             self.output_filename = output_filename
             with open(output_filename, "w") as fout:
                 fout.write("%s\t%s" % (self.unclassified, "Unclassified"))
@@ -260,8 +261,8 @@ x!="description"] +  ["description"]]
         # classified reads as root  (1)
         try:
             if self.verbose:
-                print("Removing taxon 1 (%s values) " % self.taxons.ix[1])
-                print("Found %s taxons " % len(taxon_to_find))
+                logger.warning("Removing taxon 1 (%s values) " % self.taxons.ix[1])
+                logger.info("Found %s taxons " % len(taxon_to_find))
             taxon_to_find.pop(taxon_to_find.index(1))
         except:
             pass
@@ -331,7 +332,7 @@ x!="description"] +  ["description"]]
             self.kraken_to_krona()
 
         if kind not in ['barh', 'pie']:
-            print('kind parameter: Only barh and pie are supported')
+            logger.error('kind parameter: Only barh and pie are supported')
             return
         # This may have already been called but maybe not. This is not time
         # consuming, so we call it again here
@@ -615,7 +616,7 @@ class KrakenDownload(object):
 
         # download only if required
         if verbose:
-            print("Downloading the database into %s" % base)
+            logger.info("Downloading the database into %s" % base)
 
         md5sums = [
             "28661f8baf0514105b0c6957bec0fc6e",
@@ -633,9 +634,9 @@ class KrakenDownload(object):
             filename = base + os.sep + filename
             if os.path.exists(filename) and md5(filename) == md5sum:
                 if verbose:
-                    print("%s already present" % filename)
+                    logger.warning("%s already present" % filename)
             else:
-                print("Downloading %s" % url)
+                logger.info("Downloading %s" % url)
                 wget(url, filename)
 
     def _download_minikraken(self, verbose=True):
@@ -645,12 +646,12 @@ class KrakenDownload(object):
         dv.mkdir(base)
         dv.mkdir(taxondir)
         if verbose:
-            print("Downloading minikraken (4Gb)")
+            logger.info("Downloading minikraken (4Gb)")
 
         filename = base + os.sep + "minikraken.tgz"
         if os.path.exists(filename) and md5(filename) == "30eab12118158d0b31718106785195e2":
             if verbose:
-                print("%s already present" % filename)
+                logger.warning("%s already present" % filename)
         else:
             wget("https://ccb.jhu.edu/software/kraken/dl/minikraken.tgz", filename)
         # unzipping. requires tar and gzip
@@ -673,7 +674,7 @@ class KrakenDownload(object):
         self.dv.mkdir(dir1)
         self.dv.mkdir(dir2)
 
-        print("Downloading about 8Gb of data (if not already downloaded) from"
+        logger.info("Downloading about 8Gb of data (if not already downloaded) from"
             " Synapse into %s" % dir1)
 
         from os.path import exists
@@ -715,7 +716,7 @@ class KrakenDownload(object):
             pass
         else:
             self._download_from_synapse('syn6171290', dir2)
-        print('done. You should have a kraken DB in %s' % dir1)
+        logger.info('done. You should have a kraken DB in %s' % dir1)
 
         # The annotations
         wget("https://github.com/sequana/data/raw/master/sequana_db1/annotations.csv",
