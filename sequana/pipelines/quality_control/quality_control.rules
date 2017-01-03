@@ -112,6 +112,20 @@ if manager.config.bwa_mem_phix.do:
 if manager.config.adapter_removal.do:
     adapter_removal = manager.config.adapter_removal.tool
 
+    from sequana.adapters import _get_registered_adapters as registered
+    from sequana.adapters import get_sequana_adapters
+
+    # Users may provide Nextera, PCRFree, Rubicon or other registered adapters
+    fwd = manager.config.adapter_removal.fwd
+    if isinstance(fwd, str) and fwd in registered():
+        filename = "file:"+ get_sequana_adapters(fwd, "fwd")
+        manager.config.adapter_removal.fwd = filename
+
+    rev = manager.config.adapter_removal.rev
+    if isinstance(rev, str) and rev in registered():
+        filename = "file:"+ get_sequana_adapters(rev, "revcomp")
+        manager.config.adapter_removal.rev = filename
+
     if adapter_removal in ["cutadapt"]:
         __cutadapt__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output 
                                    if "unmapped" in x]
@@ -120,15 +134,9 @@ if manager.config.adapter_removal.do:
                               "cutadapt").replace("unmapped","cutadapt")
                               for x in __cutadapt__input_fastq]
 
-        if "adapter_fwd" in manager.config.adapter_removal.fwd :
-            __cutadapt__fwd = ""
-        else:
-            __cutadapt__fwd = manager.config.adapter_removal.fwd
-
-        if "adapter_rev" in manager.config.adapter_removal.rev:
-            __cutadapt__rev = ""
-        else:
-            __cutadapt__rev = manager.config.adapter_removal.rev
+        # Set the fwd and rev adapters
+        __cutadapt__fwd = manager.config.adapter_removal.fwd
+        __cutadapt__rev = manager.config.adapter_removal.rev
 
         __cutadapt__design = manager.config.adapter_removal.design_file
         __cutadapt__design_adapter = manager.config.adapter_removal.adapter_type

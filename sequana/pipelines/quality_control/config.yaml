@@ -49,7 +49,8 @@ bwa_mem_phix:
 
 #################################################################
 # Quality trimming and adapter removal
-#   - adapter_type can only be PCRFRee or Nextera
+#   - adapter_type can only be PCRFree or Nextera and used by 
+#     with design_file only.
 #   - design_file: a valid CSV file with mapping of index and 
 #       sample name
 #   - quality: 0 means no trimming, 30 means keep base with quality
