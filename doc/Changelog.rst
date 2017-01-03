@@ -20,7 +20,7 @@ Changelog
 * CHANGES:
 
     - remove pipetools module (obsolet)
-    -  
+    - GUI revisited with qt designer 
 
 * NEWS:
 
