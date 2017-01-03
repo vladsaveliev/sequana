@@ -49,6 +49,8 @@ import logging
 
 import signal
 
+
+
 END = QtGui.QTextCursor.End
 
 def sigint_handler(*args):
@@ -98,8 +100,6 @@ class QPlainTextEditLogger(colorlog.StreamHandler):
         else:
             self.widget.appendHtml(msg)
         self.msg = msg
-        #self.widget.appendPlainText(msg)
-        #self.widget.moveCursor(END)
 
 
 class SequanaGUI(QMainWindow):
@@ -142,6 +142,7 @@ class SequanaGUI(QMainWindow):
         self._ipython_tab = ipython
         self.initUI()
         self.read_settings()
+        self._save_tooltips() # save all tooltips
 
         self.setStyleSheet("""QToolTip {
                            background-color: white;
@@ -149,8 +150,10 @@ class SequanaGUI(QMainWindow):
                            border-style: double;
                            border-width: 3px;
                            border-color: green;
+                           border-radius: 5px;
                            margin:3px;
-                           }""")
+                           }
+                            """)
 
         # User option
         print(user_options)
@@ -158,10 +161,13 @@ class SequanaGUI(QMainWindow):
             self.info("Setting working directory")
             if os.path.exists(user_options.wkdir) is False:
                 easydev.mkdirs(user_options.wkdir)
-            self.working_dir.set_filenames(user_options.wkdir)
+            # We must use the absolute path
+            abspath = os.path.abspath(user_options.wkdir)
+            self.working_dir.set_filenames(abspath)
 
         if "pipeline" in user_options and user_options.pipeline is not None:
             self.info("Setting Sequana pipeline")
+            # TODO: check that the pipeline exsits in the combobox
             index = self.ui.choice_button.findText(user_options.pipeline)
             self.ui.choice_button.setCurrentIndex(index)
             self._set_focus_on_pipeline_tab()
@@ -170,11 +176,11 @@ class SequanaGUI(QMainWindow):
                 user_options.input_directory is not None:
             directory = user_options.input_directory
             self.info("Setting Sequana input directory")
-            print(directory)
             if directory and os.path.exists(directory) is False:
                 self.warning("%s does not exist" % directory)
             elif directory:
-                self._sequana_directory_tab.set_filenames(directory)
+                abspath = os.path.abspath(user_options.input_directory)
+                self._sequana_directory_tab.set_filenames(abspath)
         # Can we run the pipeline ?
         self.switch_run()
 
@@ -269,24 +275,31 @@ class SequanaGUI(QMainWindow):
             self.snakemake_data_stdout)
         self.process.readyReadStandardError.connect(self.snakemake_data_error)
 
+    def _close_last_widget(self):
+        try: 
+            self._last_widget.close()
+            print("ok")
+        except:
+            print("nothing to close")
     #|-----------------------------------------------------|
     #|                       MENU related                  |
     #|-----------------------------------------------------|
     def menuAbout(self):
         from sequana import version
         url = 'sequana.readthedocs.io'
-        self.msg = About()
-        self.msg.setIcon(QW.QMessageBox.Information)
-        self.msg.setText("Sequana version %s " % version)
-        self.msg.setInformativeText("""
+        widget = About()
+        widget.setIcon(QW.QMessageBox.Information)
+        widget.setText("Sequana version %s " % version)
+        widget.setInformativeText("""
             Online documentation on <a href="http://%(url)s">%(url)s</a>
             <br>
             <br>
             Authors: Thomas Cokelaer and Dimitri Desvillechabrol, 2016
             """ % {"url": url})
-        self.msg.setWindowTitle("Sequana")
-        self.msg.setStandardButtons(QW.QMessageBox.Ok)
-        retval = self.msg.exec_()
+        widget.setWindowTitle("Sequana")
+        widget.setStandardButtons(QW.QMessageBox.Ok)
+        self._last_widget = widget
+        retval = widget.exec_()
 
     def menuHelp(self):
         url = 'sequana.readthedocs.io'
@@ -588,7 +601,7 @@ class SequanaGUI(QMainWindow):
 
     def _get_snakemake_command(self, snakefile):
         dialog = self.snakemake_dialog      # an alias
-        snakemake_line = ["-s", snakefile, "--stat", "stats.txt"]
+        snakemake_line = ["-s", snakefile, "--stat", "stats.txt", "-p"]
 
         if self.ui.comboBox_local.currentText() == "local":
             snakemake_line += dialog.get_snakemake_local_options()
@@ -738,7 +751,8 @@ class SequanaGUI(QMainWindow):
         try:
             form_dict = dict(self.create_form_dict(self.form),
                                  **self.necessary_dict)
-        except AttributeError:
+        except AttributeError as err:
+            logger.error(err)
             msg = WarningMessage("You must choose a pipeline before saving.")
             msg.exec_()
             return
@@ -1016,6 +1030,20 @@ class SequanaGUI(QMainWindow):
         if event.type() == QtCore.QEvent.Wheel and source is self.ui.choice_button:
             return True
         return False
+
+    #-------------------------------------------------------
+    # tooltips
+    # ------------------------------------------------------
+    def _save_tooltips(self):
+        self._tooltips = {}
+        self._tooltips["working_directory"] = self.ui.working_directory.toolTip()
+
+    def hide_tooltips(self):
+        self.ui.working_directory.setToolTip("")
+
+    def show_tooltips(self):
+        self.ui.working_directory.setToolTip(self._tooltips["working_directory"])
+
 
     # ---------------------------------------------------
     #  settings and close

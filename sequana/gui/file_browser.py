@@ -26,6 +26,7 @@ class FileBrowser(QW.QWidget):
             self.btn.clicked.connect(self.browse_paired_file)
         else:
             self.btn.clicked.connect(self.browse_file)
+
         self.btn_filename = QW.QLabel(self.empty_msg)
         self.set_empty_path()
         widget_layout = QW.QHBoxLayout(self)
@@ -47,6 +48,7 @@ class FileBrowser(QW.QWidget):
     def browse_paired_file(self):
         file_path = QW.QFileDialog.getOpenFileNames(self, 
             "Select a sample", ".", self.filter)[0]
+
         if not file_path:
             self.set_empty_path()
         elif len(file_path) > 2:
@@ -61,9 +63,9 @@ class FileBrowser(QW.QWidget):
             self.set_green()
 
     def browse_directory(self):
-        dialog = DirectoryDialog(self, "Select a directory", ".", 
+        self.dialog = DirectoryDialog(self, "Select a directory", ".", 
                                  self.filter)
-        directory_path = dialog.get_directory_path()
+        directory_path = self.dialog.get_directory_path()
         if directory_path:
             self.set_filenames(directory_path)
         else:
@@ -131,12 +133,6 @@ class DirectoryDialog(QW.QFileDialog):
         self.setNameFilter(file_filter)
 
     def get_directory_path(self):
-        if self.exec_():
+        if self.isVisible() or self.exec_():
             return self.selectedFiles()[0]
         return None
-
-
-
-
-
-

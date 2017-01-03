@@ -235,8 +235,3 @@ class FileBrowserOption(GeneralOption):
         self.browser.set_enable(switch_bool)
 
 
-
-
-
-
-

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>655</width>
-    <height>536</height>
+    <width>591</width>
+    <height>544</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -59,7 +59,7 @@
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You can run a Sequana pipeline (left tab) or a generic Snakemake file (right tab).&lt;/p&gt;&lt;p&gt;In the &lt;span style=&quot; font-weight:600;&quot;&gt;Sequana pipeline section, f&lt;/span&gt;irst, on the left hand side, select a pipeline in the dropbox. Second, on the right hand side, select either the input directory where to find the FastQ files, or select a specific set of input sample (one or two files for paired-end data).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab_6">
          <property name="sizePolicy">
@@ -187,7 +187,7 @@
 If you have selected a file, click on the button again, and once the file browser pops up, simply press the cancel button.</string>
              </property>
              <property name="currentIndex">
-              <number>1</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="snakefile">
               <attribute name="title">
@@ -222,6 +222,9 @@ If you have selected a file, click on the button again, and once the file browse
         </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the working directory where the pipeline and its config are copied. &lt;/p&gt;&lt;p&gt;Files created in the pipeline will use this working directory as the root directory except if the pipeline specifies paths itself.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="toolTipDuration">
+         <number>3</number>
         </property>
         <property name="title">
          <string>Working Directory</string>
@@ -357,10 +360,10 @@ If you have selected a file, click on the button again, and once the file browse
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;p&gt;This is an IPython shell included in the GUI. The entire Sequana GUI is accessible as the variable &lt;span style=&quot; font-weight:600;&quot;&gt;gui.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;For instance, you can access to layout or values set in the graphical interface with:&lt;/p&gt;&lt;p&gt;    gui.ui&lt;/p&gt;&lt;p&gt;More generally, this is a pure IPython code, so you use e.g. matplotlib/pylab:&lt;/p&gt;&lt;p&gt;  import pylab&lt;br&gt;pylab.plot([1,2,3])&lt;/p&gt;</string>
+         <string/>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="snakemake">
          <property name="sizePolicy">
@@ -368,6 +371,9 @@ If you have selected a file, click on the button again, and once the file browse
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the output of the snakemake execution. &lt;/p&gt;&lt;p&gt;Be aware that we parse the output so colors and output may be slightly different.&lt;/p&gt;&lt;p&gt;If you do not want this behaviour, you can change the snakemake options in the menu (general section) and switch the process from &amp;quot;pyqt&amp;quot; to &amp;quot;unix shell&amp;quot;. The progress bar won't work in such case but the output will be in the shell wehre you launch sequana_gui.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <attribute name="title">
           <string>&amp;Snakemake output</string>
@@ -385,12 +391,15 @@ If you have selected a file, click on the button again, and once the file browse
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="toolTip">
+          <string>&lt;p&gt;This is an IPython shell included in the GUI. The entire Sequana GUI is accessible as the variable &lt;span style=&quot; font-weight:600;&quot;&gt;gui.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;For instance, you can access to layout or values set in the graphical interface with:&lt;/p&gt;&lt;p&gt;    gui.ui&lt;/p&gt;&lt;p&gt;More generally, this is a pure IPython shell, so you can use e.g. matplotlib/pylab:&lt;/p&gt;&lt;p&gt;  import pylab&lt;br&gt;pylab.plot([1,2,3])&lt;/p&gt;</string>
+         </property>
          <attribute name="title">
           <string>&amp;IPython shell</string>
          </attribute>
          <layout class="QGridLayout" name="gridLayout">
           <item row="0" column="0">
-           <layout class="QVBoxLayout" name="layout_ipython" stretch="">
+           <layout class="QVBoxLayout" name="layout_ipython">
             <property name="spacing">
              <number>6</number>
             </property>
@@ -402,6 +411,19 @@ If you have selected a file, click on the button again, and once the file browse
          </layout>
         </widget>
         <widget class="QWidget" name="logger">
+         <property name="toolTip">
+          <string>&lt;p&gt;This tab contains the logging information from Sequana and possibly other Python packages that uses the logging package.&lt;/p&gt;
+
+Color code:
+
+&lt;pre&gt;
+- debug: cyan
+- info: green
+- warning: orange
+- error: red
+- critical: bold red 
+&lt;/pre&gt;</string>
+         </property>
          <attribute name="title">
           <string>&amp;Logger</string>
          </attribute>
@@ -412,6 +434,13 @@ If you have selected a file, click on the button again, and once the file browse
          </layout>
         </widget>
         <widget class="QWidget" name="tab_3">
+         <property name="toolTip">
+          <string>This tab contains the configuration files. 
+
+You can edit the file but will need to save to make it effective.
+
+Once you save the configuration, the dag button should be available.</string>
+         </property>
          <attribute name="title">
           <string>&amp;Config parameters</string>
          </attribute>
@@ -438,7 +467,7 @@ If you have selected a file, click on the button again, and once the file browse
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>603</width>
+               <width>539</width>
                <height>70</height>
               </rect>
              </property>
@@ -576,6 +605,16 @@ This is a good way to check your config file .</string>
     &lt;/ul&gt;
 &lt;/p&gt;</string>
         </property>
+        <property name="toolTipDuration">
+         <number>-1</number>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">border: 2px solid grey;
+margin:2px;
+border-radius: 5px;
+text-align: center;
+</string>
+        </property>
         <property name="value">
          <number>1</number>
         </property>
@@ -590,7 +629,7 @@ This is a good way to check your config file .</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>655</width>
+     <width>591</width>
      <height>19</height>
     </rect>
    </property>

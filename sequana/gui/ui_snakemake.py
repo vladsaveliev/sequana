@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Snakemake(object):
     def setupUi(self, Snakemake):
         Snakemake.setObjectName("Snakemake")
-        Snakemake.resize(442, 390)
+        Snakemake.resize(418, 404)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -110,7 +110,7 @@ class Ui_Snakemake(object):
         self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
 
         self.retranslateUi(Snakemake)
-        self.tabs.setCurrentIndex(2)
+        self.tabs.setCurrentIndex(0)
         self.buttonBox.accepted.connect(Snakemake.accept)
         self.buttonBox.rejected.connect(Snakemake.reject)
         QtCore.QMetaObject.connectSlotsByName(Snakemake)

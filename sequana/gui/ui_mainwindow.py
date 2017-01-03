@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(655, 536)
+        MainWindow.resize(591, 544)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -98,6 +98,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.working_directory.sizePolicy().hasHeightForWidth())
         self.working_directory.setSizePolicy(sizePolicy)
         self.working_directory.setMinimumSize(QtCore.QSize(0, 86))
+        self.working_directory.setToolTipDuration(3)
         self.working_directory.setObjectName("working_directory")
         self.horizontalLayoutWidget = QtWidgets.QWidget(self.working_directory)
         self.horizontalLayoutWidget.setGeometry(QtCore.QRect(10, 30, 381, 41))
@@ -158,6 +159,7 @@ class Ui_MainWindow(object):
         self.tabs.setMinimumSize(QtCore.QSize(0, 0))
         self.tabs.setMaximumSize(QtCore.QSize(16777215, 2000))
         self.tabs.setBaseSize(QtCore.QSize(0, 0))
+        self.tabs.setToolTip("")
         self.tabs.setObjectName("tabs")
         self.snakemake = QtWidgets.QWidget()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
@@ -214,7 +216,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 603, 70))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 539, 70))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.gridLayout_4.addWidget(self.scrollArea, 0, 0, 1, 1)
@@ -266,6 +268,12 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.progressBar.sizePolicy().hasHeightForWidth())
         self.progressBar.setSizePolicy(sizePolicy)
+        self.progressBar.setToolTipDuration(-1)
+        self.progressBar.setStyleSheet("border: 2px solid grey;\n"
+"margin:2px;\n"
+"border-radius: 5px;\n"
+"text-align: center;\n"
+"")
         self.progressBar.setProperty("value", 1)
         self.progressBar.setObjectName("progressBar")
         self.vlayout.addWidget(self.progressBar)
@@ -275,7 +283,7 @@ class Ui_MainWindow(object):
         self.gridLayout_2.addLayout(self.vlayout, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 655, 19))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 591, 19))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -315,10 +323,10 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabs_pipeline.setCurrentIndex(0)
+        self.tabs_pipeline.setCurrentIndex(1)
         self.tabs_browser.setCurrentIndex(1)
-        self.tabs_browser_2.setCurrentIndex(1)
-        self.tabs.setCurrentIndex(2)
+        self.tabs_browser_2.setCurrentIndex(0)
+        self.tabs.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.tabs_pipeline, self.choice_button)
         MainWindow.setTabOrder(self.choice_button, self.tabs_browser)
@@ -357,10 +365,27 @@ class Ui_MainWindow(object):
         self.label_3.setText(_translate("MainWindow", "Local or cluster run ?"))
         self.comboBox_local.setItemText(0, _translate("MainWindow", "local"))
         self.comboBox_local.setItemText(1, _translate("MainWindow", "cluster"))
-        self.tabs.setToolTip(_translate("MainWindow", "<p>This is an IPython shell included in the GUI. The entire Sequana GUI is accessible as the variable <span style=\" font-weight:600;\">gui.</span></p><p>For instance, you can access to layout or values set in the graphical interface with:</p><p>    gui.ui</p><p>More generally, this is a pure IPython code, so you use e.g. matplotlib/pylab:</p><p>  import pylab<br>pylab.plot([1,2,3])</p>"))
+        self.snakemake.setToolTip(_translate("MainWindow", "<html><head/><body><p>This is the output of the snakemake execution. </p><p>Be aware that we parse the output so colors and output may be slightly different.</p><p>If you do not want this behaviour, you can change the snakemake options in the menu (general section) and switch the process from &quot;pyqt&quot; to &quot;unix shell&quot;. The progress bar won\'t work in such case but the output will be in the shell wehre you launch sequana_gui.</p></body></html>"))
         self.tabs.setTabText(self.tabs.indexOf(self.snakemake), _translate("MainWindow", "&Snakemake output"))
+        self.ipython.setToolTip(_translate("MainWindow", "<p>This is an IPython shell included in the GUI. The entire Sequana GUI is accessible as the variable <span style=\" font-weight:600;\">gui.</span></p><p>For instance, you can access to layout or values set in the graphical interface with:</p><p>    gui.ui</p><p>More generally, this is a pure IPython shell, so you can use e.g. matplotlib/pylab:</p><p>  import pylab<br>pylab.plot([1,2,3])</p>"))
         self.tabs.setTabText(self.tabs.indexOf(self.ipython), _translate("MainWindow", "&IPython shell"))
+        self.logger.setToolTip(_translate("MainWindow", "<p>This tab contains the logging information from Sequana and possibly other Python packages that uses the logging package.</p>\n"
+"\n"
+"Color code:\n"
+"\n"
+"<pre>\n"
+"- debug: cyan\n"
+"- info: green\n"
+"- warning: orange\n"
+"- error: red\n"
+"- critical: bold red \n"
+"</pre>"))
         self.tabs.setTabText(self.tabs.indexOf(self.logger), _translate("MainWindow", "&Logger"))
+        self.tab_3.setToolTip(_translate("MainWindow", "This tab contains the configuration files. \n"
+"\n"
+"You can edit the file but will need to save to make it effective.\n"
+"\n"
+"Once you save the configuration, the dag button should be available."))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_3), _translate("MainWindow", "&Config parameters"))
         self.run_btn.setToolTip(_translate("MainWindow", "Run the pipeline (shortcut: Ctrl+R)"))
         self.run_btn.setText(_translate("MainWindow", "Run"))
