@@ -533,6 +533,7 @@ class SequanaConfig(object):
         elif isinstance(data, str):
             if os.path.exists(data):
                 if data.endswith(".yaml"):
+                    # FIXME: this file is not closed
                     self._yaml_code = ruamel.yaml.load(open(data, "r").read(),
                                                 ruamel.yaml.RoundTripLoader)
                 else:
