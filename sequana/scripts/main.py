@@ -511,10 +511,6 @@ def main(args=None):
 
     ff = FastQFactory(data, verbose=options.verbose)
 
-    def _get_adap(filename):
-        return sequana_data(filename, "data/adapters")
-
-
     if options.pipeline == 'quality_control':
         # check combo
         flag = int("%s%s%s%s%s" % (
@@ -562,11 +558,9 @@ def main(args=None):
                     options.adapter_rev = "TCTAGCCTTCTCGCAGCACATCCCTTTCTCACATCTAGAGCCACCAGCGGCATAGTAA"
                 # flag 4
                 else:
-                    options.adapter_fwd = "file:" + _get_adap(
-                        'adapters_%s_fwd.fa' % options.adapters)
-                    # !!!!!!! revcomp to be used
-                    options.adapter_rev = "file:" + _get_adap(
-                        'adapters_%s_revcomp.fa' % options.adapters)
+                    # Let the pipeline handle the names
+                    options.adapter_fwd = options.adapters
+                    options.adapter_rev = options.adapters
             # flag 2/3
             else:
                 if options.adapter_fwd:
