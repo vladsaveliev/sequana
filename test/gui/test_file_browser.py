@@ -26,9 +26,9 @@ class FileBrowserTest(unittest.TestCase):
     def _test_paired(self):
         self.form.browse_directory()
 
-import pytest
+"""import pytest
 from pytestqt.qt_compat import qt_api
-"""
+
 #def test_directory_dialog(qtbot):
     #assert qt_api.QApplication.instance() is not None
     #widget = qt_api.QWidget()
