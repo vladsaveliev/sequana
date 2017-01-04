@@ -68,6 +68,10 @@ def test_valid_config():
 
     s = snaketools.Module("quality_control")
     config = snaketools.SequanaConfig(s.config)
+    config.get_section_long_comment("bwa_mem_phix")
+    config.get_section_short_comment("bwa_mem_phix")
+    assert config.get_section_long_comment("dummy") is None
+    assert config.get_section_short_comment("dummy") is None
 
     from easydev import TempFile
     with TempFile() as fh:
@@ -103,6 +107,11 @@ def test_sequana_config():
     except:
         assert True
 
+    # Test an exception
+    s = snaketools.Module("quality_control")
+    config = snaketools.SequanaConfig(s.config)
+    config._recursive_update(config._yaml_code, {"input_directory_dummy": "test"})
+
 
     # loop over all pipelines, read the config, save it and check the content is
     # identical. This requires to remove the templates. We want to make sure the
@@ -112,16 +121,19 @@ def test_sequana_config():
     #    field2:
     #
     # is unchanged
+    from easydev import TempFile
+    output = TempFile(suffix=".yaml")
     for pipeline in snaketools.pipeline_names:
         config_filename = Module(pipeline)._get_config()
         cfg1 = SequanaConfig(config_filename)
         cfg1.cleanup() # remove templates and strip strings
-        cfg1.save("test.yaml")
-        cfg2 = SequanaConfig("test.yaml")
 
+        cfg1.save(output.name)
+        cfg2 = SequanaConfig(output.name)
         assert cfg2._yaml_code == cfg1._yaml_code
         cfg2._update_config()
         assert cfg1.config == cfg2.config
+    output.delete()
 
 def test_message():
     snaketools.message("test")
@@ -235,8 +247,17 @@ def test_copy_requirements():
         #localfile,
         "https://raw.githubusercontent.com/sequana/sequana/master/README.rst"]
     cfg._update_yaml()
-
     cfg.copy_requirements(target=fh.name)
+
+    # error
+    cfg.config.requirements = ['dummy']
+    try:
+        cfg.copy_requirements(target=fh.name)
+        assert False
+    except:
+        assert True
+    
+
 
 def test_create_cleanup():
     fh = tempfile.TemporaryDirectory()
