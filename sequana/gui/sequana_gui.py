@@ -119,7 +119,8 @@ class SequanaGUI(QMainWindow):
       ending in _dialog
 
     """
-    _not_a_rule = {"requirements", "gatk_bin", "input_directory", "input_samples", "input_pattern"}
+    _not_a_rule = {"requirements", "gatk_bin", "input_directory",
+                    "input_samples", "input_pattern", "ignore"}
     _browser_keyword = {"reference"}
 
     def __init__(self, parent=None, ipython=True, user_options={}):
@@ -443,7 +444,6 @@ class SequanaGUI(QMainWindow):
     # functionalities
     # -----------------------------------------------------------------
 
-
     def _get_mode(self):
         # figure out if we are dealing with a sequana pipeline
         # or a generic one based solely on focused top tab
@@ -663,12 +663,33 @@ class SequanaGUI(QMainWindow):
         self.necessary_dict = {}
         self.rule_list = []
 
+        # A section looks like a large comments :
+        #   #----------
+        #   #---
+        #   section:   # short comment
+        #      item: value # comment interne
+
+        # This 
+        # cfg._yaml_code.ca.items['adapter_removal']
+        # is a list of 4 items
+        # [None, largecomment, shortcomment, None]
+
+
+        # For each section, we create a widget (RuleForm). For isntance, first,
+        # one is accessible asfollows:
+        # gui.form.itemAt(0).widget()
+
         for count, rule in enumerate(rules_list):
             # Check if this is a dictionnary
             contains = self._configfile._yaml_code[rule]
+            comments = self._configfile.get_section_long_comment(rule)
             if isinstance(contains, dict) and (
                     rule not in SequanaGUI._not_a_rule):
                 rule_box = Ruleform(rule, contains, count, self._browser_keyword)
+                if comments:
+                    rule_box.setToolTip(comments)
+                else:
+                    rule_box.setToolTip("")
                 self.form.addWidget(rule_box)
                 self.rule_list.append(rule_box)
                 rule_box.connect_do(self.fill_until_starting)
@@ -745,7 +766,7 @@ class SequanaGUI(QMainWindow):
                 self.critical(text)
             return
 
-    def save_config_file(self):
+    def save_config_file(self, force=False):
         self.info("Saving config file")
 
         try:
@@ -770,7 +791,9 @@ class SequanaGUI(QMainWindow):
                     self.ui.tabs_browser.currentWidget().get_filenames())
 
         # Let us update the attribute with the content of the form
-        self.configfile._yaml_code.update(form_dict)
+        # Comments should be kept !!
+        # FIXME FIXME FIXME ADD BACK THIS LINE BUT WITHOUT LISING THE COMMENTS
+        # self.configfile._yaml_code.update(form_dict)
 
         if self.working_dir.path_is_setup():
             yaml_path = self.working_dir.get_filenames() + "/config.yaml"
@@ -779,17 +802,21 @@ class SequanaGUI(QMainWindow):
                 self.configfile.copy_requirements(target=self.working_dir.get_filenames())
 
             if os.path.isfile(yaml_path):
-                save_msg = WarningMessage(
-                    "The file {0} already exist".format(yaml_path))
-                save_msg.setInformativeText(
-                    "Do you want to overwrite the file?")
-                save_msg.setStandardButtons(
-                    QW.QMessageBox.Yes | QW.QMessageBox.Discard |
-                    QW.QMessageBox.Cancel)
-                save_msg.setDefaultButton(QW.QMessageBox.Yes)
-                # Yes == 16384
-                # Save == 2048
-                if save_msg.exec_() in [16384, 2048]:
+                if force == False:
+                    save_msg = WarningMessage(
+                        "The file {0} already exist".format(yaml_path))
+                    save_msg.setInformativeText(
+                        "Do you want to overwrite the file?")
+                    save_msg.setStandardButtons(
+                        QW.QMessageBox.Yes | QW.QMessageBox.Discard |
+                        QW.QMessageBox.Cancel)
+                    save_msg.setDefaultButton(QW.QMessageBox.Yes)
+                    # Yes == 16384
+                    # Save == 2048
+                    if save_msg.exec_() in [16384, 2048]:
+                        self.configfile.save(yaml_path, cleanup=False)
+                        self.ui.dag_btn.setEnabled(True)
+                else:
                     self.configfile.save(yaml_path, cleanup=False)
                     self.ui.dag_btn.setEnabled(True)
             else:
