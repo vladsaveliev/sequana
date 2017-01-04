@@ -40,7 +40,7 @@ rule star_mapping:
              --genomeLoad NoSharedMemory \
              --outFilterMismatchNoverLmax 0.05 \
              --outSAMunmapped Within  \
-             --outSAMtype BAM Unsorted \
+             --outSAMtype BAM SortedByCoordinate \
              --readFilesCommand zcat \
              --seedSearchStartLmax 20 \
              --outFileNamePrefix {params.prefix1} \
@@ -66,10 +66,10 @@ rule star_mapping:
              --sjdbFileChrStartEnd {params.splice_file} \
              --outFilterMismatchNoverLmax 0.05 \
              --outSAMunmapped Within  \
-             --outSAMtype BAM Unsorted \
+             --outSAMtype BAM SortedByCoordinate \
              --readFilesCommand zcat \
              --outFileNamePrefix {params.prefix2} \
              {params.kwargs}  2>> {log}""")
 
 
-        shell(""" samtools sort {params.prefix2}Aligned.out.bam > {output}""")
+        shell(""" samtools index {params.prefix2}Aligned.sortedByCoord.out.bam  2>> {log} """)
