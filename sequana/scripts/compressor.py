@@ -24,8 +24,6 @@ import sys
 from optparse import OptionParser
 import argparse
 
-from snakemake import shell
-#from easydev import TempFile
 import tempfile
 
 from sequana.scripts.tools import SequanaOptions
@@ -163,7 +161,16 @@ Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
         if options.verbose:
             print(cmd)
 
-        shell(cmd)
+        # On travis, shell command from snakemake fails. 
+        # Most probably because travis itself uses a subprocess.
+        # excute from easydev uses pexpect.spawn, which seems to work well
+        from easydev import execute 
+        execute(cmd, showcmd=False)
+        #if "TRAVIS_PYTHON_VERSION" in os.env:
+        #    from easydev import execute 
+        #    execute(cmd)
+        #else:
+        #    shell(cmd)
         fh.close()
 
 
