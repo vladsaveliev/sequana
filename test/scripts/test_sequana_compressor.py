@@ -34,6 +34,7 @@ def test_compressor_args():
     else:
         raise Exception
 
+
 def test_compressor_running():
     prog = "sequana_compressor"
 
@@ -54,8 +55,8 @@ def test_compressor_running():
         compressor.main([prog, "--source", "fastq.bz2", "--target", "fastq.gz", "--recursive", "--quiet"])
         compressor.main([prog, "--source", "fastq.gz", "--target", "fastq.dsrc", "--recursive", "--quiet"])
         compressor.main([prog, "--source", "fastq.dsrc", "--target", "fastq.gz", "--quiet"])
-    except:
-        raise Exception
+    except err:
+        raise Exception(err)
     finally:
         os.chdir(cwd)
 
