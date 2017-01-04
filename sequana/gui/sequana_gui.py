@@ -307,6 +307,14 @@ class SequanaGUI(QMainWindow):
         msg = About()
         msg.setIcon(QW.QMessageBox.Information)
         msg.setText("Sequana GUI help")
+
+        pipelines_text = "<ul>\n"
+        url = "http://sequana.readthedocs.io/en/master"
+        for pipeline in snaketools.pipeline_names:
+            pipelines_text += '    <li><a href="%(url)s/pipeline_%(name)s.html">%(name)s</a></li>\n' %\
+              {"url":url,"name":pipeline}
+        pipelines_text += "</ul>"
+
         msg.setInformativeText("""<p>
 
             <ol>
@@ -331,8 +339,10 @@ class SequanaGUI(QMainWindow):
             For the generic file, only one level of heararchy is interpreted for
             now. If more than one level, the raw config file is provided.
 
+            <h2> Sequana pipeline dedicated help </help>
+                 %(pipelines)s
             </p>
-            """ % {"url": url})
+            """ % {"url": url, "pipelines": pipelines_text})
         msg.setWindowTitle("Sequana")
         msg.setStandardButtons(QW.QMessageBox.Ok)
         self._msg_help = msg
