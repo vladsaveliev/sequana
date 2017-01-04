@@ -55,7 +55,7 @@ def test_compressor_running():
         compressor.main([prog, "--source", "fastq.bz2", "--target", "fastq.gz", "--recursive", "--quiet"])
         compressor.main([prog, "--source", "fastq.gz", "--target", "fastq.dsrc", "--recursive", "--quiet"])
         compressor.main([prog, "--source", "fastq.dsrc", "--target", "fastq.gz", "--quiet"])
-    except err:
+    except Exception as err:
         raise Exception(err)
     finally:
         os.chdir(cwd)
