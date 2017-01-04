@@ -53,6 +53,16 @@ class Options(argparse.ArgumentParser, SequanaOptions):
     sequana_compressor --source fastq.bz2  --target fastq
 
 
+    If your job is interrupted, your directory may be locked during the next
+    run. To unlock the directory, type::
+
+    sequana_compressor --source ... --target ... --snakemake-options="--unlock"
+
+    Note the quotes and the equal sign. --source and target must be provided but 
+    no analysis will be performed at that stage.
+
+    Then, type your normal command again.
+
 AUTHORS: Thomas Cokelaer
 Documentation: http://sequana.readthedocs.io
 Issues: http://github.com/sequana/sequana
@@ -82,9 +92,9 @@ fq.dsrc""")
             default=4,
             help="""number of jobs to use at most (4) """)
         self.add_argument("--snakemake-options", dest="snakemake",
-            default="--keep-going",
+            default="--keep-going -p",
             help="""any valid list of options accepted by snakemake except
-            -s and -j and -p""")
+            -s and -j""")
         self.add_version(self)
         self.add_verbose(self)
         self.add_cluster(self)
@@ -135,7 +145,7 @@ Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
         from sequana import Module
         rule = Module("compressor").path + os.sep +  "compressor.rules"
 
-        cmd = 'snakemake -s %s  --configfile %s -j %s -p ' % \
+        cmd = 'snakemake -s %s  --configfile %s -j %s ' % \
                 (rule, temp.name, options.jobs)
 
         if options.cluster:
