@@ -92,12 +92,12 @@ fq.dsrc""")
             default=4,
             help="""number of jobs to use at most (4) """)
         self.add_argument("--snakemake-options", dest="snakemake",
-            default="--keep-going -p",
+            default=" --keep-going ",
             help="""any valid list of options accepted by snakemake except
             -s and -j""")
         self.add_version(self)
-        self.add_verbose(self)
         self.add_cluster(self)
+        self.add_quiet(self)
 
 def main(args=None):
 
@@ -147,6 +147,11 @@ Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
 
         cmd = 'snakemake -s %s  --configfile %s -j %s ' % \
                 (rule, temp.name, options.jobs)
+
+        if options.verbose is False:
+            cmd += " --quiet "
+        else:
+            cmd += " -p "
 
         if options.cluster:
             cluster = ' --cluster "%s" ' % options.cluster
