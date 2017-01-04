@@ -39,13 +39,18 @@ expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samp
 adapter_tool = manager.config.adapter_removal.tool
 # Clean NGS
 if adapter_tool == "clean_ngs":
-    __clean_ngs__input = __data__input
-    __clean_ngs__output = [manager.getname("clean_ngs", "_clean_ngs.fastq.gz")]
-    __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
-    __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
-    include: sm.modules["clean_ngs"]
     if manager.paired:
-        __clean_ngs__output += [manager.getname("clean_ngs", "_R2_.clean_ngs.fastq.gz")]
+        __clean_ngs__input = __data__input # must be -if1 R1.fastq -if2 R2.fastq
+        __clean_ngs__output = ["%s  -of2 %s" % (manager.sample, manager.sample)]
+        __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
+        __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
+    else:
+        __clean_ngs__input = __data__input
+        __clean_ngs__output = [manager.getname("clean_ngs", "_clean_ngs.fastq.gz")]
+        __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
+        __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
+    include: sm.modules["clean_ngs"]
+
     #expected_output.extend(expand(__clean_ngs__output, sample=manager.samples))
 elif adapter_tool == "cutadapt":
     __cutadapt__input_fastq = __data__input
@@ -63,7 +68,7 @@ elif adapter_tool == "cutadapt":
     else:
         __cutadapt__rev = manager.config.adapter_removal.rev
 
-    __cutadapt__design = manager.config.adapter_removal.design
+    __cutadapt__design = manager.config.adapter_removal.design_file
     __cutadapt__design_adapter = manager.config.adapter_removal.adapter_type
     __cutadapt__options = manager.config.adapter_removal.options
     __cutadapt__mode = manager.config.adapter_removal.mode
