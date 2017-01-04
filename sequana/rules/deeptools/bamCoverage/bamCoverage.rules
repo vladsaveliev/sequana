@@ -20,4 +20,4 @@ rule bamCoverage:
         __bamCoverage__output
     threads: 4
     run:
-        shell("bamCoverage --bam {input} -o {output} --binSize {params.binSize} --normalizeTo1x {params.genomeSize} --fragmentLength {params.fragmentLength}  2> {log}")
+        shell("bamCoverage --bam {input} -o {output} --binSize {params.bs} --normalizeTo1x {params.gs} --fragmentLength {params.fragmentLength}  2> {log}")
