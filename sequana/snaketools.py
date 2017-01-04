@@ -525,16 +525,17 @@ class SequanaConfig(object):
         file1, file2
         """
         # Create a dummy YAML code to hold data in case the input is a json
-        # or a dictionary structure.
+        # or a dictionary structure. We use a CommentedMap that works like
+        # a dictionary. Be aware that the update method will lose the comments
         if data is None:
             self.config = AttrDict()
             mode = "others"
             self._yaml_code = comments.CommentedMap()
-        elif isinstance(data, str):
+        elif isinstance(data, str): # else is it a filename ?
             if os.path.exists(data):
                 if data.endswith(".yaml"):
-                    # FIXME: this file is not closed
-                    self._yaml_code = ruamel.yaml.load(open(data, "r").read(),
+                    with open(data, "r") as fh:
+                        self._yaml_code = ruamel.yaml.load(fh.read(),
                                                 ruamel.yaml.RoundTripLoader)
                 else:
                     raise NotImplementedError(
@@ -543,10 +544,10 @@ class SequanaConfig(object):
             else:
                 raise IOError("input string must be an existing file")
             self.config = AttrDict(**config)
-        elif isinstance(data, SequanaConfig):
+        elif isinstance(data, SequanaConfig): # else maybe a SequanaConfig ?
             self.config = AttrDict(**data.config)
             self._yaml_code = comments.CommentedMap(self.config.copy())
-        else: # a dictionary ?
+        else: # or a pure dictionary ?
             self.config = AttrDict(**data)
             self._yaml_code = comments.CommentedMap(self.config.copy())
 
@@ -569,13 +570,14 @@ class SequanaConfig(object):
         """Save the yaml code in _yaml_code with comments"""
         # This works only if the input data was a yaml
         if cleanup:
-            self.cleanup() # this changes the config and yaml_code to remove %()s
+            self.cleanup() # changes the config and yaml_code to remove %()s
 
         # get the YAML formatted code and save it
         newcode = ruamel.yaml.dump(self._yaml_code,
                     Dumper=ruamel.yaml.RoundTripDumper,
                     default_style="", indent=4, block_seq_indent=4)
 
+        # Finally, save the data
         with open(filename, "w") as fh:
             fh.write(newcode)
 
@@ -587,11 +589,11 @@ class SequanaConfig(object):
                 target[key] = comments.CommentedMap(
                     self._recursive_update(target[key], data[key]))
             else:
-                try:
+                if key in target.keys():
                     target[key] = value
-                except KeyError:
-                    msg = "%s not found in your config file" % key
-                    raise KeyError(msg)
+                else:
+                    logger.warning(
+                "This %s key was not in the original config but added" % key)
         return target
 
     def _update_yaml(self):
@@ -641,14 +643,57 @@ class SequanaConfig(object):
                     except:
                         pass # the target and input may be the same
                 elif requirement.startswith('http') is False:
-                    logger.info('Copying %s from sequana' % requirement)
-                    shutil.copy(sequana_data(requirement, "data"), target)
+                    try:
+                        logger.info('Copying %s from sequana' % requirement)
+                        shutil.copy(sequana_data(requirement), target)
+                    except:
+                        logger.warning("This requirement %s was not found in sequana.")
                 elif requirement.startswith("http"):
                     logger.info("This file %s will be needed. Downloading" % requirement)
                     output = requirement.split("/")[-1]
                     wget(requirement, target + os.sep + output)
-                else:
-                    logger.error("This requirement %s was not found" % requirement)
+
+    def _get_section_comment(self, section):
+        data = self._yaml_code.ca.items[section]
+        #data = [x for x in data if x] # drops the None
+        # In principle, the full commented section is the second one
+        # The second one can be a lengthy commented secttion. It is a list
+        # each item being one line.
+        # The third one is comment following the section name (same line)
+        # Fourth and first are None so far.
+        if data[1]:
+            long_comment = [this.value for this in data[1]]
+            long_comment = "".join(long_comment).strip()
+        else:
+            long_comment = None
+
+        if data[2]:
+            short_comment = data[2]
+        else:
+            short_comment = None
+        return long_comment, short_comment
+
+    def get_section_short_comment(self, section, mode="sequana"):
+        try:
+            _, short_comment = self._get_section_comment(section)
+            return short_comment
+        except KeyError as err:
+            if mode == "sequana" and section.startswith("input_"):
+                pass
+            else:
+                logger.warning("section %s has no valid comments" % err)
+        return None
+
+    def get_section_long_comment(self, section, mode="sequana"):
+        try:
+            long_comment, _ = self._get_section_comment(section)
+            return long_comment
+        except KeyError as err:
+            if mode == "sequana" and section.startswith("input_"):
+                pass
+            else:
+                logger.warning("section %s has no valid comments" % err)
+        return None
 
 
 class DummyManager(object):
