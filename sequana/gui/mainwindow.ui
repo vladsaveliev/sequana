@@ -59,7 +59,7 @@
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You can run a Sequana pipeline (left tab) or a generic Snakemake file (right tab).&lt;/p&gt;&lt;p&gt;In the &lt;span style=&quot; font-weight:600;&quot;&gt;Sequana pipeline section, f&lt;/span&gt;irst, on the left hand side, select a pipeline in the dropbox. Second, on the right hand side, select either the input directory where to find the FastQ files, or select a specific set of input sample (one or two files for paired-end data).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab_6">
          <property name="sizePolicy">
@@ -548,6 +548,11 @@ snakemake -s Snakefile --unlock </string>
            </item>
            <item>
             <widget class="QPushButton" name="report_btn">
+             <property name="toolTip">
+              <string>This button open an HTML page present in the working directory (if found).
+
+This is essentially for the sequana pipeline (default filename is multi_summary.html but one can change the name in the option/preferences dialog.</string>
+             </property>
              <property name="text">
               <string>Open Report</string>
              </property>

@@ -50,6 +50,18 @@ import logging
 import signal
 
 
+# TEST Sequana
+# 1 select pipeline
+# 2 select working dir
+# 3 cancel working dir
+# 4 save config
+# 5 select working dir
+# 6 save config
+# 7 run
+
+# Test generic 
+# try with and without the config file
+
 
 END = QtGui.QTextCursor.End
 
@@ -244,8 +256,8 @@ class SequanaGUI(QMainWindow):
         # A file browser for the working directory layout
         self.working_dir = FileBrowser(directory=True)
         self.ui.layout_wk.addWidget(self.working_dir)
-        self.working_dir.clicked_connect(self.check_existing_config)
-        self.working_dir.clicked_connect(self.switch_run)
+        self.working_dir.clicked_connect(self._copy_snakefile)
+        self.working_dir.clicked_connect(self._load_config)
 
         # Connectors to actions related to the menu bar
         self.ui.actionQuit.triggered.connect(self.menuQuit)
@@ -277,7 +289,7 @@ class SequanaGUI(QMainWindow):
         self.process.readyReadStandardError.connect(self.snakemake_data_error)
 
     def _close_last_widget(self):
-        try: 
+        try:
             self._last_widget.close()
             print("ok")
         except:
@@ -306,7 +318,7 @@ class SequanaGUI(QMainWindow):
         url = 'sequana.readthedocs.io'
         msg = About()
         msg.setIcon(QW.QMessageBox.Information)
-        msg.setText("Sequana GUI help")
+        msg.setText("<h1>Sequana GUI help</h1>")
 
         pipelines_text = "<ul>\n"
         url = "http://sequana.readthedocs.io/en/master"
@@ -315,34 +327,41 @@ class SequanaGUI(QMainWindow):
               {"url":url,"name":pipeline}
         pipelines_text += "</ul>"
 
-        msg.setInformativeText("""<p>
+        msg.setInformativeText("""<div>
+This GUI can be used to run either Sequana pipelines (see 
+<a href="http://sequana.readthedocs.io">Sequana.readthedocs.io</a> for details) or Snakefiles 
+(see <a href="http://snakemake.readthedocs.io">snakemake.readthedocs.io</a>for details)
 
-            <ol>
-            <li> Select a pipeline</li>
-            <li> Select the directory or sample tab</li>
-                <ul>
-               <li> directory: select all fastq.gz files</li>
-               <li> samples: select a single-end or paired-end file(s)</li>
-                </ul>
-            <li> Select the working directory</li>
-            <li> Changet the options if needed</li>
-            <li> Save the config file (check the DAG image)</li>
-            <li> Run the analysis</li>
-            <li> Open the report if successful</li>
+        In both cases, a working directory must be set where the Snakefile 
+        and possibly a configuration file will be copied.
+
+        The generic Snakefile must be executable. 
+
+        <h2>Sequana pipelines</h2>
+        There are download automatically with their config file from the Sequana
+        library. Here is a typical set of actions to run Sequana pipelines:
+
+        <ol>
+        <li> Select a pipeline</li>
+        <li> Select the directory or sample tab</li>
+            <ul>
+           <li> directory: select all fastq.gz files</li>
+           <li> samples: select a single-end or paired-end file(s)</li>
+            </ul>
+        <li> Select the working directory</li>
+        <li> Changet the options if needed</li>
+        <li> Save the config file (check the DAG image)</li>
+        <li> Run the analysis</li>
+        <li> Open the report if successful</li></ol>
+
+        <h2> Generic pipelines </h2>
+        Same as above except that you have to select the config file (if any).
 
 
-            <h2>Format of the config file</h2>
-            For Sequana, config file are downloaded automatically so work out of
-            the box. If you decide to change them (locally), every rule has only
-            one level.
-
-            For the generic file, only one level of heararchy is interpreted for
-            now. If more than one level, the raw config file is provided.
-
-            <h2> Sequana pipeline dedicated help </help>
-                 %(pipelines)s
-            </p>
-            """ % {"url": url, "pipelines": pipelines_text})
+        <h2> Sequana pipeline dedicated help </help>
+             %(pipelines)s
+        </div>
+        """ % {"url": url, "pipelines": pipelines_text})
         msg.setWindowTitle("Sequana")
         msg.setStandardButtons(QW.QMessageBox.Ok)
         self._msg_help = msg
@@ -372,6 +391,8 @@ class SequanaGUI(QMainWindow):
         self.ui.choice_button.addItems(snaketools.pipeline_names)
         self.ui.choice_button.currentIndexChanged[str].connect(
             self.on_sequana_pipeline_choice)
+        self.ui.choice_button.activated.connect(self._copy_snakefile)
+        self.ui.choice_button.activated.connect(self._load_config)
         self.ui.choice_button.installEventFilter(self)
 
         # Set the file browser for paired files
@@ -392,6 +413,11 @@ class SequanaGUI(QMainWindow):
     @QtCore.pyqtSlot(str)
     def on_sequana_pipeline_choice(self, index):
         """ Change options form when user change the pipeline."""
+        if self.ui.choice_button.findText(index) == 0:
+            self.pipeline_is_chosen = False
+            self.clear_form()
+            return
+
         self.info("Reading sequana %s pipeline" % index)
         module = snaketools.Module(index)
         config_file = module._get_config()
@@ -399,7 +425,7 @@ class SequanaGUI(QMainWindow):
         self._read_sequana_config(config_file)
         self.fill_until_starting(self.rule_list)
         self.pipeline_is_chosen = True
-        self.switch_run()
+        self.info("--------pipeline chosen")
 
     def set_generic_pipeline(self):
         # Set the file browser
@@ -409,6 +435,7 @@ class SequanaGUI(QMainWindow):
         self._generic_snakefile.clicked_connect(self._read_generic_snakefile)
         # no switch run for the config file, which is optional
         self._generic_config.clicked_connect(self._read_generic_config)
+        self._generic_config.clicked_connect(self._copy_snakefile)
 
         # fill the tabs_browser
         self.ui.tabs_browser_2.addTab(self._generic_snakefile, "Snakefile")
@@ -422,7 +449,6 @@ class SequanaGUI(QMainWindow):
             self.snakefile = filename
         else:
             self.snakefile = None
-        self.switch_run()
 
     def _set_focus_on_pipeline_tab(self):
         self.ui.tabs_pipeline.setCurrentIndex(0)
@@ -519,7 +545,7 @@ class SequanaGUI(QMainWindow):
             self._configfile = configfile
         except AssertionError:
             self._configfile = None
-            self.clear_layout(self.form)
+            self.clear_form()
             self.warning("could not parse the config file")
         self.create_base_form()
         self._set_focus_on_config_tab()
@@ -538,7 +564,7 @@ class SequanaGUI(QMainWindow):
             self._set_focus_on_config_tab()
         else:
             self._configfile = None
-            self.clear_layout(self.form)
+            self.clear_form()
 
     # --------------------------------------------------------------------
     # Others
@@ -667,7 +693,7 @@ class SequanaGUI(QMainWindow):
         """ Create form with all options necessary for a pipeline.
         """
         self.info("Interpreting config file")
-        self.clear_layout(self.form)
+        self.clear_form()
         rules_list = list(self._configfile._yaml_code.keys())
         rules_list.sort()
         self.necessary_dict = {}
@@ -679,11 +705,10 @@ class SequanaGUI(QMainWindow):
         #   section:   # short comment
         #      item: value # comment interne
 
-        # This 
+        # This
         # cfg._yaml_code.ca.items['adapter_removal']
         # is a list of 4 items
         # [None, largecomment, shortcomment, None]
-
 
         # For each section, we create a widget (RuleForm). For isntance, first,
         # one is accessible asfollows:
@@ -777,6 +802,7 @@ class SequanaGUI(QMainWindow):
             return
 
     def save_config_file(self, force=False):
+        self.info('DEBUG: SAVE_CONFIG_FILE')
         self.info("Saving config file")
 
         try:
@@ -801,8 +827,10 @@ class SequanaGUI(QMainWindow):
                     self.ui.tabs_browser.currentWidget().get_filenames())
 
         # Let us update the attribute with the content of the form
-        # Comments should be kept !!
-        # FIXME FIXME FIXME ADD BACK THIS LINE BUT WITHOUT LISING THE COMMENTS
+        self.configfile.config.update(form_dict)
+        self.configfile._update_yaml()
+        # We must update the config and then the yaml to keep the comments. This
+        # lose the comments:
         # self.configfile._yaml_code.update(form_dict)
 
         if self.working_dir.path_is_setup():
@@ -837,26 +865,36 @@ class SequanaGUI(QMainWindow):
             msg.exec_()
 
     def _copy_snakefile(self):
-        if self.working_dir.path_is_setup():
-            if self.snakefile:
-                working_dir = self.working_dir.get_filenames()
-                working_dir += os.sep + "Snakefile"
-                self.info("Copying snakefile in %s " % working_dir)
-                try:
-                    shutil.copy(self.snakefile, working_dir)
-                except:
-                    self.warning("cannot overwrite existing (identical) file")
-                    pass
+        # When working dir changes, we try to copy the snakefile
+        # if set.
+        if self.snakefile is None:
+            return # nothing to be done
+
+        if self.working_dir.path_is_setup() is False:
+            return
+
+        self.info('DEBUG: COPY SNAKEFILE')
+
+        working_dir = self.working_dir.get_filenames() + os.sep + "Snakefile"
+        self.info("Copying snakefile in %s " % working_dir)
+        try:
+            shutil.copy(self.snakefile, working_dir)
+        except:
+            self.warning("cannot overwrite existing file. (Probably identical)")
+            return
+
+        self.switch_run()
+
 
     def switch_run(self):
         # This functions copies the snakefile in the working directory
         # if possible.
-        self._copy_snakefile()
 
-        # Run is on if working dir is on and
-        # 1. snakefile is present and config file if sequana mode
-        # 2. snakefile is present irrespective on config file in generic mode
+        # Run is on if working dir is on AND
+        # 1. for sequana: pipeline is set
+        # 2. for generic: snakefile is present irrespective of config file in generic mode
         if self.working_dir.path_is_setup():
+            self.info('DEBUG: SWITCH RUN')
             if self.mode == "sequana":
                 # requires the directory or samples to be set
                 if self.ui.tabs_browser.currentWidget().path_is_setup():
@@ -898,6 +936,7 @@ class SequanaGUI(QMainWindow):
         self.ui.stop_btn.setEnabled(False)
 
     def _get_snakefile(self):
+        self.info('DEBUG: Entering _get_snakefile')
         if self.mode == "sequana":
             if self.pipeline_is_chosen:
                 snakefile = Module(self.ui.choice_button.currentText()).snakefile
@@ -1005,49 +1044,78 @@ class SequanaGUI(QMainWindow):
                          for w in widgets}
         return form_dict
 
-    def check_existing_config(self):
+    def clear_form(self):
+        self.clear_layout(self.form)
+
+    def _read_config_inside_working_dir(self, cfg):
+        self.info('DEBUG: Entering _read_config %s' % cfg)
+        if self.mode == "sequana":
+            # this should always work but who knows
+            try:
+                cfg = snaketools.SequanaConfig(cfg)
+                cfg.cleanup() # set all empty strings and %()s to None
+                return cfg.config
+            except:
+                self.critical("Could not interpret the sequana config file")
+        else:
+            if len(cfg) == 0:
+                return None
+            # otherwise, we read it
+            try:
+                cfg = snaketools.SequanaConfig(cfg, mode="generic")
+                return cfg.config
+            except AssertionError:
+                msg = WarningMessage("Could not parse the config file.")
+                msg.exec_()
+            except Exception as err:
+                self.critical(err)
+                msg = WarningMessage(
+                    "Unexpected error while checking the config file %s."
+                    % cfg + str(err))
+                msg.exec_()
+
+    def _load_config(self):
+        # Once the working dir is clicked, we may want to update
+        # the config file.
+        self.info('DEBUG: Entering _load_config')
 
         if self.mode == "sequana":
-            config_file = self.working_dir.get_filenames() + "/config.yaml"
-            if not os.path.isfile(config_file):
-                return False
+            # If working directory is not set yet, nothing to load
+            if self.working_dir.get_filenames() == "":
+                return
+            else:
+                config_file = self.working_dir.get_filenames() + "/config.yaml"
+                if not os.path.isfile(config_file):
+                    self.info("config file %s not found. " % config_file +
+                        "Will use the pipeline original config file.")
+                    return
+
+            # If pipeline not set, we cannot read the config file
             if not self.pipeline_is_chosen:
                 msg = WarningMessage("A config.yaml file already exist in this "
                                  "directory. Please, choose a pipeline to "
                                  "know if the existing config file correspond "
                                  "to your pipeline.", self)
-                self.working_dir.set_empty_path()
                 msg.exec_()
-                return False
-        else:
-            snakefile = self._generic_snakefile.get_filenames()
+                return
+        else: # a generic file
             config_file = self._generic_config.get_filenames()
-            working_dir = self.working_dir.get_filenames()
-            if len(config_file) == 0 or len(snakefile) == 0:
-                msg = WarningMessage("You must set the pipeline first")
-                msg.exec_()
-                self.working_dir.set_empty_path()
-                return False
+            if config_file is None:
+                self.info("generic case: no config file found")
+                self.clear_form()
+                return
 
-        try:
-            # Load the existing config
-            if self.mode == "sequana":
-                cfg = snaketools.SequanaConfig(config_file)
-                cfg.cleanup() # set all empty strings and %()s to None
-            else:
-                cfg = snaketools.SequanaConfig(config_file, mode="generic")
-            config_dict = cfg.config
-        except AssertionError:
-            msg = WarningMessage("Could not parse the config file.")
-            msg.exec_()
-            return False
-        except Exception as err:
-            msg = WarningMessage(
-                "Unexpected error while checking the config file %s."
-                % config_file + str(err))
-            msg.exec_()
-            return False
+        # Now, config_file should be a valid file since it was selected by the
+        # file browser
+        config_dict = self._read_config_inside_working_dir(config_file)
 
+        if config_dict is None:
+            # reset the layout
+            self.warning("config_dict is None")
+            self.clear_form()
+            return
+
+        print(config_dict)
         if set(self.configfile._yaml_code.keys()) == set(config_dict.keys()):
             msg = QW.QMessageBox(
                 QW.QMessageBox.Question, "Question",
@@ -1055,6 +1123,7 @@ class SequanaGUI(QMainWindow):
                 "Do you want to import its content ?",
                 QW.QMessageBox.Yes | QW.QMessageBox.No,
                 self, Qt.Dialog | Qt.CustomizeWindowHint)
+            # Yes == 16384
             if msg.exec_() == 16384:
                 self.configfile._yaml_code.update(config_dict)
                 self.create_base_form()
@@ -1075,12 +1144,13 @@ class SequanaGUI(QMainWindow):
         self._tooltips = {}
         self._tooltips["working_directory"] = self.ui.working_directory.toolTip()
 
+    """
     def hide_tooltips(self):
         self.ui.working_directory.setToolTip("")
 
     def show_tooltips(self):
         self.ui.working_directory.setToolTip(self._tooltips["working_directory"])
-
+    """
 
     # ---------------------------------------------------
     #  settings and close
@@ -1135,7 +1205,7 @@ class Options(argparse.ArgumentParser):
     def __init__(self, prog="sequana_gui"):
         usage = """dkfj skfk"""
         description = """"""
-        super(Options, self).__init__(usage=usage, prog=prog, 
+        super(Options, self).__init__(usage=usage, prog=prog,
             description=description, formatter_class=SmartFormatter)
         group = self.add_argument_group("GENERAL")
         group.add_argument("-w", "--working-directory", dest="wkdir",

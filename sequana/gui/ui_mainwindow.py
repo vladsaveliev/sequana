@@ -323,7 +323,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabs_pipeline.setCurrentIndex(1)
+        self.tabs_pipeline.setCurrentIndex(0)
         self.tabs_browser.setCurrentIndex(1)
         self.tabs_browser_2.setCurrentIndex(0)
         self.tabs.setCurrentIndex(0)
@@ -399,6 +399,9 @@ class Ui_MainWindow(object):
 "snakemake -s Snakefile --unlock "))
         self.unlock_btn.setText(_translate("MainWindow", "Unlock"))
         self.unlock_btn.setShortcut(_translate("MainWindow", "Ctrl+U"))
+        self.report_btn.setToolTip(_translate("MainWindow", "This button open an HTML page present in the working directory (if found).\n"
+"\n"
+"This is essentially for the sequana pipeline (default filename is multi_summary.html but one can change the name in the option/preferences dialog."))
         self.report_btn.setText(_translate("MainWindow", "Open Report"))
         self.report_btn.setShortcut(_translate("MainWindow", "Ctrl+R"))
         self.save_btn.setText(_translate("MainWindow", "Save Config"))
