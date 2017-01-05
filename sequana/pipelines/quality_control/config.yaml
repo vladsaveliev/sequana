@@ -21,7 +21,7 @@ input_samples:
 # Note that sequana and url fields are followed by itemised files or links
 # using the front dashes
 requirements:
-    - phiX174.fa   
+    - phiX174.fa
 
 # This is a hack to ignore to prevent possible bug in commentedMap
 # since the next section long comments is not seen after the requirements
