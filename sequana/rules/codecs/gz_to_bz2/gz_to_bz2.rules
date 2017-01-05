@@ -4,7 +4,7 @@ rule gz_to_bz2:
     Description:
         First, the input fastq.gz file is decompressed to a fastq file.
         Second, the fastq file is compressed to a BZ2 file.
-        
+
 
     :param input: fastq.gz file
     :return: fastq.bz2 file
@@ -14,7 +14,8 @@ rule gz_to_bz2:
     """
     input: "{dataset}.gz"
     output: "{dataset}.bz2"
+    threads: config['compressor']['threads']
     run:
-        shell("unpigz {input}")
+        shell("unpigz {input} -p {threads}")
         output = output[0].replace(".bz2", "")
-        shell("pbzip2 %s" % output)
+        shell("pbzip2 %s -p{threads}" % output)
