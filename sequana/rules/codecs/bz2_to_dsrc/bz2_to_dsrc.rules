@@ -16,7 +16,7 @@ rule bz2_to_dsrc:
     threads: config["compressor"]["threads"]
     run:
         input_noext = input[0].replace(".bz2", "")
-        shell("pbunzip2 {input}")
+        shell("pbunzip2 {input} -p{threads}")
         shell("dsrc c -t{threads} {params} %s {output} " % (input_noext))
         shell("rm -f %s" % input_noext)
 

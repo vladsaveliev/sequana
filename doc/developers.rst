@@ -271,4 +271,15 @@ raised before starting the analysis.
 
 
 
+Coding conventions
+----------------------
 
+To print debugging information, warnings or more generally information, please
+do not use the print() function but the logger::
+
+    from sequana import logger
+    logger.debug("test")
+    logger.info("test")
+    logger.warning("test")
+    logger.error("test")
+    logger.critical("test")

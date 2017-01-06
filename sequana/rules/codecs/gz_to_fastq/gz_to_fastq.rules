@@ -13,11 +13,13 @@ rule gz_to_fastq:
         of available threads.
 
     :param input: fastq.gz files
+    :param config: the config file must contains "threads"
     :return: fastq files
     :third-party executables: unpigz (conda install pigz)
 
     """
     input: "{dataset}.gz"
     output: "{dataset}"
+    threads: config['compressor']['threads']
     run:
-        shell("unpigz {input}")
+        shell("unpigz {input} -p {threads}")

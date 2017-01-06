@@ -27,7 +27,7 @@ from optparse import OptionParser
 import argparse
 
 from easydev.console import red, purple, green, blue
-from easydev import DevTools
+from easydev import DevTools, SmartFormatter
 
 adapters_choice = ["Nextera", "Rubicon", "PCRFree"]
 
@@ -76,13 +76,6 @@ class Tools(object):
     def print(self, txt, force=False):
         if self.verbose or force: print(txt)
 
-
-class SmartFormatter(argparse.HelpFormatter):
-    def _split_lines(self, text, width):
-        if text.startswith('FORMAT|'):
-            return text[7:].splitlines()
-        # this is the RawTextHelpFormatter._split_lines
-        return argparse.HelpFormatter._split_lines(self, text, width)
 
 
 class Options(argparse.ArgumentParser):
@@ -518,10 +511,6 @@ def main(args=None):
 
     ff = FastQFactory(data, verbose=options.verbose)
 
-    def _get_adap(filename):
-        return sequana_data(filename, "data/adapters")
-
-
     if options.pipeline == 'quality_control':
         # check combo
         flag = int("%s%s%s%s%s" % (
@@ -569,11 +558,9 @@ def main(args=None):
                     options.adapter_rev = "TCTAGCCTTCTCGCAGCACATCCCTTTCTCACATCTAGAGCCACCAGCGGCATAGTAA"
                 # flag 4
                 else:
-                    options.adapter_fwd = "file:" + _get_adap(
-                        'adapters_%s_fwd.fa' % options.adapters)
-                    # !!!!!!! revcomp to be used
-                    options.adapter_rev = "file:" + _get_adap(
-                        'adapters_%s_revcomp.fa' % options.adapters)
+                    # Let the pipeline handle the names
+                    options.adapter_fwd = options.adapters
+                    options.adapter_rev = options.adapters
             # flag 2/3
             else:
                 if options.adapter_fwd:
@@ -601,19 +588,8 @@ def copy_config_from_sequana(module, source="config.yaml",
     user_config = module.path + os.sep + source
     if os.path.exists(user_config):
         shutil.copy(user_config, target)
-        txt = "copied %s from sequana %s pipeline" % (source, module.name)
-    else:
-        txt = "%s does not exists locally or within Sequana "+\
-              "library (%s pipeline)"
-    print(txt)
-
-    # some pipelines (eg rnaseq) have also a multiqc_config.yaml file that we want to get
-    multiqc_config = module.path + os.sep + "multiqc_config.yaml"
-    if os.path.exists(multiqc_config):
-        shutil.copy(multiqc_config, options.target_dir + os.sep + "multiqc_config.yaml")
-        txt = "copied multiqc_config.yaml from sequana %s pipeline" % (module.name)
-        print(txt)
-
+        txt = "copied %s from sequana %s pipeline"
+        print(txt % (source, module.name))
 
 def sequana_init(options):
     import sequana
@@ -686,6 +662,10 @@ def sequana_init(options):
             raise(IOError("Config file %s not found locally" % options.config))
     else:
         copy_config_from_sequana(module, "config.yaml", config_filename)
+
+    # Copy multiqc if it is available
+    multiqc_filename = options.target_dir + os.sep + "multiqc_config.yaml"
+    copy_config_from_sequana(module, "multiqc_config.yaml", multiqc_filename)
 
     # The input
     cfg = SequanaConfig(config_filename)

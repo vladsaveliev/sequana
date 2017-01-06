@@ -24,8 +24,6 @@ import sys
 from optparse import OptionParser
 import argparse
 
-from snakemake import shell
-#from easydev import TempFile
 import tempfile
 
 from sequana.scripts.tools import SequanaOptions
@@ -52,6 +50,16 @@ class Options(argparse.ArgumentParser, SequanaOptions):
     sequana_compressor --source fastq.gz   --target fastq
     sequana_compressor --source fastq.bz2  --target fastq
 
+
+    If your job is interrupted, your directory may be locked during the next
+    run. To unlock the directory, type::
+
+    sequana_compressor --source ... --target ... --snakemake-options="--unlock"
+
+    Note the quotes and the equal sign. --source and target must be provided but 
+    no analysis will be performed at that stage.
+
+    Then, type your normal command again.
 
 AUTHORS: Thomas Cokelaer
 Documentation: http://sequana.readthedocs.io
@@ -82,12 +90,12 @@ fq.dsrc""")
             default=4,
             help="""number of jobs to use at most (4) """)
         self.add_argument("--snakemake-options", dest="snakemake",
-            default="--keep-going",
+            default=" --keep-going ",
             help="""any valid list of options accepted by snakemake except
-            -s and -j and -p""")
+            -s and -j""")
         self.add_version(self)
-        self.add_verbose(self)
         self.add_cluster(self)
+        self.add_quiet(self)
 
 def main(args=None):
 
@@ -135,8 +143,13 @@ Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
         from sequana import Module
         rule = Module("compressor").path + os.sep +  "compressor.rules"
 
-        cmd = 'snakemake -s %s  --configfile %s -j %s -p ' % \
+        cmd = 'snakemake -s %s  --configfile %s -j %s ' % \
                 (rule, temp.name, options.jobs)
+
+        if options.verbose is False:
+            cmd += " --quiet "
+        else:
+            cmd += " -p "
 
         if options.cluster:
             cluster = ' --cluster "%s" ' % options.cluster
@@ -148,7 +161,16 @@ Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
         if options.verbose:
             print(cmd)
 
-        shell(cmd)
+        # On travis, shell command from snakemake fails. 
+        # Most probably because travis itself uses a subprocess.
+        # excute from easydev uses pexpect.spawn, which seems to work well
+        from easydev import execute 
+        execute(cmd, showcmd=False)
+        #if "TRAVIS_PYTHON_VERSION" in os.env:
+        #    from easydev import execute 
+        #    execute(cmd)
+        #else:
+        #    shell(cmd)
         fh.close()
 
 

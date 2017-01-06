@@ -1,6 +1,7 @@
 from sequana import snaketools, sequana_data
 from sequana.snaketools import DOTParser
-import os
+import os, shutil
+import tempfile
 from nose.plugins.attrib import attr
 from sequana import Module, SequanaConfig
 
@@ -67,6 +68,10 @@ def test_valid_config():
 
     s = snaketools.Module("quality_control")
     config = snaketools.SequanaConfig(s.config)
+    config.get_section_long_comment("bwa_mem_phix")
+    config.get_section_short_comment("bwa_mem_phix")
+    assert config.get_section_long_comment("dummy") is None
+    assert config.get_section_short_comment("dummy") is None
 
     from easydev import TempFile
     with TempFile() as fh:
@@ -102,6 +107,11 @@ def test_sequana_config():
     except:
         assert True
 
+    # Test an exception
+    s = snaketools.Module("quality_control")
+    config = snaketools.SequanaConfig(s.config)
+    config._recursive_update(config._yaml_code, {"input_directory_dummy": "test"})
+
 
     # loop over all pipelines, read the config, save it and check the content is
     # identical. This requires to remove the templates. We want to make sure the
@@ -111,16 +121,19 @@ def test_sequana_config():
     #    field2:
     #
     # is unchanged
+    from easydev import TempFile
+    output = TempFile(suffix=".yaml")
     for pipeline in snaketools.pipeline_names:
         config_filename = Module(pipeline)._get_config()
         cfg1 = SequanaConfig(config_filename)
         cfg1.cleanup() # remove templates and strip strings
-        cfg1.save("test.yaml")
-        cfg2 = SequanaConfig("test.yaml")
 
+        cfg1.save(output.name)
+        cfg2 = SequanaConfig(output.name)
         assert cfg2._yaml_code == cfg1._yaml_code
         cfg2._update_config()
         assert cfg1.config == cfg2.config
+    output.delete()
 
 def test_message():
     snaketools.message("test")
@@ -208,3 +221,72 @@ def test_file_name_factory():
     ff.get_file1(ff.tags[0])
     ff.get_file2(ff.tags[0])
     assert len(ff) == 1
+
+
+def test_copy_requirements():
+    # We need 4 cases:
+    # 1- http 
+    # 2- a sequana file (phix)
+    # 3- an existing file elsewhere (here just a temporary file)
+    # 4- an existing file in the same directory as the target dir
+
+    from easydev import TempFile
+    fh = tempfile.TemporaryDirectory()
+    targetdir = fh.name
+
+    # Case 3: a temporary file
+    temprequire = TempFile()
+
+    # Case 4: a local file (copy of the temp file) 
+    # TODO
+    #localfile = temprequire.name.split(os.sep)[-1]
+    #shutil.copy(temprequire.name, targetdir)
+
+    cfg = snaketools.SequanaConfig()
+    cfg.config.requirements = ["phiX174.fa", temprequire.name, 
+        #localfile,
+        "https://raw.githubusercontent.com/sequana/sequana/master/README.rst"]
+    cfg._update_yaml()
+    cfg.copy_requirements(target=fh.name)
+
+    # error
+    cfg.config.requirements = ['dummy']
+    try:
+        cfg.copy_requirements(target=fh.name)
+        assert False
+    except:
+        assert True
+    
+
+
+def test_create_cleanup():
+    fh = tempfile.TemporaryDirectory()
+    directory = fh.name
+    filename = snaketools.create_cleanup(directory)
+
+def test_create_recursive_cleanup():
+    fh = tempfile.TemporaryDirectory()
+    directory = fh.name
+    snaketools.create_recursive_cleanup()
+
+def test_build_dynamic_rule():
+
+    code = "whatever"
+    fh = tempfile.TemporaryDirectory()
+    directory = fh.name
+    snaketools.build_dynamic_rule(code, directory)
+
+def test_init():
+    snaketools.init("quality_control.rules", globals())
+    assert "expected_output" in globals()
+
+
+
+
+
+
+
+
+
+
+
