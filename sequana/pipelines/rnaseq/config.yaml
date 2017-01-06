@@ -40,6 +40,10 @@ sequencing:
     instrument: "Hiseq2500"
     flowcell: "H35CTBCXY"
 
+genome:
+  file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
+  version: hg19
+
 star_mapping:
     do: yes
     ## if index is already computed
@@ -129,4 +133,12 @@ mark_duplicates:
 coverage:
     binSize: 10
     genomeSize : 2150570000 ##mm10
-    fragmentLength: 65
+    extendReads: 65
+    minFragmentLength: 0 #Note that a value other than 0 will exclude all single-end reads.
+    maxFragmentLength: 0 #A value of 0 disables filtering and is needed for including single-end and orphan reads.
+
+RNAseQC:
+     do: yes
+     ref: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
+     gtf: /pasteur/projets/specific/PF2_ngs/protected/annotation/gtf/hg19.gtf
+     BWArRNA: /pasteur/projets/specific/PF2_ngs/protected/Genomes/human_rRNA/human_all_rRNA.fasta
