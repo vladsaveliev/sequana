@@ -19,5 +19,8 @@ rule bamCoverage:
     output:
         __bamCoverage__output
     threads: 4
-    run:
-        shell("bamCoverage --bam {input} -o {output} --binSize {params.bs} --normalizeTo1x {params.gs} --minFragmentLength {params.fragmentLength}  2> {log}")
+    shell:
+        if [-e {input}.bai] ; then
+            samtools index {input}
+        fi
+        bamCoverage --bam {input} -o {output} --binSize {params.bs} --normalizeTo1x {params.gs} --minFragmentLength {params.fragmentLength}  2> {log}
