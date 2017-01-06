@@ -30,5 +30,5 @@ rule bamCoverage:
         bamCoverage --bam {input} -o {output} --numberOfProcessors 4 \
         --binSize {params.bs} --normalizeTo1x {params.gs} \
         --extendReads {params.exRead} --minFragmentLength {params.minFL}  \
-        --maxFragmentLength {params.maxFL2} > {log}
+        --maxFragmentLength {params.maxFL} 2> {log}
         """
