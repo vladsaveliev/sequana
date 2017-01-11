@@ -64,7 +64,7 @@ setup(
     install_requires = ["easydev>=0.9.30", "reports>=0.2.0", "matplotlib",
         "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14", "biokit>=0.3.2",
         "pysam", "pyVCF", "docutils", "sphinx-gallery", "mock", "numpydoc", "pillow",
-        "blist", "sphinx", "ruamel.yaml>=0.13.2", "colorlog"],
+        "blist", "sphinx", "ruamel.yaml>=0.13.2", "colorlog", "pyquickhelper"],
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
@@ -92,6 +92,7 @@ setup(
     entry_points = {
         'console_scripts':[
            'sequana_gui=sequana.gui.sequana_gui:main',
+           'sequanix=sequana.gui.sequana_gui:main',
            'fastq_head=sequana.scripts.fastq_head:main',
            'fastq_count=sequana.scripts.fastq_count:main',
            'sequana_fastq_head=sequana.scripts.fastq_head:main',
