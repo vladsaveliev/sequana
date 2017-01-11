@@ -128,7 +128,7 @@ def main(args=None):
 
     if (options.source, options.target) not in valid_combos:
         raise ValueError("""--target and --source combo not valid.
-Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
+Must be one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
 
     from easydev import TempFile
     # Create the config file locally
@@ -142,7 +142,10 @@ Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
         cfg.config.compressor.recursive = options.recursive
         cfg.config.compressor.verbose = options.verbose
         cfg.config.compressor.threads = options.threads
+        cfg._update_yaml()
         cfg.save(filename=temp.name)
+
+        print(options)
 
         # The Snakefile can stay in its original place:
         rule = module.path + os.sep +  "compressor.rules"
