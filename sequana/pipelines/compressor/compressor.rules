@@ -9,8 +9,7 @@ In brief, a config file must be provided. Rules in rules/codecs are used.
 import glob
 import sequana.snaketools as ss
 
-# mode "others" means: do not check presence of samples/projects fields
-cfg = ss.SequanaConfig(config, mode="others").config
+cfg = ss.SequanaConfig(config).config
 
 if cfg.compressor.target.startswith("fastq"):
     name = "fastq"
@@ -99,7 +98,6 @@ rule all:
 onsuccess:
     shell("rm -f snakejob*.sh.e*")
     shell("rm -f snakejob*.sh.o*")
-
 
 
 
