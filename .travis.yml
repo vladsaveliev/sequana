@@ -43,11 +43,12 @@ install:
   # use pip to get latest version
   - pip install easydev>=0.9.30 --upgrade
   - pip install coveralls
+  - pip install entrypoints
   - pip install tabulate
   - pip install biokit>=0.3.2
   - pip install bioservices --upgrade
   - pip install snakemake
-  - conda install cutadapt pysam pyvcf snpEff krona --yes
+  - conda install cutadapt pysam snpEff krona --yes
 
 # # command to run tests, e.g. python setup.py test
 script:
