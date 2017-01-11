@@ -133,7 +133,7 @@ Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
     from easydev import TempFile
     # Create the config file locally
 
-    module = SequanaConfig(Module("compressor")
+    module = SequanaConfig(Module("compressor"))
 
     with TempFile(suffix=".yaml", dir=".") as temp:
         cfg = SequanaConfig(module.config)
