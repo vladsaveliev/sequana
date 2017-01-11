@@ -28,10 +28,10 @@ requirements:
 # section
 ignore:
 
-#===========================================================================
+#################################################################
 # This rule allows one to select only a subset of the reads
 #
-# Parameters:
+# :Parameters:
 # - do: if unchecked, this rule is ignored
 # - N:  number of reads to use
 #
@@ -40,7 +40,7 @@ fastq_sampling: # test
     N: 2500
 
 
-# =========================================================================
+#################################################################
 # FastQC section
 #
 # Parameters
@@ -51,14 +51,15 @@ fastqc:
     options: "--nogroup"
 
 
-#===========================================================================
+#############################################################################
 # BWA used to remove a contaminant
 #
 # Parameters:
+# ============
 #  - do:    if uncheckd, this rule is ignored
 #  - reference_file: the name of the reference file to be found
-#                    in the analysis directory. If set to phiX174.fa,
-#                    it is downloaded automatically from Sequana
+#        in the analysis directory. If set to phiX174.fa,
+#        it is downloaded automatically from Sequana
 # - index_algorithm: the BWA index algorithm
 # - options:         any options recognised by BWA tool
 # - threads:         number if threads to be used
@@ -71,23 +72,26 @@ bwa_mem_phix:
     threads: 2
 
 
-#===========================================================================
+#######################################################################
 # Quality trimming and adapter removal
-#   - adapter_type can only be PCRFree or Nextera and used by
-#     with design_file only.
-#   - design_file: a valid CSV file with mapping of index and
-#       sample name
-#   - quality: 0 means no trimming, 30 means keep base with quality
-#       above 30
-#   - m: 20 means discard trimmed reads that are shorter than 20.
-#        must be >0 and <40
-#   - tool: only cutadapt supported for now
 #
-#   - if design_file is provided, fwd and rev are ignored
-#    - mode: must be set to one of
-#       - g for 5'
-#       - a for 3'
-#       - b for both 5'/3'
+# :Parameters:
+#
+# :adapter_type: can only be PCRFree or Nextera and used by
+#       with design_file only.
+# - design_file: a valid CSV file with mapping of index and
+#        sample name
+# - quality: 0 means no trimming, 30 means keep base with quality
+#        above 30
+# - m: 20 means discard trimmed reads that are shorter than 20.
+#         must be >0 and <40
+# - tool: only cutadapt supported for now
+#
+# - mode: must be set to one of
+#     - g for 5'
+#     - a for 3'
+#     - b for both 5'/3'
+# :Note: If design_file is provided, fwd and rev are ignored
 #
 #   ref: http://cutadapt.readthedocs.io/
 adapter_removal:
@@ -103,8 +107,13 @@ adapter_removal:
     quality: 30                 # {"range": [0,40]}
 
 
-#===========================================================================
+#################################################################
 # For taxonomy. Used in quality_control pipeline
+#
+# ::
+#
+#     from sequana import *
+#     f = FastQ()
 kraken:
     do: False
     database_directory:  "%(kraken_database_directory)s"
