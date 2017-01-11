@@ -88,16 +88,16 @@ def test_sequana_config():
 
     # --------------------------------- tests different constructors
     config = snaketools.SequanaConfig()
-    config = snaketools.SequanaConfig({"test":1}, mode="others")
+    config = snaketools.SequanaConfig({"test":1})
     assert config.config.test == 1
     # with a dictionary
-    config = snaketools.SequanaConfig(config.config, mode="others")
+    config = snaketools.SequanaConfig(config.config)
     # with a sequanaConfig instance
-    config = snaketools.SequanaConfig(config, mode="others")
+    config = snaketools.SequanaConfig(config)
     # with a non-yaml file
     try:
         json = sequana_data('test_summary_fastq_stats.json')
-        config = snaketools.SequanaConfig(json, mode="others")
+        config = snaketools.SequanaConfig(json)
         assert False
     except:
         assert True
@@ -150,7 +150,7 @@ def test_dummy_manager():
 def test_pipeline_manager():
 
     # test missing input_directory
-    cfg = SequanaConfig({}, mode="other")
+    cfg = SequanaConfig({})
     try:
         pm = snaketools.PipelineManager("custom", cfg)
         assert False
