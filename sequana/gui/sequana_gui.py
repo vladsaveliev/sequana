@@ -81,6 +81,7 @@ class QPlainTextEditLogger(colorlog.StreamHandler):
         self.widget.setReadOnly(True)
         self.bgcolor = "black"
         self.widget.setStyleSheet("background-color: %s" % self.bgcolor)
+        
 
     def emit(self, record):
         formatter = """<span style="color:%(color)s;
@@ -158,18 +159,18 @@ class SequanaGUI(QMainWindow):
         self._save_tooltips() # save all tooltips
 
         self.setStyleSheet("""QToolTip {
-                           background-color: white;
+                           background-color: #aabbcc;
                            color: black;
                            border-style: double;
                            border-width: 3px;
                            border-color: green;
                            border-radius: 5px;
                            margin:3px;
+                           opacity: 220;
                            }
                             """)
 
         # User option
-        print(user_options)
         if "wkdir" in user_options and user_options.wkdir is not None:
             self.info("Setting working directory")
             if os.path.exists(user_options.wkdir) is False:
@@ -291,7 +292,6 @@ class SequanaGUI(QMainWindow):
     def _close_last_widget(self):
         try:
             self._last_widget.close()
-            print("ok")
         except:
             print("nothing to close")
     #|-----------------------------------------------------|
@@ -555,7 +555,7 @@ This GUI can be used to run either Sequana pipelines (see
         filename = self._generic_config.get_filenames()
         if len(filename):
             try:
-                configfile = snaketools.SequanaConfig(filename, mode="generic")
+                configfile = snaketools.SequanaConfig(filename)
             except AssertionError:
                 self.warning("Warning: could not parse the config file")
                 return
@@ -674,16 +674,9 @@ This GUI can be used to run either Sequana pipelines (see
         self.info("Starting process with %s " % " ".join(snakemake_args))
 
         pref = self.preferences_dialog.ui
-        process = pref.preferences_options_general_process_value.currentText()
 
-        if process == "qt":
-            self.process.setWorkingDirectory(working_dir)
-            self.process.start("snakemake", snakemake_args)
-        else:
-            self.cmd = ['snakemake'] + snakemake_args
-            self.cwd = working_dir
-            snakemake_proc = sp.Popen(self.cmd,
-                cwd=working_dir)
+        self.process.setWorkingDirectory(working_dir)
+        self.process.start("snakemake", snakemake_args)
 
     # -------------------------------------------------------------------
     # Create the base form
@@ -700,8 +693,9 @@ This GUI can be used to run either Sequana pipelines (see
         self.rule_list = []
 
         # A section looks like a large comments :
-        #   #----------
-        #   #---
+        #   #========
+        #   # valid python docstring to be interepreted by sphinx
+        #   # 
         #   section:   # short comment
         #      item: value # comment interne
 
@@ -721,7 +715,28 @@ This GUI can be used to run either Sequana pipelines (see
             if isinstance(contains, dict) and (
                     rule not in SequanaGUI._not_a_rule):
                 rule_box = Ruleform(rule, contains, count, self._browser_keyword)
+                self.comments= comments
                 if comments:
+                    # Try to interpret it with sphinx
+                    from pyquickhelper.helpgen import docstring2html
+                    docstring = []
+                    for line in comments.split("\n"):
+                        if "#############" in line:
+                            pass
+                        else:
+                            if len(line)<2: # an empty line (to keep)
+                                docstring.append("")
+                            else:
+                                docstring.append(line[2:]) # strip the "# " characters
+
+                    docstring = "\n".join(docstring)
+                    try:
+                        comments = docstring2html(docstring).data
+                        comments.replace('class="document"', 'style=""')
+                    except:
+                        self.warning("Could not interpret docstring of %s" % rule)
+
+
                     rule_box.setToolTip(comments)
                 else:
                     rule_box.setToolTip("")
@@ -763,7 +778,9 @@ This GUI can be used to run either Sequana pipelines (see
                 self.critical(err)
                 self.error("process disconnect failed")
             """
-            self.process.close()
+            #self.process.close()
+            import os
+            os.kill(self.process.pid(), signal.SIGINT) 
             self.info("ok ")
         self.ui.run_btn.setEnabled(True)
         self.ui.stop_btn.setEnabled(False)
@@ -835,9 +852,9 @@ This GUI can be used to run either Sequana pipelines (see
 
         if self.working_dir.path_is_setup():
             yaml_path = self.working_dir.get_filenames() + "/config.yaml"
-            if self.mode == "sequana":
-                self.warning("copy requirements (if any)")
-                self.configfile.copy_requirements(target=self.working_dir.get_filenames())
+            #if self.configfile.mode == "sequana":
+            #    self.warning("copy requirements (if any)")
+            #    self.configfile.copy_requirements(target=self.working_dir.get_filenames())
 
             if os.path.isfile(yaml_path):
                 if force == False:
@@ -1062,7 +1079,7 @@ This GUI can be used to run either Sequana pipelines (see
                 return None
             # otherwise, we read it
             try:
-                cfg = snaketools.SequanaConfig(cfg, mode="generic")
+                cfg = snaketools.SequanaConfig(cfg)
                 return cfg.config
             except AssertionError:
                 msg = WarningMessage("Could not parse the config file.")
