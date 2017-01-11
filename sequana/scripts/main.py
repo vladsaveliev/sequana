@@ -26,8 +26,10 @@ import time
 from optparse import OptionParser
 import argparse
 
+
 from easydev.console import red, purple, green, blue
 from easydev import DevTools, SmartFormatter
+
 
 adapters_choice = ["Nextera", "Rubicon", "PCRFree"]
 
@@ -90,7 +92,7 @@ class Options(argparse.ArgumentParser):
         done with one of the following parameter
 
             --input-directory <Location of the fastq.gz files>
-            --pattern <A wildcard to retrieve fastq.gz files>
+            --input-pattern <A wildcard to retrieve fastq.gz files>
             --file1 FILE1 --file2 FILE2
 
         In addition, each pipeline may have its own specific options. For
@@ -110,7 +112,7 @@ class Options(argparse.ArgumentParser):
         If you want to analyse several samples distributed in sub-directories,
         use:
 
-            sequana --pipeline quality_control --pattern "./*/*fastq.gz"
+            sequana --pipeline quality_control --input-pattern "./*/*fastq.gz"
                 --design SampleSheetUsed.csv  --adapters PCRFree
 
         If all samples are in the current directory:
@@ -247,7 +249,7 @@ define the type of cluster command to use
         group.add_argument("-2", "--file2", dest="file2", type=str,
             help=""" Fills the *samples:file2* field in the config file. To be used
                 with --init option""")
-        group.add_argument("--pattern", dest="pattern", type=str,
+        group.add_argument("--input-pattern", dest="pattern", type=str,
             default=None,
             help="""a pattern to find files. You can use wildcards e.g.
                     '*/*.fastq.gz'  . Note that fastq.gz or fq.gz must be used
@@ -260,7 +262,7 @@ define the type of cluster command to use
                 files ending in fastq.gz are found, an error is raised.""")
         group.add_argument("-e", "--extension", type=str, default="fastq.gz",
             help="""To be used with --input-directory only""")
-        group.add_argument("-o", "--output-directory", dest="target_dir", type=str,
+        group.add_argument("-o", "--working-directory", dest="target_dir", type=str,
             default="analysis",
             help="directory where to create files and store results")
 
@@ -471,7 +473,7 @@ def main(args=None):
     # --file1 alone: 2
     # --file1 + --file2 : 2+4=6
     # --input-directory alone: 8
-    # --pattern alone: 16
+    # --input-pattern alone: 16
     # none of those options redirect to input_directory=local
     if flag not in [0, 1, 2, 6, 8,16]:
         sa.error(help_input + "\n\nUse --help for more information")
