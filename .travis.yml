@@ -40,10 +40,12 @@ install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pyyaml
   - conda install --yes python=$TRAVIS_PYTHON_VERSION qtconsole
   - conda install --yes python=$TRAVIS_PYTHON_VERSION kraken
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION bleach
   # use pip to get latest version
   - pip install easydev>=0.9.30 --upgrade
   - pip install coveralls
   - pip install entrypoints
+  - pip install mistune
   - pip install tabulate
   - pip install biokit>=0.3.2
   - pip install bioservices --upgrade
