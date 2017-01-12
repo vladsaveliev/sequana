@@ -79,9 +79,9 @@ class QPlainTextEditLogger(colorlog.StreamHandler):
         super().__init__()
         self.widget = QW.QPlainTextEdit(parent)
         self.widget.setReadOnly(True)
-        self.bgcolor = "black"
+        self.bgcolor = "#aabbcc"
         self.widget.setStyleSheet("background-color: %s" % self.bgcolor)
-        
+
 
     def emit(self, record):
         formatter = """<span style="color:%(color)s;
@@ -414,6 +414,7 @@ This GUI can be used to run either Sequana pipelines (see
     def on_sequana_pipeline_choice(self, index):
         """ Change options form when user change the pipeline."""
         if self.ui.choice_button.findText(index) == 0:
+            self.snakefile = None
             self.pipeline_is_chosen = False
             self.clear_form()
             return
@@ -819,6 +820,7 @@ This GUI can be used to run either Sequana pipelines (see
             return
 
     def save_config_file(self, force=False):
+        # For sequana
         self.info('DEBUG: SAVE_CONFIG_FILE')
         self.info("Saving config file")
 
@@ -826,7 +828,7 @@ This GUI can be used to run either Sequana pipelines (see
             form_dict = dict(self.create_form_dict(self.form),
                                  **self.necessary_dict)
         except AttributeError as err:
-            logger.error(err)
+            self.error(err)
             msg = WarningMessage("You must choose a pipeline before saving.")
             msg.exec_()
             return
@@ -836,12 +838,17 @@ This GUI can be used to run either Sequana pipelines (see
 
         # get samples names or input_directory
         if self.mode == "sequana":
-            if self.ui.tabs_browser.currentIndex() == 1:
-                form_dict["samples"] = (
-                    self.ui.tabs_browser.currentWidget().get_filenames())
+            current_selection = self.ui.tabs_browser.currentWidget().get_filenames()
+            if len(current_selection):
+                if self.ui.tabs_browser.currentIndex() == 1:
+                    form_dict["samples"] = (current_selection)
+                elif self.ui.tabs_browser.currentIndex() == 0:
+                    form_dict["input_directory"] = (current_selection)
             else:
-                form_dict["input_directory"] = (
-                    self.ui.tabs_browser.currentWidget().get_filenames())
+                print(self.ui.tabs_browser.currentIndex())
+                msg = WarningMessage("You must choose an input first.")
+                msg.exec_()
+                return
 
         # Let us update the attribute with the content of the form
         self.configfile.config.update(form_dict)
@@ -885,9 +892,11 @@ This GUI can be used to run either Sequana pipelines (see
         # When working dir changes, we try to copy the snakefile
         # if set.
         if self.snakefile is None:
+            self.info("No pipeline selected yet")
             return # nothing to be done
 
         if self.working_dir.path_is_setup() is False:
+            self.info("No working directory selected yet")
             return
 
         self.info('DEBUG: COPY SNAKEFILE')
@@ -1132,7 +1141,6 @@ This GUI can be used to run either Sequana pipelines (see
             self.clear_form()
             return
 
-        print(config_dict)
         if set(self.configfile._yaml_code.keys()) == set(config_dict.keys()):
             msg = QW.QMessageBox(
                 QW.QMessageBox.Question, "Question",
