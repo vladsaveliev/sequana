@@ -36,6 +36,7 @@ install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION xlrd
   - conda install --yes python=$TRAVIS_PYTHON_VERSION cython
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pillow
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION pyVCF
   - conda install --yes python=$TRAVIS_PYTHON_VERSION sphinx
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pyyaml
   - conda install --yes python=$TRAVIS_PYTHON_VERSION qtconsole
