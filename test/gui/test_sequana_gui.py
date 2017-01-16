@@ -1,64 +1,250 @@
 import sys
 import os
-import unittest
+import time
 
 from sequana.gui import sequana_gui
 from sequana import sequana_data
+from sequana import Module
+
 from PyQt5 import QtWidgets as QW
-from PyQt5.QtTest import QTest
-from PyQt5.QtCore import Qt
+from PyQt5.Qt import QTimer
+import pytest
+#from pytestqt.qt_compat import qt_api
 
-app = QW.QApplication(sys.argv)
+from tempfile import TemporaryDirectory
+from argparse import Namespace
 
-
-class SequanaGUITest(unittest.TestCase):
-
-    def setUp(self):
-        self.form = sequana_gui.SequanaGUI(ipython=False)
-
-    def tearDown(self):
-        self.form.close()
-
-    def _test_help(self):
-        self.form.menuHelp()
-
-    def _test_about(self):
-        self.form.menuAbout()
-
-        OK = self.form.preferences_dialog.ui.buttonBox.Ok
-        okWidget = self.form.preferences_dialog.ui.buttonBox.button(OK)
-        QTest.mouseClick(okWidget, Qt.LeftButton)
-
-    def test_choose_pipeline(self):
-        self.form.on_sequana_pipeline_choice("quality_control")
-        assert self.form.pipeline_is_chosen == True
-
-    def _test_generic_pipeline(self):
-        from sequana import sequana_data
-        self.snakefile = sequana_data("test_snakefile")
-
-    def _test_config(self):
-        self.form.ui.tabWidget_framework.setCurrentIndex(1)
+from mock import patch
 
 
-class SequanaGUIStandaloneTest(unittest.TestCase):
+@pytest.fixture
+def module():
+    return Module("quality_control")
 
-    def setUp(self):
-        from tempfile import TemporaryDirectory
-        wkdir = TemporaryDirectory()
-        inputdir = os.path.realpath(
-                sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz")).rsplit(os.sep,1)[0]
 
-        options = {"pipeline": "quality_control", 
-                    "--wkdir": wkdir.name, 
-                    "input_directory": inputdir}
-        from easydev import AttrDict
-        options = AttrDict(**options)
-        self.form = sequana_gui.SequanaGUI(ipython=False, user_options=options)
+def test_settings(qtbot):
+    widget = sequana_gui.SequanaGUI(ipython=False)
+    qtbot.addWidget(widget)
+    widget.read_settings()
 
-    def test(self):
+    #widget.menuHelp()
+    widget.close()
+
+def test_standalone_sequana(qtbot, tmpdir):
+    wkdir = TemporaryDirectory()
+    inputdir = os.path.realpath(
+            sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz")).rsplit(os.sep,1)[0]
+
+    # Standalone for sequana given a wkdir and pipeline and input_dir
+    args = Namespace(pipeline="quality_control", wkdir=wkdir.name,
+                input_directory=inputdir)
+    widget = sequana_gui.SequanaGUI(ipython=False, user_options=args)
+    qtbot.addWidget(widget)
+    assert widget.mode == "sequana"
+    widget.save_configfile(force=True)
+
+    #widget.show_dag = mock.MagicMock(return_value=True)
+    widget.show_dag()
+    widget.diag.close()
+
+    widget.click_run()
+    widget.click_stop()
+    time.sleep(1)
+
+
+def test_standalone_generic(qtbot, tmpdir, module):
+
+    wkdir = TemporaryDirectory()
+    # Standalone for generic case given a wkdir and snakefile (no config)
+    args = Namespace(wkdir=wkdir.name,
+                snakefile=module.snakefile)
+    widget = sequana_gui.SequanaGUI(ipython=False, user_options=args)
+    qtbot.addWidget(widget)
+    assert widget.mode == "generic"
+    # save_configfile() pop ups a window
+
+
+def test_standalone_generic_with_config(qtbot, tmpdir, module):
+    # Standalone for generic case given a wkdir and snakefile (no config)
+    wkdir = TemporaryDirectory()
+    args = Namespace(wkdir=wkdir.name,
+                snakefile=module.snakefile, configfile=module.config)
+    widget = sequana_gui.SequanaGUI(ipython=False, user_options=args)
+    qtbot.addWidget(widget)
+    assert widget.mode == "generic"
+    # widget.save_configfile() # ask for confirmation...
+    assert widget.generic_factory.is_runnable() == True
+
+
+def test_standalone_generic_with_noconfig(qtbot):
+    """mimics:
+
+        sequanix -s path_to_snakefile -w dirname
+
+    followed --forcealll + run 
+    """
+    # From the command line argument
+    snakefile = sequana_data("test_gui_generic_snakefile_noconfig.rules")
+    wkdir = TemporaryDirectory()
+    args = Namespace(wkdir=wkdir.name,
+                snakefile=snakefile)
+    widget = sequana_gui.SequanaGUI(ipython=False, user_options=args)
+    qtbot.addWidget(widget)
+    assert widget.mode == "generic"
+    assert widget.generic_factory.is_runnable() is True
+    assert widget.ui.run_btn.isEnabled() == True
+    assert widget.ui.dag_btn.isEnabled() == True
+    assert widget.ui.stop_btn.isEnabled() == False
+
+    # check that it worked:
+    widget.snakemake_dialog.ui.snakemake_options_general_forceall_value.setChecked(True)
+    widget.click_run()
+
+    # in the GUI, we see when it stops. Here, we need to wait a few seconds
+    time.sleep(1)
+    data = open(wkdir.name + os.sep + "count.txt").read().split()
+    assert sum([int(x) for x in data]) == 2000000
+
+
+def test_standalone_generic_with_noconfig_2(qtbot):
+    """mimics:
+
+        sequanix -s path_to_snakefile
+
+    followed by selection of a working directory in the GUI + forceall + run
+    """
+    # From the command line argument
+    snakefile = sequana_data("test_gui_generic_snakefile_noconfig.rules")
+    wkdir = TemporaryDirectory()
+    args = Namespace(snakefile=snakefile)
+    widget = sequana_gui.SequanaGUI(ipython=False, user_options=args)
+    qtbot.addWidget(widget)
+    assert widget.mode == "generic"
+    assert widget.generic_factory.is_runnable() is False
+    assert widget.ui.run_btn.isEnabled() == False
+
+    widget.generic_factory._directory_browser.set_filenames(wkdir.name)
+    widget.generic_factory._copy_snakefile()
+    widget.update_footer()
+
+    # check that it worked:
+    widget.snakemake_dialog.ui.snakemake_options_general_forceall_value.setChecked(True)
+    widget.click_run()
+
+    # in the GUI, we see when it stops. Here, we need to wait a few seconds
+    time.sleep(1)
+    data = open(wkdir.name + os.sep + "count.txt").read().split()
+
+
+def test_open_report(qtbot, tmpdir, module):
+    p = tmpdir.mkdir("sub").join('test.html')
+    p.write("hello")
+
+    args = Namespace(wkdir=str(p.dirpath()),
+                snakefile=module.snakefile)
+
+    # Open a valid HTML file
+    widget = sequana_gui.SequanaGUI(ipython=False, user_options=args)
+    qtbot.addWidget(widget)
+    widget.preferences_dialog.ui.preferences_options_general_htmlpage_value.setText("test.html")
+    widget.open_report()
+    assert widget.browser.isVisible()
+    widget.close()
+
+    # a wrong filename
+    widget.preferences_dialog.ui.preferences_options_general_htmlpage_value.setText("dummy.html")
+    widget.open_report()
+    assert widget.browser.isVisible() is False
+
+    # Now, we unset the working dir and this should just return without openning
+    # any report
+    widget.sequana_factory._directory_browser.set_empty_path()
+    widget.generic_factory._directory_browser.set_empty_path()
+    assert widget.working_dir is None
+    widget.open_report()
+    assert widget.browser.isVisible() is False
+
+    # try using firefox
+    widget = sequana_gui.SequanaGUI(ipython=False, user_options=args)
+    qtbot.addWidget(widget)
+    widget.preferences_dialog.ui.preferences_options_general_htmlpage_value.setText("test.html")
+    widget.preferences_dialog.ui.preferences_options_general_browser_value.setCurrentText("firefox")
+
+    def simple_execute(cmd):
         pass
+    @patch("easydev.execute", side_effects=simple_execute)
+    def runthis(qtbot):
+        widget.open_report()
+
+    runthis()
+    # There is no dialog browser but firefox should open a tab
+    #assert widget.browser.isVisible()
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_progress_bar(qtbot):
+    widget = sequana_gui.SequanaGUI(ipython=False)
+    qtbot.addWidget(widget)
+    widget.click_run() # defines the regex
+    widget.update_progress_bar("0 of 10 steps ")
+    widget.update_progress_bar("10 of 10 steps ")
+    widget.start_progress()
+    widget.end_run()
+
+
+def test_user_interface_sequana(qtbot):
+    widget = sequana_gui.SequanaGUI(ipython=False)
+    qtbot.addWidget(widget)
+    assert widget.form.count() == 0
+
+    # simulate selection of quality control pipeline
+    index = widget.sequana_factory._choice_button.findText("quality_control")
+    widget.sequana_factory._choice_button.setCurrentIndex(index)
+    widget.ui.tabs_pipeline.setCurrentIndex(0) # set sequana pipeline mode
+    widget._update_sequana("quality_control")
+
+    # we should have the focus on the config file now
+    assert widget.ui.tabs.currentIndex() == 2
+    assert widget.form.count() == 5
+    widget.clear_form()
+    assert widget.form.count() == 0
+
+    # select no pipeline
+    widget._update_sequana('Select a Sequana pipeline')
+    assert widget.form.count() == 0
+
+
+def test_others(qtbot, mock):
+    widget = sequana_gui.SequanaGUI(ipython=True)
+    qtbot.addWidget(widget)
+    # level and pipeline attribute
+    widget.set_level()
+    assert widget.sequana_factory.pipeline is None
+    # The repr functions
+    widget.sequana_factory.__repr__()
+    widget.generic_factory.__repr__()
+
+    # menuQuit
+    import sequana.gui.messages
+    mock.patch.object(sequana.gui.messages.WarningMessage, "exec_",
+        return_value=QW.QMessageBox.Yes)
+    widget.menuQuit()
+
+    # menu Help and About
+    import sequana.gui.about
+    mock.patch.object(sequana.gui.about.About, "exec_",
+        return_value=QW.QMessageBox.Ok)
+    widget.menuAbout()
+    widget.menuHelp()
+
+def test_generic_copy_nodir(qtbot):
+    # _copy does not work if directory not set
+    snakefile = sequana_data("test_gui_generic_snakefile_noconfig.rules")
+    configfile = sequana_data("test_gui_generic_config.yaml")
+    args = Namespace(snakefile=snakefile, configfile=configfile)
+    widget = sequana_gui.SequanaGUI(ipython=False, user_options=args)
+    qtbot.addWidget(widget)
+    widget.generic_factory._copy_configfile()
+    widget.generic_factory._copy_snakefile()
+
+
+
