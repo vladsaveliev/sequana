@@ -202,9 +202,10 @@ class VCF(vcf.Reader):
         self._reader.seek(self._start_index)
         self.reader = (line.strip() for line in self._reader if line.strip())
 
-    def to_csv(self, output_filename):
+    def to_csv(self, output_filename, filter_dict=None):
         """ Write DataFrame in csv format.
         """
         with open(output_filename, "w") as fp:
-            print("# sequana_variant_filter", file=fp)
-            self.df.to_csv(output_filename, index=False)
+            print("# sequana_variant_calling; {0}".format(filter_dict),
+                  file=fp)
+            self.df.to_csv(fp, index=False)
