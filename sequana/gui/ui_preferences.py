@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Preferences(object):
     def setupUi(self, Preferences):
         Preferences.setObjectName("Preferences")
-        Preferences.resize(424, 392)
+        Preferences.resize(428, 369)
         Preferences.setSizeGripEnabled(False)
         self.gridLayout = QtWidgets.QGridLayout(Preferences)
         self.gridLayout.setObjectName("gridLayout")

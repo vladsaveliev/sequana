@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QProgressBar, QLineEdit
 # potential resources for improvements:
 # https://github.com/ralsina/devicenzo/blob/master/devicenzo.py
 
-class MyBrowser(Qt.QMainWindow):
+class Browser(Qt.QMainWindow):
 
     def __init__(self, url):
         Qt.QMainWindow.__init__(self)

@@ -1,3 +1,22 @@
+# -*- coding: utf-8 -*-
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016 - Sequana Development Team
+#
+#  File author(s):
+#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#          <d.desvillechabrol@gmail.com>
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  website: https://github.com/sequana/sequana
+#  documentation: http://sequana.readthedocs.io
+#
+##############################################################################
+
 from PyQt5 import QtWidgets as QW
 from sequana.gui.messages import WarningMessage
 
@@ -14,6 +33,7 @@ class FileBrowser(QW.QWidget):
         self.empty_msg = "No file selected"
         self.btn = QW.QPushButton("Browse")
         self.btn.setFixedSize(100, 20)
+        self.Nmax = 25
 
         # Add default color
         self.btn.setStyleSheet("QPushButton {background-color: #AA0000; "
@@ -45,22 +65,33 @@ class FileBrowser(QW.QWidget):
             self.btn.setStyleSheet("QPushButton {background-color: #AA0000; "
                                    "color: #EEEEEE}")
 
+    def _set_paired_filenames(self, file_path):
+        self.paths = {"file{0}".format(i+1): file_path[i]
+                      for i in range(0, len(file_path))}
+
+        def _get_short_filename(this):
+            if len(this) < self.Nmax:
+                return this
+            else:
+                return "..." + this[-self.Nmax:]
+        self.btn_filename.setText("\n".join([key + ": " + _get_short_filename(value)
+                                  for key, value in self.paths.items()]))
+        self.set_green()
+
     def browse_paired_file(self):
-        file_path = QW.QFileDialog.getOpenFileNames(self, 
+        self.dialog = QW.QFileDialog(self)
+
+        file_path = self.dialog.getOpenFileNames(self,
             "Select a sample", ".", self.filter)[0]
 
         if not file_path:
             self.set_empty_path()
         elif len(file_path) > 2:
-            msg = WarningMessage("You must pick only one sample", self)
+            msg = WarningMessage("You must pick only one sample (1 or 2 files)", self)
             self.set_empty_path()
             msg.exec_()
         else:
-            self.paths = {"file{0}".format(i+1): file_path[i]
-                          for i in range(0, len(file_path))}
-            self.btn_filename.setText("\n".join([key + ": " + value
-                                      for key, value in self.paths.items()]))
-            self.set_green()
+            self._set_paired_filenames(file_path)
 
     def browse_directory(self):
         self.dialog = DirectoryDialog(self, "Select a directory", ".", 
@@ -83,9 +114,10 @@ class FileBrowser(QW.QWidget):
         return self.paths
 
     def set_filenames(self, filename):
+        # !! this works for the directory browser, not paired file
         self.paths = filename
-        if len(filename) > 30:
-            self.btn_filename.setText("...." + filename[-30:])
+        if len(filename) > self.Nmax:
+            self.btn_filename.setText("...." + filename[-self.Nmax:])
             self.btn_filename.setToolTip(filename)
         else:
             self.btn_filename.setText(filename)
