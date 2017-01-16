@@ -30,7 +30,7 @@ def test_settings(qtbot):
     #widget.menuHelp()
     widget.close()
 
-def test_standalone_sequana(qtbot, tmpdir):
+def _test_standalone_sequana(qtbot, tmpdir):
     wkdir = TemporaryDirectory()
     inputdir = os.path.realpath(
             sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz")).rsplit(os.sep,1)[0]
@@ -52,7 +52,7 @@ def test_standalone_sequana(qtbot, tmpdir):
     time.sleep(1)
 
 
-def test_standalone_generic(qtbot, tmpdir, module):
+def _test_standalone_generic(qtbot, tmpdir, module):
 
     wkdir = TemporaryDirectory()
     # Standalone for generic case given a wkdir and snakefile (no config)
@@ -64,7 +64,7 @@ def test_standalone_generic(qtbot, tmpdir, module):
     # save_configfile() pop ups a window
 
 
-def test_standalone_generic_with_config(qtbot, tmpdir, module):
+def _test_standalone_generic_with_config(qtbot, tmpdir, module):
     # Standalone for generic case given a wkdir and snakefile (no config)
     wkdir = TemporaryDirectory()
     args = Namespace(wkdir=wkdir.name,
@@ -76,7 +76,7 @@ def test_standalone_generic_with_config(qtbot, tmpdir, module):
     assert widget.generic_factory.is_runnable() == True
 
 
-def test_standalone_generic_with_noconfig(qtbot):
+def _test_standalone_generic_with_noconfig(qtbot):
     """mimics:
 
         sequanix -s path_to_snakefile -w dirname
@@ -106,7 +106,7 @@ def test_standalone_generic_with_noconfig(qtbot):
     assert sum([int(x) for x in data]) == 2000000
 
 
-def test_standalone_generic_with_noconfig_2(qtbot):
+def _test_standalone_generic_with_noconfig_2(qtbot):
     """mimics:
 
         sequanix -s path_to_snakefile
@@ -136,7 +136,7 @@ def test_standalone_generic_with_noconfig_2(qtbot):
     data = open(wkdir.name + os.sep + "count.txt").read().split()
 
 
-def test_open_report(qtbot, tmpdir, module):
+def _test_open_report(qtbot, tmpdir, module):
     p = tmpdir.mkdir("sub").join('test.html')
     p.write("hello")
 
@@ -191,7 +191,7 @@ def test_progress_bar(qtbot):
     widget.end_run()
 
 
-def test_user_interface_sequana(qtbot):
+def _test_user_interface_sequana(qtbot):
     widget = sequana_gui.SequanaGUI(ipython=False)
     qtbot.addWidget(widget)
     assert widget.form.count() == 0
@@ -213,7 +213,7 @@ def test_user_interface_sequana(qtbot):
     assert widget.form.count() == 0
 
 
-def test_others(qtbot, mock):
+def _test_others(qtbot, mock):
     widget = sequana_gui.SequanaGUI(ipython=True)
     qtbot.addWidget(widget)
     # level and pipeline attribute
@@ -235,6 +235,7 @@ def test_others(qtbot, mock):
         return_value=QW.QMessageBox.Ok)
     widget.menuAbout()
     widget.menuHelp()
+
 
 def test_generic_copy_nodir(qtbot):
     # _copy does not work if directory not set
