@@ -19,6 +19,8 @@
 import colorlog
 import shutil
 
+from PyQt5 import QtWidgets as QW
+
 
 __all__ = ['Logger', 'Tools', 'QPlainTextEditLogger']
 
