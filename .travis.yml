@@ -42,6 +42,7 @@ install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION qtconsole
   - conda install --yes python=$TRAVIS_PYTHON_VERSION kraken
   - conda install --yes python=$TRAVIS_PYTHON_VERSION bleach
+  - conda install cutadapt pysam snpEff krona --yes
   # use pip to get latest version
   - pip install easydev>=0.9.31 --upgrade
   - pip install coveralls
@@ -51,7 +52,7 @@ install:
   - pip install biokit>=0.3.2
   - pip install bioservices --upgrade
   - pip install snakemake
-  - conda install cutadapt pysam snpEff krona --yes
+  - pip install colorlog
   - pip install pytest pytest-cov pytest-qt 
 
 
