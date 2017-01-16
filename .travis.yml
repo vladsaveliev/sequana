@@ -53,8 +53,9 @@ install:
   - pip install bioservices --upgrade
   - pip install snakemake
   - pip install colorlog
-  - pip install pytest pytest-cov pytest-qt 
-
+  - pip install pytest pytest-cov pytest-qt
+  - pip install ruamel.yaml>=0.13.2
+  - pip install pyquickhelper
 
 # # command to run tests, e.g. python setup.py test
 script:
