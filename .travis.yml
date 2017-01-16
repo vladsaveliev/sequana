@@ -28,8 +28,7 @@ before_install:
 install:
   - echo $TRAVIS_PYTHON_VERSION
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pyqt numpy matplotlib pandas
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION nose coverage
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION numexpr xlrd
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION nose coverage numexpr xlrd
   - conda install --yes python=$TRAVIS_PYTHON_VERSION cython
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pillow
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pyVCF
@@ -45,7 +44,7 @@ install:
   - pip install entrypoints
   - pip install mistune
   - pip install tabulate
-  - pip install biokit>=0.3.2
+  - pip install biokit>=0.3.3
   - pip install bioservices --upgrade
   - pip install snakemake
   - pip install colorlog
