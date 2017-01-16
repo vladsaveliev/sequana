@@ -32,7 +32,7 @@ of dependencies that should be enough to run most of the current
 pipelines (commands are split on several lines but you can also
 install everything in one go)::
 
-    conda install pysam pyvcf snpeff biokit bioservices spades khmer
+    conda install pysam snpeff biokit bioservices spades khmer pyVCF
     conda install bwa bcftools samtools bedtools picard freebayes fastqc
     conda install kraken krona pigz
 

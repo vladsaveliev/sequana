@@ -19,8 +19,12 @@ Changelog
 
 * CHANGES:
 
+    - sequana standalone: 
+      - --pattern changed to --input-pattern
+      - --output-directory changed to --working-directory
     - remove pipetools module (obsolet)
-    - GUI revisited with qt designer 
+    - GUI revisited with qt designer + can now also read any snakefile/config
+      file combo (not just sequana pipelines)
 
 * NEWS:
 
