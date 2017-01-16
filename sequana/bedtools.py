@@ -351,6 +351,9 @@ class ChromosomeCov(object):
     def get_var_coef(self):
         return np.sqrt(self.df["cov"].var()) / self.get_mean_cov()
 
+    def get_gaussians(self):
+        return "{0}: {1}".format(self.chrom_name, self.gaussians_params)
+
     def moving_average(self, n, circular=False):
         """Compute moving average of the genome coverage
 
@@ -453,9 +456,9 @@ class ChromosomeCov(object):
         self.df = self.df.replace(-np.inf, np.nan)
 
     def _get_best_gaussian(self):
-        results = self.mixture_fitting.results
-        indice = np.argmax(results.pis)
-        return {"mu": results.mus[indice], "sigma": results.sigmas[indice]}
+        results_pis = [model["pi"] for model in self.gaussians_params]
+        indice = np.argmax(results_pis)
+        return self.gaussians_params[indice]
 
     def compute_zscore(self, k=2, step=10, use_em=True, verbose=True):
         """ Compute zscore of coverage and normalized coverage.
@@ -498,7 +501,11 @@ class ChromosomeCov(object):
 
         # keep gaussians informations
         self.gaussians = self.mixture_fitting.results
+        params_key = ("mus", "sigmas", "pis")
+        self.gaussians_params = [{key[:-1]: self.gaussians[key][i] for key in
+                                 params_key} for i in range(k)]
         self.best_gaussian = self._get_best_gaussian()
+
 
         # warning when sigma is equal to 0
         if self.best_gaussian["sigma"] == 0:
@@ -648,7 +655,8 @@ class ChromosomeCov(object):
         # if there are a NaN -> can't set up binning
         data_scale = self.df["scale"][self.range[0]:self.range[1]].dropna()
         bins = self._set_bins(data_scale, binwidth)
-        self.mixture_fitting.plot(bins=bins, Xmin=0, Xmax=max_z)
+        self.mixture_fitting.plot(self.gaussians_params, bins=bins, Xmin=0,
+                                  Xmax=max_z)
         pylab.grid(True)
         pylab.xlim([0,max_z])
         pylab.xlabel("Normalised per-base coverage")
