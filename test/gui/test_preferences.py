@@ -3,7 +3,7 @@ import pytest
 
 
 
-def test_prefrence(qtbot, mock):
+def test_preference(qtbot, mock):
     widget = PreferencesDialog()
     qtbot.addWidget(widget)
 
