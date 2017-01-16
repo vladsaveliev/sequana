@@ -43,7 +43,7 @@ install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION kraken
   - conda install --yes python=$TRAVIS_PYTHON_VERSION bleach
   # use pip to get latest version
-  - pip install easydev>=0.9.30 --upgrade
+  - pip install easydev>=0.9.31 --upgrade
   - pip install coveralls
   - pip install entrypoints
   - pip install mistune
@@ -52,10 +52,13 @@ install:
   - pip install bioservices --upgrade
   - pip install snakemake
   - conda install cutadapt pysam snpEff krona --yes
+  - pip install pytest pytest-cov
+
 
 # # command to run tests, e.g. python setup.py test
 script:
-  - python setup.py nosetests --with-coverage --cover-package sequana
+  - pytest -v --durations=10  test/ --cov=sequana --cov-report term-missing
+
 
 after_success:
   coveralls
