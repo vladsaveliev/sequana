@@ -41,16 +41,14 @@ sequencing:
     flowcell: "H35CTBCXY"
 
 genome:
-  file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
+  dir: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
   version: hg19
+  do: yes
 
 star_mapping:
     do: yes
     ## if index is already computed
     prefix_index: /pasteur/projets/specific/PF2_ngs/protected/starGenomes/cryptNeo
-    ## if you want to compute the index
-    index: yes
-    ref: /pasteur/projets/specific/PF2_ngs/protected/starGenomes/cryptNeo.fa
     options: ""
     threads: 4
     ram: 30
@@ -131,11 +129,14 @@ mark_duplicates:
 
 
 coverage:
+    do: no
     binSize: 10
     genomeSize : 2150570000 ##mm10
     extendReads: 65
     minFragmentLength: 0 #Note that a value other than 0 will exclude all single-end reads.
     maxFragmentLength: 0 #A value of 0 disables filtering and is needed for including single-end and orphan reads.
+    threads: 4
+    chromSize: /pasteur/projets/specific/PF2_ngs/protected/fasta_genomes/hg19.chrom.sizes
 
 RNAseQC:
      do: yes
