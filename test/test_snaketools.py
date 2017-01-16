@@ -6,10 +6,9 @@ from nose.plugins.attrib import attr
 from sequana import Module, SequanaConfig
 
 
-testing = lambda x: sequana_data(x, "testing")
 
 def test_dot_parser():
-    s = DOTParser(testing("test_dag.dot"))
+    s = DOTParser(sequana_data("test_dag.dot", "testing"))
     s.add_urls()
     try:os.remove("test_dag.ann.dot")
     except:pass
@@ -30,7 +29,7 @@ def test_getcleanup_rules():
 
 def test_snakemake_stats():
     # this is created using snakemake with the option "--stats stats.txt"
-    s = snaketools.SnakeMakeStats(testing("test_snakemake_stats.txt"))
+    s = snaketools.SnakeMakeStats(sequana_data("test_snakemake_stats.txt"))
     s.plot()
 
 
