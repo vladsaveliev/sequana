@@ -1,16 +1,28 @@
 # coding: utf-8
-"""Read mapping for either single end and paired end data using rna-star.
 
-input:
-    fastq -> list with one or two fastq.gz
-params:
-    index -> path to index of reference genome
-    ref -> path to the reference genome in fasta format
-    read_groups -> "ID:sample_id LB:library_id PL:platform PU:flowcell SM:sample_name"
-    RAM -> Star mapping on human genome requires at least 30 Gb of RAM
-    kwargs -> Star config. See https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf
-"""
+    """
+    Read mapping for either single end and paired end data using RNA-STAR.
 
+    Required input:
+        __star_mapping__input: list with one or two fastq.gz
+
+    Required output:
+        __star_mapping__sort: output sorted bam file
+
+    Config:
+
+        __star_mapping__output_prefix1: output prefix for first-pass mapping (temporary file)
+        __star_mapping__output_prefix2: output prefix for second-pass mapping
+        __star_mapping__genome_dir: name of directory for new genome indexation (temporary file)
+        __star_mapping__splice_file: name of the file containing splicing information get during firt-pass alignment
+
+        .. code-block:: yaml
+
+            star_mapping:
+                prefix_index: "" #path to the index file of reference genome
+                ref: "" #path to the reference genome file in fasta format
+                options:  "" #options for bowtie1 you want use
+    """
 
 rule star_mapping:
     input:

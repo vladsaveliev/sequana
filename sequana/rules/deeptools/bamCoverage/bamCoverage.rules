@@ -21,7 +21,8 @@ rule bamCoverage:
         __bamCoverage__log
     output:
         __bamCoverage__output
-    threads: 4
+    threads:
+        config['coverage']['threads']
     shell:
         """
         if [ ! -e {input}.bai ] ; then

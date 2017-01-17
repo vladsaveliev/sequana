@@ -1,4 +1,22 @@
 rule fastq_screen:
+    """
+    FastQ Screen allows you to screen a library of sequences in FastQ format against a set of sequence databases so you can see if the composition of the library matches with what you expect.
+
+    Required input:
+        __fastq_screen__input: a output fastq_screen directory
+
+    Required output:
+        __fastq_screen__output: fastq_screen directory results
+
+    Config:
+        .. code-block:: yaml
+
+            fastq_screen:
+                conf:  # a valid path to a fastq_screen config file
+
+    """
+
+
     input:
         __fastq_screen__input
     log:

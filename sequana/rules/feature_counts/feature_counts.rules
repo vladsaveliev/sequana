@@ -1,16 +1,25 @@
-
-
 rule feature_counts:
-    """Feature counts (subread)
+    """
+    Feature counts (subread) is a highly efficient general-purpose read summarization program that counts mapped reads for genomic features such as genes, exons, promoter, gene bodies, genomic bins and chromosomal locations.
+    :reference: http://bioinf.wehi.edu.au/featureCounts/
 
-    Input:
+    Required input:
+         __feature_counts__input: sorted bam file
 
-    Output:
+    Required output:
+        __feature_counts__output_count: output tabulated-delimited file
+        __feature_counts__output_gene_count: output formatted tab-delimited file
 
     Config:
 
-    :reference: http://bioinf.wehi.edu.au/featureCounts/
+        .. code-block:: yaml
+
+            feature_counts:
+                gff: "" #path to the GFF/GTF annotation file
+                options:  "" #options for featureCounts you want use
     """
+
+
     input:
         bam = __feature_counts__input
     output:
@@ -22,7 +31,7 @@ rule feature_counts:
     log:
         __feature_counts__log
     threads:
-        config['star_mapping']['threads']
+        config['feature_counts']['threads']
     run:
         shell("""featureCounts -T {threads} {params.mapp} \
                  -a {params.gff} -o {output.count} {input.bam} 2> {log}""")
