@@ -1,7 +1,10 @@
-- featureCounts [subread]
+- clean_ngs
+- cutadapt
+- picard-tools
 - bowtie
 - bowtie2
 - multiqc
-- tophat
+- tophat2
 - STAR
 - fastq_screen
+- featureCounts [subread]

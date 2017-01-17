@@ -23,6 +23,10 @@ Requirements
 
 Details
 ~~~~~~~~~
+
+
+
+
 Rules and configuration details
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -34,6 +38,10 @@ configuration file. Here are the rules and their developer and user documentatio
 FastQC
 ^^^^^^^^^^^
 .. snakemakerule:: fastqc
+
+Fastq_screen
+^^^^^^^^^^^
+.. snakemakerule:: fastq_screen
 
 Cutadapt
 ^^^^^^^^^
@@ -54,5 +62,5 @@ Counting
 .. snakemakerule:: feature_counts
 
 Reporting
-^^^^^^^^^
+^^^^^^^^^^
 .. snakemakerule:: multiqc
