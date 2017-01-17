@@ -1,11 +1,31 @@
 rule multiqc:
-    """Run MultiQC on an input directory
+    """
+    MultiQC aggregates results from bioinformatics analyses across many
+    samples into a single report.
 
-    __multiqc__input_dir: an input directory where to find data and logs
-    __multiqc__output: multiqc_report.html in the input directory
+    It searches a given directory for analysis logs and compiles a HTML
+    report. It's a general use tool, perfect for summarising the output from
+    numerous bioinformatics tools.
+
+    :reference: http://multiqc.info/
+
+    Required input:
+         __multiqc__input_dir: an input directory where to find data and logs
+
+    Required output:
+        __multiqc__output: multiqc_report.html in the input directory
+
+    Config:
+
+        .. code-block:: yaml
+
+            multiqc:
+                excluded: "-x *.zip " Ignore analysis files (glob expression)
+                output-directory:  " " #name of the output directory where to write results
 
     :note: if the directory exists, it is overwritten
     """
+
     input:
         __multiqc__input
     log:
