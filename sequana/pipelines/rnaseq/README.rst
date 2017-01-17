@@ -9,7 +9,7 @@ Usage
 
 ::
 
-    sequana --pipeline rnaseq --input-dir .
+    sequana --pipeline rnaseq --input-dir .  --output-directory analysis
 
 
 
@@ -23,3 +23,36 @@ Requirements
 
 Details
 ~~~~~~~~~
+Rules and configuration details
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here is a documented configuration file :download:`../sequana/pipelines/rnaseq/config.yaml` to be used with the pipeline. Each rule used in the pipeline may have a section in the
+configuration file. Here are the rules and their developer and user documentation.
+
+
+
+FastQC
+^^^^^^^^^^^
+.. snakemakerule:: fastqc
+
+Cutadapt
+^^^^^^^^^
+.. snakemakerule:: cutadapt
+
+Mapping on rRNA
+^^^^^^^^^
+.. snakemakerule:: bowtie1_mapping_dynamic
+
+Mapping on reference genome
+^^^^^^^^^
+.. snakemakerule:: bowtie1_mapping_dynamic
+.. snakemakerule:: tophat_mapping
+.. snakemakerule:: star_mapping
+
+Counting
+^^^^^^^^^
+.. snakemakerule:: feature_counts
+
+Reporting
+^^^^^^^^^
+.. snakemakerule:: multiqc
