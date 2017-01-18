@@ -57,9 +57,30 @@ import colorlog
 # problems: when saving, integer are transformed into str in save_configfile
 #
 
+#Test Sequana
+# What exists         From CLI                 From GUI
+# Nothing               OK
+# wkdir                                         OK
+# wkdir + snakefile
+# wkdir +S +C           OK                      OK
 
-# Test1: Generic snakefile without config. Set working directory first or
-# afterwar the snakefile selection.
+# test Sequana
+# Selection in The GUI. 
+# 1 2 3
+# 1 3 2
+# 2 1 3
+# 2 3 1
+# 3 1 2a       OK
+# 3 2 1
+
+
+
+# Test Generic from CLI
+# sequanix -c config.yaml -s snakefile -w analysis
+# If the analysis/ exists:
+#   - the config is overwritten, the snakefile as well
+# If the wkdir does not exists:
+
 
 def sigint_handler(*args):
     """Handler for the SIGINT signal."""
@@ -90,7 +111,7 @@ class BaseFactory(Tools):
             self.info("No working directory selected yet")
             return
 
-        target = self.directory + os.sep + "Snakefile"
+        target = self.directory + os.sep + os.path.basename(self.snakefile)
         self.info("Copying snakefile in %s " % self.directory)
         self.copy(self.snakefile, target)
 
@@ -233,10 +254,11 @@ class GenericFactory(BaseFactory):
     config = property(_get_config)
 
     def _configfile_arg(self):
-        if self.config and self.get_case() != "configfile":
+        # if snakefile  uses configfile: 
+        if self.config and self.get_case() == "configfile":
             # The only reason for the user to provide a configfile
             # is that the variable config is used and so the --configfile
-            # argument is mist probably required
+            # argument is probably required
             return True
         else:
             return False
@@ -387,13 +409,8 @@ class SequanaGUI(QMainWindow, Tools):
 
         # We may have set some pipeline, snakefile, working directory
         # but nothing has been saved so far
-        if self.mode == "sequana":
-            # if the user provides a pipeline and working directory, we
-            # can copy the config and snakefile
-            self.sequana_factory._copy_configfile()
-            self.sequana_factory._copy_snakefile()
-        else:
-            self.generic_factory.refresh() # this copy the files if possible
+        self.generic_factory.refresh() # this copy the files if possible
+        self.sequana_factory.refresh() # this copy the files if possible
 
         self.create_base_form()
         self.fill_until_starting()
@@ -415,8 +432,9 @@ class SequanaGUI(QMainWindow, Tools):
         # The IPython dialog, which is very useful for debugging
         if self._ipython_tab is True:
             self.ipyConsole = QIPythonWidget(
-                customBanner="Welcome to the embedded ipython console\n")
-            self.ipyConsole.printText("The variable 'foo' andion.")
+                customBanner="Welcome to Sequanix embedded ipython console\n" +
+                    "The entire GUI interface is stored in the variable gui\n")
+            #self.ipyConsole.printText("The variable 'foo' andion.")
             self.ipyConsole.execute("from sequana import *")
             self.ipyConsole.execute("import sequana")
             self.ipyConsole.execute("")
@@ -810,9 +828,9 @@ content:</li>
         snakemake_line += self.get_until_starting_option()
 
         if self.mode == "generic":
-            if self.generic_factory._configfile_arg():
-                configfile = self.generic_factory._config_browser.get_filenames()
-                snakemake_line += ["--configfile", configfile]
+            #if self.generic_factory._configfile_arg():
+            configfile = self.generic_factory._config_browser.get_filenames()
+            snakemake_line += ["--configfile", configfile]
 
         return snakemake_line
 
@@ -838,7 +856,12 @@ content:</li>
 
         # We copy the sequana and genereic snakefile into a filename called
         # Snakefile
-        snakefile = self.working_dir + os.sep + "Snakefile"
+        if self.mode == "sequana":
+            snakefile = self.working_dir + os.sep + os.path.basename(self.snakefile)
+
+        elif self.mode == "generic":
+            snakefile = self.generic_factory.snakefile
+
         if os.path.exists(snakefile) is False:
             self.critical("%s does not exist" % snakefile)
             return
@@ -1014,12 +1037,14 @@ content:</li>
             msg.exec_()
             return
 
-        if self._undefined_section in form_dict.keys():
+        if self._undefined_section in form_dict.keys() and self.mode != "sequana":
+            # if sequana, we ignore input_directory and others but in the
+            # generic case, we want the entire config file
             del form_dict[self._undefined_section]
 
         # get samples names or input_directory
         if self.mode == "sequana":
-            self.info("saving config file")
+            self.info("saving config file (sequana)")
             flag1 = self.sequana_factory._sequana_directory_tab.get_filenames()
             flag2 = self.sequana_factory._sequana_paired_tab.get_filenames()
             if len(flag1) == 0 and len(flag2) == 0:
@@ -1034,11 +1059,15 @@ content:</li>
                 filename = self.sequana_factory._sequana_paired_tab.get_filenames()
                 form_dict["input_samples"] = (filename)
 
+        if self.mode == "generic":
+            self.info("saving config file (generic)")
+
         # Let us update the attribute with the content of the form
         cfg = self.config
         cfg.config.update(form_dict)
         cfg._update_yaml()
         cfg.cleanup()
+        self.cfg = cfg
 
         # We must update the config and then the yaml to keep the comments. This
         # lose the comments:
@@ -1046,10 +1075,12 @@ content:</li>
 
         if self.working_dir:
             # FIXME in generic, config.yaml is not necessary the filename
-            yaml_path = self.working_dir + os.sep + "config.yaml"
             if self.mode == "sequana":
+                yaml_path = self.working_dir + os.sep + "config.yaml"
                 self.warning("copy requirements (if any)")
                 cfg.copy_requirements(target=self.working_dir)
+            elif mode == "generic":
+                yaml_path = self.working_dir + os.sep + self.generic_factory.configfile
 
             if os.path.isfile(yaml_path) and force is False:
                 save_msg = WarningMessage(
@@ -1062,7 +1093,8 @@ content:</li>
                 save_msg.setDefaultButton(QW.QMessageBox.Yes)
                 # Yes == 16384
                 # Save == 2048
-                if save_msg.exec_() in [16384, 2048]:
+                retval = save_msg.exec()
+                if retval in [16384, 2048]:
                     cfg.save(yaml_path, cleanup=False)
                     self.ui.dag_btn.setEnabled(True)
             else:
