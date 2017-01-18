@@ -4,13 +4,15 @@
 :Config file requirements:
 
 
-Usage
-~~~~~~~
 
-::
+Usage
+~~~~~~~~~
+
+Example::
 
     sequana --pipeline rnaseq --input-dir .  --output-directory analysis
-
+    cd analysis
+    snakemake -s rnaseq.rules -p --stats stats.txt -j 4 --cluster-config cluster_config.json --cluster "sbatch --mem={cluster.ram} --qos normal"
 
 
 Requirements
