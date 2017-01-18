@@ -167,6 +167,10 @@ class FastQ(object):
     or reads (assuming 4 lines per read)::
 
         f.count_reads()
+
+    Operators available:
+
+        - equality ==
     """
 
     """
@@ -180,7 +184,7 @@ class FastQ(object):
         - remove contaminants
         - compact fastq
         - convert to/from sff
-        - convert to fasta
+
     """
     _N = 4
     def __init__(self, filename, verbose=False):
@@ -217,7 +221,7 @@ class FastQ(object):
         return self.n_reads
 
     def rewind(self):
-        """Allows to iter from the beginning withouh openning the file or
+        """Allows to iter from the beginning without openning the file or
         creating a new instance.
 
         """
@@ -789,6 +793,13 @@ class FastQ(object):
                 letters = "\t".join([x for x in index.decode()])
                 fout.write("%s\t" % count + letters + "\n")
 
+    def __eq__(self, other):
+        self.rewind()
+        other.rewind()
+        for this in self:
+            if this != other.next():
+                return False
+        return True
 
 
 # a simple decorator to check whether the data was computed or not.

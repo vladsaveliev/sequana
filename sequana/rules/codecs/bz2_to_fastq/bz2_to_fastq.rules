@@ -19,5 +19,6 @@ rule bz2_to_fastq:
     """
     input: "{dataset}.bz2"
     output: "{dataset}"
+    threads: config["compressor"]["threads"]
     run:
-        shell("pbunzip2 {input}")
+        shell("pbunzip2 {input} -p{threads}")

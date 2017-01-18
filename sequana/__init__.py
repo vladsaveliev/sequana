@@ -4,6 +4,8 @@ try:
 except:
     version = ">=0.13.0"
 
+import colorlog as logger
+
 from easydev import CustomConfig
 configuration = CustomConfig("sequana", verbose=False)
 sequana_config_path = configuration.user_config_dir

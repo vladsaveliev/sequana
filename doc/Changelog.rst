@@ -14,12 +14,17 @@ Changelog
       when using the design file.
     - in sequana main script, --reference was used by quality_pipeline only.
       Now, available for all.
+    - Fix the main script for the reference in variant calling pipeline.
 
 
 * CHANGES:
 
+    - sequana standalone: 
+      - --pattern changed to --input-pattern
+      - --output-directory changed to --working-directory
     - remove pipetools module (obsolet)
-    
+    - GUI revisited with qt designer + can now also read any snakefile/config
+      file combo (not just sequana pipelines)
 
 * NEWS:
 

@@ -12,8 +12,8 @@ rule bz2_to_gz:
     """
     input: "{dataset}.bz2"
     output: "{dataset}.gz"
+    threads: config['compressor']['threads']
     run:
-
         output = output[0].replace(".gz", "")
-        shell("pbunzip2 {input}")
-        shell("pigz %s " % output)
+        shell("pbunzip2 {input} -p{threads}")
+        shell("pigz %s -p {threads}" % (output))

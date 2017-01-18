@@ -36,6 +36,7 @@ from easydev import AttrDict
 from easydev import execute
 from easydev import Progress
 
+from sequana import logger
 
 class EUtilsTools(object):
     """Simple wrapper around EUtils to fetch basic informatino about an accession number
@@ -142,7 +143,7 @@ class ENADownload(object):
 
         # Now, let us convert the ENA accession to NCBI GI number once for all.
         # We can fetch only at max 200 identifiers:
-        print("Fetching %s identifiers from NCBI" % len(identifiers))
+        logger.info("Fetching %s identifiers from NCBI" % len(identifiers))
         Nbaskets = int(math.ceil(len(identifiers)/200.))
         results = {}
         from easydev import split_into_chunks
@@ -163,7 +164,7 @@ class ENADownload(object):
         """
         from bioservices import ENA
         if filelist.endswith(".txt") and os.path.exists(filelist) is False:
-            print("Downloading list from http://www.ebi.ac.uk/genomes/%s" % filelist)
+            logger.info("Downloading list from http://www.ebi.ac.uk/genomes/%s" % filelist)
             data = urlopen("http://www.ebi.ac.uk/genomes/%s" % filelist).readlines()
             identifiers = [x.strip().decode() for x in data]
         elif filelist == "macaca":
@@ -174,7 +175,7 @@ class ENADownload(object):
                 "CM001295", "CM001296"]
         elif isinstance(filelist, str) and filelist in self._metadata.keys():
             name = self._metadata[filelist][0]
-            print("Downloading list from http://www.ebi.ac.uk/genomes/%s" % name)
+            logger.info("Downloading list from http://www.ebi.ac.uk/genomes/%s" % name)
             data = urlopen("http://www.ebi.ac.uk/genomes/%s" % name).readlines()
             identifiers = [x.strip().decode() for x in data]
         elif isinstance(filelist, list):
@@ -202,7 +203,7 @@ class ENADownload(object):
 
         N = len(identifiers)
         pb = Progress(N)
-        print("Fetching all fasta from ENA")
+        logger.info("Fetching all fasta from ENA")
         for i, identifier in enumerate(identifiers):
             filenames = glob.glob(output_dir + os.sep + "ENA_%s*" % identifier)
 
@@ -231,10 +232,10 @@ class ENADownload(object):
             try:
                 header = self.switch_header_to_gi(acc)
             except:
-                print("Failed for this entry") 
-                print(identifier)
-                print(header)
-                print(name)
+                logger.error("Failed for this entry:") 
+                logger.error(identifier)
+                logger.error(header)
+                logger.error(name)
                 continue
 
             # Save to local file
@@ -267,11 +268,11 @@ class ENADownload(object):
             try:
                 res = self.results[acc.split(".")[0]]
             except:
-                print("\nUnknown accession (%s). May be an updated version. Checking..." % acc)
+                logger.warning("\nUnknown accession (%s). May be an updated version. Checking..." % acc)
                 res = self.ena_id_to_gi_number([acc])
                 self.results.update(res)
                 res = res[acc]
-                print('ok')
+                logger.info('Found %s using GI number' % acc)
         return ">"+res['identifier']+" " + res['comment']
 
     def download_viroid(self):

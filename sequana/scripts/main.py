@@ -26,8 +26,10 @@ import time
 from optparse import OptionParser
 import argparse
 
+
 from easydev.console import red, purple, green, blue
-from easydev import DevTools
+from easydev import DevTools, SmartFormatter
+
 
 adapters_choice = ["Nextera", "Rubicon", "PCRFree"]
 
@@ -77,13 +79,6 @@ class Tools(object):
         if self.verbose or force: print(txt)
 
 
-class SmartFormatter(argparse.HelpFormatter):
-    def _split_lines(self, text, width):
-        if text.startswith('FORMAT|'):
-            return text[7:].splitlines()
-        # this is the RawTextHelpFormatter._split_lines
-        return argparse.HelpFormatter._split_lines(self, text, width)
-
 
 class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana"):
@@ -97,7 +92,7 @@ class Options(argparse.ArgumentParser):
         done with one of the following parameter
 
             --input-directory <Location of the fastq.gz files>
-            --pattern <A wildcard to retrieve fastq.gz files>
+            --input-pattern <A wildcard to retrieve fastq.gz files>
             --file1 FILE1 --file2 FILE2
 
         In addition, each pipeline may have its own specific options. For
@@ -117,7 +112,7 @@ class Options(argparse.ArgumentParser):
         If you want to analyse several samples distributed in sub-directories,
         use:
 
-            sequana --pipeline quality_control --pattern "./*/*fastq.gz"
+            sequana --pipeline quality_control --input-pattern "./*/*fastq.gz"
                 --design SampleSheetUsed.csv  --adapters PCRFree
 
         If all samples are in the current directory:
@@ -254,7 +249,7 @@ define the type of cluster command to use
         group.add_argument("-2", "--file2", dest="file2", type=str,
             help=""" Fills the *samples:file2* field in the config file. To be used
                 with --init option""")
-        group.add_argument("--pattern", dest="pattern", type=str,
+        group.add_argument("--input-pattern", dest="pattern", type=str,
             default=None,
             help="""a pattern to find files. You can use wildcards e.g.
                     '*/*.fastq.gz'  . Note that fastq.gz or fq.gz must be used
@@ -267,7 +262,7 @@ define the type of cluster command to use
                 files ending in fastq.gz are found, an error is raised.""")
         group.add_argument("-e", "--extension", type=str, default="fastq.gz",
             help="""To be used with --input-directory only""")
-        group.add_argument("-o", "--output-directory", dest="target_dir", type=str,
+        group.add_argument("-o", "--working-directory", dest="target_dir", type=str,
             default="analysis",
             help="directory where to create files and store results")
 
@@ -478,7 +473,7 @@ def main(args=None):
     # --file1 alone: 2
     # --file1 + --file2 : 2+4=6
     # --input-directory alone: 8
-    # --pattern alone: 16
+    # --input-pattern alone: 16
     # none of those options redirect to input_directory=local
     if flag not in [0, 1, 2, 6, 8,16]:
         sa.error(help_input + "\n\nUse --help for more information")
@@ -517,10 +512,6 @@ def main(args=None):
         options.extension = ""
 
     ff = FastQFactory(data, verbose=options.verbose)
-
-    def _get_adap(filename):
-        return sequana_data(filename, "data/adapters")
-
 
     if options.pipeline == 'quality_control':
         # check combo
@@ -569,11 +560,9 @@ def main(args=None):
                     options.adapter_rev = "TCTAGCCTTCTCGCAGCACATCCCTTTCTCACATCTAGAGCCACCAGCGGCATAGTAA"
                 # flag 4
                 else:
-                    options.adapter_fwd = "file:" + _get_adap(
-                        'adapters_%s_fwd.fa' % options.adapters)
-                    # !!!!!!! revcomp to be used
-                    options.adapter_rev = "file:" + _get_adap(
-                        'adapters_%s_revcomp.fa' % options.adapters)
+                    # Let the pipeline handle the names
+                    options.adapter_fwd = options.adapters
+                    options.adapter_rev = options.adapters
             # flag 2/3
             else:
                 if options.adapter_fwd:
@@ -601,20 +590,8 @@ def copy_config_from_sequana(module, source="config.yaml",
     user_config = module.path + os.sep + source
     if os.path.exists(user_config):
         shutil.copy(user_config, target)
-        txt = "copied %s from sequana %s pipeline" % (source, module.name)
-    else:
-        txt = "%s does not exists locally or within Sequana "+\
-              "library (%s pipeline)"
-    print(txt)
-
-    # some pipelines (eg rnaseq) have also a multiqc_config.yaml file that we want to get
-    multiqc_config = module.path + os.sep + "multiqc_config.yaml"
-    if os.path.exists(multiqc_config):
-        #shutil.copy(multiqc_config, options.target_dir + os.sep + "multiqc_config.yaml")
-        shutil.copy(multiqc_config,  "multiqc_config.yaml")
-        txt = "copied multiqc_config.yaml from sequana %s pipeline" % (module.name)
-        print(txt)
-
+        txt = "copied %s from sequana %s pipeline"
+        print(txt % (source, module.name))
 
 def sequana_init(options):
     import sequana
@@ -687,6 +664,10 @@ def sequana_init(options):
             raise(IOError("Config file %s not found locally" % options.config))
     else:
         copy_config_from_sequana(module, "config.yaml", config_filename)
+
+    # Copy multiqc if it is available
+    multiqc_filename = options.target_dir + os.sep + "multiqc_config.yaml"
+    copy_config_from_sequana(module, "multiqc_config.yaml", multiqc_filename)
 
     # The input
     cfg = SequanaConfig(config_filename)
