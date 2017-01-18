@@ -1079,8 +1079,8 @@ content:</li>
                 yaml_path = self.working_dir + os.sep + "config.yaml"
                 self.warning("copy requirements (if any)")
                 cfg.copy_requirements(target=self.working_dir)
-            elif mode == "generic":
-                yaml_path = self.working_dir + os.sep + self.generic_factory.configfile
+            elif self.mode == "generic":
+                yaml_path = self.working_dir + os.sep + os.path.basename(self.generic_factory.configfile)
 
             if os.path.isfile(yaml_path) and force is False:
                 save_msg = WarningMessage(
@@ -1312,7 +1312,7 @@ content:</li>
             msg = QW.QMessageBox(
                 QW.QMessageBox.Question, "Question",
                 "A config file already exist in the working directory.\n"
-                "Do you want to import its content ?",
+                "Do you want to import its content (if not, it will be replaced)?",
                 QW.QMessageBox.Yes | QW.QMessageBox.No,
                 self, Qt.Dialog | Qt.CustomizeWindowHint)
             # Yes == 16384
@@ -1320,6 +1320,14 @@ content:</li>
                 self.config._yaml_code.update(config_dict)
                 self.create_base_form()
                 self.fill_until_starting() #self.rule_list)
+            else:
+                # if we do not want to import the existing file
+                
+                self.create_base_form()
+                self.fill_until_starting() #self.rule_list)
+                self.critical("fixme")
+        else:
+            self.critical("fixme")
         return True
 
 
