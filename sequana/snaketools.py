@@ -45,13 +45,15 @@ import shutil
 from easydev import get_package_location as gpl
 from easydev import load_configfile, AttrDict
 
-
 import ruamel.yaml
 from ruamel.yaml import comments
+
 
 from sequana.misc import wget
 from sequana import sequana_data
 from sequana.errors import SequanaException
+
+from sequana import logger
 
 __all__ = ["DOTParser", "FastQFactory", "FileFactory",
            "Module", "PipelineManager", "SnakeMakeStats",
@@ -61,7 +63,7 @@ try:
     # This is for python2.7
     import snakemake
 except:
-    print("Snakemake must be installed. Available for Python3 only")
+    logger.warning("Snakemake must be installed. Available for Python3 only")
     class MockSnakeMake(object):
         def __init__(self):
             pass
@@ -127,13 +129,13 @@ class SnakeMakeStats(object):
 
 def plot_stats(inputdir=".", outputdir=".",
                filename="snakemake_stats.png", N=1):
-    print("Workflow finished. Creating stats image")
+    logger.info("Workflow finished. Creating stats image")
     try:
         SnakeMakeStats("%s/stats.txt" % inputdir, N=N).plot_and_save(
             outputdir=outputdir, filename=filename)
     except Exception as err:
-        print(err)
-        print("INFO: Could not process %s/stats.txt file" % inputdir)
+        logger.error(err)
+        logger.error("Could not process %s/stats.txt file" % inputdir)
 
 
 class ModuleFinder(object):
@@ -153,7 +155,6 @@ class ModuleFinder(object):
             False
 
         """
-
         # names for each directory
         self._paths = {}
         self._type = {}
@@ -514,25 +515,28 @@ class SequanaConfig(object):
     This will transform back the "True" into True.
 
     """
-    def __init__(self, data=None, test_requirements=True,
-                 converts_none_to_str=True, mode="NGS"):
+    def __init__(self, data=None, converts_none_to_str=True):
         """Could be a JSON or a YAML file
 
         :param str filename: filename to a config file in json or YAML format.
 
-        mode NGS means the following fields are expected: project, sample,
-        file1, file2
+        SEQUANA config files must have some specific fields::
+
+            input_directory
+            input_samples...
         """
         # Create a dummy YAML code to hold data in case the input is a json
-        # or a dictionary structure.
+        # or a dictionary structure. We use a CommentedMap that works like
+        # a dictionary. Be aware that the update method will lose the comments
         if data is None:
             self.config = AttrDict()
-            mode = "others"
             self._yaml_code = comments.CommentedMap()
-        elif isinstance(data, str):
+        elif isinstance(data, str): # else is it a filename ?
             if os.path.exists(data):
+                #self._infer_mode(data)
                 if data.endswith(".yaml"):
-                    self._yaml_code = ruamel.yaml.load(open(data, "r").read(),
+                    with open(data, "r") as fh:
+                        self._yaml_code = ruamel.yaml.load(fh.read(),
                                                 ruamel.yaml.RoundTripLoader)
                 else:
                     raise NotImplementedError(
@@ -541,39 +545,42 @@ class SequanaConfig(object):
             else:
                 raise IOError("input string must be an existing file")
             self.config = AttrDict(**config)
-        elif isinstance(data, SequanaConfig): 
+        elif isinstance(data, SequanaConfig): # else maybe a SequanaConfig ?
             self.config = AttrDict(**data.config)
             self._yaml_code = comments.CommentedMap(self.config.copy())
-        else: # a dictionary ?
+            #self.mode = data.mode
+        else: # or a pure dictionary ?
             self.config = AttrDict(**data)
             self._yaml_code = comments.CommentedMap(self.config.copy())
 
-        if converts_none_to_str and mode == "NGS":
-            self._set_none_to_empty_string(self.config)
+        # if converts_none_to_str and self.mode == "sequana":
+        #    self._set_none_to_empty_string(self.config)
 
-        if test_requirements and mode == "NGS":
-            requirements = ["input_directory",
-                            "input_samples",
-                            "input_extension",
-                            "input_pattern",
-                            "input_samples:file1", "input_samples:file2"]
-            # converts to dictionary ?
-            for this in requirements:
-                this = this.split(":")[0]
-                assert this in self.config.keys(),\
-                    "Your config must contain %s" % this
+    def check_sequana_fields(self):
+        requirements = ["input_directory",
+                        "input_samples",
+                        "input_extension",
+                        "input_pattern",
+                        "input_samples:file1", "input_samples:file2"]
+        # converts to dictionary ?
+        for this in requirements:
+            this = this.split(":")[0]
+            if this not in self.config.keys():
+                return False
+        return True
 
     def save(self, filename="config.yaml", cleanup=True):
         """Save the yaml code in _yaml_code with comments"""
         # This works only if the input data was a yaml
         if cleanup:
-            self.cleanup() # this changes the config and yaml_code to remove %()s
+            self.cleanup() # changes the config and yaml_code to remove %()s
 
         # get the YAML formatted code and save it
         newcode = ruamel.yaml.dump(self._yaml_code,
                     Dumper=ruamel.yaml.RoundTripDumper,
                     default_style="", indent=4, block_seq_indent=4)
 
+        # Finally, save the data
         with open(filename, "w") as fh:
             fh.write(newcode)
 
@@ -585,11 +592,11 @@ class SequanaConfig(object):
                 target[key] = comments.CommentedMap(
                     self._recursive_update(target[key], data[key]))
             else:
-                try:
+                if key in target.keys():
                     target[key] = value
-                except KeyError:
-                    msg = "%s not found in your config file" % key
-                    raise KeyError(msg)
+                else:
+                    logger.warning(
+                "This %s key was not in the original config but added" % key)
         return target
 
     def _update_yaml(self):
@@ -611,9 +618,9 @@ class SequanaConfig(object):
     def cleanup(self):
         # assuming only 2 levels, remove the templates
         #  %(input_directory)s and strip the strings.
-        for k1,v1 in self._yaml_code.items():
+        for k1, v1 in self._yaml_code.items():
             if isinstance(v1, dict):
-                for k2,v2 in self._yaml_code[k1].items():
+                for k2, v2 in self._yaml_code[k1].items():
                     if isinstance(v2, str) and "%(" in v2:
                         self._yaml_code[k1][k2] = None
                     elif isinstance(v2, str):
@@ -625,17 +632,71 @@ class SequanaConfig(object):
         self._update_config()
 
     def copy_requirements(self, target):
+        """Copy files to run the pipeline
+
+        If a requirement file exists, it is copied in the target directory.
+        If not, it can be either an http resources or a sequana resources.
+
+        """
         if 'requirements' in self._yaml_code.keys():
             for requirement in self._yaml_code['requirements']:
-                if requirement.startswith('http') is False:
-                    print('Copying %s from sequana' % requirement)
-                    if requirement.endswith('.png') :
-                        shutil.copy(sequana_data(requirement, "images"), target)
-                    else:
-                        shutil.copy(sequana_data(requirement, "data"), target)
+                if os.path.exists(requirement):
+                    try:
+                        shutil.copy(requirement, target)
+                    except:
+                        pass # the target and input may be the same
+                elif requirement.startswith('http') is False:
+                    try:
+                        logger.info('Copying %s from sequana' % requirement)
+                        shutil.copy(sequana_data(requirement), target)
+                    except:
+                        logger.warning("This requirement %s was not found in sequana.")
                 elif requirement.startswith("http"):
-                    print("This file %s will be needed" % requirement)
-                    wget(requirement)
+                    logger.info("This file %s will be needed. Downloading" % requirement)
+                    output = requirement.split("/")[-1]
+                    wget(requirement, target + os.sep + output)
+
+    def _get_section_comment(self, section):
+        data = self._yaml_code.ca.items[section]
+        #data = [x for x in data if x] # drops the None
+        # In principle, the full commented section is the second one
+        # The second one can be a lengthy commented secttion. It is a list
+        # each item being one line.
+        # The third one is comment following the section name (same line)
+        # Fourth and first are None so far.
+        if data[1]:
+            long_comment = [this.value for this in data[1]]
+            long_comment = "".join(long_comment).strip()
+        else:
+            long_comment = None
+
+        if data[2]:
+            short_comment = data[2]
+        else:
+            short_comment = None
+        return long_comment, short_comment
+
+    def get_section_short_comment(self, section, mode="sequana"):
+        try:
+            _, short_comment = self._get_section_comment(section)
+            return short_comment
+        except KeyError as err:
+            if mode == "sequana" and section.startswith("input_"):
+                pass
+            else:
+                logger.warning("section %s has no valid comments" % err)
+        return None
+
+    def get_section_long_comment(self, section, mode="sequana"):
+        try:
+            long_comment, _ = self._get_section_comment(section)
+            return long_comment
+        except KeyError as err:
+            if mode == "sequana" and section.startswith("input_"):
+                pass
+            else:
+                logger.warning("section %s has no valid comments" % err)
+        return None
 
 
 class DummyManager(object):
@@ -881,7 +942,7 @@ class DOTParser(object):
         imshow(imread("test.png")); xticks([]) ;yticks([])
 
     """
-    
+
     _name_to_drops = {'dag', 'conda', 'rulegraph', 'copy_multiple_files'}
 
     def __init__(self, filename):
@@ -1181,6 +1242,11 @@ def init(filename, namespace):
 
 
 def create_recursive_cleanup(filename=".sequana_cleanup.py"):
+    """
+
+
+    .. todo:: set a directory
+    """
     with open(filename, "w") as fh:
         fh.write("""
 import subprocess
@@ -1205,7 +1271,8 @@ shellcmd("rm  *.rules" )
 
 def create_cleanup(targetdir):
     """A script to include in directory created by the different pipelines"""
-    with open(targetdir + os.sep + ".sequana_cleanup.py", "w") as fout:
+    filename = targetdir + os.sep + ".sequana_cleanup.py"
+    with open(filename, "w") as fout:
         fout.write("""
 import glob
 import os
@@ -1224,6 +1291,7 @@ shellcmd("rm -f  README config.yaml snakejob.* slurm-*")
 shellcmd("rm -f .sequana_cleanup.py")
 shellcmd("rm -rf .snakemake")
 """)
+    return filename
 
 
 def build_dynamic_rule(code, directory):

@@ -66,10 +66,13 @@ set of Nextera adapters, one would use:
 See :class:`FindAdaptersFromDesign` for details.
 
 """
-import pysam
-from sequana.fasta import FastA
-from sequana import sequana_data
 import os
+
+from sequana.fasta import FastA
+from sequana.datatools import sequana_data
+from sequana import logger
+
+import pysam
 
 
 def fasta_fwd_rev_to_columns(file1, file2=None, output_filename=None):
@@ -151,6 +154,36 @@ def adapter_removal_parser(filename):
                 sequence = rhs.strip()
                 results[name] = sequence
     return results
+
+def _get_registered_adapters():
+    filenames = sequana_data('*', 'data/adapters')
+    filenames = [x for x in filenames if x.startswith("adapters")]
+    registered = [x.lstrip("adapters_").split("_",1)[0] for x in filenames]
+    registered = set(registered)
+    return registered
+
+
+def get_sequana_adapters(type_, direction):
+    """Return path to a list of adapters in FASTA format
+
+    :param tag: PCRFree, Rubicon, Nextera
+    :param type_: fwd, rev, revcomp
+    :return: path to the adapter filename
+
+    """
+    # search possible types
+    registered = _get_registered_adapters()
+    if type_ not in registered:
+        logger.error("This adapter type (%s) is not valid" % type_)
+        logger.error("choose one in %s types" % registered)
+        raise ValueError
+
+    directions = ["fwd", "rev", "revcomp"]
+    if direction not in directions:
+        logger.error("This kind of tag (%s) is not valid" % direction)
+        logger.error("choose one in %s " % directions)
+        raise ValueError
+    return sequana_data("adapters_%s_%s.fa" % (type_, direction))
 
 
 class Adapter(object):
@@ -290,9 +323,9 @@ class AdapterReader(object):
     .. doctest::
 
         >>> from sequana import sequana_data, AdapterReader
-        >>> filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa")
+        >>> filename = sequana_data("adapters_Nextera_fwd.fa")
         >>> ar = AdapterReader(filename)
-        >>> candidate = ar.get_adapter_by_index("S505")
+        >>> candidate = ar.get_adapter_by_index_name("S505")
         >>> print(candidate)
         >Nextera_index_S505|name:S505
         AATGATACGGCGACCACCGAGATCTACACGTAAGGAGTCGTCGGCAGCGTC
@@ -424,7 +457,7 @@ class AdapterReader(object):
         elif len(adapters) == 1:
             return adapters[0]
         else:
-            raise ValueError("Found two adapters matching the identifier. This should not happen")
+            raise ValueError("Found two adapters matching the identifier. This should never happen")
 
     def _get_adapter_by_index(self, index_name, prefix):
         """Return adapter corresponding to the unique index
@@ -438,7 +471,7 @@ class AdapterReader(object):
         ::
 
             from sequana import sequana_data, AdapterReader
-            filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa")
+            filename = sequana_data("adapters_Nextera_fwd.fa")
             ar = AdapterReader(filename)
             ar.get_adapter_by_identifier("N712")
 
@@ -529,8 +562,8 @@ class AdapterReader(object):
         .. doctest::
 
             >>> from sequana import sequana_data, AdapterReader
-            >>> filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa")
-            >>> filename2 = sequana_data("adapters_Nextera_PF1_220616_rev.fa")
+            >>> filename = sequana_data("adapters_Nextera_fwd.fa")
+            >>> filename2 = sequana_data("adapters_Nextera_rev.fa")
             >>> ar = AdapterReader(filename)
             >>> ar2 = AdapterReader(filename2)
             >>> ar.reverse()
@@ -551,8 +584,8 @@ class AdapterReader(object):
         ::
 
             >>> from sequana import sequana_data, AdapterReader
-            >>> filename = sequana_data("adapters_Nextera_PF1_220616_fwd.fa")
-            >>> filename = sequana_data("adapters_Nextera_PF1_220616_revcomp.fa")
+            >>> filename = sequana_data("adapters_Nextera_fwd.fa")
+            >>> filename = sequana_data("adapters_Nextera_revcomp.fa")
             >>> ar = AdapterReader(filename)
             >>> ar.reverse_complement()
             >>> ar.to_fasta()
@@ -690,12 +723,12 @@ class FindAdaptersFromDesign(object):
         # If Index1_Seq not in the index, then we should use the IDs
         if "Index1_Seq" not in data.index:
             if "Index1_ID" in data.index:
-                print("Usage of IDs for indexing adaptesr is deprecated. See adapters module")
+                logger.warning("Usage of IDs for indexing adapters is deprecated. See adapters module")
                 index1 = data.ix['Index1_ID']
                 res['index1']['fwd'] = self._adapters_fwd.get_adapter_by_index_name(index1)
                 res['index1']['rev'] = self._adapters_revc.get_adapter_by_index_name(index1)
             if "Index2_ID" in data.index:
-                print("Usage of IDs for indexing adaptesr is deprecated. See adapters module")
+                logger.warning("Usage of IDs for indexing adapters is deprecated. See adapters module")
                 index2 = data.ix['Index2_ID']
                 res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index_name(index2)
                 res['index2']['rev'] = self._adapters_revc.get_adapter_by_index_name(index2)
@@ -727,7 +760,7 @@ class FindAdaptersFromDesign(object):
                 self.get_adapters_from_sample(sample)
                 found += 1
             except:
-                print("No index found for sample %s" % sample)
+                self.error("No index found for sample %s" % sample)
         if found == 0:
             raise ValueError("None of the sample match any of the adapters")
 

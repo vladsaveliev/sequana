@@ -68,6 +68,11 @@ def test_adapter():
     assert ad.name is None
 
 
+    a1 = adapters.Adapter("id1", "ACGT", "test")
+    a2 = adapters.Adapter("id2", "ACGT", "test")
+    assert a1 != a2
+
+
 def test_adapters_removal_parser():
     data = sequana_data("test_adapter_removal_output.txt", "testing")
     results = adapters.adapter_removal_parser(data)
@@ -95,6 +100,14 @@ def test_adapter_reader():
     assert ar1 == ar_same
     ar_same = AR(ar1)           # from a AR instance
     assert ar1 == ar_same
+    assert ar1[0]['identifier'] == 'Universal_Adapter|name:universal'
+    ar1.index_names
+    assert ar1.get_adapter_by_sequence("XXX") is None
+    try:
+        ar1.get_adapter_by_identifier("XXX")
+        assert False
+    except ValueError:
+        assert True
 
     # __eq__
     assert len(ar1) == 56
@@ -215,3 +228,20 @@ def test_rubicon():
 
 
 
+def test_get_sequana_adapters():
+
+    assert "adapters_PCRFree_rev.fa" in adapters.get_sequana_adapters("PCRFree", "rev")
+    assert "adapters_Rubicon_fwd.fa" in adapters.get_sequana_adapters("Rubicon", "fwd")
+    assert "adapters_Nextera_revcomp.fa" in adapters.get_sequana_adapters("Nextera", "revcomp")
+
+    try:
+        adapters.get_sequana_adapters("Nexter", "fwd")
+        assert False
+    except ValueError:
+        assert True
+
+    try:
+        adapters.get_sequana_adapters("Nextera", "fw")
+        assert False
+    except ValueError:
+        assert True

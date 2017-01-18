@@ -27,7 +27,7 @@ rule dag:
     """
     run:
         # Create the dot file (graphviz) using snakemake
-        shell("snakemake -s {input.filename} --dag > {output.dot}")
+        shell("snakemake -s {input.filename} --dag --nolock > {output.dot}")
 
         # Annotate the dag with URLs 
         from sequana.snaketools import DOTParser

@@ -20,5 +20,6 @@ rule fastq_to_bz2:
 
     input: "{dataset}"
     output: "{dataset}.bz2"
+    threads: config['compressor']['threads']
     run:
-        shell("pbzip2 {input}")
+        shell("pbzip2 {input} -p{threads}")

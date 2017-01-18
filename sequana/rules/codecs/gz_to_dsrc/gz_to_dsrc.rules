@@ -16,7 +16,7 @@ rule gz_to_dsrc:
     threads: config["compressor"]["threads"]
     run:
         input_noext = input[0].replace(".gz", "")
-        shell("unpigz {input}")
+        shell("unpigz {input} -p {threads}")
         shell("dsrc c -t{threads} {params} %s {output}" % input_noext)
         shell("rm -f %s" % input_noext)
 

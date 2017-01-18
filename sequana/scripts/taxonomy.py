@@ -24,6 +24,8 @@ import sys
 from optparse import OptionParser
 import argparse
 
+from easydev import DevTools
+from sequana import logger
 
 class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana_taxonomy"):
@@ -63,7 +65,6 @@ Issues: http://github.com/sequana/sequana
         """
         description = """DESCRIPTION:
         """
-
         super(Options, self).__init__(usage=usage, prog=prog,
                 description=description)
 
@@ -109,17 +110,13 @@ def main(args=None):
 
     # We put the import here to make the --help faster
     from sequana import KrakenPipeline, SequanaConfig
-    from easydev import DevTools
     devtools = DevTools()
 
-    valid_db = ["minikraken", "toydb", "sequana_db1"]
     if options.download:
-        if options.download not in valid_db:
-            raise ValueError("DB to download must be one of %s" % valid_db)
         from sequana import KrakenDownload
         kd = KrakenDownload()
         kd.download(options.download)
-        sys.exit(0)
+        sys.exit()
 
     fastq = []
     if options.file1:
@@ -129,15 +126,16 @@ def main(args=None):
         devtools.check_exists(options.file2)
         fastq.append(options.file2)
 
-    output_directory = options.directory + os.sep + "kraken"
-
-    devtools.mkdirs(output_directory)
 
     from sequana import sequana_config_path as scfg
     if options.database == "toydb":
         options.database = "kraken_toydb"
     elif options.database == "minikraken":
         options.database = "minikraken_20141208"
+    else:
+        if options.database is None:
+            logger.critical("You must provide a database")
+            sys.exit(1)
 
     if os.path.exists(scfg + os.sep + options.database): # in Sequana path
         options.database = scfg + os.sep + options.database
@@ -148,6 +146,8 @@ def main(args=None):
         msg += "or in the sequana path %s; Use the --download option"
         raise ValueError(msg % (options.database, scfg))
 
+    output_directory = options.directory + os.sep + "kraken"
+    devtools.mkdirs(output_directory)
 
     # if DB exists locally, use it otherwise add the sequana path
     k = KrakenPipeline(fastq, options.database, threads=options.thread,
@@ -179,8 +179,8 @@ def main(args=None):
     ss.create_report()
 
     if options.verbose:
-        print("Open ./%s/summary.html" % options.directory)
-        print("or ./%s/kraken/kraken.html" % options.directory)
+        logger.info("Open ./%s/summary.html" % options.directory)
+        logger.info("or ./%s/kraken/kraken.html" % options.directory)
 
     if options.html is True:
         ss.onweb()

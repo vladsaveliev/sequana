@@ -17,6 +17,6 @@ rule dsrc_to_bz2:
     run:
         output_noext = output[0].replace(".bz2", "")
         shell("dsrc d -t{threads} {params} {input} %s" % (output_noext))
-        shell("pbzip2 %s " % output_noext)
+        shell("pbzip2 %s -p{threads}" % output_noext)
         shell("rm -f {input}")
 
