@@ -53,7 +53,7 @@ bowtie2_mapping:
 
 mark_duplicates:
     remove: 'True' ## may be False
-    tmp: 'TMP_DIR=/local/scratch/' ## on Slurm cluster at Pasteur
+    tmpdir: 'TMP_DIR=/local/scratch/' ## on Slurm cluster at Pasteur
 
 ##################################################################
 #       PEAK CALLING SECTION

@@ -4,13 +4,15 @@
 :Config file requirements:
 
 
+
 Usage
-~~~~~~~
+~~~~~~~~~
 
-::
+Example::
 
-    sequana --pipeline rnaseq --input-dir .
-
+    sequana --pipeline rnaseq --input-dir .  --output-directory analysis
+    cd analysis
+    snakemake -s rnaseq.rules -p --stats stats.txt -j 4 --cluster-config cluster_config.json --cluster "sbatch --mem={cluster.ram} --qos normal"
 
 
 Requirements
@@ -23,3 +25,44 @@ Requirements
 
 Details
 ~~~~~~~~~
+
+
+
+
+Rules and configuration details
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here is a documented configuration file :download:`../sequana/pipelines/rnaseq/config.yaml` to be used with the pipeline. Each rule used in the pipeline may have a section in the
+configuration file. Here are the rules and their developer and user documentation.
+
+
+
+FastQC
+^^^^^^^^^^^
+.. snakemakerule:: fastqc
+
+Fastq_screen
+^^^^^^^^^^^
+.. snakemakerule:: fastq_screen
+
+Cutadapt
+^^^^^^^^^
+.. snakemakerule:: cutadapt
+
+Mapping on rRNA
+^^^^^^^^^
+.. snakemakerule:: bowtie1_mapping_dynamic
+
+Mapping on reference genome
+^^^^^^^^^
+.. snakemakerule:: bowtie1_mapping_dynamic
+.. snakemakerule:: tophat_mapping
+.. snakemakerule:: star_mapping
+
+Counting
+^^^^^^^^^
+.. snakemakerule:: feature_counts
+
+Reporting
+^^^^^^^^^^
+.. snakemakerule:: multiqc

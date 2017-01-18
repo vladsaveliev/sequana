@@ -13,11 +13,23 @@ rule bamCoverage:
     params:
         bs = config['coverage']['binSize'],
         gs = config['coverage']['genomeSize'],
-        fragmentLength = config['coverage']['fragmentLength']
+        minFL = config['coverage']['minFragmentLength'],
+        maxFL = config['coverage']['maxFragmentLength'],
+        exRead = config['coverage']['extendReads']
+
     log:
         __bamCoverage__log
     output:
         __bamCoverage__output
-    threads: 4
-    run:
-        shell("bamCoverage --bam {input} -o {output} --binSize {params.binSize} --normalizeTo1x {params.genomeSize} --fragmentLength {params.fragmentLength}  2> {log}")
+    threads:
+        config['coverage']['threads']
+    shell:
+        """
+        if [ ! -e {input}.bai ] ; then
+            samtools index {input}
+        fi
+        bamCoverage --bam {input} -o {output} --numberOfProcessors 4 \
+        --binSize {params.bs} --normalizeTo1x {params.gs} \
+        --extendReads {params.exRead} --minFragmentLength {params.minFL}  \
+        --maxFragmentLength {params.maxFL} 2> {log}
+        """

@@ -1,0 +1,17 @@
+{ 
+    "__default__" :
+    {
+        "ram" : "3G"
+    },
+    
+	"star_mapping" : 
+	{ 
+		"ram" : "34G" 
+	},
+	
+	"fastq_screen" :
+	{ 
+		"ram" : "10G" 
+	} 
+}
+

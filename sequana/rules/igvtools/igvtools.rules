@@ -1,0 +1,23 @@
+rule igvtools:
+    """
+    igvtools
+
+    Required input:
+        __igvtools__input: bam file
+
+    Required output:
+        __igvtools__output: tdf files for visualization
+    """
+    input:
+        __igvtools__input
+    params:
+        chromSize = config['coverage']['chromSize']
+    log:
+        __igvtools__log
+    output:
+        __igvtools__output
+    threads: 4
+    shell:
+        """
+            igvtools count -z 5 -w 25 -f mean,max --includeDuplicates {input} {output} {params.chromSize}
+        """

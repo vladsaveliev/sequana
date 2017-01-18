@@ -40,13 +40,15 @@ sequencing:
     instrument: "Hiseq2500"
     flowcell: "H35CTBCXY"
 
+genome:
+  dir: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
+  version: hg19
+  do: yes
+
 star_mapping:
     do: yes
     ## if index is already computed
     prefix_index: /pasteur/projets/specific/PF2_ngs/protected/starGenomes/cryptNeo
-    ## if you want to compute the index
-    index: yes
-    ref: /pasteur/projets/specific/PF2_ngs/protected/starGenomes/cryptNeo.fa
     options: ""
     threads: 4
     ram: 30
@@ -98,7 +100,7 @@ fastq_screen:
 adapter_removal:
     do: yes
     tool: cutadapt
-    design: "%(adapter_design)s"
+    design_file: "%(adapter_design)s"
     adapter_type: "%(adapter_type)s"
     fwd: "%(adapter_fwd)s"     
     rev: "%(adapter_rev)s"
@@ -122,10 +124,22 @@ multiqc:
 
 mark_duplicates:
     do: yes
-    options: ''
+    remove: 'True' ## may be False
+    tmpdir: 'TMP_DIR=/local/scratch/' ## on Slurm cluster at Pasteur
 
 
 coverage:
+    do: no
     binSize: 10
-    genomeSize : mm
-    fragmentLength: 65
+    genomeSize : 2150570000 ##mm10
+    extendReads: 65
+    minFragmentLength: 0 #Note that a value other than 0 will exclude all single-end reads.
+    maxFragmentLength: 0 #A value of 0 disables filtering and is needed for including single-end and orphan reads.
+    threads: 4
+    chromSize: /pasteur/projets/specific/PF2_ngs/protected/fasta_genomes/hg19.chrom.sizes
+
+RNAseQC:
+     do: yes
+     ref: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
+     gtf: /pasteur/projets/specific/PF2_ngs/protected/annotation/gtf/hg19.gtf
+     BWArRNA: /pasteur/projets/specific/PF2_ngs/protected/Genomes/human_rRNA/human_all_rRNA.fasta
