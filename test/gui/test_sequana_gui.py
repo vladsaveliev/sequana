@@ -30,7 +30,7 @@ def test_settings(qtbot):
     #widget.menuHelp()
     widget.close()
 
-def test_standalone_sequana(qtbot, tmpdir):
+def _test_standalone_sequana(qtbot, tmpdir):
     wkdir = TemporaryDirectory()
     inputdir = os.path.realpath(
             sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz")).rsplit(os.sep,1)[0]
@@ -213,7 +213,7 @@ def _test_user_interface_sequana(qtbot):
     assert widget.form.count() == 0
 
 
-def _test_others(qtbot, mock):
+def test_others(qtbot, mock):
     widget = sequana_gui.SequanaGUI(ipython=True)
     qtbot.addWidget(widget)
     # level and pipeline attribute
