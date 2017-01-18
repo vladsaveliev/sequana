@@ -88,6 +88,7 @@ feature_counts:
 
 fastq_screen:
     conf: "/pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/fastq_screen.conf"
+    pf2_report: yes
 
 #################################################################
 # Quality trimming and adapter removal

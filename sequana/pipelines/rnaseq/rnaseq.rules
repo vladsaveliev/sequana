@@ -89,6 +89,12 @@ __fastq_screen__output = [x.replace("/"+adapter_tool+"/", "/fastq_screen/") for 
 __fastq_screen__outdir = manager.getwkdir("fastq_screen")
 include: sm.modules["fastq_screen"]
 expected_output.extend(expand(__fastq_screen__output, sample=manager.samples))
+if manager.config.fastq_screen.pf2_report:
+    __fastq_screen_report__input_dir = manager.getwkdir("fastq_screen")
+    __fastq_screen_report__figure = manager.getwkdir("fastq_screen", "_report.svg")
+    __fastq_screen_report__logs =  manager.getname("fastq_screen", "pf2_report.logs")
+    include: sm.modules["fastq_screen_report"]
+    expected_output.extend(expand(__fastq_screen_report__figure, sample=manager.samples))
 
 # FASTQC on input data set
 __fastqc_filtered__input_fastq = __clean_ngs__output
