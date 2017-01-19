@@ -24,7 +24,7 @@ rule fastq_screen_report:
         import csv
         from numpy import array, arange
         file = ""
-        for fp in os.listdir({input}):
+        for fp in os.listdir(input[0]):
             if fp.endswith("_screen.txt"):
                 file = fp
 
@@ -93,5 +93,5 @@ rule fastq_screen_report:
         pl.axvspan(29,32,facecolor='#FFD700', alpha=0.3,label="viruses")
         pl.annotate('Viruses', xy=(30.5, 100), xycoords='data')
         pl.tight_layout()
-        fig.savefig({output},format='svg')
+        fig.savefig(output[0],format='svg')
         pl.close()
