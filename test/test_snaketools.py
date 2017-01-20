@@ -6,10 +6,9 @@ from nose.plugins.attrib import attr
 from sequana import Module, SequanaConfig
 
 
-testing = lambda x: sequana_data(x, "testing")
 
 def test_dot_parser():
-    s = DOTParser(testing("test_dag.dot"))
+    s = DOTParser(sequana_data("test_dag.dot", "testing"))
     s.add_urls()
     try:os.remove("test_dag.ann.dot")
     except:pass
@@ -30,7 +29,7 @@ def test_getcleanup_rules():
 
 def test_snakemake_stats():
     # this is created using snakemake with the option "--stats stats.txt"
-    s = snaketools.SnakeMakeStats(testing("test_snakemake_stats.txt"))
+    s = snaketools.SnakeMakeStats(sequana_data("test_snakemake_stats.txt"))
     s.plot()
 
 
@@ -88,16 +87,16 @@ def test_sequana_config():
 
     # --------------------------------- tests different constructors
     config = snaketools.SequanaConfig()
-    config = snaketools.SequanaConfig({"test":1}, mode="others")
+    config = snaketools.SequanaConfig({"test":1})
     assert config.config.test == 1
     # with a dictionary
-    config = snaketools.SequanaConfig(config.config, mode="others")
+    config = snaketools.SequanaConfig(config.config)
     # with a sequanaConfig instance
-    config = snaketools.SequanaConfig(config, mode="others")
+    config = snaketools.SequanaConfig(config)
     # with a non-yaml file
     try:
         json = sequana_data('test_summary_fastq_stats.json')
-        config = snaketools.SequanaConfig(json, mode="others")
+        config = snaketools.SequanaConfig(json)
         assert False
     except:
         assert True
@@ -150,7 +149,7 @@ def test_dummy_manager():
 def test_pipeline_manager():
 
     # test missing input_directory
-    cfg = SequanaConfig({}, mode="other")
+    cfg = SequanaConfig({})
     try:
         pm = snaketools.PipelineManager("custom", cfg)
         assert False

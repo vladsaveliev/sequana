@@ -515,31 +515,34 @@ class SequanaConfig(object):
     This will transform back the "True" into True.
 
     """
-    def __init__(self, data=None, test_requirements=True,
-                 converts_none_to_str=True, mode="NGS"):
+    def __init__(self, data=None, converts_none_to_str=True):
         """Could be a JSON or a YAML file
 
         :param str filename: filename to a config file in json or YAML format.
 
-        mode NGS means the following fields are expected: project, sample,
-        file1, file2
+        SEQUANA config files must have some specific fields::
+
+            input_directory
+            input_samples...
         """
         # Create a dummy YAML code to hold data in case the input is a json
         # or a dictionary structure. We use a CommentedMap that works like
         # a dictionary. Be aware that the update method will lose the comments
         if data is None:
             self.config = AttrDict()
-            mode = "others"
             self._yaml_code = comments.CommentedMap()
         elif isinstance(data, str): # else is it a filename ?
             if os.path.exists(data):
+                #self._infer_mode(data)
                 if data.endswith(".yaml"):
                     with open(data, "r") as fh:
                         self._yaml_code = ruamel.yaml.load(fh.read(),
                                                 ruamel.yaml.RoundTripLoader)
                 else:
-                    raise NotImplementedError(
-                            "JSON not supported, please use a YAML file")
+                    import yaml
+                    with open(data, "r") as fh:
+                        self._yaml_code =  yaml.load(json.dumps(
+                            json.loads(fh.read())))
                 config = load_configfile(data)
             else:
                 raise IOError("input string must be an existing file")
@@ -547,24 +550,26 @@ class SequanaConfig(object):
         elif isinstance(data, SequanaConfig): # else maybe a SequanaConfig ?
             self.config = AttrDict(**data.config)
             self._yaml_code = comments.CommentedMap(self.config.copy())
+            #self.mode = data.mode
         else: # or a pure dictionary ?
             self.config = AttrDict(**data)
             self._yaml_code = comments.CommentedMap(self.config.copy())
 
-        if converts_none_to_str and mode == "NGS":
-            self._set_none_to_empty_string(self.config)
+        # if converts_none_to_str and self.mode == "sequana":
+        #    self._set_none_to_empty_string(self.config)
 
-        if test_requirements and mode == "NGS":
-            requirements = ["input_directory",
-                            "input_samples",
-                            "input_extension",
-                            "input_pattern",
-                            "input_samples:file1", "input_samples:file2"]
-            # converts to dictionary ?
-            for this in requirements:
-                this = this.split(":")[0]
-                assert this in self.config.keys(),\
-                    "Your config must contain %s" % this
+    def check_sequana_fields(self):
+        requirements = ["input_directory",
+                        "input_samples",
+                        "input_extension",
+                        "input_pattern",
+                        "input_samples:file1", "input_samples:file2"]
+        # converts to dictionary ?
+        for this in requirements:
+            this = this.split(":")[0]
+            if this not in self.config.keys():
+                return False
+        return True
 
     def save(self, filename="config.yaml", cleanup=True):
         """Save the yaml code in _yaml_code with comments"""
@@ -654,7 +659,11 @@ class SequanaConfig(object):
                     wget(requirement, target + os.sep + output)
 
     def _get_section_comment(self, section):
-        data = self._yaml_code.ca.items[section]
+        try:
+            data = self._yaml_code.ca.items[section]
+        except:
+            #JSON has no comments
+            return "",""
         #data = [x for x in data if x] # drops the None
         # In principle, the full commented section is the second one
         # The second one can be a lengthy commented secttion. It is a list

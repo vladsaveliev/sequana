@@ -1,12 +1,26 @@
 # coding: utf-8
-"""Read mapping for either singel end and paired end data using Bowtie1.
-
-input:
-    fastq -> list with one or two fastq.gz
-    reference -> reference
-"""
-
 def bowtie1_mapping_dynamic(name, log_dir):
+
+    """
+    Read mapping for either single end and paired end data using Bowtie1.
+
+    Required input:
+        __bowtie1_mapping_%(name)s__input: list with one or two fastq.gz
+
+    Required output:
+        __bowtie1_mapping_%(name)s__bam: output bam file
+        __bowtie1_mapping_%(name)s__sort: output sorted bam file
+
+    Config:
+
+        __bowtie1_mapping_%(name)s__prefix_index: path to the index file of reference genome
+
+        .. code-block:: yaml
+
+            bowtie:
+                options:  "" #options for bowtie1 you want use
+    """
+
     metadata = {"name": name, "log_dir": log_dir}
 
     bowtie1_mapping_code = '''

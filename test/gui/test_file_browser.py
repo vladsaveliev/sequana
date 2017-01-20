@@ -2,53 +2,52 @@ import sys
 import os
 import unittest
 
-from sequana.gui import file_browser
+from sequana.gui.file_browser import FileBrowser, DirectoryDialog
+
 from sequana import sequana_data
-from PyQt5 import QtWidgets as QW
-from PyQt5.QtTest import QTest
+from PyQt5 import QtCore
 
-app = QW.QApplication(sys.argv)
+import pytest
+#from pytestqt.qt_compat import qt_api
+
+#app = QW.QApplication(sys.argv)
 
 
-class FileBrowserTest(unittest.TestCase):
+# How to use that ? 
+# http://pytest-qt.readthedocs.io/en/latest/tutorial.html
+def test_basic_search(qtbot, tmpdir):
+    '''
+    test to ensure basic find files functionality is working.
+    '''
+    tmpdir.join('test1_R1.fastq.gz').ensure()
+    tmpdir.join('test1_R2.fastq.gz').ensure()
 
-    def setUp(self):
-        self.form = file_browser.FileBrowser(paired=False, directory=False,
-            file_filter=None)
+    tmpdir.join('test2_R1.fastq.gz').ensure()
+    tmpdir.join('test2_R2.fastq.gz').ensure()
 
-    def tearDown(self):
-        self.form.close()
 
-    def test_paths(self):
-        self.form.set_empty_path()
-        self.form.get_filenames()
+def test_directory_dialog(qtbot, mock):
 
-    def _test_paired(self):
-        self.form.browse_directory()
+    widget = FileBrowser(paired=False, directory=False, file_filter=None)
+    qtbot.addWidget(widget)
+    widget.show()
+    assert widget.isVisible()
+    widget.setup_color()
 
-"""import pytest
-from pytestqt.qt_compat import qt_api
+    widget.set_empty_path()
+    assert widget.get_filenames() == ""
+    assert widget.path_is_setup() == False
 
-#def test_directory_dialog(qtbot):
-    #assert qt_api.QApplication.instance() is not None
-    #widget = qt_api.QWidget()
-    #qtbot.addWidget(widget)
-    #widget.show()
-    #assert widget.isVisible()
-    def setUp(self):
-        self.form = file_browser.DirectoryDialog(None, "", ".", "")
+    # Now, we open the dialog, which pops up. We need to close it...
+    widget = FileBrowser(paired=True, directory=False, file_filter=None)
+    qtbot.addWidget(widget)
+    #qtbot.mouseClick(widget.btn, QtCore.Qt.LeftButton)
 
-    def tearDown(self):
-        self.form.close()
-
-    def test_show(self):
-        self.form.show()
-        self.form.get_directory_path()
-        # w1 = self.form.findChildren(PyQt5.QtWidgets.QPushButton)[0]
-        # w1.click()
-"""
+    widget._set_paired_filenames(["test1.fastq.gz"])
+    widget._set_paired_filenames(["test1.fastq.gz", "test2.fastq.gz"])
 
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_directory_dialog(qtbot, tmpdir):
+    widget = DirectoryDialog(None, "test", str(tmpdir), "*gz")
+    qtbot.addWidget(widget)

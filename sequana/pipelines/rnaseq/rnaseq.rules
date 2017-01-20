@@ -30,7 +30,7 @@ TODO = "todo"
 __fastqc_samples__input_fastq = __data__input
 __fastqc_samples__output_done = manager.getname("fastqc_samples", ".done")
 __fastqc_samples__wkdir       = manager.getwkdir("fastqc_samples")
-include: fastqc_dynamic("samples", manager.sample)
+include: fastqc_dynamic("samples", manager)
 expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samples))
 
 
@@ -39,13 +39,18 @@ expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samp
 adapter_tool = manager.config.adapter_removal.tool
 # Clean NGS
 if adapter_tool == "clean_ngs":
-    __clean_ngs__input = __data__input
-    __clean_ngs__output = [manager.getname("clean_ngs", "_clean_ngs.fastq.gz")]
-    __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
-    __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
-    include: sm.modules["clean_ngs"]
     if manager.paired:
-        __clean_ngs__output += [manager.getname("clean_ngs", "_R2_.clean_ngs.fastq.gz")]
+        __clean_ngs__input = __data__input # must be -if1 R1.fastq -if2 R2.fastq
+        __clean_ngs__output = ["%s  -of2 %s" % (manager.sample, manager.sample)]
+        __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
+        __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
+    else:
+        __clean_ngs__input = __data__input
+        __clean_ngs__output = [manager.getname("clean_ngs", "_clean_ngs.fastq.gz")]
+        __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
+        __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
+    include: sm.modules["clean_ngs"]
+
     #expected_output.extend(expand(__clean_ngs__output, sample=manager.samples))
 elif adapter_tool == "cutadapt":
     __cutadapt__input_fastq = __data__input
@@ -63,7 +68,7 @@ elif adapter_tool == "cutadapt":
     else:
         __cutadapt__rev = manager.config.adapter_removal.rev
 
-    __cutadapt__design = manager.config.adapter_removal.design
+    __cutadapt__design = manager.config.adapter_removal.design_file
     __cutadapt__design_adapter = manager.config.adapter_removal.adapter_type
     __cutadapt__options = manager.config.adapter_removal.options
     __cutadapt__mode = manager.config.adapter_removal.mode
@@ -89,7 +94,7 @@ expected_output.extend(expand(__fastq_screen__output, sample=manager.samples))
 __fastqc_filtered__input_fastq = __clean_ngs__output
 __fastqc_filtered__output_done = manager.getname("fastqc_filtered", ".done")
 __fastqc_filtered__wkdir       = manager.getwkdir("fastqc_filtered")
-include: fastqc_dynamic("filtered", manager.sample)
+include: fastqc_dynamic("filtered", manager)
 expected_output.extend(expand(__fastqc_filtered__output_done, sample=manager.samples))
 
 
@@ -117,7 +122,7 @@ if manager.config.star_mapping.do:
     __star_mapping__output_prefix1 = manager.getname("star_mapping", "_init_")
     __star_mapping__output_prefix2 = manager.getname("star_mapping", "_")
     __star_mapping__read_groups = ""
-    __star_mapping__sort = manager.getname("star_mapping", "_Aligned.sorted.bam")
+    __star_mapping__sort = manager.getname("star_mapping", "_Aligned.sortedByCoord.out.bam")
     __star_mapping__genome_dir = manager.getname("star_mapping", "_star_2nd_pass")
     __star_mapping__splice_file = manager.getname("star_mapping", "_init_SJ.out.tab")
     include: sm.modules["star_mapping"]
@@ -132,13 +137,19 @@ if manager.config.tophat_mapping.do:
     include: sm.modules["tophat_mapping"]
     expected_output.extend(expand(__tophat_mapping__sort, sample=manager.samples))
 
-# TODO Generer les TDF file avec igvtools ou bien le BamCoverage par defaut
-#igvtools count -z 5 -w 25 -f mean,max --includeDuplicates  $file $file".tdf" /pasteur/projets/specific/PF2_ngs/protected/fasta_genomes/DENV4.chrom.sizes
-__bamCoverage__input = __mapping_output
-__bamCoverage__log = manager.getname("bamCoverage", ".logs")
-__bamCoverage__output = manager.getname("bamCoverage", ".norm.bw")
+# generating of bigwig files
+if manager.config.bamCoverage.do:
+    __bamCoverage__input = __mapping_output
+    __bamCoverage__log = manager.getname("bamCoverage", ".logs")
+    __bamCoverage__output = manager.getname("bamCoverage", ".norm.bw")
     include: sm.modules["bamCoverage"]
     expected_output.extend(expand(__bamCoverage__output, sample=manager.samples))
+else :
+    __igvtools__input = __mapping_output
+    __igvtools__output = manager.getname("igvtools", ".tdf")
+    __igvtools__log = manager.getname("igvtools", ".logs")
+    include: sm.modules["igvtools"]
+    expected_output.extend(expand(__igvtools__output, sample=manager.samples))
 
 
 # Feature counts from subread suite
@@ -172,6 +183,11 @@ if config["mark_duplicates"]["do"]:
     __mark_duplicates__log_err =  "%s/logs/mark_duplicates/stderr.logs" % manager.sample
     include: sm.modules["mark_duplicates"]
     expected_output.extend(expand(__mark_duplicates__output, sample=manager.samples))
+
+
+if config["RNAseQC"]["do"]:
+    include: sm.module["reorderSam"]
+    include: sm.module["RNAseQC"]
 
 
 

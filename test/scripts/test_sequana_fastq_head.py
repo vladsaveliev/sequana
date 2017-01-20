@@ -22,7 +22,7 @@ class TestPipeline(object):
         df = fastq_head.main([self.prog, '--input', filename, '--nlines', 
             "100", "--output", fh.name])
 
-        df = fastq_head.main([self.prog, filename, "100", "--output"])
+        df = fastq_head.main([self.prog, filename, "100", fh.name])
         fh.delete()
 
 

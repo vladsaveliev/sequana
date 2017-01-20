@@ -1,4 +1,26 @@
 rule bowtie2_mapping:
+
+    """
+    Read mapping for either single end and paired end data using Bowtie2.
+
+    Required input:
+        __bowtie2_mapping__input: list with one or two fastq.gz
+
+    Required output:
+        __bowtie2_mapping__sort: output sorted bam file
+
+    Config:
+
+        __bowtie2_mapping__outdir: output directory
+        __bowtie2_mapping__sam: output file in SAM format (temporary file)
+
+        .. code-block:: yaml
+
+            bowtie2_mapping:
+                prefix_index: "" #path to the index file of reference genome
+                options:  "" #options for bowtie1 you want use
+    """
+
     input:
         __bowtie2_mapping__input
     output:

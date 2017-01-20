@@ -256,7 +256,9 @@ onsuccess:
             shell('cp -r %s/kraken/ %s' % (proj, report_dir))
         shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
         shell('cp -r %s/fastq_stats*/ %s' % (proj, report_dir))
-        shell('cp -r %s/bwa_bam_to_fastq/ %s' % (proj, report_dir))
+
+        if manager.config.bwa_mem_phix.do:
+            shell('cp -r %s/bwa_bam_to_fastq/ %s' % (proj, report_dir))
         #shell('rm -f %s/bwa_bam_to_fastq/*fastq ' % (report_dir))
 
         # Copy the fastq files 

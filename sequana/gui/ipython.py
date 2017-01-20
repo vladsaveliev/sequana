@@ -11,7 +11,7 @@ import multiprocessing
 from qtconsole.rich_ipython_widget import RichJupyterWidget
 from qtconsole.inprocess import QtInProcessKernelManager
 from IPython.lib import guisupport
-
+import colorlog
 
 # http://stackoverflow.com/questions/11513132/embedding-ipython-qt-console-in-a-pyqt-application
 class QIPythonWidget(RichJupyterWidget):
@@ -49,5 +49,10 @@ class QIPythonWidget(RichJupyterWidget):
     def executeCommand(self,command):
         """ Execute a command in the frame of the console widget """
         self._execute(command,False)
+
+
+
+
+
 
 

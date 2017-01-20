@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>591</width>
-    <height>544</height>
+    <height>681</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,10 +19,13 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="tabShape">
+   <enum>QTabWidget::Rounded</enum>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="0">
-     <layout class="QVBoxLayout" name="vlayout" stretch="0,1,1,0,0,1">
+     <layout class="QVBoxLayout" name="vlayout" stretch="0,1,0,0,1">
       <property name="spacing">
        <number>0</number>
       </property>
@@ -56,12 +59,21 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You can run a Sequana pipeline (left tab) or a generic Snakemake file (right tab).&lt;/p&gt;&lt;p&gt;In the &lt;span style=&quot; font-weight:600;&quot;&gt;Sequana pipeline section, f&lt;/span&gt;irst, on the left hand side, select a pipeline in the dropbox. Second, on the right hand side, select either the input directory where to find the FastQ files, or select a specific set of input sample (one or two files for paired-end data).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a Sequana pipeline (left tab) or a generic Snakemake file (right tab).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color:#aaddcc</string>
+        </property>
+        <property name="tabPosition">
+         <enum>QTabWidget::North</enum>
         </property>
         <property name="currentIndex">
          <number>0</number>
         </property>
-        <widget class="QWidget" name="tab_6">
+        <property name="movable">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="tab_sequana_pipelines">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
            <horstretch>0</horstretch>
@@ -69,176 +81,227 @@
           </sizepolicy>
          </property>
          <attribute name="title">
-          <string>Sequana pipelines</string>
+          <string>A - Sequana pipelines</string>
          </attribute>
-         <widget class="QWidget" name="horizontalLayoutWidget_2">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>10</y>
-            <width>501</width>
-            <height>71</height>
-           </rect>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <property name="spacing">
-            <number>6</number>
-           </property>
-           <property name="sizeConstraint">
-            <enum>QLayout::SetDefaultConstraint</enum>
-           </property>
-           <property name="leftMargin">
-            <number>6</number>
-           </property>
-           <property name="rightMargin">
-            <number>6</number>
-           </property>
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
-             <property name="spacing">
-              <number>4</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QComboBox" name="choice_button">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sequana pipelines are automatically fetched from sequana library.&lt;/p&gt;&lt;p&gt;Each pipeline is defined by a pipeline name. Its config file is fetched automatically.&lt;/p&gt;&lt;p&gt;Each pipeline require the user to define the input. It may be one of:&lt;/p&gt;&lt;p&gt;&lt;ul&gt;&lt;li&gt; a directory&lt;/li&gt;&lt;li&gt; a set of FastQ input file&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="currentText">
-                <string>Select a Sequana pipeline</string>
-               </property>
-               <item>
-                <property name="text">
-                 <string>Select a Sequana pipeline</string>
+         <layout class="QGridLayout" name="gridLayout_6">
+          <item row="0" column="0">
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item>
+             <widget class="QTabWidget" name="tabs_sequana">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="baseSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left tab:&lt;/span&gt; Select one of the pipeline in the combo box. In order to get help about a pipeline, please see the Help menu. &lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle tab:&lt;/span&gt; Select one of this option&lt;/li&gt;&lt;ol style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;&quot;&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Input directory: the directory where fastq.gz files are stored (all sequana pipelines expect fastq.gz as input)&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Input samples:  select one or two files (fastq.gz) in a directory&lt;/li&gt;&lt;/ol&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right tab: &lt;/span&gt;Select working directory where Snakefile/pipeline and config file are copied. Pipeline are also ran in that directory. &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color:#ffeedd</string>
+              </property>
+              <property name="tabPosition">
+               <enum>QTabWidget::North</enum>
+              </property>
+              <property name="tabShape">
+               <enum>QTabWidget::Rounded</enum>
+              </property>
+              <property name="currentIndex">
+               <number>1</number>
+              </property>
+              <property name="documentMode">
+               <bool>false</bool>
+              </property>
+              <property name="tabsClosable">
+               <bool>false</bool>
+              </property>
+              <property name="movable">
+               <bool>true</bool>
+              </property>
+              <property name="tabBarAutoHide">
+               <bool>false</bool>
+              </property>
+              <widget class="QWidget" name="Pipeline">
+               <attribute name="title">
+                <string>1 - Pipeline selection</string>
+               </attribute>
+               <layout class="QHBoxLayout" name="layout_sequana">
+                <property name="spacing">
+                 <number>6</number>
                 </property>
-               </item>
+                <property name="sizeConstraint">
+                 <enum>QLayout::SetDefaultConstraint</enum>
+                </property>
+                <property name="leftMargin">
+                 <number>6</number>
+                </property>
+                <property name="rightMargin">
+                 <number>6</number>
+                </property>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
+                  <property name="spacing">
+                   <number>4</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QComboBox" name="choice_button">
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sequana pipelines are automatically fetched from sequana library.&lt;/p&gt;&lt;p&gt;Each pipeline is defined by a pipeline name. Its config file is fetched automatically.&lt;/p&gt;&lt;p&gt;Each pipeline require the user to define the input. It may be one of:&lt;/p&gt;&lt;p&gt;&lt;ul&gt;&lt;li&gt; a directory&lt;/li&gt;&lt;li&gt; a set of FastQ input file&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="currentText">
+                     <string>Select a Sequana pipeline</string>
+                    </property>
+                    <item>
+                     <property name="text">
+                      <string>Select a Sequana pipeline</string>
+                     </property>
+                    </item>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
               </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <widget class="QTabWidget" name="tabs_browser">
-             <property name="currentIndex">
-              <number>1</number>
-             </property>
-             <widget class="QWidget" name="tab">
-              <attribute name="title">
-               <string>Directory (input)</string>
-              </attribute>
+              <widget class="QWidget" name="sequana_input_dir_tab">
+               <attribute name="title">
+                <string>2 - Input data (directory or files)</string>
+               </attribute>
+               <layout class="QGridLayout" name="gridLayout_7">
+                <item row="0" column="0">
+                 <layout class="QHBoxLayout" name="horizontalLayout_2">
+                  <item>
+                   <widget class="QTabWidget" name="tabWidget">
+                    <property name="styleSheet">
+                     <string notr="true">background-color:white</string>
+                    </property>
+                    <property name="currentIndex">
+                     <number>1</number>
+                    </property>
+                    <widget class="QWidget" name="tab_4">
+                     <attribute name="title">
+                      <string>a - Input directory</string>
+                     </attribute>
+                     <layout class="QGridLayout" name="gridLayout_10">
+                      <item row="0" column="0">
+                       <layout class="QHBoxLayout" name="layout_sequana_input_dir"/>
+                      </item>
+                     </layout>
+                    </widget>
+                    <widget class="QWidget" name="tab_5">
+                     <attribute name="title">
+                      <string>b - Input sample(s)</string>
+                     </attribute>
+                     <layout class="QGridLayout" name="gridLayout_9">
+                      <item row="0" column="0">
+                       <layout class="QHBoxLayout" name="layout_sequana_input_files"/>
+                      </item>
+                     </layout>
+                    </widget>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="sequana_working_dir_tab">
+               <attribute name="title">
+                <string>3 - Working directory</string>
+               </attribute>
+               <layout class="QGridLayout" name="gridLayout_8">
+                <item row="0" column="0">
+                 <layout class="QHBoxLayout" name="layout_sequana_wkdir"/>
+                </item>
+               </layout>
+              </widget>
              </widget>
-             <widget class="QWidget" name="tab_2">
-              <attribute name="title">
-               <string>Sample</string>
-              </attribute>
-             </widget>
-            </widget>
-           </item>
-          </layout>
-         </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </widget>
-        <widget class="QWidget" name="tab_7">
-         <attribute name="title">
-          <string>Generic pipelines</string>
-         </attribute>
-         <widget class="QWidget" name="horizontalLayoutWidget_4">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>10</y>
-            <width>501</width>
-            <height>71</height>
-           </rect>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_5">
-           <property name="spacing">
-            <number>6</number>
-           </property>
-           <property name="sizeConstraint">
-            <enum>QLayout::SetDefaultConstraint</enum>
-           </property>
-           <property name="leftMargin">
-            <number>6</number>
-           </property>
-           <property name="rightMargin">
-            <number>6</number>
-           </property>
-           <item>
-            <widget class="QTabWidget" name="tabs_browser_2">
-             <property name="toolTip">
-              <string>Some snakemake pipelines do not use config file. If so, do not select any file.
-If you have selected a file, click on the button again, and once the file browser pops up, simply press the cancel button.</string>
-             </property>
-             <property name="currentIndex">
-              <number>0</number>
-             </property>
-             <widget class="QWidget" name="snakefile">
-              <attribute name="title">
-               <string>Snakefile</string>
-              </attribute>
-             </widget>
-             <widget class="QWidget" name="configfile">
-              <attribute name="title">
-               <string>Config file</string>
-              </attribute>
-             </widget>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </widget>
-       </widget>
-      </item>
-      <item>
-       <widget class="QGroupBox" name="working_directory">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>86</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the working directory where the pipeline and its config are copied. &lt;/p&gt;&lt;p&gt;Files created in the pipeline will use this working directory as the root directory except if the pipeline specifies paths itself.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="toolTipDuration">
-         <number>3</number>
-        </property>
-        <property name="title">
-         <string>Working Directory</string>
-        </property>
-        <widget class="QWidget" name="horizontalLayoutWidget">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>30</y>
-           <width>381</width>
-           <height>41</height>
-          </rect>
+        <widget class="QWidget" name="tab_generic_pipelines">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <layout class="QHBoxLayout" name="layout_wk"/>
+         <attribute name="title">
+          <string>B - Generic pipelines</string>
+         </attribute>
+         <layout class="QGridLayout" name="gridLayout_11">
+          <item row="0" column="0">
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <property name="leftMargin">
+             <number>6</number>
+            </property>
+            <property name="rightMargin">
+             <number>6</number>
+            </property>
+            <item>
+             <widget class="QTabWidget" name="tabs_generic">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left tab:&lt;/span&gt; Select a valid Snakefile. &lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle tab:&lt;/span&gt; Select a config file. This is optional. Note that Snakefile may be using a config file or not. For instance if &amp;lt;i&amp;gt;configfile: &amp;quot;config.yaml&amp;quot;&amp;lt;/i&amp;gt; is found, a config file is expected.&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right tab: &lt;/span&gt;Select working directory where Snakefile/pipeline and config file are copied. Pipeline are also ran in that directory. &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color:#ffeedd</string>
+              </property>
+              <property name="currentIndex">
+               <number>1</number>
+              </property>
+              <widget class="QWidget" name="snakefile">
+               <attribute name="title">
+                <string>1 - Snakefile</string>
+               </attribute>
+               <layout class="QGridLayout" name="gridLayout_12">
+                <item row="0" column="0">
+                 <layout class="QHBoxLayout" name="layout_generic_snakefile"/>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="configfile">
+               <attribute name="title">
+                <string>2 - Config file</string>
+               </attribute>
+               <layout class="QGridLayout" name="gridLayout_13">
+                <item row="0" column="0">
+                 <layout class="QHBoxLayout" name="layout_generic_config"/>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="tab">
+               <attribute name="title">
+                <string>3 - Working directory</string>
+               </attribute>
+               <layout class="QGridLayout" name="gridLayout_14">
+                <item row="0" column="0">
+                 <layout class="QHBoxLayout" name="layout_generic_wkdir"/>
+                </item>
+               </layout>
+              </widget>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </widget>
        </widget>
       </item>
@@ -265,7 +328,7 @@ If you have selected a file, click on the button again, and once the file browse
            <x>10</x>
            <y>20</y>
            <width>141</width>
-           <height>58</height>
+           <height>62</height>
           </rect>
          </property>
          <layout class="QFormLayout" name="formLayout">
@@ -303,7 +366,7 @@ If you have selected a file, click on the button again, and once the file browse
           <rect>
            <x>180</x>
            <y>20</y>
-           <width>211</width>
+           <width>214</width>
            <height>61</height>
           </rect>
          </property>
@@ -362,8 +425,11 @@ If you have selected a file, click on the button again, and once the file browse
         <property name="toolTip">
          <string/>
         </property>
+        <property name="styleSheet">
+         <string notr="true">background-color:#ffffff</string>
+        </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="snakemake">
          <property name="sizePolicy">
@@ -373,7 +439,7 @@ If you have selected a file, click on the button again, and once the file browse
           </sizepolicy>
          </property>
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the output of the snakemake execution. &lt;/p&gt;&lt;p&gt;Be aware that we parse the output so colors and output may be slightly different.&lt;/p&gt;&lt;p&gt;If you do not want this behaviour, you can change the snakemake options in the menu (general section) and switch the process from &amp;quot;pyqt&amp;quot; to &amp;quot;unix shell&amp;quot;. The progress bar won't work in such case but the output will be in the shell wehre you launch sequana_gui.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the output of the snakemake execution. &lt;/p&gt;&lt;p&gt;Be aware that we parse the output so colors and output may be slightly different.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <attribute name="title">
           <string>&amp;Snakemake output</string>
@@ -467,8 +533,8 @@ Once you save the configuration, the dag button should be available.</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>539</width>
-               <height>70</height>
+               <width>98</width>
+               <height>28</height>
               </rect>
              </property>
             </widget>
@@ -479,7 +545,7 @@ Once you save the configuration, the dag button should be available.</string>
        </widget>
       </item>
       <item>
-       <widget class="QWidget" name="widget_5" native="true">
+       <widget class="QWidget" name="widget_footer" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -510,7 +576,7 @@ Once you save the configuration, the dag button should be available.</string>
               <string>Run the pipeline (shortcut: Ctrl+R)</string>
              </property>
              <property name="text">
-              <string>Run</string>
+              <string>&amp;Run</string>
              </property>
              <property name="shortcut">
               <string>Ctrl+R</string>
@@ -526,7 +592,7 @@ Once you save the configuration, the dag button should be available.</string>
               <string>Stop</string>
              </property>
              <property name="shortcut">
-              <string>Ctrl+S</string>
+              <string>Ctrl+X</string>
              </property>
             </widget>
            </item>
@@ -539,7 +605,7 @@ This launch snakemake with the following arguments:
 snakemake -s Snakefile --unlock </string>
              </property>
              <property name="text">
-              <string>Unlock</string>
+              <string>&amp;Unlock</string>
              </property>
              <property name="shortcut">
               <string>Ctrl+U</string>
@@ -554,7 +620,7 @@ snakemake -s Snakefile --unlock </string>
 This is essentially for the sequana pipeline (default filename is multi_summary.html but one can change the name in the option/preferences dialog.</string>
              </property>
              <property name="text">
-              <string>Open Report</string>
+              <string>Open &amp;Report</string>
              </property>
              <property name="shortcut">
               <string>Ctrl+R</string>
@@ -569,8 +635,17 @@ This is essentially for the sequana pipeline (default filename is multi_summary.
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color:orange</string>
+             </property>
              <property name="text">
-              <string>Save Config</string>
+              <string>&amp;Save</string>
+             </property>
+             <property name="shortcut">
+              <string>Ctrl+S</string>
              </property>
             </widget>
            </item>
@@ -581,7 +656,7 @@ This is essentially for the sequana pipeline (default filename is multi_summary.
 This is a good way to check your config file .</string>
              </property>
              <property name="text">
-              <string>Show Dag</string>
+              <string>Show &amp;Dag</string>
              </property>
              <property name="shortcut">
               <string>Ctrl+D</string>
@@ -736,7 +811,6 @@ text-align: center;
  <tabstops>
   <tabstop>tabs_pipeline</tabstop>
   <tabstop>choice_button</tabstop>
-  <tabstop>tabs_browser</tabstop>
   <tabstop>until_box</tabstop>
   <tabstop>starting_box</tabstop>
   <tabstop>comboBox_local</tabstop>

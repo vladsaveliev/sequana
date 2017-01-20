@@ -17,17 +17,9 @@
 """Sequana GUI. Can also be used for any snakemake pipeline"""
 import sys
 import os
-import re
-import time
 
-from PyQt5.QtWidgets import QWidget
-
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore
 from PyQt5 import QtWidgets as QW
-from PyQt5.Qt import QTemporaryDir, QMainWindow
-from PyQt5.QtCore import Qt
-from PyQt5.QtSvg import QSvgWidget
-from PyQt5.QtWebKitWidgets import QWebView
 
 from sequana.gui.ui_preferences import Ui_Preferences
 

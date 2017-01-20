@@ -649,7 +649,11 @@ class ChromosomeCov(object):
                   "You must run compute_zscore before get low coverage.\n\n",
                   self.__doc__) 
 
-    def plot_coverage(self, filename=None, fontsize=16):
+    def plot_coverage(self, filename=None, fontsize=16, 
+            rm_lw=1, rm_color="#0099cc", rm_label="Running median", 
+            th_lw=1, th_color="r", th_ls="--", main_color="k", main_lw=1, 
+            main_kwargs={}):
+
         """ Plot coverage as a function of base position.
 
         :param filename:
@@ -670,17 +674,28 @@ class ChromosomeCov(object):
         ax = pylab.gca()
         ax.set_axis_bgcolor('#eeeeee')
         pylab.xlim(0,self.df["pos"].iloc[-1])
-        p1, = pylab.plot(self.df["cov"], color="k", label="Coverage",
-                linewidth=1)
-        p2, = pylab.plot(self.df["rm"], color="#0099cc", linewidth=1,
-                label="Running median")
-        p3, = pylab.plot(high_zcov, linewidth=1, color="r", ls="--",
+        axes = []
+        labels = []
+        p1, = pylab.plot(self.df["cov"], color=main_color, label="Coverage",
+                linewidth=main_lw, **main_kwargs)
+        axes.append(p1)
+        labels.append("Coverage")
+        if rm_lw>0:
+            p2, = pylab.plot(self.df["rm"],
+                    color=rm_color,
+                    linewidth=rm_lw,
+                    label=rm_label)
+            axes.append(p2)
+            labels.append(rm_label)
+        if th_lw>0:
+            p3, = pylab.plot(high_zcov, linewidth=th_lw, color=th_color, ls=th_ls,
                 label="Thresholds")
-        p4, = pylab.plot(low_zcov, linewidth=1, color="r", ls="--",
-            label="_nolegend_")
+            p4, = pylab.plot(low_zcov, linewidth=th_lw, color=th_color, ls=th_ls,
+                label="_nolegend_")
+            axes.append(p3)
+            labels.append("Thresholds")
 
-        pylab.legend([p1, p2, p3], [p1.get_label(), p2.get_label(),
-                p3.get_label()], loc="best")
+        pylab.legend(axes, labels, loc="best")
         pylab.xlabel("Position", fontsize=fontsize)
         pylab.ylabel("Per-base coverage", fontsize=fontsize)
         pylab.grid(True)
@@ -752,7 +767,7 @@ class ChromosomeCov(object):
         ax = pylab.gca()
         ax.set_axis_bgcolor('#eeeeee')
 
-        data = self.df['cov'].values
+        data = self.df['cov'].dropna().values
 
         maxcov = data.max()
         if logx is True and logy is True:

@@ -99,7 +99,13 @@ class Ui_Snakemake(object):
         self.snakemake_options_general_no__hooks_value.setObjectName("snakemake_options_general_no__hooks_value")
         self.layout_general.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.snakemake_options_general_no__hooks_value)
         spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.layout_general.setItem(3, QtWidgets.QFormLayout.FieldRole, spacerItem2)
+        self.layout_general.setItem(5, QtWidgets.QFormLayout.FieldRole, spacerItem2)
+        self.lineEdit = QtWidgets.QLineEdit(self.formLayoutWidget_3)
+        self.lineEdit.setObjectName("lineEdit")
+        self.layout_general.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.lineEdit)
+        self.label = QtWidgets.QLabel(self.formLayoutWidget_3)
+        self.label.setObjectName("label")
+        self.layout_general.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.label)
         self.tabs.addTab(self.tab_general, "")
         self.verticalLayout.addWidget(self.tabs)
         self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
@@ -110,7 +116,7 @@ class Ui_Snakemake(object):
         self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
 
         self.retranslateUi(Snakemake)
-        self.tabs.setCurrentIndex(0)
+        self.tabs.setCurrentIndex(2)
         self.buttonBox.accepted.connect(Snakemake.accept)
         self.buttonBox.rejected.connect(Snakemake.reject)
         QtCore.QMetaObject.connectSlotsByName(Snakemake)
@@ -138,5 +144,7 @@ class Ui_Snakemake(object):
         self.snakemake_options_general_no__hooks_value.setToolTip(_translate("Snakemake", "--no-hooks : Do not invoke onstart, onsuccess or onerror hooks   after execution.\n"
 ""))
         self.snakemake_options_general_no__hooks_value.setText(_translate("Snakemake", "nohooks"))
+        self.label.setToolTip(_translate("Snakemake", "<html><head/><body><p>Add any other valid snakemake options here</p></body></html>"))
+        self.label.setText(_translate("Snakemake", "any other options"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_general), _translate("Snakemake", "&General"))
 

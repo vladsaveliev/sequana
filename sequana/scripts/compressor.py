@@ -27,6 +27,7 @@ import argparse
 import tempfile
 
 from sequana.scripts.tools import SequanaOptions
+from sequana import Module, SequanaConfig
 
 
 class Options(argparse.ArgumentParser, SequanaOptions):
@@ -85,10 +86,10 @@ fq.dsrc""")
             action="store_true", help="""recursive search""")
         self.add_argument("--threads", dest="threads",
             default=4,
-            help="""number of threads to use per job (4)""")
+            help="""Maximum number of threads to use per task (4).""")
         self.add_argument("--jobs", dest="jobs",
             default=4,
-            help="""number of jobs to use at most (4) """)
+            help="""Maximum number of cores to use at most (4). """)
         self.add_argument("--snakemake-options", dest="snakemake",
             default=" --keep-going ",
             help="""any valid list of options accepted by snakemake except
@@ -127,22 +128,29 @@ def main(args=None):
 
     if (options.source, options.target) not in valid_combos:
         raise ValueError("""--target and --source combo not valid.
-Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
+Must be one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
 
     from easydev import TempFile
     # Create the config file locally
-    with TempFile(suffix=".yaml", dir=".") as temp:
-        fh = open(temp.name, "w")
-        fh.write("compressor:\n")
-        fh.write("    source: %s\n" %options.source)
-        fh.write("    target: %s\n" % options.target)
-        fh.write("    threads: %s\n" % options.threads)
-        fh.write("    recursive: %s\n" % options.recursive)
-        fh.write("    verbose: %s\n" % options.verbose)
-        fh.close() # essential to close it because snakemake will try to use seek()
-        from sequana import Module
-        rule = Module("compressor").path + os.sep +  "compressor.rules"
 
+    module = Module("compressor")
+
+    with TempFile(suffix=".yaml", dir=".") as temp:
+        cfg = SequanaConfig(module.config)
+        cfg.config.compressor.source = options.source
+        cfg.config.compressor.target = options.target
+        cfg.config.compressor.recursive = options.recursive
+        cfg.config.compressor.verbose = options.verbose
+        cfg.config.compressor.threads = options.threads
+        cfg._update_yaml()
+        cfg.save(filename=temp.name)
+
+        print(options)
+
+        # The Snakefile can stay in its original place:
+        rule = module.path + os.sep +  "compressor.rules"
+
+        # Run the snakemake command itself.
         cmd = 'snakemake -s %s  --configfile %s -j %s ' % \
                 (rule, temp.name, options.jobs)
 
@@ -151,6 +159,7 @@ Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
         else:
             cmd += " -p "
 
+        # for slurm only: --cores-per-socket
         if options.cluster:
             cluster = ' --cluster "%s" ' % options.cluster
             cmd += cluster
@@ -161,17 +170,11 @@ Must be in one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
         if options.verbose:
             print(cmd)
 
-        # On travis, shell command from snakemake fails. 
+        # On travis, snakemake.shell command from snakemake fails.
         # Most probably because travis itself uses a subprocess.
         # excute from easydev uses pexpect.spawn, which seems to work well
-        from easydev import execute 
+        from easydev import execute
         execute(cmd, showcmd=False)
-        #if "TRAVIS_PYTHON_VERSION" in os.env:
-        #    from easydev import execute 
-        #    execute(cmd)
-        #else:
-        #    shell(cmd)
-        fh.close()
 
 
 if __name__ == "__main__":
