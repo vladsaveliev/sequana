@@ -91,6 +91,6 @@ class Ui_Preferences(object):
         self.preferences_options_general_logging_value.setItemText(3, _translate("Preferences", "ERROR"))
         self.preferences_options_general_logging_value.setItemText(4, _translate("Preferences", "CRITICAL"))
         self.label_4.setText(_translate("Preferences", "HTML page to open as a report"))
-        self.preferences_options_general_htmlpage_value.setText(_translate("Preferences", "multisummary.html"))
+        self.preferences_options_general_htmlpage_value.setText(_translate("Preferences", "multi_summary.html"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_general), _translate("Preferences", "General"))
 
