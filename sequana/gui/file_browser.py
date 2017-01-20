@@ -153,11 +153,6 @@ class FileBrowser(QW.QWidget):
         """
         self.btn.clicked.connect(function)
 
-    def changed_connect(self, function):
-        """ Trigger function when user change the location.
-        """
-        self.btn_filename.textChanged.connect(function)
-
 
 class DirectoryDialog(QW.QFileDialog):
     def __init__(self, parent, title, directory, file_filter):
