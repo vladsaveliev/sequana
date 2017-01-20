@@ -65,7 +65,7 @@ setup(
     # was required most probably by pyquickhelper via bleach package
     install_requires = ["easydev>=0.9.30", "reports>=0.2.0", "matplotlib",
         "pyVCF",
-        "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14", "biokit>=0.3.3",
+        "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14", "biokit>=0.3.4",
         "pysam", "docutils", "sphinx-gallery", "mock", "numpydoc", "pillow",
         "blist", "sphinx", "ruamel.yaml>=0.13.2", "colorlog", "entrypoints", 
         "pyquickhelper"],
