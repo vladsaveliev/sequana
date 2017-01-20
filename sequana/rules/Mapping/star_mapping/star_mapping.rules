@@ -1,5 +1,4 @@
-# coding: utf-8
-
+rule star_mapping:
     """
     Read mapping for either single end and paired end data using RNA-STAR.
 
@@ -24,7 +23,6 @@
                 options:  "" #options for bowtie1 you want use
     """
 
-rule star_mapping:
     input:
         __star_mapping__input
     log:

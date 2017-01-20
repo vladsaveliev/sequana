@@ -1,4 +1,3 @@
-- clean_ngs
 - cutadapt
 - picard-tools
 - bowtie

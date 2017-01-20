@@ -49,6 +49,7 @@ star_mapping:
     do: yes
     ## if index is already computed
     prefix_index: /pasteur/projets/specific/PF2_ngs/protected/starGenomes/cryptNeo
+    ref: /pasteur/projets/specific/PF2_ngs/protected/starGenomes/cryptNeo.fa
     options: ""
     threads: 4
     ram: 30
