@@ -102,7 +102,14 @@ setup(
            'sequana_summary=sequana.scripts.summary:main',
            'sequana_mapping=sequana.scripts.mapping:main',
            'sequana_compressor=sequana.scripts.compressor:main'
+        ],
+        'sequana.module':[
+            'sequana_coverage = sequana.modules_report.coverage_analysis:SequanaModule',
+            'sequana_variant_calling = sequana.modules_report.variant_calling:SequanaModule'
+        ],
+        'sequana.report_template': [
+            'standard = sequana.resources.template.standard'
         ]
-    },
+},
 
 )
