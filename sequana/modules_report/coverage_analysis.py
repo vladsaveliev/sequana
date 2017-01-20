@@ -18,57 +18,54 @@
 ##############################################################################
 """Module to write coverage report"""
 from sequana import bedtools
-from sequana.modules.base_module import SequanaBaseModule
+from sequana.modules_report.base_module import SequanaBaseModule
+from sequana.utils import config
 
 
 class SequanaModule(object):
     """ Write HTML report of coverage analysis. This class takes either a
     :class:`GenomeCov` instances or a csv file where analysis are stored.
     """
-    def __init__(self, input_file, template, output_directory):
+    def __init__(self):
         """
         :param input: 
         """
         try:
-            self.bed = bedtools.GenomeCov(input_file)
-        except IOError:
+            self.bed = bedtools.GenomeCov(config.input_file)
+        except FileNotFoundError:
             msg = ("The csv file is not present. Please, check if your"
                    " file is present.")
-            raise IOError(msg)
+            raise FileNotFoundError(msg)
         except TypeError:
-            self.bed = input_file
-        # try:
-        self.create_reports(template, output_directory)
+            self.bed = config.input_file
+        #try:
+        self.create_reports()
         #except:
         #    msg = ("Input must be either a csv file or a :class:`GenomeCov` "
         #           "instance.")
         #    raise TypeError(msg)
 
-    def create_reports(self, template, output_dir):
+    def create_reports(self):
         """ Create HTML report for each chromosome present in data.
         """
         for chrom in self.bed:
-            jinja = ChromosomeCoverageModule(chrom, template, output_dir)
+            jinja = ChromosomeCoverageModule(chrom)
 
 
 class ChromosomeCoverageModule(SequanaBaseModule):
     """ Write HTML report of coverage analysis for each chromosome. It is
     created by CoverageModule.
     """
-    def __init__(self,
-                 chromosome,
-                 template,
-                 output_directory="report/"):
+    def __init__(self, chromosome):
         """
         """
-        super().__init__(template=template,
-                         output_directory=output_directory)
+        super().__init__()
         self.chromosome = chromosome
         self.create_report_content()
-        self.create_html(template, output_directory)
+        self.create_html()
 
     def create_report_content(self):
-        """
+        """ Generate the sections list to fill the HTML report.
         """
         self.sections = list()
         
@@ -80,18 +77,11 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         self.normalized_coverage()
         self.zscore_distribution()
 
-    def create_html(self, template, output_directory):
-        """ Create html with Jinja2.
-        """
-        report_output = self.j_template.render(base_content="content.html",
-                                               module=self)
-        with open(output_directory + "test.html", "w") as fp:
-            print(report_output, file=fp)
-
     def coverage_plot(self):
+        """ Coverage section.
         """
-        """
-        image = self.create_embed_png(self.chromosome.plot_coverage)
+        image = self.create_embedded_png(self.chromosome.plot_coverage,
+                                      input_arg="filename")
         self.sections.append({
             "name": "Coverage",
             "anchor": "coverage",
@@ -105,11 +95,13 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         })
 
     def coverage_barplot(self):
+        """ Coverage barplots section.
         """
-        """
-        image1 = self.create_embed_png(self.chromosome.plot_hist_coverage,
+        image1 = self.create_embedded_png(self.chromosome.plot_hist_coverage,
+                                       input_arg="filename",
                                        style="width:45%")
-        image2 = self.create_embed_png(self.chromosome.plot_hist_coverage,
+        image2 = self.create_embedded_png(self.chromosome.plot_hist_coverage,
+                                       input_arg="filename",
                                        kwargs={"logx": False},
                                        style="width:45%")
         self.sections.append({
@@ -122,7 +114,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         })
 
     def basic_stats(self):
-        """
+        """ Basics statistics section.
         """
         html_table = self.dataframe_to_html_table(
             self.chromosome.get_stats(output="dataframe"), {"index": False})
@@ -135,7 +127,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         })
 
     def regions_of_interest(self):
-        """
+        """ Region of interest section.
         """
         rois = self.chromosome.get_roi()
         low_roi = rois.get_low_roi()
@@ -172,10 +164,11 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         })
 
     def normalized_coverage(self):
+        """ Barplot of normalized coverage section.
         """
-        """
-        image = self.create_embed_png(
-            self.chromosome.plot_hist_normalized_coverage)
+        image = self.create_embedded_png(
+            self.chromosome.plot_hist_normalized_coverage,
+            input_arg="filename")
         self.sections.append({
             "name": "Normalized coverage",
             "anchor": "normalized_coverage",
@@ -186,9 +179,10 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         })
 
     def zscore_distribution(self):
+        """ Barplot of zscore distribution section.
         """
-        """
-        image = self.create_embed_png(self.chromosome.plot_hist_zscore)
+        image = self.create_embedded_png(self.chromosome.plot_hist_zscore,
+                                      input_arg="filename")
         self.sections.append({
             "name": "Z-Score distribution",
             "anchor": "zscore_distribution",
