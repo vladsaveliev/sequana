@@ -926,12 +926,9 @@ content:</li>
             if isinstance(contains, dict) and (
                     rule not in SequanaGUI._not_a_rule):
                 rule_box = Ruleform(rule, contains, count, self._browser_keyword)
-<<<<<<< Updated upstream
-                self.comments = comments
-=======
                 rule_box.connect_all_option(
                     lambda: self.ui.run_btn.setEnabled(False))
->>>>>>> Stashed changes
+                self.comments = comments
                 if comments:
                     # Try to interpret it with sphinx
                     from pyquickhelper.helpgen import docstring2html

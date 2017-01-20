@@ -271,7 +271,9 @@ class FileBrowserOption(GeneralOption):
     def set_enable(self, switch_bool):
         self.browser.set_enable(switch_bool)
 
-<<<<<<< Updated upstream
+    def connect(self, task):
+        self.browser.changed_connect(task)
+
 
 class SVGDialog(QW.QDialog):
     def __init__(self, filename):
@@ -282,8 +284,3 @@ class SVGDialog(QW.QDialog):
         if os.path.exists(filename):
             widget = QSvgWidget(filename)
             self.main_layout.addWidget(widget)
-
-=======
-    def connect(self, task):
-        self.browser.changed_connect(task)
->>>>>>> Stashed changes
