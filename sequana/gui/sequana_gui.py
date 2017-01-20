@@ -81,8 +81,6 @@ class BaseFactory(Tools):
         self._run_button.setEnabled(False)
 
     def copy(self, source, target):
-        print("target = " + target)
-        print("target = " + os.path.basename(target))
         if os.path.exists(target):
             save_msg = WarningMessage(
                     "The file {0} already exists in the working directory".format(source))
@@ -370,7 +368,8 @@ class SequanaGUI(QMainWindow, Tools):
         if isset(user_options, "snakefile"):
             filename = user_options.snakefile
             if os.path.exists(filename) is True:
-                self.info("Setting snakefile using user's argument")
+                self.info("Setting snakefile using user's argument %s" %
+                    user_options.snakefile)
                 self.generic_factory._snakefile_browser.set_filenames(filename)
             else:
                 self.error("%s does not exist" % filename)
@@ -379,12 +378,13 @@ class SequanaGUI(QMainWindow, Tools):
         if isset(user_options, "configfile"):
             filename = user_options.configfile
             if os.path.exists(filename) is True:
-                self.info("Setting config file using user's argument")
+                self.info("Setting config file using user's argument" %
+                    user_options.configfile)
                 self.generic_factory._config_browser.set_filenames(filename)
             self.ui.tabs_pipeline.setCurrentIndex(1)
 
         if isset(user_options, "pipeline"):
-            self.info("Setting Sequana pipeline %s ")
+            self.info("Setting Sequana pipeline %s " % user_options.pipeline)
             pipelines = self.sequana_factory.valid_pipelines
             if user_options.pipeline in pipelines:
                 index = self.ui.choice_button.findText(user_options.pipeline)
@@ -415,10 +415,8 @@ class SequanaGUI(QMainWindow, Tools):
             self.ui.tabWidget.setCurrentIndex(1)
 
         # We may have set some pipeline, snakefile, working directory
-        self._load_and_merge_config()
         self.create_base_form()
         self.fill_until_starting()
-        self.update_footer()
 
     def initUI(self):
         # The logger is not yet set, so we use the module directly
@@ -487,7 +485,7 @@ class SequanaGUI(QMainWindow, Tools):
         self.ui.actionPreferences.triggered.connect(self.preferences_dialog.exec_)
 
         # connectors related to the pipeline tabs (pipeline/generic)
-        self.ui.tabs_pipeline.currentChanged.connect(self.update_footer)
+        #self.ui.tabs_pipeline.currentChanged.connect(self.update_footer)
 
         self.set_sequana_pipeline()
         self.set_generic_pipeline()
@@ -835,6 +833,10 @@ content:</li>
         snakemake_line += dialog.get_snakemake_general_options()
         snakemake_line += self.get_until_starting_option()
 
+        others = self.snakemake_dialog.ui.snakemake_options_general_custom.text()
+        if others.strip():
+            snakemake_line += others.split()
+
         configfile = os.path.basename(self.factory.configfile)
         snakemake_line += ["--configfile", configfile]
 
@@ -1125,11 +1127,8 @@ content:</li>
             msg = WarningMessage("You must set a working directory", self)
             msg.exec_()
 
-        self.ui.run_btn.setEnabled(True)
 
     def update_footer(self):
-        # This functions copies the snakefile in the working directory
-        # if possible.
 
         # Run is on if working dir is on AND
         # 1. for sequana: pipeline is set
@@ -1138,20 +1137,20 @@ content:</li>
             if self.working_dir and self.sequana_factory.pipeline:
                 # FIXME how to get the input as well
                 # self.ui.tabs_pipeline.currentWidget().path_is_setup():
-                #self.ui.run_btn.setEnabled(True)
+                self.ui.run_btn.setEnabled(True)
                 self.ui.dag_btn.setEnabled(True)
                 self.debug('Switching RUN button on')
             else:
-                #self.ui.run_btn.setEnabled(False)
+                self.ui.run_btn.setEnabled(False)
                 self.ui.dag_btn.setEnabled(False)
                 self.debug('Switching RUN button off (missing working directory or pipeline)')
         else: # generic
             if self.generic_factory.is_runnable():
-                #self.ui.run_btn.setEnabled(True)
+                self.ui.run_btn.setEnabled(True)
                 self.ui.dag_btn.setEnabled(True)
                 self.debug('Switching RUN button on')
             else:
-                #self.ui.run_btn.setEnabled(False)
+                self.ui.run_btn.setEnabled(False)
                 self.ui.dag_btn.setEnabled(False)
                 self.debug('Switching RUN button off (missing working directory or pipeline)')
         #return self.ui.run_btn.setEnabled(False)
@@ -1325,7 +1324,6 @@ content:</li>
         if os.path.isfile(config_file):
             self.warning("An existing config.yaml file already exists in the target directory")
         else:
-            # no config to merge, we will use the pipeline config file
             return
 
         # this should always work but who knows
@@ -1343,22 +1341,21 @@ content:</li>
         if set(self.config._yaml_code.keys()) == set(config_dict.keys()):
             msg = QW.QMessageBox(
                 QW.QMessageBox.Question, "Question",
-                "A config file already exist in the working directory.\n" +
+                "A config file already exists in the working directory.\n" +
                 "%s.\n" % self.working_dir +
-                "Do you want to import its content (if not, it will be replaced)?",
+                "Do you want to overwrite it ? (if not, the existing file is imported)?",
                 QW.QMessageBox.Yes | QW.QMessageBox.No,
                 self, Qt.Dialog | Qt.CustomizeWindowHint)
             # Yes == 16384
-            if msg.exec_() == 16384:
+            if msg.exec_() != 16384:
                 self.config._yaml_code.update(config_dict)
                 self.create_base_form()
                 self.fill_until_starting() #self.rule_list)
-            else:
+            else:pass
                 # if we do not want to import the existing file
-
-                self.create_base_form()
-                self.fill_until_starting() #self.rule_list)
-                self.critical("fixme")
+                #self.create_base_form()
+                #self.fill_until_starting() #self.rule_list)
+                #self.critical("fixme")
         else:
             self.critical("The config file that already exists is different. Nothing done")
         return True

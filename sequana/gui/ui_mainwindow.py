@@ -284,7 +284,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 98, 28))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 539, 261))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.gridLayout_4.addWidget(self.scrollArea, 0, 0, 1, 1)
@@ -464,17 +464,13 @@ class Ui_MainWindow(object):
         self.stop_btn.setToolTip(_translate("MainWindow", "Stop the running pipeline"))
         self.stop_btn.setText(_translate("MainWindow", "Stop"))
         self.stop_btn.setShortcut(_translate("MainWindow", "Ctrl+X"))
-        self.unlock_btn.setToolTip(_translate("MainWindow", "Unlock the directory where the pipeline is run.\n"
-"This launch snakemake with the following arguments: \n"
-"\n"
-"snakemake -s Snakefile --unlock "))
+        self.unlock_btn.setToolTip(_translate("MainWindow", "<html><head/><body><p>Remove a lock on the working directory.</p><p><br/></p><p>This launch snakemake with the following arguments: </p><p><br/></p><p>snakemake -s Snakefile --unlock </p></body></html>"))
         self.unlock_btn.setText(_translate("MainWindow", "&Unlock"))
         self.unlock_btn.setShortcut(_translate("MainWindow", "Ctrl+U"))
-        self.report_btn.setToolTip(_translate("MainWindow", "This button open an HTML page present in the working directory (if found).\n"
-"\n"
-"This is essentially for the sequana pipeline (default filename is multi_summary.html but one can change the name in the option/preferences dialog."))
+        self.report_btn.setToolTip(_translate("MainWindow", "<html><head/><body><p>This button opens an HTML page defined in the preferences.</p><p><br/></p><p>By default, a custom PyQt5 browser is used but one can specify</p><p>firefox or safari in the preferences.</p><p><br/></p><p>If the HTML to open is set no an empty string in the preferences, then</p><p>a dialog opens to let you select your own file.</p></body></html>"))
         self.report_btn.setText(_translate("MainWindow", "Open &Report"))
-        self.report_btn.setShortcut(_translate("MainWindow", "Ctrl+R"))
+        self.report_btn.setShortcut(_translate("MainWindow", "Ctrl+S"))
+        self.save_btn.setToolTip(_translate("MainWindow", "<html><head/><body><p>Each time you change a config file, a snakefile, a working directory or one</p><p>of the configuration parameter, you must save the current project to be able</p><p>to press the Run button.</p></body></html>"))
         self.save_btn.setText(_translate("MainWindow", "&Save"))
         self.save_btn.setShortcut(_translate("MainWindow", "Ctrl+S"))
         self.dag_btn.setToolTip(_translate("MainWindow", "Pressing this button, a DAG is created and shown. \n"
