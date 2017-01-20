@@ -533,12 +533,12 @@ class SequanaConfig(object):
             self._yaml_code = comments.CommentedMap()
         elif isinstance(data, str): # else is it a filename ?
             if os.path.exists(data):
-                #self._infer_mode(data)
                 if data.endswith(".yaml"):
                     with open(data, "r") as fh:
                         self._yaml_code = ruamel.yaml.load(fh.read(),
                                                 ruamel.yaml.RoundTripLoader)
                 else:
+                    # read a JSON
                     import yaml
                     with open(data, "r") as fh:
                         self._yaml_code =  yaml.load(json.dumps(
@@ -550,7 +550,6 @@ class SequanaConfig(object):
         elif isinstance(data, SequanaConfig): # else maybe a SequanaConfig ?
             self.config = AttrDict(**data.config)
             self._yaml_code = comments.CommentedMap(self.config.copy())
-            #self.mode = data.mode
         else: # or a pure dictionary ?
             self.config = AttrDict(**data)
             self._yaml_code = comments.CommentedMap(self.config.copy())
