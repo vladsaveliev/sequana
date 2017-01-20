@@ -1,5 +1,4 @@
 rule star_mapping:
-
     """
     Read mapping for either single end and paired end data using RNA-STAR.
 
