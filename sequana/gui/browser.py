@@ -9,6 +9,13 @@ from PyQt5.QtWidgets import QProgressBar, QLineEdit
 # https://github.com/ralsina/devicenzo/blob/master/devicenzo.py
 
 class Browser(Qt.QMainWindow):
+    """
+
+
+    On purpose, there is no caching so that (if re-generated), the 
+    new content of an HTML is shown.
+    
+    """
 
     def __init__(self, url):
         Qt.QMainWindow.__init__(self)
@@ -38,8 +45,6 @@ class Browser(Qt.QMainWindow):
 
         self.wb.urlChanged.connect(lambda u: self.url.setText(u.toString()))
 
-
-
         self.wb.statusBarMessage.connect(self.sb.showMessage)
         self.wb.page().linkHovered.connect(lambda l: self.sb.showMessage(l, 3000))
 
@@ -66,3 +71,7 @@ class Browser(Qt.QMainWindow):
         self.sb.addPermanentWidget(self.search)
         self.sb.addPermanentWidget(self.pbar)
         self.wb.load(QtCore.QUrl(url))
+
+        # No caching
+        self.wb.settings().setObjectCacheCapacities(0,0,0)
+

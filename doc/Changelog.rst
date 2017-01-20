@@ -3,8 +3,8 @@ Changelog
 
 .. contents::
 
-0.1.17
-----------
+0.1.17 - Jan 2017
+------------------
 
 * BUG Fixes:
 
@@ -25,6 +25,8 @@ Changelog
     - remove pipetools module (obsolet)
     - GUI revisited with qt designer + can now also read any snakefile/config
       file combo (not just sequana pipelines)
+    - RULES: adapters can now use adapter_type without a design (fwd and rev
+      gets filled automatically)
 
 * NEWS:
 

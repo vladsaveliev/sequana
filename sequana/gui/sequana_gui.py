@@ -44,22 +44,9 @@ from sequana import snaketools, sequana_data
 from sequana.snaketools import Module
 
 import easydev
-
 import colorlog
 
-# Test to do
-# - if a config file exists already, the merging should work
-# - if snakefile or config imported in a working directory (empty), check the
-#   files are copied
-#
-# time pytest -v --durations=10  test*py --cov=sequana.gui --cov-report term-missing
-#
-# problems: when saving, integer are transformed into str in save_configfile
-#
 
-
-# Test1: Generic snakefile without config. Set working directory first or
-# afterwar the snakefile selection.
 
 def sigint_handler(*args):
     """Handler for the SIGINT signal."""
@@ -70,18 +57,34 @@ def sigint_handler(*args):
         QW.QApplication.quit()
 
 
-
-
 class BaseFactory(Tools):
+    """Tab on top are all based on this abstract class
 
+    It should provide access to a snakefile and its config file as well
+    as working directory.
+
+    Currently, the :class:`SequanaFactory` and :class:`GenericFactory` are
+    implemented.
+
+
+    """
     def __init__(self, mode):
         self.mode = mode
         # And finally the working directory
         self._directory_browser = FileBrowser(directory=True)
         self._directory_browser.clicked_connect(self._copy_snakefile)
         self._directory_browser.clicked_connect(self._copy_configfile)
+        self._snakefile_copied = False
+        self._configfile_copied = False
 
-    def _copy_snakefile(self):
+    def copy(self, source, target):
+        print(source)
+        print(target)
+        if os.path.exists(os.path.basename(target)):
+            self.warning("Target exists already")
+        super(BaseFactory, self).copy(source, target)
+
+    def _copy_snakefile(self, force=False):
         if self.snakefile is None:
             self.info("No pipeline selected yet")
             return # nothing to be done
@@ -90,9 +93,13 @@ class BaseFactory(Tools):
             self.info("No working directory selected yet")
             return
 
-        target = self.directory + os.sep + "Snakefile"
-        self.info("Copying snakefile in %s " % self.directory)
-        self.copy(self.snakefile, target)
+        target = self.directory + os.sep + os.path.basename(self.snakefile)
+        if os.path.basename(self.snakefile) == target:
+            self.warning("%s exists already in %s" % (self.snakefile,
+                self.directory))
+        else:
+            self.info("Copying snakefile in %s " % self.directory)
+            self.copy(self.snakefile, target)
 
     def _copy_configfile(self):
         if self.configfile is None:
@@ -114,9 +121,8 @@ class BaseFactory(Tools):
             return None
     directory = property(_get_directory)
 
-    def refresh(self):
-        self._copy_configfile()
-        self._copy_snakefile()
+    def __repr__(self):
+        return "%s Factory" % self.mode
 
 
 class SequanaFactory(BaseFactory):
@@ -132,8 +138,9 @@ class SequanaFactory(BaseFactory):
         # Set the file browser input_directory tab
         self._sequana_directory_tab = FileBrowser(directory=True)
 
+        # when a pipeline is loaded, we want to copy it in the wkdir
         self._choice_button.activated.connect(self._copy_snakefile)
-        self._choice_button.activated.connect(self._copy_configfile)
+        #self._choice_button.activated.connect(self._copy_configfile)
 
     def _get_pipeline(self):
         index = self._choice_button.currentIndex()
@@ -166,8 +173,11 @@ class SequanaFactory(BaseFactory):
     config = property(_get_config)
 
     def __repr__(self):
-        txt = "pipeline:%s\ninput:%s\ndirectory:%s\n"
-        return txt % (self.pipeline, "todo", self.directory)
+        in1 = self._sequana_directory_tab.get_filenames()
+        in2 = self._sequana_paired_tab.get_filenames()
+        txt = super(SequanaFactory, self).__repr__()
+        txt += "\npipeline:%s\ninput:\n - %s\n - %s\ndirectory:%s\n"
+        return txt % (self.pipeline, in1, in2, self.directory)
 
 
 class GenericFactory(BaseFactory):
@@ -185,8 +195,8 @@ class GenericFactory(BaseFactory):
         # connectors to copy the config and/or snakefile
         self._snakefile_browser.clicked_connect(self._copy_snakefile)
 
-        self._config_browser.clicked_connect(self._copy_configfile)
-
+        # when a config file is loaded, we want to copy it in the wkdir
+        #self._config_browser.clicked_connect(self._copy_configfile)
 
     def get_case(self):
         filename = self._snakefile_browser.get_filenames()
@@ -233,10 +243,11 @@ class GenericFactory(BaseFactory):
     config = property(_get_config)
 
     def _configfile_arg(self):
-        if self.config and self.get_case() != "configfile":
+        # if snakefile  uses configfile:
+        if self.config and self.get_case() == "configfile":
             # The only reason for the user to provide a configfile
             # is that the variable config is used and so the --configfile
-            # argument is mist probably required
+            # argument is probably required
             return True
         else:
             return False
@@ -261,7 +272,8 @@ class GenericFactory(BaseFactory):
         return False
 
     def __repr__(self):
-        txt = "snakefile:%s\nconfigfile:%s\ndirectory:%s\n"
+        txt = super(GenericFactory, self).__repr__()
+        txt += "\nsnakefile:%s\nconfigfile:%s\ndirectory:%s\n"
         return txt % (self.snakefile, self.configfile, self.directory)
 
 
@@ -289,7 +301,8 @@ class SequanaGUI(QMainWindow, Tools):
     def __init__(self, parent=None, ipython=True, user_options={}):
         super(SequanaGUI, self).__init__(parent=parent)
 
-        self.info("Starting Sequana GUI")
+        colorlog.getLogger().setLevel("INFO")
+        colorlog.info("Welcome to Sequana GUI (aka Sequanix)")
 
         self._tempdir = QTemporaryDir()
         self.shell = ""
@@ -387,19 +400,17 @@ class SequanaGUI(QMainWindow, Tools):
 
         # We may have set some pipeline, snakefile, working directory
         # but nothing has been saved so far
-        if self.mode == "sequana":
-            # if the user provides a pipeline and working directory, we
-            # can copy the config and snakefile
-            self.sequana_factory._copy_configfile()
-            self.sequana_factory._copy_snakefile()
-        else:
-            self.generic_factory.refresh() # this copy the files if possible
+        self.factory._copy_snakefile() # this copy the snakefile if wkdir 
 
+        self.critical("Fixme. Is it required ?")
+        self._load_and_merge_config()
         self.create_base_form()
         self.fill_until_starting()
         self.update_footer()
 
     def initUI(self):
+        # The logger is not yet set, so we use the module directly
+        colorlog.info("Initialising GUI")
 
         # Set up the user interface from Designer. This is the general layout
         # without dedicated widgets and connections
@@ -415,8 +426,9 @@ class SequanaGUI(QMainWindow, Tools):
         # The IPython dialog, which is very useful for debugging
         if self._ipython_tab is True:
             self.ipyConsole = QIPythonWidget(
-                customBanner="Welcome to the embedded ipython console\n")
-            self.ipyConsole.printText("The variable 'foo' andion.")
+                customBanner="Welcome to Sequanix embedded ipython console\n" +
+                    "The entire GUI interface is stored in the variable gui\n")
+            #self.ipyConsole.printText("The variable 'foo' andion.")
             self.ipyConsole.execute("from sequana import *")
             self.ipyConsole.execute("import sequana")
             self.ipyConsole.execute("")
@@ -452,7 +464,6 @@ class SequanaGUI(QMainWindow, Tools):
         # You can control the logging level
         colorlog.getLogger().setLevel(colorlog.logging.logging.INFO)
         self.ui.layout_logger.addWidget(self.logTextBox.widget)
-
 
         # Connectors to actions related to the menu bar
         self.ui.actionQuit.triggered.connect(self.menuQuit)
@@ -592,12 +603,11 @@ content:</li>
     def set_sequana_pipeline(self):
         #
         # Use choice_button.activated so that if one select the same item again,
-        # the widgets are updated (unlike currentIndexChanged[str])
+        # The pipeline connector
         pipelines = sorted(snaketools.pipeline_names)
         self.ui.choice_button.addItems(pipelines)
         self.ui.choice_button.activated[str].connect(self._update_sequana)
         self.ui.choice_button.activated.connect(self._load_and_merge_config)
-        self.ui.choice_button.activated.connect(self.update_footer)
         self.ui.choice_button.installEventFilter(self)
 
         # populate the factory with the choice button
@@ -607,12 +617,13 @@ content:</li>
         # a local alias
         saf = self.sequana_factory
 
-        # add the file browser from sequana factory
+        # add widgets
         self.ui.layout_sequana_wkdir.addWidget(saf._directory_browser)
         self.ui.layout_sequana_input_dir.addWidget(saf._sequana_directory_tab)
         self.ui.layout_sequana_input_files.addWidget(saf._sequana_paired_tab)
 
         # set some connectors
+        # for the input tabs and the working directory
         saf._directory_browser.clicked_connect(self._load_and_merge_config)
         saf._directory_browser.clicked_connect(self.update_footer)
         saf._sequana_paired_tab.clicked_connect(self.update_footer)
@@ -631,6 +642,7 @@ content:</li>
         self.create_base_form()
         self._set_focus_on_config_tab()
         self.fill_until_starting()
+        self.update_footer()
 
     def set_generic_pipeline(self):
 
@@ -688,6 +700,10 @@ content:</li>
         elif index == 1:
             return "generic"
     mode = property(_get_mode)
+
+    def _get_factory(self):
+        return getattr(self, "%s_factory" % self.mode)
+    factory = property(_get_factory)
 
     def _get_config(self):
         return getattr(self, "%s_factory" % self.mode).config
@@ -809,10 +825,8 @@ content:</li>
         snakemake_line += dialog.get_snakemake_general_options()
         snakemake_line += self.get_until_starting_option()
 
-        if self.mode == "generic":
-            if self.generic_factory._configfile_arg():
-                configfile = self.generic_factory._config_browser.get_filenames()
-                snakemake_line += ["--configfile", configfile]
+        configfile = os.path.basename(self.factory.configfile)
+        snakemake_line += ["--configfile", configfile]
 
         return snakemake_line
 
@@ -838,7 +852,12 @@ content:</li>
 
         # We copy the sequana and genereic snakefile into a filename called
         # Snakefile
-        snakefile = self.working_dir + os.sep + "Snakefile"
+        if self.mode == "sequana":
+            snakefile = self.working_dir + os.sep + os.path.basename(self.snakefile)
+
+        elif self.mode == "generic":
+            snakefile = self.generic_factory.snakefile
+
         if os.path.exists(snakefile) is False:
             self.critical("%s does not exist" % snakefile)
             return
@@ -855,6 +874,17 @@ content:</li>
 
     def create_base_form(self):
         """ Create form with all options necessary for a pipeline.
+
+        ::
+
+            ########################################################
+            #   valid python docstring to be interepreted by sphinx
+            #
+            #   section:
+            #      item1: 10
+            #      item2: 20
+
+
         """
         self.rule_list = []
         if self.config is None:
@@ -867,14 +897,7 @@ content:</li>
         rules_list.sort()
         self.necessary_dict = {}
 
-        # A section looks like a large comments :
-        #   #========
-        #   # valid python docstring to be interepreted by sphinx
-        #   #
-        #   section:   # short comment
-        #      item: value # comment interne
-
-        # This
+        # !!!!
         # cfg._yaml_code.ca.items['adapter_removal']
         # is a list of 4 items
         # [None, largecomment, shortcomment, None]
@@ -887,11 +910,13 @@ content:</li>
         for count, rule in enumerate(rules_list):
             # Check if this is a dictionnary
             contains = config._yaml_code[rule]
+
             comments = config.get_section_long_comment(rule)
+
             if isinstance(contains, dict) and (
                     rule not in SequanaGUI._not_a_rule):
                 rule_box = Ruleform(rule, contains, count, self._browser_keyword)
-                self.comments= comments
+                self.comments = comments
                 if comments:
                     # Try to interpret it with sphinx
                     from pyquickhelper.helpgen import docstring2html
@@ -970,8 +995,9 @@ content:</li>
         """ Parse with a regex to retrieve current step and total step.
         """
         grouprex = self._step_regex.findall(line)
+        # Use last "x of y" (not the first item at position 0)
         if grouprex:
-            step = int(grouprex[0][0]) / float(grouprex[0][1]) * 100
+            step = int(grouprex[-1][0]) / float(grouprex[-1][1]) * 100
             self.ui.progressBar.setValue(step)
         if "Nothing to be done" in line:
             self.ui.progressBar.setValue(100)
@@ -1014,12 +1040,14 @@ content:</li>
             msg.exec_()
             return
 
-        if self._undefined_section in form_dict.keys():
+        if self._undefined_section in form_dict.keys() and self.mode != "sequana":
+            # if sequana, we ignore input_directory and others but in the
+            # generic case, we want the entire config file
             del form_dict[self._undefined_section]
 
         # get samples names or input_directory
         if self.mode == "sequana":
-            self.info("saving config file")
+            self.info("saving config file (sequana)")
             flag1 = self.sequana_factory._sequana_directory_tab.get_filenames()
             flag2 = self.sequana_factory._sequana_paired_tab.get_filenames()
             if len(flag1) == 0 and len(flag2) == 0:
@@ -1034,11 +1062,15 @@ content:</li>
                 filename = self.sequana_factory._sequana_paired_tab.get_filenames()
                 form_dict["input_samples"] = (filename)
 
+        if self.mode == "generic":
+            self.info("saving config file (generic)")
+
         # Let us update the attribute with the content of the form
         cfg = self.config
         cfg.config.update(form_dict)
         cfg._update_yaml()
         cfg.cleanup()
+        self.cfg = cfg
 
         # We must update the config and then the yaml to keep the comments. This
         # lose the comments:
@@ -1046,10 +1078,12 @@ content:</li>
 
         if self.working_dir:
             # FIXME in generic, config.yaml is not necessary the filename
-            yaml_path = self.working_dir + os.sep + "config.yaml"
             if self.mode == "sequana":
+                yaml_path = self.working_dir + os.sep + "config.yaml"
                 self.warning("copy requirements (if any)")
                 cfg.copy_requirements(target=self.working_dir)
+            elif self.mode == "generic":
+                yaml_path = self.working_dir + os.sep + os.path.basename(self.generic_factory.configfile)
 
             if os.path.isfile(yaml_path) and force is False:
                 save_msg = WarningMessage(
@@ -1062,13 +1096,17 @@ content:</li>
                 save_msg.setDefaultButton(QW.QMessageBox.Yes)
                 # Yes == 16384
                 # Save == 2048
-                if save_msg.exec_() in [16384, 2048]:
+                retval = save_msg.exec()
+                if retval in [16384, 2048]:
+                    self.info("Saving config file (does not exist)")
                     cfg.save(yaml_path, cleanup=False)
                     self.ui.dag_btn.setEnabled(True)
             else:
+                self.critical("Saving config file (exist but force it)")
                 cfg.save(yaml_path, cleanup=False)
                 self.ui.dag_btn.setEnabled(True)
         else:
+            self.critical("Config file not saved (no wkdir)")
             msg = WarningMessage("You must set a working directory", self)
             msg.exec_()
 
@@ -1161,7 +1199,9 @@ content:</li>
         snakemake_line += ["--rulegraph"]
         if self.mode == "generic" and self.configfile:
             # make sure to copy the config file
-            snakemake_line += ["--configfile", "config.yaml"]
+            snakemake_line += ["--configfile"]
+            snakemake_line += [os.path.basename(self.generic_factory.configfile)]
+
         snakemake_line += self.get_until_starting_option()
 
         self.info(snakemake_line)
@@ -1237,6 +1277,7 @@ content:</li>
         self.clear_layout(self.form)
 
     def _load_and_merge_config(self):
+        self.info("Entering Load and Merge method")
         # If working directory is not set yet, nothing to load
         if self.working_dir is None:
             return
@@ -1245,25 +1286,20 @@ content:</li>
             self.clear_form()
             return
 
-        if self.mode == "sequana":
-            config_file = self.working_dir + os.sep + "config.yaml"
-            if os.path.isfile(config_file):
-                self.warning("An existing config.yaml file already exists in the target directory")
-            else:
-                # no config to merge, we will use the pipeline config file
-                return
-        else: # generic
-            # is there a config_file with same name ?
-            config_file = self.working_dir + os.sep + os.path.basename(self.configfile)
+        config_file = self.working_dir + os.sep + os.path.basename(self.configfile)
+        if os.path.isfile(config_file):
+            self.warning("An existing config.yaml file already exists in the target directory")
+        else:
+            # no config to merge, we will use the pipeline config file
+            return
 
         # If pipeline not set, we cannot read the config file
         if self.mode == "sequana" and self.sequana_factory.pipeline is None:
-            msg = WarningMessage("A config.yaml file already exist in this "
-                                 "directory. Please, choose a pipeline to "
-                                 "know if the existing config file correspond "
-                                 "to your pipeline.", self)
+            self.critical("Are we here at any time ?")
+            msg = WarningMessage("Please, choose a pipeline first", self)
             msg.exec_()
             return
+
         # this should always work but who knows
         try:
             cfg = snaketools.SequanaConfig(config_file)
@@ -1279,8 +1315,9 @@ content:</li>
         if set(self.config._yaml_code.keys()) == set(config_dict.keys()):
             msg = QW.QMessageBox(
                 QW.QMessageBox.Question, "Question",
-                "A config file already exist in the working directory.\n"
-                "Do you want to import its content ?",
+                "A config file already exist in the working directory.\n" +
+                "%s.\n" % self.working_dir +
+                "Do you want to import its content (if not, it will be replaced)?",
                 QW.QMessageBox.Yes | QW.QMessageBox.No,
                 self, Qt.Dialog | Qt.CustomizeWindowHint)
             # Yes == 16384
@@ -1288,6 +1325,14 @@ content:</li>
                 self.config._yaml_code.update(config_dict)
                 self.create_base_form()
                 self.fill_until_starting() #self.rule_list)
+            else:
+                # if we do not want to import the existing file
+
+                self.create_base_form()
+                self.fill_until_starting() #self.rule_list)
+                self.critical("fixme")
+        else:
+            self.critical("The config file that already exists is different. Nothing done")
         return True
 
 
@@ -1303,6 +1348,7 @@ content:</li>
     # ---------------------------------------------------
 
     def read_settings(self):
+        self.info("Reading settings")
         settings = QtCore.QSettings("sequana_gui", "mainapp")
         if settings.value("tab_position") is not None:
             index = settings.value("tab_position")

@@ -539,8 +539,10 @@ class SequanaConfig(object):
                         self._yaml_code = ruamel.yaml.load(fh.read(),
                                                 ruamel.yaml.RoundTripLoader)
                 else:
-                    raise NotImplementedError(
-                            "JSON not supported, please use a YAML file")
+                    import yaml
+                    with open(data, "r") as fh:
+                        self._yaml_code =  yaml.load(json.dumps(
+                            json.loads(fh.read())))
                 config = load_configfile(data)
             else:
                 raise IOError("input string must be an existing file")
@@ -657,7 +659,11 @@ class SequanaConfig(object):
                     wget(requirement, target + os.sep + output)
 
     def _get_section_comment(self, section):
-        data = self._yaml_code.ca.items[section]
+        try:
+            data = self._yaml_code.ca.items[section]
+        except:
+            #JSON has no comments
+            return "",""
         #data = [x for x in data if x] # drops the None
         # In principle, the full commented section is the second one
         # The second one can be a lengthy commented secttion. It is a list

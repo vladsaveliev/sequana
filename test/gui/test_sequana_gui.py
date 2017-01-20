@@ -191,7 +191,7 @@ def test_progress_bar(qtbot):
     widget.end_run()
 
 
-def _test_user_interface_sequana(qtbot):
+def test_user_interface_sequana(qtbot):
     widget = sequana_gui.SequanaGUI(ipython=False)
     qtbot.addWidget(widget)
     assert widget.form.count() == 0
@@ -213,7 +213,7 @@ def _test_user_interface_sequana(qtbot):
     assert widget.form.count() == 0
 
 
-def _test_others(qtbot, mock):
+def test_others(qtbot, mock):
     widget = sequana_gui.SequanaGUI(ipython=True)
     qtbot.addWidget(widget)
     # level and pipeline attribute
