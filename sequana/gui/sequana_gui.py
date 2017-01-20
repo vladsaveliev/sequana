@@ -721,6 +721,8 @@ This GUI can be used to run either Sequana pipelines (see
             if isinstance(contains, dict) and (
                     rule not in SequanaGUI._not_a_rule):
                 rule_box = Ruleform(rule, contains, count, self._browser_keyword)
+                rule_box.connect_all_option(
+                    lambda: self.ui.run_btn.setEnabled(False))
                 if comments:
                     rule_box.setToolTip(comments)
                 else:
