@@ -16,14 +16,47 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-
 """ Sequana report config contains configuration informations to create HTML
 report with Jinja2.
 """
-
 import os
+import pkg_resources
+import glob
+
+import easydev
 
 
-# Defaults options
-analysis_dir = [os.getcwd()]
-pattern = "*.json"
+# Set logger
+import logging
+logger = logging.getLogger(__name__)
+
+# Get sequana informations
+version = pkg_resources.get_distribution('sequana').version
+script_path = os.path.dirname(os.path.realpath(__file__))
+
+# Default options
+output_dir = os.path.realpath(os.getcwd())
+template = "standard"
+
+def get_entry_name(entry_point):
+    return str(entry_point).split('=')[0].strip()
+
+# Templates available
+template_dict = {get_entry_name(entry_point): entry_point for entry_point
+                 in pkg_resources.iter_entry_points('sequana.report_template')}
+
+# Modules available
+module_dict = {get_entry_name(entry_point): entry_point for entry_point
+                 in pkg_resources.iter_entry_points('sequana.module')}
+
+# Check if templates are found
+if len(template_dict) == 0:
+    print("Error - Sequana report templates are not found", file=sys.stderr)
+    sys.exit(1)
+
+# Find css/js file necessary for the report
+sequana_path = easydev.get_package_location('sequana')
+css_path = os.sep.join([sequana_path, "sequana", "resources", "css"])
+js_path = os.sep.join([sequana_path, "sequana", "resources", "js"])
+css_list = glob.glob(css_path + os.sep + "*css")
+js_list = glob.glob(js_path + os.sep + "*js")
