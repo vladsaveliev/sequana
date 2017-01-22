@@ -30,7 +30,8 @@ def test_settings(qtbot):
     #widget.menuHelp()
     widget.close()
 
-def _test_standalone_sequana(qtbot, tmpdir):
+
+def test_standalone_sequana(qtbot, tmpdir):
     wkdir = TemporaryDirectory()
     inputdir = os.path.realpath(
             sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz")).rsplit(os.sep,1)[0]
@@ -41,18 +42,23 @@ def _test_standalone_sequana(qtbot, tmpdir):
     widget = sequana_gui.SequanaGUI(ipython=False, user_options=args)
     qtbot.addWidget(widget)
     assert widget.mode == "sequana"
-    widget.save_configfile(force=True)
+    widget.force = True
+    widget.save_project()
 
     #widget.show_dag = mock.MagicMock(return_value=True)
     widget.show_dag()
     widget.diag.close()
 
     widget.click_run()
+    count = 0
+    while widget.process.state() and count < 5:
+        time.sleep(0.5)
+        count+=0.5
     widget.click_stop()
     time.sleep(1)
 
 
-def _test_standalone_generic(qtbot, tmpdir, module):
+def test_standalone_generic(qtbot, tmpdir, module):
 
     wkdir = TemporaryDirectory()
     # Standalone for generic case given a wkdir and snakefile (no config)
@@ -61,10 +67,9 @@ def _test_standalone_generic(qtbot, tmpdir, module):
     widget = sequana_gui.SequanaGUI(ipython=False, user_options=args)
     qtbot.addWidget(widget)
     assert widget.mode == "generic"
-    # save_configfile() pop ups a window
 
 
-def _test_standalone_generic_with_config(qtbot, tmpdir, module):
+def test_standalone_generic_with_config(qtbot, tmpdir, module):
     # Standalone for generic case given a wkdir and snakefile (no config)
     wkdir = TemporaryDirectory()
     args = Namespace(wkdir=wkdir.name,
@@ -72,11 +77,10 @@ def _test_standalone_generic_with_config(qtbot, tmpdir, module):
     widget = sequana_gui.SequanaGUI(ipython=False, user_options=args)
     qtbot.addWidget(widget)
     assert widget.mode == "generic"
-    # widget.save_configfile() # ask for confirmation...
     assert widget.generic_factory.is_runnable() == True
 
 
-def _test_standalone_generic_with_noconfig(qtbot):
+def test_standalone_generic_with_noconfig(qtbot):
     """mimics:
 
         sequanix -s path_to_snakefile -w dirname
@@ -92,6 +96,10 @@ def _test_standalone_generic_with_noconfig(qtbot):
     qtbot.addWidget(widget)
     assert widget.mode == "generic"
     assert widget.generic_factory.is_runnable() is True
+
+    widget.force = True
+    widget.save_project()
+
     assert widget.ui.run_btn.isEnabled() == True
     assert widget.ui.dag_btn.isEnabled() == True
     assert widget.ui.stop_btn.isEnabled() == False
@@ -106,7 +114,7 @@ def _test_standalone_generic_with_noconfig(qtbot):
     assert sum([int(x) for x in data]) == 2000000
 
 
-def _test_standalone_generic_with_noconfig_2(qtbot):
+def test_standalone_generic_with_noconfig_2(qtbot):
     """mimics:
 
         sequanix -s path_to_snakefile
@@ -124,8 +132,8 @@ def _test_standalone_generic_with_noconfig_2(qtbot):
     assert widget.ui.run_btn.isEnabled() == False
 
     widget.generic_factory._directory_browser.set_filenames(wkdir.name)
-    widget.generic_factory._copy_snakefile()
-    widget.update_footer()
+    widget.force = True
+    widget.save_project()
 
     # check that it worked:
     widget.snakemake_dialog.ui.snakemake_options_general_forceall_value.setChecked(True)
@@ -136,7 +144,7 @@ def _test_standalone_generic_with_noconfig_2(qtbot):
     data = open(wkdir.name + os.sep + "count.txt").read().split()
 
 
-def _test_open_report(qtbot, tmpdir, module):
+def test_open_report(qtbot, tmpdir, module):
     p = tmpdir.mkdir("sub").join('test.html')
     p.write("hello")
 
@@ -246,6 +254,16 @@ def test_generic_copy_nodir(qtbot):
     qtbot.addWidget(widget)
     widget.generic_factory._copy_configfile()
     widget.generic_factory._copy_snakefile()
+
+
+def test_options():
+    user_options = sequana_gui.Options()
+    options = user_options.parse_args(["--pipeline", "quality_control"])
+
+
+def _test_only(qtbot):
+    from easydev import execute
+    execute("sequanix --no-splash --testing")
 
 
 

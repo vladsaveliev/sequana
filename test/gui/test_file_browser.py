@@ -1,6 +1,5 @@
 import sys
 import os
-import unittest
 
 from sequana.gui.file_browser import FileBrowser, DirectoryDialog
 
