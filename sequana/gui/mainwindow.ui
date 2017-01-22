@@ -127,7 +127,7 @@
               <property name="movable">
                <bool>true</bool>
               </property>
-              <property name="tabBarAutoHide">
+              <property name="tabBarAutoHide" stdset="0">
                <bool>false</bool>
               </property>
               <widget class="QWidget" name="Pipeline">
@@ -163,7 +163,7 @@
                     <property name="toolTip">
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sequana pipelines are automatically fetched from sequana library.&lt;/p&gt;&lt;p&gt;Each pipeline is defined by a pipeline name. Its config file is fetched automatically.&lt;/p&gt;&lt;p&gt;Each pipeline require the user to define the input. It may be one of:&lt;/p&gt;&lt;p&gt;&lt;ul&gt;&lt;li&gt; a directory&lt;/li&gt;&lt;li&gt; a set of FastQ input file&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
-                    <property name="currentText">
+                    <property name="currentText" stdset="0">
                      <string>Select a Sequana pipeline</string>
                     </property>
                     <item>
@@ -344,7 +344,7 @@
             <property name="editable">
              <bool>false</bool>
             </property>
-            <property name="currentText">
+            <property name="currentText" stdset="0">
              <string/>
             </property>
            </widget>
@@ -533,8 +533,8 @@ Once you save the configuration, the dag button should be available.</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>539</width>
-               <height>261</height>
+               <width>96</width>
+               <height>26</height>
               </rect>
              </property>
             </widget>
@@ -599,7 +599,10 @@ Once you save the configuration, the dag button should be available.</string>
            <item>
             <widget class="QPushButton" name="unlock_btn">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove a lock on the working directory.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;This launch snakemake with the following arguments: &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;snakemake -s Snakefile --unlock &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>Unlock the directory where the pipeline is run.
+This launch snakemake with the following arguments: 
+
+snakemake -s Snakefile --unlock </string>
              </property>
              <property name="text">
               <string>&amp;Unlock</string>
@@ -612,13 +615,15 @@ Once you save the configuration, the dag button should be available.</string>
            <item>
             <widget class="QPushButton" name="report_btn">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button opens an HTML page defined in the preferences.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;By default, a custom PyQt5 browser is used but one can specify&lt;/p&gt;&lt;p&gt;firefox or safari in the preferences.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;If the HTML to open is set no an empty string in the preferences, then&lt;/p&gt;&lt;p&gt;a dialog opens to let you select your own file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>This button open an HTML page present in the working directory (if found).
+
+This is essentially for the sequana pipeline (default filename is multi_summary.html but one can change the name in the option/preferences dialog.</string>
              </property>
              <property name="text">
-              <string>Open &amp;Report</string>
+              <string>Open Report</string>
              </property>
              <property name="shortcut">
-              <string>Ctrl+S</string>
+              <string>Shift+W</string>
              </property>
             </widget>
            </item>
@@ -629,9 +634,6 @@ Once you save the configuration, the dag button should be available.</string>
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
-             </property>
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Each time you change a config file, a snakefile, a working directory or one&lt;/p&gt;&lt;p&gt;of the configuration parameter, you must save the current project to be able&lt;/p&gt;&lt;p&gt;to press the Run button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="autoFillBackground">
               <bool>false</bool>
@@ -683,9 +685,6 @@ This is a good way to check your config file .</string>
     &lt;/ul&gt;
 &lt;/p&gt;</string>
         </property>
-        <property name="toolTipDuration">
-         <number>-1</number>
-        </property>
         <property name="styleSheet">
          <string notr="true">border: 2px solid grey;
 margin:2px;
@@ -695,6 +694,9 @@ text-align: center;
         </property>
         <property name="value">
          <number>1</number>
+        </property>
+        <property name="toolTipDuration" stdset="0">
+         <number>-1</number>
         </property>
        </widget>
       </item>
@@ -708,7 +710,7 @@ text-align: center;
      <x>0</x>
      <y>0</y>
      <width>591</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

@@ -31,6 +31,7 @@ class SnakemakeDialog(QW.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
+
         self.ui = Ui_Snakemake()
         self.ui.setupUi(self)
         self._application = "sequana_gui"
@@ -102,7 +103,7 @@ class SnakemakeDialog(QW.QDialog):
             elif isinstance(this, QW.QSpinBox):
                 this.setValue(int(value))
             elif isinstance(this, QW.QCheckBox):
-                if value in ['false']:
+                if value in ['false', False, "False"]:
                     this.setChecked(False)
                 else:
                     this.setChecked(True)
@@ -143,7 +144,10 @@ class SnakemakeDialog(QW.QDialog):
 
 
 class SOptions(object):
+    """
 
+
+    """
     def __init__(self, name, widget):
         self.name = name
         self.widget = widget
