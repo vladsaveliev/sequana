@@ -508,7 +508,7 @@ class SequanaGUI(QMainWindow, Tools):
     def menuHelp(self):
         url = 'sequana.readthedocs.io'
         msg = About()
-        msg.setText("<h1>Sequana GUI help</h1>")
+        msg.setText("<h1>Sequanix (Sequana GUI) help</h1>")
 
         pipelines_text = "<ul>\n"
         url = "http://sequana.readthedocs.io/en/master"
@@ -518,13 +518,15 @@ class SequanaGUI(QMainWindow, Tools):
         pipelines_text += "</ul>"
 
         msg.setInformativeText("""<div>
-This GUI can be used to run either Sequana pipelines (see
-<a href="http://sequana.readthedocs.io">Sequana.readthedocs.io</a> for details) or Snakefiles
-(see <a href="http://snakemake.readthedocs.io">snakemake.readthedocs.io</a>for details)
-
+Sequanix can be used to run Sequana pipelines (see
+<a href="http://sequana.readthedocs.io">Sequana.readthedocs.io</a> for details)
+but also any Snakefile/configuration pairs
+(see <a href="http://snakemake.readthedocs.io">snakemake.readthedocs.io</a>for
+details).
+        <br>
         In both cases, a working directory must be set where the Snakefile
         and possibly a configuration file will be copied.
-
+        <br>
         The generic Snakefile must be executable.
 
         <h2>Sequana pipelines</h2>
@@ -533,7 +535,7 @@ This GUI can be used to run either Sequana pipelines (see
 
         <ol>
         <li> Select a pipeline</li>
-        <li> Select the directory or sample tab</li>
+        <li> Click on the Input tab and select one of this tab:</li>
             <ul>
            <li> directory: select all fastq.gz files</li>
            <li> samples: select a single-end or paired-end file(s)</li>
@@ -542,15 +544,12 @@ This GUI can be used to run either Sequana pipelines (see
         </ol>
 
         <h2> Generic pipelines </h2>
-
-        <ul>
-        <li>The working directory must be set.</li>
-        <li>The Snakefile must be set.</li>
-        <li>Config file may or may not be required depending on the Snakefile
-content:</li>
-        <ul><li>If the config file is provided, the --configfile is used. </li>
-        <li>If configfile keyword is used, the config file should be provided </li>
-        </ul></ul>
+        Similarly, if you have your own Snakefile (and config file)
+        <ol>
+        <li>Select a Snakefile </li>
+        <li>Select a config file (optional)</li>
+        <li> Select the working directory</li>
+        </ol>
 
         <h2> Sequana pipeline dedicated help </help>
              %(pipelines)s

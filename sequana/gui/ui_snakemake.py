@@ -84,7 +84,7 @@ class Ui_Snakemake(object):
         self.tab_general = QtWidgets.QWidget()
         self.tab_general.setObjectName("tab_general")
         self.formLayoutWidget_3 = QtWidgets.QWidget(self.tab_general)
-        self.formLayoutWidget_3.setGeometry(QtCore.QRect(20, 10, 331, 166))
+        self.formLayoutWidget_3.setGeometry(QtCore.QRect(20, 10, 331, 168))
         self.formLayoutWidget_3.setObjectName("formLayoutWidget_3")
         self.layout_general = QtWidgets.QFormLayout(self.formLayoutWidget_3)
         self.layout_general.setContentsMargins(0, 0, 0, 0)
@@ -122,7 +122,7 @@ class Ui_Snakemake(object):
         self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
 
         self.retranslateUi(Snakemake)
-        self.tabs.setCurrentIndex(2)
+        self.tabs.setCurrentIndex(0)
         self.buttonBox.accepted.connect(Snakemake.accept)
         self.buttonBox.rejected.connect(Snakemake.reject)
         QtCore.QMetaObject.connectSlotsByName(Snakemake)
@@ -134,6 +134,7 @@ class Ui_Snakemake(object):
         _translate = QtCore.QCoreApplication.translate
         Snakemake.setWindowTitle(_translate("Snakemake", "Snakemake options"))
         self.tabs.setToolTip(_translate("Snakemake", "Snakemake parameters related to the cluster"))
+        self.snakemake_options_local_cores_label.setToolTip(_translate("Snakemake", "<html><head/><body><p>Number of CPU to use locally.</p></body></html>"))
         self.snakemake_options_local_cores_label.setText(_translate("Snakemake", "cores"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_local), _translate("Snakemake", "&Local"))
         self.snakemake_options_cluster_cluster_label.setToolTip(_translate("Snakemake", "<html><head/><body><p>Execute snakemake rules with the given submit command,</p><p>e.g. qsub. Snakemake compiles jobs into scripts that</p><p>are submitted to the cluster with the given command,</p><p>once all input files for a particular job are present.</p><p>The submit command can be decorated to make it aware</p><p>of certain job properties (input, output, params,</p><p>wildcards, log, threads and dependencies (see the</p><p>argument below)), e.g.: $ snakemake --cluster \'qsub</p><p>-pe threaded {threads}\'.</p><p><br/></p></body></html>"))
