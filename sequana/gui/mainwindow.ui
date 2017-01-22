@@ -59,7 +59,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a Sequana pipeline (left tab) or a generic Snakemake file (right tab).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a Sequana pipeline (left tab) or a generic Snakemake file (right tab).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;Go to Menu-&amp;gt;QuickStart for more details (Ctrl+H key).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="styleSheet">
          <string notr="true">background-color:#aaddcc</string>
@@ -68,7 +68,7 @@
          <enum>QTabWidget::North</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <property name="movable">
          <bool>true</bool>
@@ -104,7 +104,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left tab:&lt;/span&gt; Select one of the pipeline in the combo box. In order to get help about a pipeline, please see the Help menu. &lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle tab:&lt;/span&gt; Select one of this option&lt;/li&gt;&lt;ol style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;&quot;&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Input directory: the directory where fastq.gz files are stored (all sequana pipelines expect fastq.gz as input)&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Input samples:  select one or two files (fastq.gz) in a directory&lt;/li&gt;&lt;/ol&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right tab: &lt;/span&gt;Select working directory where Snakefile/pipeline and config file are copied. Pipeline are also ran in that directory. &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left tab:&lt;/span&gt; Select one of the pipeline in the combo box. In order to get information about a pipeline, please see the Help menu. &lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle tab:&lt;/span&gt; Select one of this option&lt;/li&gt;&lt;ol style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;&quot;&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Input directory: the directory where fastq.gz files are stored (all Sequana pipelines expect fastq.gz as input)&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Input samples: select one or two files (fastq.gz) in a directory&lt;/li&gt;&lt;/ol&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right tab: &lt;/span&gt;Select working directory where Snakefile/pipeline and config files will be copied. Pipelines are also ran in that directory. &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="styleSheet">
                <string notr="true">background-color:#ffeedd</string>
@@ -127,7 +127,7 @@
               <property name="movable">
                <bool>true</bool>
               </property>
-              <property name="tabBarAutoHide" stdset="0">
+              <property name="tabBarAutoHide">
                <bool>false</bool>
               </property>
               <widget class="QWidget" name="Pipeline">
@@ -163,7 +163,7 @@
                     <property name="toolTip">
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sequana pipelines are automatically fetched from sequana library.&lt;/p&gt;&lt;p&gt;Each pipeline is defined by a pipeline name. Its config file is fetched automatically.&lt;/p&gt;&lt;p&gt;Each pipeline require the user to define the input. It may be one of:&lt;/p&gt;&lt;p&gt;&lt;ul&gt;&lt;li&gt; a directory&lt;/li&gt;&lt;li&gt; a set of FastQ input file&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
-                    <property name="currentText" stdset="0">
+                    <property name="currentText">
                      <string>Select a Sequana pipeline</string>
                     </property>
                     <item>
@@ -259,7 +259,7 @@
             <item>
              <widget class="QTabWidget" name="tabs_generic">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left tab:&lt;/span&gt; Select a valid Snakefile. &lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle tab:&lt;/span&gt; Select a config file. This is optional. Note that Snakefile may be using a config file or not. For instance if &amp;lt;i&amp;gt;configfile: &amp;quot;config.yaml&amp;quot;&amp;lt;/i&amp;gt; is found, a config file is expected.&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right tab: &lt;/span&gt;Select working directory where Snakefile/pipeline and config file are copied. Pipeline are also ran in that directory. &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left tab:&lt;/span&gt; Select a valid local Snakefile. &lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle tab:&lt;/span&gt; Select a config file. This is optional. Note that Snakefiles may be using a config file or not. For instance if &lt;i&gt;configfile: &quot;config.yaml&quot;&lt;/i&gt; is found, a config file is expected. Users have to check with the author of the snakefile whether a config file is required or not.&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right tab: &lt;/span&gt;Select working directory where Snakefile and config files will be copied. Pipelines are also ran in that directory. &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="styleSheet">
                <string notr="true">background-color:#ffeedd</string>
@@ -344,7 +344,7 @@
             <property name="editable">
              <bool>false</bool>
             </property>
-            <property name="currentText" stdset="0">
+            <property name="currentText">
              <string/>
             </property>
            </widget>
@@ -429,7 +429,7 @@
          <string notr="true">background-color:#ffffff</string>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="snakemake">
          <property name="sizePolicy">
@@ -458,7 +458,16 @@
           </sizepolicy>
          </property>
          <property name="toolTip">
-          <string>&lt;p&gt;This is an IPython shell included in the GUI. The entire Sequana GUI is accessible as the variable &lt;span style=&quot; font-weight:600;&quot;&gt;gui.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;For instance, you can access to layout or values set in the graphical interface with:&lt;/p&gt;&lt;p&gt;    gui.ui&lt;/p&gt;&lt;p&gt;More generally, this is a pure IPython shell, so you can use e.g. matplotlib/pylab:&lt;/p&gt;&lt;p&gt;  import pylab&lt;br&gt;pylab.plot([1,2,3])&lt;/p&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is an IPython shell included in the GUI. The entire Sequana GUI is accessible as the variable &lt;span style=&quot; font-weight:600;&quot;&gt;gui.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;For instance, you can access to layout or values set in the graphical interface with:&lt;/p&gt;
+&lt;pre&gt;    
+    gui.ui
+&lt;/pre&gt;
+
+&lt;p&gt;More generally, this is a pure IPython shell, so you can use e.g. matplotlib/pylab:&lt;/p&gt;
+&lt;pre&gt;    
+    import pylab
+    pylab.plot([1,2,3])
+&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <attribute name="title">
           <string>&amp;IPython shell</string>
@@ -501,11 +510,11 @@ Color code:
         </widget>
         <widget class="QWidget" name="tab_3">
          <property name="toolTip">
-          <string>This tab contains the configuration files. 
+          <string>This tab contains the configuration file arguments. 
 
-You can edit the file but will need to save to make it effective.
+You can edit the form but will need to press SAVE to make it effective.
 
-Once you save the configuration, the dag button should be available.</string>
+Once saved, the DAG and RUN buttons should be available.</string>
          </property>
          <attribute name="title">
           <string>&amp;Config parameters</string>
@@ -533,8 +542,8 @@ Once you save the configuration, the dag button should be available.</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>96</width>
-               <height>26</height>
+               <width>539</width>
+               <height>261</height>
               </rect>
              </property>
             </widget>
@@ -685,6 +694,9 @@ This is a good way to check your config file .</string>
     &lt;/ul&gt;
 &lt;/p&gt;</string>
         </property>
+        <property name="toolTipDuration">
+         <number>-1</number>
+        </property>
         <property name="styleSheet">
          <string notr="true">border: 2px solid grey;
 margin:2px;
@@ -694,9 +706,6 @@ text-align: center;
         </property>
         <property name="value">
          <number>1</number>
-        </property>
-        <property name="toolTipDuration" stdset="0">
-         <number>-1</number>
         </property>
        </widget>
       </item>
@@ -710,7 +719,7 @@ text-align: center;
      <x>0</x>
      <y>0</y>
      <width>591</width>
-     <height>22</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

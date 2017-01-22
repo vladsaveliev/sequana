@@ -500,7 +500,7 @@ class SequanaGUI(QMainWindow, Tools):
             Authors: Thomas Cokelaer and Dimitri Desvillechabrol, 2016
             """ % {"url": url})
         widget.setWindowTitle("Sequana")
-        widget.setStandardButtons(QW.QMessageBox.Ok)
+        #widget.setStandardButtons(QW.QMessageBox.Ok)
         retval = widget.exec_()
         if retval == QW.QMessageBox.Ok:
             widget.close()
