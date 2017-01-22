@@ -6,6 +6,11 @@ Changelog
 0.1.17 - Jan 2017
 ------------------
 
+:Main NEWS: The GUI was completed and the current pipelines stabilised (RNA-seq,
+quality control, variant calling). The test suite was switched from nosetests to
+pytest, in particular to perform tests more eaasily on the Qt GUI.
+
+
 * BUG Fixes:
 
     - experimental design and adapters API simplified fixing a few bugs in the
@@ -31,6 +36,7 @@ Changelog
 * NEWS:
 
     - add rubicon adapters
+    - add ability to read JSON in SequanaConfig
 
 0.1.16
 -----------
