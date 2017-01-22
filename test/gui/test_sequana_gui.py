@@ -31,7 +31,7 @@ def test_settings(qtbot):
     widget.close()
 
 
-def test_standalone_sequana(qtbot, tmpdir):
+def _test_standalone_sequana(qtbot, tmpdir):
     wkdir = TemporaryDirectory()
     inputdir = os.path.realpath(
             sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz")).rsplit(os.sep,1)[0]
@@ -58,7 +58,7 @@ def test_standalone_sequana(qtbot, tmpdir):
     time.sleep(1)
 
 
-def test_standalone_generic(qtbot, tmpdir, module):
+def _test_standalone_generic(qtbot, tmpdir, module):
 
     wkdir = TemporaryDirectory()
     # Standalone for generic case given a wkdir and snakefile (no config)
@@ -80,7 +80,7 @@ def test_standalone_generic_with_config(qtbot, tmpdir, module):
     assert widget.generic_factory.is_runnable() == True
 
 
-def test_standalone_generic_with_noconfig(qtbot):
+def _test_standalone_generic_with_noconfig(qtbot):
     """mimics:
 
         sequanix -s path_to_snakefile -w dirname
@@ -114,7 +114,7 @@ def test_standalone_generic_with_noconfig(qtbot):
     assert sum([int(x) for x in data]) == 2000000
 
 
-def test_standalone_generic_with_noconfig_2(qtbot):
+def _test_standalone_generic_with_noconfig_2(qtbot):
     """mimics:
 
         sequanix -s path_to_snakefile

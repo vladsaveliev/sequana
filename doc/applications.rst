@@ -7,6 +7,25 @@ Applications (standalone)
 .. contents::
 
 
+.. _sequanix:
+
+Sequanix
+----------
+
+:Overview: a Graphical User Interface (GUI) for Sequana pipelines and any
+    Snakemake-based workflows.
+
+Just type **sequanix** in a shell. 
+
+.. note:: tested under Linux only. However, Mac and Windows users should be 
+   able to use it since it is based on Python and PyQt. Again, we strongly
+   advice to use Anaconda to install all required dependencies
+
+Here is a snapshot.
+
+.. image:: _static/sequanix.png
+
+
 sequana
 ---------
 

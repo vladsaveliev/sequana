@@ -19,8 +19,6 @@ Sequana documentation
     </div>
 
 
-
-
 :Python version: Python 3.5 although some modules are Python2.7 compatible
 :Source: See  `http://github.com/sequana/sequana <https://github.com/sequana/sequana/>`_.
 :Issues: Please fill a report on `github <https://github.com/sequana/sequana/issues>`_
@@ -42,6 +40,7 @@ What is Sequana ?
 #. :ref:`Standalone applications<applications>`:
     #. :ref:`sequana_coverage<standalone_sequana_coverage>` ease the 
        extraction of genomic regions of interest and genome coverage information
+    #. :ref:`Sequanix`, a GUI for Snakemake workflows (hence Sequana pipelines as well)
 
 Currently, the available pipelines cover quality control (e.g. adapters removal,
 phix removal, trimming of bad quality bases), variant calling, characterisation
@@ -49,12 +48,11 @@ of the genome coverage, taxonomic classification, de-novo assembly. See the :ref
 section for more information.
 
 **Sequana** can be used by developers to create new pipelines and by users in the
-form of applications ready for production.
-
+form of applications ready for production. A GUI will help users to change
+parameters and run the pipelines easily.
 
 To join the project, please let us know on `github
 <https://github.com/sequana/sequana/issues/306>`_.
-
 
 
 .. Here we are building the carrousel
@@ -75,12 +73,16 @@ To join the project, please let us know on `github
       _images/sphx_glr_plot_kraken_001.png
    :target: auto_examples/plot_kraken.html
 
+.. |sequanix| image::
+      _static/sequanix.png
+   :target: applications.html#sequanix
+
 
 .. raw:: html
 
-    <div class="body">
+   <div class="body">
    <div id="index-grid" class="section group">
-    <div class="col span_1_of_3">
+   <div class="col span_1_of_3">
         <h3><a href="installation.html">Installation</a></h3>
         <p>Using conda or docker</p>
         <h3><a href="auto_examples/index.html">Examples</a></h3>
@@ -98,6 +100,7 @@ To join the project, please let us know on `github
 * |fastqc|
 * |kraken|
 * |bam|
+* |sequanix|
 
 .. raw:: html
 
@@ -111,12 +114,6 @@ To join the project, please let us know on `github
         </div>
    </div>
    <div style="clear: left"></div>
-
-
-
-
-
-
 
 
 
