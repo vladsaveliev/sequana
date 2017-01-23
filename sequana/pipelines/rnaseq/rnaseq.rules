@@ -91,7 +91,6 @@ include: sm.modules["fastq_screen"]
 expected_output.extend(expand(__fastq_screen__output, sample=manager.samples))
 if manager.config.fastq_screen.pf2_report:
     __fastq_screen_report__input = __fastq_screen__output
-    __fastq_screen_report__input_dir = __fastq_screen__outdir
     __fastq_screen_report__figure = manager.getname("fastq_screen", "_report.svg")
     __fastq_screen_report__logs =  manager.getname("fastq_screen", "pf2_report.logs")
     include: sm.modules["fastq_screen_report"]

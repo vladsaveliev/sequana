@@ -49,6 +49,7 @@ star_mapping:
     do: yes
     ## if index is already computed
     prefix_index: /pasteur/projets/specific/PF2_ngs/protected/starGenomes/cryptNeo
+    ref: /pasteur/projets/specific/PF2_ngs/protected/starGenomes/cryptNeo.fa
     options: ""
     threads: 4
     ram: 30
@@ -117,7 +118,7 @@ adapter_removal:
 ##################################################################
 
 multiqc:
-    excluded: "-x *_init_* -x *left_kept_reads* -x *report_rnaseq*"
+    excluded: "-x *_init_* -x *left_kept_reads* -x *report_rnaseq* -e htseq -e slamdunk"
     output-directory: "multiqc"
 
 
