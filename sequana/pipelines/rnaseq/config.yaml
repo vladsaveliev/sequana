@@ -27,7 +27,14 @@ requirements:
     - phiX174.fa
     - Institut_Pasteur.png
 
-# =========================================== Sections related to external tools
+
+#################################################################
+# FastQC section
+#
+# :Parameters:
+#
+# - options: string with any valid FastQC options
+#
 fastqc:
     options: "--nogroup"
 
@@ -44,6 +51,23 @@ genome:
   dir: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
   version: hg19
   do: yes
+
+#############################################################################
+# bowtie1_mapping_rna used to align reads against ribosomal RNA
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - prefix_index: the name of the reference file to be found
+# - options: any options recognised by bowtie1 tool
+# - threads: number of threads to be used
+#
+bowtie1_mapping_rna:
+    do: yes
+    prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie_genomes/cryptNeo_rRNA
+    options: ""
+    threads: 4
+
 
 star_mapping:
     do: yes
@@ -74,12 +98,6 @@ bowtie2_mapping:
     threads: 4
 
 
-bowtie1_mapping_rna:
-    do: yes
-    prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie_genomes/cryptNeo_rRNA
-    options: ""
-    threads: 4
-
 # example of options: "-t exon -g gene_id" for gtf file
 feature_counts:
     gff: /pasteur/projets/specific/PF2_ngs/protected/annotation/gff_data/cryptNeo.gff
@@ -91,14 +109,38 @@ fastq_screen:
     conf: "/pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/fastq_screen.conf"
     pf2_report: yes
 
-#################################################################
+#######################################################################
 # Quality trimming and adapter removal
-#   - quality: 0 means no trimming, 30 means keep base with quality 
-#       above 30
-#   - m: 20 means discard trimmed reads that are shorter than 20.
-#   - tool: only cutadapt supported for now
+#
+# If a design_file is provided the forward and reverse complement adapters
+# are automatically extracted from this file (given the sample name contained
+# in the filenames). In such case, the fwd and rev fields are ignored.
+#
+# If there is no design_file, the fwd and rev fields are used. It can be a
+# string, or a filename. If a filename, it must be prefixed with "file:" to
+# specify that it is a file and not a string. If the tool is cutadapt, the empty
+# fwd and rev fields means that no adapters are to be used.
+#
+# :Parameters:
+#
+# - adapter_type: can only be PCRFree or Nextera or Rubicon. Only used
+#       if design_file is provided.
+# - design_file: a valid CSV file with mapping of index and sample name
+# - fwd: a string or file (prefixed with *file:*)
+# - m: 20 means discard trimmed reads that are shorter than 20.
+#         must be >0 and <40
+# - quality: 0 means no trimming, 30 means keep base with quality
+#        above 30
+# - mode: must be set to one of
+#     - g for 5'
+#     - a for 3'
+#     - b for both 5'/3'
+# - rev: a string or file (prefixed with *file:*)
+# - tool: only cutadapt supported for now
+#
+# :Note: If design_file is provided, fwd and rev are ignored
+#
 #   ref: http://cutadapt.readthedocs.io/
-#################################################################
 adapter_removal:
     do: yes
     tool: cutadapt

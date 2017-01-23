@@ -59,7 +59,7 @@ rule fastq_screen_report:
         pl.bar(ind, tuple(mhml), color="#FF6347", bottom=tuple(ohol+mhol+ohml), label="repeat")
         #p5 = bar(25, nohit, color="#6699FF")
 
-        pl.title("%s" % file.replace("_screen.txt","").split("/")[-1])
+        pl.title("%s" % input[0].replace("_screen.txt","").split("/")[-1])
         pl.ylabel("%")
         pl.ylim((0,105))
         pl.xticks(ind+0.4, species, rotation="vertical")
