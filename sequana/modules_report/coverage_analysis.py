@@ -26,24 +26,24 @@ class SequanaModule(object):
     """ Write HTML report of coverage analysis. This class takes either a
     :class:`GenomeCov` instances or a csv file where analysis are stored.
     """
-    def __init__(self):
+    def __init__(self, data):
         """
         :param input: 
         """
         try:
-            self.bed = bedtools.GenomeCov(config.input_file)
+            self.bed = bedtools.GenomeCov(data)
         except FileNotFoundError:
             msg = ("The csv file is not present. Please, check if your"
                    " file is present.")
             raise FileNotFoundError(msg)
         except TypeError:
-            self.bed = config.input_file
-        #try:
-        self.create_reports()
-        #except:
-        #    msg = ("Input must be either a csv file or a :class:`GenomeCov` "
-        #           "instance.")
-        #    raise TypeError(msg)
+            self.bed = data
+        try:
+            self.create_reports()
+        except:
+            msg = ("Data must be either a csv file or a :class:`GenomeCov` "
+                   "instance.")
+            raise TypeError(msg)
 
     def create_reports(self):
         """ Create HTML report for each chromosome present in data.
@@ -62,7 +62,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         super().__init__()
         self.chromosome = chromosome
         self.create_report_content()
-        self.create_html()
+        self.create_html("coverage.html")
 
     def create_report_content(self):
         """ Generate the sections list to fill the HTML report.
