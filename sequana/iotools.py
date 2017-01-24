@@ -24,10 +24,16 @@ __all__ = ["YamlDocParser"]
 
 
 class YamlDocParser(object):
-    """A simple parser to extract block content in YAML files
+    """A simple parser to extract block content to be found in YAML files
 
+    So as to create tooltips automatically in :ref:`sequanix`, one can comment
+    YAML configuration file with block comments (see developers guide in
+    :ref:`developers` )
 
-    ::
+    Once read and parsed, all block comments before top-level sections are to 
+    be found in the dictionary :attr:`sections`.
+
+    .. doctest::
 
         from sequana import snaketools
         from sequana.iotools import YamlDocParser
@@ -35,10 +41,12 @@ class YamlDocParser(object):
         r = YamlDocParser(module.config)
         r.sections['fastqc']
 
-
     """
     def __init__(self, filename):
-        """
+        """.. rubric:: constructor
+
+        :param str filename: the YAML file to parse
+
         ::
 
             # main documentation
@@ -47,7 +55,7 @@ class YamlDocParser(object):
             section1:
                 - item
 
-            # blcok comment
+            # block comment
             section2:
 
             # a comment
