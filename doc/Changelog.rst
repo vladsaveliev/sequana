@@ -7,8 +7,8 @@ Changelog
 ------------------
 
 :Main NEWS: The GUI was completed and the current pipelines stabilised (RNA-seq,
-quality control, variant calling). The test suite was switched from nosetests to
-pytest, in particular to perform tests more eaasily on the Qt GUI.
+    quality control, variant calling). The test suite was switched from nosetests to
+    pytest, in particular to perform tests more eaasily on the Qt GUI.
 
 
 * BUG Fixes:
