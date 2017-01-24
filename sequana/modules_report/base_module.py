@@ -62,12 +62,13 @@ class SequanaBaseModule(object):
                 shutil.copy(filename, target)
 
 
-    def create_html(self):
+    def create_html(self, output_filename):
         """ Create html with Jinja2.
         """
         report_output = self.j_template.render(config=config,
                                                module=self)
-        with open(config.output_html, "w") as fp:
+        with open(os.sep.join([config.output_dir,output_filename]),
+                  "w") as fp:
             print(report_output, file=fp)
 
     def create_link(self, name, target):
