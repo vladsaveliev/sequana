@@ -63,7 +63,7 @@ setup(
     # mock is for the test only
     # entrypoints was not installed nor on travis neither on a clsuter and 
     # was required most probably by pyquickhelper via bleach package
-    install_requires = ["easydev>=0.9.30", "reports>=0.2.0", "matplotlib",
+    install_requires = ["easydev>=0.9.31", "reports>=0.3.0", "matplotlib",
         "pyVCF",
         "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14", "biokit>=0.3.4",
         "pysam", "docutils", "sphinx-gallery", "mock", "numpydoc", "pillow",
