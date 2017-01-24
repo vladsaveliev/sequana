@@ -16,6 +16,20 @@ rule gz_to_bz2:
     output: "{dataset}.bz2"
     threads: config['compressor']['threads']
     run:
-        shell("unpigz {input} -p {threads}")
-        output = output[0].replace(".bz2", "")
-        shell("pbzip2 %s -p{threads}" % output)
+        #shell("unpigz {input} -p {threads}")
+        #output = output[0].replace(".bz2", "")
+        #shell("pbzip2 %s -p{threads}" % output)
+
+        cmd = "pigz -p{threads} --test {input}" 
+        shell(cmd)
+
+        cmd = "pigz -d -c -p {threads} {input} | pbzip2 -p{threads} > {output}"
+        shell(cmd)
+
+        cmd = "pbzip2 {output} -p{threads} --test"
+        shell(cmd)
+
+        # once done and integraty is checked, we removed the input file
+        cmd = "rm -f {input}"
+        shell(cmd)
+

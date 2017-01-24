@@ -9,11 +9,31 @@ rule bz2_to_gz:
     :return: fastq.gz files
     :third-party executables: pbunzip2 and pigz
 
+
+    .. versionchanged:: 0.17
+        use a pipe instead of two commands to reduce IO
+        also, we test the integrity of the files before and after.
+        This may take more time but gaurantees that we can erase the input file
+        
+
     """
     input: "{dataset}.bz2"
     output: "{dataset}.gz"
     threads: config['compressor']['threads']
     run:
-        output = output[0].replace(".gz", "")
-        shell("pbunzip2 {input} -p{threads}")
-        shell("pigz %s -p {threads}" % (output))
+        cmd = "pbunzip2 {input} -p{threads} --test" 
+        shell(cmd)
+
+        # Here is the real transformation
+        cmd = "pbunzip2 {input} -p{threads} --stdout | pigz -p {threads}  > {output}"
+        shell(cmd)
+
+        # Now, we check the integrity of the output file just generated
+        # -d means decompress. Even tough it is not performed, this is required
+        cmd = "pigz -p {threads} --test {output}" 
+        shell(cmd)
+
+        # IF and ONLY IF this is correct, we can now delete the input file
+        cmd = "rm -f {input}"
+        shell(cmd)
+
