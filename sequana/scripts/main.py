@@ -75,7 +75,7 @@ class Tools(object):
         onweb(link)
     def mkdir(self, name):
         self.dv.mkdir(name)
-    def print(self, txt, force=False):
+    def info(self, txt, force=False):
         if self.verbose or force: print(txt)
 
 
@@ -617,7 +617,7 @@ def sequana_init(options):
             sys.exit(0)
 
     # Copying snakefile
-    sa.print("Copying snakefile")
+    sa.info("Copying snakefile")
     sa.mkdir(options.target_dir)
     shutil.copy(module.snakefile, options.target_dir + os.sep +
                 options.pipeline + ".rules")
@@ -646,12 +646,12 @@ def sequana_init(options):
     and relevant files (depends on the pipeline).
     """
 
-    sa.print("Creating README")
+    sa.info("Creating README")
     with open(options.target_dir + os.sep + "README", "w") as fh:
         fh.write(txt.replace("\x1b[35m","").replace("\x1b[39;49;00m", ""))
 
     # Creating Config file
-    sa.print("Creating the config file")
+    sa.info("Creating the config file")
 
     # Create (if needed) and update the config file
     config_filename = options.target_dir + os.sep + "config.yaml"
