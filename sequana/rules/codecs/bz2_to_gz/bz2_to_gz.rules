@@ -1,39 +1,43 @@
 rule bz2_to_gz:
-    """Convert fastq.bz2 files to fastq.gz files
+    """**Convert fastq.bz2 files to fastq.gz files**
 
-    Description:
-        First, uncompress the fastq.bz2 file into a fastq
-        Second, compress the fastq into a GZ file 
+    Here are the steps followed by the rule. Any failure stops the
+    process and the original file is untouched. If all succeed, the
+    input is deleted.
 
-    :param input: fastq.bz2 files
-    :return: fastq.gz files
+        #. the input BZ2 file is checked for integrity.
+        #. the input BZ2 file is decompressed with **pbunzip2** and redirected
+           a pipe to **pigz** executable into a GZ output.
+        #. the output is checked for integrity with **pigz**.
+        #. the input BZ2 file is deleted.
+
+    :param input: {dataset}.bz2
+    :param output: {dataset}.gz 
     :third-party executables: pbunzip2 and pigz
 
+    configuration requirements::
 
-    .. versionchanged:: 0.17
-        use a pipe instead of two commands to reduce IO
-        also, we test the integrity of the files before and after.
-        This may take more time but gaurantees that we can erase the input file
-        
+        compressor:
+            - threads
 
     """
     input: "{dataset}.bz2"
     output: "{dataset}.gz"
     threads: config['compressor']['threads']
     run:
+        # check integrity input
         cmd = "pbunzip2 {input} -p{threads} --test" 
         shell(cmd)
 
-        # Here is the real transformation
+        # conversion
         cmd = "pbunzip2 {input} -p{threads} --stdout | pigz -p {threads}  > {output}"
         shell(cmd)
 
-        # Now, we check the integrity of the output file just generated
-        # -d means decompress. Even tough it is not performed, this is required
+        # integrity output
         cmd = "pigz -p {threads} --test {output}" 
         shell(cmd)
 
-        # IF and ONLY IF this is correct, we can now delete the input file
+        # remove original file
         cmd = "rm -f {input}"
         shell(cmd)
 
