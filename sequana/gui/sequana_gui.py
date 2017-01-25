@@ -93,7 +93,7 @@ class BaseFactory(Tools):
             save_msg.setDefaultButton(QW.QMessageBox.Yes)
             # Yes == 16384
             # Save == 2048
-            retval = save_msg.exec()
+            retval = save_msg.exec_()
             if retval in [16384, 2048]:
                 self.warning("Overwritting %s" % target)
                 super(BaseFactory, self).copy(source, target)
