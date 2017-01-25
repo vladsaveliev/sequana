@@ -197,14 +197,13 @@ if config["RNAseQC"]["do"]:
     __reorderSam__input = __mark_duplicates__output
     __reorderSam__logs = manager.getname("reorderSam", ".logs")
     __reorderSam__output = manager.getname("reorderSam", "reorder.bam")
-
+    include: sm.modules["reorderSam"]
     __RNAseQC__input_bam = expand(__reorderSam__output)
     __RNAseQC__logs = "RNAseQC/RNAseQC.log"
     __RNAseQC__output = "RNAseQC"
     __RNAseQC__conf = "RNAseQC/sample_index.txt"
     __RNAseQC__figure =  "RNAseQC/Transcript-associated_Reads_metrics.svg"
-    include: sm.module["reorderSam"]
-    include: sm.module["RNAseQC"]
+    include: sm.modules["RNAseQC"]
     expected_output.extend(__RNAseQC__figure)
 
 # !!!!!!!!!!!!!!!!!!! Reset expected_output variable after multiqc
