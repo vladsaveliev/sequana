@@ -8,7 +8,7 @@ Changelog
 
 :Main NEWS: The GUI was completed and the current pipelines stabilised (RNA-seq,
     quality control, variant calling). The test suite was switched from nosetests to
-    pytest, in particular to perform tests more eaasily on the Qt GUI.
+    pytest, in particular to perform tests more eaasily on the Qt GUI. 
 
 
 * BUG Fixes:
@@ -24,6 +24,8 @@ Changelog
 
 * CHANGES:
 
+    - sequana_compressor: for conversion from e.g gz to bz2, use a pipe instead
+        of double IO. Updated docs and tests ready for production.
     - sequana standalone: 
       - --pattern changed to --input-pattern
       - --output-directory changed to --working-directory

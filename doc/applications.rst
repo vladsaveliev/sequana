@@ -67,7 +67,7 @@ sequana_coverage
 
 :Description: Show coverage and interval of confidence to identify under and
     over represented genomic regions.
-:Help: please use sequana_coverage --help
+:Help: please use sequana_coverage ``--help``
 :Docker: ::
     
         git pull sequana/sequana_coverage 
