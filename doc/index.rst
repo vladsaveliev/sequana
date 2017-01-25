@@ -26,7 +26,9 @@ Sequana documentation
     flexible genomic pipelines for processing and reporting NGS analysis [v1; no peer reviewed].
     `F1000Research 2016, 5:1767 <http://f1000research.com/posters/5-1767>`_ (poster) (doi:
     10.7490/f1000research.1112656.1)
-
+    
+    For the coverage tool (sequana_coverage):  Dimitri Desvillechabrol, Christiane Bouchier, 
+    Sean Kennedy, Thomas Cokelaer http://biorxiv.org/content/early/2016/12/08/092478
 
 What is Sequana ?
 =====================

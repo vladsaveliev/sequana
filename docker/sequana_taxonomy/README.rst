@@ -1,8 +1,9 @@
-**sequana_coverage** docker
+**sequana_taxonomy** docker
 ===============================
 
+IN PROGRESS
 
-This docker creates a single entry point for the sequana_coverage **standalone**. It is a simple layer on top of the **sequana** image, which makes available the **sequana_coverage** standalone only. For the full library, please see the main docker image.
+This docker creates a single entry point for the sequana_coverage **standalone**. It is a simple layer on top of the **sequana** image, which makes available the **sequana_taxonomy** standalone only. For the full library, please see the main docker image.
 
 #. Make sure you are logged in hub.docker.com::
 
@@ -10,11 +11,11 @@ This docker creates a single entry point for the sequana_coverage **standalone**
 
 #. Get the docker image and rename it::
 
-    docker pull sequana/sequana_coverage
+    docker pull sequana/sequana_taxonomy
 
 #. Assuming you have a bed file named test.bed, type::
 
-    docker run --user 1000 -v $(pwd):/home/sequana/data -w /home/sequana/data -it sequana/sequana_coverage --input test.bed
+    docker run --user 1000 -v $(pwd):/home/sequana/data -w /home/sequana/data -it sequana/sequana_coverage --file1 test.fastq.gz
 
 and browse the report in ./report
 
@@ -28,7 +29,7 @@ For developers
 Build the image::
 
     git clone https://github.com/sequana/sequana
-    cd sequana/docker/sequana/sequana_coverage
+    cd sequana/docker/sequana/sequana_taxonomy
     sh build.sh
 
 Push it on hub.docker.com::
