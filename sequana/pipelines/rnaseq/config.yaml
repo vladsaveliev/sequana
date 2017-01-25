@@ -68,7 +68,17 @@ bowtie1_mapping_rna:
     options: ""
     threads: 4
 
-
+#############################################################################
+# star_mapping used to align reads against genome file
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - prefix_index: the name of the reference file to be found
+# - ref: path to the reference genome file in fasta format
+# - options: any options recognised by rna-star tool
+# - threads: number of threads to be used
+#
 star_mapping:
     do: yes
     ## if index is already computed
@@ -76,20 +86,51 @@ star_mapping:
     ref: /pasteur/projets/specific/PF2_ngs/protected/starGenomes/cryptNeo.fa
     options: ""
     threads: 4
-    ram: 30
 
+
+#############################################################################
+# tophat_mapping used to align reads against genome file (with bowtie1 mapper)
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - prefix_index: the name of the reference file to be found
+# - options: any options recognised by tophat2 tool
+# - threads: number of threads to be used
+#
 tophat_mapping:
     do: no
     prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie_genomes/cryptNeo
     options: "--no-coverage-search "
     threads: 4
 
+
+#############################################################################
+# bowtie1_mapping_ref used to align reads against genome file
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - prefix_index: the name of the reference file to be found
+# - options: any options recognised by bowtie1 tool
+# - threads: number of threads to be used
+#
 bowtie1_mapping_ref:
     do: no
     prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie_genomes/cryptNeo
     options: "--chunkmbs 400 -a --best -q -e50 "
     threads: 4
 
+#############################################################################
+# bowtie2_mapping used to align reads against genome file
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - prefix_index: the name of the reference file to be found
+# - options: any options recognised by bowtie2 tool
+# - threads: number of threads to be used
+#
 bowtie2_mapping:
     do: no
     prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/cryptNeo
@@ -97,14 +138,29 @@ bowtie2_mapping:
     options: ""
     threads: 4
 
-
-# example of options: "-t exon -g gene_id" for gtf file
+#############################################################################
+# feature_counts used to count reads against features
+#
+# :Parameters:
+#
+# - gff: the name of the annotation file to be found (must be gff or gtf format)
+# - options: any options recognised by feature_counts tool
+# - threads: number of threads to be used
+#
 feature_counts:
     gff: /pasteur/projets/specific/PF2_ngs/protected/annotation/gff_data/cryptNeo.gff
     #options: "-t exon -g gene_id"
     options: "-t gene -g ID"
     threads: 2
 
+#############################################################################
+# fastq_screen used to align reads against genomes file contain in conf file with bowtie2
+#
+# :Parameters:
+#
+# - conr: the name of the configuration file
+# - pf2_report: allows to plot a specific PF2 report
+#
 fastq_screen:
     conf: "/pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/fastq_screen.conf"
     pf2_report: yes
