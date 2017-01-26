@@ -80,7 +80,7 @@ def test_standalone_generic_with_config(qtbot, tmpdir, module):
     assert widget.generic_factory.is_runnable() == True
 
 
-def test_standalone_generic_with_noconfig(qtbot):
+def _test_standalone_generic_with_noconfig(qtbot):
     """mimics:
 
         sequanix -s path_to_snakefile -w dirname
@@ -114,7 +114,7 @@ def test_standalone_generic_with_noconfig(qtbot):
     assert sum([int(x) for x in data]) == 2000000
 
 
-def test_standalone_generic_with_noconfig_2(qtbot):
+def _test_standalone_generic_with_noconfig_2(qtbot):
     """mimics:
 
         sequanix -s path_to_snakefile
