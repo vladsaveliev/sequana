@@ -1,24 +1,20 @@
-"""
 
-Author: Thomas Cokelaer
-Affiliation: Institut Pasteur
-Summary: a rule to create the DAG image from the Snakemake
-Data:
-Run: snakemake -s Snakefile
-Changelog:
-
-"""
 
 
 rule dag:
     """DAG
 
-    :param filename: input dot file to be parsed
+     Required input:
+         - __dag__input: the snakefile filename
 
+     Required output:
+         - __dag_output: the output SVG filename
+
+    Note1: currenty, a config.yaml is expected to be found in the directory.
+    Note2: this is exactly the same as the rulegraph rule
     """
     input:
-        filename = __dag__input,
-#        config = __dag__input_configfile
+        filename = __dag__input
     output:
         dot  = temp("dag.dot"),
         dot2 = temp("dag.ann.dot"),
@@ -60,4 +56,3 @@ rule dag:
         # Now, create the SVG. Somehow if called dag.svg, this is a conflict
         # hence the || true 
         shell("dot -Tsvg {output.dot2} -o {output.svg} || true")
-
