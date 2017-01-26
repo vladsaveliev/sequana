@@ -18,8 +18,8 @@
 ##############################################################################
 """Statistical tools"""
 
-import numpy as np
-import pandas as pd
+from sequana.lazy import numpy as np
+from sequana.lazy import pandas as pd
 
 
 __all__ = ["moving_average", "evenness"] 

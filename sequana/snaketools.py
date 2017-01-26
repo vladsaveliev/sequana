@@ -48,7 +48,6 @@ from easydev import load_configfile, AttrDict
 import ruamel.yaml
 from ruamel.yaml import comments
 
-
 from sequana.misc import wget
 from sequana import sequana_data
 from sequana.errors import SequanaException
@@ -104,10 +103,10 @@ class SnakeMakeStats(object):
 
     def plot(self, fontsize=16):
         """Create the barplot from the stats file"""
-        import pylab
-        from pandas import DataFrame
+        from sequana.lazy import pylab
+        from sequana.lazy import pandas as pd
         pylab.clf()
-        df = DataFrame(self._parse_data()['rules'])
+        df = pd.DataFrame(self._parse_data()['rules'])
         ts = df.ix['mean-runtime']
         ts['total'] = self._parse_data()['total_runtime'] / float(self.N)
         ts.sort_values(inplace=True)
@@ -486,7 +485,6 @@ modules = _get_modules_snakefiles()
 
 #: list of pipeline names found in the list of modules
 pipeline_names = [m for m in modules if Module(m).is_pipeline()]
-
 
 class SequanaConfig(object):
     """Reads YAML config file and ease access to its contents

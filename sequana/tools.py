@@ -22,13 +22,14 @@ import string
 import glob
 import json
 import re
-
-import pandas as pd
-import numpy as np
-from pysam import FastxFile
 from collections import Counter
 
+from sequana.lazy import pandas as pd
+from sequana.lazy import numpy as np
 from sequana import BAM
+
+from pysam import FastxFile
+
 from easydev import precision
 from reports import HTMLTable
 

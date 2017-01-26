@@ -21,7 +21,7 @@ import os
 from easydev import DevTools
 from easydev import execute, TempFile
 
-import pandas as pd
+from sequana.lazy import pandas as pd
 
 from sequana.misc import wget
 from sequana import sequana_config_path

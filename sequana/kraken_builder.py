@@ -25,7 +25,8 @@ import glob
 
 from sequana.databases import ENADownload
 from easydev import execute, TempFile, Progress, md5, DevTools
-import pandas as pd
+
+from sequana.lazy import pandas as pd
 
 
 __all__ = ["KrakenBuilder"]
