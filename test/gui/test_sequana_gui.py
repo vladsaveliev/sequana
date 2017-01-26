@@ -58,7 +58,7 @@ def _test_standalone_sequana(qtbot, tmpdir):
     time.sleep(1)
 
 
-def test_standalone_generic(qtbot, tmpdir, module):
+def _test_standalone_generic(qtbot, tmpdir, module):
 
     wkdir = TemporaryDirectory()
     # Standalone for generic case given a wkdir and snakefile (no config)
@@ -69,7 +69,7 @@ def test_standalone_generic(qtbot, tmpdir, module):
     assert widget.mode == "generic"
 
 
-def test_standalone_generic_with_config(qtbot, tmpdir, module):
+def _test_standalone_generic_with_config(qtbot, tmpdir, module):
     # Standalone for generic case given a wkdir and snakefile (no config)
     wkdir = TemporaryDirectory()
     args = Namespace(wkdir=wkdir.name,
