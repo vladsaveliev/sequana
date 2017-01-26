@@ -22,9 +22,8 @@ import os
 from sequana.reporting.report_main import BaseReport
 
 # a utility from external reports package
-from reports import HTMLTable
-
-import pandas as pd
+from sequana.lazy import reports
+from sequana.lazy import pandas as pd
 
 
 class FastQCReport(BaseReport):
@@ -72,7 +71,7 @@ class FastQCReport(BaseReport):
         formatter = '<a target="_blank" alt={1} href="{0}.html">{1}</a>'
         df["names"] = [formatter.format(link, name) for link,name in zip(names, names)]
 
-        h = HTMLTable(df)
+        h = reports.HTMLTable(df)
         html = h.to_html(index=True)
         self.jinja['list_fastqc'] = html
 

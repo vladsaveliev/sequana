@@ -195,7 +195,7 @@ onsuccess:
         shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
         shell('cp -r %s/cutadapt/ %s' % (proj, report_dir))
 
-        from sequana import SequanaSummary
+        from sequana.reporting.report_summary import SequanaSummary
         summary = SequanaSummary(proj, directory=report_dir,
             output_filename="summary.html",
             snakefile=__snakefile__, configfile=report_dir+"/config.yaml",

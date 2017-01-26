@@ -27,7 +27,7 @@ Here is an overview (see details here below)
     sequana.snaketools.FastQFactory
     sequana.snaketools.FileFactory
     sequana.snaketools.Module
-    sequana.snaketools.ModuleFinder
+    sequana.snaketools.ModuleFinderSingleton
     sequana.snaketools.PipelineManager
     sequana.snaketools.SnakeMakeStats
     sequana.snaketools.SequanaConfig
@@ -53,6 +53,7 @@ from sequana import sequana_data
 from sequana.errors import SequanaException
 
 from sequana import logger
+from easydev.profiler import do_profile
 
 __all__ = ["DOTParser", "FastQFactory", "FileFactory",
            "Module", "PipelineManager", "SnakeMakeStats",
@@ -137,7 +138,7 @@ def plot_stats(inputdir=".", outputdir=".",
         logger.error("Could not process %s/stats.txt file" % inputdir)
 
 
-class ModuleFinder(object):
+class ModuleFinderSingleton(object):
     """Data structure to hold the :class:`Module` names"""
     def __init__(self):
         """.. rubric:: constructor
@@ -146,8 +147,8 @@ class ModuleFinder(object):
 
         .. doctest::
 
-            >>> from sequana import ModuleFinder
-            >>> modnames = ModuleFinder()
+            >>> from sequana import ModuleFinderSingleton
+            >>> modnames = ModuleFinderSingleton()
             >>> modnames.isvalid('dag')
             True
             >>> modnames.isvalid('dummy')
@@ -178,7 +179,7 @@ class ModuleFinder(object):
     def _iglob(self, path, extension="rules"):
         try:
             from glob import iglob
-            matches = list(iglob("%s/**/*.%s" % (path, extension),
+            matches = tuple(iglob("%s/**/*.%s" % (path, extension),
                                  recursive=True))
         except:
             # iglob use recursivity with ** only in py3.5 (snakemake)
@@ -202,6 +203,8 @@ class ModuleFinder(object):
 
     def is_pipeline(self, name):
         return self._type[name] == "pipeline"
+
+moduleFinder = ModuleFinderSingleton()
 
 
 class Module(object):
@@ -284,8 +287,9 @@ class Module(object):
         :param str name: the name of an available module.
 
         """
-        self._mf = ModuleFinder()
+        self._mf = moduleFinder
         self._mf.isvalid(name)
+
         if name not in self._mf.names:
             raise ValueError("""Sequana error: unknown rule or pipeline. Check
 the source code at:
@@ -299,6 +303,7 @@ or open a Python shell and type::
     sequana.modules.keys()""")
         else:
             self._path = self._mf._paths[name]
+
         self._name = name
 
         # could look into ./rules or ./pipelines
@@ -472,10 +477,12 @@ or open a Python shell and type::
             onweb("http://github.com/sequana/sequana/tree/"
                   "master/sequana/pipelines/%s" % self.name)
 
+
 def _get_modules_snakefiles():
     modules = {}
-    for name in ModuleFinder().names:
-        filename = Module(name).snakefile
+    for name in moduleFinder.names:
+        module = Module(name)
+        filename = module.snakefile
         if filename:
             modules[name] = filename
     return modules

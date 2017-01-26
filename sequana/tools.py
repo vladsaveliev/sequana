@@ -29,9 +29,8 @@ from sequana.lazy import numpy as np
 from sequana import BAM
 
 from pysam import FastxFile
-
 from easydev import precision
-from reports import HTMLTable
+from sequana.lazy import reports
 
 
 __all__ = ['StatsBAM2Mapped', 'bam_to_mapped_unmapped_fastq']
@@ -49,7 +48,6 @@ class DataContainer(dict):
 
     def to_html(self):
         pass
-
 
 try:
     _translate = string.maketrans('ACGTacgt', 'TGCAtgca')
@@ -92,7 +90,7 @@ class StatsBAM2Mapped(DataContainer):
         df.index = ['mapped', 'unmapped']
 
         if with_stats:
-            h = HTMLTable(df)
+            h = reports.HTMLTable(df)
             html += h.to_html(index=True)
 
         html += "Unpaired: %s <br>" % data['unpaired']

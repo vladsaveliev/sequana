@@ -21,9 +21,9 @@
 """
 import os
 
-import pandas as pd
+from sequana.lazy import pandas as pd
 
-from reports import HTMLTable
+from sequana.lazy import reports
 from sequana.reporting.report_main import BaseReport
 from sequana.reporting.report_submapping import SubMappingReport
 
@@ -101,7 +101,7 @@ class ChromosomeMappingReport(BaseReport):
         #df.set_index("name", inplace=True)
         #df.index.name = "Metric"
         df = df[['name', 'Value', 'Description']]
-        self.jinja["nc_stats"] = HTMLTable(df).to_html(index=False, header=True)
+        self.jinja["nc_stats"] = reports.HTMLTable(df).to_html(index=False, header=True)
 
         # Coverage plot
         if self.verbose:
@@ -198,5 +198,5 @@ class ChromosomeMappingReport(BaseReport):
 
         # Sub mapping with javascript
         df = self._generate_submapping(high_roi, low_roi)
-        html = HTMLTable(df)
+        html = reports.HTMLTable(df)
         self.jinja['list_submapping'] = html.to_html(index=False) 

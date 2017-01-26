@@ -23,6 +23,7 @@ import subprocess
 import sys
 import glob
 
+
 from sequana.databases import ENADownload
 from easydev import execute, TempFile, Progress, md5, DevTools
 

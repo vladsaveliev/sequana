@@ -27,9 +27,9 @@ from sequana.snaketools import FastQFactory
 from sequana import tools
 
 from easydev import DevTools
-from reports import HTMLTable
+from sequana.lazy import reports
 
-import pandas as pd
+from sequana.lazy import pandas as pd
 
 
 __all__ = ['SequanaSummary']
@@ -171,7 +171,7 @@ class SequanaSummary(BaseReport):
         if self.config.config["adapter_removal"]['do']:
             df = pd.read_json(self.directory + "/cutadapt/cutadapt_stats1.json")
             self.jinja["cutadapt_stats1_json"] = df.to_json()
-            h = HTMLTable(df)
+            h = reports.HTMLTable(df)
             html = h.to_html(index=True)
             self.jinja['cutadapt_stats1'] = html
 

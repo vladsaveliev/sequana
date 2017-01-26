@@ -13,6 +13,20 @@ Changelog
         - dag: now the snakemake is called inside a temporary directory to avoid
           clash with the current snakemake process. This avoid error message. 
           Fixes https://github.com/sequana/sequana/issues/331
+    - __init__ was optimized as well as many modules to make use of the lazy
+      import mechanism. The reporting package is not part of the exposed module. 
+      So::
+
+         from sequana import BAMReport
+       
+      is now::
+
+         from sequana.reporting.report_bam import BAMReport
+
+* NEWS:
+
+    - add lazy import mechanism to speed up the time to import sequana, which 
+      speeds up the --help in the standalone 
 
 
 0.1.17/0.1.18 - Jan 2017
