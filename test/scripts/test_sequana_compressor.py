@@ -59,7 +59,6 @@ def test_compressor_args(mocker):
             assert True
 
 
-
 def test_compressor_bad_extension():
     try:
         compressor.main([prog, "--source", "fastq.txt", "--target", "fastq.txt"])

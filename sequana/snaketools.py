@@ -57,7 +57,7 @@ from easydev.profiler import do_profile
 
 __all__ = ["DOTParser", "FastQFactory", "FileFactory",
            "Module", "PipelineManager", "SnakeMakeStats",
-           "SequanaConfig"]
+           "SequanaConfig", "modules"]
 
 try:
     # This is for python2.7
