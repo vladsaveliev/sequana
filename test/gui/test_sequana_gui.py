@@ -22,7 +22,7 @@ def module():
     return Module("quality_control")
 
 
-def test_settings(qtbot):
+def _test_settings(qtbot):
     widget = sequana_gui.SequanaGUI(ipython=False)
     qtbot.addWidget(widget)
     widget.read_settings()
@@ -144,7 +144,7 @@ def _test_standalone_generic_with_noconfig_2(qtbot):
     data = open(wkdir.name + os.sep + "count.txt").read().split()
 
 
-def test_open_report(qtbot, tmpdir, module):
+def _test_open_report(qtbot, tmpdir, module):
     p = tmpdir.mkdir("sub").join('test.html')
     p.write("hello")
 
@@ -189,7 +189,7 @@ def test_open_report(qtbot, tmpdir, module):
     #assert widget.browser.isVisible()
 
 
-def test_progress_bar(qtbot):
+def _test_progress_bar(qtbot):
     widget = sequana_gui.SequanaGUI(ipython=False)
     qtbot.addWidget(widget)
     widget.click_run() # defines the regex
@@ -199,7 +199,7 @@ def test_progress_bar(qtbot):
     widget.end_run()
 
 
-def test_user_interface_sequana(qtbot):
+def _test_user_interface_sequana(qtbot):
     widget = sequana_gui.SequanaGUI(ipython=False)
     qtbot.addWidget(widget)
     assert widget.form.count() == 0
@@ -221,7 +221,7 @@ def test_user_interface_sequana(qtbot):
     assert widget.form.count() == 0
 
 
-def test_others(qtbot, mock):
+def _test_others(qtbot, mock):
     widget = sequana_gui.SequanaGUI(ipython=True)
     qtbot.addWidget(widget)
     # level and pipeline attribute
@@ -245,7 +245,7 @@ def test_others(qtbot, mock):
     widget.menuHelp()
 
 
-def test_generic_copy_nodir(qtbot):
+def _test_generic_copy_nodir(qtbot):
     # _copy does not work if directory not set
     snakefile = sequana_data("test_gui_generic_snakefile_noconfig.rules")
     configfile = sequana_data("test_gui_generic_config.yaml")
@@ -256,7 +256,7 @@ def test_generic_copy_nodir(qtbot):
     widget.generic_factory._copy_snakefile()
 
 
-def test_options():
+def _test_options():
     user_options = sequana_gui.Options()
     options = user_options.parse_args(["--pipeline", "quality_control"])
 
