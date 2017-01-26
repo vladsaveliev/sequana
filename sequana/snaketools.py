@@ -475,9 +475,12 @@ or open a Python shell and type::
 
 def _get_modules_snakefiles():
     modules = {}
+    print(1)
     for name in ModuleFinder().names:
-        if Module(name).snakefile:
-            modules[name] = Module(name).snakefile
+        filename = Module(name).snakefile
+        if filename:
+            modules[name] = filename
+    print(1)
     return modules
 
 #: dictionary with module names as keys and fullpath to the Snakefile as values
