@@ -119,8 +119,11 @@ def main(args=None):
 
     user_options = Options(prog="sequana")
 
+    if args is None:
+        args = sys.argv
+
     # If --help or no options provided, show the help
-    if args is None or len(args) == 1:
+    if len(args) == 1:
         user_options.parse_args(["prog", "--help"])
     else:
        options = user_options.parse_args(args[1:])
