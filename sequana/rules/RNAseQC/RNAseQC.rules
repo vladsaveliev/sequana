@@ -19,9 +19,9 @@ rule RNAseQC:
         from re import split
 
         #create the sample index
-        data = [(split(r'[ATCG]*\_.*',file)[0], file, 'NA') for file in {input}]
+        data = [(split(r'[ATCG]*\_.*',file)[0], file, 'NA') for file in input]
         df = pd.DataFrame(data, columns=['Sample ID','Bam File','Notes'])
-        df.to_csv({output.sample_index}, sep="\t",index=False)
+        df.to_csv(output.sample_index, sep="\t",index=False)
 
         #run RNAseQC
         shell("RNA-SeQC -o {output.dir}  -r {params.genome}  -s {output.sample_index} -t {params.gtf}  -BWArRNA {params.rRNA}  2> {log}")
@@ -39,7 +39,7 @@ rule RNAseQC:
         pl.legend(('rRNA rate', 'Exonic Rate', 'Intronic Rate', 'Intergenic Rate'), loc='lower center',
                    bbox_to_anchor=(0.5, +1.00), fancybox=True, shadow=True, ncol=4)
         pl.tight_layout()
-        pl.savefig("{output.png}")
+        pl.savefig(output.png)
 
 
 
