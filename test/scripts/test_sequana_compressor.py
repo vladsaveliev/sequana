@@ -10,12 +10,17 @@ from unittest.mock import MagicMock, patch
 
 prog = "sequana_compressor"
 
-def test_compressor_args():
+def test_compressor_args(mocker):
 
     argparse_mock = MagicMock()
     with patch('argparse.ArgumentParser._print_message', argparse_mock):
         try:
             compressor.main(["sequana_compressor", '--version'])
+            assert False
+        except SystemExit:
+            assert True
+        try:
+            compressor.main(["sequana_compressor"])
             assert False
         except SystemExit:
             assert True
@@ -35,6 +40,24 @@ def test_compressor_args():
         pass
     else:
         raise Exception
+
+    try:
+        compressor.main([prog, "--jobs", "25"])
+        assert False
+    except ValueError:
+        assert True
+
+
+    class Node():
+        node = "tars-submit"
+    return Node()
+    with patch('platform.uname', Node()):
+        try:
+            compressor.main([prog, "--source", "fastq.gz", "--target", "fastq.bz2"])
+            assert False
+        except ValueError:
+            assert True
+
 
 
 def test_compressor_bad_extension():
