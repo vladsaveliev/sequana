@@ -472,15 +472,12 @@ or open a Python shell and type::
             onweb("http://github.com/sequana/sequana/tree/"
                   "master/sequana/pipelines/%s" % self.name)
 
-
 def _get_modules_snakefiles():
     modules = {}
-    print(1)
     for name in ModuleFinder().names:
         filename = Module(name).snakefile
         if filename:
             modules[name] = filename
-    print(1)
     return modules
 
 #: dictionary with module names as keys and fullpath to the Snakefile as values
