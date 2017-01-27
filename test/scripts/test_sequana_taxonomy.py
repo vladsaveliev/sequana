@@ -34,14 +34,14 @@ if "TRAVIS_PYTHON_VERSION" not in os.environ:
         from sequana import logger
         logger.info(directory.name)
 
-def test_help():
-    try:
-        taxonomy.main([prog, '--help', '1>/tmp/out', '2>/tmp/err'])
-        assert False
-    except SystemExit:
-        pass
-    else:
-        raise Exception
+    def test_help():
+        try:
+            taxonomy.main([prog, '--help', '1>/tmp/out', '2>/tmp/err'])
+            assert False
+        except SystemExit:
+            pass
+        else:
+            raise Exception
 
 def _test_wrong_db():
     try:
