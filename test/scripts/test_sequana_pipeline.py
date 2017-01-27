@@ -51,7 +51,7 @@ def test_help():
     else:
         raise Exception
 
-def test_info():
+def _test_info():
     main.main([prog, '--info', "quality"])
 
 def test_show_pipelines():
