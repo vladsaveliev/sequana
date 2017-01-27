@@ -28,7 +28,7 @@ else:
         run_kraken_taxon()
 
 
-def test_kraken_results():
+def _test_kraken_results():
     test_file = sequana_data("test_kraken.out", "testing")
     k = KrakenResults(test_file, verbose=False)
     df = k.plot(kind='pie')
