@@ -6,7 +6,7 @@ prog = "sequana_taxonomy"
 
 import os
 
-if "TRAVIS_" not in os.environ:
+if "TRAVIS_PYTHON_VERSION" not in os.environ:
     @pytest.fixture
     def krakendb():
         # todo
