@@ -1071,7 +1071,7 @@ details).
                 save_msg.setDefaultButton(QW.QMessageBox.Yes)
                 # Yes == 16384
                 # Save == 2048
-                retval = save_msg.exec()
+                retval = save_msg.exec_()
                 if retval in [16384, 2048]:
                     self.info("Saving config file (exist already)")
                     cfg.save(yaml_path, cleanup=False)

@@ -45,7 +45,7 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
     extra_packages = []
 else:
-    extra_packages = ["pyquickhelper"]
+    extra_packages = ["entrypoints", "pyquickhelper"]
 
 
 setup(
@@ -75,7 +75,7 @@ setup(
         "pyVCF", "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14",
         "biokit>=0.3.4", "pysam", "docutils", "sphinx-gallery", "mock",
         "numpydoc", "pillow", "blist", "sphinx", "ruamel.yaml>=0.13.2",
-        "colorlog", "entrypoints"] + extra_packages,
+        "colorlog"] + extra_packages,
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
