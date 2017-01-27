@@ -1,12 +1,13 @@
-""" 
+"""
 Source: nitime release 0.7 available on github with a BSD license
+Changes: comments
 
 This module provides lazy import functionality to improve the import
-performance of nitime. For example, some parts of nitime leverage and import
-matplotlib, which is quite a big package, yet most of the nitime code does not
+performance of sequana. For example, some parts of sequana leverage and import
+matplotlib, which is quite a big package, yet most of the sequana code does not
 depend on matplotlib. By lazily-loading a module, we defer the overhead of
 importing it until the first time it is actually used, thereby speeding up
-nitime imports.
+sequana imports.
 
 A generic :class:`LazyImport` class is implemented which takes the module name
 as a parameter, and acts as a proxy for that module, importing it only when
@@ -15,21 +16,17 @@ the module is used, but effectively acting as the module in every other way
 with the *exception* of reload() - reloading a :class:`LazyImport` raises an
 :class:`ImportError`.
 
-Commonly used nitime lazy imports are also defined in :mod:`nitime.lazy`, so
-they can be reused throughout nitime.
+Commonly used sequana lazy imports are also defined in :mod:`sequana.lazy`, so
+they can be reused throughout sequana.
 """
 import sys
 import types
 
-# This flag only has affect on this module's import, and if it is set to True,
-# LazyImports are performed immediately. Note: this flag is currently here
-# only for debugging purposes and must be set directly in the source code,
-# since nitime.lazy imports this module, and nitime.lazy is used throughout
-# nitime, importing nitime will import this module.
 disable_lazy_imports = False
 
 if 'sphinx' in sys.modules:
     disable_lazy_imports = True
+
 
 class LazyImport(types.ModuleType):
     """
@@ -81,7 +78,7 @@ class LazyImport(types.ModuleType):
 if disable_lazy_imports:
     lazy_doc = """:class:`LazyImports` have been globally disabled.
     Please modify ``disable_lazy_imports`` boolean variable in
-    :mod:`nitime.lazyimports` in order to leverage lazy loading of modules.
+    :mod:`sequana.lazyimports` in order to leverage lazy loading of modules.
     """
     if 'sphinx' in sys.modules:
         lazy_doc = """
