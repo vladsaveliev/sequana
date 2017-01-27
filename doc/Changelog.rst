@@ -9,6 +9,8 @@ Changelog
 
 * CHANGES:
 
+    - compressor: limits max number of jobs to 20 (can be bypass manually),
+      prevent run on TARS if snakemake-cluster not provided. 
     - rules:
         - dag: now the snakemake is called inside a temporary directory to avoid
           clash with the current snakemake process. This avoid error message. 
@@ -18,7 +20,7 @@ Changelog
       So::
 
          from sequana import BAMReport
-       
+
       is now::
 
          from sequana.reporting.report_bam import BAMReport
