@@ -40,6 +40,14 @@ packages = find_packages()
 packages = [this for this in packages if this.startswith('test.') is False]
 packages = [this for this in packages if this not in ['test']]
 
+
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+if on_rtd:
+    extra_packages = []
+else:
+    extra_packages = ["pyquickhelper"]
+
+
 setup(
     name             = "sequana",
     version          = version,
@@ -61,14 +69,13 @@ setup(
 
     # pillow, sphinx-gallery and numpydoc are  for the doc only
     # mock is for the test only
-    # entrypoints was not installed nor on travis neither on a clsuter and 
+    # entrypoints was not installed nor on travis neither on a clsuter and
     # was required most probably by pyquickhelper via bleach package
     install_requires = ["easydev>=0.9.31", "reports>=0.3.0", "matplotlib",
-        "pyVCF",
-        "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14", "biokit>=0.3.4",
-        "pysam", "docutils", "sphinx-gallery", "mock", "numpydoc", "pillow",
-        "blist", "sphinx", "ruamel.yaml>=0.13.2", "colorlog", "entrypoints", 
-        "pyquickhelper"],
+        "pyVCF", "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14",
+        "biokit>=0.3.4", "pysam", "docutils", "sphinx-gallery", "mock",
+        "numpydoc", "pillow", "blist", "sphinx", "ruamel.yaml>=0.13.2",
+        "colorlog", "entrypoints"] + extra_packages,
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
@@ -77,7 +84,7 @@ setup(
     # This is recursive include of data files
     exclude_package_data = {"": ["__pycache__"]},
     package_data = {
-        '': ['Snakefile*', '*html', 'README.rst', 'config*.yaml', '*.css', "*.js", 
+        '': ['Snakefile*', '*html', 'README.rst', 'config*.yaml', '*.css', "*.js",
                 "snpEff.config*", "*.fa", "*.rules"],
         'sequana.rules' : ['*/*.rules', "*/*/*.rules"],
         'sequana.pipelines' : ['*/*.rules', "*/*/*.rules", "*/*yaml"],
@@ -90,7 +97,7 @@ setup(
 
     # thise files do not need to be added in MANIFEST.in since there are python
     # packages that will be copied from sequana/ into sequana/
-    # Note, however, that e.g. ./pipelines must be added 
+    # Note, however, that e.g. ./pipelines must be added
 
     zip_safe=False,
     entry_points = {
