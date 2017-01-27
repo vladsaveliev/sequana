@@ -13,7 +13,7 @@ dependencies:
 - kraken
 - pillow
 - pip:
-  - pyquickhelper
+  - pyquickhelper==1.4.2  
   - matplotlib
   - easydev>=0.9.30
   - bioservices
