@@ -2,7 +2,6 @@ from sequana import snaketools, sequana_data
 from sequana.snaketools import DOTParser
 import os, shutil
 import tempfile
-from nose.plugins.attrib import attr
 from sequana import Module, SequanaConfig
 
 
@@ -56,8 +55,7 @@ def test_module():
     m.name
 
 
-@attr("onweb")
-def test_module_onweb():
+def _test_module_onweb():
     m = snaketools.Module('quality_control')
     m.onweb()
 

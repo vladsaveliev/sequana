@@ -1,7 +1,6 @@
 from sequana import fastq, sequana_data, FastQ
 from easydev import TempFile
 import os
-from nose.plugins.attrib import attr
 from numpy import mean
 
 datagz = sequana_data("test.fastq.gz", "testing")

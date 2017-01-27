@@ -1,7 +1,6 @@
 from sequana import KronaMerger 
 from sequana import sequana_data
 from easydev import TempFile, execute
-from nose.plugins.attrib import attr
 
 def test_krona_merger():
 
