@@ -47,7 +47,7 @@ install:
 
 # # command to run tests, e.g. python setup.py test
 script:
-  - pytest -v --durations=10  test/ --cov=sequana --cov-report term-missing --timeout 60
+  - pytest -v --durations=10  test/ --cov=sequana --cov-report term --timeout 300
 
 after_success:
   coveralls

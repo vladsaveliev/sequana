@@ -1,6 +1,5 @@
 from sequana.scripts import main
 from sequana import sequana_data
-import os
 
 
 prog = "sequana"
