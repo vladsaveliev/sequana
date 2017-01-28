@@ -1,20 +1,21 @@
 from sequana.scripts import taxonomy
 from sequana import sequana_data
+import os
 import pytest
 
 prog = "sequana_taxonomy"
 
-import os
 
-if "TRAVIS_PYTHON_VERSION" not in os.environ:
-    @pytest.fixture
-    def krakendb():
-        # todo
-        try:
-            taxonomy.main(["taxonomy", '--download', 'toydb'])
-        except SystemExit:
-            pass
+@pytest.fixture
+def krakendb():
+    # todo
+    try:
+        taxonomy.main(["taxonomy", '--download', 'toydb'])
+    except SystemExit:
+        pass
 
+#if "TRAVIS_PYTHON_VERSION" not in os.environ:
+if 1 == 1:
 
     def test_analysis(krakendb):
         file1 = sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz")
@@ -34,16 +35,16 @@ if "TRAVIS_PYTHON_VERSION" not in os.environ:
         from sequana import logger
         logger.info(directory.name)
 
-    def test_help():
-        try:
-            taxonomy.main([prog, '--help', '1>/tmp/out', '2>/tmp/err'])
-            assert False
-        except SystemExit:
-            pass
-        else:
-            raise Exception
+def test_help():
+    try:
+        taxonomy.main([prog, '--help', '1>/tmp/out', '2>/tmp/err'])
+        assert False
+    except SystemExit:
+        pass
+    else:
+        raise Exception
 
-def _test_wrong_db():
+def test_wrong_db():
     try:
         df = taxonomy.main([prog, "--database", "dummy"])
         assert False
