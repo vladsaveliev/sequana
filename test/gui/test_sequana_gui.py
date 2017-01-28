@@ -31,7 +31,7 @@ def test_settings(qtbot):
     widget.close()
 
 
-def test_standalone_sequana(qtbot, tmpdir):
+def _test_standalone_sequana(qtbot, tmpdir):
     wkdir = TemporaryDirectory()
     inputdir = os.path.realpath(
             sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz")).rsplit(os.sep,1)[0]
