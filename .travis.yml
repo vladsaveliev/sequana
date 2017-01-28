@@ -27,10 +27,8 @@ before_install:
 install:
   - echo $TRAVIS_PYTHON_VERSION
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pyqt numpy matplotlib pandas
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION nose coverage numexpr xlrd
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION cython pillow pyVCF
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION sphinx pyyaml
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION qtconsole
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION nose coverage numexpr xlrd pyyaml
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION cython pillow pyVCF sphinx qtconsole
   - conda install kraken cutadapt pysam snpEff krona bleach --yes
   # use pip to get latest version
   - pip install easydev>=0.9.31 --upgrade
@@ -49,7 +47,7 @@ install:
 
 # # command to run tests, e.g. python setup.py test
 script:
-  - pytest -v --durations=10  test/ --cov=sequana --cov-report term-missing --timeout 60 
+  - pytest -v --durations=10  test/ --cov=sequana --cov-report term-missing --timeout 20 
 
 after_success:
   coveralls
