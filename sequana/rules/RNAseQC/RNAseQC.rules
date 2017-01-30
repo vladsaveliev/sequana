@@ -27,7 +27,7 @@ rule RNAseQC:
         shell("RNA-SeQC -o {output.dir}  -r {params.genome}  -s {output.sample_index} -t {params.gtf}  -BWArRNA {params.rRNA}  2> {log}")
 
         if os.path.isfile(os.path.join(output.dir,'metrics.tsv')):
-            df = pd.DataFrame.from_csv(os.path.join(dir_in,'metrics.tsv'), header = 0, sep="\t")
+            df = pd.DataFrame.from_csv(os.path.join(output.dir,'metrics.tsv'), header = 0, sep="\t")
             #plot results
             if sum(df['rRNA rate']) == 0 :
                 frames = [df['rRNA rate'] ,df['Exonic Rate'], df['Intronic Rate'], df['Intergenic Rate']]
