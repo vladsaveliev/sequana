@@ -198,7 +198,7 @@ if config["RNAseQC"]["do"]:
     __reorderSam__logs = manager.getname("reorderSam", ".logs")
     __reorderSam__output = manager.getname("reorderSam", "_reorder.bam")
     include: sm.modules["reorderSam"]
-    __RNAseQC__input_bam = expand(__reorderSam__output, sample=manager.samples)
+    __RNAseQC__input_bam = expand(__mark_duplicates__output, sample=manager.samples)
     __RNAseQC__logs = "RNAseQC/RNAseQC.log"
     __RNAseQC__output = "RNAseQC"
     __RNAseQC__conf = "RNAseQC/sample_index.txt"

@@ -10,7 +10,8 @@ rule RNAseQC:
     params:
         genome = config['RNAseQC']['ref'],
         gtf = config['RNAseQC']['gtf'],
-        rRNA = config['RNAseQC']['BWArRNA']
+        rRNA = config['RNAseQC']['BWArRNA'],
+        kwargs = config['RNAseQC']['options']
 
     run:
         import pandas as pd
@@ -24,7 +25,7 @@ rule RNAseQC:
         df.to_csv(output.sample_index, sep="\t",index=False)
 
         #run RNAseQC
-        shell("RNA-SeQC -o {output.dir}  -r {params.genome}  -s {output.sample_index} -t {params.gtf}  -BWArRNA {params.rRNA}  2> {log}")
+        shell("RNA-SeQC -o {output.dir}  -r {params.genome}  -s {output.sample_index} -t {params.gtf}  -BWArRNA {params.rRNA} {params.kwargs} 2> {log}")
 
         if os.path.isfile(os.path.join(output.dir,'metrics.tsv')):
             df = pd.DataFrame.from_csv(os.path.join(output.dir,'metrics.tsv'), header = 0, sep="\t")

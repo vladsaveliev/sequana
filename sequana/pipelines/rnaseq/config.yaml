@@ -243,3 +243,4 @@ RNAseQC:
      ref: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
      gtf: /pasteur/projets/specific/PF2_ngs/protected/annotation/gtf/hg19.gtf
      BWArRNA: /pasteur/projets/specific/PF2_ngs/protected/Genomes/human_rRNA/human_all_rRNA.fasta
+     options: ""
