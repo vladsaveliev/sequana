@@ -39,8 +39,9 @@ rule RNAseQC:
         ##légender correctement
         res.plot(kind='bar', stacked=True)
         pl.ylim([0,1])
-        pl.legend(('rRNA rate', 'Exonic Rate', 'Intronic Rate', 'Intergenic Rate'), loc='lower center',
-                   bbox_to_anchor=(0.5, +1.00), fancybox=True, shadow=True, ncol=4)
+        #pl.legend(('rRNA rate', 'Exonic Rate', 'Intronic Rate', 'Intergenic Rate'), loc='lower center',
+        #           bbox_to_anchor=(0.5, +1.00), fancybox=True, shadow=True, ncol=4)
+        pl.legend(('rRNA rate', 'Exonic Rate', 'Intronic Rate', 'Intergenic Rate'), loc='best')
         pl.tight_layout()
         pl.savefig(output.png)
 
