@@ -272,7 +272,8 @@ class FileBrowserOption(GeneralOption):
         self.browser.set_enable(switch_bool)
 
     def connect(self, task):
-        self.browser.changed_connect(task)
+        self.browser.clicked_connect(task)
+
 
 
 class SVGDialog(QW.QDialog):

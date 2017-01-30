@@ -18,6 +18,48 @@ files that contain only 1500 reads. Copy them in a local directory.
 Quality pipeline
 ---------------------
 
+**Sequana** comes with standalone applications and pipelines in the form of
+Snakefile (`snakemake <https://bitbucket.org/snakemake/snakemake/wiki/Home>`_)
+
+The following example will show how to initialise and run the quality control
+pipeline
+on a pair of FastQ files.
+The data comes from a sequencing (using HiSeq technology) of a
+Measles virus. For testing purposes, you can download :download:`R1
+<../sequana/resources/data/Hm2_GTGAAA_L005_R1_001.fastq.gz>` and
+:download:`R2 <../sequana/resources/data/Hm2_GTGAAA_L005_R2_001.fastq.gz>`)
+files that contain only 1500 reads. Copy them in a local directory.
+
+First, run the sequana standalone application to initialise the pipeline
+**quality_control**::
+
+    sequana --pipeline quality_control --output-directory TEST --adapters
+PCRFree
+
+This command downloads the required configuration file(s) in particular
+the config file and the pipeline itself. This example should work out of
+the box but you may want to look at the
+configuration file **config.yaml**. For instance, you may want to change the
+reference to the *phix* (by default we use *phix174.fa*, which is provided in
+Sequana) or
+change the adapter_removal section to your needs (cutadapt parameters, in
+particular the forward and reverse complement list of adapters; None by
+default).
+
+By default, the output directory is called **analysis** and ca be overwritten
+with the ``--output-directory`` parameter. Then, run the pipeline and wait for
+completion.::
+
+    cd TEST
+    snakemake -s quality_control.rules --stats stats.txt -p -j 4 --forceall
+
+The -p option shows the commands, -j 4 means use 4 threads when possible.
+Alternatively, there is also a **runme.sh** script.
+
+You should now have a directory with a HTML report correspinding to the sample::
+
+    open Hm2_GTGAAA_L005/report_qc_Hm2_GTGAAA_L005/summary.html
+
 
 See :ref:`quick_start`
 

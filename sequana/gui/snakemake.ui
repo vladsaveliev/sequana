@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>418</width>
-    <height>404</height>
+    <width>426</width>
+    <height>484</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -37,7 +37,7 @@
         <string>Snakemake parameters related to the cluster</string>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tab_local">
         <attribute name="title">
@@ -53,34 +53,19 @@
           </rect>
          </property>
          <layout class="QVBoxLayout" name="vertical_layout">
-          <property name="leftMargin">
-           <number>5</number>
-          </property>
-          <property name="topMargin">
-           <number>5</number>
-          </property>
-          <property name="rightMargin">
-           <number>5</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>5</number>
           </property>
           <item>
            <layout class="QHBoxLayout" name="horizontal_layout">
-            <property name="leftMargin">
-             <number>5</number>
-            </property>
-            <property name="topMargin">
-             <number>5</number>
-            </property>
-            <property name="rightMargin">
-             <number>5</number>
-            </property>
-            <property name="bottomMargin">
+            <property name="margin">
              <number>5</number>
             </property>
             <item>
              <widget class="QLabel" name="snakemake_options_local_cores_label">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of CPU to use locally.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>cores</string>
               </property>
@@ -128,16 +113,7 @@
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
-          <property name="leftMargin">
-           <number>5</number>
-          </property>
-          <property name="topMargin">
-           <number>5</number>
-          </property>
-          <property name="rightMargin">
-           <number>5</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>5</number>
           </property>
           <item>
@@ -207,7 +183,7 @@
            <x>20</x>
            <y>10</y>
            <width>331</width>
-           <height>161</height>
+           <height>168</height>
           </rect>
          </property>
          <layout class="QFormLayout" name="layout_general">
@@ -245,7 +221,7 @@ already created output.
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="7" column="1">
            <spacer name="verticalSpacer_3">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -258,16 +234,36 @@ already created output.
             </property>
            </spacer>
           </item>
-          <item row="4" column="1">
-           <widget class="QLineEdit" name="lineEdit"/>
+          <item row="6" column="1">
+           <widget class="QLineEdit" name="snakemake_options_general_custom"/>
           </item>
-          <item row="4" column="0">
+          <item row="6" column="0">
            <widget class="QLabel" name="label">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add any other valid snakemake options here&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>any other options</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QCheckBox" name="snakemake_options_general_verbose_value">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt; Print debugging output.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>verbose</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QCheckBox" name="snakemake_options_general_summary_value">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Print a summary of all files created by the workflow.&lt;/p&gt;&lt;p&gt;The has the following columns: filename, modification time, rule version, status, plan. Thereby rule version contains the versionthe file was created with (see the version keyword of rules), and status denotes whether the file is missing, its input files are newer or if version or implementation of the rule changed since file creation. Finally the last column denotes whether the file will be updated or created during the next workflow execution.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>summary</string>
             </property>
            </widget>
           </item>

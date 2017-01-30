@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Sequanix (Sequana GUI)</string>
   </property>
   <property name="tabShape">
    <enum>QTabWidget::Rounded</enum>
@@ -59,7 +59,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a Sequana pipeline (left tab) or a generic Snakemake file (right tab).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a Sequana pipeline (left tab) or a generic Snakemake file (right tab).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;Go to Menu-&amp;gt;QuickStart for more details (Ctrl+H key).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="styleSheet">
          <string notr="true">background-color:#aaddcc</string>
@@ -68,7 +68,7 @@
          <enum>QTabWidget::North</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <property name="movable">
          <bool>true</bool>
@@ -104,7 +104,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left tab:&lt;/span&gt; Select one of the pipeline in the combo box. In order to get help about a pipeline, please see the Help menu. &lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle tab:&lt;/span&gt; Select one of this option&lt;/li&gt;&lt;ol style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;&quot;&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Input directory: the directory where fastq.gz files are stored (all sequana pipelines expect fastq.gz as input)&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Input samples:  select one or two files (fastq.gz) in a directory&lt;/li&gt;&lt;/ol&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right tab: &lt;/span&gt;Select working directory where Snakefile/pipeline and config file are copied. Pipeline are also ran in that directory. &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left tab:&lt;/span&gt; Select one of the pipeline in the combo box. In order to get information about a pipeline, please see the Help menu. &lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle tab:&lt;/span&gt; Select one of this option&lt;/li&gt;&lt;ol style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;&quot;&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Input directory: the directory where fastq.gz files are stored (all Sequana pipelines expect fastq.gz as input)&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Input samples: select one or two files (fastq.gz) in a directory&lt;/li&gt;&lt;/ol&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right tab: &lt;/span&gt;Select working directory where Snakefile/pipeline and config files will be copied. Pipelines are also ran in that directory. &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="styleSheet">
                <string notr="true">background-color:#ffeedd</string>
@@ -259,7 +259,7 @@
             <item>
              <widget class="QTabWidget" name="tabs_generic">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left tab:&lt;/span&gt; Select a valid Snakefile. &lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle tab:&lt;/span&gt; Select a config file. This is optional. Note that Snakefile may be using a config file or not. For instance if &amp;lt;i&amp;gt;configfile: &amp;quot;config.yaml&amp;quot;&amp;lt;/i&amp;gt; is found, a config file is expected.&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right tab: &lt;/span&gt;Select working directory where Snakefile/pipeline and config file are copied. Pipeline are also ran in that directory. &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left tab:&lt;/span&gt; Select a valid local Snakefile. &lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle tab:&lt;/span&gt; Select a config file. This is optional. Note that Snakefiles may be using a config file or not. For instance if &lt;i&gt;configfile: &quot;config.yaml&quot;&lt;/i&gt; is found, a config file is expected. Users have to check with the author of the snakefile whether a config file is required or not.&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right tab: &lt;/span&gt;Select working directory where Snakefile and config files will be copied. Pipelines are also ran in that directory. &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="styleSheet">
                <string notr="true">background-color:#ffeedd</string>
@@ -322,78 +322,93 @@
         <property name="title">
          <string>Pipeline control</string>
         </property>
-        <widget class="QWidget" name="formLayoutWidget">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>20</y>
-           <width>141</width>
-           <height>62</height>
-          </rect>
-         </property>
-         <layout class="QFormLayout" name="formLayout">
-          <item row="1" column="0">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Until</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="until_box">
-            <property name="editable">
-             <bool>false</bool>
-            </property>
-            <property name="currentText">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Starting</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="starting_box"/>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="horizontalLayoutWidget_3">
-         <property name="geometry">
-          <rect>
-           <x>180</x>
-           <y>20</y>
-           <width>214</width>
-           <height>61</height>
-          </rect>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Local or cluster run ?</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="comboBox_local">
-            <item>
-             <property name="text">
-              <string>local</string>
+        <layout class="QGridLayout" name="gridLayout_15">
+         <item row="0" column="0">
+          <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,0,1">
+           <property name="leftMargin">
+            <number>2</number>
+           </property>
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="rightMargin">
+            <number>2</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
+           <item>
+            <layout class="QFormLayout" name="formLayout">
+             <item row="1" column="0">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Until</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QComboBox" name="until_box">
+               <property name="editable">
+                <bool>false</bool>
+               </property>
+               <property name="currentText">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>Starting</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QComboBox" name="starting_box"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
              </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>cluster</string>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
              </property>
-            </item>
-           </widget>
-          </item>
-         </layout>
-        </widget>
+            </spacer>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <item>
+              <widget class="QLabel" name="label_3">
+               <property name="text">
+                <string>Local or cluster run ?</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="comboBox_local">
+               <item>
+                <property name="text">
+                 <string>local</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>cluster</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
@@ -429,7 +444,7 @@
          <string notr="true">background-color:#ffffff</string>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="snakemake">
          <property name="sizePolicy">
@@ -458,7 +473,16 @@
           </sizepolicy>
          </property>
          <property name="toolTip">
-          <string>&lt;p&gt;This is an IPython shell included in the GUI. The entire Sequana GUI is accessible as the variable &lt;span style=&quot; font-weight:600;&quot;&gt;gui.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;For instance, you can access to layout or values set in the graphical interface with:&lt;/p&gt;&lt;p&gt;    gui.ui&lt;/p&gt;&lt;p&gt;More generally, this is a pure IPython shell, so you can use e.g. matplotlib/pylab:&lt;/p&gt;&lt;p&gt;  import pylab&lt;br&gt;pylab.plot([1,2,3])&lt;/p&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is an IPython shell included in the GUI. The entire Sequana GUI is accessible as the variable &lt;span style=&quot; font-weight:600;&quot;&gt;gui.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;For instance, you can access to layout or values set in the graphical interface with:&lt;/p&gt;
+&lt;pre&gt;    
+    gui.ui
+&lt;/pre&gt;
+
+&lt;p&gt;More generally, this is a pure IPython shell, so you can use e.g. matplotlib/pylab:&lt;/p&gt;
+&lt;pre&gt;    
+    import pylab
+    pylab.plot([1,2,3])
+&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <attribute name="title">
           <string>&amp;IPython shell</string>
@@ -501,11 +525,11 @@ Color code:
         </widget>
         <widget class="QWidget" name="tab_3">
          <property name="toolTip">
-          <string>This tab contains the configuration files. 
+          <string>This tab contains the configuration file arguments. 
 
-You can edit the file but will need to save to make it effective.
+You can edit the form but will need to press SAVE to make it effective.
 
-Once you save the configuration, the dag button should be available.</string>
+Once saved, the DAG and RUN buttons should be available.</string>
          </property>
          <attribute name="title">
           <string>&amp;Config parameters</string>
@@ -533,8 +557,8 @@ Once you save the configuration, the dag button should be available.</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>98</width>
-               <height>28</height>
+               <width>539</width>
+               <height>247</height>
               </rect>
              </property>
             </widget>
@@ -620,10 +644,10 @@ snakemake -s Snakefile --unlock </string>
 This is essentially for the sequana pipeline (default filename is multi_summary.html but one can change the name in the option/preferences dialog.</string>
              </property>
              <property name="text">
-              <string>Open &amp;Report</string>
+              <string>Open Report</string>
              </property>
              <property name="shortcut">
-              <string>Ctrl+R</string>
+              <string>Shift+W</string>
              </property>
             </widget>
            </item>

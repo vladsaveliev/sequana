@@ -7,6 +7,39 @@ Applications (standalone)
 .. contents::
 
 
+.. _sequanix:
+
+Sequanix: GUI for snakemake workflows
+-------------------------------------------
+
+:Overview: a Graphical User Interface (GUI) for Sequana pipelines and any
+    Snakemake-based workflows.
+:Status: Production
+:Name: sequanix
+
+
+This GUI can be used to load Snakefile and their configuration file. A 
+working directory has to be set. Once done, the configuration file can be 
+changed in the GUI. Finally, one can run the snakefile and see the progress.
+Tooltips are automatically created from the configuration file (if documented).
+
+Since snakemake has the ability to run jobs locally or on a cluster, this 
+application can also be run either locally or a distributed computing platform
+(e.g., cluster with slurm scheduler). Of course, this means you can use a X
+environment on your cluster (ssh -X should do it).
+
+
+Just type **sequanix** in a shell.
+
+.. note:: tested under Linux only. However, Mac and Windows users should be
+   able to use it since it is based on Python and PyQt. Again, we strongly
+   advice to use Anaconda to install all required dependencies
+
+Here is a snapshot.
+
+.. image:: _static/sequanix.png
+
+
 sequana
 ---------
 
@@ -34,7 +67,7 @@ sequana_coverage
 
 :Description: Show coverage and interval of confidence to identify under and
     over represented genomic regions.
-:Help: please use sequana_coverage --help
+:Help: please use sequana_coverage ``--help``
 :Docker: ::
     
         git pull sequana/sequana_coverage 
@@ -91,10 +124,8 @@ fastq related: fastq_head
 sequana_compressor
 ---------------------
 
-:Description: converts fastq into a *gz* or *bz2* or *dscr* format. Conversely,
-    can decompress or even convert from one compressed format to another one.
-    Recursivit is allowed and thanks to snakemake pipeline used behind the scene, it
-    works on a cluster and in parallel mode. See::
+:Description: standalone on top of the compressor pipeline to
+    compress/decompress FastQ files in different formats, recursively 
+    and using multithreaded and multicore tools. 
 
-        sequana_compressor --help
-
+Please see :ref:`pipeline_compressor` for details.

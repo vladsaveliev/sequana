@@ -67,10 +67,6 @@ def test_valid_config():
 
     s = snaketools.Module("quality_control")
     config = snaketools.SequanaConfig(s.config)
-    config.get_section_long_comment("bwa_mem_phix")
-    config.get_section_short_comment("bwa_mem_phix")
-    assert config.get_section_long_comment("dummy") is None
-    assert config.get_section_short_comment("dummy") is None
 
     from easydev import TempFile
     with TempFile() as fh:
@@ -134,8 +130,10 @@ def test_sequana_config():
         assert cfg1.config == cfg2.config
     output.delete()
 
+
 def test_message():
     snaketools.message("test")
+
 
 def test_dummy_manager():
     ss = snaketools.DummyManager()
@@ -145,6 +143,7 @@ def test_dummy_manager():
     assert ss.paired == False
     ss = snaketools.DummyManager("test1.fastq.gz")
     assert ss.paired == False
+
 
 def test_pipeline_manager():
 
@@ -255,7 +254,6 @@ def test_copy_requirements():
         assert False
     except:
         assert True
-    
 
 
 def test_create_cleanup():
@@ -263,10 +261,12 @@ def test_create_cleanup():
     directory = fh.name
     filename = snaketools.create_cleanup(directory)
 
+
 def test_create_recursive_cleanup():
     fh = tempfile.TemporaryDirectory()
     directory = fh.name
     snaketools.create_recursive_cleanup()
+
 
 def test_build_dynamic_rule():
 
@@ -274,6 +274,7 @@ def test_build_dynamic_rule():
     fh = tempfile.TemporaryDirectory()
     directory = fh.name
     snaketools.build_dynamic_rule(code, directory)
+
 
 def test_init():
     snaketools.init("quality_control.rules", globals())

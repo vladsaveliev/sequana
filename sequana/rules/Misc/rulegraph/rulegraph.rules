@@ -2,25 +2,60 @@
 
 
 rule rulegraph:
-    """Rulegrqph 
+    """Rulegraph 
 
-    :param filename: input dot file to be parsed
+     Required input:
+         - __rulegraph__input: the snakefile filename
 
+     Required output:
+         - __rulegraph_output: the output SVG filename
+
+    Required parameters:
+        __rulegraph_mapper: a dictionary mapping each rule to a URL (HTML 
+            file or directory). Rules provided in this dictionary will be shown 
+            in blue and clickable in the ouptut SVG file.
+
+    Note1: currenty, a config.yaml is expected to be found in the directory.
+    Note2: this is exactly the same as the rulegraph rule
     """
     input:
-        filename = __dag__input
+        filename = __rulegraph__input
     output:
         dot  = temp("rg.dot"),
         dot2 = temp("rg.ann.dot"),
         svg  = __rulegraph__output
     params:
-        mapper = __rulegraph__mapper
+        mapper = __rulegraph__mapper,
+        configname = "config.yaml" # to move as an input in future releases
+    message: """
+    -- Creating rulegraph in a dot file and save into rulegraph.svg
+    """
     run:
         # Create the dot file (graphviz) using snakemake
-        shell("snakemake -s {input.filename} --rulegraph > {output.dot}")
+        # Create a temporary directory to run the snakemake in it so that it
+        # does not clash with the snakemake process where it is run. Indeed, 
+        # in this rule, we call snakemake itself. 
+        import tempfile
+        import os
+        from sequana import SequanaConfig, DOTParser
+        directory = tempfile.TemporaryDirectory()
+        cwd = os.getcwd()
+        os.chdir(directory.name)
+        output_filename = cwd + os.sep + output.dot
+
+        # if it fails, we must reset the current working directory
+        try:
+            configname =  os.sep + params.configname, directory.name
+            cfg = SequanaConfig(config)
+            cfg.copy_requirements(target=directory.name)
+            shell("cp %s %s " % (cwd + os.sep +"config.yaml", directory.name))
+            shell("snakemake -s {input.filename} --dag --nolock > %s " % output_filename)
+        except Exception as err:
+            print(err)
+        finally:
+            os.chdir(cwd)
 
         # Annotate the dag with URLs 
-        from sequana.snaketools import DOTParser
         d = DOTParser(output.dot)
         d.add_urls(mapper=params.mapper)
 

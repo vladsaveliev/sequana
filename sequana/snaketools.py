@@ -533,12 +533,12 @@ class SequanaConfig(object):
             self._yaml_code = comments.CommentedMap()
         elif isinstance(data, str): # else is it a filename ?
             if os.path.exists(data):
-                #self._infer_mode(data)
                 if data.endswith(".yaml"):
                     with open(data, "r") as fh:
                         self._yaml_code = ruamel.yaml.load(fh.read(),
                                                 ruamel.yaml.RoundTripLoader)
                 else:
+                    # read a JSON
                     import yaml
                     with open(data, "r") as fh:
                         self._yaml_code =  yaml.load(json.dumps(
@@ -550,7 +550,6 @@ class SequanaConfig(object):
         elif isinstance(data, SequanaConfig): # else maybe a SequanaConfig ?
             self.config = AttrDict(**data.config)
             self._yaml_code = comments.CommentedMap(self.config.copy())
-            #self.mode = data.mode
         else: # or a pure dictionary ?
             self.config = AttrDict(**data)
             self._yaml_code = comments.CommentedMap(self.config.copy())
@@ -658,51 +657,6 @@ class SequanaConfig(object):
                     output = requirement.split("/")[-1]
                     wget(requirement, target + os.sep + output)
 
-    def _get_section_comment(self, section):
-        try:
-            data = self._yaml_code.ca.items[section]
-        except:
-            #JSON has no comments
-            return "",""
-        #data = [x for x in data if x] # drops the None
-        # In principle, the full commented section is the second one
-        # The second one can be a lengthy commented secttion. It is a list
-        # each item being one line.
-        # The third one is comment following the section name (same line)
-        # Fourth and first are None so far.
-        if data[1]:
-            long_comment = [this.value for this in data[1]]
-            long_comment = "".join(long_comment).strip()
-        else:
-            long_comment = None
-
-        if data[2]:
-            short_comment = data[2]
-        else:
-            short_comment = None
-        return long_comment, short_comment
-
-    def get_section_short_comment(self, section, mode="sequana"):
-        try:
-            _, short_comment = self._get_section_comment(section)
-            return short_comment
-        except KeyError as err:
-            if mode == "sequana" and section.startswith("input_"):
-                pass
-            else:
-                logger.warning("section %s has no valid comments" % err)
-        return None
-
-    def get_section_long_comment(self, section, mode="sequana"):
-        try:
-            long_comment, _ = self._get_section_comment(section)
-            return long_comment
-        except KeyError as err:
-            if mode == "sequana" and section.startswith("input_"):
-                pass
-            else:
-                logger.warning("section %s has no valid comments" % err)
-        return None
 
 
 class DummyManager(object):

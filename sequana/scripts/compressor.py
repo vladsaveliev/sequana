@@ -46,21 +46,21 @@ class Options(argparse.ArgumentParser, SequanaOptions):
     The underlying compression tools used are pigz and pbzip2, which must be
     installed.
 
-    sequana_compressor --source fastq.gz   --target fastq.bz2
-    sequana_compressor --source fastq      --target fastq.bz2
-    sequana_compressor --source fastq.gz   --target fastq
-    sequana_compressor --source fastq.bz2  --target fastq
+        sequana_compressor --source fastq.gz   --target fastq.bz2
+        sequana_compressor --source fastq      --target fastq.bz2
+        sequana_compressor --source fastq.gz   --target fastq
+        sequana_compressor --source fastq.bz2  --target fastq
 
 
-    If your job is interrupted, your directory may be locked during the next
-    run. To unlock the directory, type::
+    If your job(s) were interrupted (ctrl+C), your directories will are
+    problably locked. Use the --unlock option in such situations.
 
-    sequana_compressor --source ... --target ... --snakemake-options="--unlock"
+        sequana_compressor --source ... --target ... --unlock
 
-    Note the quotes and the equal sign. --source and target must be provided but 
-    no analysis will be performed at that stage.
+    --source and --target must be provided but no analysis will be performed 
+    at that stage.
 
-    Then, type your normal command again.
+    Then, type your command again.
 
 AUTHORS: Thomas Cokelaer
 Documentation: http://sequana.readthedocs.io
@@ -85,18 +85,28 @@ fq.dsrc""")
             default=False,
             action="store_true", help="""recursive search""")
         self.add_argument("--threads", dest="threads",
-            default=4,
+            default=4, type=int,
             help="""Maximum number of threads to use per task (4).""")
         self.add_argument("--jobs", dest="jobs",
             default=4,
             help="""Maximum number of cores to use at most (4). """)
+
+        self.add_argument("--unlock", action="store_true",
+            help="""If you stopped the application, the underlying snakemake
+                process are interrupted and directories were snakemake was
+                launch will be locked. If so please use this option using the
+                --source and --target as when you got the error message""")
+
         self.add_argument("--snakemake-options", dest="snakemake",
             default=" --keep-going ",
             help="""any valid list of options accepted by snakemake except
-            -s and -j""")
+            -s and -j . Note that by default --keep-going is used ; If you set
+            this argument yourself, you have to add --keep-going as well otherwise it stops
+            at the first error encountered""")
         self.add_version(self)
         self.add_cluster(self)
         self.add_quiet(self)
+
 
 def main(args=None):
 
@@ -145,7 +155,6 @@ Must be one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
         cfg._update_yaml()
         cfg.save(filename=temp.name)
 
-        print(options)
 
         # The Snakefile can stay in its original place:
         rule = module.path + os.sep +  "compressor.rules"
@@ -166,6 +175,9 @@ Must be one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
 
         if options.snakemake:
             cmd += options.snakemake
+
+        if options.unlock:
+            cmd += " --unlock "
 
         if options.verbose:
             print(cmd)

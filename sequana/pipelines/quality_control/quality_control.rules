@@ -261,7 +261,7 @@ onsuccess:
             shell('cp -r %s/bwa_bam_to_fastq/ %s' % (proj, report_dir))
         #shell('rm -f %s/bwa_bam_to_fastq/*fastq ' % (report_dir))
 
-        # Copy the fastq files 
+        # Copy the fastq files
         if manager.config.adapter_removal.do:
             shell('cp -r %s/cutadapt %s' % (proj, report_dir))
             #shell('mv  %s/cutadapt/*fastq.gz %s' % (report_dir, report_dir))
@@ -269,8 +269,8 @@ onsuccess:
             shell('cp -r %s/bwa_bam_to_fastq/*unmapped* %s' % (proj, report_dir))
 
         from sequana import SequanaSummary
-        summary = SequanaSummary(proj, directory=report_dir, 
-            output_filename="summary.html", 
+        summary = SequanaSummary(proj, directory=report_dir,
+            output_filename="summary.html",
             snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
             manager=manager)
         summary.create_report()
@@ -278,11 +278,10 @@ onsuccess:
         # Create a cleanup python file to clean a sub-directory
         sm.create_cleanup(proj)
 
-    try: 
+    try:
         print("Create multi summary file")
         shell("sequana_summary -m")
     except: pass
-
 
     garbage = ['snakemake_stats.png',  "rulegraph.svg", "requirements.txt"]
     for filename in garbage:

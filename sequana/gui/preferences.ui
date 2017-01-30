@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>428</width>
-    <height>369</height>
+    <width>469</width>
+    <height>319</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,14 +43,14 @@
            <property name="fieldGrowthPolicy">
             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
            </property>
-           <item row="0" column="0">
+           <item row="1" column="0">
             <widget class="QLabel" name="label">
              <property name="text">
               <string>Select the browser to be used</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
+           <item row="1" column="1">
             <widget class="QComboBox" name="preferences_options_general_browser_value">
              <item>
               <property name="text">
@@ -69,14 +69,14 @@
              </item>
             </widget>
            </item>
-           <item row="1" column="0">
+           <item row="2" column="0">
             <widget class="QLabel" name="label_3">
              <property name="text">
               <string>Logging verbosity</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
+           <item row="2" column="1">
             <widget class="QComboBox" name="preferences_options_general_logging_value">
              <property name="currentIndex">
               <number>1</number>
@@ -108,17 +108,27 @@
              </item>
             </widget>
            </item>
-           <item row="2" column="0">
+           <item row="3" column="0">
             <widget class="QLabel" name="label_4">
              <property name="text">
               <string>HTML page to open as a report</string>
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
+           <item row="3" column="1">
             <widget class="QLineEdit" name="preferences_options_general_htmlpage_value">
              <property name="text">
               <string>multi_summary.html</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="preferences_options_general_overwrite_value">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The config file and the snakefile are copied in the working directory when the SAVE button is pressed. If the files exist already, a dialog ask a confirmation. You can&lt;/p&gt;&lt;p&gt;force the copy by checking this box. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>overwrites files</string>
              </property>
             </widget>
            </item>

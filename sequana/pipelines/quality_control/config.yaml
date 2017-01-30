@@ -23,10 +23,6 @@ input_samples:
 requirements:
     - phiX174.fa
 
-# This is a hack to ignore to prevent possible bug in commentedMap
-# since the next section long comments is not seen after the requirements
-# section
-ignore:
 
 #################################################################
 # Select a sub-sample of the original FastQ files

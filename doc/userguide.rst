@@ -93,9 +93,10 @@ Many more functionalities are available. The reference guide should help you.
 **Sequana** standalones
 =========================
 
-The example above is quite useful and we therefore provide a standalone
-application. There are a few standalone applications listed in
-:ref:`applications` section. 
+The Python example about the coverage is actually quite useful. We 
+therefore decided to provide a standalone
+application. There are otherstandalone applications listed in
+:ref:`applications` section.
 
 The one related to the coverage example shown above is named
 **sequana_coverage**. If you have a BED file, type::
@@ -166,6 +167,14 @@ This will automatically download the pipeline, config file and update the latter
 as much as possible.
 
 .. seealso:: :ref:`applications` section
+
+
+Using **Sequanix** standalone
+---------------------------------
+
+An even easier way is to use our graphical interface named **Sequanix**. A
+snapshot can be found in the :ref:`sequanix` section.
+
 
 
 **Sequana** Reports

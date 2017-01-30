@@ -58,9 +58,9 @@ set of Nextera adapters, one would use:
     >>> from sequana import *
     >>> filename = sequana_data("test_expdesign_hiseq.csv")
     >>> design = ExpDesignAdapter(filename)
-    >>> fa = FindAdaptersFromDesing(design, "PCRFree")
+    >>> fa = FindAdaptersFromDesign(design, "PCRFree")
     >>> print(fa.sample_names[0])
-    '553-iH2-1
+    '553-iH2-1'
     >>> fa.get_adapters_from_sample("553-iH2-1")
 
 See :class:`FindAdaptersFromDesign` for details.
@@ -326,8 +326,8 @@ class AdapterReader(object):
         >>> filename = sequana_data("adapters_Nextera_fwd.fa")
         >>> ar = AdapterReader(filename)
         >>> candidate = ar.get_adapter_by_index_name("S505")
-        >>> print(candidate)
-        >Nextera_index_S505|name:S505
+        >>> print(candidate[0])
+        >Nextera_index_S505|name:S505|seq:GTAAGGAG
         AATGATACGGCGACCACCGAGATCTACACGTAAGGAGTCGTCGGCAGCGTC
         >>> len(ar)
         56

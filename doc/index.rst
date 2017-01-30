@@ -19,8 +19,6 @@ Sequana documentation
     </div>
 
 
-
-
 :Python version: Python 3.5 although some modules are Python2.7 compatible
 :Source: See  `http://github.com/sequana/sequana <https://github.com/sequana/sequana/>`_.
 :Issues: Please fill a report on `github <https://github.com/sequana/sequana/issues>`_
@@ -28,7 +26,9 @@ Sequana documentation
     flexible genomic pipelines for processing and reporting NGS analysis [v1; no peer reviewed].
     `F1000Research 2016, 5:1767 <http://f1000research.com/posters/5-1767>`_ (poster) (doi:
     10.7490/f1000research.1112656.1)
-
+    
+    For the coverage tool (sequana_coverage):  Dimitri Desvillechabrol, Christiane Bouchier, 
+    Sean Kennedy, Thomas Cokelaer http://biorxiv.org/content/early/2016/12/08/092478
 
 What is Sequana ?
 =====================
@@ -42,6 +42,7 @@ What is Sequana ?
 #. :ref:`Standalone applications<applications>`:
     #. :ref:`sequana_coverage<standalone_sequana_coverage>` ease the 
        extraction of genomic regions of interest and genome coverage information
+    #. :ref:`Sequanix`, a GUI for Snakemake workflows (hence Sequana pipelines as well)
 
 Currently, the available pipelines cover quality control (e.g. adapters removal,
 phix removal, trimming of bad quality bases), variant calling, characterisation
@@ -49,12 +50,10 @@ of the genome coverage, taxonomic classification, de-novo assembly. See the :ref
 section for more information.
 
 **Sequana** can be used by developers to create new pipelines and by users in the
-form of applications ready for production.
+form of applications ready for production. A GUI will help users to change
+parameters and run the pipelines easily.
 
-
-To join the project, please let us know on `github
-<https://github.com/sequana/sequana/issues/306>`_.
-
+To join the project, please let us know on `github <https://github.com/sequana/sequana/issues/306>`_.
 
 
 .. Here we are building the carrousel
@@ -75,12 +74,16 @@ To join the project, please let us know on `github
       _images/sphx_glr_plot_kraken_001.png
    :target: auto_examples/plot_kraken.html
 
+.. |sequanix| image::
+      _static/sequanix.png
+   :target: applications.html#sequanix
+
 
 .. raw:: html
 
-    <div class="body">
+   <div class="body">
    <div id="index-grid" class="section group">
-    <div class="col span_1_of_3">
+   <div class="col span_1_of_3">
         <h3><a href="installation.html">Installation</a></h3>
         <p>Using conda or docker</p>
         <h3><a href="auto_examples/index.html">Examples</a></h3>
@@ -88,7 +91,8 @@ To join the project, please let us know on `github
         <h3><a href="pipelines.html">NGS pipelines</a></h3>
         <p>Learn about available Snakemake pipelines</p>
         <h3><a href="applications.html">Standalone applications</a></h3>
-        <p>Standalone applications</p>
+        <p>Standalone applications including Sequanix (GUI for snakemake) 
+        and the sequana_coverage tool.</p>
     </div>
     <div class="col span_2_of_3">
     <div class="jcarousel-wrapper">
@@ -98,6 +102,7 @@ To join the project, please let us know on `github
 * |fastqc|
 * |kraken|
 * |bam|
+* |sequanix|
 
 .. raw:: html
 
@@ -114,54 +119,8 @@ To join the project, please let us know on `github
 
 
 
-
-
-
-
-
-
 .. _quick_start:
 
-Quick start example: the quality pipeline
-#############################################
-
-**Sequana** comes with standalone applications and pipelines in the form of
-Snakefile (`snakemake <https://bitbucket.org/snakemake/snakemake/wiki/Home>`_)
-
-The following example will show how to initialise and run the quality control pipeline
-on a pair of FastQ files.
-The data comes from a sequencing (using HiSeq technology) of a
-Measles virus. For testing purposes, you can download :download:`R1
-<../sequana/resources/data/Hm2_GTGAAA_L005_R1_001.fastq.gz>` and
-:download:`R2 <../sequana/resources/data/Hm2_GTGAAA_L005_R2_001.fastq.gz>`)
-files that contain only 1500 reads. Copy them in a local directory.
-
-First, run the sequana standalone application to initialise the pipeline
-**quality_control**::
-
-    sequana --pipeline quality_control --output-directory TEST --adapters PCRFree
-
-This command downloads the required configuration file(s) in particular
-the config file and the pipeline itself. This example should work out of
-the box but you may want to look at the
-configuration file **config.yaml**. For instance, you may want to change the
-reference to the *phix* (by default we use *phix174.fa*, which is provided in Sequana) or
-change the adapter_removal section to your needs (cutadapt parameters, in
-particular the forward and reverse complement list of adapters; None by default).
-
-By default, the output directory is called **analysis** and ca be overwritten with the ``--output-directory`` parameter. Then, run the pipeline and wait for completion.::
-
-    cd TEST
-    snakemake -s quality_control.rules --stats stats.txt -p -j 4 --forceall
-
-The -p option shows the commands, -j 4 means use 4 threads when possible.
-Alternatively, there is also a **runme.sh** script.
-
-You should now have a directory with a HTML report correspinding to the sample::
-
-    open Hm2_GTGAAA_L005/report_qc_Hm2_GTGAAA_L005/summary.html
-
-More information can be found in the next sections.
 
 User guide and reference
 ###########################
@@ -178,7 +137,6 @@ User guide and reference
     auto_examples/index
     case_examples
     developers
-    rules
     applications
     references
     faqs

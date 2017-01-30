@@ -3,8 +3,25 @@ Changelog
 
 .. contents::
 
-0.1.17 - Jan 2017
-------------------
+0.1.19 - Feb 2017
+-----------------------
+
+
+* CHANGES:
+
+    - rules:
+        - dag: now the snakemake is called inside a temporary directory to avoid
+          clash with the current snakemake process. This avoid error message. 
+          Fixes https://github.com/sequana/sequana/issues/331
+
+
+0.1.17/0.1.18 - Jan 2017
+--------------------------------
+
+:Main NEWS: The GUI was completed and the current pipelines stabilised (RNA-seq,
+    quality control, variant calling). The test suite was switched from nosetests to
+    pytest, in particular to perform tests more eaasily on the Qt GUI. 
+
 
 * BUG Fixes:
 
@@ -19,6 +36,8 @@ Changelog
 
 * CHANGES:
 
+    - sequana_compressor: for conversion from e.g gz to bz2, use a pipe instead
+        of double IO. Updated docs and tests ready for production.
     - sequana standalone: 
       - --pattern changed to --input-pattern
       - --output-directory changed to --working-directory
@@ -31,6 +50,7 @@ Changelog
 * NEWS:
 
     - add rubicon adapters
+    - add ability to read JSON in SequanaConfig
 
 0.1.16
 -----------

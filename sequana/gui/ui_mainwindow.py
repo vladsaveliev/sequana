@@ -182,40 +182,44 @@ class Ui_MainWindow(object):
         self.groupBox.setSizePolicy(sizePolicy)
         self.groupBox.setMinimumSize(QtCore.QSize(0, 89))
         self.groupBox.setObjectName("groupBox")
-        self.formLayoutWidget = QtWidgets.QWidget(self.groupBox)
-        self.formLayoutWidget.setGeometry(QtCore.QRect(10, 20, 141, 62))
-        self.formLayoutWidget.setObjectName("formLayoutWidget")
-        self.formLayout = QtWidgets.QFormLayout(self.formLayoutWidget)
-        self.formLayout.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout_15 = QtWidgets.QGridLayout(self.groupBox)
+        self.gridLayout_15.setObjectName("gridLayout_15")
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_3.setContentsMargins(2, 2, 2, 2)
+        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+        self.formLayout = QtWidgets.QFormLayout()
         self.formLayout.setObjectName("formLayout")
-        self.label = QtWidgets.QLabel(self.formLayoutWidget)
+        self.label = QtWidgets.QLabel(self.groupBox)
         self.label.setObjectName("label")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.until_box = QtWidgets.QComboBox(self.formLayoutWidget)
+        self.until_box = QtWidgets.QComboBox(self.groupBox)
         self.until_box.setEditable(False)
         self.until_box.setCurrentText("")
         self.until_box.setObjectName("until_box")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.until_box)
-        self.label_2 = QtWidgets.QLabel(self.formLayoutWidget)
+        self.label_2 = QtWidgets.QLabel(self.groupBox)
         self.label_2.setObjectName("label_2")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.label_2)
-        self.starting_box = QtWidgets.QComboBox(self.formLayoutWidget)
+        self.starting_box = QtWidgets.QComboBox(self.groupBox)
         self.starting_box.setObjectName("starting_box")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.starting_box)
-        self.horizontalLayoutWidget_3 = QtWidgets.QWidget(self.groupBox)
-        self.horizontalLayoutWidget_3.setGeometry(QtCore.QRect(180, 20, 214, 61))
-        self.horizontalLayoutWidget_3.setObjectName("horizontalLayoutWidget_3")
-        self.horizontalLayout_4 = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget_3)
-        self.horizontalLayout_4.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_3.addLayout(self.formLayout)
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_3.addItem(spacerItem)
+        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-        self.label_3 = QtWidgets.QLabel(self.horizontalLayoutWidget_3)
+        self.label_3 = QtWidgets.QLabel(self.groupBox)
         self.label_3.setObjectName("label_3")
         self.horizontalLayout_4.addWidget(self.label_3)
-        self.comboBox_local = QtWidgets.QComboBox(self.horizontalLayoutWidget_3)
+        self.comboBox_local = QtWidgets.QComboBox(self.groupBox)
         self.comboBox_local.setObjectName("comboBox_local")
         self.comboBox_local.addItem("")
         self.comboBox_local.addItem("")
         self.horizontalLayout_4.addWidget(self.comboBox_local)
+        self.horizontalLayout_3.addLayout(self.horizontalLayout_4)
+        self.horizontalLayout_3.setStretch(0, 1)
+        self.horizontalLayout_3.setStretch(2, 1)
+        self.gridLayout_15.addLayout(self.horizontalLayout_3, 0, 0, 1, 1)
         self.vlayout.addWidget(self.groupBox)
         self.tabs = QtWidgets.QTabWidget(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
@@ -284,7 +288,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 98, 28))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 539, 247))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.gridLayout_4.addWidget(self.scrollArea, 0, 0, 1, 1)
@@ -392,11 +396,11 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabs_pipeline.setCurrentIndex(0)
+        self.tabs_pipeline.setCurrentIndex(1)
         self.tabs_sequana.setCurrentIndex(1)
         self.tabWidget.setCurrentIndex(1)
         self.tabs_generic.setCurrentIndex(1)
-        self.tabs.setCurrentIndex(1)
+        self.tabs.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.tabs_pipeline, self.choice_button)
         MainWindow.setTabOrder(self.choice_button, self.until_box)
@@ -414,8 +418,8 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.tabs_pipeline.setToolTip(_translate("MainWindow", "<html><head/><body><p>Select a Sequana pipeline (left tab) or a generic Snakemake file (right tab).</p><p><br/></p></body></html>"))
-        self.tabs_sequana.setToolTip(_translate("MainWindow", "<html><head/><body><ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\"><li style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Left tab:</span> Select one of the pipeline in the combo box. In order to get help about a pipeline, please see the Help menu. </li><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Middle tab:</span> Select one of this option</li><ol style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;\"><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Input directory: the directory where fastq.gz files are stored (all sequana pipelines expect fastq.gz as input)</li><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Input samples:  select one or two files (fastq.gz) in a directory</li></ol><li style=\" margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Right tab: </span>Select working directory where Snakefile/pipeline and config file are copied. Pipeline are also ran in that directory. </li></ul></body></html>"))
+        self.tabs_pipeline.setToolTip(_translate("MainWindow", "<html><head/><body><p>Select a Sequana pipeline (left tab) or a generic Snakemake file (right tab).</p><p><br/>Go to Menu-&gt;QuickStart for more details (Ctrl+H key).</p></body></html>"))
+        self.tabs_sequana.setToolTip(_translate("MainWindow", "<html><head/><body><ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\"><li style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Left tab:</span> Select one of the pipeline in the combo box. In order to get information about a pipeline, please see the Help menu. </li><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Middle tab:</span> Select one of this option</li><ol style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;\"><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Input directory: the directory where fastq.gz files are stored (all Sequana pipelines expect fastq.gz as input)</li><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Input samples: select one or two files (fastq.gz) in a directory</li></ol><li style=\" margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Right tab: </span>Select working directory where Snakefile/pipeline and config files will be copied. Pipelines are also ran in that directory. </li></ul></body></html>"))
         self.choice_button.setToolTip(_translate("MainWindow", "<html><head/><body><p>Sequana pipelines are automatically fetched from sequana library.</p><p>Each pipeline is defined by a pipeline name. Its config file is fetched automatically.</p><p>Each pipeline require the user to define the input. It may be one of:</p><p><ul><li> a directory</li><li> a set of FastQ input file</li></ul></body></html>"))
         self.choice_button.setCurrentText(_translate("MainWindow", "Select a Sequana pipeline"))
         self.choice_button.setItemText(0, _translate("MainWindow", "Select a Sequana pipeline"))
@@ -425,7 +429,7 @@ class Ui_MainWindow(object):
         self.tabs_sequana.setTabText(self.tabs_sequana.indexOf(self.sequana_input_dir_tab), _translate("MainWindow", "2 - Input data (directory or files)"))
         self.tabs_sequana.setTabText(self.tabs_sequana.indexOf(self.sequana_working_dir_tab), _translate("MainWindow", "3 - Working directory"))
         self.tabs_pipeline.setTabText(self.tabs_pipeline.indexOf(self.tab_sequana_pipelines), _translate("MainWindow", "A - Sequana pipelines"))
-        self.tabs_generic.setToolTip(_translate("MainWindow", "<html><head/><body><ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\"><li style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Left tab:</span> Select a valid Snakefile. </li><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Middle tab:</span> Select a config file. This is optional. Note that Snakefile may be using a config file or not. For instance if &lt;i&gt;configfile: &quot;config.yaml&quot;&lt;/i&gt; is found, a config file is expected.</li><li style=\" margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Right tab: </span>Select working directory where Snakefile/pipeline and config file are copied. Pipeline are also ran in that directory. </li></ul></body></html>"))
+        self.tabs_generic.setToolTip(_translate("MainWindow", "<html><head/><body><ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\"><li style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Left tab:</span> Select a valid local Snakefile. </li><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Middle tab:</span> Select a config file. This is optional. Note that Snakefiles may be using a config file or not. For instance if <i>configfile: \"config.yaml\"</i> is found, a config file is expected. Users have to check with the author of the snakefile whether a config file is required or not.</li><li style=\" margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Right tab: </span>Select working directory where Snakefile and config files will be copied. Pipelines are also ran in that directory. </li></ul></body></html>"))
         self.tabs_generic.setTabText(self.tabs_generic.indexOf(self.snakefile), _translate("MainWindow", "1 - Snakefile"))
         self.tabs_generic.setTabText(self.tabs_generic.indexOf(self.configfile), _translate("MainWindow", "2 - Config file"))
         self.tabs_generic.setTabText(self.tabs_generic.indexOf(self.tab), _translate("MainWindow", "3 - Working directory"))
@@ -438,7 +442,16 @@ class Ui_MainWindow(object):
         self.comboBox_local.setItemText(1, _translate("MainWindow", "cluster"))
         self.snakemake.setToolTip(_translate("MainWindow", "<html><head/><body><p>This is the output of the snakemake execution. </p><p>Be aware that we parse the output so colors and output may be slightly different.</p></body></html>"))
         self.tabs.setTabText(self.tabs.indexOf(self.snakemake), _translate("MainWindow", "&Snakemake output"))
-        self.ipython.setToolTip(_translate("MainWindow", "<p>This is an IPython shell included in the GUI. The entire Sequana GUI is accessible as the variable <span style=\" font-weight:600;\">gui.</span></p><p>For instance, you can access to layout or values set in the graphical interface with:</p><p>    gui.ui</p><p>More generally, this is a pure IPython shell, so you can use e.g. matplotlib/pylab:</p><p>  import pylab<br>pylab.plot([1,2,3])</p>"))
+        self.ipython.setToolTip(_translate("MainWindow", "<html><head/><body><p>This is an IPython shell included in the GUI. The entire Sequana GUI is accessible as the variable <span style=\" font-weight:600;\">gui.</span></p><p>For instance, you can access to layout or values set in the graphical interface with:</p>\n"
+"<pre>    \n"
+"    gui.ui\n"
+"</pre>\n"
+"\n"
+"<p>More generally, this is a pure IPython shell, so you can use e.g. matplotlib/pylab:</p>\n"
+"<pre>    \n"
+"    import pylab\n"
+"    pylab.plot([1,2,3])\n"
+"</pre></body></html>"))
         self.tabs.setTabText(self.tabs.indexOf(self.ipython), _translate("MainWindow", "&IPython shell"))
         self.logger.setToolTip(_translate("MainWindow", "<p>This tab contains the logging information from Sequana and possibly other Python packages that uses the logging package.</p>\n"
 "\n"
@@ -452,11 +465,11 @@ class Ui_MainWindow(object):
 "- critical: bold red \n"
 "</pre>"))
         self.tabs.setTabText(self.tabs.indexOf(self.logger), _translate("MainWindow", "&Logger"))
-        self.tab_3.setToolTip(_translate("MainWindow", "This tab contains the configuration files. \n"
+        self.tab_3.setToolTip(_translate("MainWindow", "This tab contains the configuration file arguments. \n"
 "\n"
-"You can edit the file but will need to save to make it effective.\n"
+"You can edit the form but will need to press SAVE to make it effective.\n"
 "\n"
-"Once you save the configuration, the dag button should be available."))
+"Once saved, the DAG and RUN buttons should be available."))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_3), _translate("MainWindow", "&Config parameters"))
         self.run_btn.setToolTip(_translate("MainWindow", "Run the pipeline (shortcut: Ctrl+R)"))
         self.run_btn.setText(_translate("MainWindow", "&Run"))
@@ -473,8 +486,8 @@ class Ui_MainWindow(object):
         self.report_btn.setToolTip(_translate("MainWindow", "This button open an HTML page present in the working directory (if found).\n"
 "\n"
 "This is essentially for the sequana pipeline (default filename is multi_summary.html but one can change the name in the option/preferences dialog."))
-        self.report_btn.setText(_translate("MainWindow", "Open &Report"))
-        self.report_btn.setShortcut(_translate("MainWindow", "Ctrl+R"))
+        self.report_btn.setText(_translate("MainWindow", "Open Report"))
+        self.report_btn.setShortcut(_translate("MainWindow", "Shift+W"))
         self.save_btn.setText(_translate("MainWindow", "&Save"))
         self.save_btn.setShortcut(_translate("MainWindow", "Ctrl+S"))
         self.dag_btn.setToolTip(_translate("MainWindow", "Pressing this button, a DAG is created and shown. \n"
