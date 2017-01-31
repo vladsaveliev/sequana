@@ -31,7 +31,7 @@ from easydev.console import red, purple, green, blue
 from easydev import DevTools, SmartFormatter
 
 
-adapters_choice = ["Nextera", "Rubicon", "PCRFree"]
+adapters_choice = ["Nextera", "Rubicon", "PCRFree", "TruSeq"]
 
 help_input = """Missing input data.
 
