@@ -1,5 +1,4 @@
 # coding: utf-8
-
 def bowtie1_mapping_dynamic(name, log_dir):
     """
     Read mapping for either single end and paired end data using Bowtie1.
@@ -20,6 +19,7 @@ def bowtie1_mapping_dynamic(name, log_dir):
             bowtie:
                 options:  "" #options for bowtie1 you want use
     """
+
     metadata = {"name": name, "log_dir": log_dir}
 
     bowtie1_mapping_code = '''
