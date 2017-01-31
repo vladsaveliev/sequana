@@ -138,7 +138,7 @@ if manager.config.tophat_mapping.do:
     expected_output.extend(expand(__tophat_mapping__sort, sample=manager.samples))
 
 # generating of bigwig files
-if manager.config.bamCoverage.do:
+if manager.config.coverage.do:
     __bamCoverage__input = __mapping_output
     __bamCoverage__log = manager.getname("bamCoverage", ".logs")
     __bamCoverage__output = manager.getname("bamCoverage", ".norm.bw")
