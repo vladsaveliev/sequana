@@ -49,16 +49,16 @@ rule bowtie1_mapping_%(name)s:
         cmd = cmd + " " + bowtie_input
         # sam to bam
         cmd = "%%s | samtools view -Sbh -> {output.bam}" %% cmd
-        
+
         # logs
         cmd = "(%%s) > {log.out} 2> {log.err}" %% cmd
-        
+
         # sort result
         cmd = "%%s && samtools sort -o {output.sort} {output.bam}" %% cmd
         cmd = "%%s && samtools index {output.sort}" %% cmd
 
-        
-        shell("unpigz -fk {input.fastq} && " + cmd )
+
+        shell("unpigz -fk {input.fastq} -p {threads} && " + cmd )
     '''
 
     from easydev import TempFile
