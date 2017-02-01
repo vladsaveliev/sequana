@@ -9,7 +9,7 @@ rule report_fastq_stats:
         wkdir = __fastq_stats_%(name)s__wkdir,
     threads: 4
     run:
-        from sequana import FastQStatsReport
+        from sequana.reporting.report_fastq_stats import FastQStatsReport
         s = FastQStatsReport(
               params.wkdir,
               output_filename="fastq_stats__%(name)s.html",
