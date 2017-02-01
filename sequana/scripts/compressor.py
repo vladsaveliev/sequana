@@ -137,7 +137,7 @@ def main(args=None):
         raise ValueError('The number of jobs is limited to 20. You can ' +
             'force this limit by using --bypass-job-limit')
 
-    if platform.uname().node.startswith("tars-"):
+    if platform.uname().node.startswith("tars-") and options.unlock is False:
         if options.cluster is None:
             raise ValueError("You are on TARS (Institut Pasteur). You " +
                 " must use --cluster option to provide the scheduler " +
@@ -172,7 +172,6 @@ Must be one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
         cfg.config.compressor.threads = options.threads
         cfg._update_yaml()
         cfg.save(filename=temp.name)
-
 
         # The Snakefile can stay in its original place:
         rule = module.path + os.sep +  "compressor.rules"
