@@ -190,16 +190,11 @@ if manager.config.kraken.do:
     expected_output.append(expand(__kraken__output_json, sample=manager.samples))
 
 
-# include overall dag file
-__dag__input = __snakefile__
-__dag__output = "dag.svg"
-include: sm.modules['dag']
-expected_output.extend(["dag.svg"])
 
 
 # Include rule graph for each sample
 __rulegraph__input = __snakefile__
-__rulegraph__output = "rulegraph.svg"
+__rulegraph__output = "rulegraph/rulegraph.svg"
 __rulegraph__mapper = {
     "fastqc_samples": "fastqc_samples/",
     "fastqc_phix": "fastqc_phix/",
@@ -211,7 +206,7 @@ __rulegraph__mapper = {
 
 }
 include: sm.modules['rulegraph']
-expected_output.extend(["rulegraph.svg"])
+expected_output.extend(["rulegraph/rulegraph.svg"])
 
 
 # Add Conda
@@ -220,7 +215,7 @@ include: sm.modules['conda']   # Create requirements.txt(dependencies)
 expected_output.extend([__conda__output])
 
 # Those rules takes a couple of seconds so no need for a cluster
-localrules: dag, conda, rulegraph
+localrules: conda, rulegraph
 
 
 rule pipeline_quality_control:
@@ -240,7 +235,7 @@ onsuccess:
         except:pass
 
         shell("cp %s %s" % (__snakefile__, report_dir))
-        shell("cp rulegraph.svg %s/dag.svg" % (report_dir))
+        shell("cp rulegraph/rulegraph.svg %s" % (report_dir))
         shell("cp config.yaml %s" % report_dir)
         shell("cp requirements.txt %s" % report_dir)
         try:shell("cp snakemake_stats.png %s" % report_dir)

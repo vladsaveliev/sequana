@@ -8,7 +8,7 @@ rule rulegraph:
          - __rulegraph__input: the snakefile filename
 
      Required output:
-         - __rulegraph_output: the output SVG filename
+         - __rulegraph_output: the output SVG filename rulegraph/rulegraph.svg
 
     Required parameters:
         __rulegraph_mapper: a dictionary mapping each rule to a URL (HTML 
@@ -21,44 +21,43 @@ rule rulegraph:
     input:
         filename = __rulegraph__input
     output:
-        dot  = temp("rg.dot"),
+        dot  = temp("rulegraph/rg.dot"), # Here, the rulegraph/ force the directory creation
         dot2 = temp("rg.ann.dot"),
         svg  = __rulegraph__output
     params:
+        directory="rulegraph",
         mapper = __rulegraph__mapper,
         configname = "config.yaml" # to move as an input in future releases
     message: """
     -- Creating rulegraph in a dot file and save into rulegraph.svg
     """
     run:
-        # Create the dot file (graphviz) using snakemake
-        # Create a temporary directory to run the snakemake in it so that it
-        # does not clash with the snakemake process where it is run. Indeed, 
-        # in this rule, we call snakemake itself. 
-        import tempfile
+        # We tried with temporary directory but this was creating errs
+        # more probably because temp dir was handle in the code rather than 
+        # by snakemake itself. Finally, we decided to use a physical directory
+        # named after the rule. The snakemake call is performed in the directory
         import os
         from sequana import SequanaConfig, DOTParser
-        directory = tempfile.TemporaryDirectory()
         cwd = os.getcwd()
-        os.chdir(directory.name)
+        os.chdir(params.directory)
         output_filename = cwd + os.sep + output.dot
 
         # if it fails, we must reset the current working directory
         try:
-            configname =  os.sep + params.configname, directory.name
+            configname = ".." + os.sep + params.configname
             cfg = SequanaConfig(config)
-            cfg.copy_requirements(target=directory.name)
-            shell("cp %s %s " % (cwd + os.sep +"config.yaml", directory.name))
-            shell("snakemake -s {input.filename} --dag --nolock > %s " % output_filename)
+            cfg.copy_requirements(target=".")
+            shell("cp %s . " % (cwd + os.sep + "config.yaml"))
+            shell("snakemake -s {input.filename} --rulegraph --nolock > rg.dot ")
         except Exception as err:
             print(err)
         finally:
             os.chdir(cwd)
 
-        # Annotate the dag with URLs 
-        d = DOTParser(output.dot)
+        # Annotate the dag with URLs
+        d = DOTParser(output_filename)
         d.add_urls(mapper=params.mapper)
 
         # Now, create the SVG. Somehow if called dag.svg, this is a conflict
-        # hence the || true 
+        # hence the || true
         shell("dot -Tsvg {output.dot2} -o {output.svg} || true")

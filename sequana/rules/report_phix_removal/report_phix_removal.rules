@@ -3,7 +3,7 @@
 
 rule report_phix_removal:
     input:
-        dag = "report/dag.svg",
+        dag = "report/rulegraph.svg",
         conda = "report/requirements.txt",
         fastqc_phix = "fastqc__phix/fastqc.done",
         fastqc_samples = "fastqc__samples/fastqc.done",
