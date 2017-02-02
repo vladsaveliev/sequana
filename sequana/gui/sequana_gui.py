@@ -485,6 +485,11 @@ class SequanaGUI(QMainWindow, Tools):
 
         self.ui.tabWidget.currentChanged.connect(lambda: self.ui.run_btn.setEnabled(False))
 
+        # if we are on one of those clusters, switch to the cluster choice in 
+        # the pipeline control combo box
+        if misc.on_cluster(['tars-']) is True:
+             self.ui.comboBox_local.setCurrentText("cluster")
+
     #|-----------------------------------------------------|
     #|                       MENU related                  |
     #|-----------------------------------------------------|
@@ -788,11 +793,17 @@ details).
 
         if self.ui.comboBox_local.currentText() == "local":
             if misc.on_cluster(["tars-"]):
-                raise WarningMessage(("You are on TARS cluster. Please set the"
+                msg = WarningMessage(("You are on TARS cluster. Please set the"
                     "batch options and select the cluster option (not local)"))
+                msg.exec_()
                 return None
             snakemake_line += dialog.get_snakemake_local_options()
         elif self.ui.comboBox_local.currentText() == "cluster":
+            cluster = dialog.ui.snakemake_options_cluster_cluster_value.text()
+            if len(cluster.strip()) == 0:
+                msg = WarningMessage(("You are on TARS cluster. Please set the"
+                    "batch options and select the cluster option (not local)"))
+                msg.exec_()
             snakemake_line += dialog.get_snakemake_cluster_options()
 
         snakemake_line += dialog.get_snakemake_general_options()
