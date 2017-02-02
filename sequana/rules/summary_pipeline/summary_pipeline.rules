@@ -1,0 +1,44 @@
+rule summary_pipeline:
+    """ Create a JSON file that summarise all information about the pipeline.
+    This JSON file is used by the sequana reports. It must be created
+    the summary report for your samples.
+    
+    Required input:
+        - __summary_pipeline__snakefile = the snakefile filename
+        - __summary_pipeline__config = the config filename
+        - __summary_pipeline__inputs = the pipeline input
+        - __summary_pipeline__outputs = the pipeline outputs
+        - __summary_pipeline__rulegraph = the rulegraph SVG filename
+        - __summary_pipeline__requirements = the dependencies filename
+
+    Required output:
+        - __summary_pipeline__json_output = the json output file
+
+    Required parameters:
+        - __summary_pipeline__pipeline = pipeline name
+    """
+    input:
+        snakefile = __summary_pipeline__snakefile,
+        config = __summary_pipeline__config,
+        inputs = __summary_pipeline__inputs,
+        outputs = __summary_pipeline__outputs,
+        rulegraph = __summary_pipeline__rulegraph,
+        requirements = __summary_pipeline__requirements
+    output:
+        json = __summary_pipeline__json_output
+    params:
+        pipeline = __summary_pipeline__pipeline
+    run:
+        import json
+        
+        summary = {'tool': 'summary',
+                   'pipeline': params['pipeline'],
+                   'snakefile': input['snakefile'],
+                   'config': input['config'],
+                   'inputs': input['inputs'],
+                   'outputs': input['outputs'],
+                   'rulegraph': input['rulegraph'],
+                   'requirements': input['requirements']}
+        js = json.dumps(summary)
+        with open(output['json'], 'w') as fp:
+            print(js, file=fp)
