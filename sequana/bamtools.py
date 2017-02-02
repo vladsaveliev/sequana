@@ -312,15 +312,15 @@ class BAM(pysam.AlignmentFile):
         df = df.sum()
         pylab.clf()
         if logy is True:
-            jo = df.plot(kind='bar', logy=logy, grid=True)
+            barplot = df.plot(kind='bar', logy=logy, grid=True)
         else:
-            df.plot(kind='bar', grid=True)
+            barplot = df.plot(kind='bar', grid=True)
         pylab.xlabel("flags", fontsize=fontsize)
         pylab.ylabel("count", fontsize=fontsize)
         pylab.tight_layout()
         if filename:
             pylab.savefig(filename)
-        return jo
+        return barplot
 
     @seek
     def to_fastq(self, filename):
