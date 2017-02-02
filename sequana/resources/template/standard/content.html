@@ -4,13 +4,11 @@
     automatically the HTML page.
 #}
 
-<div class="section" id="{{module.anchor}}">
-    <h1 id="{{module.anchor}}">{{module.name}}</h1>
-    {{ module.intro if module.intro }}
-    {% for section in module.sections %}
-    <div id="{{module["anchor"]}}">
-        <h2 id="{{section["anchor"]}}">{{section["name"]}}</h2>
-            {{section["content"]}}
-    </div> 
-    {% endfor %}
-</div>
+
+{{ module.intro if module.intro }}
+{% for section in module.sections %}
+<div id="{{module["anchor"]}}">
+    <h2 id="{{section["anchor"]}}">{{section["name"]}}</h2>
+        {{section["content"]}}
+</div> 
+{% endfor %}
