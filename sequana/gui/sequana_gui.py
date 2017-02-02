@@ -852,7 +852,19 @@ details).
         self.ui.progressBar.setValue(1)
 
         # Start process
-        self.info("Starting process with %s " % " ".join(snakemake_args))
+        # If an argument contains spaces, we should use quotes. However,
+        # with PyQt quotes must be escaped
+        print(snakemake_args)
+
+        args = []
+        for this in snakemake_args:
+            if re.search(r"\s", this) is True:
+                args.append("\"%s\"" % this)
+                print(this)
+            else:
+                args.append(this)
+        snakemake_args = args
+        self.info("Starting process with snakemake %s " % " ".join(snakemake_args))
         self.process.setWorkingDirectory(self.working_dir)
         self.process.start("snakemake", snakemake_args)
 
