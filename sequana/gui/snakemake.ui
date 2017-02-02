@@ -37,7 +37,7 @@
         <string>Snakemake parameters related to the cluster</string>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tab_local">
         <attribute name="title">

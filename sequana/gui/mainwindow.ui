@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>591</width>
-    <height>681</height>
+    <width>613</width>
+    <height>695</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -382,26 +382,52 @@
             </spacer>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <layout class="QVBoxLayout" name="verticalLayout_5">
              <item>
-              <widget class="QLabel" name="label_3">
-               <property name="text">
-                <string>Local or cluster run ?</string>
-               </property>
-              </widget>
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <item>
+                <widget class="QLabel" name="label_3">
+                 <property name="text">
+                  <string>Local or cluster run ?</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="comboBox_local">
+                 <item>
+                  <property name="text">
+                   <string>local</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>cluster</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+              </layout>
              </item>
              <item>
-              <widget class="QComboBox" name="comboBox_local">
-               <item>
-                <property name="text">
-                 <string>local</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>cluster</string>
-                </property>
-               </item>
+              <widget class="QLabel" name="label_4">
+               <property name="autoFillBackground">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background-color:orange</string>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::Box</enum>
+               </property>
+               <property name="text">
+                <string>Please, Check the snakemake dialog to set the number of nodes in the local or cluster tabs</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="margin">
+                <number>1</number>
+               </property>
               </widget>
              </item>
             </layout>
@@ -557,8 +583,8 @@ Once saved, the DAG and RUN buttons should be available.</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>539</width>
-               <height>247</height>
+               <width>561</width>
+               <height>227</height>
               </rect>
              </property>
             </widget>
@@ -733,7 +759,7 @@ text-align: center;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>591</width>
+     <width>613</width>
      <height>19</height>
     </rect>
    </property>
@@ -837,7 +863,6 @@ text-align: center;
   <tabstop>choice_button</tabstop>
   <tabstop>until_box</tabstop>
   <tabstop>starting_box</tabstop>
-  <tabstop>comboBox_local</tabstop>
   <tabstop>tabs</tabstop>
   <tabstop>run_btn</tabstop>
   <tabstop>stop_btn</tabstop>

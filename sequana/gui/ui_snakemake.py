@@ -122,7 +122,7 @@ class Ui_Snakemake(object):
         self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
 
         self.retranslateUi(Snakemake)
-        self.tabs.setCurrentIndex(1)
+        self.tabs.setCurrentIndex(0)
         self.buttonBox.accepted.connect(Snakemake.accept)
         self.buttonBox.rejected.connect(Snakemake.reject)
         QtCore.QMetaObject.connectSlotsByName(Snakemake)
