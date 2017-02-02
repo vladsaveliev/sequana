@@ -34,6 +34,7 @@ class SequanaModule(SequanaBaseModule):
         """
         super().__init__()
         self.filename = data
+        self.title = "Variant Calling Report"
         try:
             with open(self.filename, "r") as fp:
                 line = fp.readline()
