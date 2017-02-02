@@ -43,6 +43,7 @@ from PyQt5.QtCore import Qt
 from sequana import snaketools, sequana_data
 from sequana.snaketools import Module
 from sequana.iotools import YamlDocParser
+from sequana import misc
 
 import easydev
 import colorlog
@@ -385,7 +386,6 @@ class SequanaGUI(QMainWindow, Tools):
         # We may have set some pipeline, snakefile, working directory
         self.create_base_form()
         self.fill_until_starting()
-
 
     def initUI(self):
         # The logger is not yet set, so we use the module directly
@@ -787,6 +787,10 @@ details).
         snakemake_line = ["-s", snakefile, "--stat", "stats.txt", "-p"]
 
         if self.ui.comboBox_local.currentText() == "local":
+            if misc.on_cluster(["tars-"]):
+                raise WarningMessage(("You are on TARS cluster. Please set the"
+                    "batch options and select the cluster option (not local)"))
+                return None
             snakemake_line += dialog.get_snakemake_local_options()
         elif self.ui.comboBox_local.currentText() == "cluster":
             snakemake_line += dialog.get_snakemake_cluster_options()
@@ -810,12 +814,6 @@ details).
         self.shell_error = ""
         self.shell = ""
 
-        # the progress bar
-        pal = self.ui.progressBar.palette()
-        pal.setColor(QtGui.QPalette.Highlight, self._colors['blue'])
-        self.ui.progressBar.setPalette(pal)
-        self.ui.progressBar.setValue(1)
-
         # Set the regex to catch steps
         self._step_regex = re.compile("([0-9]+) of ([0-9]+) steps")
 
@@ -833,7 +831,16 @@ details).
             return
 
         snakemake_args = self._get_snakemake_command(snakefile)
+        if snakemake_args is None:
+            return
 
+        # the progress bar
+        pal = self.ui.progressBar.palette()
+        pal.setColor(QtGui.QPalette.Highlight, self._colors['blue'])
+        self.ui.progressBar.setPalette(pal)
+        self.ui.progressBar.setValue(1)
+
+        # Start process
         self.info("Starting process with %s " % " ".join(snakemake_args))
         self.process.setWorkingDirectory(self.working_dir)
         self.process.start("snakemake", snakemake_args)

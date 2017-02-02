@@ -19,16 +19,13 @@
 """Standalone dedicated to taxonomic content (kraken)"""
 import os
 import sys
-import shutil
-import sys
-import platform
 from optparse import OptionParser
 import argparse
 
-import tempfile
-
 from sequana.scripts.tools import SequanaOptions
+from sequana import misc
 from sequana import Module, SequanaConfig
+
 from easydev import SmartFormatter, TempFile
 
 
@@ -137,7 +134,7 @@ def main(args=None):
         raise ValueError('The number of jobs is limited to 20. You can ' +
             'force this limit by using --bypass-job-limit')
 
-    if platform.uname().node.startswith("tars-") and options.unlock is False:
+    if misc.on_cluster("tars-") and options.unlock is False:
         if options.cluster is None:
             raise ValueError("You are on TARS (Institut Pasteur). You " +
                 " must use --cluster option to provide the scheduler " +

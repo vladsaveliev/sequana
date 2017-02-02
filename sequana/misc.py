@@ -16,13 +16,21 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-"""misc utilities"""
+""".. rubric:: misc utilities"""
 import os
 import glob
 import numpy as np
+import platform
 
 
 def textwrap(text, width=80, indent=0):
+    """Wrap a string with 80 characters
+
+    :param text: input text
+    :param width: (defaults to 80 characters)
+    :param indent: possible indentation (0 by default)
+
+    """
     if indent == 0:
         indent = ""
     else:
@@ -48,8 +56,34 @@ def wget(link, output):
 
 
 def findpos(seq, chr):
+    """Find position(s) of a substring into a longer string.
+
+    Note that this function is a generator::
+
+        >>> list(findpos("AACCGGAAGGTT", "GG"))
+        [4,8]
+
+    """
     N = len(chr)
     for i, dummy in enumerate(seq):
         if seq[i:i+N] == chr:
             yield i
 
+
+def on_cluster(pattern=["tars-"]):
+    """Used to check if we are on a cluster
+
+    "tars-" is the name of a cluster's hostname.
+    Change or append the argument **pattern** with your cluster's hostname
+
+    :param str pattern: a list of names (strings) or a string
+
+    """
+    if isinstance(pattern, str):
+        pattern = [pattern]
+
+    for this in pattern:
+        if platform.uname().node.startswith(this):
+            return True
+        else:
+            return False

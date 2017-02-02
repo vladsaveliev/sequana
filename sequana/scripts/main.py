@@ -79,7 +79,6 @@ class Tools(object):
         if self.verbose or force: print(txt)
 
 
-
 class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana"):
         usage = """Welcome to SEQUANA standalone
@@ -593,6 +592,7 @@ def copy_config_from_sequana(module, source="config.yaml",
         txt = "copied %s from sequana %s pipeline"
         print(txt % (source, module.name))
 
+
 def sequana_init(options):
     import sequana
     from sequana.misc import textwrap
@@ -701,7 +701,7 @@ def sequana_init(options):
 
     cfg.copy_requirements(target=options.target_dir)
 
-# FIXME If invalid, no error raised
+    # FIXME If invalid, no error raised
     if options.config_params:
         params = [this.strip() for this in options.config_params.split(",")]
         for param in params:

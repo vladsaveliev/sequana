@@ -9,6 +9,8 @@ Changelog
 
 * CHANGES:
 
+    - misc module: factorise on_cluster() function used in compressor scripts to
+        be used in other tools such as sequanix
     - compressor: limits max number of jobs to 20 (can be bypass manually),
       prevent run on TARS if snakemake-cluster not provided. 
     - rules:
