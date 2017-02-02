@@ -27,8 +27,7 @@ import easydev
 
 
 # Set logger
-import logging
-logger = logging.getLogger(__name__)
+from sequana import logger
 
 # Get sequana informations
 version = pkg_resources.get_distribution('sequana').version
@@ -60,3 +59,6 @@ css_path = os.sep.join([sequana_path, "sequana", "resources", "css"])
 js_path = os.sep.join([sequana_path, "sequana", "resources", "js"])
 css_list = glob.glob(css_path + os.sep + "*css")
 js_list = glob.glob(js_path + os.sep + "*js")
+
+# Sections list for summary.html
+summary_sections = list()
