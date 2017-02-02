@@ -33,6 +33,7 @@ class SequanaBaseModule(object):
     required_dir = ("css", "js", "images")
     def __init__(self):
         self.output_dir = config.output_dir
+        self.path = "./"
         # Initiate jinja template
         template = config.template_dict[config.template].load()
         env = jinja2.Environment(
@@ -61,7 +62,6 @@ class SequanaBaseModule(object):
             if os.path.isfile(target) is False:
                 shutil.copy(filename, target)
 
-
     def create_html(self, output_filename):
         """ Create html with Jinja2.
         """
@@ -74,14 +74,70 @@ class SequanaBaseModule(object):
     def create_link(self, name, target):
         """ Create an html link with name and target.
         """
-        link = "<a href={0} download={0}>{1}</a>"
-        return link.format(target, name)
+        return '<a href="{0}" download="{0}">{1}</a>'.format(target, name)
+
+    def create_hide_section(self, name, link, content):
+        """ Create an hideable section.
+        """
+        link = "<a href='#1' class='show_hide{0}'>{1}</a>".format(name, link)
+        content = "<div class='slidingDiv{0}'>\n{2}\n</div>".format(name,
+                                                                    content)
+        return link, content
+
+    def copy_file(self, filename, target_dir):
+        """ Copy a file to a target directory. Return the relative path of your
+        file.
+        """
+        try:
+            os.makedirs(target_dir)
+        except FileExistsError:
+            if os.path.isdir(target_dir):
+                pass
+            else:
+                msg = "{0} exist and it is not a directory".format(target_dir)
+                config.logger.error(msg)
+                raise FileExistsError
+        try:
+            shutil.copy(filename, target_dir)
+        except FileNotFoundError:
+            msg = "{0} doesn't exist".format(filename)
+            raise FileNotFoundError 
+        return target_dir + os.sep + os.path.basename(filename)
+
+    def add_float_right(self, content):
+        """ Add content align to right.
+        """
+        return '<div style="float:right">{0}</div>'.format(content)
+
+    def add_code_section(self, content, language):
+        """ Add code in your html.
+        """
+        html = '<pre><code class="{0}">{1}</code></pre>'
+        return html.format(language, content)
 
     def dataframe_to_html_table(self, dataframe, kwargs=dict()):
         """ Convert dataframe in html.
         """
         html = HTMLTable(dataframe)
         return html.to_html(**kwargs)
+
+    def include_svg_image(self, filename):
+        """ Include SVG image in the html.
+        """
+        html = ('<object data="{0}" type="image/svg+xml">\n'
+                '<img src="{0}"></object>')
+        return html.format(filename)
+
+    def png_to_embedded_png(self, png, style=None):
+        """ Include a PNG file as embedded file.
+        """
+        with open(png, 'rb') as fp:
+            png = fp.read().encode('base64').replace('\n','')
+        if style:
+            html = '<img style="{0}"'.format(style)
+        else:
+            html = "<img "
+        return '{0} src="data:image/png;base64,{1}">'.format(html, png)
 
     def create_embedded_png(self, plot_function, input_arg, kwargs=dict(),
                             style=None):
@@ -98,6 +154,6 @@ class SequanaBaseModule(object):
         else:
             html = '<img '
         html += 'src="data:image/png;base64,{0}"/>'.format(
-            base64.b64encode(buf.getvalue()).decode("utf-8"))
+            base64.b64encode(buf.getvalue()).decode('utf-8'))
         buf.close()
         return html
