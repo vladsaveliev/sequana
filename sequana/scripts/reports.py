@@ -56,8 +56,8 @@ Issues: http://github.com/sequana/sequana
             '-d', '--input-directory', type=str, dest='input_dir', help=(
             "Search for CSV and JSON files in the directory. It creates a "
             "report directory with a summary.html as main page."))
-        group.add_argument('-i', '--input', type=str, nargs='*',
-                           dest='input_file',
+        group.add_argument('-i', '--input-files', type=str, nargs='*',
+                           dest='input_files',
                            help="All CSV and JSON files produce by sequana")
         group.add_argument('-o', '--output-directory', type=str,
                            dest='output_dir', default='report',
@@ -67,6 +67,9 @@ Issues: http://github.com/sequana/sequana
                            help="Print version of sequana")
         group.add_argument('-v', '--verbose', dest='verbose',
                            action='store_true', help="Display logs") 
+        group = self.add_argument_group("Optionnal options")
+        group.add_argument('-n', '--name', type=str, dest='sample_name',
+                           help="Name of your sample.")
 
 
 def main(args=None):
@@ -82,10 +85,21 @@ def main(args=None):
         options = user_options.parse_args(args[1:])
     config.output_dir = options.output_dir
 
-    # list of all target files (csv or json)
-    input_files = [f for p in ('*.csv', '*.json') for f in
-                   glob.glob(os.sep.join([options.input_dir, p]),
-                   recursive=True)]
+    # list of all target files (csv or json) in input_dir
+    if options.input_dir:
+        input_files = [f for p in ('*.csv', '*.json') for f in
+                       glob.glob(os.sep.join([options.input_dir, p]),
+                       recursive=True)]
+    elif options.input_files:
+        input_files = options.input_files
+    else:
+        user_options.parse_args(['prog', '--help'])
+
+    # set the sample name of the report
+    if options.sample_name:
+        config.sample_name = options.sample_name
+    else:
+        config.sample_name = os.path.basename(input_files[0]).split('.')[0]
 
     for f in input_files:
         # get tools to retrieve module
