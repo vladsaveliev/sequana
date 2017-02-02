@@ -19,6 +19,7 @@
 """ Sequana report config contains configuration informations to create HTML
 report with Jinja2.
 """
+import sys
 import os
 import pkg_resources
 import glob
