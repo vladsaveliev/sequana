@@ -206,7 +206,7 @@ adapter_removal:
     rev: "%(adapter_rev)s"
     m: 20   # min length cutoff
     M: 120  # max length cutoff
-    mode: "g"   # g for 5' adapter, a for 3' and b for both 5'/3'
+    mode: "a"   # g for 5' adapter, a for 3' and b for both 5'/3'
     quality: "30"
     options: "-O 6 --trim-n"
 
