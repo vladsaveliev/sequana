@@ -49,7 +49,7 @@ import ruamel.yaml
 from ruamel.yaml import comments
 
 from sequana.misc import wget
-from sequana import sequana_data
+from sequana import sequana_data, logger
 from sequana.errors import SequanaException
 
 from sequana import logger
@@ -337,6 +337,12 @@ or open a Python shell and type::
         return filename
     config = property(_get_config,
                       doc="full path to the config file of the module")
+
+    def _get_config_cluster(self):
+        # The default config file for that module
+        return self._get_file("cluster_config.json")
+    config_cluster = property(_get_config_cluster,
+                      doc="full path to the config cluster file of the module")
 
     def _get_readme(self):
         return self._get_file("README.rst")
@@ -787,6 +793,7 @@ class PipelineManager(object):
                 else:
                     self.paired = False
 
+
         ff = self.ff  # an alias
         self.samples = {tag: [ff.get_file1(tag), ff.get_file2(tag)]
                         if ff.get_file2(tag) else [ff.get_file1(tag)]
@@ -1171,8 +1178,10 @@ class FastQFactory(FileFactory):
         elif len(candidates) == 1:
             return candidates[0]
         else:
-            print('Found too many candidates: %s ' % candidates)
-            raise ValueError("Files must have the tag _R1_ or _R2_ (%s)" % tag)
+            logger.critical('Found too many candidates: %s ' % candidates)
+            msg = 'Found too many candidates or identical names: %s ' % candidates
+            msg += "Files must have the tag _R1_ or _R2_ (%s)" % tag
+            raise ValueError(msg)
 
     def get_file1(self, tag=None):
         return self._get_file(tag, "_R1_")
