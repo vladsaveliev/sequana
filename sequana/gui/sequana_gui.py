@@ -523,16 +523,19 @@ class SequanaGUI(QMainWindow, Tools):
         pipelines_text += "</ul>"
 
         msg.setInformativeText("""<div>
-Sequanix can be used to run Sequana pipelines (see
+<p>
+<b>Sequanix</b> can be used to run Sequana NGS pipelines (see
 <a href="http://sequana.readthedocs.io">Sequana.readthedocs.io</a> for details)
 but also any Snakefile/configuration pairs
-(see <a href="http://snakemake.readthedocs.io">snakemake.readthedocs.io</a>for
-details).
-        <br>
+(see <a href="http://snakemake.readthedocs.io">snakemake.readthedocs.io</a>).
+</p>
+        <p>
         In both cases, a working directory must be set where the Snakefile
         and possibly a configuration file will be copied.
-        <br>
-        The generic Snakefile must be executable.
+        </p>
+        <p>The generic Snakefile must be executable meaning that users should
+take care of dependencies. Sequana pipelines should work out of the box
+(dependencies or Sequana pipelines being the same as <b>Sequanix</b>).</p>
 
         <h2>Sequana pipelines</h2>
         There are downloaded automatically with their config file from the Sequana
@@ -608,6 +611,7 @@ details).
         self.ui.layout_sequana_wkdir.addWidget(saf._directory_browser)
         self.ui.layout_sequana_input_dir.addWidget(saf._sequana_directory_tab)
         self.ui.layout_sequana_input_files.addWidget(saf._sequana_paired_tab)
+        #self.ui.layout_sequana_input_pattern.addWidget(saf._sequana_pattern_tab)
 
     @QtCore.pyqtSlot(str)
     def _update_sequana(self, index):
@@ -904,6 +908,7 @@ details).
         docparser = YamlDocParser(self.configfile)
 
         for count, rule in enumerate(rules_list):
+            self.debug("Scanning rule %s" % rule)
             # Check if this is a dictionnary
             contains = self.config._yaml_code[rule]
 
@@ -1071,6 +1076,10 @@ details).
             elif self.ui.tabWidget.currentIndex() == 1:
                 filename = self.sequana_factory._sequana_paired_tab.get_filenames()
                 form_dict["input_samples"] = (filename)
+            elif self.ui.tabWidget.currentIndex() == 2:
+                # We need to figure out where is the working directory with
+                # respect to the pattern
+                form_dict["input_pattern"] = self.ui.lineEdit.text()
         elif self.mode == "generic":
             self.info("Generic case")
 

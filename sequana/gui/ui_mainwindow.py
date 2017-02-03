@@ -111,6 +111,23 @@ class Ui_MainWindow(object):
         self.layout_sequana_input_files.setObjectName("layout_sequana_input_files")
         self.gridLayout_9.addLayout(self.layout_sequana_input_files, 0, 0, 1, 1)
         self.tabWidget.addTab(self.tab_5, "")
+        self.tab_2 = QtWidgets.QWidget()
+        self.tab_2.setObjectName("tab_2")
+        self.gridLayout_16 = QtWidgets.QGridLayout(self.tab_2)
+        self.gridLayout_16.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout_16.setObjectName("gridLayout_16")
+        self.layout_sequana_input_pattern = QtWidgets.QHBoxLayout()
+        self.layout_sequana_input_pattern.setObjectName("layout_sequana_input_pattern")
+        self.label_5 = QtWidgets.QLabel(self.tab_2)
+        self.label_5.setObjectName("label_5")
+        self.layout_sequana_input_pattern.addWidget(self.label_5)
+        self.lineEdit = QtWidgets.QLineEdit(self.tab_2)
+        self.lineEdit.setObjectName("lineEdit")
+        self.layout_sequana_input_pattern.addWidget(self.lineEdit)
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.layout_sequana_input_pattern.addItem(spacerItem)
+        self.gridLayout_16.addLayout(self.layout_sequana_input_pattern, 0, 0, 1, 1)
+        self.tabWidget.addTab(self.tab_2, "")
         self.horizontalLayout_2.addWidget(self.tabWidget)
         self.gridLayout_7.addLayout(self.horizontalLayout_2, 0, 0, 1, 1)
         self.tabs_sequana.addTab(self.sequana_input_dir_tab, "")
@@ -204,8 +221,8 @@ class Ui_MainWindow(object):
         self.starting_box.setObjectName("starting_box")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.starting_box)
         self.horizontalLayout_3.addLayout(self.formLayout)
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_3.addItem(spacerItem)
+        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_3.addItem(spacerItem1)
         self.verticalLayout_5 = QtWidgets.QVBoxLayout()
         self.verticalLayout_5.setObjectName("verticalLayout_5")
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
@@ -298,7 +315,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 561, 227))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 561, 199))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.gridLayout_4.addWidget(self.scrollArea, 0, 0, 1, 1)
@@ -406,11 +423,11 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabs_pipeline.setCurrentIndex(1)
+        self.tabs_pipeline.setCurrentIndex(0)
         self.tabs_sequana.setCurrentIndex(1)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(2)
         self.tabs_generic.setCurrentIndex(1)
-        self.tabs.setCurrentIndex(3)
+        self.tabs.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.tabs_pipeline, self.choice_button)
         MainWindow.setTabOrder(self.choice_button, self.until_box)
@@ -427,14 +444,17 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Sequanix (Sequana GUI)"))
-        self.tabs_pipeline.setToolTip(_translate("MainWindow", "<html><head/><body><p>Select a Sequana pipeline (left tab) or a generic Snakemake file (right tab).</p><p><br/>Go to Menu-&gt;QuickStart for more details (Ctrl+H key).</p></body></html>"))
+        self.tabs_pipeline.setToolTip(_translate("MainWindow", "<html><head/><body><p>Select a Sequana pipeline (left tab) or a generic Snakemake file (right tab).</p><p><br/>Go to Menu Help-&gt;QuickStart for more details (Ctrl+H key).</p></body></html>"))
         self.tabs_sequana.setToolTip(_translate("MainWindow", "<html><head/><body><ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\"><li style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Left tab:</span> Select one of the pipeline in the combo box. In order to get information about a pipeline, please see the Help menu. </li><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Middle tab:</span> Select one of this option</li><ol style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;\"><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Input directory: the directory where fastq.gz files are stored (all Sequana pipelines expect fastq.gz as input)</li><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Input samples: select one or two files (fastq.gz) in a directory</li></ol><li style=\" margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Right tab: </span>Select working directory where Snakefile/pipeline and config files will be copied. Pipelines are also ran in that directory. </li></ul></body></html>"))
         self.choice_button.setToolTip(_translate("MainWindow", "<html><head/><body><p>Sequana pipelines are automatically fetched from sequana library.</p><p>Each pipeline is defined by a pipeline name. Its config file is fetched automatically.</p><p>Each pipeline require the user to define the input. It may be one of:</p><p><ul><li> a directory</li><li> a set of FastQ input file</li></ul></body></html>"))
         self.choice_button.setCurrentText(_translate("MainWindow", "Select a Sequana pipeline"))
         self.choice_button.setItemText(0, _translate("MainWindow", "Select a Sequana pipeline"))
         self.tabs_sequana.setTabText(self.tabs_sequana.indexOf(self.Pipeline), _translate("MainWindow", "1 - Pipeline selection"))
+        self.tabWidget.setToolTip(_translate("MainWindow", "<html><head/><body><p>Choose one of those tab as your input choice</p><p><br/></p><p><span style=\" font-weight:600;\">Left tab (Input directory):</span> Automatically select all fastq.gz files found in the directory</p><p><span style=\" font-weight:600;\">Middle tab (Input Samples):</span> Sometimes, only 1 or 2 files (paired) are required, use this tab in such situations</p><p><span style=\" font-weight:600;\">Right tab (Input pattern):</span> Your samples may be in many sub directories, or you want to select only a sub set of files. Please provide a pattern with wildcards if you use this tab</p></body></html>"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("MainWindow", "a - Input directory"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), _translate("MainWindow", "b - Input sample(s)"))
+        self.label_5.setText(_translate("MainWindow", "<html><head/><body><p>A pattern (e.g., sample*/*fastq.gz) <br/>Note that it must end in fastq.gz for now.</p></body></html>"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Input pattern"))
         self.tabs_sequana.setTabText(self.tabs_sequana.indexOf(self.sequana_input_dir_tab), _translate("MainWindow", "2 - Input data (directory or files)"))
         self.tabs_sequana.setTabText(self.tabs_sequana.indexOf(self.sequana_working_dir_tab), _translate("MainWindow", "3 - Working directory"))
         self.tabs_pipeline.setTabText(self.tabs_pipeline.indexOf(self.tab_sequana_pipelines), _translate("MainWindow", "A - Sequana pipelines"))
@@ -473,7 +493,7 @@ class Ui_MainWindow(object):
 "- warning: orange\n"
 "- error: red\n"
 "- critical: bold red \n"
-"</pre>"))
+"</pre>You can change the verbosity in the preferences dialog</p>"))
         self.tabs.setTabText(self.tabs.indexOf(self.logger), _translate("MainWindow", "&Logger"))
         self.tab_3.setToolTip(_translate("MainWindow", "This tab contains the configuration file arguments. \n"
 "\n"
@@ -481,32 +501,28 @@ class Ui_MainWindow(object):
 "\n"
 "Once saved, the DAG and RUN buttons should be available."))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_3), _translate("MainWindow", "&Config parameters"))
-        self.run_btn.setToolTip(_translate("MainWindow", "Run the pipeline (shortcut: Ctrl+R)"))
+        self.run_btn.setToolTip(_translate("MainWindow", "<html><head/><body><p>Execute the Snakemake pipeline </p><p><span style=\" font-weight:600;\">shortcut: Ctrl+R</span></p></body></html>"))
         self.run_btn.setText(_translate("MainWindow", "&Run"))
         self.run_btn.setShortcut(_translate("MainWindow", "Ctrl+R"))
-        self.stop_btn.setToolTip(_translate("MainWindow", "Stop the running pipeline"))
+        self.stop_btn.setToolTip(_translate("MainWindow", "<html><head/><body><p>Stop the running pipeline. This may take a few seconds to stop.</p><p><span style=\" font-weight:600;\">Shortcut: Ctrl+X</span></p></body></html>"))
         self.stop_btn.setText(_translate("MainWindow", "Stop"))
         self.stop_btn.setShortcut(_translate("MainWindow", "Ctrl+X"))
-        self.unlock_btn.setToolTip(_translate("MainWindow", "Unlock the directory where the pipeline is run.\n"
-"This launch snakemake with the following arguments: \n"
-"\n"
-"snakemake -s Snakefile --unlock "))
+        self.unlock_btn.setToolTip(_translate("MainWindow", "<html><head/><body><p>Sometimes, the execution of a pipeline may be interrupted, which locks the working directory. This button allows users to unlock the directory.</p><p>For developers, this is equivalent to the snakemake command:</p><p><span style=\" font-style:italic; color:#ff0004;\">snakemake -s Snakefile --unlock </span></p><p><br/></p><p><span style=\" font-weight:600; color:#000000;\">Shortcut: Ctrl+U</span></p></body></html>"))
         self.unlock_btn.setText(_translate("MainWindow", "&Unlock"))
         self.unlock_btn.setShortcut(_translate("MainWindow", "Ctrl+U"))
-        self.report_btn.setToolTip(_translate("MainWindow", "This button open an HTML page present in the working directory (if found).\n"
-"\n"
-"This is essentially for the sequana pipeline (default filename is multi_summary.html but one can change the name in the option/preferences dialog."))
+        self.report_btn.setToolTip(_translate("MainWindow", "<html><head/><body><p>This button opens an HTML page present in the working directory (if found) if an HTML filename is specified in the <span style=\" font-weight:600;\">Preferences dialog.</span> If not, a file browser pops up so that one can select an HTML file. </p><p><br/></p><p><br/></p></body></html>"))
         self.report_btn.setText(_translate("MainWindow", "Open Report"))
         self.report_btn.setShortcut(_translate("MainWindow", "Shift+W"))
+        self.save_btn.setToolTip(_translate("MainWindow", "<html><head/><body><p>Save the current <span style=\" font-style:italic;\">configuration</span> (parameters to be used by the pipeline in the Config parameters tab here above) as well as the current <span style=\" font-style:italic;\">Snakemake pipeline</span>. The two files are saved in the <span style=\" font-style:italic;\">working directory</span>.</p><p><br/></p><p><span style=\" font-weight:600;\">Shortcut: Ctrl+S</span></p></body></html>"))
         self.save_btn.setText(_translate("MainWindow", "&Save"))
         self.save_btn.setShortcut(_translate("MainWindow", "Ctrl+S"))
-        self.dag_btn.setToolTip(_translate("MainWindow", "Pressing this button, a DAG is created and shown. \n"
-"This is a good way to check your config file ."))
+        self.dag_btn.setToolTip(_translate("MainWindow", "<html><head/><body><p>Pressing this button, a DAG is created and shown. </p><p>This is a good way to check your config file (i.e., if there are optional switch).</p><p><br/></p><p><span style=\" font-weight:600;\">Shortcut: Ctrl+D</span></p></body></html>"))
         self.dag_btn.setText(_translate("MainWindow", "Show &Dag"))
         self.dag_btn.setShortcut(_translate("MainWindow", "Ctrl+D"))
         self.progressBar.setToolTip(_translate("MainWindow", "<p>Progress of the pipeline. color codes:\n"
 "    <ul>\n"
 "        <li style=\"color:red\">Red: an error occured</li>\n"
+"        <li style=\"color:orange\">Orange: interrupted by the user</li>\n"
 "        <li style=\"color:green\">Green: completed with success</li>\n"
 "        <li style=\"color:blue\">Blue: in progress</li>\n"
 "    </ul>\n"

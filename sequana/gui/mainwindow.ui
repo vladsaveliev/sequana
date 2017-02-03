@@ -59,7 +59,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a Sequana pipeline (left tab) or a generic Snakemake file (right tab).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;Go to Menu-&amp;gt;QuickStart for more details (Ctrl+H key).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a Sequana pipeline (left tab) or a generic Snakemake file (right tab).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;Go to Menu Help-&amp;gt;QuickStart for more details (Ctrl+H key).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="styleSheet">
          <string notr="true">background-color:#aaddcc</string>
@@ -68,7 +68,7 @@
          <enum>QTabWidget::North</enum>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <property name="movable">
          <bool>true</bool>
@@ -186,11 +186,14 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_2">
                   <item>
                    <widget class="QTabWidget" name="tabWidget">
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Choose one of those tab as your input choice&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left tab (Input directory):&lt;/span&gt; Automatically select all fastq.gz files found in the directory&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle tab (Input Samples):&lt;/span&gt; Sometimes, only 1 or 2 files (paired) are required, use this tab in such situations&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right tab (Input pattern):&lt;/span&gt; Your samples may be in many sub directories, or you want to select only a sub set of files. Please provide a pattern with wildcards if you use this tab&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
                     <property name="styleSheet">
                      <string notr="true">background-color:white</string>
                     </property>
                     <property name="currentIndex">
-                     <number>1</number>
+                     <number>2</number>
                     </property>
                     <widget class="QWidget" name="tab_4">
                      <attribute name="title">
@@ -209,6 +212,40 @@
                      <layout class="QGridLayout" name="gridLayout_9">
                       <item row="0" column="0">
                        <layout class="QHBoxLayout" name="layout_sequana_input_files"/>
+                      </item>
+                     </layout>
+                    </widget>
+                    <widget class="QWidget" name="tab_2">
+                     <attribute name="title">
+                      <string>Input pattern</string>
+                     </attribute>
+                     <layout class="QGridLayout" name="gridLayout_16">
+                      <item row="0" column="0">
+                       <layout class="QHBoxLayout" name="layout_sequana_input_pattern">
+                        <item>
+                         <widget class="QLabel" name="label_5">
+                          <property name="text">
+                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A pattern (e.g., sample*/*fastq.gz) &lt;br/&gt;Note that it must end in fastq.gz for now.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLineEdit" name="lineEdit"/>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_2">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                       </layout>
                       </item>
                      </layout>
                     </widget>
@@ -388,7 +425,7 @@
                <item>
                 <widget class="QLabel" name="label_3">
                  <property name="text">
-                  <string>Local or cluster run ?</string>
+                  <string>&lt;b&gt;Is it a local or cluster run ?&lt;/b&gt;</string>
                  </property>
                 </widget>
                </item>
@@ -470,7 +507,7 @@
          <string notr="true">background-color:#ffffff</string>
         </property>
         <property name="currentIndex">
-         <number>3</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="snakemake">
          <property name="sizePolicy">
@@ -538,7 +575,7 @@ Color code:
 - warning: orange
 - error: red
 - critical: bold red 
-&lt;/pre&gt;</string>
+&lt;/pre&gt;You can change the verbosity in the preferences dialog&lt;/p&gt;</string>
          </property>
          <attribute name="title">
           <string>&amp;Logger</string>
@@ -584,7 +621,7 @@ Once saved, the DAG and RUN buttons should be available.</string>
                <x>0</x>
                <y>0</y>
                <width>561</width>
-               <height>227</height>
+               <height>213</height>
               </rect>
              </property>
             </widget>
@@ -623,7 +660,7 @@ Once saved, the DAG and RUN buttons should be available.</string>
            <item>
             <widget class="QPushButton" name="run_btn">
              <property name="toolTip">
-              <string>Run the pipeline (shortcut: Ctrl+R)</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Execute the Snakemake pipeline &lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;shortcut: Ctrl+R&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>&amp;Run</string>
@@ -636,7 +673,7 @@ Once saved, the DAG and RUN buttons should be available.</string>
            <item>
             <widget class="QPushButton" name="stop_btn">
              <property name="toolTip">
-              <string>Stop the running pipeline</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Stop the running pipeline. This may take a few seconds to stop.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Shortcut: Ctrl+X&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>Stop</string>
@@ -649,10 +686,7 @@ Once saved, the DAG and RUN buttons should be available.</string>
            <item>
             <widget class="QPushButton" name="unlock_btn">
              <property name="toolTip">
-              <string>Unlock the directory where the pipeline is run.
-This launch snakemake with the following arguments: 
-
-snakemake -s Snakefile --unlock </string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sometimes, the execution of a pipeline may be interrupted, which locks the working directory. This button allows users to unlock the directory.&lt;/p&gt;&lt;p&gt;For developers, this is equivalent to the snakemake command:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic; color:#ff0004;&quot;&gt;snakemake -s Snakefile --unlock &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#000000;&quot;&gt;Shortcut: Ctrl+U&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>&amp;Unlock</string>
@@ -665,9 +699,7 @@ snakemake -s Snakefile --unlock </string>
            <item>
             <widget class="QPushButton" name="report_btn">
              <property name="toolTip">
-              <string>This button open an HTML page present in the working directory (if found).
-
-This is essentially for the sequana pipeline (default filename is multi_summary.html but one can change the name in the option/preferences dialog.</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button opens an HTML page present in the working directory (if found) if an HTML filename is specified in the &lt;span style=&quot; font-weight:600;&quot;&gt;Preferences dialog.&lt;/span&gt; If not, a file browser pops up so that one can select an HTML file. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>Open Report</string>
@@ -684,6 +716,9 @@ This is essentially for the sequana pipeline (default filename is multi_summary.
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save the current &lt;span style=&quot; font-style:italic;&quot;&gt;configuration&lt;/span&gt; (parameters to be used by the pipeline in the Config parameters tab here above) as well as the current &lt;span style=&quot; font-style:italic;&quot;&gt;Snakemake pipeline&lt;/span&gt;. The two files are saved in the &lt;span style=&quot; font-style:italic;&quot;&gt;working directory&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Shortcut: Ctrl+S&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="autoFillBackground">
               <bool>false</bool>
@@ -702,8 +737,7 @@ This is essentially for the sequana pipeline (default filename is multi_summary.
            <item>
             <widget class="QPushButton" name="dag_btn">
              <property name="toolTip">
-              <string>Pressing this button, a DAG is created and shown. 
-This is a good way to check your config file .</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Pressing this button, a DAG is created and shown. &lt;/p&gt;&lt;p&gt;This is a good way to check your config file (i.e., if there are optional switch).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Shortcut: Ctrl+D&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>Show &amp;Dag</string>
@@ -730,6 +764,7 @@ This is a good way to check your config file .</string>
          <string>&lt;p&gt;Progress of the pipeline. color codes:
     &lt;ul&gt;
         &lt;li style=&quot;color:red&quot;&gt;Red: an error occured&lt;/li&gt;
+        &lt;li style=&quot;color:orange&quot;&gt;Orange: interrupted by the user&lt;/li&gt;
         &lt;li style=&quot;color:green&quot;&gt;Green: completed with success&lt;/li&gt;
         &lt;li style=&quot;color:blue&quot;&gt;Blue: in progress&lt;/li&gt;
     &lt;/ul&gt;
