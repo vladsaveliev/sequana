@@ -37,7 +37,7 @@
         <string>Snakemake parameters related to the cluster</string>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab_local">
         <attribute name="title">
@@ -160,6 +160,9 @@
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
              <widget class="QLabel" name="snakemake_options_cluster_jobs_label">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use at most N cores in parallel (default: 1). If N is omitted, the limit is set to the number of available  cores.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>jobs</string>
               </property>
@@ -185,7 +188,7 @@
             <item>
              <widget class="QLabel" name="snakemake_options_cluster_cluster_label">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Execute snakemake rules with the given submit command,&lt;/p&gt;&lt;p&gt;e.g. qsub. Snakemake compiles jobs into scripts that&lt;/p&gt;&lt;p&gt;are submitted to the cluster with the given command,&lt;/p&gt;&lt;p&gt;once all input files for a particular job are present.&lt;/p&gt;&lt;p&gt;The submit command can be decorated to make it aware&lt;/p&gt;&lt;p&gt;of certain job properties (input, output, params,&lt;/p&gt;&lt;p&gt;wildcards, log, threads and dependencies (see the&lt;/p&gt;&lt;p&gt;argument below)), e.g.: $ snakemake --cluster 'qsub&lt;/p&gt;&lt;p&gt;-pe threaded {threads}'.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Execute snakemake rules with the given submit command, e.g. qsub.&lt;/p&gt;&lt;p&gt;Snakemake compiles jobs into scripts that are submitted to the cluster with the given command, once all input files for a particular job are present. &lt;/p&gt;&lt;p&gt;The submit command can be decorated to make it aware of certain job properties (input, output, params, wildcards, log, threads and dependencies (see the argument below)), e.g.: $ snakemake --cluster 'qsub -pe threaded {threads}'.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>cluster</string>
@@ -217,10 +220,7 @@
           <item row="2" column="0">
            <widget class="QCheckBox" name="snakemake_options_general_forceall_value">
             <property name="toolTip">
-             <string>--forceall Force the execution of the selected (or the first)
-rule and all rules it is dependent on regardless of
-already created output.
-</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Force the execution of the selected (or the first) rule and all rules it is dependent on regardless of already created output.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>forceall</string>
@@ -240,8 +240,7 @@ already created output.
           <item row="3" column="0">
            <widget class="QCheckBox" name="snakemake_options_general_no__hooks_value">
             <property name="toolTip">
-             <string>--no-hooks : Do not invoke onstart, onsuccess or onerror hooks   after execution.
-</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not invoke onstart, onsuccess or onerror hooks after execution.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>nohooks</string>
