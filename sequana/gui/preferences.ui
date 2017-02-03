@@ -45,6 +45,13 @@
            </property>
            <item row="1" column="0">
             <widget class="QLabel" name="label">
+             <property name="toolTip">
+              <string>&lt;html&gt;
+&lt;body&gt;
+&lt;p&gt;Select your favorite web browser to show an HTML reports.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>Select the browser to be used</string>
              </property>
@@ -52,6 +59,13 @@
            </item>
            <item row="1" column="1">
             <widget class="QComboBox" name="preferences_options_general_browser_value">
+             <property name="toolTip">
+              <string>&lt;html&gt;
+&lt;body&gt;
+&lt;p&gt;Select your favorite web browser to show an HTML reports.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</string>
+             </property>
              <item>
               <property name="text">
                <string>pyqt5</string>
@@ -71,6 +85,15 @@
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_3">
+             <property name="toolTip">
+              <string>&lt;html&gt;
+&lt;body&gt;
+&lt;p&gt;Select the logging verbosity between different level of verbosity.&lt;/p&gt;
+&lt;p&gt;&lt;b&gt;Example&lt;/b&gt;: INFO level will show INFO, WARNING, ERROR and CRITICAL information but not DEBUG.&lt;/p&gt;
+&lt;p&gt;If you don't know, use &lt;b&gt;INFO&lt;/b&gt; level.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>Logging verbosity</string>
              </property>
@@ -78,6 +101,15 @@
            </item>
            <item row="2" column="1">
             <widget class="QComboBox" name="preferences_options_general_logging_value">
+             <property name="toolTip">
+              <string>&lt;html&gt;
+&lt;body&gt;
+&lt;p&gt;Select the logging verbosity between different level of verbosity.&lt;/p&gt;
+&lt;p&gt;&lt;b&gt;Example&lt;/b&gt;: INFO level will show INFO, WARNING, ERROR and CRITICAL information but not DEBUG.&lt;/p&gt;
+&lt;p&gt;If you don't know, use &lt;b&gt;INFO&lt;/b&gt; level.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</string>
+             </property>
              <property name="currentIndex">
               <number>1</number>
              </property>
@@ -110,6 +142,13 @@
            </item>
            <item row="3" column="0">
             <widget class="QLabel" name="label_4">
+             <property name="toolTip">
+              <string>&lt;html&gt;
+&lt;body&gt;
+&lt;p&gt;If you already know what HTML page you will open. You can set its filename to open its automatically.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>HTML page to open as a report</string>
              </property>
@@ -117,6 +156,13 @@
            </item>
            <item row="3" column="1">
             <widget class="QLineEdit" name="preferences_options_general_htmlpage_value">
+             <property name="toolTip">
+              <string>&lt;html&gt;
+&lt;body&gt;
+&lt;p&gt;If you already know what HTML page you will open. You can set its filename here to open its automatically when you click on report button.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>multi_summary.html</string>
              </property>
@@ -125,7 +171,11 @@
            <item row="0" column="0">
             <widget class="QCheckBox" name="preferences_options_general_overwrite_value">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The config file and the snakefile are copied in the working directory when the SAVE button is pressed. If the files exist already, a dialog ask a confirmation. You can&lt;/p&gt;&lt;p&gt;force the copy by checking this box. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;
+&lt;body&gt;
+&lt;p&gt;The config file and the snakefile are copied in the working directory when the SAVE button is pressed. If the files exist already, a dialog ask a confirmation. You can force the copy by checking this box.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>overwrites files</string>
