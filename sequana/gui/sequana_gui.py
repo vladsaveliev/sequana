@@ -199,10 +199,9 @@ class SequanaFactory(BaseFactory):
     def __repr__(self):
         in1 = self._sequana_directory_tab.get_filenames()
         in2 = self._sequana_paired_tab.get_filenames()
-        in3 = self._sequana_pattern_tab.get_filenames()
         txt = super(SequanaFactory, self).__repr__()
-        txt += "\npipeline:%s\ninput:\n - %s\n - %s\n - %s\ndirectory:%s\n"
-        return txt % (self.pipeline, in1, in2, in3, self.directory)
+        txt += "\npipeline:%s\ninput:\n - %s\n - %s\n - directory:%s\n"
+        return txt % (self.pipeline, in1, in2, self.directory)
 
 
 class GenericFactory(BaseFactory):
