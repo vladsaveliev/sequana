@@ -68,6 +68,7 @@ class Ui_Snakemake(object):
         self.snakemake_options_cluster_jobs_value.setSuffix("")
         self.snakemake_options_cluster_jobs_value.setMinimum(1)
         self.snakemake_options_cluster_jobs_value.setMaximum(10000)
+        self.snakemake_options_cluster_jobs_value.setProperty("value", 4)
         self.snakemake_options_cluster_jobs_value.setObjectName("snakemake_options_cluster_jobs_value")
         self.horizontalLayout_2.addWidget(self.snakemake_options_cluster_jobs_value)
         self.gridLayout_2.addLayout(self.horizontalLayout_2, 1, 0, 1, 1)
@@ -133,23 +134,22 @@ class Ui_Snakemake(object):
     def retranslateUi(self, Snakemake):
         _translate = QtCore.QCoreApplication.translate
         Snakemake.setWindowTitle(_translate("Snakemake", "Snakemake options"))
-        self.tabs.setToolTip(_translate("Snakemake", "Snakemake parameters related to the cluster"))
-        self.snakemake_options_local_cores_label.setToolTip(_translate("Snakemake", "<html><head/><body><p>Number of CPU to use locally.</p></body></html>"))
+        self.tabs.setToolTip(_translate("Snakemake", "<html><head/><body><p>Snakemake parameters (those used by the snakemake command)</p></body></html>"))
+        self.snakemake_options_local_cores_label.setToolTip(_translate("Snakemake", "<html><head/><body><p>Number of CPUs to use locally.</p></body></html>"))
         self.snakemake_options_local_cores_label.setText(_translate("Snakemake", "cores"))
+        self.snakemake_options_local_cores_value.setToolTip(_translate("Snakemake", "<html><head/><body><p>Number of CPUs to use locally.</p></body></html>"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_local), _translate("Snakemake", "&Local"))
+        self.snakemake_options_cluster_jobs_label.setToolTip(_translate("Snakemake", "<html><head/><body><p>Use at most N cores in parallel (default: 4). If N is omitted, the limit is set to the number of available cores.</p></body></html>"))
         self.snakemake_options_cluster_jobs_label.setText(_translate("Snakemake", "jobs"))
-        self.snakemake_options_cluster_cluster_label.setToolTip(_translate("Snakemake", "<html><head/><body><p>Execute snakemake rules with the given submit command,</p><p>e.g. qsub. Snakemake compiles jobs into scripts that</p><p>are submitted to the cluster with the given command,</p><p>once all input files for a particular job are present.</p><p>The submit command can be decorated to make it aware</p><p>of certain job properties (input, output, params,</p><p>wildcards, log, threads and dependencies (see the</p><p>argument below)), e.g.: $ snakemake --cluster \'qsub</p><p>-pe threaded {threads}\'.</p><p><br/></p></body></html>"))
+        self.snakemake_options_cluster_cluster_label.setToolTip(_translate("Snakemake", "<html><head/><body><p>Execute snakemake rules with a dedicated submit command, e.g. qsub on SGE system.</p><p>Snakemake compiles jobs into scripts that are submitted to the cluster with the given command, once all input files for a particular job are present. </p><p>The submit command can be decorated to make it aware of certain job properties (input, output, params, wildcards, log, threads and dependencies)</p><p>Depending on your cluster, you must set the appropriate command. For instance on SGE:</p><p><span style=\" font-weight:600;\">snakemake --cluster \'qsub -pe threaded 4\'</span></p><p>or on SLURM to use 16G of memory:</p><p><span style=\" font-weight:600;\">    snakemake --cluster &quot;sbatch --mem 16000&quot; </span></p><p><br/></p><p><br/></p><p><br/></p></body></html>"))
         self.snakemake_options_cluster_cluster_label.setText(_translate("Snakemake", "cluster"))
+        self.snakemake_options_cluster_cluster_value.setToolTip(_translate("Snakemake", "<html><head/><body><p>Execute snakemake rules with a dedicated submit command, e.g. qsub on SGE system.</p><p>Snakemake compiles jobs into scripts that are submitted to the cluster with the given command, once all input files for a particular job are present. </p><p>The submit command can be decorated to make it aware of certain job properties (input, output, params, wildcards, log, threads and dependencies)</p><p>Depending on your cluster, you must set the appropriate command. For instance on SGE:</p><p><span style=\" font-weight:600;\">snakemake --cluster \'qsub -pe threaded 4\'</span></p><p>or on SLURM to use 16G of memory:</p><p><span style=\" font-weight:600;\">    snakemake --cluster &quot;sbatch --mem 16000&quot; </span></p><p><br/></p><p><br/></p><p><br/></p></body></html>"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_cluster), _translate("Snakemake", "&Cluster"))
-        self.snakemake_options_general_forceall_value.setToolTip(_translate("Snakemake", "--forceall Force the execution of the selected (or the first)\n"
-"rule and all rules it is dependent on regardless of\n"
-"already created output.\n"
-""))
+        self.snakemake_options_general_forceall_value.setToolTip(_translate("Snakemake", "<html><head/><body><p>Force the execution of the selected (or the first) rule and all rules it is dependent on regardless of already created output.</p><p><br/></p></body></html>"))
         self.snakemake_options_general_forceall_value.setText(_translate("Snakemake", "forceall"))
         self.snakemake_options_general_quiet_value.setToolTip(_translate("Snakemake", "Do not output any progress or rule information"))
         self.snakemake_options_general_quiet_value.setText(_translate("Snakemake", "Quiet"))
-        self.snakemake_options_general_no__hooks_value.setToolTip(_translate("Snakemake", "--no-hooks : Do not invoke onstart, onsuccess or onerror hooks   after execution.\n"
-""))
+        self.snakemake_options_general_no__hooks_value.setToolTip(_translate("Snakemake", "<html><head/><body><p>Do not invoke onstart, onsuccess or onerror hooks after execution.</p><p><br/></p></body></html>"))
         self.snakemake_options_general_no__hooks_value.setText(_translate("Snakemake", "nohooks"))
         self.label.setToolTip(_translate("Snakemake", "<html><head/><body><p>Add any other valid snakemake options here</p></body></html>"))
         self.label.setText(_translate("Snakemake", "any other options"))

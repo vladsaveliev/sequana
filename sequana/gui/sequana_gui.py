@@ -154,6 +154,9 @@ class SequanaFactory(BaseFactory):
 
         # Set the file browser input_directory tab
         self._sequana_directory_tab = FileBrowser(directory=True)
+        self._sequana_pattern_label = QW.QLabel(
+            "<div><i>Optional</i> pattern (e.g., Samples_1?/*fastq.gz)</div>")
+        self._sequana_pattern_lineedit = QW.QLineEdit()
 
         # triggers/connectors
         self._sequana_directory_tab.clicked_connect(self._switch_off_run)
@@ -196,9 +199,10 @@ class SequanaFactory(BaseFactory):
     def __repr__(self):
         in1 = self._sequana_directory_tab.get_filenames()
         in2 = self._sequana_paired_tab.get_filenames()
+        in3 = self._sequana_pattern_tab.get_filenames()
         txt = super(SequanaFactory, self).__repr__()
-        txt += "\npipeline:%s\ninput:\n - %s\n - %s\ndirectory:%s\n"
-        return txt % (self.pipeline, in1, in2, self.directory)
+        txt += "\npipeline:%s\ninput:\n - %s\n - %s\n - %s\ndirectory:%s\n"
+        return txt % (self.pipeline, in1, in2, in3, self.directory)
 
 
 class GenericFactory(BaseFactory):
@@ -607,11 +611,17 @@ take care of dependencies. Sequana pipelines should work out of the box
         # a local alias
         saf = self.sequana_factory
 
-        # add widgets
+        # add widgets for the working dir and input sample
         self.ui.layout_sequana_wkdir.addWidget(saf._directory_browser)
-        self.ui.layout_sequana_input_dir.addWidget(saf._sequana_directory_tab)
         self.ui.layout_sequana_input_files.addWidget(saf._sequana_paired_tab)
-        #self.ui.layout_sequana_input_pattern.addWidget(saf._sequana_pattern_tab)
+
+        # add widget for the input directory
+        self.ui.layout_sequana_input_dir.addWidget(saf._sequana_directory_tab)
+        hlayout = QW.QHBoxLayout()
+        hlayout.addWidget(saf._sequana_pattern_label)
+        hlayout.addWidget(saf._sequana_pattern_lineedit)
+        self.ui.layout_sequana_input_dir.addLayout(hlayout)
+
 
     @QtCore.pyqtSlot(str)
     def _update_sequana(self, index):
@@ -1040,7 +1050,7 @@ take care of dependencies. Sequana pipelines should work out of the box
 
         if self.working_dir is None:
             self.critical('save_project: no working dir: return')
-            msg = WarningMessage("You must choose a pipeline first.")
+            msg = WarningMessage("You must select a working directory first.")
             msg.exec_()
             return
 
@@ -1073,13 +1083,18 @@ take care of dependencies. Sequana pipelines should work out of the box
             if self.ui.tabWidget.currentIndex() == 0:
                 filename = self.sequana_factory._sequana_directory_tab.get_filenames()
                 form_dict["input_directory"] = (filename)
+
+                # If pattern provided, the input_direcotry is reset but used in 
+                # the pattern as the basename
+                pattern = self.sequana_factory._sequana_pattern_lineedit.text()
+                if len(pattern.strip()):
+                    form_dict["input_pattern"] = (filename)
+                    form_dict["input_pattern"] += os.sep + pattern.strip()
+                    form_dict["input_directory"] = ""
+
             elif self.ui.tabWidget.currentIndex() == 1:
                 filename = self.sequana_factory._sequana_paired_tab.get_filenames()
                 form_dict["input_samples"] = (filename)
-            elif self.ui.tabWidget.currentIndex() == 2:
-                # We need to figure out where is the working directory with
-                # respect to the pattern
-                form_dict["input_pattern"] = self.ui.lineEdit.text()
         elif self.mode == "generic":
             self.info("Generic case")
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>613</width>
-    <height>695</height>
+    <width>590</width>
+    <height>551</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -47,7 +47,7 @@
       <item>
        <widget class="QTabWidget" name="tabs_pipeline">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -55,7 +55,7 @@
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>118</height>
+          <height>151</height>
          </size>
         </property>
         <property name="toolTip">
@@ -186,6 +186,18 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_2">
                   <item>
                    <widget class="QTabWidget" name="tabWidget">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>0</height>
+                     </size>
+                    </property>
                     <property name="toolTip">
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Choose one of those tab as your input choice&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left tab (Input directory):&lt;/span&gt; Automatically select all fastq.gz files found in the directory&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle tab (Input Samples):&lt;/span&gt; Sometimes, only 1 or 2 files (paired) are required, use this tab in such situations&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right tab (Input pattern):&lt;/span&gt; Your samples may be in many sub directories, or you want to select only a sub set of files. Please provide a pattern with wildcards if you use this tab&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
@@ -193,7 +205,7 @@
                      <string notr="true">background-color:white</string>
                     </property>
                     <property name="currentIndex">
-                     <number>2</number>
+                     <number>0</number>
                     </property>
                     <widget class="QWidget" name="tab_4">
                      <attribute name="title">
@@ -201,7 +213,7 @@
                      </attribute>
                      <layout class="QGridLayout" name="gridLayout_10">
                       <item row="0" column="0">
-                       <layout class="QHBoxLayout" name="layout_sequana_input_dir"/>
+                       <layout class="QVBoxLayout" name="layout_sequana_input_dir"/>
                       </item>
                      </layout>
                     </widget>
@@ -212,40 +224,6 @@
                      <layout class="QGridLayout" name="gridLayout_9">
                       <item row="0" column="0">
                        <layout class="QHBoxLayout" name="layout_sequana_input_files"/>
-                      </item>
-                     </layout>
-                    </widget>
-                    <widget class="QWidget" name="tab_2">
-                     <attribute name="title">
-                      <string>Input pattern</string>
-                     </attribute>
-                     <layout class="QGridLayout" name="gridLayout_16">
-                      <item row="0" column="0">
-                       <layout class="QHBoxLayout" name="layout_sequana_input_pattern">
-                        <item>
-                         <widget class="QLabel" name="label_5">
-                          <property name="text">
-                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A pattern (e.g., sample*/*fastq.gz) &lt;br/&gt;Note that it must end in fastq.gz for now.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QLineEdit" name="lineEdit"/>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_2">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                       </layout>
                       </item>
                      </layout>
                     </widget>
@@ -353,7 +331,7 @@
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>89</height>
+          <height>90</height>
          </size>
         </property>
         <property name="title">
@@ -620,8 +598,8 @@ Once saved, the DAG and RUN buttons should be available.</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>561</width>
-               <height>213</height>
+               <width>538</width>
+               <height>82</height>
               </rect>
              </property>
             </widget>
@@ -794,7 +772,7 @@ text-align: center;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>613</width>
+     <width>590</width>
      <height>19</height>
     </rect>
    </property>

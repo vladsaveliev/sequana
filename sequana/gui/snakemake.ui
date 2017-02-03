@@ -34,7 +34,7 @@
      <item>
       <widget class="QTabWidget" name="tabs">
        <property name="toolTip">
-        <string>Snakemake parameters related to the cluster</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Snakemake parameters (those used by the snakemake command)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="currentIndex">
         <number>1</number>
@@ -53,36 +53,18 @@
           </rect>
          </property>
          <layout class="QVBoxLayout" name="vertical_layout">
-          <property name="leftMargin">
-           <number>5</number>
-          </property>
-          <property name="topMargin">
-           <number>5</number>
-          </property>
-          <property name="rightMargin">
-           <number>5</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>5</number>
           </property>
           <item>
            <layout class="QHBoxLayout" name="horizontal_layout">
-            <property name="leftMargin">
-             <number>5</number>
-            </property>
-            <property name="topMargin">
-             <number>5</number>
-            </property>
-            <property name="rightMargin">
-             <number>5</number>
-            </property>
-            <property name="bottomMargin">
+            <property name="margin">
              <number>5</number>
             </property>
             <item>
              <widget class="QLabel" name="snakemake_options_local_cores_label">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of CPU to use locally.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of CPUs to use locally.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>cores</string>
@@ -91,6 +73,9 @@
             </item>
             <item>
              <widget class="QSpinBox" name="snakemake_options_local_cores_value">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of CPUs to use locally.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="minimum">
                <number>1</number>
               </property>
@@ -131,16 +116,7 @@
           </rect>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
-          <property name="leftMargin">
-           <number>5</number>
-          </property>
-          <property name="topMargin">
-           <number>5</number>
-          </property>
-          <property name="rightMargin">
-           <number>5</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>5</number>
           </property>
           <item row="2" column="0">
@@ -161,7 +137,7 @@
             <item>
              <widget class="QLabel" name="snakemake_options_cluster_jobs_label">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use at most N cores in parallel (default: 1). If N is omitted, the limit is set to the number of available  cores.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use at most N cores in parallel (default: 4). If N is omitted, the limit is set to the number of available cores.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>jobs</string>
@@ -179,6 +155,9 @@
               <property name="maximum">
                <number>10000</number>
               </property>
+              <property name="value">
+               <number>4</number>
+              </property>
              </widget>
             </item>
            </layout>
@@ -188,7 +167,7 @@
             <item>
              <widget class="QLabel" name="snakemake_options_cluster_cluster_label">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Execute snakemake rules with the given submit command, e.g. qsub.&lt;/p&gt;&lt;p&gt;Snakemake compiles jobs into scripts that are submitted to the cluster with the given command, once all input files for a particular job are present. &lt;/p&gt;&lt;p&gt;The submit command can be decorated to make it aware of certain job properties (input, output, params, wildcards, log, threads and dependencies (see the argument below)), e.g.: $ snakemake --cluster 'qsub -pe threaded {threads}'.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Execute snakemake rules with a dedicated submit command, e.g. qsub on SGE system.&lt;/p&gt;&lt;p&gt;Snakemake compiles jobs into scripts that are submitted to the cluster with the given command, once all input files for a particular job are present. &lt;/p&gt;&lt;p&gt;The submit command can be decorated to make it aware of certain job properties (input, output, params, wildcards, log, threads and dependencies)&lt;/p&gt;&lt;p&gt;Depending on your cluster, you must set the appropriate command. For instance on SGE:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;snakemake --cluster 'qsub -pe threaded 4'&lt;/span&gt;&lt;/p&gt;&lt;p&gt;or on SLURM to use 16G of memory:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;    snakemake --cluster &amp;quot;sbatch --mem 16000&amp;quot; &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>cluster</string>
@@ -196,7 +175,11 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="snakemake_options_cluster_cluster_value"/>
+             <widget class="QLineEdit" name="snakemake_options_cluster_cluster_value">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Execute snakemake rules with a dedicated submit command, e.g. qsub on SGE system.&lt;/p&gt;&lt;p&gt;Snakemake compiles jobs into scripts that are submitted to the cluster with the given command, once all input files for a particular job are present. &lt;/p&gt;&lt;p&gt;The submit command can be decorated to make it aware of certain job properties (input, output, params, wildcards, log, threads and dependencies)&lt;/p&gt;&lt;p&gt;Depending on your cluster, you must set the appropriate command. For instance on SGE:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;snakemake --cluster 'qsub -pe threaded 4'&lt;/span&gt;&lt;/p&gt;&lt;p&gt;or on SLURM to use 16G of memory:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;    snakemake --cluster &amp;quot;sbatch --mem 16000&amp;quot; &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>

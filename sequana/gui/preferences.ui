@@ -86,13 +86,7 @@
            <item row="2" column="0">
             <widget class="QLabel" name="label_3">
              <property name="toolTip">
-              <string>&lt;html&gt;
-&lt;body&gt;
-&lt;p&gt;Select the logging verbosity between different level of verbosity.&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;Example&lt;/b&gt;: INFO level will show INFO, WARNING, ERROR and CRITICAL information but not DEBUG.&lt;/p&gt;
-&lt;p&gt;If you don't know, use &lt;b&gt;INFO&lt;/b&gt; level.&lt;/p&gt;
-&lt;/body&gt;
-&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the &lt;span style=&quot; font-style:italic;&quot;&gt;logging verbosity&lt;/span&gt; parameter to change the level of verbosity.&lt;/p&gt;&lt;p&gt;We recommend to use the &lt;span style=&quot; font-weight:600;&quot;&gt;INFO&lt;/span&gt; level. &lt;/p&gt;&lt;p&gt;For lowest verbosity, set to CRITICAL.&lt;/p&gt;&lt;p&gt;For highest verbosity, set to DEBUG.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Example&lt;/span&gt;: Selecting INFO level means: show INFO and following levels (WARNING, ERROR and CRITICAL) but not the level above (here, DEBUG).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>Logging verbosity</string>
@@ -102,13 +96,7 @@
            <item row="2" column="1">
             <widget class="QComboBox" name="preferences_options_general_logging_value">
              <property name="toolTip">
-              <string>&lt;html&gt;
-&lt;body&gt;
-&lt;p&gt;Select the logging verbosity between different level of verbosity.&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;Example&lt;/b&gt;: INFO level will show INFO, WARNING, ERROR and CRITICAL information but not DEBUG.&lt;/p&gt;
-&lt;p&gt;If you don't know, use &lt;b&gt;INFO&lt;/b&gt; level.&lt;/p&gt;
-&lt;/body&gt;
-&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the &lt;span style=&quot; font-style:italic;&quot;&gt;logging verbosity&lt;/span&gt; parameter to change the level of verbosity.&lt;/p&gt;&lt;p&gt;We recommend to use the &lt;span style=&quot; font-weight:600;&quot;&gt;INFO&lt;/span&gt; level. &lt;/p&gt;&lt;p&gt;For lowest verbosity, set to CRITICAL.&lt;/p&gt;&lt;p&gt;For highest verbosity, set to DEBUG.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Example&lt;/span&gt;: Selecting INFO level means: show INFO and following levels (WARNING, ERROR and CRITICAL) but not the level above (here, DEBUG).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="currentIndex">
               <number>1</number>
@@ -143,11 +131,7 @@
            <item row="3" column="0">
             <widget class="QLabel" name="label_4">
              <property name="toolTip">
-              <string>&lt;html&gt;
-&lt;body&gt;
-&lt;p&gt;If you already know what HTML page you will open. You can set its filename to open its automatically.&lt;/p&gt;
-&lt;/body&gt;
-&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you already know what HTML page you will open, set its filename here to open it automatically. when you click on &lt;span style=&quot; font-style:italic;&quot;&gt;Open Report&lt;/span&gt; button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>HTML page to open as a report</string>
@@ -157,11 +141,7 @@
            <item row="3" column="1">
             <widget class="QLineEdit" name="preferences_options_general_htmlpage_value">
              <property name="toolTip">
-              <string>&lt;html&gt;
-&lt;body&gt;
-&lt;p&gt;If you already know what HTML page you will open. You can set its filename here to open its automatically when you click on report button.&lt;/p&gt;
-&lt;/body&gt;
-&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you already know what HTML page you will open, set its filename here to open it automatically. when you click on &lt;span style=&quot; font-style:italic;&quot;&gt;Open Report&lt;/span&gt; button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>multi_summary.html</string>
