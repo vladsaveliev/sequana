@@ -111,7 +111,8 @@ setup(
         ],
         'sequana.module':[
             'sequana_coverage=sequana.modules_report.coverage:SequanaModule',
-            'sequana_variant_calling=sequana.modules_report.variant_calling:SequanaModule'
+            'sequana_variant_calling=sequana.modules_report.variant_calling:SequanaModule',
+            'sequana_summary=sequana.modules_report.summary:SummaryModule'
         ],
         'sequana.report_template': [
             'standard=sequana.resources.template.standard'
