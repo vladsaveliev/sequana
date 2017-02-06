@@ -111,6 +111,9 @@ __bowtie1_mapping_rna__input = __clean_ngs__output
 __bowtie1_mapping_rna__bam = manager.getname("bowtie1_mapping_rna", ".bam")
 __bowtie1_mapping_rna__sort = manager.getname("bowtie1_mapping_rna", ".sorted.bam")
 __bowtie1_mapping_rna__prefix_index = config["bowtie1_mapping_rna"]['prefix_index']
+__bowtie1_mapping_rna__stdout = manager.getname("bowtie1_mapping_rna", "_rRNA_mapping.txt")
+__bowtie1_mapping_rna__stderr = "%s/logs/bowtie/rRNA_mapping_stderr.txt" % manager.sample
+
 include: bowtie1_mapping_dynamic("rna", manager.sample)
 expected_output.extend(expand(__bowtie1_mapping_rna__sort, sample=manager.samples))
 
@@ -120,6 +123,9 @@ if manager.config.bowtie1_mapping_ref.do:
     __bowtie1_mapping_ref__bam = manager.getname("bowtie1_mapping_ref", ".bam")
     __bowtie1_mapping_ref__sort = manager.getname("bowtie1_mapping_ref", ".sorted.bam")
     __bowtie1_mapping_ref__prefix_index = config["bowtie1_mapping_ref"]['prefix_index']
+    __bowtie1_mapping_ref__stdout = manager.getname("bowtie1_mapping_ref", "_ref_mapping.txt")
+    __bowtie1_mapping_ref__stderr = "%s/logs/bowtie/ref_mapping_stderr.txt" % manager.sample
+
     include: bowtie1_mapping_dynamic("ref", manager.sample)
     expected_output.extend(expand(__bowtie1_mapping_ref__sort, sample=manager.samples))
     __mapping_output = __bowtie1_mapping_ref__sort
