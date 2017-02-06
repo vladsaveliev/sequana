@@ -48,9 +48,12 @@ sequencing:
     flowcell: "H35CTBCXY"
 
 genome:
-  dir: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
-  version: hg19
   do: yes
+  dir: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
+  name: hg19
+  fasta: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
+  gff: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.gff
+
 
 #############################################################################
 # bowtie1_mapping_rna used to align reads against ribosomal RNA
