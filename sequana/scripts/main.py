@@ -31,7 +31,7 @@ from easydev.console import red, purple, green, blue
 from easydev import DevTools, SmartFormatter
 
 
-adapters_choice = ["Nextera", "Rubicon", "PCRFree"]
+adapters_choice = ["Nextera", "Rubicon", "PCRFree", "TruSeq"]
 
 help_input = """Missing input data.
 
@@ -75,9 +75,8 @@ class Tools(object):
         onweb(link)
     def mkdir(self, name):
         self.dv.mkdir(name)
-    def print(self, txt, force=False):
+    def info(self, txt, force=False):
         if self.verbose or force: print(txt)
-
 
 
 class Options(argparse.ArgumentParser):
@@ -593,6 +592,7 @@ def copy_config_from_sequana(module, source="config.yaml",
         txt = "copied %s from sequana %s pipeline"
         print(txt % (source, module.name))
 
+
 def sequana_init(options):
     import sequana
     from sequana.misc import textwrap
@@ -617,7 +617,7 @@ def sequana_init(options):
             sys.exit(0)
 
     # Copying snakefile
-    sa.print("Copying snakefile")
+    sa.info("Copying snakefile")
     sa.mkdir(options.target_dir)
     shutil.copy(module.snakefile, options.target_dir + os.sep +
                 options.pipeline + ".rules")
@@ -646,12 +646,12 @@ def sequana_init(options):
     and relevant files (depends on the pipeline).
     """
 
-    sa.print("Creating README")
+    sa.info("Creating README")
     with open(options.target_dir + os.sep + "README", "w") as fh:
         fh.write(txt.replace("\x1b[35m","").replace("\x1b[39;49;00m", ""))
 
     # Creating Config file
-    sa.print("Creating the config file")
+    sa.info("Creating the config file")
 
     # Create (if needed) and update the config file
     config_filename = options.target_dir + os.sep + "config.yaml"
@@ -701,7 +701,7 @@ def sequana_init(options):
 
     cfg.copy_requirements(target=options.target_dir)
 
-# FIXME If invalid, no error raised
+    # FIXME If invalid, no error raised
     if options.config_params:
         params = [this.strip() for this in options.config_params.split(",")]
         for param in params:

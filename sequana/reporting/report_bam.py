@@ -24,13 +24,13 @@
 
 """
 import os
-import pandas as pd
+
+from sequana.lazy import pandas as pd
 from sequana.reporting.report_main import BaseReport
 from sequana.bamtools import  SAMFlags
 
-import pylab
-import pysam
-from reports import HTMLTable
+from sequana.lazy import pylab
+from sequana.lazy import reports
 
 
 class BAMReport(BaseReport):
@@ -38,7 +38,8 @@ class BAMReport(BaseReport):
 
     ::
 
-        from sequana import BAM, sequana_data, BAMReport
+        from sequana import BAM, sequana_data
+        from sequana.reporting.report_bam import BAMReport
         b = BAM(sequana_data("test.bam"))
 
         r = BAMReport()
@@ -69,7 +70,7 @@ class BAMReport(BaseReport):
         sf = SAMFlags()
         df['meaning'] = sf.get_meaning()
         df = df[['meaning', 'counter']]
-        html = HTMLTable(df).to_html(index=True)
+        html = reports.HTMLTable(df).to_html(index=True)
         self.jinja['flags_table'] = html
 
         # create the bar plot with flags

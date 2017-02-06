@@ -162,7 +162,7 @@ def main(args=None):
     cfg.config.input_extension = None
     cfg.config.kraken = {"database": options.database}
 
-    from sequana import SequanaSummary
+    from sequana.reporting.report_summary import SequanaSummary
     from sequana.snaketools import DummyManager
 
     filenames = [options.file1]

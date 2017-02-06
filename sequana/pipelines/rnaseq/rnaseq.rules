@@ -222,19 +222,13 @@ include: sm.modules["multiqc"]
 expected_output = [__multiqc__output]
 
 
-# include overall dag file
-__dag__input = __snakefile__
-__dag__output = "dag.svg"
-include: sm.modules['dag']
-expected_output.extend(["dag.svg"])
-
 
 # Include rule graph for each sample
 __rulegraph__input = __snakefile__
-__rulegraph__output = "rulegraph.svg"
+__rulegraph__output = "rulegraph/rulegraph.svg"
 __rulegraph__mapper = {"fastqc_samples": "fastqc_samples/"}
 include: sm.modules['rulegraph']
-expected_output.extend(["rulegraph.svg"])
+expected_output.extend([__rulegraph__output])
 
 
 # Add Conda
@@ -243,7 +237,7 @@ include: sm.modules['conda']   # Create requirements.txt(dependencies)
 expected_output.extend([__conda__output])
 
 # Those rules takes a couple of seconds so no need for a cluster
-localrules: dag, conda, rulegraph
+localrules: conda, rulegraph
 
 rule rnaseq:
     input: expected_output
@@ -262,7 +256,7 @@ onsuccess:
         except:pass
 
         shell("cp %s %s" % (__snakefile__, report_dir))
-        shell("cp rulegraph.svg %s/dag.svg" % (report_dir))
+        shell("cp rulegraph.svg %s/rulegraph.svg" % (report_dir))
         shell("cp config.yaml %s" % report_dir)
         shell("cp requirements.txt %s" % report_dir)
         shell("cp snakemake_stats.png %s" % report_dir)
@@ -270,7 +264,7 @@ onsuccess:
         shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
         shell('cp -r %s/cutadapt/ %s' % (proj, report_dir))
 
-        from sequana import SequanaSummary
+        from sequana.reporting.report_summary import SequanaSummary
         summary = SequanaSummary(proj, directory=report_dir, 
             output_filename="summary.html", 
             snakefile=__snakefile__, configfile=report_dir+"/config.yaml",

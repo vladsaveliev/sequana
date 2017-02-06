@@ -1,11 +1,9 @@
 from sequana import  KrakenResults, KrakenAnalysis, KrakenDownload
 from sequana import sequana_data, sequana_config_path
-from nose.plugins.attrib import attr
 import os
 
 
-@attr('skip')
-def test_kraken_taxon():
+def run_kraken_taxon():
 
     def download():
         kd = KrakenDownload()
@@ -23,8 +21,14 @@ def test_kraken_taxon():
     kt = KrakenAnalysis(file2, database=database)
     kt.run()
 
+if "TRAVIS_PYTHON_VERSION" in os.environ:
+    pass
+else:
+    def test_kraken():
+        run_kraken_taxon()
 
-def test_kraken_results():
+
+def _test_kraken_results():
     test_file = sequana_data("test_kraken.out", "testing")
     k = KrakenResults(test_file, verbose=False)
     df = k.plot(kind='pie')

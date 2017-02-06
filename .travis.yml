@@ -24,39 +24,30 @@ before_install:
     - "export DISPLAY=:99.0"
     - "sh -e /etc/init.d/xvfb start"
 
-
 install:
   - echo $TRAVIS_PYTHON_VERSION
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pyqt numpy matplotlib pandas
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION nose coverage numexpr xlrd
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION cython
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pillow
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pyVCF
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION sphinx
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pyyaml
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION qtconsole
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION kraken
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION bleach
-  - conda install cutadapt pysam snpEff krona --yes
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION nose coverage numexpr xlrd pyyaml
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION cython pillow pyVCF sphinx qtconsole
+  - conda install kraken cutadapt pysam snpEff krona bleach --yes
   # use pip to get latest version
   - pip install easydev>=0.9.31 --upgrade
   - pip install coveralls
   - pip install entrypoints
   - pip install mistune
   - pip install tabulate
-  - pip install biokit>=0.3.3
+  - pip install biokit>=0.3.4
   - pip install bioservices --upgrade
   - pip install snakemake
   - pip install colorlog
-  - pip install pytest pytest-cov pytest-qt pytest-xdist pytest-mock
+  - pip install pytest pytest-cov pytest-qt pytest-xdist pytest-mock pytest-timeout
   - pip install ruamel.yaml>=0.13.2
   - pip install pyquickhelper
   - pip install .
 
 # # command to run tests, e.g. python setup.py test
 script:
-  - pytest -v --durations=10  test/ --cov=sequana --cov-report term-missing -n 4
-
+  - pytest -v --durations=10  test/ --cov=sequana --cov-report term --timeout 300 -n 2
 
 after_success:
   coveralls

@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 # coding: utf-8
 
+=======
+>>>>>>> develop
 rule star_mapping:
     """
     Read mapping for either single end and paired end data using RNA-STAR.
@@ -24,6 +27,10 @@ rule star_mapping:
                 ref: "" #path to the reference genome file in fasta format
                 options:  "" #options for bowtie1 you want use
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> develop
     input:
         __star_mapping__input
     log:

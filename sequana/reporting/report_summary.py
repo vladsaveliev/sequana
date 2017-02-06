@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -21,10 +21,15 @@ import glob
 import json
 
 from sequana.reporting.report_main import BaseReport
-from easydev import DevTools
-from reports import HTMLTable
+from sequana.snaketools import SequanaConfig
+from sequana.snaketools import Module
+from sequana.snaketools import FastQFactory
+from sequana import tools
 
-import pandas as pd
+from easydev import DevTools
+from sequana.lazy import reports
+
+from sequana.lazy import pandas as pd
 
 
 __all__ = ['SequanaSummary']
@@ -61,15 +66,12 @@ class SequanaSummary(BaseReport):
         self.jinja['title'] = "Summary report"
 
         self.manager = manager
-        
 
         if self.manager.paired is True:
             self.jinja['type'] = "Paired-end"
         else:
             self.jinja['type'] = "Single-end"
         # ============================================ Add the config and pipeline files
-        from sequana.snaketools import SequanaConfig
-        from sequana.snaketools import Module
 
         if configfile:
             self.config = SequanaConfig(configfile)
@@ -91,7 +93,7 @@ class SequanaSummary(BaseReport):
         if snakefile: self.read_snakefile(snakefile)
 
         # This is a string representation of the config file
-        if configfile: 
+        if configfile:
             try:self.read_configfile(configfile)
             except:pass
 
@@ -102,7 +104,7 @@ class SequanaSummary(BaseReport):
 
             try:self.include_phix()
             except:pass
-            
+
             try: self.include_sample_stats()
             except:pass
 
@@ -133,11 +135,10 @@ class SequanaSummary(BaseReport):
     def include_output_links(self):
         html = "<ul>"
         filenames = glob.glob(self.directory+"/*fastq.gz")
-        from sequana.snaketools import FastQFactory
         if len(filenames):
             ff = FastQFactory(filenames)
             for filename in ff.basenames:
-                html += '<li>Download cleaned data: <a href="%s">%s</a></li>\n' % (filename, 
+                html += '<li>Download cleaned data: <a href="%s">%s</a></li>\n' % (filename,
                     filename)
             html += "</ul>"
             self.jinja['output'] = html
@@ -170,7 +171,7 @@ class SequanaSummary(BaseReport):
         if self.config.config["adapter_removal"]['do']:
             df = pd.read_json(self.directory + "/cutadapt/cutadapt_stats1.json")
             self.jinja["cutadapt_stats1_json"] = df.to_json()
-            h = HTMLTable(df)
+            h = reports.HTMLTable(df)
             html = h.to_html(index=True)
             self.jinja['cutadapt_stats1'] = html
 
@@ -208,6 +209,9 @@ class SequanaSummary(BaseReport):
             self.jinja['kraken_database'] = "?"
 
         df = pd.read_csv(self.directory + "/kraken/kraken.csv")
+
+        # Rounding and convert in string to avoid exp notation
+        df['percentage']  = df['percentage'].apply(lambda x: str(round(x,4)))
         self.jinja['kraken_json'] = df.to_json()
 
         table = self.htmltable(df, tablename="kraken")
@@ -220,7 +224,6 @@ class SequanaSummary(BaseReport):
     def include_phix(self):
         filename=self.directory + "/bwa_bam_to_fastq/bwa_mem_stats.json"
         if os.path.exists(filename):
-            from sequana import tools
             stats = tools.StatsBAM2Mapped(filename)
             self.jinja['phix_section'] = stats.to_html(with_stats=False)
             self.jinja['phix_section_json'] = stats.data

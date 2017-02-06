@@ -190,16 +190,11 @@ if manager.config.kraken.do:
     expected_output.append(expand(__kraken__output_json, sample=manager.samples))
 
 
-# include overall dag file
-__dag__input = __snakefile__
-__dag__output = "dag.svg"
-include: sm.modules['dag']
-expected_output.extend(["dag.svg"])
 
 
 # Include rule graph for each sample
 __rulegraph__input = __snakefile__
-__rulegraph__output = "rulegraph.svg"
+__rulegraph__output = "rulegraph/rulegraph.svg"
 __rulegraph__mapper = {
     "fastqc_samples": "fastqc_samples/",
     "fastqc_phix": "fastqc_phix/",
@@ -211,7 +206,7 @@ __rulegraph__mapper = {
 
 }
 include: sm.modules['rulegraph']
-expected_output.extend(["rulegraph.svg"])
+expected_output.extend(["rulegraph/rulegraph.svg"])
 
 
 # Add Conda
@@ -220,7 +215,7 @@ include: sm.modules['conda']   # Create requirements.txt(dependencies)
 expected_output.extend([__conda__output])
 
 # Those rules takes a couple of seconds so no need for a cluster
-localrules: dag, conda, rulegraph
+localrules: conda, rulegraph
 
 
 rule pipeline_quality_control:
@@ -240,7 +235,7 @@ onsuccess:
         except:pass
 
         shell("cp %s %s" % (__snakefile__, report_dir))
-        shell("cp rulegraph.svg %s/dag.svg" % (report_dir))
+        shell("cp rulegraph/rulegraph.svg %s" % (report_dir))
         shell("cp config.yaml %s" % report_dir)
         shell("cp requirements.txt %s" % report_dir)
         try:shell("cp snakemake_stats.png %s" % report_dir)
@@ -261,16 +256,16 @@ onsuccess:
             shell('cp -r %s/bwa_bam_to_fastq/ %s' % (proj, report_dir))
         #shell('rm -f %s/bwa_bam_to_fastq/*fastq ' % (report_dir))
 
-        # Copy the fastq files 
+        # Copy the fastq files
         if manager.config.adapter_removal.do:
             shell('cp -r %s/cutadapt %s' % (proj, report_dir))
             #shell('mv  %s/cutadapt/*fastq.gz %s' % (report_dir, report_dir))
         elif manager.config.bwa_mem_phix.do:
             shell('cp -r %s/bwa_bam_to_fastq/*unmapped* %s' % (proj, report_dir))
 
-        from sequana import SequanaSummary
-        summary = SequanaSummary(proj, directory=report_dir, 
-            output_filename="summary.html", 
+        from sequana.reporting.report_summary import SequanaSummary
+        summary = SequanaSummary(proj, directory=report_dir,
+            output_filename="summary.html",
             snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
             manager=manager)
         summary.create_report()
@@ -278,11 +273,10 @@ onsuccess:
         # Create a cleanup python file to clean a sub-directory
         sm.create_cleanup(proj)
 
-    try: 
+    try:
         print("Create multi summary file")
         shell("sequana_summary -m")
     except: pass
-
 
     garbage = ['snakemake_stats.png',  "rulegraph.svg", "requirements.txt"]
     for filename in garbage:

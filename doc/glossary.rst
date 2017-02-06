@@ -27,6 +27,10 @@ Glossary
         The index file for a file generated in the BAM format. (This is a
         non-standard file type.)
 
+    DSRC
+
+        A compression tool dedicated to FastQ files
+
     FASTA
 
         FASTA-formatted sequence files contains either nucleic acid sequence

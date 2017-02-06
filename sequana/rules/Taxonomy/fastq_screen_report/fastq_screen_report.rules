@@ -23,13 +23,24 @@ rule fastq_screen_report:
         pl.style.use('ggplot')
         import csv
         from numpy import array, arange
+<<<<<<< HEAD
+=======
+        file = ""
+        for fp in os.listdir(input[0]):
+            if fp.endswith("_screen.txt"):
+                file = fp
+>>>>>>> develop
 
         species=[]
         ohol=[]
         mhol=[]
         ohml=[]
         mhml=[]
+<<<<<<< HEAD
         for line in csv.reader(open(input[0], "r"), dialect="excel-tab") :
+=======
+        for line in csv.reader(open(os.path.join(input[0], file), "r"), dialect="excel-tab") :
+>>>>>>> develop
             if(len(line) == 0) :
                 continue
             if(line[0].startswith("#")) :

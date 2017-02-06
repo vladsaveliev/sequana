@@ -4,23 +4,24 @@ Developer guide
 ################
 
 In this section we first look at how to include a new module (snakemake rule) in
-Sequana. Then, we will create a new pipeline that uses that single rule.
+**Sequana**. Then, we will create a new pipeline that uses that single rule.
 
 The rule simply counts the number of reads in a fastq file.
-The pipeline will contains that unique rule only. 
+The pipeline will only contains that unique rule. 
 
 
 How to write a new module
 ==============================
 
-The :term:`Module` in Sequana parlance is a directory with two files: one that
-contains a Snakemake file (also known as :term:`Snakefile`) and a README file.
-The Snakefile may be a simple snakemake rule or a set of them (a pipeline). 
+A :term:`Module` (in Sequana parlance) is a directory with a set of files:
+a Snakemake file (also known as :term:`Snakefile`), a README file for the
+documentation and a configuration file (optional).
+The Snakefile may be a simple snakemake rule or a set of them (a pipeline).
 
 Find a valid name
 -------------------
 
-All rules and pipelines must have a unique name in Sequana.
+All rules and pipelines must have a unique name in Sequana. 
 We can quickly check that a name is not used in Sequana using:
 
 .. doctest::
@@ -47,10 +48,10 @@ This is not a tutorial on Snakemake but let us quickly explain this Snakefile.
 The first two lines use **Sequana** library to provide the *filename* as a test file.
 
 
-Then, the rule itself is defined on line 3 where we define the rule name: **count**. We 
+Then, the rule itself is defined on line 4 where we define the rule named: **count**. We 
 then provide on line 5 and 6 the expected input and output filenames. On line 7 onwards, we
 define the actual function that counts the number of reads and save the results
-in a json file.
+in a TXT file.
 
 You can now execute the Snakefile just to check that this rule works as expected::
 
@@ -70,7 +71,6 @@ All modules are placed either in *./sequana/pipelines* or in
 *./sequana/rules* directory. The tree structure looks like::
 
     .
-    ├── config.yaml
     ├── rules
     │   ├── count
     │   │   ├── count.rules
@@ -126,10 +126,11 @@ We tend to not hard-code any filename. So the input and output are actually
 variables. The variable names being the name of the rule with leading and
 trailing doubled underscores followed by the string *input* or *output*.
 
-The advantage is that those variables can be defined in the Snakefile before the
-rule but also overwritten within a pipeline as discussed in :ref:`dev_pipeline`
+.. note:: The is a big advantage of designing rules with variables only:
+    rules can be re-used in any pipelines without changing the rule itself; only 
+    pipelines will be different.
 
-Use the config file
+Use a config file
 ---------------------------------
 
 We encourage developers to NOT set any parameter in the params section of the Snakefile.
@@ -154,8 +155,8 @@ allows users to use any parameters.
     See `github repo <https://github.com/sequana/sequana/tree/master/sequana/pipelines>`_
 
 
-Add documentation
-------------------------
+Add documentation in the rule
+----------------------------------
 
 In **sequana**, we provide a sphinx extension to include the inline
 documentation of a rule::
@@ -210,6 +211,13 @@ current convention::
 How to write new pipelines
 ================================
 
+There are many rules already available in **Sequana**. You can easily add rules
+as follows::
+
+    from sequana import snaketools as sm
+    include: sm.module['rulegraph']
+
+
 Use sequana.snaketools
 -------------------------
 
@@ -243,7 +251,7 @@ This is a WIP in progress but here is an example for the previous pipeline::
 
     :Overview: Counts the reads in a fastq file
     :Input: FastQ raw data file
-    :Output: 
+    :Output:
         - count.txt
 
     Usage
@@ -257,22 +265,32 @@ This is a WIP in progress but here is an example for the previous pipeline::
 .. note:: the README uses Restructured syntax (not markdown)
 
 
+Documenting the configuration file
+---------------------------------------
+
+The configuration should be in YAML format. You should comment top-level
+sections corresponding to a rule as follows::
 
 
-requirements file
------------------------
+    #######################################################
+    #
+    # A block comment in docstring format
+    #
+    # This means a # character followed by a space and then 
+    # the docstring. The first line made of ##### will be removed
+    # and is used to make the documentation clear. No spaces
+    # before the section (count:) here below.
+    #
+    count:  # you can add an overview
+        -item1: 1 # you can add comment for an item
+        -item1: 2 # you can add comment for an item
 
-You can add a **requirements.txt** file with a list of executable or libraries
-required by the pipeline. Executable are searched in your PATH and libraries in
-PYTHONPATH (conda).
-
-Where running a pipeline, if the requirements are not fulfilled, an error is
-raised before starting the analysis.
+If valid, the block comment is interpreted and a tooltip will appear in
+**Sequanix**.
 
 
-
-Coding conventions
-----------------------
+Further coding conventions
+-------------------------------
 
 To print debugging information, warnings or more generally information, please
 do not use the print() function but the logger::

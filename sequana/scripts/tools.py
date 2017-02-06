@@ -15,6 +15,13 @@ class SequanaOptions(object):
     def add_cluster(self, this):
         this.add_argument("--snakemake-cluster", dest="cluster", 
             type=str,
-            help="""a valid snakemake option dedicated to a
-                cluster.  e.g on LSF cluster --cluster 'qsub -cwd -q<QUEUE> '""")
+            help="""FORMAT|a valid snakemake option dedicated to a cluster.  
+e.g on LSF cluster use:
+    --cluster 'qsub -cwd -q<QUEUE> '
+
+On a SLURM system use for example:
+
+    --cluster 'sbatch --qos normal'
+
+""")
 

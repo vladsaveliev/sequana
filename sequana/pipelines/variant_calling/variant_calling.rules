@@ -178,12 +178,12 @@ final_output.append(expand(__report_variant__html_output,
                            sample=manager.samples))
 
 include: sm.modules["conda"] # Create requirements.txt(dependencies)
-__dag__input = __snakefile__
-__rulegraph__output = "dag.svg"
+__rulegraph__input = __snakefile__
+__rulegraph__output = "rulegraph/rulegraph.svg"
 __rulegraph__mapper = {"report_mapping":"report_mapping.html",
                        "report_variant":"report_variant.html"}
 include: sm.modules["rulegraph"]
-final_output += ["requirements.txt", "dag.svg"]
+final_output += ["requirements.txt", __rulegraph__output]
 
 
 file_to_copy = [__freebayes__input, __freebayes__bai, __freebayes__output,
