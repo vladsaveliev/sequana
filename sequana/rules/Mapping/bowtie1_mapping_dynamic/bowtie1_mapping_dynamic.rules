@@ -1,9 +1,5 @@
 # coding: utf-8
 def bowtie1_mapping_dynamic(name, log_dir):
-<<<<<<< HEAD
-=======
-
->>>>>>> develop
     """
     Read mapping for either single end and paired end data using Bowtie1.
 
