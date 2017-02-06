@@ -7,7 +7,7 @@
 
 {{ module.intro if module.intro }}
 {% for section in module.sections %}
-<div id="{{module["anchor"]}}">
+<div id="{{section["anchor"]}}">
     <h2 id="{{section["anchor"]}}">{{section["name"]}}</h2>
         {{section["content"]}}
 </div> 
