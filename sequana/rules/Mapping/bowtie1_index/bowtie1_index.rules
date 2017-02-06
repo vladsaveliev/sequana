@@ -1,0 +1,13 @@
+rule bowtie1_index:
+    input:
+        fasta = config["genome"]["fasta"],
+        prefix = config["genome"]["name"]
+    output:
+        config["genome"]["name"] + ".ebwt"
+    log:
+        __bowtie1_index__log
+    shell:
+        """
+        bowtie-build {input.fasta} {input.prefix}  2> {log}
+        samtools faidx {input} 2>> {log}
+        """
