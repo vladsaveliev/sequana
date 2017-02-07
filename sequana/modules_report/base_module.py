@@ -32,6 +32,7 @@ class SequanaBaseModule(object):
     """
     required_dir = ("css", "js", "images")
     def __init__(self):
+        self.script = list()
         self.output_dir = config.output_dir
         self.path = "./"
         # Initiate jinja template
@@ -80,8 +81,12 @@ class SequanaBaseModule(object):
         """ Create an hideable section.
         """
         link = "<a href='#1' class='show_hide{0}'>{1}</a>".format(name, link)
-        content = "<div class='slidingDiv{0}'>\n{2}\n</div>".format(name,
+        content = "<div class='slidingDiv{0}'>\n{1}\n</div>".format(name,
                                                                     content)
+        self.script.append('$(".slidingDiv{0}").hide()\n'
+                           '$(".show_hide{0}").click(function(){\n'
+                           '    $(".slidingDiv{0}").slideToggle();\n'
+                           '});\n')
         return link, content
 
     def copy_file(self, filename, target_dir):
