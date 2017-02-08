@@ -46,7 +46,7 @@ machine
 import shlex
 import io
 
-import pandas as pd
+from sequana.lazy import pandas as pd
 
 
 __all__ = ["ExpDesignAdapter", "ExpDesignMiSeq", "ExpDesignHiSeq",

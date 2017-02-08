@@ -34,10 +34,10 @@
      <item>
       <widget class="QTabWidget" name="tabs">
        <property name="toolTip">
-        <string>Snakemake parameters related to the cluster</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Snakemake parameters (those used by the snakemake command)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab_local">
         <attribute name="title">
@@ -64,7 +64,7 @@
             <item>
              <widget class="QLabel" name="snakemake_options_local_cores_label">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of CPU to use locally.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of CPUs to use locally.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>cores</string>
@@ -73,6 +73,9 @@
             </item>
             <item>
              <widget class="QSpinBox" name="snakemake_options_local_cores_value">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of CPUs to use locally.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="minimum">
                <number>1</number>
               </property>
@@ -108,35 +111,34 @@
           <rect>
            <x>10</x>
            <y>20</y>
-           <width>169</width>
-           <height>111</height>
+           <width>371</width>
+           <height>311</height>
           </rect>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <layout class="QGridLayout" name="gridLayout_2">
           <property name="margin">
            <number>5</number>
           </property>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <item>
-             <widget class="QLabel" name="snakemake_options_cluster_cluster_label">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Execute snakemake rules with the given submit command,&lt;/p&gt;&lt;p&gt;e.g. qsub. Snakemake compiles jobs into scripts that&lt;/p&gt;&lt;p&gt;are submitted to the cluster with the given command,&lt;/p&gt;&lt;p&gt;once all input files for a particular job are present.&lt;/p&gt;&lt;p&gt;The submit command can be decorated to make it aware&lt;/p&gt;&lt;p&gt;of certain job properties (input, output, params,&lt;/p&gt;&lt;p&gt;wildcards, log, threads and dependencies (see the&lt;/p&gt;&lt;p&gt;argument below)), e.g.: $ snakemake --cluster 'qsub&lt;/p&gt;&lt;p&gt;-pe threaded {threads}'.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>cluster</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="snakemake_options_cluster_cluster_value"/>
-            </item>
-           </layout>
+          <item row="2" column="0">
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
           </item>
-          <item>
+          <item row="1" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
              <widget class="QLabel" name="snakemake_options_cluster_jobs_label">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use at most N cores in parallel (default: 4). If N is omitted, the limit is set to the number of available cores.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="text">
                <string>jobs</string>
               </property>
@@ -153,22 +155,33 @@
               <property name="maximum">
                <number>10000</number>
               </property>
+              <property name="value">
+               <number>4</number>
+              </property>
              </widget>
             </item>
            </layout>
           </item>
-          <item>
-           <spacer name="verticalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QLabel" name="snakemake_options_cluster_cluster_label">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Execute snakemake rules with a dedicated submit command, e.g. qsub on SGE system.&lt;/p&gt;&lt;p&gt;Snakemake compiles jobs into scripts that are submitted to the cluster with the given command, once all input files for a particular job are present. &lt;/p&gt;&lt;p&gt;The submit command can be decorated to make it aware of certain job properties (input, output, params, wildcards, log, threads and dependencies)&lt;/p&gt;&lt;p&gt;Depending on your cluster, you must set the appropriate command. For instance on SGE:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;snakemake --cluster 'qsub -pe threaded 4'&lt;/span&gt;&lt;/p&gt;&lt;p&gt;or on SLURM to use 16G of memory:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;    snakemake --cluster &amp;quot;sbatch --mem 16000&amp;quot; &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>cluster</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="snakemake_options_cluster_cluster_value">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Execute snakemake rules with a dedicated submit command, e.g. qsub on SGE system.&lt;/p&gt;&lt;p&gt;Snakemake compiles jobs into scripts that are submitted to the cluster with the given command, once all input files for a particular job are present. &lt;/p&gt;&lt;p&gt;The submit command can be decorated to make it aware of certain job properties (input, output, params, wildcards, log, threads and dependencies)&lt;/p&gt;&lt;p&gt;Depending on your cluster, you must set the appropriate command. For instance on SGE:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;snakemake --cluster 'qsub -pe threaded 4'&lt;/span&gt;&lt;/p&gt;&lt;p&gt;or on SLURM to use 16G of memory:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;    snakemake --cluster &amp;quot;sbatch --mem 16000&amp;quot; &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
@@ -190,10 +203,7 @@
           <item row="2" column="0">
            <widget class="QCheckBox" name="snakemake_options_general_forceall_value">
             <property name="toolTip">
-             <string>--forceall Force the execution of the selected (or the first)
-rule and all rules it is dependent on regardless of
-already created output.
-</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Force the execution of the selected (or the first) rule and all rules it is dependent on regardless of already created output.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>forceall</string>
@@ -213,8 +223,7 @@ already created output.
           <item row="3" column="0">
            <widget class="QCheckBox" name="snakemake_options_general_no__hooks_value">
             <property name="toolTip">
-             <string>--no-hooks : Do not invoke onstart, onsuccess or onerror hooks   after execution.
-</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not invoke onstart, onsuccess or onerror hooks after execution.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>nohooks</string>

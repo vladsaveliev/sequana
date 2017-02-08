@@ -1,6 +1,6 @@
 rule fastq_screen_report:
     """
-    fastq_screen_report rule draw a svg plot after fastq_screen. The database use is dedicated to Biomics Pole (Institut Pasteur)
+    fastq_screen_report rule draw a svg plot after fastq_screen. The database used is dedicated to Biomics Pole (Institut Pasteur)
 
     Required input:
         __fastq_screen_report__input: a output fastq_screen directory
@@ -10,7 +10,7 @@ rule fastq_screen_report:
     """
 
     input :
-        __fastq_screen_report__input_dir
+        __fastq_screen_report__input
     log :
         __fastq_screen_report__logs
     output:
@@ -23,17 +23,14 @@ rule fastq_screen_report:
         pl.style.use('ggplot')
         import csv
         from numpy import array, arange
-        file = ""
-        for fp in os.listdir(input[0]):
-            if fp.endswith("_screen.txt"):
-                file = fp
 
         species=[]
         ohol=[]
         mhol=[]
         ohml=[]
         mhml=[]
-        for line in csv.reader(open(os.path.join(input[0], file), "r"), dialect="excel-tab") :
+
+        for line in csv.reader(open(input[0], "r"), dialect="excel-tab") :
             if(len(line) == 0) :
                 continue
             if(line[0].startswith("#")) :
@@ -63,7 +60,7 @@ rule fastq_screen_report:
         pl.bar(ind, tuple(mhml), color="#FF6347", bottom=tuple(ohol+mhol+ohml), label="repeat")
         #p5 = bar(25, nohit, color="#6699FF")
 
-        pl.title("%s" % file.replace("_screen.txt","").split("/")[-1])
+        pl.title("%s" % input[0].replace("_screen.txt","").split("/")[-1])
         pl.ylabel("%")
         pl.ylim((0,105))
         pl.xticks(ind+0.4, species, rotation="vertical")

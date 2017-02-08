@@ -30,15 +30,16 @@
 
 """
 import os
+import json
 from collections import Counter
 from collections import OrderedDict
 import json
 
-import pandas as pd
-import numpy as np
-import pylab
-import pysam
+from sequana.lazy import pandas as pd
+from sequana.lazy import numpy as np
+from sequana.lazy import pylab
 
+import pysam
 from sequana import jsontool
 
 
@@ -291,7 +292,6 @@ class BAM(pysam.AlignmentFile):
         flags = self.get_flags()
         data = [(this, [flag&this for flag in flags])
             for this in [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]]
-        import pandas as pd
         df = pd.DataFrame(dict(data))
         df = df > 0
         return df

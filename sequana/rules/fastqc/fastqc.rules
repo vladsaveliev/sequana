@@ -67,7 +67,7 @@ rule fastqc_%(name)s:
             pass
 
         # report
-        from sequana import FastQCReport
+        from sequana.reporting.report_fastqc import FastQCReport
         s = FastQCReport(
                 params.wkdir,
                 output_filename="fastqc_%(name)s.html",

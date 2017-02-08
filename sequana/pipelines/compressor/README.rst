@@ -1,8 +1,9 @@
-:Overview: **compressor** can be used to compress/uncompress FastQ files recursively. 
-   It was designed to uncompress gzipped files and to compress them back into a 
-   bzip2 format. Supported formats are gz and bz2 and 
-   dsrc (http://sun.aei.polsl.pl/dsrc/download.html).
-:Input: Any number of fastQ files (compressed or not)
+:Overview: **compressor** can be used to compress/uncompress FastQ files recursively.
+   It was designed to uncompress gzipped files and to compress them back into a
+   bzip2 format. It was then extended to dsrc and non-compressed files.
+   Supported formats are gz and bz2 and dsrc
+   (http://sun.aei.polsl.pl/dsrc/download.html).
+:Input: Any number of FastQ files (compressed or not)
 :Output: The input files (compressed or not)
 :requirements: gzip and bzip and their parallel versions (pigz and pbzip2) as
     well as dsrc (DNA compression tool).
@@ -14,25 +15,43 @@ A standalone named **sequana_compressor** is provided. Please see::
 
     sequana_compressor --help
 
-Example::
+to get detailled information about the arguments. The following example
+converts all file ending in fastq.gz into a new compression format (bz2).
+Note that "fastq" before the extension is required::
 
     sequana_compressor --source fastq.gz --target fastq.bz2
+
+If you want to add recursivity, add the ``--recursive`` argument. On a
+distributed system (e.g. slurm), you should use the ``--snakemake-cluster``.
+For example on SLURM, add::
+
+    --snakemake-cluster "sbatch --qos normal"
+
+
+
+**compressor** allows one to go from one format in (fastq, fastq.gz, fastq.bz2,
+fastq.dsrc) to any format in the same list. So this is a fully connected
+network as shown below:
 
 
 .. image:: _static/compressor_codecs.png
    :width: 60%
 
-**compressor** allows one to go from one format in (fastq, fastq.gz, fastq.bz2,
-fastq.dsrc) to any format in the same list. So this is a fully connected
-network:
+Here is another example::
 
-.. warning:: currently, this works only for fastq files and the **fastq** string
-   must be provided before the extension
+    sequana_compressor --source fastq.gz --target fastq.bz2 --threads 8
+    --snakemake-cluster "sbatch --qos normal"  --recursive --jobs 20
 
-.. warning:: during the conversion, a .snakemake is created in each processed
-   direcrory. If you interrupt the process, snakemake locks the directory. If
+The number of jobs is set to 4 by default and limited to 20 to have a
+reasonnable IO access. You can use more using the ``--bypass`` argument.
+If nodes have 8 CPUs, use threads=8, this means 20 nodes will be used. 
+
+
+
+.. warning:: During the conversion, a .snakemake is created in each processed
+   directory. If you interrupt the process, snakemake locks the directory. If
    you get an error message about locked directories, relaunch your previous
-   command with --unlock to unlock the directories and start again
+   command with ``--unlock`` to unlock the directories and start again
 
 Requirements
 ~~~~~~~~~~~~~~~~~~

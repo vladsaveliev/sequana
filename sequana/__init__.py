@@ -1,3 +1,4 @@
+
 import pkg_resources
 try:
     version = pkg_resources.require("sequana")[0].version
@@ -9,15 +10,11 @@ import colorlog as logger
 from easydev import CustomConfig
 configuration = CustomConfig("sequana", verbose=False)
 sequana_config_path = configuration.user_config_dir
+
 # This must be import before all other modules (sequana_data function)
 from .datatools import sequana_data
 
-# snakemake related
-from .snaketools import modules
-from .snaketools import SequanaConfig, DOTParser
-from .snaketools import Module, ModuleFinder, FastQFactory
-
-# various utilities for IO/data analysis
+from .snaketools import *
 from .adapters import AdapterReader, FindAdaptersFromDesign, Adapter
 from .expdesign import ExpDesignAdapter
 from .bamtools import BAM, SAMFlags
@@ -34,13 +31,6 @@ from .snpeff import SnpEff
 from .vcf_filter import VCF
 
 
-# Reports
-from sequana.reporting.report_bam import BAMReport
-from sequana.reporting.report_fastqc import FastQCReport
-from sequana.reporting.report_fastq_stats import FastQStatsReport
-from sequana.reporting.report_summary import SequanaSummary
-
 # The standalone app
 from . import scripts
-
 

@@ -24,7 +24,7 @@ from sequana.reporting.report_main import BaseReport
 from easydev import DevTools
 from sequana.resources.canvas.bar import CanvasBar
 
-import pandas as pd
+from sequana.lazy import pandas as pd
 
 __all__ = ['SequanaMultipleSummary']
 

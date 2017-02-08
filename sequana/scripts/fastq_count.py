@@ -1,3 +1,20 @@
+# -*- coding: utf-8 -*-
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016 - Sequana Development Team
+#
+#  File author(s):
+#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  website: https://github.com/sequana/sequana
+#  documentation: http://sequana.readthedocs.io
+#
+##############################################################################
+"""Extract head of a zipped or unzipped FastQ file"""
 from sequana.fastq import FastQ
 
 import sys
@@ -11,7 +28,7 @@ class Options(argparse.ArgumentParser):
         usage += """usage2: %s fastq_filename""" % prog
         usage += """Examples:
 
-            fastq_count --input.fastq.gz
+            fastq_count --input test.fastq.gz
 
         """
         super(Options, self).__init__(usage=usage, prog=prog)
@@ -23,7 +40,8 @@ def main(args=None):
         args = sys.argv[:]
 
     user_options = Options(prog="fastq_count")
-    if len(args) == 1:
+
+    if len(args) == 1 or "--help" in args:
         user_options.parse_args(["prog", "--help"])
     elif len(args) == 2:
         class SimpleOpt():
@@ -42,4 +60,4 @@ def main(args=None):
 if __name__ == "__main__":
    import sys
    main(sys.argv)
-   
+

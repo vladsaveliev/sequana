@@ -19,15 +19,14 @@
 """Standalone dedicated to taxonomic content (kraken)"""
 import os
 import sys
-import shutil
-import sys
 from optparse import OptionParser
 import argparse
 
-import tempfile
-
 from sequana.scripts.tools import SequanaOptions
+from sequana import misc
 from sequana import Module, SequanaConfig
+
+from easydev import SmartFormatter, TempFile
 
 
 class Options(argparse.ArgumentParser, SequanaOptions):
@@ -37,83 +36,88 @@ class Options(argparse.ArgumentParser, SequanaOptions):
     This standalone fetches recursively all files in a given format (--source)
     and transform them into another format (--target)
 
-    Supported files must have one of the following extension:
-
-        - fastq
-        - fastq.gz
-        - fastq.bz2
-
-    The underlying compression tools used are pigz and pbzip2, which must be
-    installed.
+    Compression supported ar gz, bz2 and dsrc. Note that one must add
+    "fastq" in the extension as shown in the following examples:
 
         sequana_compressor --source fastq.gz   --target fastq.bz2
         sequana_compressor --source fastq      --target fastq.bz2
         sequana_compressor --source fastq.gz   --target fastq
         sequana_compressor --source fastq.bz2  --target fastq
 
-
-    If your job(s) were interrupted (ctrl+C), your directories will are
-    problably locked. Use the --unlock option in such situations.
+    If your job(s) were interrupted (ctrl+C), your directories will most
+    probably be locked. Use the --unlock option in such situations.
 
         sequana_compressor --source ... --target ... --unlock
 
-    --source and --target must be provided but no analysis will be performed 
+    --source and --target must be provided but no analysis will be performed
     at that stage.
 
     Then, type your command again.
 
+    Note for IP users: if compressor is launch on Institut Pasteur Cluster
+        (tars), the --snakemake-options must be used to provide the slurm
+        sbatch command (see help below for example).
+
 AUTHORS: Thomas Cokelaer
 Documentation: http://sequana.readthedocs.io
-Issues: http://github.com/sequana/sequana
-
-        """
+Issues: http://github.com/sequana/sequana"""
         description = """DESCRIPTION:
         """
         super(Options, self).__init__(usage=usage, prog=prog,
-                description=description)
+                description=description, formatter_class=SmartFormatter)
 
         # options to fill the config file
-        self.add_argument("--source", dest="source", type=str,
+        group = self.add_argument_group("INPUT/OUTPUT")
+        group.add_argument("--source", dest="source", type=str,
             help="""Search for all source files with this extension. Valid
-extensions are: fastq, fastq.gz, fastq.bz2, fastq.dscr, fq, fq.gz, fq.bz2 and
-fq.dsrc""")
-        self.add_argument("--target", dest="target", type=str,
-            help="""Convert the source files to a new format. Valid
-extensions are: fastq, fastq.gz, fastq.bz2, fastq.dscr, fq, fq.gz, fq.bz2 and
-fq.dsrc""")
-        self.add_argument("--recursive", dest="recursive",
+                extensions are: fastq, fastq.gz, fastq.bz2, fastq.dscr,
+                fq, fq.gz, fq.bz2 and fq.dsrc""")
+        group.add_argument("--target", dest="target", type=str,
+            help="""Convert the source files to a new target format.
+                Same extensions as above.""")
+        group.add_argument("--recursive", dest="recursive",
             default=False,
             action="store_true", help="""recursive search""")
-        self.add_argument("--threads", dest="threads",
+
+        group = self.add_argument_group("JOBS RELATED (threads/cores)")
+        group.add_argument("--threads", dest="threads",
             default=4, type=int,
             help="""Maximum number of threads to use per task (4).""")
-        self.add_argument("--jobs", dest="jobs",
-            default=4,
-            help="""Maximum number of cores to use at most (4). """)
+        group.add_argument("--jobs", dest="jobs",
+            default=4, type=int,
+            help="""Maximum number of cores to use at the same time (4). """)
+        group.add_argument("--bypass-job-limit", default=False,
+            action="store_true", dest="bypass",
+            help="""The number of jobs is limited to 20 to limit IO. If you
+                want to bypass this limitation, use this option.""")
 
-        self.add_argument("--unlock", action="store_true",
+        group = self.add_argument_group("SNAKEMAKE RELATED")
+        group.add_argument("--unlock", action="store_true",
             help="""If you stopped the application, the underlying snakemake
                 process are interrupted and directories were snakemake was
                 launch will be locked. If so please use this option using the
                 --source and --target as when you got the error message""")
-
-        self.add_argument("--snakemake-options", dest="snakemake",
+        group.add_argument("--snakemake-options", dest="snakemake",
             default=" --keep-going ",
-            help="""any valid list of options accepted by snakemake except
-            -s and -j . Note that by default --keep-going is used ; If you set
-            this argument yourself, you have to add --keep-going as well otherwise it stops
-            at the first error encountered""")
+            help="""Any valid list of options accepted by snakemake except
+            -s and -j (for -j, use our --jobs argument). Note that by
+            default --keep-going is used ; If you set
+            this argument yourself, you have to add --keep-going as
+            well otherwise it stops at the first error encountered""")
+
         self.add_version(self)
-        self.add_cluster(self)
         self.add_quiet(self)
+
+        group = self.add_argument_group("CLUSTER")
+        self.add_cluster(group)
 
 
 def main(args=None):
 
-    if args is None:
-        args = sys.argv[:]
-
     user_options = Options(prog="sequana")
+
+    if args is None:
+        args = sys.argv
 
     # If --help or no options provided, show the help
     if len(args) == 1:
@@ -125,6 +129,17 @@ def main(args=None):
         import sequana
         print(sequana.version)
         sys.exit()
+
+    if options.jobs > 20 and options.bypass is False:
+        raise ValueError('The number of jobs is limited to 20. You can ' +
+            'force this limit by using --bypass-job-limit')
+
+    if misc.on_cluster("tars-") and options.unlock is False:
+        if options.cluster is None:
+            raise ValueError("You are on TARS (Institut Pasteur). You " +
+                " must use --cluster option to provide the scheduler " +
+                " options (typically ' --cluster 'sbatch --qos normal' )")
+
     # valid codecs:
     valid_extensions = [("fastq." + ext2).rstrip(".")
                         for ext2 in ['', 'bz2', 'gz', 'dsrc']]
@@ -140,9 +155,9 @@ def main(args=None):
         raise ValueError("""--target and --source combo not valid.
 Must be one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
 
-    from easydev import TempFile
-    # Create the config file locally
 
+
+    # Create the config file locally
     module = Module("compressor")
 
     with TempFile(suffix=".yaml", dir=".") as temp:
@@ -154,7 +169,6 @@ Must be one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
         cfg.config.compressor.threads = options.threads
         cfg._update_yaml()
         cfg.save(filename=temp.name)
-
 
         # The Snakefile can stay in its original place:
         rule = module.path + os.sep +  "compressor.rules"
@@ -174,6 +188,9 @@ Must be one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
             cmd += cluster
 
         if options.snakemake:
+            if " -s " in options.snakemake or " -j " in options.snakemake:
+                raise ValueError("-s or -j cannot be used in " +
+                    " --snakemake-options    (already used internally")
             cmd += options.snakemake
 
         if options.unlock:

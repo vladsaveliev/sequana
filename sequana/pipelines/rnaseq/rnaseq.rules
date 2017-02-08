@@ -88,7 +88,15 @@ __fastq_screen__output = [x.replace(".fastq.gz", "_screen.txt") for x in __clean
 __fastq_screen__output = [x.replace("/"+adapter_tool+"/", "/fastq_screen/") for x in __fastq_screen__output]
 __fastq_screen__outdir = manager.getwkdir("fastq_screen")
 include: sm.modules["fastq_screen"]
-expected_output.extend(expand(__fastq_screen__output, sample=manager.samples))
+if manager.config.fastq_screen.pf2_report:
+    __fastq_screen_report__input = __fastq_screen__output
+    __fastq_screen_report__figure = manager.getname("fastq_screen", "_report.svg")
+    __fastq_screen_report__logs =  manager.getname("fastq_screen", "pf2_report.logs")
+    include: sm.modules["fastq_screen_report"]
+    expected_output.extend(expand(__fastq_screen_report__figure, sample=manager.samples))
+else:
+    expected_output.extend(expand(__fastq_screen__output, sample=manager.samples))
+
 
 # FASTQC on input data set
 __fastqc_filtered__input_fastq = __clean_ngs__output
@@ -103,6 +111,9 @@ __bowtie1_mapping_rna__input = __clean_ngs__output
 __bowtie1_mapping_rna__bam = manager.getname("bowtie1_mapping_rna", ".bam")
 __bowtie1_mapping_rna__sort = manager.getname("bowtie1_mapping_rna", ".sorted.bam")
 __bowtie1_mapping_rna__prefix_index = config["bowtie1_mapping_rna"]['prefix_index']
+__bowtie1_mapping_rna__stdout = manager.getname("bowtie1_mapping_rna", "_rRNA_mapping.txt")
+__bowtie1_mapping_rna__stderr = "%s/logs/bowtie/rRNA_mapping_stderr.txt" % manager.sample
+
 include: bowtie1_mapping_dynamic("rna", manager.sample)
 expected_output.extend(expand(__bowtie1_mapping_rna__sort, sample=manager.samples))
 
@@ -112,6 +123,9 @@ if manager.config.bowtie1_mapping_ref.do:
     __bowtie1_mapping_ref__bam = manager.getname("bowtie1_mapping_ref", ".bam")
     __bowtie1_mapping_ref__sort = manager.getname("bowtie1_mapping_ref", ".sorted.bam")
     __bowtie1_mapping_ref__prefix_index = config["bowtie1_mapping_ref"]['prefix_index']
+    __bowtie1_mapping_ref__stdout = manager.getname("bowtie1_mapping_ref", "_ref_mapping.txt")
+    __bowtie1_mapping_ref__stderr = "%s/logs/bowtie/ref_mapping_stderr.txt" % manager.sample
+
     include: bowtie1_mapping_dynamic("ref", manager.sample)
     expected_output.extend(expand(__bowtie1_mapping_ref__sort, sample=manager.samples))
     __mapping_output = __bowtie1_mapping_ref__sort
@@ -138,7 +152,7 @@ if manager.config.tophat_mapping.do:
     expected_output.extend(expand(__tophat_mapping__sort, sample=manager.samples))
 
 # generating of bigwig files
-if manager.config.bamCoverage.do:
+if manager.config.coverage.do:
     __bamCoverage__input = __mapping_output
     __bamCoverage__log = manager.getname("bamCoverage", ".logs")
     __bamCoverage__output = manager.getname("bamCoverage", ".norm.bw")
@@ -149,7 +163,7 @@ else :
     __igvtools__output = manager.getname("igvtools", ".tdf")
     __igvtools__log = manager.getname("igvtools", ".logs")
     include: sm.modules["igvtools"]
-    expected_output.extend(expand(__igvtools__output, sample=manager.samples))
+    #expected_output.extend(expand(__igvtools__output, sample=manager.samples))
 
 
 # Feature counts from subread suite
@@ -186,10 +200,17 @@ if config["mark_duplicates"]["do"]:
 
 
 if config["RNAseQC"]["do"]:
-    include: sm.module["reorderSam"]
-    include: sm.module["RNAseQC"]
-
-
+    __reorderSam__input = __mark_duplicates__output
+    __reorderSam__logs = manager.getname("reorderSam", ".logs")
+    __reorderSam__output = manager.getname("reorderSam", "_reorder.bam")
+    include: sm.modules["reorderSam"]
+    __RNAseQC__input_bam = expand(__mark_duplicates__output, sample=manager.samples)
+    __RNAseQC__logs = "RNAseQC/RNAseQC.log"
+    __RNAseQC__output = "RNAseQC"
+    __RNAseQC__conf = "RNAseQC/sample_index.txt"
+    __RNAseQC__figure =  "RNAseQC/Transcript-associated_Reads_metrics.svg"
+    include: sm.modules["RNAseQC"]
+    expected_output.extend([__RNAseQC__figure])
 
 # !!!!!!!!!!!!!!!!!!! Reset expected_output variable after multiqc
 # Multiqc rule
@@ -201,19 +222,13 @@ include: sm.modules["multiqc"]
 expected_output = [__multiqc__output]
 
 
-# include overall dag file
-__dag__input = __snakefile__
-__dag__output = "dag.svg"
-include: sm.modules['dag']
-expected_output.extend(["dag.svg"])
-
 
 # Include rule graph for each sample
 __rulegraph__input = __snakefile__
-__rulegraph__output = "rulegraph.svg"
+__rulegraph__output = "rulegraph/rulegraph.svg"
 __rulegraph__mapper = {"fastqc_samples": "fastqc_samples/"}
 include: sm.modules['rulegraph']
-expected_output.extend(["rulegraph.svg"])
+expected_output.extend([__rulegraph__output])
 
 
 # Add Conda
@@ -222,7 +237,7 @@ include: sm.modules['conda']   # Create requirements.txt(dependencies)
 expected_output.extend([__conda__output])
 
 # Those rules takes a couple of seconds so no need for a cluster
-localrules: dag, conda, rulegraph
+localrules: conda, rulegraph
 
 rule rnaseq:
     input: expected_output
@@ -241,7 +256,7 @@ onsuccess:
         except:pass
 
         shell("cp %s %s" % (__snakefile__, report_dir))
-        shell("cp rulegraph.svg %s/dag.svg" % (report_dir))
+        shell("cp rulegraph.svg %s/rulegraph.svg" % (report_dir))
         shell("cp config.yaml %s" % report_dir)
         shell("cp requirements.txt %s" % report_dir)
         shell("cp snakemake_stats.png %s" % report_dir)
@@ -249,7 +264,7 @@ onsuccess:
         shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
         shell('cp -r %s/cutadapt/ %s' % (proj, report_dir))
 
-        from sequana import SequanaSummary
+        from sequana.reporting.report_summary import SequanaSummary
         summary = SequanaSummary(proj, directory=report_dir, 
             output_filename="summary.html", 
             snakefile=__snakefile__, configfile=report_dir+"/config.yaml",

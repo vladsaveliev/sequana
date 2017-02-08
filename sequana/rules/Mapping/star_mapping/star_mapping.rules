@@ -22,7 +22,6 @@ rule star_mapping:
                 ref: "" #path to the reference genome file in fasta format
                 options:  "" #options for bowtie1 you want use
     """
-
     input:
         __star_mapping__input
     log:

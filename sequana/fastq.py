@@ -9,10 +9,11 @@ import gzip
 import subprocess
 from functools import wraps
 
-import numpy as np
-import pandas as pd
+from sequana.lazy import numpy as np
+from sequana.lazy import pandas as pd
+from sequana.lazy import pylab
+
 from easydev import Progress
-import pylab
 
 import pysam
 try:
@@ -769,7 +770,6 @@ class FastQ(object):
             pb.animate(i)
         counter += collections.Counter(buffer_)
 
-        import pandas as pd
         ts = pd.Series(counter)
         ts.sort_values(inplace=True, ascending=False)
 

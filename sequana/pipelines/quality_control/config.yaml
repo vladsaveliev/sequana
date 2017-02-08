@@ -127,3 +127,4 @@ adapter_removal:
 kraken:
     do: False
     database_directory:  "%(kraken_database_directory)s"
+    threads: 4

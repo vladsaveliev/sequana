@@ -18,14 +18,10 @@
 ##############################################################################
 """Utilities for the genome coverage"""
 
-import sys
-import re
-import ast
 
-import pandas as pd
-import numpy as np
-import pylab
-from biokit.stats import mixture
+from sequana.lazy import pandas as pd
+from sequana.lazy import numpy as np
+from sequana.lazy import pylab
 
 from sequana import running_median
 from sequana.tools import gc_content
@@ -547,6 +543,8 @@ class ChromosomeCov(object):
         .. note:: needs to call :meth:`running_median` before hand.
 
         """
+        # here for lazy import 
+        from biokit.stats import mixture
         # normalize coverage
         self._coverage_scaling()
 

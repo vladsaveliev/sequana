@@ -27,7 +27,7 @@ Here is an overview (see details here below)
     sequana.snaketools.FastQFactory
     sequana.snaketools.FileFactory
     sequana.snaketools.Module
-    sequana.snaketools.ModuleFinder
+    sequana.snaketools.ModuleFinderSingleton
     sequana.snaketools.PipelineManager
     sequana.snaketools.SnakeMakeStats
     sequana.snaketools.SequanaConfig
@@ -48,16 +48,16 @@ from easydev import load_configfile, AttrDict
 import ruamel.yaml
 from ruamel.yaml import comments
 
-
 from sequana.misc import wget
-from sequana import sequana_data
+from sequana import sequana_data, logger
 from sequana.errors import SequanaException
 
 from sequana import logger
+from easydev.profiler import do_profile
 
 __all__ = ["DOTParser", "FastQFactory", "FileFactory",
            "Module", "PipelineManager", "SnakeMakeStats",
-           "SequanaConfig"]
+           "SequanaConfig", "modules"]
 
 try:
     # This is for python2.7
@@ -104,10 +104,10 @@ class SnakeMakeStats(object):
 
     def plot(self, fontsize=16):
         """Create the barplot from the stats file"""
-        import pylab
-        from pandas import DataFrame
+        from sequana.lazy import pylab
+        from sequana.lazy import pandas as pd
         pylab.clf()
-        df = DataFrame(self._parse_data()['rules'])
+        df = pd.DataFrame(self._parse_data()['rules'])
         ts = df.ix['mean-runtime']
         ts['total'] = self._parse_data()['total_runtime'] / float(self.N)
         ts.sort_values(inplace=True)
@@ -138,7 +138,7 @@ def plot_stats(inputdir=".", outputdir=".",
         logger.error("Could not process %s/stats.txt file" % inputdir)
 
 
-class ModuleFinder(object):
+class ModuleFinderSingleton(object):
     """Data structure to hold the :class:`Module` names"""
     def __init__(self):
         """.. rubric:: constructor
@@ -147,8 +147,8 @@ class ModuleFinder(object):
 
         .. doctest::
 
-            >>> from sequana import ModuleFinder
-            >>> modnames = ModuleFinder()
+            >>> from sequana import ModuleFinderSingleton
+            >>> modnames = ModuleFinderSingleton()
             >>> modnames.isvalid('dag')
             True
             >>> modnames.isvalid('dummy')
@@ -179,7 +179,7 @@ class ModuleFinder(object):
     def _iglob(self, path, extension="rules"):
         try:
             from glob import iglob
-            matches = list(iglob("%s/**/*.%s" % (path, extension),
+            matches = tuple(iglob("%s/**/*.%s" % (path, extension),
                                  recursive=True))
         except:
             # iglob use recursivity with ** only in py3.5 (snakemake)
@@ -203,6 +203,8 @@ class ModuleFinder(object):
 
     def is_pipeline(self, name):
         return self._type[name] == "pipeline"
+
+moduleFinder = ModuleFinderSingleton()
 
 
 class Module(object):
@@ -285,8 +287,9 @@ class Module(object):
         :param str name: the name of an available module.
 
         """
-        self._mf = ModuleFinder()
+        self._mf = moduleFinder
         self._mf.isvalid(name)
+
         if name not in self._mf.names:
             raise ValueError("""Sequana error: unknown rule or pipeline. Check
 the source code at:
@@ -300,6 +303,7 @@ or open a Python shell and type::
     sequana.modules.keys()""")
         else:
             self._path = self._mf._paths[name]
+
         self._name = name
 
         # could look into ./rules or ./pipelines
@@ -333,6 +337,12 @@ or open a Python shell and type::
         return filename
     config = property(_get_config,
                       doc="full path to the config file of the module")
+
+    def _get_config_cluster(self):
+        # The default config file for that module
+        return self._get_file("cluster_config.json")
+    config_cluster = property(_get_config_cluster,
+                      doc="full path to the config cluster file of the module")
 
     def _get_readme(self):
         return self._get_file("README.rst")
@@ -476,9 +486,11 @@ or open a Python shell and type::
 
 def _get_modules_snakefiles():
     modules = {}
-    for name in ModuleFinder().names:
-        if Module(name).snakefile:
-            modules[name] = Module(name).snakefile
+    for name in moduleFinder.names:
+        module = Module(name)
+        filename = module.snakefile
+        if filename:
+            modules[name] = filename
     return modules
 
 #: dictionary with module names as keys and fullpath to the Snakefile as values
@@ -486,7 +498,6 @@ modules = _get_modules_snakefiles()
 
 #: list of pipeline names found in the list of modules
 pipeline_names = [m for m in modules if Module(m).is_pipeline()]
-
 
 class SequanaConfig(object):
     """Reads YAML config file and ease access to its contents
@@ -781,6 +792,7 @@ class PipelineManager(object):
                     self.paired = True
                 else:
                     self.paired = False
+
 
         ff = self.ff  # an alias
         self.samples = {tag: [ff.get_file1(tag), ff.get_file2(tag)]
@@ -1166,8 +1178,10 @@ class FastQFactory(FileFactory):
         elif len(candidates) == 1:
             return candidates[0]
         else:
-            print('Found too many candidates: %s ' % candidates)
-            raise ValueError("Files must have the tag _R1_ or _R2_ (%s)" % tag)
+            logger.critical('Found too many candidates: %s ' % candidates)
+            msg = 'Found too many candidates or identical names: %s ' % candidates
+            msg += "Files must have the tag _R1_ or _R2_ (%s)" % tag
+            raise ValueError(msg)
 
     def get_file1(self, tag=None):
         return self._get_file(tag, "_R1_")

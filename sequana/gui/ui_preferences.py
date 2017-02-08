@@ -83,19 +83,37 @@ class Ui_Preferences(object):
     def retranslateUi(self, Preferences):
         _translate = QtCore.QCoreApplication.translate
         Preferences.setWindowTitle(_translate("Preferences", "Preferences"))
+        self.label.setToolTip(_translate("Preferences", "<html>\n"
+"<body>\n"
+"<p>Select your favorite web browser to show an HTML reports.</p>\n"
+"</body>\n"
+"</html>"))
         self.label.setText(_translate("Preferences", "Select the browser to be used"))
+        self.preferences_options_general_browser_value.setToolTip(_translate("Preferences", "<html>\n"
+"<body>\n"
+"<p>Select your favorite web browser to show an HTML reports.</p>\n"
+"</body>\n"
+"</html>"))
         self.preferences_options_general_browser_value.setItemText(0, _translate("Preferences", "pyqt5"))
         self.preferences_options_general_browser_value.setItemText(1, _translate("Preferences", "firefox"))
         self.preferences_options_general_browser_value.setItemText(2, _translate("Preferences", "safari"))
+        self.label_3.setToolTip(_translate("Preferences", "<html><head/><body><p>Select the <span style=\" font-style:italic;\">logging verbosity</span> parameter to change the level of verbosity.</p><p>We recommend to use the <span style=\" font-weight:600;\">INFO</span> level. </p><p>For lowest verbosity, set to CRITICAL.</p><p>For highest verbosity, set to DEBUG.</p><p><span style=\" font-weight:600;\">Example</span>: Selecting INFO level means: show INFO and following levels (WARNING, ERROR and CRITICAL) but not the level above (here, DEBUG).</p><p><br/></p></body></html>"))
         self.label_3.setText(_translate("Preferences", "Logging verbosity"))
+        self.preferences_options_general_logging_value.setToolTip(_translate("Preferences", "<html><head/><body><p>Select the <span style=\" font-style:italic;\">logging verbosity</span> parameter to change the level of verbosity.</p><p>We recommend to use the <span style=\" font-weight:600;\">INFO</span> level. </p><p>For lowest verbosity, set to CRITICAL.</p><p>For highest verbosity, set to DEBUG.</p><p><span style=\" font-weight:600;\">Example</span>: Selecting INFO level means: show INFO and following levels (WARNING, ERROR and CRITICAL) but not the level above (here, DEBUG).</p><p><br/><br/></p></body></html>"))
         self.preferences_options_general_logging_value.setItemText(0, _translate("Preferences", "DEBUG"))
         self.preferences_options_general_logging_value.setItemText(1, _translate("Preferences", "INFO"))
         self.preferences_options_general_logging_value.setItemText(2, _translate("Preferences", "WARNING"))
         self.preferences_options_general_logging_value.setItemText(3, _translate("Preferences", "ERROR"))
         self.preferences_options_general_logging_value.setItemText(4, _translate("Preferences", "CRITICAL"))
+        self.label_4.setToolTip(_translate("Preferences", "<html><head/><body><p>If you already know what HTML page you will open, set its filename here to open it automatically. when you click on <span style=\" font-style:italic;\">Open Report</span> button.</p></body></html>"))
         self.label_4.setText(_translate("Preferences", "HTML page to open as a report"))
+        self.preferences_options_general_htmlpage_value.setToolTip(_translate("Preferences", "<html><head/><body><p>If you already know what HTML page you will open, set its filename here to open it automatically. when you click on <span style=\" font-style:italic;\">Open Report</span> button.</p></body></html>"))
         self.preferences_options_general_htmlpage_value.setText(_translate("Preferences", "multi_summary.html"))
-        self.preferences_options_general_overwrite_value.setToolTip(_translate("Preferences", "<html><head/><body><p>The config file and the snakefile are copied in the working directory when the SAVE button is pressed. If the files exist already, a dialog ask a confirmation. You can</p><p>force the copy by checking this box. </p></body></html>"))
+        self.preferences_options_general_overwrite_value.setToolTip(_translate("Preferences", "<html>\n"
+"<body>\n"
+"<p>The config file and the snakefile are copied in the working directory when the SAVE button is pressed. If the files exist already, a dialog ask a confirmation. You can force the copy by checking this box.</p>\n"
+"</body>\n"
+"</html>"))
         self.preferences_options_general_overwrite_value.setText(_translate("Preferences", "overwrites files"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_general), _translate("Preferences", "General"))
 

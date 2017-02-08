@@ -17,7 +17,9 @@
 #
 ##############################################################################
 import math
-import numpy as np
+
+from sequana.lazy import numpy as np
+from sequana.lazy import pandas as pd
 
 
 __all__ = ["Coverage"]
@@ -270,7 +272,6 @@ class Coverage(object):
             self.a = this
             results.append(self.get_summary())
 
-        import pandas as pd
         df = pd.DataFrame.from_records(results)
         df.set_index("coverage", inplace=True)
         return df

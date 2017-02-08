@@ -29,9 +29,6 @@ import sphinx
 sys.path.insert(0, os.path.abspath('sphinxext'))
 extensions = [
     'sphinx.ext.autodoc',
-    ('sphinx.ext.imgmath'  # only available for sphinx >= 1.4
-                  if sphinx.version_info[:2] >= (1, 4)
-                  else 'sphinx.ext.pngmath'),
     'sphinx.ext.doctest',
     "sequana.sphinxext.snakemakerule"
     ]

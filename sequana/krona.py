@@ -16,8 +16,9 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-import pandas as pd
 import collections
+
+from sequana.lazy import pandas as pd
 
 
 __all__ = ['KronaMerger']

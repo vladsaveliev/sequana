@@ -115,10 +115,18 @@ fastq related: fastq_count
 
 :Description: count number of reads and lines
 
+Example::
+
+    fastq_count --input test.fastq.gz
+
 fastq related: fastq_head 
 -----------------------------
 
 :Description: Extract head of a fastq files (zipped or not)
+
+Example::
+
+    fastq_head --input input.fastq.gz --nlines 10000 --ouput output.fastq.gz
 
 
 sequana_compressor

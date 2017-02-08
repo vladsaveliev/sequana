@@ -43,6 +43,7 @@ from PyQt5.QtCore import Qt
 from sequana import snaketools, sequana_data
 from sequana.snaketools import Module
 from sequana.iotools import YamlDocParser
+from sequana import misc
 
 import easydev
 import colorlog
@@ -153,6 +154,9 @@ class SequanaFactory(BaseFactory):
 
         # Set the file browser input_directory tab
         self._sequana_directory_tab = FileBrowser(directory=True)
+        self._sequana_pattern_label = QW.QLabel(
+            "<div><i>Optional</i> pattern (e.g., Samples_1?/*fastq.gz)</div>")
+        self._sequana_pattern_lineedit = QW.QLineEdit()
 
         # triggers/connectors
         self._sequana_directory_tab.clicked_connect(self._switch_off_run)
@@ -196,7 +200,7 @@ class SequanaFactory(BaseFactory):
         in1 = self._sequana_directory_tab.get_filenames()
         in2 = self._sequana_paired_tab.get_filenames()
         txt = super(SequanaFactory, self).__repr__()
-        txt += "\npipeline:%s\ninput:\n - %s\n - %s\ndirectory:%s\n"
+        txt += "\npipeline:%s\ninput:\n - %s\n - %s\n - directory:%s\n"
         return txt % (self.pipeline, in1, in2, self.directory)
 
 
@@ -386,7 +390,6 @@ class SequanaGUI(QMainWindow, Tools):
         self.create_base_form()
         self.fill_until_starting()
 
-
     def initUI(self):
         # The logger is not yet set, so we use the module directly
         colorlog.info("Initialising GUI")
@@ -485,6 +488,11 @@ class SequanaGUI(QMainWindow, Tools):
 
         self.ui.tabWidget.currentChanged.connect(lambda: self.ui.run_btn.setEnabled(False))
 
+        # if we are on one of those clusters, switch to the cluster choice in 
+        # the pipeline control combo box
+        if misc.on_cluster(['tars-']) is True:
+             self.ui.comboBox_local.setCurrentText("cluster")
+
     #|-----------------------------------------------------|
     #|                       MENU related                  |
     #|-----------------------------------------------------|
@@ -518,16 +526,19 @@ class SequanaGUI(QMainWindow, Tools):
         pipelines_text += "</ul>"
 
         msg.setInformativeText("""<div>
-Sequanix can be used to run Sequana pipelines (see
+<p>
+<b>Sequanix</b> can be used to run Sequana NGS pipelines (see
 <a href="http://sequana.readthedocs.io">Sequana.readthedocs.io</a> for details)
 but also any Snakefile/configuration pairs
-(see <a href="http://snakemake.readthedocs.io">snakemake.readthedocs.io</a>for
-details).
-        <br>
+(see <a href="http://snakemake.readthedocs.io">snakemake.readthedocs.io</a>).
+</p>
+        <p>
         In both cases, a working directory must be set where the Snakefile
         and possibly a configuration file will be copied.
-        <br>
-        The generic Snakefile must be executable.
+        </p>
+        <p>The generic Snakefile must be executable meaning that users should
+take care of dependencies. Sequana pipelines should work out of the box
+(dependencies or Sequana pipelines being the same as <b>Sequanix</b>).</p>
 
         <h2>Sequana pipelines</h2>
         There are downloaded automatically with their config file from the Sequana
@@ -599,10 +610,17 @@ details).
         # a local alias
         saf = self.sequana_factory
 
-        # add widgets
+        # add widgets for the working dir and input sample
         self.ui.layout_sequana_wkdir.addWidget(saf._directory_browser)
-        self.ui.layout_sequana_input_dir.addWidget(saf._sequana_directory_tab)
         self.ui.layout_sequana_input_files.addWidget(saf._sequana_paired_tab)
+
+        # add widget for the input directory
+        self.ui.layout_sequana_input_dir.addWidget(saf._sequana_directory_tab)
+        hlayout = QW.QHBoxLayout()
+        hlayout.addWidget(saf._sequana_pattern_label)
+        hlayout.addWidget(saf._sequana_pattern_lineedit)
+        self.ui.layout_sequana_input_dir.addLayout(hlayout)
+
 
     @QtCore.pyqtSlot(str)
     def _update_sequana(self, index):
@@ -787,8 +805,18 @@ details).
         snakemake_line = ["-s", snakefile, "--stat", "stats.txt", "-p"]
 
         if self.ui.comboBox_local.currentText() == "local":
+            if misc.on_cluster(["tars-"]):
+                msg = WarningMessage(("You are on TARS cluster. Please set the"
+                    "batch options and select the cluster option (not local)"))
+                msg.exec_()
+                return None
             snakemake_line += dialog.get_snakemake_local_options()
         elif self.ui.comboBox_local.currentText() == "cluster":
+            cluster = dialog.ui.snakemake_options_cluster_cluster_value.text()
+            if len(cluster.strip()) == 0:
+                msg = WarningMessage(("You are on TARS cluster. Please set the"
+                    "batch options and select the cluster option (not local)"))
+                msg.exec_()
             snakemake_line += dialog.get_snakemake_cluster_options()
 
         snakemake_line += dialog.get_snakemake_general_options()
@@ -810,12 +838,6 @@ details).
         self.shell_error = ""
         self.shell = ""
 
-        # the progress bar
-        pal = self.ui.progressBar.palette()
-        pal.setColor(QtGui.QPalette.Highlight, self._colors['blue'])
-        self.ui.progressBar.setPalette(pal)
-        self.ui.progressBar.setValue(1)
-
         # Set the regex to catch steps
         self._step_regex = re.compile("([0-9]+) of ([0-9]+) steps")
 
@@ -833,8 +855,29 @@ details).
             return
 
         snakemake_args = self._get_snakemake_command(snakefile)
+        if snakemake_args is None:
+            return
 
-        self.info("Starting process with %s " % " ".join(snakemake_args))
+        # the progress bar
+        pal = self.ui.progressBar.palette()
+        pal.setColor(QtGui.QPalette.Highlight, self._colors['blue'])
+        self.ui.progressBar.setPalette(pal)
+        self.ui.progressBar.setValue(1)
+
+        # Start process
+        # If an argument contains spaces, we should use quotes. However,
+        # with PyQt quotes must be escaped
+        print(snakemake_args)
+
+        args = []
+        for this in snakemake_args:
+            if re.search(r"\s", this) is True:
+                args.append("\"%s\"" % this)
+                print(this)
+            else:
+                args.append(this)
+        snakemake_args = args
+        self.info("Starting process with snakemake %s " % " ".join(snakemake_args))
         self.process.setWorkingDirectory(self.working_dir)
         self.process.start("snakemake", snakemake_args)
 
@@ -874,6 +917,7 @@ details).
         docparser = YamlDocParser(self.configfile)
 
         for count, rule in enumerate(rules_list):
+            self.debug("Scanning rule %s" % rule)
             # Check if this is a dictionnary
             contains = self.config._yaml_code[rule]
 
@@ -1005,7 +1049,7 @@ details).
 
         if self.working_dir is None:
             self.critical('save_project: no working dir: return')
-            msg = WarningMessage("You must choose a pipeline first.")
+            msg = WarningMessage("You must select a working directory first.")
             msg.exec_()
             return
 
@@ -1038,6 +1082,15 @@ details).
             if self.ui.tabWidget.currentIndex() == 0:
                 filename = self.sequana_factory._sequana_directory_tab.get_filenames()
                 form_dict["input_directory"] = (filename)
+
+                # If pattern provided, the input_direcotry is reset but used in 
+                # the pattern as the basename
+                pattern = self.sequana_factory._sequana_pattern_lineedit.text()
+                if len(pattern.strip()):
+                    form_dict["input_pattern"] = (filename)
+                    form_dict["input_pattern"] += os.sep + pattern.strip()
+                    form_dict["input_directory"] = ""
+
             elif self.ui.tabWidget.currentIndex() == 1:
                 filename = self.sequana_factory._sequana_paired_tab.get_filenames()
                 form_dict["input_samples"] = (filename)
@@ -1071,7 +1124,7 @@ details).
                 save_msg.setDefaultButton(QW.QMessageBox.Yes)
                 # Yes == 16384
                 # Save == 2048
-                retval = save_msg.exec()
+                retval = save_msg.exec_()
                 if retval in [16384, 2048]:
                     self.info("Saving config file (exist already)")
                     cfg.save(yaml_path, cleanup=False)

@@ -42,7 +42,7 @@ FastQC
 .. snakemakerule:: fastqc
 
 Fastq_screen
-^^^^^^^^^^^
+^^^^^^^^^^^^^^^
 .. snakemakerule:: fastq_screen
 
 Cutadapt
@@ -50,19 +50,19 @@ Cutadapt
 .. snakemakerule:: cutadapt
 
 Mapping on rRNA
-^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
 .. snakemakerule:: bowtie1_mapping_dynamic
 
 Mapping on reference genome
-^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. snakemakerule:: bowtie1_mapping_dynamic
 .. snakemakerule:: tophat_mapping
 .. snakemakerule:: star_mapping
 
 Counting
-^^^^^^^^^
+^^^^^^^^^^^^
 .. snakemakerule:: feature_counts
 
 Reporting
-^^^^^^^^^^
+^^^^^^^^^^^^
 .. snakemakerule:: multiqc
