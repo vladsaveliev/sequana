@@ -29,6 +29,7 @@ Changelog
 
 * NEWS:
 
+    - Sequanix stable version
     - add TrueSeq adaptors
     - add lazy import mechanism to speed up the time to import sequana, which 
       speeds up the --help in the standalone 

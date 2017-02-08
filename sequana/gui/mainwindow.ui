@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>590</width>
+    <width>604</width>
     <height>551</height>
    </rect>
   </property>
@@ -598,8 +598,8 @@ Once saved, the DAG and RUN buttons should be available.</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>538</width>
-               <height>82</height>
+               <width>552</width>
+               <height>96</height>
               </rect>
              </property>
             </widget>
@@ -718,10 +718,10 @@ Once saved, the DAG and RUN buttons should be available.</string>
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Pressing this button, a DAG is created and shown. &lt;/p&gt;&lt;p&gt;This is a good way to check your config file (i.e., if there are optional switch).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Shortcut: Ctrl+D&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Show &amp;Dag</string>
+              <string>Show &amp;Pipeline</string>
              </property>
              <property name="shortcut">
-              <string>Ctrl+D</string>
+              <string>Ctrl+P</string>
              </property>
             </widget>
            </item>
@@ -772,7 +772,7 @@ text-align: center;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>590</width>
+     <width>604</width>
      <height>19</height>
     </rect>
    </property>

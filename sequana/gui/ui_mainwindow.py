@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(590, 551)
+        MainWindow.resize(604, 551)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -304,7 +304,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 538, 82))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 552, 96))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.gridLayout_4.addWidget(self.scrollArea, 0, 0, 1, 1)
@@ -372,7 +372,7 @@ class Ui_MainWindow(object):
         self.gridLayout_2.addLayout(self.vlayout, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 590, 19))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 604, 19))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -504,8 +504,8 @@ class Ui_MainWindow(object):
         self.save_btn.setText(_translate("MainWindow", "&Save"))
         self.save_btn.setShortcut(_translate("MainWindow", "Ctrl+S"))
         self.dag_btn.setToolTip(_translate("MainWindow", "<html><head/><body><p>Pressing this button, a DAG is created and shown. </p><p>This is a good way to check your config file (i.e., if there are optional switch).</p><p><br/></p><p><span style=\" font-weight:600;\">Shortcut: Ctrl+D</span></p></body></html>"))
-        self.dag_btn.setText(_translate("MainWindow", "Show &Dag"))
-        self.dag_btn.setShortcut(_translate("MainWindow", "Ctrl+D"))
+        self.dag_btn.setText(_translate("MainWindow", "Show &Pipeline"))
+        self.dag_btn.setShortcut(_translate("MainWindow", "Ctrl+P"))
         self.progressBar.setToolTip(_translate("MainWindow", "<p>Progress of the pipeline. color codes:\n"
 "    <ul>\n"
 "        <li style=\"color:red\">Red: an error occured</li>\n"
