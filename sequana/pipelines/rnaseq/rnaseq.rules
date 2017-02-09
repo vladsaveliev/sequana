@@ -28,10 +28,10 @@ TODO = "todo"
 
 if manager.config.genome.do:
     # create sequence dict file
-     __create_sequence_dictionary__reference = config["genome"]["fasta"]
-     __create_sequence_dictionary__output = config["genome"]["fasta"] + ".dict"
-     __create_sequence_dictionary__log = "logs/indexing/create_sequence_dictionary.log"
-     include: sm.modules["create_sequence_dictionary"]
+    __create_sequence_dictionary__reference = config["genome"]["fasta"]
+    __create_sequence_dictionary__output = config["genome"]["fasta"] + ".dict"
+    __create_sequence_dictionary__log = "logs/indexing/create_sequence_dictionary.log"
+    include: sm.modules["create_sequence_dictionary"]
     # indexing for bowtie1
     # whole genome
     __bowtie1_index__fasta = config["genome"]["fasta"]
