@@ -76,16 +76,6 @@ if manager.config.genome.do:
 
 
 
-
-
-
-
-
-
-
-
-
-
 # FASTQC on input data set
 __fastqc_samples__input_fastq = __data__input
 __fastqc_samples__output_done = manager.getname("fastqc_samples", ".done")
