@@ -26,6 +26,66 @@ __data__input = manager.getrawdata()
 
 TODO = "todo"
 
+if manager.config.genome.do:
+    # create sequence dict file
+     __create_sequence_dictionary__reference = config["genome"]["fasta"]
+     __create_sequence_dictionary__output = config["genome"]["fasta"] + ".dict"
+     __create_sequence_dictionary__log =
+     include: sm.modules["create_sequence_dictionary"]
+    # indexing for bowtie1
+    # whole genome
+    __bowtie1_index__fasta = config["genome"]["fasta"]
+    __bowtie1_index__prefix = config["genome"]["name"]
+    __bowtie1_index__output = config["genome"]["name"] + ".ebwt"
+    __bowtie1_index__log =
+    include: sm.modules["bowtie1_index"]
+    # rRNA genome
+    if manager.config.genome.rRNA_fasta:
+        __bowtie1_index__fasta = config["genome"]["rRNA_fasta"]
+        __bowtie1_index__prefix = config["genome"]["name"]+ "_rRNA"
+        __bowtie1_index__output = config["genome"]["name"] + "_rRNA.ebwt"
+        __bowtie1_index__log =
+        include: sm.modules["bowtie1_index"]
+    else :
+        __extract_fasta_from_bed__input = config["genome"]["fasta"]
+        __extract_fasta_from_bed__gff = config["genome"]["gff"]
+        __extract_fasta_from_bed__feature = "rRNA"
+        __extract_fasta_from_bed__output = config["genome"]["name"]+ "_rRNA.fa"
+        __extract_fasta_from_bed__output_features = config["genome"]["name"]+ "_rRNA.gff"
+        __extract_fasta_from_bed__log =
+        include: sm.modules["extract_fasta_from_bed"]
+        __bowtie1_index__fasta = __extract_fasta_from_bed__output
+        __bowtie1_index__prefix = config["genome"]["name"]+ "_rRNA"
+        __bowtie1_index__output = config["genome"]["name"] + "_rRNA.ebwt"
+        __bowtie1_index__log =
+        include: sm.modules["bowtie1_index"]
+
+    # indexing for bowtie2
+    __bowtie2_index__fasta = config["genome"]["fasta"]
+    __bowtie2_index__prefix = config["genome"]["name"]
+    __bowtie2_index__output = config["genome"]["name"] + ".bt2"
+    __bowtie2_index__log =
+    include: sm.modules["bowtie2_index"]
+
+    # indexing for star
+    __star_index__fasta = config["genome"]["fasta"]
+    __star_index__prefix = config["genome"]["name"
+    __star_index__output = "SAindex"
+    __star_index__log =
+    include: sm.modules["star_index"]
+
+
+
+
+
+
+
+
+
+
+
+
+
 # FASTQC on input data set
 __fastqc_samples__input_fastq = __data__input
 __fastqc_samples__output_done = manager.getname("fastqc_samples", ".done")

@@ -1,10 +1,9 @@
 rule star_index:
     input:
-        fasta = config["genome"]["fasta"],
-        prefix = config["genome"]["name"]
+        __star_index__fasta = config["genome"]["fasta"],
+        __star_index__prefix = config["genome"]["name"]
     output:
-        "SAindex",
-        "genomeParameters.txt"
+        __star_index__output = "SAindex"
     log:
         __star_index__log
     shell:

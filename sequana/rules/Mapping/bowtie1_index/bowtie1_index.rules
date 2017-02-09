@@ -1,9 +1,9 @@
 rule bowtie1_index:
     input:
-        fasta = config["genome"]["fasta"],
-        prefix = config["genome"]["name"]
+        __bowtie1_index__fasta,
+        __bowtie1_index__prefix
     output:
-        config["genome"]["name"] + ".ebwt"
+        __bowtie1_index__output
     log:
         __bowtie1_index__log
     shell:
