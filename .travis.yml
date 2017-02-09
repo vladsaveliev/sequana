@@ -33,7 +33,6 @@ install:
   # use pip to get latest version
   - pip install easydev>=0.9.31 --upgrade
   - pip install coveralls
-  - pip install entrypoints
   - pip install mistune
   - pip install tabulate
   - pip install biokit>=0.3.4
@@ -42,7 +41,6 @@ install:
   - pip install colorlog
   - pip install pytest pytest-cov pytest-qt pytest-xdist pytest-mock pytest-timeout
   - pip install ruamel.yaml>=0.13.2
-  - pip install pyquickhelper
   - pip install .
 
 # # command to run tests, e.g. python setup.py test

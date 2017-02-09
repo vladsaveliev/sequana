@@ -931,7 +931,7 @@ take care of dependencies. Sequana pipelines should work out of the box
                 docstring = docparser._block2docstring(rule)
 
                 # Try to interpret it with sphinx
-                from sequana.sphinxext.docstring2html import rest2html
+                from sequana.misc import rest2html
 
                 try:
                     comments = rest2html(docstring).decode()
