@@ -3,6 +3,15 @@ Changelog
 
 .. contents::
 
+
+0.1.20 - Feb 2017
+---------------------
+
+* CHANGES: 
+
+    - remove pyquickhelper dependencies and add a simple rest2html function in
+      misc module.
+
 0.1.19 - Feb 2017
 -----------------------
 
