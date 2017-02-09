@@ -45,7 +45,6 @@ if manager.config.genome.do:
         __bowtie1_index__prefix = config["genome"]["name"]+ "_rRNA"
         __bowtie1_index__output = config["genome"]["name"] + "_rRNA.ebwt"
         __bowtie1_index__log = "logs/indexing/bowtie_rRNA.log"
-        include: sm.modules["bowtie1_index"]
     else :
         __extract_fasta_from_bed__input = config["genome"]["fasta"]
         __extract_fasta_from_bed__gff = config["genome"]["gff"]
@@ -58,7 +57,6 @@ if manager.config.genome.do:
         __bowtie1_index__prefix = config["genome"]["name"]+ "_rRNA"
         __bowtie1_index__output = config["genome"]["name"] + "_rRNA.ebwt"
         __bowtie1_index__log = "logs/indexing/bowtie_rRNA.log"
-        include: sm.modules["bowtie1_index"]
 
     # indexing for bowtie2
     __bowtie2_index__fasta = config["genome"]["fasta"]
@@ -69,7 +67,7 @@ if manager.config.genome.do:
 
     # indexing for star
     __star_index__fasta = config["genome"]["fasta"]
-    __star_index__prefix = config["genome"]["name"
+    __star_index__prefix = config["genome"]["name"]
     __star_index__output = "SAindex"
     __star_index__log = "logs/indexing/star_genome.log"
     include: sm.modules["star_index"]
