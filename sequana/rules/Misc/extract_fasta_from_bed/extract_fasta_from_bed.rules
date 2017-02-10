@@ -30,9 +30,9 @@ rule extract_fasta_from_bed:
         gawk '{{ if ($3=="{params.feature}") print }}' {input.gff} > {output.gff}
         if [ -s {output.gff} ]
         then
-            echo -e ">empty\nAAAAAAAAAAAAAA" > {output.gff}
-        else :
             bedtools getfasta -fi {input.fasta} -bed {output.gff}  -fo {output.fasta}
+        else :
+            echo -e ">empty\nAAAAAAAAAAAAAA" > {output.gff}
         fi
         samtools faidx {output.fasta}
         """
