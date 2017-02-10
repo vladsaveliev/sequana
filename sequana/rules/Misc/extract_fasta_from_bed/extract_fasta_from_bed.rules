@@ -17,11 +17,9 @@ rule extract_fasta_from_bed:
     """
     input:
         fasta = __extract_fasta_from_bed__input,
-        gff = __extract_fasta_from_bed__gff,
-
+        gff = __extract_fasta_from_bed__gff
     params:
         feature = __extract_fasta_from_bed__feature
-
     output:
         fasta = __extract_fasta_from_bed__output,
         gff = __extract_fasta_from_bed__output_features
