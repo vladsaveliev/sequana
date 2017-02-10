@@ -68,7 +68,6 @@ genome:
 #
 bowtie1_mapping_rna:
     do: yes
-    prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie_genomes/cryptNeo_rRNA
     options: ""
     threads: 4
 
@@ -121,7 +120,6 @@ tophat_mapping:
 #
 bowtie1_mapping_ref:
     do: no
-    prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie_genomes/cryptNeo
     options: "--chunkmbs 400 -a --best -q -e50 "
     threads: 4
 
