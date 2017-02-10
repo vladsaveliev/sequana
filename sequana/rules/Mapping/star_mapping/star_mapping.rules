@@ -31,8 +31,8 @@ rule star_mapping:
     params:
         prefix1 = temp(__star_mapping__output_prefix1),
         prefix2 = __star_mapping__output_prefix2,
-        index = config['star_mapping']['prefix_index'],
-        ref = config['star_mapping']['ref'],
+        index = __star_mapping__index,
+        ref = __star_mapping__ref,
         #read_groups = __star_mapping__read_groups,
         genome_dir = temp(__star_mapping__genome_dir),
         splice_file = temp(__star_mapping__splice_file),

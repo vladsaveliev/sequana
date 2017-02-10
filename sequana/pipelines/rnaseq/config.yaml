@@ -84,9 +84,6 @@ bowtie1_mapping_rna:
 #
 star_mapping:
     do: yes
-    ## if index is already computed
-    prefix_index: /pasteur/projets/specific/PF2_ngs/protected/starGenomes/cryptNeo
-    ref: /pasteur/projets/specific/PF2_ngs/protected/starGenomes/cryptNeo.fa
     options: ""
     threads: 4
 
@@ -103,7 +100,6 @@ star_mapping:
 #
 tophat_mapping:
     do: no
-    prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie_genomes/cryptNeo
     options: "--no-coverage-search "
     threads: 4
 
@@ -135,7 +131,6 @@ bowtie1_mapping_ref:
 #
 bowtie2_mapping:
     do: no
-    prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/cryptNeo
     #options: "--dovetail --no-mixed --no-discordant " for paired-end data
     options: ""
     threads: 4
