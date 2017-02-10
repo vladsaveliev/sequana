@@ -87,23 +87,6 @@ star_mapping:
     options: ""
     threads: 4
 
-
-#############################################################################
-# tophat_mapping used to align reads against genome file (with bowtie1 mapper)
-#
-# :Parameters:
-#
-# - do: if unchecked, this rule is ignored
-# - prefix_index: the name of the reference file to be found
-# - options: any options recognised by tophat2 tool
-# - threads: number of threads to be used
-#
-tophat_mapping:
-    do: no
-    options: "--no-coverage-search "
-    threads: 4
-
-
 #############################################################################
 # bowtie1_mapping_ref used to align reads against genome file
 #

@@ -208,15 +208,7 @@ if manager.config.star_mapping.do:
     __star_mapping__splice_file = manager.getname("star_mapping", "_init_SJ.out.tab")
     include: sm.modules["star_mapping"]
     __mapping_output = __star_mapping__sort
-if manager.config.tophat_mapping.do:
-    # Mapper tophat
-# get the  Nam7_1/tophat_mapping/Nam7_1/align_summary.txt as tophat reporting ?
-    __tophat_mapping__input = __clean_ngs__output
-    __tophat_mapping__logs = manager.getname("tophat_mapping", ".logs")
-    __tophat_mapping__sort = manager.getname("tophat_mapping", ".sorted.bam")
-    __tophat_mapping__outdir = manager.getname("tophat_mapping")
-    include: sm.modules["tophat_mapping"]
-    expected_output.extend(expand(__tophat_mapping__sort, sample=manager.samples))
+
 
 # generating of bigwig files
 if manager.config.coverage.do:
