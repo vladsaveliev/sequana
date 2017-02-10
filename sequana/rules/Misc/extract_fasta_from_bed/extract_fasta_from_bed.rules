@@ -27,7 +27,7 @@ rule extract_fasta_from_bed:
         __extract_fasta_from_bed__log
     shell:
         """
-        gawk '{if($3=="{params.feature}")print}' {input.gff} > {output.gff}
+        gawk '{{ if ($3=="{params.feature}") print }}' {input.gff} > {output.gff}
         if [ -s {output.gff} ]
         then
             echo -e ">empty\nAAAAAAAAAAAAAA" > {output.gff}
