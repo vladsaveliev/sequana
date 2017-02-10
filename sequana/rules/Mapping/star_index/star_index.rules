@@ -4,11 +4,11 @@ rule star_index:
     output:
         touch(__star_index__output_done)
     params:
-        prefix = __star_index__output_dir
+        wkdir = __star_index__output_dir
     log:
         __star_index__log
     shell:
         """
-        STAR --runMode genomeGenerate --genomeFastaFiles {input.fasta} --genomeDir {params.prefix}
+        STAR --runMode genomeGenerate --genomeFastaFiles {input.fasta} --genomeDir {params.wkdir}
         samtools faidx {input.fasta}
         """
