@@ -32,7 +32,7 @@ rule extract_fasta_from_bed:
         then
             bedtools getfasta -fi {input.fasta} -bed {output.gff}  -fo {output.fasta}
         else :
-            echo -e ">empty\\nAAAAAAAAAAAAAA" > {output.gff}
+            echo -e ">empty\\nAAAAAAAAAAAAAA" > {output.fasta}
         fi
         samtools faidx {output.fasta}
         """
