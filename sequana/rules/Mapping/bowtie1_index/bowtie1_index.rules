@@ -2,8 +2,8 @@ rule bowtie1_index:
     input:
         fasta = __bowtie1_index__fasta
     output:
-        __bowtie1_index__output,
-        __bowtie1_index__output_prefix
+        file = __bowtie1_index__output,
+        prefix = __bowtie1_index__output_prefix
     log:
         __bowtie1_index__log
     shell:
