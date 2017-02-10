@@ -24,7 +24,8 @@ def bowtie1_mapping_dynamic(name, log_dir):
     bowtie1_mapping_code = '''
 rule bowtie1_mapping_%(name)s:
     input:
-        fastq = __bowtie1_mapping_%(name)s__input
+        fastq = __bowtie1_mapping_%(name)s__input,
+        index = __bowtie1_mapping_%(name)s__index_done
     output:
         bam = __bowtie1_mapping_%(name)s__bam,
         sort = __bowtie1_mapping_%(name)s__sort

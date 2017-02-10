@@ -35,14 +35,14 @@ if manager.config.genome.do:
     # indexing for bowtie1
     # whole genome
     __bowtie1_index_ref__fasta = config["genome"]["fasta"]
-    __bowtie1_index_ref__output_done = config["genome"]["name"] + "_refB.done"
+    __bowtie1_index_ref__output_done = config["genome"]["name"] + ".1.ebwt"
     __bowtie1_index_ref__output_prefix = config["genome"]["name"]
     __bowtie1_index_ref__log = "logs/indexing/bowtie_genome.log"
     include: bowtie1_index_dynamic("ref")
     # rRNA genome
     if manager.config.genome.rRNA_fasta:
         __bowtie1_index_rna__fasta = config["genome"]["rRNA_fasta"]
-        __bowtie1_index_rna__output_done = config["genome"]["name"] + "_rnaB.done"
+        __bowtie1_index_rna__output_done = config["genome"]["name"] + "_rRNA.1.ebwt"
         __bowtie1_index_rna__output_prefix = config["genome"]["name"]+ "_rRNA"
         __bowtie1_index_rna__log = "logs/indexing/bowtie_rRNA.log"
     else :
@@ -54,7 +54,7 @@ if manager.config.genome.do:
         __extract_fasta_from_bed__log = "logs/indexing/get_rRNA.log"
         include: sm.modules["extract_fasta_from_bed"]
         __bowtie1_index_rna__fasta = __extract_fasta_from_bed__output
-        __bowtie1_index_rna__output_done = config["genome"]["name"] + "_rnaB.done"
+        __bowtie1_index_rna__output_done = config["genome"]["name"] + "_rRNA.1.ebwt"
         __bowtie1_index_rna__output_prefix = config["genome"]["name"]+ "_rRNA"
         __bowtie1_index_rna__log = "logs/indexing/bowtie_rRNA.log"
     include: bowtie1_index_dynamic("rna")
@@ -62,14 +62,14 @@ if manager.config.genome.do:
 
     # indexing for bowtie2
     __bowtie2_index__fasta = config["genome"]["fasta"]
-    __bowtie2_index__output_done = config["genome"]["name"] + "b2.done"
+    __bowtie2_index__output_done = config["genome"]["name"] + ".1.bt2"
     __bowtie2_index__output_prefix = config["genome"]["name"]
     __bowtie2_index__log = "logs/indexing/bowtie2_genome.log"
     include: sm.modules["bowtie2_index"]
 
     # indexing for star
     __star_index__fasta = config["genome"]["fasta"]
-    __star_index__output_done = config["genome"]["name"]+  "star.done"
+    __star_index__output_done = config["genome"]["dir"] +  "/SAindex"
     __star_index__output_dir = config["genome"]["dir"]
     __star_index__log = "logs/indexing/star_genome.log"
     include: sm.modules["star_index"]
@@ -85,10 +85,15 @@ if manager.config.genome.do:
 
 else:
     __star_dir__ = config["genome"]["dir"]
+    __star_index__output_done = config["genome"]["dir"] +  "/SAindex"
     __bowtie2_index__ = config["genome"]["name"]
+    __bowtie2_index__output_done = config["genome"]["name"] + ".1.bt2"
     __bowtie1_index__ = config["genome"]["name"]
+    __bowtie1_index_ref__output_done = config["genome"]["name"] + ".1.ebwt"
     __RNA_index__ = config["genome"]["name"]+ "_rRNA"
+    __bowtie1_index_rna__output_done = config["genome"]["name"] + "_rRNA.1.ebwt"
     __sequence_dictionary__ = config["genome"]["fasta"] + ".dict"
+
 
 
 # FASTQC on input data set
@@ -173,6 +178,7 @@ expected_output.extend(expand(__fastqc_filtered__output_done, sample=manager.sam
 
 # rRNA
 __bowtie1_mapping_rna__input = __clean_ngs__output
+__bowtie1_mapping_rna__index_done = __bowtie1_index_rna__output_done
 __bowtie1_mapping_rna__bam = manager.getname("bowtie1_mapping_rna", ".bam")
 __bowtie1_mapping_rna__sort = manager.getname("bowtie1_mapping_rna", ".sorted.bam")
 __bowtie1_mapping_rna__prefix_index = __RNA_index__
@@ -185,6 +191,7 @@ expected_output.extend(expand(__bowtie1_mapping_rna__sort, sample=manager.sample
 if manager.config.bowtie1_mapping_ref.do:
     # Mapper bowtie 1
     __bowtie1_mapping_ref__input = __clean_ngs__output
+    __bowtie1_mapping_ref__index_done = __bowtie1_index_ref__output_done
     __bowtie1_mapping_ref__bam = manager.getname("bowtie1_mapping_ref", ".bam")
     __bowtie1_mapping_ref__sort = manager.getname("bowtie1_mapping_ref", ".sorted.bam")
     __bowtie1_mapping_ref__prefix_index = __bowtie1_index__
@@ -197,6 +204,7 @@ if manager.config.bowtie1_mapping_ref.do:
 if manager.config.star_mapping.do:
     # Mapper rna-star
     __star_mapping__input = __clean_ngs__output
+    __star_mapping__index_done =__star_index__output_done
     __star_mapping__index = __star_dir__
     __star_mapping__ref = config["genome"]["fasta"]
     __star_mapping__logs = manager.getname("star_mapping", ".logs")
