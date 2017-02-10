@@ -2,12 +2,13 @@ rule bowtie2_index:
     input:
         __bowtie2_index__fasta
     output:
-        file = __bowtie2_index__output,
+        touch(__bowtie2_index__output_done)
+    params:
         prefix = __bowtie2_index__output_prefix
     log:
         __bowtie2_index__log
     shell:
         """
-        bowtie2-build {input.fasta} {output.prefix}  2> {log}
+        bowtie2-build {input.fasta} {params.prefix}  2> {log}
         samtools faidx {input.fasta} 2>> {log}
         """

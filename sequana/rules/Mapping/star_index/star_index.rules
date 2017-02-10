@@ -2,12 +2,13 @@ rule star_index:
     input:
         __star_index__fasta
     output:
-        __star_index__output,
-        __star_index__output_dir
+        touch(__star_index__output_done)
+    params:
+        prefix = __star_index__output_dir
     log:
         __star_index__log
     shell:
         """
-        STAR --runMode genomeGenerate --genomeFastaFiles {input.fasta} --genomeDir .
+        STAR --runMode genomeGenerate --genomeFastaFiles {input.fasta} --genomeDir {params.prefix}
         samtools faidx {input.fasta}
         """

@@ -10,13 +10,14 @@ rule bowtie1_index_%(name)s:
     input:
         fasta = __bowtie1_index_%(name)s__fasta
     output:
-        touch(__bowtie1_index_%(name)s__output_done),
+        touch(__bowtie1_index_%(name)s__output_done)
+    params:
         prefix = __bowtie1_index_%(name)s__output_prefix
     log:
         __bowtie1_index_%(name)s__log
     shell:
         """
-        bowtie-build {input.fasta} {output.prefix}  2> {log}
+        bowtie-build {input.fasta} {params.prefix}  2> {log}
         samtools faidx {input.fasta} 2>> {log}
         ln -s {input.fasta}.fai {output.prefix}.chrom.sizes 2>> {log}
 
