@@ -50,7 +50,7 @@ sequencing:
 genome:
   do: yes
   dir: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
-  name: hg19
+  name: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19 #path to index name
   fasta: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
   gff: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.gff
   rRNA_fasta: no

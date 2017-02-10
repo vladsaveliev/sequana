@@ -1,14 +1,13 @@
 rule star_index:
     input:
-        __star_index__fasta = config["genome"]["fasta"],
-        __star_index__prefix = config["genome"]["name"]
+        __star_index__fasta
     output:
-        __star_index__output = "SAindex"
+        __star_index__output,
+        __star_index__output_dir
     log:
         __star_index__log
     shell:
         """
         STAR --runMode genomeGenerate --genomeFastaFiles {input.fasta} --genomeDir .
-        CreateSequenceDictionary R={input.fasta} O={input.prefix}.dict
         samtools faidx {input.fasta}
         """
