@@ -42,7 +42,7 @@ if manager.config.genome.do:
     # rRNA genome
     if manager.config.genome.rRNA_fasta:
         __bowtie1_index_rna__fasta = config["genome"]["rRNA_fasta"]
-        __bowtie1_index_rna__output = config["genome"]["name"] + "_rRNA.ebwt"
+        __bowtie1_index_rna__output_done = config["genome"]["name"] + ".done"
         __bowtie1_index_rna__output_prefix = config["genome"]["name"]+ "_rRNA"
         __bowtie1_index_rna__log = "logs/indexing/bowtie_rRNA.log"
     else :
@@ -54,7 +54,7 @@ if manager.config.genome.do:
         __extract_fasta_from_bed__log = "logs/indexing/get_rRNA.log"
         include: sm.modules["extract_fasta_from_bed"]
         __bowtie1_index_rna__fasta = __extract_fasta_from_bed__output
-        __bowtie1_index_rna__output = config["genome"]["name"] + "_rRNA.ebwt"
+        __bowtie1_index_rna__output_done = config["genome"]["name"] + ".done"
         __bowtie1_index_rna__output_prefix = config["genome"]["name"]+ "_rRNA"
         __bowtie1_index_rna__log = "logs/indexing/bowtie_rRNA.log"
     include: bowtie1_index_dynamic("rna")
