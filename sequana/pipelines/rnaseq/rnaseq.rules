@@ -75,7 +75,7 @@ if manager.config.genome.do:
     include: sm.modules["star_index"]
 
     #output index
-    __star_index__ = __star_index__output_dir
+    __star_dir__ = __star_index__output_dir
     __bowtie2_index__ = __bowtie2_index__output_prefix
     __bowtie1_index__ = __bowtie1_index_ref__output_prefix
     __RNA_index__ = __bowtie1_index_rna__output_prefix
