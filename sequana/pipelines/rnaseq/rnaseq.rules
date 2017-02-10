@@ -17,7 +17,7 @@ __snakefile__ = srcdir(__snakefile__)
 # Generic include of some dynamic modules
 exec(open(sequana.modules["bowtie1_mapping_dynamic"], "r").read())
 exec(open(sequana.modules["fastqc"], "r").read())
-
+exec(open(sequana.modules["bowtie1_index_dynamic"], "r").read())
 
 manager = sm.PipelineManager("rnaseq", config)
 
@@ -33,19 +33,18 @@ if manager.config.genome.do:
     __create_sequence_dictionary__log = "logs/indexing/create_sequence_dictionary.log"
     include: sm.modules["create_sequence_dictionary"]
     # indexing for bowtie1
-#    # whole genome
-#    __bowtie1_index__fasta = config["genome"]["fasta"]
-#    __bowtie1_index__prefix = config["genome"]["name"]
-#    __bowtie1_index__output = config["genome"]["name"] + ".ebwt"
-#    __bowtie1_index__output_prefix = __bowtie1_index__prefix
-#    __bowtie1_index__log = "logs/indexing/bowtie_genome.log"
-    include: sm.modules["bowtie1_index"]
+    # whole genome
+    __bowtie1_index_ref__fasta = config["genome"]["fasta"]
+    __bowtie1_index_ref__output = config["genome"]["name"] + ".ebwt"
+    __bowtie1_index_ref__output_prefix = config["genome"]["name"]
+    __bowtie1_index_ref__log = "logs/indexing/bowtie_genome.log"
+    include: bowtie1_index_dynamic("ref")
     # rRNA genome
     if manager.config.genome.rRNA_fasta:
-        __bowtie1_index__fasta = config["genome"]["rRNA_fasta"]
-        __bowtie1_index__output = config["genome"]["name"] + "_rRNA.ebwt"
-        __bowtie1_index__output_prefix = config["genome"]["name"]+ "_rRNA"
-        __bowtie1_index__log = "logs/indexing/bowtie_rRNA.log"
+        __bowtie1_index_rna__fasta = config["genome"]["rRNA_fasta"]
+        __bowtie1_index_rna__output = config["genome"]["name"] + "_rRNA.ebwt"
+        __bowtie1_index_rna__output_prefix = config["genome"]["name"]+ "_rRNA"
+        __bowtie1_index_rna__log = "logs/indexing/bowtie_rRNA.log"
     else :
         __extract_fasta_from_bed__input = config["genome"]["fasta"]
         __extract_fasta_from_bed__gff = config["genome"]["gff"]
@@ -54,10 +53,11 @@ if manager.config.genome.do:
         __extract_fasta_from_bed__output_features = config["genome"]["name"]+ "_rRNA.gff"
         __extract_fasta_from_bed__log = "logs/indexing/get_rRNA.log"
         include: sm.modules["extract_fasta_from_bed"]
-        __bowtie1_index__fasta = __extract_fasta_from_bed__output
-        __bowtie1_index__output = config["genome"]["name"] + "_rRNA.ebwt"
-        __bowtie1_index__output_prefix = config["genome"]["name"]+ "_rRNA"
-        __bowtie1_index__log = "logs/indexing/bowtie_rRNA.log"
+        __bowtie1_index_rna__fasta = __extract_fasta_from_bed__output
+        __bowtie1_index_rna__output = config["genome"]["name"] + "_rRNA.ebwt"
+        __bowtie1_index_rna__output_prefix = config["genome"]["name"]+ "_rRNA"
+        __bowtie1_index_rna__log = "logs/indexing/bowtie_rRNA.log"
+    include: bowtie1_index_dynamic("rna")
 
     # indexing for bowtie2
     __bowtie2_index__fasta = config["genome"]["fasta"]
@@ -76,8 +76,8 @@ if manager.config.genome.do:
     #output index
     __star_index__ = __star_index__output_dir
     __bowtie2_index__ = __bowtie2_index__output_prefix
-    __bowtie1_index__ = __bowtie1_index__output_prefix
-    __RNA_index__ = __bowtie1_index__prefix
+    __bowtie1_index__ = __bowtie1_index_ref__output_prefix
+    __RNA_index__ = __bowtie1_index_rna__output_prefix
     __sequence_dictionary__ = __create_sequence_dictionary__output
 
 else:
@@ -227,17 +227,17 @@ else :
     include: sm.modules["igvtools"]
     #expected_output.extend(expand(__igvtools__output, sample=manager.samples))
 
-
 # Feature counts from subread suite
 if manager.config.star_mapping.do:
     __feature_counts__input = __star_mapping__sort
 else :
     __feature_counts__input = __bowtie1_mapping_ref__sort
-__feature_counts__output_count = manager.getname("feature_counts", "_feature.out")
-__feature_counts__output_gene_count = manager.getname("feature_counts", "_count.out")
-__feature_counts__log = manager.getname("feature_counts", ".logs")
-include: sm.modules["feature_counts"]
-expected_output.extend(expand(__feature_counts__output_gene_count, sample=manager.samples))
+if manager.config.feature_counts.do:
+	__feature_counts__output_count = manager.getname("feature_counts", "_feature.out")
+	__feature_counts__output_gene_count = manager.getname("feature_counts", "_count.out")
+	__feature_counts__log = manager.getname("feature_counts", ".logs")
+	include: sm.modules["feature_counts"]
+	expected_output.extend(expand(__feature_counts__output_gene_count, sample=manager.samples))
 
 
 # Add Read group on BAM files

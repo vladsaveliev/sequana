@@ -152,6 +152,7 @@ bowtie2_mapping:
 # - threads: number of threads to be used
 #
 feature_counts:
+    do: yes
     gff: /pasteur/projets/specific/PF2_ngs/protected/annotation/gff_data/cryptNeo.gff
     #options: "-t exon -g gene_id"
     options: "-t gene -g ID"
