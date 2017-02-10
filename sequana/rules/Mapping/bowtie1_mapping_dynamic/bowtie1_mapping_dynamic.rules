@@ -24,21 +24,21 @@ def bowtie1_mapping_dynamic(name, log_dir):
     bowtie1_mapping_code = '''
 rule bowtie1_mapping_%(name)s:
     input:
-        fastq = __bowtie1_mapping_%(name)s__input
+        fastq = __bowtie1_mapping_%(name)s__input,
+        prefix_index = __bowtie1_mapping_%(name)s__prefix_index
     output:
         bam = __bowtie1_mapping_%(name)s__bam,
         sort = __bowtie1_mapping_%(name)s__sort
     log:
         out = __bowtie1_mapping_%(name)s__stdout,
         err = __bowtie1_mapping_%(name)s__stderr
-    params: 
-        prefix_index = __bowtie1_mapping_%(name)s__prefix_index,
+    params:
         options = config["bowtie1_mapping_%(name)s"]["options"]
     threads:
         int(config["bowtie1_mapping_%(name)s"]["threads"])
     run:
         unzip_file = [filename[:-3] for filename in input.fastq]
-        cmd = "bowtie -S {params.options} -p {threads} {params.prefix_index}"
+        cmd = "bowtie -S {params.options} -p {threads} {input.prefix_index}"
         # paired end or single end unzip
         if len(input.fastq) == 2:
             bowtie_input = "-1 " + unzip_file[0] + " -2 " + unzip_file[1]
