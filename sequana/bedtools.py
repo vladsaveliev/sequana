@@ -28,6 +28,7 @@ from sequana.tools import gc_content
 from sequana.errors import SequanaException
 #from sequana.tools import genbank_features_parser
 
+from easydev import do_profile
 
 __all__ = ["GenomeCov", "ChromosomeCov", "DoubleThresholds"]
 
@@ -361,17 +362,33 @@ class ChromosomeCov(object):
         Store the results in the :attr:`df` attribute (dataframe) with a
         column named *rm*.
 
+        .. versionchanged:: 0.1.21
+            Use Pandas rolling function to speed up computation.
+
         """
         mid = int(n / 2)# in py2/py3 the division (integer or not) has no impact
         self.range = [None, None]
-        cover = list(self.df["cov"])
         try:
             if circular:
-                cover = cover[-mid:] + cover + cover[:mid]
-                rm = running_median.RunningMedian(cover, n).run()
+                # BASED on running_median pure implementation, could be much
+                # slower than pure pandas rolling function. Keep those 4 lines
+                # for book keeping though.
+                #cover = list(self.df["cov"])
+                #cover = cover[-mid:] + cover + cover[:mid]
+                #rm = running_median.RunningMedian(cover, n).run()
+                #self.df["rm"] = rm[mid:-mid]
+                rm = pd.concat([self.df['cov'][-mid:],
+                                self.df['cov'],
+                                self.df['cov'][:mid]]).rolling(n, center=True).median()
                 self.df["rm"] = rm[mid:-mid]
+
             else:
-                rm = running_median.RunningMedian(cover, n).run()
+                rm = self.df['cov'].rolling(n, center=True).median()
+                # Like in RunningMedian, we copy the NAN with real data
+                rm[0:mid] = self.df['cov'][0:mid]
+                rm[-mid:] = self.df['cov'][-mid:]
+                #rm = running_median.RunningMedian(cover, n).run()
+
                 self.df["rm"] = rm
                 # set up slice for gaussian prediction
                 self.range = [mid, -mid]
@@ -563,7 +580,7 @@ class ChromosomeCov(object):
 
         pylab.clf()
         ax = pylab.gca()
-        ax.set_axis_bgcolor('#eeeeee')
+        ax.set_facecolor('#eeeeee')
         pylab.xlim(0,self.df["pos"].iloc[-1])
         axes = []
         labels = []
@@ -655,7 +672,7 @@ class ChromosomeCov(object):
             pylab.figure(fignum)
             pylab.clf()
         ax = pylab.gca()
-        ax.set_axis_bgcolor('#eeeeee')
+        ax.set_facecolor('#eeeeee')
 
         data = self.df['cov'].dropna().values
 
