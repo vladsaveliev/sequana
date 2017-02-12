@@ -334,6 +334,8 @@ def run_analysis(gc, chrom, chrom_index, options):
     if options.reference:
         figure(2)
         chrom.plot_gc_vs_coverage(Nlevels=options.levels, fontsize=20)
+        corr = chrom.get_gc_correlation()
+        print("GC Correlation = %s" % corr)
         filename_gc_cov = "coverage_vs_gc.chrom{0}.png".format(chrom_index)
         savefig(filename_gc_cov)
 
@@ -343,7 +345,6 @@ def run_analysis(gc, chrom, chrom_index, options):
     # Report chromosomes
     if options.verbose:
         print("Creating report in %s" % options.output_directory)
-
 
     if options.genbank:
         if options.verbose:
@@ -362,7 +363,8 @@ def run_analysis(gc, chrom, chrom_index, options):
         if options.reference:
             from snakemake import shell
             shell("cp %s report/images" %  filename_gc_cov)
-            r.jinja['coverage_vs_gc'] = """<img src="images/%s">""" % filename_gc_cov
+            r.jinja['coverage_vs_gc'] = """Correlation: %s </br> """ % corr
+            r.jinja['coverage_vs_gc'] += """<img src="images/%s">""" % filename_gc_cov
 
         r.jinja['standalone_command'] = " ".join(sys.argv)
         r.create_report()
