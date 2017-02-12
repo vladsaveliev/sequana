@@ -19,10 +19,9 @@ input_samples:
     file2: "%(file2)s"
 
 # if files are required for a pipeline and are within sequana or should
-# # be downloaded before the pipeline provide them in this section
-# # Note that sequana and url fields are followed by itemised files or links
-# using
-# # the front dashes
+# be downloaded before the pipeline provide them in this section
+# Note that sequana and url fields are followed by itemised files or links
+# using the front dashes
 requirements:
     - phiX174.fa
     - Institut_Pasteur.png
@@ -39,9 +38,10 @@ fastqc:
     options: "--nogroup"
 
 ##################################################################
-#       MAPPING SECTION
+# MAPPING SECTION
+#
 #     Don't forgot to fill sequencing information
-##################################################################
+#
 sequencing:
     platform: "Illumina"
     instrument: "Hiseq2500"
@@ -213,8 +213,6 @@ adapter_removal:
 ##################################################################
 #       REPORTING SECTION WITH MULTIQC
 #
-##################################################################
-
 multiqc:
     excluded: "-x *_init_* -x *left_kept_reads* -x *report_rnaseq* -e htseq -e slamdunk"
     output-directory: "multiqc"
