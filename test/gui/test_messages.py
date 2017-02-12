@@ -1,14 +1,11 @@
-import sys
 from sequana.gui import messages
-from PyQt5 import QtWidgets as QW
 
-app = QW.QApplication(sys.argv)
 
-def test_warning():
+def test_warning(qtbot):
     w = messages.WarningMessage("test")
 
 
-def test_critical():
+def test_critical(qtbot):
     w = messages.CriticalMessage("test", details="test")
 
 
