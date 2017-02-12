@@ -9,7 +9,6 @@ from sequana import Module
 from PyQt5 import QtWidgets as QW
 from PyQt5.Qt import QTimer
 import pytest
-#from pytestqt.qt_compat import qt_api
 
 from tempfile import TemporaryDirectory
 from argparse import Namespace
@@ -114,7 +113,7 @@ def _test_standalone_generic_with_noconfig(qtbot):
     assert sum([int(x) for x in data]) == 2000000
 
 
-def _test_standalone_generic_with_noconfig_2(qtbot):
+def test_standalone_generic_with_noconfig_2(qtbot):
     """mimics:
 
         sequanix -s path_to_snakefile
@@ -242,6 +241,8 @@ def test_others(qtbot, mock):
     mock.patch.object(sequana.gui.about.About, "exec_",
         return_value=QW.QMessageBox.Ok)
     widget.menuAbout()
+    mock.patch.object(sequana.gui.help.HelpDialog, "exec_",
+        return_value=QW.QMessageBox.Ok)
     widget.menuHelp()
 
 
@@ -256,7 +257,7 @@ def test_generic_copy_nodir(qtbot):
     widget.generic_factory._copy_snakefile()
 
 
-def _test_options():
+def test_options():
     user_options = sequana_gui.Options()
     options = user_options.parse_args(["--pipeline", "quality_control"])
 
