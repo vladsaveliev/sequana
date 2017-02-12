@@ -23,7 +23,7 @@ from sequana.lazy import numpy as np
 from sequana.lazy import pylab
 
 
-from sequana import running_median
+from sequana import running_median, logger
 from sequana.tools import gc_content
 from sequana.errors import SequanaException
 #from sequana.tools import genbank_features_parser
@@ -200,7 +200,8 @@ class GenomeCov(object):
     def __iter__(self):
         return self.chr_list.__iter__()
 
-    def compute_gc_content(self, fasta_file, window_size=101, circular=False):
+    def compute_gc_content(self, fasta_file, window_size=101, circular=False,
+            letters=['G', 'C', 'c', 'g']):
         """ Compute GC content of genome sequence.
 
         :param str fasta_file: fasta file name.
@@ -212,7 +213,8 @@ class GenomeCov(object):
             with a column named *gc*.
 
         """
-        gc_dict = gc_content(fasta_file, window_size, circular)
+        gc_dict = gc_content(fasta_file, window_size, circular, 
+            letters=letters)
         for chrom in self.chr_list:
             if chrom.chrom_name in gc_dict.keys():
                 chrom.df["gc"] = gc_dict[chrom.chrom_name]
@@ -490,7 +492,7 @@ class ChromosomeCov(object):
 
         # warning when sigma is equal to 0
         if self.best_gaussian["sigma"] == 0:
-            print("WARNING: A problem related to gaussian prediction is "
+            logger.warning("A problem related to gaussian prediction is "
                   "detected. Be careful, Sigma is equal to 0.")
             self.df["zscore"] = np.zeros(len(self.df), dtype=int)
         else:
@@ -512,9 +514,8 @@ class ChromosomeCov(object):
                 s0 = sigmas[1]
                 mu0 = mus[1]
             if abs(mu0-mu1) < s0:
-                if verbose:
-                    print("Warning: k=2 but note that |mu0-mu1| < sigma0. ",
-                        "k=1 could be a better choice") 
+                logger.warning(("Warning: k=2 but note that |mu0-mu1| < sigma0. "
+                        "k=1 could be a better choice"))
 
     def get_centralness(self):
         r"""Proportion of central (normal) genome coverage
@@ -541,19 +542,40 @@ class ChromosomeCov(object):
             second_low = self.thresholds.low2
             query = "zscore > @second_high or zscore < @second_low"
 
+            # in the genbank, the names appears as e.g. JB12345
+            # but in the fasta or BED files, it may be something like
+            # gi|269939526|emb|FN433596.1|
+            # so they do not match. We can try to guess it 
+            alternative = None
+
             if features:
                 if self.chrom_name not in features.keys():
-                    features = None
-                    print("Genbank name not found in list of chromosomes. " +\
-    " Make sure the chromosome names in the genbank match those in the "+\
-    " BED/BAM files.")
+                    msg = """Chromosome name (%s) not found 
+                        in the genbank. Make sure the chromosome names in 
+                        the BAM/BED files are compatible with the genbank 
+                        content. Genbank files contains the following keys """
+                    for this in features.keys():
+                        msg += "\n                        - %s" % this
+
+                    alternative = [x for x in self.chrom_name.split("|") if x]
+                    alternative = alternative[-1] # assume the accession is last
+                    alternative = alternative.split('.')[0] # remove version
+                    if alternative in features.keys():
+                        msg += "\n Guessed the chromosome name to be: %s" % alternative
+                    else:
+                        features = None
+                    logger.warning(msg % self.chrom_name)
             if features:
-                return FilteredGenomeCov(self.df.query(query), self.thresholds, 
-                    features[self.chrom_name])
+                if alternative:
+                    return FilteredGenomeCov(self.df.query(query), self.thresholds, 
+                        features[alternative])
+                else:
+                    return FilteredGenomeCov(self.df.query(query), self.thresholds, 
+                        features[self.chrom_name])
             else:
                 return FilteredGenomeCov(self.df.query(query), self.thresholds)
         except KeyError:
-            print("Column zscore is missing in data frame.\n"
+            logger.error("Column zscore is missing in data frame.\n"
                   "You must run compute_zscore before get low coverage.\n\n",
                   self.__doc__) 
 
@@ -716,7 +738,7 @@ class ChromosomeCov(object):
             labels=["pos", "cov", "mapq0"]
             self.df[labels][start:stop].to_csv(filename, header=header)
         except NameError:
-            print("You must set the file name")
+            logger.error("You must set the file name. Nothing done")
         except KeyError:
             self.df[labels[:-1]][start:stop].to_csv(filename, header=header)
 
@@ -850,6 +872,15 @@ class FilteredGenomeCov(object):
         if feature_list:
             region_list = self._add_annotation(region_list, feature_list)
         self.df = self._dict_to_df(region_list, feature_list)
+
+        def func(x):
+            try: return x.split(".")[0]
+            except: return x
+        for column in ['gene_end', 'gene_start']:
+            if column in self.df.columns:
+                self.df[column] = self.df[column].astype(str)
+                self.df[column] = self.df[column].apply(func)
+
 
     def __str__(self):
         return self.df.__str__()
