@@ -25,11 +25,11 @@ from optparse import OptionParser
 import argparse
 from argparse import RawTextHelpFormatter
 
-
 from sequana import bedtools
 from sequana.reporting import report_mapping
 from sequana.reporting import report_chromosome
 from sequana.reporting import report_main
+from sequana import logger
 
 from easydev import shellcmd
 
@@ -201,7 +201,7 @@ def main(args=None):
         options = user_options.parse_args(args[1:])
 
     if options.accession:
-        print("Download accession %s from %s\n" %
+        logger.info("Download accession %s from %s\n" %
             (options.accession, options.database))
 
         from bioservices.apps import download_fasta as df
@@ -223,7 +223,7 @@ def main(args=None):
             "%s does not exists" % options.genbank
 
     if options.verbose:
-        print("Reading %s" % options.input)
+        logger.info("Reading %s" % options.input)
 
     if options.input.endswith(".bam"):
         bedfile = options.input.replace(".bam", ".bed")
@@ -280,7 +280,7 @@ def run_analysis(gc, chrom, chrom_index, options):
         print(chrom)
 
     if options.verbose:
-        print('Computing running median')
+        print('Computing running median (w=%s)' % options.w_median)
 
     chrom.running_median(n=options.w_median, circular=options.circular)
 
