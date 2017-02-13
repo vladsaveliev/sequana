@@ -5,7 +5,6 @@ import tempfile
 from sequana import Module, SequanaConfig
 
 
-
 def test_dot_parser():
     s = DOTParser(sequana_data("test_dag.dot", "testing"))
     s.add_urls()
@@ -53,6 +52,9 @@ def test_module():
     m.check()
     m.snakefile
     m.name
+    m
+    m.cluster_config
+    m.config_cluster
 
 
 def _test_module_onweb():
@@ -77,7 +79,6 @@ def test_sequana_config():
 
     assert config.config.get("kraken:dummy", "test") == "test"
     assert config.config.get("kraken:dummy") == None
-
 
     # --------------------------------- tests different constructors
     config = snaketools.SequanaConfig()
@@ -104,7 +105,6 @@ def test_sequana_config():
     s = snaketools.Module("quality_control")
     config = snaketools.SequanaConfig(s.config)
     config._recursive_update(config._yaml_code, {"input_directory_dummy": "test"})
-
 
     # loop over all pipelines, read the config, save it and check the content is
     # identical. This requires to remove the templates. We want to make sure the
@@ -184,7 +184,6 @@ def test_pipeline_manager():
     pm.getrawdata()
     pm.getreportdir("test")
     pm.getname("fastqc")
-
 
 
 def test_file_name_factory():

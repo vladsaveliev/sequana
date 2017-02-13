@@ -19,8 +19,7 @@
 import os
 
 from sequana.reporting.report_main import BaseReport
-
-from reports import HTMLTable
+from sequana.lazy import reports 
 
 
 class SubMappingReport(BaseReport):
@@ -42,6 +41,8 @@ class SubMappingReport(BaseReport):
         self.start = start
         self.stop = stop
         self.thresholds = thresholds
+        from easydev import mkdirs
+        mkdirs(directory)
 
     def set_data(self, data):
         self.mapping = data
@@ -61,7 +62,7 @@ class SubMappingReport(BaseReport):
         self.jinja["low_cov_threshold"] = -self.thresholds.low
         self.jinja["low_cov_threshold_2"] = -self.thresholds.low2
         self.jinja["nb_low_region"] = len(merge_low_cov)
-        html = HTMLTable(merge_low_cov)
+        html = reports.HTMLTable(merge_low_cov)
         html.add_bgcolor("size")
         self.jinja['low_coverage'] = html.to_html(index=False)
 
@@ -69,6 +70,6 @@ class SubMappingReport(BaseReport):
         self.jinja["high_cov_threshold"] = self.thresholds.high
         self.jinja["high_cov_threshold_2"] = self.thresholds.high2
         self.jinja["nb_high_region"] = len(merge_high_cov)
-        html = HTMLTable(merge_high_cov)
+        html = reports.HTMLTable(merge_high_cov)
         html.add_bgcolor("size")
         self.jinja['high_coverage'] = html.to_html(index=False)

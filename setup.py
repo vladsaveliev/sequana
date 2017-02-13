@@ -43,7 +43,7 @@ packages = [this for this in packages if this not in ['test']]
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
-    extra_packages = []
+    extra_packages = ["pillow"]  # 
 else:
     extra_packages = []
 
@@ -69,10 +69,11 @@ setup(
 
     # pillow, sphinx-gallery and numpydoc are  for the doc only
     # mock is for the test only
+    # qtconsole is required by Sequanix
     install_requires = ["easydev>=0.9.31", "reports>=0.3.0", "matplotlib",
         "pyVCF", "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14",
-        "biokit>=0.3.4", "pysam", "docutils", "sphinx-gallery", "mock",
-        "numpydoc", "pillow", "blist", "sphinx", "ruamel.yaml>=0.13.2",
+        "biokit>=0.3.4", "pysam", "docutils", "mock", "qtconsole",
+        "numpydoc",  "blist", "sphinx", "ruamel.yaml>=0.13.2",
         "colorlog"] + extra_packages,
 
     # here below '': pattern means include that pattern in all packages

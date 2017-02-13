@@ -3,6 +3,22 @@ Changelog
 
 .. contents::
 
+0.1.21 - Feb 2017
+-------------------
+
+* NEWS:
+
+    add sequana_debug_level function at top level to switch verbosity of
+    informative messages (default is WARNING).
+
+* CHANGES:
+
+   - Running Median is 10 times faster
+   - sequana_coverage:  (1) --file1 alone was not working (2) automatically copy
+     cluster-config in working directory and update runme.sh accordingly
+   - sequana standalone: handles cluster_config Snakemake option
+   - sequanix: the help dialog is now created inside designer and has a proper
+     scrollable browser dialog. cluster_config Snakemake option is also handle.
 
 0.1.20 - Feb 2017
 ---------------------

@@ -42,6 +42,7 @@ import json
 import glob
 import shutil
 
+import easydev
 from easydev import get_package_location as gpl
 from easydev import load_configfile, AttrDict
 
@@ -53,7 +54,6 @@ from sequana import sequana_data, logger
 from sequana.errors import SequanaException
 
 from sequana import logger
-from easydev.profiler import do_profile
 
 __all__ = ["DOTParser", "FastQFactory", "FileFactory",
            "Module", "PipelineManager", "SnakeMakeStats",
@@ -323,6 +323,13 @@ or open a Python shell and type::
         if os.path.exists(filename):
             return filename
 
+    def __repr__(self):
+        str = "Name: %s\n" % self._name
+        str += "Path: %s\n" % self.path
+        str += "Config: %s\n" % self.config
+        str += "Config cluster: %s\n" % self.config_cluster
+        return str
+
     def __str__(self):
         txt = "Rule **" + self.name + "**:\n" + self.description
         return txt
@@ -345,6 +352,8 @@ or open a Python shell and type::
         # The default config file for that module
         return self._get_file("cluster_config.json")
     config_cluster = property(_get_config_cluster,
+                      doc="full path to the config cluster file of the module")
+    cluster_config = property(_get_config_cluster,
                       doc="full path to the config cluster file of the module")
 
     def _get_readme(self):
@@ -407,7 +416,6 @@ or open a Python shell and type::
 
         executable = True
         missing = []
-        import easydev
 
         # reads the file and interpret it to figure out the
         # executables/packages and pipelines required
@@ -474,16 +482,15 @@ or open a Python shell and type::
                            doc=("Content of the README file associated with "))
     def onweb(self):
         # TOD: automatic switch
-        from easydev import onweb
         if "rules" in self._path:
             suffix = self.snakefile.split("rules/")[1]
             suffix = suffix.rsplit("/", 1)[0]
-            onweb("http://github.com/sequana/sequana/tree/"
+            easydev.onweb("http://github.com/sequana/sequana/tree/"
                   "master/sequana/rules/%s" % suffix)
         else:
             suffix = self.snakefile.split("pipelines/")[1]
             suffix = suffix.rsplit("/", 1)[0]
-            onweb("http://github.com/sequana/sequana/tree/"
+            easydev.onweb("http://github.com/sequana/sequana/tree/"
                   "master/sequana/pipelines/%s" % self.name)
 
 
@@ -1130,8 +1137,9 @@ class FastQFactory(FileFactory):
         super(FastQFactory, self).__init__(pattern)
 
         if len(self.filenames) == 0:
-            raise ValueError("No files found with the requested pattern (%s)"
-                             % pattern)
+            msg = "No files found with the requested pattern (%s)" % pattern
+            logger.critical(msg)
+            raise ValueError(msg)
 
         # Check the extension of each file (fastq.gz by default) TODO
         #for this in self.all_extensions:
@@ -1152,7 +1160,7 @@ class FastQFactory(FileFactory):
         self.short_tags = [x.split("_")[0] for x in self.tags]
 
         if verbose:
-            print("Found %s projects/samples " % len(self.tags))
+            logger.info("Found %s projects/samples " % len(self.tags))
 
     def _get_file(self, tag, rtag):
         assert rtag in ["_R1_", "_R2_"]

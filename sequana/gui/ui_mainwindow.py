@@ -64,7 +64,7 @@ class Ui_MainWindow(object):
         self.tabs_sequana.setDocumentMode(False)
         self.tabs_sequana.setTabsClosable(False)
         self.tabs_sequana.setMovable(True)
-        self.tabs_sequana.setTabBarAutoHide(False)
+        self.tabs_sequana.setProperty("tabBarAutoHide", False)
         self.tabs_sequana.setObjectName("tabs_sequana")
         self.Pipeline = QtWidgets.QWidget()
         self.Pipeline.setObjectName("Pipeline")
@@ -200,7 +200,7 @@ class Ui_MainWindow(object):
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label)
         self.until_box = QtWidgets.QComboBox(self.groupBox)
         self.until_box.setEditable(False)
-        self.until_box.setCurrentText("")
+        self.until_box.setProperty("currentText", "")
         self.until_box.setObjectName("until_box")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.until_box)
         self.label_2 = QtWidgets.QLabel(self.groupBox)
@@ -304,7 +304,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 552, 96))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 96, 26))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.gridLayout_4.addWidget(self.scrollArea, 0, 0, 1, 1)
@@ -358,13 +358,13 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.progressBar.sizePolicy().hasHeightForWidth())
         self.progressBar.setSizePolicy(sizePolicy)
-        self.progressBar.setToolTipDuration(-1)
         self.progressBar.setStyleSheet("border: 2px solid grey;\n"
 "margin:2px;\n"
 "border-radius: 5px;\n"
 "text-align: center;\n"
 "")
         self.progressBar.setProperty("value", 1)
+        self.progressBar.setProperty("toolTipDuration", -1)
         self.progressBar.setObjectName("progressBar")
         self.vlayout.addWidget(self.progressBar)
         self.vlayout.setStretch(1, 1)
@@ -372,7 +372,7 @@ class Ui_MainWindow(object):
         self.gridLayout_2.addLayout(self.vlayout, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 604, 19))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 604, 22))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -436,7 +436,7 @@ class Ui_MainWindow(object):
         self.tabs_pipeline.setToolTip(_translate("MainWindow", "<html><head/><body><p>Select a Sequana pipeline (left tab) or a generic Snakemake file (right tab).</p><p><br/>Go to Menu Help-&gt;QuickStart for more details (Ctrl+H key).</p></body></html>"))
         self.tabs_sequana.setToolTip(_translate("MainWindow", "<html><head/><body><ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\"><li style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Left tab:</span> Select one of the pipeline in the combo box. In order to get information about a pipeline, please see the Help menu. </li><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Middle tab:</span> Select one of this option</li><ol style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;\"><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Input directory: the directory where fastq.gz files are stored (all Sequana pipelines expect fastq.gz as input)</li><li style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Input samples: select one or two files (fastq.gz) in a directory</li></ol><li style=\" margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Right tab: </span>Select working directory where Snakefile/pipeline and config files will be copied. Pipelines are also ran in that directory. </li></ul></body></html>"))
         self.choice_button.setToolTip(_translate("MainWindow", "<html><head/><body><p>Sequana pipelines are automatically fetched from sequana library.</p><p>Each pipeline is defined by a pipeline name. Its config file is fetched automatically.</p><p>Each pipeline require the user to define the input. It may be one of:</p><p><ul><li> a directory</li><li> a set of FastQ input file</li></ul></body></html>"))
-        self.choice_button.setCurrentText(_translate("MainWindow", "Select a Sequana pipeline"))
+        self.choice_button.setProperty("currentText", _translate("MainWindow", "Select a Sequana pipeline"))
         self.choice_button.setItemText(0, _translate("MainWindow", "Select a Sequana pipeline"))
         self.tabs_sequana.setTabText(self.tabs_sequana.indexOf(self.Pipeline), _translate("MainWindow", "1 - Pipeline selection"))
         self.tabWidget.setToolTip(_translate("MainWindow", "<html><head/><body><p>Choose one of those tab as your input choice</p><p><br/></p><p><span style=\" font-weight:600;\">Left tab (Input directory):</span> Automatically select all fastq.gz files found in the directory</p><p><span style=\" font-weight:600;\">Middle tab (Input Samples):</span> Sometimes, only 1 or 2 files (paired) are required, use this tab in such situations</p><p><span style=\" font-weight:600;\">Right tab (Input pattern):</span> Your samples may be in many sub directories, or you want to select only a sub set of files. Please provide a pattern with wildcards if you use this tab</p></body></html>"))
@@ -504,8 +504,8 @@ class Ui_MainWindow(object):
         self.save_btn.setText(_translate("MainWindow", "&Save"))
         self.save_btn.setShortcut(_translate("MainWindow", "Ctrl+S"))
         self.dag_btn.setToolTip(_translate("MainWindow", "<html><head/><body><p>Pressing this button, a DAG is created and shown. </p><p>This is a good way to check your config file (i.e., if there are optional switch).</p><p><br/></p><p><span style=\" font-weight:600;\">Shortcut: Ctrl+D</span></p></body></html>"))
-        self.dag_btn.setText(_translate("MainWindow", "Show &Pipeline"))
-        self.dag_btn.setShortcut(_translate("MainWindow", "Ctrl+P"))
+        self.dag_btn.setText(_translate("MainWindow", "Show Pipeline"))
+        self.dag_btn.setShortcut(_translate("MainWindow", "Ctrl+D"))
         self.progressBar.setToolTip(_translate("MainWindow", "<p>Progress of the pipeline. color codes:\n"
 "    <ul>\n"
 "        <li style=\"color:red\">Red: an error occured</li>\n"

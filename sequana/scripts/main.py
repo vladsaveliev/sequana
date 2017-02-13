@@ -26,10 +26,18 @@ import time
 from optparse import OptionParser
 import argparse
 
-
 from easydev.console import red, purple, green, blue
-from easydev import DevTools, SmartFormatter
+from easydev import DevTools, SmartFormatter, onweb
 
+from sequana.misc import textwrap
+from sequana.snaketools import pipeline_names as valid_pipelines
+from sequana.snaketools import FastQFactory
+from sequana.adapters import FindAdaptersFromDesign, AdapterReader
+from sequana import SequanaConfig, sequana_data
+from sequana import logger, Module, sequana_debug_level
+
+
+sequana_debug_level('INFO')
 
 adapters_choice = ["Nextera", "Rubicon", "PCRFree", "TruSeq"]
 
@@ -53,11 +61,6 @@ class Tools(object):
     dv = DevTools()
     def __init__(self, verbose=True):
         self.verbose = verbose
-    def error(self, txt):
-        print(self.red(txt))
-        sys.exit(1)
-    def warning(self, txt):
-        self.blue("Warning:: " + txt)
     def purple(self, txt, force=False):
         if self.verbose or force is True:
             print(purple(txt))
@@ -70,13 +73,8 @@ class Tools(object):
     def blue(self, txt, force=False):
         if self.verbose or force is True:
             print(blue(txt))
-    def onweb(self, link):
-        from easydev import onweb
-        onweb(link)
     def mkdir(self, name):
         self.dv.mkdir(name)
-    def info(self, txt, force=False):
-        if self.verbose or force: print(txt)
 
 
 class Options(argparse.ArgumentParser):
@@ -94,7 +92,41 @@ class Options(argparse.ArgumentParser):
             --input-pattern <A wildcard to retrieve fastq.gz files>
             --file1 FILE1 --file2 FILE2
 
-        In addition, each pipeline may have its own specific options. For
+        Type
+
+            sequana --show-pipelines to get the list of pipelines
+
+        Examples
+        =========
+
+        Run the Quality control pipeline on fastq.gz files in the
+        local directory. Use a laptop instead of a cluster:
+
+            sequana --pipeline quality_control --input-directory .
+
+        Same pipeline but to be run on a SLURM scheduler. The
+        --snakemake-cluster is required to specify e.g. memory in Mb::
+
+            sequana --pipeline quality_control --input-directory .
+                --snakemake-cluster "sbatch --mem=8000"
+
+        Other pipeline like the RNAseq have dedicated cluster_config file 
+        to be used  by Snakemake to specify memory for each rule. This is
+        downloading automatically and requires the --snakemake-cluster 
+        option to specify name to be found in the cluster_config 
+        file (here --mem={cluster.ram}::
+
+            sequana --pipeline rnaseq
+                --snakemake-cluster "sbatch --mem={cluster.ram}"
+
+        If you prefer to ignore the cluster_config, you can set the option
+        --ignore-cluster-config. This is not recommended but required if 
+        you want to perform a local run)
+
+        Details
+        ==========
+
+        Each pipeline may have its own specific options. For
         instance the parameter in the quality_control section are for the
         quality_control pipeline only.
 
@@ -187,7 +219,6 @@ Issues: http://github.com/sequana/sequana
         group.add_argument("--show-pipelines", dest='show_pipelines',
                 action="store_true", help="print names of the available pipelines")
 
-
         group = self.add_argument_group("CONFIGURATION")
         # options to fill the config file
         group.add_argument('--config', dest="config", type=str,
@@ -212,15 +243,14 @@ and has a hierarchy of parametesr. For example:
         file1: R1.fastq.gz
         file2: R2.fastq.gz
     bwa_mem_phix:
-        mem:
-            threads: 2
+        threads: 2
 
 Here we have 3 sections with 1,2,3 levels respectively. On the
 command line, each level is separated by a : sign and each
 meter to be changed separated by a comma. So to change the
 project name and threads inside the bwa_phix section use:
 
---config-params project:newname, bwa_mem_phix:mem:threads:4
+--config-params samples:file1, bwa_mem_phix:threads:4
 
 Be aware that when using --config-params, all comments are removed.""")
 
@@ -231,14 +261,20 @@ command, which is written in the runme.sh file. One can tune that command to
 define the type of cluster command to use
             """)
         group.add_argument("--snakemake-cluster", dest="cluster", type=str,
-                          help="""a valid snakemake option dedicated to a cluster.
-                          e.g on LSF cluster --cluster 'qsub -cwd -q<QUEUE> '"""
+                          help="""a cluster option understood y snakemake (snakemake option
+called --cluster) e.g on LSF cluster --cluster 'qsub -cwd -q<QUEUE> '"""
                           )
         group.add_argument("--snakemake-jobs", dest="jobs", type=int, default=4,
                           help="""jobs to use on a cluster"""
                           )
         group.add_argument("--snakemake-forceall", dest="forceall", action='store_true',
                           help="""add --forceall in the snakemake command"""
+                          )
+        group.add_argument("--ignore-cluster-config", dest="ignore_cluster_config",
+                          action="store_true",
+                          help="""If a sequana pipeline has a cluster-config
+file, we add --cluster-config FILENAME automatically. If you do not want that
+behavious, use this option."""
                           )
 
         group = self.add_argument_group("INPUT FILES")
@@ -346,10 +382,10 @@ For back compatibility we also accept this format. Here, the SampleIF,
         """)
         group.add_argument("--adapters", dest="adapters", type=str, default="",
             help="""FORMAT|When using --design, you must also provide the type of
-adapters. Valid values are %s . The files
-are part os Sequana and can be found here: 
+adapters. Valid values are %s .
+The files are part of Sequana and can be found here:
 
-     http:\\github.com/sequana/sequana/resources/data/adapters
+     http://github.com/sequana/sequana/resources/data/adapters
                 """ % adapters_choice)
         group.add_argument("--no-adapters", dest="no_adapters",
             action="store_true", default=False,
@@ -366,7 +402,7 @@ def main(args=None):
     snakemake + README +runme.sh in a dedicated project directory.
 
     """
-
+    import sequana
     if args is None:
         args = sys.argv[:]
 
@@ -376,20 +412,13 @@ def main(args=None):
     if len(args) == 1:
         sa = Tools()
         sa.purple("Welcome to Sequana standalone application")
-        sa.error("You must use --pipeline <valid pipeline name>\nuse "
-                 "--show-pipelines or --help for more information")
+        logger.critical("You must use --pipeline <valid pipeline name>\nuse "
+                 "--show-pipelines or --help for more information. ")
         return
     else:
         options = user_options.parse_args(args[1:])
 
     # these imports must be local. This also speed up the --help
-    import sequana
-    from sequana.misc import textwrap
-    from sequana.snaketools import Module
-    from sequana.snaketools import pipeline_names as valid_pipelines
-    from sequana.snaketools import FastQFactory
-    from sequana.adapters import FindAdaptersFromDesign, AdapterReader
-    from sequana import SequanaConfig, sequana_data
 
     sa = Tools(verbose=options.verbose)
     sa.purple("Welcome to Sequana standalone application")
@@ -404,12 +433,14 @@ def main(args=None):
             int(bool(options.get_config))
             ), 2)
     if flag not in [1,2,4,8,16,3,32]:
-        sa.error("You must use one of --pipeline, --info, "
+        logger.critical("You must use one of --pipeline, --info, "
             "--show-pipelines, --issue, --version, --get-config")
+        sys.exit(1)
 
     # OPTIONS that gives info and exit
     if options.issue:
-        sa.onweb('https://github.com/sequana/sequana/issues')
+        onweb('https://github.com/sequana/sequana/issues')
+        return
 
     if options.version:
         sa.purple("Sequana version %s" % sequana.version)
@@ -432,8 +463,9 @@ def main(args=None):
         # check validity of the pipeline name
         if options.pipeline not in valid_pipelines:
             txt = "".join([" - %s\n" % this for this in valid_pipelines])
-            sa.error("%s not a valid pipeline name. Use of one:\n" % options.pipeline
+            logger.critical("%s not a valid pipeline name. Use of one:\n" % options.pipeline
                      + txt)
+            sys.exit(1)
 
     # copy locally the request config file from a specific pipeline
     if flag == 3: #--get-config and --pipeline used
@@ -469,13 +501,14 @@ def main(args=None):
 
     # config file has flag 1, others have flag 2,4,8,16
     # config file alone : 1
-    # --file1 alone: 2
+    # --input-directory alone: 2
+    # --file1 alone: 4
     # --file1 + --file2 : 2+4=6
-    # --input-directory alone: 8
     # --input-pattern alone: 16
     # none of those options redirect to input_directory=local
-    if flag not in [0, 1, 2, 6, 8,16]:
-        sa.error(help_input + "\n\nUse --help for more information")
+    if flag not in [0, 1, 2, 4, 6, 8,16]:
+        logger.critical(help_input + "\n\nUse --help for more information")
+        sys.exit(1)
 
     assert options.extension in ["fastq", "fq", "fastq.gz", "fq.gz"]
 
@@ -490,7 +523,7 @@ def main(args=None):
         options.file2 = ""
         options.pattern = ""
         if options.verbose:
-            print("Looking for sample files matching %s" % data)
+            logger.info("Looking for sample files matching %s" % data)
     elif options.pattern:
         options.pattern = os.path.abspath(options.pattern)
         data = os.path.abspath(options.pattern)
@@ -522,7 +555,7 @@ def main(args=None):
             int(bool(options.adapter_rev))
             ), 2)
 
-        if flag not in [16,12, 4, 2, 3]:
+        if flag not in [16,12, 6, 4, 2, 3]:
             sa.error("You must use a design experimental file using --design"
                      " and --adapters to indicate the type of adapters (PCRFree"
                      " or Nextera), or provide the adapters directly as a "
@@ -590,13 +623,14 @@ def copy_config_from_sequana(module, source="config.yaml",
     if os.path.exists(user_config):
         shutil.copy(user_config, target)
         txt = "copied %s from sequana %s pipeline"
-        print(txt % (source, module.name))
+        logger.info(txt % (source, module.name))
+    else:
+        logger.warning(user_config + "not found")
 
 
 def sequana_init(options):
     import sequana
     from sequana.misc import textwrap
-    from sequana import Module
     from sequana import SequanaConfig, sequana_data
     sa = Tools(verbose=options.verbose)
 
@@ -617,7 +651,7 @@ def sequana_init(options):
             sys.exit(0)
 
     # Copying snakefile
-    sa.info("Copying snakefile")
+    logger.info("Copying snakefile")
     sa.mkdir(options.target_dir)
     shutil.copy(module.snakefile, options.target_dir + os.sep +
                 options.pipeline + ".rules")
@@ -645,13 +679,12 @@ def sequana_init(options):
     Once finished with success, the report/ directory contains a summary.html
     and relevant files (depends on the pipeline).
     """
-
-    sa.info("Creating README")
+    logger.info("Creating README")
     with open(options.target_dir + os.sep + "README", "w") as fh:
         fh.write(txt.replace("\x1b[35m","").replace("\x1b[39;49;00m", ""))
 
     # Creating Config file
-    sa.info("Creating the config file")
+    logger.info("Creating the config file")
 
     # Create (if needed) and update the config file
     config_filename = options.target_dir + os.sep + "config.yaml"
@@ -668,6 +701,8 @@ def sequana_init(options):
     # Copy multiqc if it is available
     multiqc_filename = options.target_dir + os.sep + "multiqc_config.yaml"
     copy_config_from_sequana(module, "multiqc_config.yaml", multiqc_filename)
+    cluster_cfg_filename = options.target_dir + os.sep + "cluster_config.json"
+    copy_config_from_sequana(module, "cluster_config.json", cluster_cfg_filename)
 
     # The input
     cfg = SequanaConfig(config_filename)
@@ -737,13 +772,23 @@ def sequana_init(options):
             cmd += " --forceall "
 
         if options.cluster:
-            cmd += ' --cluster "%s"' % options.cluster
+            # Do we want to include the cluster config option ?
+            cluster_config = Module(options.pipeline).config_cluster
+            if options.ignore_cluster_config is True:
+                cluster_config = None
+
+            if cluster_config is None:
+                cmd += ' --cluster "%s"' % options.cluster
+            else:
+                cmd += ' --cluster "%s"  --cluster-config %s' %\
+                    (options.cluster, os.path.basename(cluster_config))
+
 
         if options.redirection:
             cmd += " 1>run.out 2>run.err"
         fout.write(cmd % {'project':options.pipeline , 'jobs':options.jobs,
             "version": sequana.version})
-    # change permission of runme.sh to 755 
+    # change permission of runme.sh to 755
     st = os.stat(runme_filename)
     os.chmod(runme_filename, st.st_mode | 0o755)
 
@@ -762,7 +807,9 @@ def sequana_init(options):
     try: #python 3
         os.chmod(runme_filename, 0o755)
     except:
-        print("Please use Python3. Change the mode of %s manually to 755" % runme_filename)
+        logger.info(
+            "Please use Python3. Change the mode of %s manually to 755" %
+            runme_filename)
 
 
 if __name__ == "__main__":
