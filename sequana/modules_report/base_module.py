@@ -32,7 +32,7 @@ class SequanaBaseModule(object):
     """
     required_dir = ("css", "js", "images")
     def __init__(self):
-        self.script = list()
+        self.js = list()
         self.output_dir = config.output_dir
         self.path = "./"
         # Initiate jinja template
@@ -72,38 +72,46 @@ class SequanaBaseModule(object):
                   "w") as fp:
             print(report_output, file=fp)
 
-    def create_link(self, name, target):
+    def create_link(self, name, target, newtab=True):
         """ Create an html link with name and target.
         """
-        return '<a href="{0}" download="{0}">{1}</a>'.format(target, name)
+        if newtab:
+            link = '<a href="{0}" target="_blank">{1}</a>'
+        else:
+            link = '<a href="{0}" download="{0}">{1}</a>'
+        return link.format(target, name)
 
-    def create_hide_section(self, name, link, content):
+    def create_hide_section(self, name, link, content, hide=False):
         """ Create an hideable section.
         """
         link = "<a href='#1' class='show_hide{0}'>{1}</a>".format(name, link)
         content = "<div class='slidingDiv{0}'>\n{1}\n</div>".format(name,
                                                                     content)
-        self.script.append('$(".slidingDiv{0}").hide()\n'
-                           '$(".show_hide{0}").click(function(){\n'
-                           '    $(".slidingDiv{0}").slideToggle();\n'
-                           '});\n')
+        if hide:
+            js = '$(".slidingDiv{0}").hide()\n'
+        else:
+            js = ''
+        js += ('$(".show_hide{0}").click(function(){{\n'
+               '    $(".slidingDiv{0}").slideToggle();\n}});')
+        self.js.append(js.format(name))
         return link, content
 
     def copy_file(self, filename, target_dir):
-        """ Copy a file to a target directory. Return the relative path of your
-        file.
+        """ Copy a file to a target directory in report dir. Return the
+        relative path of your file.
         """
+        directory = config.output_dir + os.sep + target_dir
         try:
-            os.makedirs(target_dir)
+            os.makedirs(directory)
         except FileExistsError:
-            if os.path.isdir(target_dir):
+            if os.path.isdir(directory):
                 pass
             else:
-                msg = "{0} exist and it is not a directory".format(target_dir)
+                msg = "{0} exist and it is not a directory".format(directory)
                 config.logger.error(msg)
                 raise FileExistsError
         try:
-            shutil.copy(filename, target_dir)
+            shutil.copy(filename, directory)
         except FileNotFoundError:
             msg = "{0} doesn't exist".format(filename)
             raise FileNotFoundError 
@@ -117,7 +125,8 @@ class SequanaBaseModule(object):
     def add_code_section(self, content, language):
         """ Add code in your html.
         """
-        html = '<pre><code class="{0}">{1}</code></pre>'
+        html = ('<div class="code"><pre><code class="{0}">{1}'
+                '</code></pre></div>')
         return html.format(language, content)
 
     def dataframe_to_html_table(self, dataframe, kwargs=dict()):
