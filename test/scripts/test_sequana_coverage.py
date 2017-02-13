@@ -44,5 +44,9 @@ def test_input(tmpdir):
 
     filename = sequana_data('virus.bed', 'data')
     reference = sequana_data('tofill.fa', 'data')
-    coverage.main([prog, '-i', filename, "-o", "--output-directory", name])
+    try:
+        coverage.main([prog, '-i', filename, "-o", "--output-directory", name])
+        assert False
+    except:
+        assert True
     assert os.path.exists(name + os.sep + "coverage_mapping.chrom1.html")

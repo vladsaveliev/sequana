@@ -20,7 +20,7 @@
 
 
 
-def __galleria(filenames):
+def galleria(filenames):
 
     html = """ <div class="galleria">"""
     for filename in filenames:
