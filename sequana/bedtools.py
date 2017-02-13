@@ -18,16 +18,20 @@
 ##############################################################################
 """Utilities for the genome coverage"""
 
+import re
+import ast
+import os
+
+from biokit.stats import mixture
 
 from sequana.lazy import pandas as pd
 from sequana.lazy import numpy as np
 from sequana.lazy import pylab
 
+from sequana import logger
 from sequana import running_median
 from sequana.tools import gc_content
-from sequana import jsontool
 from sequana.errors import SequanaException
-#from sequana.tools import genbank_features_parser
 
 
 __all__ = ["GenomeCov", "ChromosomeCov", "DoubleThresholds"]
@@ -418,6 +422,33 @@ class ChromosomeCov(object):
         """
         self.gaussians_params = gaussians
         self.best_gaussian = self._get_best_gaussian()
+
+    def to_csv(self, directory, length=200000):
+        """ Write multiple CSV file with a specified length.
+
+        :param directory: directory where csv are created
+        :param length: length of your sub csv
+
+        return a list with all created files.
+        """
+        try:
+            os.makedirs(directory)
+        except FileExistsError:
+            if os.path.isdir(directory):
+                pass
+            else:
+                msg = "{0} exist and it is not a directory".format(directory)
+                logger.error(msg)
+                raise FileExistsError
+        path_name = directory + os.sep + self.chrom_name
+        file_list = list()
+        for i in range(0, len(self.df), length):
+            filename = "{0}_{1}_{2}.csv".format(
+                path_name, i, min(len(self.df), i + length))
+            self.df[i:min(i + length, len(self.df))].to_csv(
+                filename, float_format='%.3g')
+            file_list.append(filename)
+        return file_list
 
     def moving_average(self, n, circular=False):
         """Compute moving average of the genome coverage
@@ -917,10 +948,6 @@ class ChromosomeCov(object):
             return df.to_json()
         else:
             return df
-
-    def get_json_stats(self):
-        stats = self.get_stats()
-        return jsontool.dict_to_json(stats)
 
 
 class FilteredGenomeCov(object):
