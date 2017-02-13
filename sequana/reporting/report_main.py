@@ -93,7 +93,7 @@ class BaseReport(reports.Report):
 
 
         # Another set of data for the HTML is the galleria them
-        if init_report:
+        """if init_report:
             import shutil
             target = directory + "/galleria/themes"
             try:
@@ -106,6 +106,7 @@ class BaseReport(reports.Report):
                 os.makedirs(directory)
             except:
                 pass
+        """
 
     def parse(self):
         """populate the :attr:`data` attribute used by the JINJA templates

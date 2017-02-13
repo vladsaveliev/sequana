@@ -1015,11 +1015,11 @@ class FilteredGenomeCov(object):
         """ Convert dictionary as dataframe.
         """
         if annotation:
-            colnames = ["chr", "start", "end", "size", "mean_cov", "mean_rm", 
+            colnames = ["chr", "start", "end", "size", "mean_cov", "max_cov", "mean_rm", 
                         "mean_zscore", "max_zscore", "gene_start", "gene_end",
                         "type", "gene", "strand", "product"]
         else:
-            colnames = ["chr", "start", "end", "size", "mean_cov", "mean_rm",
+            colnames = ["chr", "start", "end", "size", "mean_cov", "max_cov", "mean_rm",
                     "mean_zscore", "max_zscore"]
         merge_df = pd.DataFrame(region_list, columns=colnames)
         int_column = ["start", "end", "size"]
