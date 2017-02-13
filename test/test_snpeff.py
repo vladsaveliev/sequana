@@ -15,3 +15,13 @@ def test_snpeff():
         os.remove("snpEff.config")
     except:
         pass
+
+    try:
+        os.remove("snpEff_genes.txt")
+    except:
+        pass
+
+    try:
+        os.remove("snpEff_summary.html")
+    except:
+        pass
