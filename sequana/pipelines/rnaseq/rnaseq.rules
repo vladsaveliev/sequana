@@ -197,7 +197,6 @@ if manager.config.bowtie1_mapping_ref.do:
     __bowtie1_mapping_ref__prefix_index = __bowtie1_index__
     __bowtie1_mapping_ref__stdout = manager.getname("bowtie1_mapping_ref", "_ref_mapping.txt")
     __bowtie1_mapping_ref__stderr = "%s/logs/bowtie/ref_mapping_stderr.txt" % manager.sample
-
     include: bowtie1_mapping_dynamic("ref", manager.sample)
     expected_output.extend(expand(__bowtie1_mapping_ref__sort, sample=manager.samples))
     __mapping_output = __bowtie1_mapping_ref__sort
@@ -215,6 +214,7 @@ if manager.config.star_mapping.do:
     __star_mapping__genome_dir = manager.getname("star_mapping", "_star_2nd_pass")
     __star_mapping__splice_file = manager.getname("star_mapping", "_init_SJ.out.tab")
     include: sm.modules["star_mapping"]
+    expected_output.extend(expand(__star_mapping__sort, sample=manager.samples))
     __mapping_output = __star_mapping__sort
 
 

@@ -1,6 +1,6 @@
 rule star_index:
     input:
-        __star_index__fasta
+       fasta =  __star_index__fasta
     output:
         __star_index__output_done
     params:

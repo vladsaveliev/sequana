@@ -1,6 +1,6 @@
 rule bowtie2_index:
     input:
-        __bowtie2_index__fasta
+       fasta =  __bowtie2_index__fasta
     output:
         __bowtie2_index__output_done
     params:
