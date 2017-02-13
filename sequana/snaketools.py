@@ -124,7 +124,10 @@ class SnakeMakeStats(object):
                       outputdir="report"):
         import pylab
         self.plot()
-        pylab.savefig(outputdir + os.sep + filename)
+        if outputdir is None:
+            pylab.savefig(filename)
+        else:
+            pylab.savefig(outputdir + os.sep + filename)
 
 
 def plot_stats(inputdir=".", outputdir=".",
@@ -1289,3 +1292,14 @@ def build_dynamic_rule(code, directory):
     fh.write(code)
     fh.close()
     return filename
+
+def add_stats_summary_json(json_list, parser):
+    if not parser.stats:
+        return
+    for jfile in json_list:
+        with open(jfile, 'r') as fp:
+            jdict = json.load(fp)
+        jdict['stats'] = parser.stats
+        j = json.dumps(jdict)
+        with open(jfile, 'w') as fp:
+            print(j, file=fp)

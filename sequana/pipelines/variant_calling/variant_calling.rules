@@ -10,6 +10,7 @@ Run: snakemake -s variant_calling.rules
 """ This pipeline can be used as standalone or after a denovo assembly to
 evaluate contigs.
 """
+import sys
 
 import sequana
 from sequana import snaketools as sm
@@ -21,12 +22,10 @@ sm.init("variant_calling.rules", globals())
 configfile: "config.yaml"
 manager = sm.PipelineManager("variant_calling", config)
 __snakefile__ = srcdir(__snakefile__)
-final_output = []
 
 # If annotation file is not provided
 __report_mapping__ann = None
 __report_mapping__ann_format = None
-
 
 # check if the pipeline is called by denovo pipeline
 try:
@@ -42,8 +41,7 @@ exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
 if config["snpeff"]["do"]:
     __snpeff_download_database__output = "snpEff.config"
-    __snpeff_download_database__log = manager.getlogdir(
-        "snpeff_download_database")
+    __snpeff_download_database__log = "snpeff_download_database.logs"
     include: sm.modules["snpeff_download_database"]
     __snpeff_add_locus_in_fasta__config = __snpeff_download_database__output
     __snpeff_add_locus_in_fasta__fasta_input = __bwa_mem_ref__ref_input
@@ -141,7 +139,7 @@ if config["report_mapping"]["do"]:
     __report_mapping__directory = report_dir
     __report_mapping__output = report_dir + "report_mapping.html"
     include: sm.modules["report_mapping"]
-    final_output.append(expand(__report_mapping__output,
+    expected_output.append(expand(__report_mapping__output,
                                sample=manager.samples))
 
 # Variant calling
@@ -166,6 +164,7 @@ else:
 
 # VCF filter
 __vcf_filter__output = manager.getname("vcf_filter", ".filter.vcf")
+__vcf_filter__csv = manager.getname("vcf_filter", ".csv")
 include: sm.modules["vcf_filter"]
 __report_variant__input = __vcf_filter__output
 
@@ -174,7 +173,7 @@ __report_variant__directory = report_dir
 __report_variant__html_output = report_dir + "report_variant.html"
 __report_variant__csv_output = report_dir + "variants.csv"
 include: sm.modules["report_variant"]
-final_output.append(expand(__report_variant__html_output,
+expected_output.append(expand(__report_variant__html_output,
                            sample=manager.samples))
 
 include: sm.modules["conda"] # Create requirements.txt(dependencies)
@@ -183,7 +182,7 @@ __rulegraph__output = "rulegraph/rulegraph.svg"
 __rulegraph__mapper = {"report_mapping":"report_mapping.html",
                        "report_variant":"report_variant.html"}
 include: sm.modules["rulegraph"]
-final_output += ["requirements.txt", __rulegraph__output]
+expected_output += ["requirements.txt", __rulegraph__output]
 
 
 file_to_copy = [__freebayes__input, __freebayes__bai, __freebayes__output,
@@ -196,7 +195,7 @@ try:
     file_to_copy.append(__snpeff__html)
 except NameError:
     pass
-# Check if there are files from denovo assembly pipeline to copy
+# check if there are files from denovo assembly pipeline to copy
 try:
     __copy_multiple_files__input += file_to_copy
 except NameError:
@@ -205,13 +204,36 @@ except NameError:
 __copy_multiple_files__output = report_dir
 __copy_multiple_files__done = manager.sample + os.sep + "copy.done"
 include: sm.modules["copy_multiple_files"]
-final_output.append(expand(__copy_multiple_files__done,
+expected_output.append(expand(__copy_multiple_files__done,
                            sample=manager.samples))
 
-# These rules don't need to be submit on a node.
-# Snpeff_download_database could be need an internet connection
+# create a json file that summarise information of your pipeline
+# they must be complete in the onsuccess block
+__summary_pipeline__inputs = __rawdata__input
+__summary_pipeline__outputs = [
+    __freebayes__input, __freebayes__bai, __freebayes__output,
+    __vcf_filter__output, __vcf_filter__input, __bwa_mem_ref__reference,
+    __bwa_mem_ref__fai]
+__summary_pipeline__rulegraph = __rulegraph__output
+__summary_pipeline__requirements = 'requirements.txt'
+__summary_pipeline__snakefile = __snakefile__
+__summary_pipeline__config = 'config.yaml'
+__summary_pipeline__name = "Variant Calling"
+__summary_pipeline__json_output = manager.getname('summary_pipeline', '.json')
+include: sm.modules["summary_pipeline"]
+expected_output.append(expand(__summary_pipeline__json_output,
+                              sample=manager.samples))
+
+# these rules don't need to be submit on a node.
+# snpeff_download_database could be need an internet connection
 localrules: snpeff_download_database, conda, rulegraph
 
 rule pipeline_variant:
     input:
-        final_output
+        expected_output
+
+onsuccess:
+    # add file name for snakemake stats in json
+    snake_parser = snakemake.get_argument_parser().parse_args()
+    json_list = expand(__summary_pipeline__json_output, sample=manager.samples)
+    sm.add_stats_summary_json(json_list, snake_parser)
