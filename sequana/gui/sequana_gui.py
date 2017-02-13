@@ -931,12 +931,13 @@ take care of dependencies. Sequana pipelines should work out of the box
                 docstring = docparser._block2docstring(rule)
 
                 # Try to interpret it with sphinx
-                from pyquickhelper.helpgen import docstring2html
+                from sequana.misc import rest2html
+
                 try:
-                    comments = docstring2html(docstring).data
-                    comments.replace('class="document"', 'style=""')
+                    comments = rest2html(docstring).decode()
                     rule_box.setToolTip(comments)
-                except:
+                except Exception as err:
+                    print(err)
                     self.warning("Could not interpret docstring of %s" % rule)
                     rule_box.setToolTip("")
 

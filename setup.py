@@ -8,7 +8,7 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 1
-_MICRO               = 19
+_MICRO               = 20
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -45,7 +45,7 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
     extra_packages = []
 else:
-    extra_packages = ["entrypoints", "pyquickhelper"]
+    extra_packages = []
 
 
 setup(
@@ -69,8 +69,6 @@ setup(
 
     # pillow, sphinx-gallery and numpydoc are  for the doc only
     # mock is for the test only
-    # entrypoints was not installed nor on travis neither on a clsuter and
-    # was required most probably by pyquickhelper via bleach package
     install_requires = ["easydev>=0.9.31", "reports>=0.3.0", "matplotlib",
         "pyVCF", "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14",
         "biokit>=0.3.4", "pysam", "docutils", "sphinx-gallery", "mock",
