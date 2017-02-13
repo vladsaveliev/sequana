@@ -2,12 +2,14 @@ import pysam
 
 
 class PacBioInputBAM(object):
+    """PacBio utilities
 
+    Downsample PacBio base-call BAM file 
+
+    """
     def __init__(self, filename):
         self.filename = filename
         self.data = pysam.AlignmentFile(filename, check_sq=False)
-
-        
 
     def reset(self):
         self.data.close()
