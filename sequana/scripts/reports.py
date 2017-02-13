@@ -76,7 +76,7 @@ def main(args=None):
     if args is None:
         args = sys.argv[:]
 
-    user_options = Options(prog='sequana')
+    user_options = Options(prog='sequana_report')
 
     # If --help or no options provided, show the help
     if len(args) == 1:
@@ -87,7 +87,7 @@ def main(args=None):
 
     # list of all target files (csv or json) in input_dir
     if options.input_dir:
-        input_files = [f for p in ('*.csv', '*.json') for f in
+        input_files = [f for p in ('**/*.csv', '**/*.json') for f in
                        glob.glob(os.sep.join([options.input_dir, p]),
                        recursive=True)]
     elif options.input_files:
@@ -112,8 +112,14 @@ def main(args=None):
                 tool = re.findall("sequana_\w+", line)[0]
                 data = f
         # load and execute module
-        mod = config.module_dict[tool].load()
-        mod(data)
+        if tool == 'sequana_summary':
+            summary_json = data
+        else:
+            mod = config.module_dict[tool].load()
+            mod(data)
+    # summary.html may need custom section from other modules
+    mod = config.module_dict['sequana_summary'].load()
+    mod(summary_json)
 
 
 if __name__ == '__main__':

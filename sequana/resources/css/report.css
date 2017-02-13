@@ -237,6 +237,7 @@ th.field-name
 tt {
     font-family: monospace;
 }
+
 pre {
     padding:    .5em;
     line-height: 1.25em;
@@ -252,6 +253,14 @@ pre {
     whitewhite-space: -moz-pre-wrap;  /* Older Versions of Mozilla */ 
 }
 
+.code {
+    height:400px;
+    background-color: #99CCFF;
+    padding:20px;
+    margin-top:10px;
+    border-bottom:5px solid #3399FF;
+    overflow: scroll;
+}
 
 dl.docutils > dd {
     margin-left: 2em;

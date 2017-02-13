@@ -20,11 +20,12 @@
 to visit other analysis"""
 import os
 
-import pandas as pd
+from sequana.lazy import pandas as pd
 
 import easydev
 from sequana.modules_report.base_module import SequanaBaseModule
 from sequana.utils import config
+from sequana.snaketools import SnakeMakeStats
 
 class SummaryModule(SequanaBaseModule):
     """ Write summary HTML report of an analysis. It contains all information
@@ -47,7 +48,7 @@ class SummaryModule(SequanaBaseModule):
         self.pipeline_inputs()
         self.pipeline_outputs()
         self.workflow()
-        #self.running_stats()
+        self.running_stats()
         self.dependencies()
 
     def pipeline_inputs(self):
@@ -58,7 +59,8 @@ class SummaryModule(SequanaBaseModule):
         inputs = [self.copy_file(i, input_dir) for i in self.json['inputs']] 
         # create links list
         html_list = '<li>{0}</li>'
-        links = [html_list.format(self.create_link(os.path.basename(i),i))
+        links = [html_list.format(
+                 self.create_link(os.path.basename(i), i, newtab=False))
                  for i in inputs]
         links = '<ul>{0}</ul>'.format("\n".join(links))
         self.sections.append({
@@ -77,7 +79,8 @@ class SummaryModule(SequanaBaseModule):
         outputs = [self.copy_file(i, output_dir) for i in self.json['outputs']] 
         # create links list
         html_list = '<li>{0}</li>'
-        links = [html_list.format(self.create_link(os.path.basename(i),i))
+        links = [html_list.format(
+                 self.create_link(os.path.basename(i), i, newtab=False))
                  for i in outputs]
         links = '<ul>{0}</ul>'.format("\n".join(links))
         self.sections.append({
@@ -92,16 +95,18 @@ class SummaryModule(SequanaBaseModule):
         """ Create the interactive DAG to navigate through pages.
         """
         # move the SVG file in the images directory
-        img_dir = config.output_dir + os.sep + "images"
+        img_dir = "images"
         img = self.copy_file(self.json['rulegraph'], img_dir)
         dag_svg = self.include_svg_image(img)
         with open(self.json['snakefile'], 'r') as fp:
             code = self.add_code_section(fp.read(), 'python')
-        sf = self.create_hide_section('Sf', "Show/hide Snakemake file",code)
+        sf = self.create_hide_section('Sf', "Show/hide Snakemake file",code,
+                                      hide=True)
         sf = "\n".join(sf)
         with open(self.json['config'], 'r') as fp:
             code = self.add_code_section(fp.read(), 'yaml')
-        c = self.create_hide_section('C', "Show/hide config file", code)
+        c = self.create_hide_section('C', "Show/hide config file", code,
+                                     hide=True)
         c = "\n".join(c)
         self.sections.append({
             'name': 'Workflow',
@@ -118,7 +123,12 @@ class SummaryModule(SequanaBaseModule):
     def running_stats(self):
         """ Barplot that shows computing time of each rule.
         """
-        png = self.png_to_embedded_png(config.stats_png)
+        try:
+            stats = SnakeMakeStats(self.json['stats'])
+        except KeyError:
+            return
+        png = self.create_embedded_png(stats.plot_and_save, 'filename',
+                                       {'outputdir': None})
         l, c = self.create_hide_section('Stats', 'collapse/expand', png)
         self.sections.append({
             'name': "Running Stats {0}".format(self.add_float_right(l)),
@@ -134,7 +144,7 @@ class SummaryModule(SequanaBaseModule):
         pypi = self.create_link('Pypi', 'http://pypi.python.org')
         req = self.create_link('requirements', self.json['requirements'])
         content = ("<p>Python dependencies (<b>{0}</b>){1}</p>"
-                   "<p>Dependencies downloaded from bioconda"
+                   "<p>Dependencies downloaded from bioconda "
                    "<b>{2}</b></p>".format(pypi, html_table, req))
         l, c = self.create_hide_section('Dep', 'collapse/expand', content)
         self.sections.append({
@@ -153,5 +163,8 @@ class SummaryModule(SequanaBaseModule):
                pypi.format(dep.project_name)) for dep in dep_list]
         version = [dep.version for dep in dep_list]
         df = pd.DataFrame({'package': url, 'version': version})
+        df['sort'] = df['package'].str.lower()
+        df.sort_values(by='sort', axis=0, inplace=True)
+        df.drop('sort', axis=1, inplace=True)
         html = self.dataframe_to_html_table(df)
         return html
