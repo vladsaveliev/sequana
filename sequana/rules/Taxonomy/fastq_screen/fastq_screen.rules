@@ -22,7 +22,7 @@ rule fastq_screen:
     log:
         __fastq_screen__logs
     output:
-        __fastq_screen__output
+        touch(__fastq_screen__output)
     threads: 4
     params:
         configFile = config['fastq_screen']['conf'],

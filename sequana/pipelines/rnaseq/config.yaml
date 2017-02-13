@@ -185,7 +185,6 @@ adapter_removal:
     fwd:
     rev:
     m: 20   # min length cutoff
-    M: 120  # max length cutoff
     mode: "a"   # g for 5' adapter, a for 3' and b for both 5'/3'
     quality: "30"
     options: "-O 6 --trim-n"
@@ -219,7 +218,7 @@ coverage:
     chromSize: /pasteur/projets/specific/PF2_ngs/protected/fasta_genomes/hg19.chrom.sizes
 
 RNAseQC:
-     do: yes
+     do: no
      ref: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
      gtf: /pasteur/projets/specific/PF2_ngs/protected/annotation/gtf/hg19.gtf
      BWArRNA: /pasteur/projets/specific/PF2_ngs/protected/Genomes/human_rRNA/human_all_rRNA.fasta
