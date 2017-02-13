@@ -139,7 +139,7 @@ def test_standalone_generic_with_noconfig_2(qtbot):
     widget.click_run()
 
     # in the GUI, we see when it stops. Here, we need to wait a few seconds
-    time.sleep(1)
+    time.sleep(5)
     data = open(wkdir.name + os.sep + "count.txt").read().split()
 
 
