@@ -14,6 +14,10 @@
 		"ram" : "34G"
 	},
 
+	"bowtie2_index" :
+	{
+		"ram" : "20G"
+	},
 	"RNAseQC" :
 	{
 		"ram" : "34G"
