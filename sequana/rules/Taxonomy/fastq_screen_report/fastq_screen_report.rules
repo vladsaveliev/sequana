@@ -33,7 +33,7 @@ rule fastq_screen_report:
             if fp.endswith("_screen.txt"):
                 file = fp
 
-        for line in csv.reader(open(os.path.join(input[0], file), "r")), dialect="excel-tab") :
+        for line in csv.reader(open(os.path.join(input[0], file), "r"), dialect="excel-tab") :
             if(len(line) == 0) :
                 continue
             if(line[0].startswith("#")) :
