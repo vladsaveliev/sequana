@@ -1,17 +1,26 @@
 { 
     "__default__" :
     {
-        "ram" : "3G"
+        "ram" : "5G"
     },
-    
-	"star_mapping" : 
-	{ 
-		"ram" : "34G" 
-	},
-	
-	"fastq_screen" :
-	{ 
-		"ram" : "10G" 
-	} 
-}
 
+	"star_mapping" :
+	{
+		"ram" : "34G"
+	},
+
+	"star_index" :
+	{
+		"ram" : "34G"
+	},
+
+	"RNAseQC" :
+	{
+		"ram" : "34G"
+	},
+
+	"bamCoverage" :
+	{
+		"ram" : "20G"
+	}
+}
