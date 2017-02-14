@@ -29,6 +29,7 @@ rule fastq_screen:
         outdir = __fastq_screen__outdir
     shell:
         """
+        mkdir {params.outdir}
         fastq_screen --subset 20000 \
         --outdir {params.outdir} \
         --threads {threads} \
