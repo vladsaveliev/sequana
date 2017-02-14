@@ -152,20 +152,21 @@ if manager.config.adapter_removal.do:
 else:
     __clean_ngs__output = __data__input
 
-# Fastq Screen
-__fastq_screen__input = __clean_ngs__output
-__fastq_screen__logs = manager.getname("fastq_screen", ".logs")
-__fastq_screen__output = manager.getname("fastq_screen", ".done")
-__fastq_screen__outdir = manager.getwkdir("fastq_screen")
-include: sm.modules["fastq_screen"]
-if manager.config.fastq_screen.pf2_report:
-    __fastq_screen_report__input = __fastq_screen__outdir
-    __fastq_screen_report__figure = manager.getname("fastq_screen", "_report.svg")
-    __fastq_screen_report__logs =  manager.getname("fastq_screen", "pf2_report.logs")
-    include: sm.modules["fastq_screen_report"]
-    expected_output.extend(expand(__fastq_screen_report__figure, sample=manager.samples))
-else:
-    expected_output.extend(expand(__fastq_screen__output, sample=manager.samples))
+if manager.config.fastq_screen.do:
+    # Fastq Screen
+    __fastq_screen__input = __clean_ngs__output
+    __fastq_screen__logs = manager.getname("fastq_screen", ".logs")
+    __fastq_screen__output = manager.getname("fastq_screen", ".done")
+    __fastq_screen__outdir = manager.getwkdir("fastq_screen")
+    include: sm.modules["fastq_screen"]
+    if manager.config.fastq_screen.pf2_report:
+        __fastq_screen_report__input = __fastq_screen__outdir
+        __fastq_screen_report__figure = manager.getname("fastq_screen", "_report.svg")
+        __fastq_screen_report__logs =  manager.getname("fastq_screen", "pf2_report.logs")
+        include: sm.modules["fastq_screen_report"]
+        expected_output.extend(expand(__fastq_screen_report__figure, sample=manager.samples))
+    else:
+        expected_output.extend(expand(__fastq_screen__output, sample=manager.samples))
 
 
 # FASTQC on input data set

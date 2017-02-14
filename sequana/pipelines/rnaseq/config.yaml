@@ -142,6 +142,7 @@ feature_counts:
 # - pf2_report: allows to plot a specific PF2 report
 #
 fastq_screen:
+    do: yes
     conf: "/pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/fastq_screen.conf"
     pf2_report: yes
 
