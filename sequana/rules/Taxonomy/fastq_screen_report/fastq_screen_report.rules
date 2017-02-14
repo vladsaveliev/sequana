@@ -15,7 +15,6 @@ rule fastq_screen_report:
         __fastq_screen_report__logs
     output:
         __fastq_screen_report__figure
-
     run:
         from re import findall
         import os
