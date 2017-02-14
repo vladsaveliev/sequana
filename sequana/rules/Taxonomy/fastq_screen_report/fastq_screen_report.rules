@@ -10,7 +10,8 @@ rule fastq_screen_report:
     """
 
     input :
-        __fastq_screen_report__input
+        __fastq_screen_report__input,
+        __fastq_screen_report__input_done
     log :
         __fastq_screen_report__logs
     output:
