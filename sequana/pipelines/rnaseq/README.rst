@@ -10,9 +10,10 @@ Usage
 
 Example::
 
-    sequana --pipeline rnaseq --input-dir .  --output-directory analysis --adapters TruSeq
+    sequana --pipeline rnaseq --input-dir .  --output-directory analysis
     cd analysis
-    srun  snakemake -s rnaseq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json --cluster "sbatch --mem={cluster.ram} --cpus-per-task={threads}"
+    snakemake -s rnaseq.rules -p --stats stats.txt -j 4 --cluster-config cluster_config.json --cluster "sbatch --mem={cluster.ram} --qos normal"
+
 
 Requirements
 ~~~~~~~~~~~~~~~~
