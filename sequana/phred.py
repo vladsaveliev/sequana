@@ -63,8 +63,8 @@ In this example, we use :class:`Quality` class where the default offset is 33
 
 
 """
-import numpy as np
-import pylab
+from sequana.lazy import numpy as np
+from sequana.lazy import pylab
 
 quality = """!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOP"""
 quality += """QRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~"""

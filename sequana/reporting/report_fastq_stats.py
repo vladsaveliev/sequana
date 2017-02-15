@@ -19,8 +19,9 @@
 import glob
 
 from sequana.reporting.report_main import BaseReport
-from reports import HTMLTable
-import pandas as pd
+
+from sequana.lazy import reports
+from sequana.lazy import pandas as pd
 
 
 class FastQStatsReport(BaseReport):
@@ -132,7 +133,7 @@ class FastQStatsReport(BaseReport):
 
         html =""
 
-        htmltable = HTMLTable(dfsum).to_html(index=True)
+        htmltable = reports.HTMLTable(dfsum).to_html(index=True)
         # Save the table into a temporary file
         with open(self.input_directory + "/temp.html", "w") as fh:
             fh.write(htmltable)

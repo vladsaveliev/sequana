@@ -40,7 +40,7 @@ rule digital_normalisation:
         echo $fastq
 
         # Uncompress fastq file
-        unpigz -fk {input.fastq} 
+        unpigz -fk {input.fastq} -p {threads}
 
         # concatenate R1 and R2
         interleave-reads.py $fastq --output {params.prefix}.pe > {log} 2>&1

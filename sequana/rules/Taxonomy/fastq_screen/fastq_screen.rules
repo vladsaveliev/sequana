@@ -22,15 +22,15 @@ rule fastq_screen:
     log:
         __fastq_screen__logs
     output:
-        __fastq_screen__output
+        touch(__fastq_screen__output),
+        outdir = __fastq_screen__outdir
     threads: 4
     params:
         configFile = config['fastq_screen']['conf'],
-        outdir = __fastq_screen__outdir
     shell:
         """
         fastq_screen --subset 20000 \
-        --outdir {params.outdir} \
+        --outdir {output.outdir} \
         --threads {threads} \
         --conf {params.configFile}  \
         --aligner bowtie2  \

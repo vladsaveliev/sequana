@@ -17,16 +17,16 @@
 #
 ##############################################################################
 
-import easydev
 import os
 import io
+
+import easydev
 
 from sequana.reporting.report_adapter_removal import AdapterRemovalReport
 from sequana.reporting.report_main import BaseReport
 
-from reports import HTMLTable
-
-import pandas as pd
+from sequana.lazy import reports
+from sequana.lazy import pandas as pd
 
 
 class CutAdaptReport(AdapterRemovalReport):

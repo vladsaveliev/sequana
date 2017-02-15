@@ -33,11 +33,12 @@ Standalone
 ----------------
 
 The primary goal of the docker is to make it possible to quickly test the
-standalones. For now, we expose only one but more will come. Please see specific 
+standalones. For now, we expose only one docker. Please see specific 
 documentation following the links here below:
 
 - sequana_coverage_
 - sequana_taxonomy_
+
 
 .. _sequana_coverage: (https://github.com/sequana/sequana/tree/master/docker/sequana_coverage)
 .. _sequana_taxonomy: (https://github.com/sequana/sequana/tree/master/docker/sequana_taxonomy)

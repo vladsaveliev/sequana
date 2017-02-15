@@ -1,13 +1,23 @@
 rule dsrc_to_bz2:
-    """Convert fastq.dsrc files to fastq.bz2 files
+    """**Convert fastq.dsrc files to fastq.bz2 files**
 
-    Description:
-        First, uncompress the fastq.dsrc file into a fastq
-        Second, compress the fastq into a bz2 file 
+    Here are the steps followed by the rule. Any failure stops the
+    process and the original file is untouched. If all succeed, the
+    input is deleted.
 
-    :param input: fastq.dsrc files
-    :return: fastq.bz2 files
-    :third-party executables: pbunzip2 and dsrc
+        #. the input DSRC file is decompressed with **dsrc** and redirected
+           a pipe to **pbzip2** executable into a BZ2 output.
+        #. the output is checked for integrity with **pbzip2**.
+        #. the input BZ2 file is deleted.
+
+    :param input: {dataset}.dsrc
+    :param output: {dataset}.bz2 
+    :third-party executables: pbzip2 and pigz
+
+    configuration requirements::
+
+        compressor:
+            - threads
 
     """
     input: "{dataset}.dsrc"
@@ -15,8 +25,16 @@ rule dsrc_to_bz2:
     params: "-m2"
     threads: config["compressor"]["threads"]
     run:
-        output_noext = output[0].replace(".bz2", "")
-        shell("dsrc d -t{threads} {params} {input} %s" % (output_noext))
-        shell("pbzip2 %s -p{threads}" % output_noext)
-        shell("rm -f {input}")
+
+        # Convert the dsrc file to gz with a pipe to reduce IO
+        cmd = "dsrc d -s -t{threads} {params} {input} | pbzip2 -p{threads} > {output}"
+        shell(cmd)
+
+        # Check the generated file is correct
+        cmd = "pbzip2 -p{threads} --test {output}" 
+        shell(cmd)
+
+        # Delete the input file
+        cmd = "{rm -f {input}}"
+        shell(cmd)
 

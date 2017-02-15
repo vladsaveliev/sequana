@@ -110,6 +110,15 @@ class Ruleform(QW.QGroupBox):
         if self.do_widget:
             self.do_widget.connect(task)
 
+    def connect_all_option(self, task):
+        widget_list = (self.layout.itemAt(i).widget() for i in
+                       range(self.layout.count()))
+        for w in widget_list:
+            if w.is_option():
+                w.connect(task)
+            else:
+                w.connect_all_option(task)
+
     def _widget_lock(self, switch_bool):
         widget_list = (self.layout.itemAt(i).widget() for i in
                        range(self.layout.count()))
@@ -206,6 +215,9 @@ class TextOption(GeneralOption):
     def set_enable(self, switch_bool):
         self.text.setEnabled(switch_bool)
 
+    def connect(self, task):
+        self.text.textChanged.connect(task)
+
 
 class NumberOption(GeneralOption):
     def __init__(self, option, value):
@@ -238,6 +250,9 @@ class NumberOption(GeneralOption):
             return True
         return False
 
+    def connect(self, task):
+        self.number.valueChanged.connect(task)
+
 
 class FileBrowserOption(GeneralOption):
     def __init__(self, option, value=None, directory=False):
@@ -256,6 +271,9 @@ class FileBrowserOption(GeneralOption):
     def set_enable(self, switch_bool):
         self.browser.set_enable(switch_bool)
 
+    def connect(self, task):
+        self.browser.clicked_connect(task)
+
 
 class SVGDialog(QW.QDialog):
     def __init__(self, filename):
@@ -266,4 +284,3 @@ class SVGDialog(QW.QDialog):
         if os.path.exists(filename):
             widget = QSvgWidget(filename)
             self.main_layout.addWidget(widget)
-

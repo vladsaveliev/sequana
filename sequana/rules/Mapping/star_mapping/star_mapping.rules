@@ -1,5 +1,3 @@
-# coding: utf-8
-
 rule star_mapping:
     """
     Read mapping for either single end and paired end data using RNA-STAR.
@@ -25,7 +23,8 @@ rule star_mapping:
                 options:  "" #options for bowtie1 you want use
     """
     input:
-        __star_mapping__input
+        fastq = __star_mapping__input,
+        index = __star_mapping__index_done
     log:
         __star_mapping__logs
     output:
@@ -33,8 +32,8 @@ rule star_mapping:
     params:
         prefix1 = temp(__star_mapping__output_prefix1),
         prefix2 = __star_mapping__output_prefix2,
-        index = config['star_mapping']['prefix_index'],
-        ref = config['star_mapping']['ref'],
+        index = __star_mapping__index,
+        ref = __star_mapping__ref,
         #read_groups = __star_mapping__read_groups,
         genome_dir = temp(__star_mapping__genome_dir),
         splice_file = temp(__star_mapping__splice_file),
@@ -46,7 +45,7 @@ rule star_mapping:
     run:
         shell(""" echo "Run rna-star 1st pass"
         STAR --genomeDir {params.index} \
-             --readFilesIn {input}  \
+             --readFilesIn {input.fastq}  \
              --runThreadN {threads} \
              --genomeLoad NoSharedMemory \
              --outFilterMismatchNoverLmax 0.05 \
@@ -71,7 +70,7 @@ rule star_mapping:
 
         shell(""" echo "Run rna-star 2nd pass"
         STAR --genomeDir {params.genome_dir} \
-             --readFilesIn {input}  \
+             --readFilesIn {input.fastq}  \
              --runThreadN {threads} \
              --genomeLoad NoSharedMemory \
              --sjdbFileChrStartEnd {params.splice_file} \

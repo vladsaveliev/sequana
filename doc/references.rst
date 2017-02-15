@@ -7,7 +7,6 @@ References
 .. contents::
 
 
-
 Adapters
 ---------------
 .. automodule:: sequana.adapters
@@ -52,14 +51,17 @@ FASTQ module
     :members:
     :undoc-members:
 
-
 Kmer module
 ---------------
 .. automodule:: sequana.kmer
     :members:
     :undoc-members:
 
-
+IOTools module
+----------------
+.. automodule:: sequana.iotools
+    :members:
+    :undoc-members:
 
 Taxonomy related (Kraken - Krona)
 ------------------------------------

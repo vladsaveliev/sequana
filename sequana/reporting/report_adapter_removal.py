@@ -24,10 +24,10 @@ import os
 from sequana.reporting.report_main import BaseReport
 
 # a utility from external reports package
-from reports import HTMLTable
+from sequana.lazy import reports
 
-import pandas as pd
-import pylab
+from sequana.lazy import pandas as pd
+from sequana.lazy import pylab
 
 
 class AdapterRemovalReport(BaseReport):
@@ -113,7 +113,7 @@ class AdapterRemovalReport(BaseReport):
 
         df.to_json(self.sample_name + "/cutadapt/cutadapt_stats1.json")
 
-        h = HTMLTable(df)
+        h = reports.HTMLTable(df)
         html = h.to_html(index=True)
         self.jinja['stats'] = html
 
@@ -129,7 +129,7 @@ class AdapterRemovalReport(BaseReport):
         df.columns = ['Length', 'Trimmed', 'Type', 'Sequence']
 
         df.to_json(self.sample_name + "/cutadapt/cutadapt_stats2.json")
-        h = HTMLTable(df)
+        h = reports.HTMLTable(df)
         html = h.to_html(index=True)
         self.jinja['adapters'] = html
 

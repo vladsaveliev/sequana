@@ -1,8 +1,10 @@
 from sequana.scripts import taxonomy
 from sequana import sequana_data
+import os
 import pytest
 
 prog = "sequana_taxonomy"
+
 
 @pytest.fixture
 def krakendb():
@@ -11,7 +13,6 @@ def krakendb():
         taxonomy.main(["taxonomy", '--download', 'toydb'])
     except SystemExit:
         pass
-
 
 def test_analysis(krakendb):
     file1 = sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz")
@@ -27,7 +28,7 @@ def test_analysis(krakendb):
     from tempfile import TemporaryDirectory
     directory = TemporaryDirectory()
     df = taxonomy.main([prog, '--file1', file1, "--database", "toydb",
-            "--file2", file2, "--verbose", "--output-directory", directory.name])
+        "--file2", file2, "--verbose", "--output-directory", directory.name])
     from sequana import logger
     logger.info(directory.name)
 
@@ -40,7 +41,7 @@ def test_help():
     else:
         raise Exception
 
-def _test_wrong_db():
+def test_wrong_db():
     try:
         df = taxonomy.main([prog, "--database", "dummy"])
         assert False

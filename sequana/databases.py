@@ -30,11 +30,7 @@ try:
 except:
     from urllib import urlopen
 
-
-from bioservices import EUtils, ENA
-from easydev import AttrDict
-from easydev import execute
-from easydev import Progress
+from easydev import AttrDict, execute, Progress
 
 from sequana import logger
 
@@ -55,6 +51,7 @@ class EUtilsTools(object):
 
     """
     def __init__(self):
+        from bioservices import EUtils
         self.eutils = EUtils()
 
     def accession_to_info(self, ids):

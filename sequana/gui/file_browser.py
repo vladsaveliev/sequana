@@ -31,7 +31,7 @@ class FileBrowser(QW.QWidget):
         if file_filter is not None:
             self.filter = file_filter + ";;" + self.filter
         self.empty_msg = "No file selected"
-        self.btn = QW.QPushButton("Browse")
+        self.btn = QW.QPushButton("Browse", self)
         self.btn.setFixedSize(100, 20)
         self.Nmax = 25
 

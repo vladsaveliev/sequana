@@ -19,10 +19,10 @@
 """Report dedicated to Mapping"""
 import os
 
-import pandas as pd
+from sequana.lazy import pandas as pd
 
 from sequana.reporting.report_main import BaseReport
-from reports import HTMLTable
+from sequana.lazy import reports
 
 
 class MappingReport(BaseReport):
@@ -102,5 +102,5 @@ class MappingReport(BaseReport):
                           chrom.get_var_coef()] for chrom in self.chrom_list],
                           columns=["chromosome", "size", "mean_coverage",
                           "coef_variation"])
-        html = HTMLTable(df)
+        html = reports.HTMLTable(df)
         self.jinja['list_chromosome'] = html.to_html(index=False)

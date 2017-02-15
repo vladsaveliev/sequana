@@ -2,7 +2,7 @@ rule reorderSam:
     input:
         sam = __reorderSam__input
     params:
-        genome = config["genome"]["file"]
+        genome = config['RNAseQC']['ref']
     log:
         __reorderSam__logs
     output:

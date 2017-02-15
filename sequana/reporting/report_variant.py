@@ -21,9 +21,9 @@ import shutil
 
 from sequana.reporting.report_main import BaseReport
 
-from reports import HTMLTable
+from sequana.lazy import reports
 
-import pandas as pd
+from sequana.lazy import pandas as pd
 
 class VariantReport(BaseReport):
     """
@@ -50,5 +50,5 @@ class VariantReport(BaseReport):
         shutil.copy(self.vcf_record.filename, self.directory)
         self.jinja["vcf_link"] = self.vcf_record.filename.split("/")[-1] 
 
-        html = HTMLTable(df)
+        html = reports.HTMLTable(df)
         self.jinja['vcf_filter'] = html.to_html(index=False)

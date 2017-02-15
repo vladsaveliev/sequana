@@ -24,7 +24,7 @@ from sequana.reporting.report_main import BaseReport
 from easydev import DevTools
 from sequana.resources.canvas.bar import CanvasBar
 
-import pandas as pd
+from sequana.lazy import pandas as pd
 
 __all__ = ['SequanaMultipleSummary']
 
@@ -66,10 +66,18 @@ class ReadSummary(object):
     def get_adapters_percent(self):
         d = self.get_cutadapt_stats()
         try:
-            trimming = d["percent"]["Pairs too short"]
+            read1 = d["percent"]["Read1 with adapters"]
+            # e.g. (8.3%)
+            read1 = float(read1.strip("%)").strip("("))
+            try:
+                read2 = d["percent"]["Read2 with adapters"]
+                read2 = float(read2.strip("%)").strip("("))
+                read1 = (read1 + read2 ) /2. # FIXME crude approximation
+            except:
+                pass # single-end
         except:
-            trimming = d["percent"]["Reads with adapters"]
-        return float(trimming.replace("%", "").replace("(","").replace(")","").strip())
+            read1 = d["percent"]["Reads with adapters"]
+        return read1
 
     def get_read1_with_adapters_percent(self):
         return self._get_read_with_adapters_percent("1")

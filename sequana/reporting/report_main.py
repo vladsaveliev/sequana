@@ -24,13 +24,13 @@ import shutil
 import easydev
 sepjoin = os.sep.join
 
-from reports import Report
+from sequana.lazy import reports
 from sequana import version
 
 import glob
 
 
-class BaseReport(Report):
+class BaseReport(reports.Report):
     """A Parent child for all reports created in Sequana
 
 
