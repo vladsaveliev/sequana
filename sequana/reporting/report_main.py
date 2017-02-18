@@ -91,23 +91,6 @@ class BaseReport(reports.Report):
 
         self.jinja['online_link'] = "http://sequana.readthedocs.io/en/latest/pipelines.html"
 
-
-        # Another set of data for the HTML is the galleria them
-        """if init_report:
-            import shutil
-            target = directory + "/galleria/themes"
-            try:
-                shutil.copytree(sequana_path + "/sequana/resources/js/galleria/themes",
-                    target)
-            except:
-                pass
-        else:
-            try:
-                os.makedirs(directory)
-            except:
-                pass
-        """
-
     def parse(self):
         """populate the :attr:`data` attribute used by the JINJA templates
 
