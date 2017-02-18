@@ -70,7 +70,7 @@ setup(
     # pillow, sphinx-gallery and numpydoc are  for the doc only
     # mock is for the test only
     # qtconsole is required by Sequanix
-    install_requires = ["easydev>=0.9.31", "reports>=0.3.0", "matplotlib",
+    install_requires = ["easydev>=0.9.31", "reports>=0.3.0", "matplotlib>=2.0.0",
         "pyVCF", "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14",
         "biokit>=0.3.4", "pysam", "docutils", "mock", "qtconsole",
         "numpydoc",  "blist", "sphinx", "ruamel.yaml>=0.13.2",
@@ -91,7 +91,6 @@ setup(
         'sequana.resources.data.adapters' : ['*'],
         'sequana.resources.images' : ['*'],
         'sequana.resources.testing' : ['*'],
-        'sequana.resources.js/galleria/themes' : ['*'],
         },
 
     # thise files do not need to be added in MANIFEST.in since there are python
