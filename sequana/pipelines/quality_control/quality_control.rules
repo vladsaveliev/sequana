@@ -28,13 +28,16 @@ __rawdata__input = manager.getrawdata()
 
 if manager.config.fastq_sampling.do is True:
     __fastq_sampling__input_fastq = __rawdata__input
+    # TODO: here 001 is added manually but needs to be taken care
+    # of inside the mananger. Used only in this pipeline for illumnina
+    # so works for now
     if manager.paired:
         __fastq_sampling__output_fastq = [
-            "fastq_sampling/%s._R1_.fastq.gz" % (manager.sample),
-            "fastq_sampling/%s._R2_.fastq.gz" % (manager.sample)]
+            "fastq_sampling/%s_R1_001.fastq.gz" % (manager.sample),
+            "fastq_sampling/%s_R2_001.fastq.gz" % (manager.sample)]
     else:
         __fastq_sampling__output_fastq = [
-            "fastq_sampling/%s._R1_.fastq.gz" % (manager.sample)]
+            "fastq_sampling/%s_R1_001.fastq.gz" % (manager.sample)]
     include: sm.modules["fastq_sampling"]
     __data__input = __fastq_sampling__output_fastq
 else:
@@ -196,9 +199,9 @@ if manager.config.kraken.do:
 __rulegraph__input = __snakefile__
 __rulegraph__output = "rulegraph/rulegraph.svg"
 __rulegraph__mapper = {
-    "fastqc_samples": "fastqc_samples/",
-    "fastqc_phix": "fastqc_phix/",
-    "fastqc_cutadapt": "fastqc_cutadapt",
+    "fastqc_samples": "fastqc_samples/fastqc_samples.html",
+    "fastqc_phix": "fastqc_phix/fastqc_phix.html",
+    "fastqc_cutadapt": "fastqc_cutadapt/fastqc_cutadapt.html",
     "cutadapt": "cutadapt.html",
     "kraken": "kraken/kraken.html",
     "kraken_translate": "kraken/kraken.html",
