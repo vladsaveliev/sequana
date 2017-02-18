@@ -11,6 +11,7 @@ Changelog
     - add sequana_debug_level function at top level to switch verbosity of
       informative messages (default is WARNING).
     - add pacbio module
+    - quality control pipeline: atropos can be used in place of cutadapt
 
 * CHANGES:
 
