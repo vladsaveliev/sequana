@@ -362,7 +362,7 @@ def run_analysis(gc, chrom, chrom_index, options):
 
         if options.reference:
             from snakemake import shell
-            shell("cp %s report/images" %  filename_gc_cov)
+            shell("cp %s %s/images" %  (options.directory, filename_gc_cov))
             r.jinja['coverage_vs_gc'] = """Correlation: %s </br> """ % corr
             r.jinja['coverage_vs_gc'] += """<img src="images/%s">""" % filename_gc_cov
 
