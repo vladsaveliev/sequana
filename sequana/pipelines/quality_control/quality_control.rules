@@ -129,7 +129,8 @@ if manager.config.adapter_removal.do:
         filename = "file:"+ get_sequana_adapters(rev, "revcomp")
         manager.config.adapter_removal.rev = filename
 
-    if adapter_removal in ["cutadapt"]:
+    if adapter_removal in ["cutadapt", "atropos"]:
+        adapter_removal = "cutadapt"
         __cutadapt__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output 
                                    if "unmapped" in x]
         __cutadapt__wkdir = "%s/cutadapt" % manager.sample
@@ -148,9 +149,6 @@ if manager.config.adapter_removal.do:
         __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
         __cutadapt__sample = manager.sample
         include: sm.modules["cutadapt"]
-    elif adapter_removal == "atropos":
-        raise NotImplementedError
-        include: sm.modules["atropos"]
     elif adapter_removal == "skewer":
         raise NotImplementedError
         include: sm.modules["skewer"]
