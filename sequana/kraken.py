@@ -253,7 +253,7 @@ x!="description"] +  ["description"]]
         taxon_to_find = list(self.taxons.index)
 
         if len(taxon_to_find) == 0:
-            self.warning("No reads were identified. You will need a more complete database")
+            logger.warning("No reads were identified. You will need a more complete database")
             self.output_filename = output_filename
             with open(output_filename, "w") as fout:
                 fout.write("%s\t%s" % (self.unclassified, "Unclassified"))
