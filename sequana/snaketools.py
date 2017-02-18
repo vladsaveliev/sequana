@@ -506,6 +506,7 @@ modules = _get_modules_snakefiles()
 #: list of pipeline names found in the list of modules
 pipeline_names = [m for m in modules if Module(m).is_pipeline()]
 
+
 class SequanaConfig(object):
     """Reads YAML config file and ease access to its contents
 
@@ -676,7 +677,6 @@ class SequanaConfig(object):
                     wget(requirement, target + os.sep + output)
 
 
-
 class DummyManager(object):
     def __init__(self, filenames=None, samplename="custom"):
         self.config = {}
@@ -689,6 +689,7 @@ class DummyManager(object):
         elif isinstance(filenames, str):
             self.samples = {samplename: [filenames]}
             self.paired = False
+
 
 class PipelineManager(object):
     """Utility to manage easily the snakemake pipeline
@@ -772,13 +773,13 @@ class PipelineManager(object):
         else:
             self.error("No valid input provided in the config file")
 
-
         self.ff = FastQFactory(glob_dir)
         if self.ff.filenames == 0:
             self.error("No files were found.")
 
         R1 = [1 for this in self.ff.filenames if "_R1_" in this]
         R2 = [1 for this in self.ff.filenames if "_R2_" in this]
+
         if len(R2) == 0:
             self.paired = False
         else:
@@ -799,7 +800,6 @@ class PipelineManager(object):
                     self.paired = True
                 else:
                     self.paired = False
-
 
         ff = self.ff  # an alias
         self.samples = {tag: [ff.get_file1(tag), ff.get_file2(tag)]
@@ -1109,6 +1109,9 @@ class FastQFactory(FileFactory):
     The PREFIX indicates the sample name. The SUFFIX does not convey any
     information per se.
 
+    Yet, in long reads experiments (for instance), naming convention is
+    different and may nor be single/paired end convention. 
+
     In a directory (recursively or not), there could be lots of samples. This
     class can be used to get all the sample prefix in the :attr:`tags`
     attribute.
@@ -1226,7 +1229,6 @@ def init(filename, namespace):
 def create_recursive_cleanup(filename=".sequana_cleanup.py"):
     """
 
-
     .. todo:: set a directory
     """
     with open(filename, "w") as fh:
@@ -1234,21 +1236,21 @@ def create_recursive_cleanup(filename=".sequana_cleanup.py"):
 import subprocess
 import glob
 import os
+from easydev import shellcmd
+
 for this in glob.glob("*"):
     if os.path.isdir(this) and this not in ["fastq_sampling", "report"]:
         print(" --- Cleaning up %s directory" % this)
-        subprocess.Popen(["python", ".sequana_cleanup.py"], cwd=this)
+        if os.path.exists(this + os.sep + ".sequana_cleanup.py"):
+            subprocess.Popen(["python", ".sequana_cleanup.py"], cwd=this)
 
-from easydev import shellcmd
-shellcmd("rm  README runme.sh config.yaml" )
-shellcmd("rm  stats.txt *fa" )
-shellcmd("rm  dag.svg" )
-shellcmd("rm  *.rules" )
-
-# We can further clean additional files
+for this in ['README', 'runme.sh', 'config.yaml', 'stats.txt', 'fa', 'dag.svg', 'rulegraph.svg']:
+    try:
+        shellcmd("rm %s" % this)
+    except:
+        print("%s not found (not deleted)" % this)
 
 """)
-
 
 
 def create_cleanup(targetdir):
@@ -1262,9 +1264,7 @@ import shutil
 from easydev import shellcmd
 import time
 
-directories = glob.glob("*")
-
-for this in directories:
+for this in glob.glob("*"):
     if os.path.isdir(this) and this not in ['logs'] and 'report' not in this:
         print('Deleting %s' % this)
         time.sleep(0.1)
