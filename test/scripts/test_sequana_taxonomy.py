@@ -47,7 +47,6 @@ def test_analysis(krakendb):
     # If on travis and we could not load the database, use the local one
     # that must have been downloaded
     try:
-        raise Exception
         df = taxonomy.main([prog, '--file1', file1, "--database", "toydb",
             "--file2", file2, "--verbose", "--output-directory", directory.name])
     except:
