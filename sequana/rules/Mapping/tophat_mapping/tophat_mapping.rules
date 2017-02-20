@@ -15,7 +15,7 @@ rule tophat_mapping:
         config["tophat_mapping"]["threads"]
     shell:
         """
-        tophat1 --bowtie1 -p {threads} -o {params.outdir} {params.options} \
+        tophat --bowtie1 -p {threads} -o {params.outdir} {params.options} \
         {params.prefix_index} {input.fastq}  \
         && samtools sort -o {output.sort} {output.bam} 2> {log}
         """
