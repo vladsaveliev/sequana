@@ -225,7 +225,7 @@ if manager.config.tophat_mapping.do:
      __tophat_mapping__sort = manager.getname("tophat_mapping", "accepted_hits_sorted.bam")
      __tophat_mapping__logs = manager.getname("tophat_mapping", ".logs")
      __tophat_mapping__prefix_done = __bowtie1_index_ref__output_done
-     __tophat_mapping__prefix_done = __bowtie1_index__
+     __tophat_mapping__prefix = __bowtie1_index__
      include: sm.modules["tophat_mapping"]
      expected_output.extend(expand(__tophat_mapping__sort, sample=manager.samples))
 
