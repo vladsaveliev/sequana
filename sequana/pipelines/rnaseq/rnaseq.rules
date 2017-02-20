@@ -48,7 +48,7 @@ if manager.config.genome.do:
     else :
         __extract_fasta_from_bed__input = config["genome"]["fasta"]
         __extract_fasta_from_bed__gff = config["genome"]["gff"]
-        __extract_fasta_from_bed__feature = "rRNA"
+        __extract_fasta_from_bed__feature = config["genome"]["rRNA_feature"]
         __extract_fasta_from_bed__output = config["genome"]["name"]+ "_rRNA.fa"
         __extract_fasta_from_bed__output_features = config["genome"]["name"]+ "_rRNA.gff"
         __extract_fasta_from_bed__log = "logs/indexing/get_rRNA.log"
