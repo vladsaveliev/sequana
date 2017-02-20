@@ -205,7 +205,7 @@ if manager.config.bowtie1_mapping_ref.do:
 if manager.config.star_mapping.do:
     # Mapper rna-star
     __star_mapping__input = __clean_ngs__output
-    __star_mapping__index_done =__star_index__output_done
+    __star_mapping__index_done = __star_index__output_done
     __star_mapping__index = __star_dir__
     __star_mapping__ref = config["genome"]["fasta"]
     __star_mapping__logs = manager.getname("star_mapping", ".logs")
@@ -218,6 +218,16 @@ if manager.config.star_mapping.do:
     include: sm.modules["star_mapping"]
     expected_output.extend(expand(__star_mapping__sort, sample=manager.samples))
     __mapping_output = __star_mapping__sort
+if manager.config.tophat_mapping.do:
+     __tophat_mapping__input = __clean_ngs__output
+     __tophat_mapping__outdir = manager.getwkdir("tophat_mapping")
+     __tophat_mapping__bam =  manager.getname("tophat_mapping", "accepted_hits.bam")
+     __tophat_mapping__sort = manager.getname("tophat_mapping", "accepted_hits_sorted.bam")
+     __tophat_mapping__logs = manager.getname("tophat_mapping", ".logs")
+     __tophat_mapping__prefix_done = __bowtie1_index_ref__output_done
+     __tophat_mapping__prefix_done = __bowtie1_index__
+     include: sm.modules["tophat_mapping"]
+     expected_output.extend(expand(__tophat_mapping__sort, sample=manager.samples))
 
 
 # generating of bigwig files
