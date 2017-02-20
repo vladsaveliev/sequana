@@ -526,7 +526,9 @@ class ChromosomeCov(object):
         .. note:: depends slightly on :math:`W` the running median window
         """
         filtered = self.get_roi()
-        return 1 - len(filtered) / float(len(self))
+        Cplus = sum(filtered.get_high_roi()['size'])
+        Cminus = sum(filtered.get_low_roi()['size'])
+        return 1 - (Cplus+Cminus) / float(len(self))
 
     def get_roi(self, features=None):
         """Keep positions with zscore outside of the thresholds range
