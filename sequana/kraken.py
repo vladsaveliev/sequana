@@ -18,16 +18,15 @@
 ##############################################################################
 import os
 
-from easydev import DevTools
-from easydev import execute, TempFile
+from easydev import DevTools, execute, TempFile, md5
 
 from sequana.lazy import pandas as pd
+from sequana.lazy import pylab
 
 from sequana.misc import wget
 from sequana import sequana_config_path
 from sequana import logger
 
-from easydev import md5
 
 __all__ = ['KrakenResults', "KrakenPipeline", "KrakenAnalysis", "KrakenDownload"]
 
@@ -197,7 +196,6 @@ class KrakenResults(object):
 
         # line 14500
         # >gi|331784|gb|K01711.1|MEANPCG[331784] Measles virus (strain Edmonston), complete genome
-        
 
         df = self.get_taxonomy_biokit([int(x) for x in self.taxons.index])
         df['count'] = self.taxons.values
@@ -327,7 +325,6 @@ x!="description"] +  ["description"]]
         .. seealso:: to generate the data see :class:`KrakenPipeline`
             or the standalone application **sequana_taxonomy**.
         """
-        import pylab
         if self._data_created == False:
             self.kraken_to_krona()
 
@@ -339,7 +336,6 @@ x!="description"] +  ["description"]]
 
         if len(self.taxons.index) == 0:
             return None
-
 
         df = self.get_taxonomy_biokit(list(self.taxons.index))
         df.ix[-1] = ["Unclassified"] * 8
@@ -439,7 +435,6 @@ class KrakenPipeline(object):
 
     def run(self):
         """Run the analysis using Kraken and create the Krona output"""
-        import pylab
         # Run Kraken (KrakenAnalysis)
         kraken_results = self.output_directory + os.sep + "kraken.out"
         self.ka.run(output_filename=kraken_results)
@@ -668,7 +663,6 @@ class KrakenDownload(object):
     def _download_sequana_db1(self, verbose=True):
         dbname = "sequana_db1"
         from easydev import md5
-        from sequana import sequana_config_path
         dir1 = sequana_config_path + os.sep + dbname
         dir2 = dir1 + os.sep + "taxonomy"
         self.dv.mkdir(dir1)
@@ -721,18 +715,3 @@ class KrakenDownload(object):
         # The annotations
         wget("https://github.com/sequana/data/raw/master/sequana_db1/annotations.csv",
             dir1 + os.sep + "annotations.csv")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
