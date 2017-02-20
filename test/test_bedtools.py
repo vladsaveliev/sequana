@@ -85,7 +85,7 @@ def test_gc_content():
 
     ch.get_evenness()
     ch.get_cv()
-    ch.get_centralness()
+    assert ch.get_centralness() > 0.84 and ch.get_centralness()<0.85
     ch.plot_gc_vs_coverage()
 
     from easydev import TempFile
