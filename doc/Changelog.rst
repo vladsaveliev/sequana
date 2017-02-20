@@ -24,10 +24,13 @@ Changelog
    - sequanix: the help dialog is now created inside designer and has a proper
      scrollable browser dialog. cluster_config Snakemake option is also handle.
    - Remove galleria JS lib and related files (htmltools)
+   - sequana_coverage: add --logging-level option
 
 * BUG:
 
-    - --output-directory in sequana_coverage was failing
+    - --output-directory in sequana_coverage was failing 
+    - in coverage, centralness was buggy (regression) and use number of ROIs
+      instead of the total base length
 
 0.1.20 - Feb 2017
 ---------------------
