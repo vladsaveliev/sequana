@@ -80,7 +80,7 @@ Issues: http://github.com/sequana/sequana
         self.add_argument("--output-directory", dest="directory", type=str,
             help="""name of the output directory""", default="taxonomy")
         self.add_argument("--thread", dest="thread", type=int,
-            help="""number of threads to use """, default=4)
+            help="""number of threads to use (default 4)""", default=4)
         self.add_argument("--show-html", dest="html",
             action="store_true",
             help="""Results are stored in report/ directory and results are
@@ -160,7 +160,7 @@ def main(args=None):
     cfg.config.input_samples = {"file1": options.file1, "file2": options.file2}
     cfg.config.input_pattern = None
     cfg.config.input_extension = None
-    cfg.config.kraken = {"database": options.database}
+    cfg.config.kraken = {"database": options.database, "do": True}
 
     from sequana.reporting.report_summary import SequanaSummary
     from sequana.snaketools import DummyManager

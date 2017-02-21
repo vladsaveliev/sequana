@@ -22,6 +22,10 @@ import glob
 import numpy as np
 import platform
 
+from docutils import core
+from docutils.writers.html4css1 import Writer,HTMLTranslator
+
+__all__ = ['textwrap', 'rest2html', 'wget', 'findpos', 'on_cluster']
 
 def textwrap(text, width=80, indent=0):
     """Wrap a string with 80 characters
@@ -87,3 +91,50 @@ def on_cluster(pattern=["tars-"]):
             return True
         else:
             return False
+
+
+class HTMLFragmentTranslator( HTMLTranslator ):
+    def __init__( self, document ):
+        HTMLTranslator.__init__( self, document )
+        #self.head_prefix = ['','','','','']
+        #self.body_prefix = []
+        #self.body_suffix = []
+        #self.stylesheet = []
+    def astext(self):
+        return ''.join(self.body)
+    def visit_document(self,node):
+        self.body.append(self.starttag(node,"div",CLASS="comment"))
+
+html_fragment_writer = Writer()
+html_fragment_writer.translator_class = HTMLFragmentTranslator
+
+
+def rest2html(s):
+    """Converts a restructuredText document into HTML
+
+    Note that the returned object is a bytes so need to be 
+    decoded with decode()"""
+    return core.publish_string( s, writer = html_fragment_writer )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -6,6 +6,12 @@ except:
     version = ">=0.18.0"
 
 import colorlog as logger
+def sequana_debug_level(level="WARNING"):
+    """A deubg level setter at top level of the library"""
+    assert level in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+    logging_level = getattr(logger.logging.logging, level)
+    logger.getLogger().setLevel(logging_level)
+
 
 from easydev import CustomConfig
 configuration = CustomConfig("sequana", verbose=False)

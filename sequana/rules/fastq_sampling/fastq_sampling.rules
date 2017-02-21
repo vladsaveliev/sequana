@@ -6,6 +6,8 @@ rule fastq_sampling:
     Input: *gz
     Output: fastq_sampling/*gz
 
+    Uses **sequana_fastq_head** utility.
+
     """
     input: __fastq_sampling__input_fastq
     output: __fastq_sampling__output_fastq

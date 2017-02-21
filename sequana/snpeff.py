@@ -17,7 +17,6 @@
 #
 ##############################################################################
 """ Tools to launch snpEff."""
-
 import re
 import sys
 import os
@@ -36,7 +35,7 @@ class SnpEff(object):
     """
     extension = {"genbank": ".gbk", "gff": ".gff", "gtf": ".gtf"}
     def __init__(self, reference, file_format="", log=None):
-        """
+        """.. rubric:: Constructor
 
         :param reference: annotation reference.
         :param file_format: format of your file. ('only genbank actually')
@@ -110,7 +109,7 @@ class SnpEff(object):
         shutil.copyfile(CONFIG, "./snpEff.config.gz")
         gunzip_proc = sp.Popen(["gunzip", "snpEff.config.gz"])
         gunzip_proc.wait()
-        
+
     def _add_custom_db(self):
         """ Add your custom file in the local snpEff database.
 

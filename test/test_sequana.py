@@ -1,4 +1,8 @@
-from sequana import sequana_data
+from sequana import sequana_data, sequana_config_path
+
+
+def test_config_directory():
+    assert sequana_config_path
 
 
 def test_sequana_data():

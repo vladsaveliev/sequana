@@ -37,12 +37,31 @@ def test_help():
 
 
 def test_input(tmpdir):
-
     import os
-    directory = tmpdir.mkdir("report")
-    name = directory.__str__()
+    # Download reference in temporary directory so that it is erased if the test
+    # fails.
+    directory_data = tmpdir.mkdir("datatemp")
+    cwd = os.getcwd()
+    try:
+        os.chdir(directory_data.__str__())
+        coverage.main([prog, '--download-reference', "JB409847"])
+        os.system("""sed -i s"/>ENA/>JB409847 /" %s/JB409847.fa """ % directory_data.__str__())
 
-    filename = sequana_data('virus.bed', 'data')
-    reference = sequana_data('tofill.fa', 'data')
-    coverage.main([prog, '-i', filename, "-o", "--output-directory", name])
-    assert os.path.exists(name + os.sep + "coverage_mapping.chrom1.html")
+        coverage.main([prog, '--download-genbank', "JB409847"])
+    except Exception:
+        raise Exception
+    finally:
+        os.chdir(cwd)
+
+    directory_run = tmpdir.mkdir("report")
+
+    filename = sequana_data('test_JB409847.bed', 'testing')
+    try:
+        coverage.main([prog, '-i', filename, "-o", "--output-directory", directory_run.__str__(),
+"-r", "%s/JB409847.fa" % directory_data.__str__()])
+        assert False
+    except Exception as err:
+        print(err)
+        assert True
+    print(os.listdir(directory_run.__str__()))
+    assert os.path.exists(directory_run.__str__() + os.sep + "coverage_mapping.chrom1.html")

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>590</width>
+    <width>604</width>
     <height>551</height>
    </rect>
   </property>
@@ -127,7 +127,7 @@
               <property name="movable">
                <bool>true</bool>
               </property>
-              <property name="tabBarAutoHide">
+              <property name="tabBarAutoHide" stdset="0">
                <bool>false</bool>
               </property>
               <widget class="QWidget" name="Pipeline">
@@ -163,7 +163,7 @@
                     <property name="toolTip">
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sequana pipelines are automatically fetched from sequana library.&lt;/p&gt;&lt;p&gt;Each pipeline is defined by a pipeline name. Its config file is fetched automatically.&lt;/p&gt;&lt;p&gt;Each pipeline require the user to define the input. It may be one of:&lt;/p&gt;&lt;p&gt;&lt;ul&gt;&lt;li&gt; a directory&lt;/li&gt;&lt;li&gt; a set of FastQ input file&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
-                    <property name="currentText">
+                    <property name="currentText" stdset="0">
                      <string>Select a Sequana pipeline</string>
                     </property>
                     <item>
@@ -340,16 +340,7 @@
         <layout class="QGridLayout" name="gridLayout_15">
          <item row="0" column="0">
           <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,0,1">
-           <property name="leftMargin">
-            <number>2</number>
-           </property>
-           <property name="topMargin">
-            <number>2</number>
-           </property>
-           <property name="rightMargin">
-            <number>2</number>
-           </property>
-           <property name="bottomMargin">
+           <property name="margin">
             <number>2</number>
            </property>
            <item>
@@ -366,7 +357,7 @@
                <property name="editable">
                 <bool>false</bool>
                </property>
-               <property name="currentText">
+               <property name="currentText" stdset="0">
                 <string/>
                </property>
               </widget>
@@ -598,8 +589,8 @@ Once saved, the DAG and RUN buttons should be available.</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>538</width>
-               <height>82</height>
+               <width>96</width>
+               <height>26</height>
               </rect>
              </property>
             </widget>
@@ -718,7 +709,7 @@ Once saved, the DAG and RUN buttons should be available.</string>
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Pressing this button, a DAG is created and shown. &lt;/p&gt;&lt;p&gt;This is a good way to check your config file (i.e., if there are optional switch).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Shortcut: Ctrl+D&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Show &amp;Dag</string>
+              <string>Show Pipeline</string>
              </property>
              <property name="shortcut">
               <string>Ctrl+D</string>
@@ -748,9 +739,6 @@ Once saved, the DAG and RUN buttons should be available.</string>
     &lt;/ul&gt;
 &lt;/p&gt;</string>
         </property>
-        <property name="toolTipDuration">
-         <number>-1</number>
-        </property>
         <property name="styleSheet">
          <string notr="true">border: 2px solid grey;
 margin:2px;
@@ -760,6 +748,9 @@ text-align: center;
         </property>
         <property name="value">
          <number>1</number>
+        </property>
+        <property name="toolTipDuration" stdset="0">
+         <number>-1</number>
         </property>
        </widget>
       </item>
@@ -772,8 +763,8 @@ text-align: center;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>590</width>
-     <height>19</height>
+     <width>604</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
