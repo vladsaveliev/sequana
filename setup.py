@@ -116,8 +116,8 @@ setup(
            'sequana_report=sequana.scripts.reports:main'
         ],
         'sequana.module':[
-            'sequana_coverage=sequana.modules_report.coverage:SequanaModule',
-            'sequana_variant_calling=sequana.modules_report.variant_calling:SequanaModule',
+            'sequana_coverage=sequana.modules_report.coverage:CoverageModule',
+            'sequana_variant_calling=sequana.modules_report.variant_calling:VariantCallingModule',
             'sequana_summary=sequana.modules_report.summary:SummaryModule'
         ],
         'sequana.report_template': [
