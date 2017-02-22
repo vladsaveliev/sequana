@@ -10,9 +10,25 @@ prog = "sequana_taxonomy"
 def krakendb():
     # todo
     try:
-        taxonomy.main(["taxonomy", '--download', 'toydb'])
+        taxonomy.main([prog, '--download', 'toydb'])
+    except TypeError: # Fails on travis so we download manually (appdirs returns
+                      # none instead of the expected user config path 
+        HOME = os.getenv('HOME')
+        from sequana.misc import wget
+        baseurl = "https://github.com/sequana/data/raw/master/kraken_toydb/"
+        filenames = [
+             "database.idx",
+             "database.kdb",
+             "taxonomy/names.dmp",
+             "taxonomy/nodes.dmp"]
+        for filename in filenames:
+            from easydev import mkdirs
+            mkdirs(HOME + os.sep + "database/taxonomy")
+            wget(baseurl + os.sep + filename, 
+                os.sep.join([HOME, "database", filename]))
     except SystemExit:
         pass
+
 
 def test_analysis(krakendb):
     file1 = sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz")
@@ -27,8 +43,17 @@ def test_analysis(krakendb):
 
     from tempfile import TemporaryDirectory
     directory = TemporaryDirectory()
-    df = taxonomy.main([prog, '--file1', file1, "--database", "toydb",
-        "--file2", file2, "--verbose", "--output-directory", directory.name])
+
+    # If on travis and we could not load the database, use the local one
+    # that must have been downloaded
+    try:
+        df = taxonomy.main([prog, '--file1', file1, "--database", "toydb",
+            "--file2", file2, "--verbose", "--output-directory", directory.name])
+    except:
+        HOME = os.getenv('HOME')
+        database = os.sep.join([HOME, 'database'])
+        df = taxonomy.main([prog, '--file1', file1, "--database", database,
+            "--file2", file2, "--verbose", "--output-directory", directory.name])
     from sequana import logger
     logger.info(directory.name)
 

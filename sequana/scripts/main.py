@@ -585,7 +585,13 @@ def main(args=None):
             options.adapter_rev = "XXXX"
         else:
             if options.adapter_fwd is None:
-                assert options.adapters in ["universal"] + adapters_choice
+                if options.adapters not in ["universal"] + adapters_choice:
+                    msg = "Incorrect adapter choice %s. " % options.adapters
+                    msg += "Correct values are :\n" 
+                    for this in ['universal']+adapters_choice:
+                        msg += " - {}\n ".format(this)
+                    logger.error(msg)
+                    raise ValueError
                 # flag 4
                 if options.adapters == "universal":
                     options.adapter_fwd = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCGATGTATCTCGTATGCCGTCTTCTGC"

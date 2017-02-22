@@ -55,7 +55,8 @@ rule cutadapt:
         wkdir = __cutadapt__wkdir,
         design = __cutadapt__design,
         design_adapter = __cutadapt__design_adapter,
-        sample = __cutadapt__sample
+        sample = __cutadapt__sample,
+        thread = config['adapter_removal']['threads']
     log: __cutadapt__log
     run:
         executable = config['adapter_removal']['tool'] # could be cutadapt or atropos
@@ -78,7 +79,7 @@ rule cutadapt:
         if len(input.fastq) == 2:
             cmd = "%s -p {output.fastq[1]}" % executable
             if executable == "atropos":
-                cmd += " -pe1 {input.fastq[0]} -pe2 {input.fastq[1]} --progress bar"
+                cmd += " -pe1 {input.fastq[0]} -pe2 {input.fastq[1]} --progress bar -T {params.thread}"
             else:
                 cmd += " {input.fastq[0]} {input.fastq[1]} "
 

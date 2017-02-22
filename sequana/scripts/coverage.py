@@ -21,8 +21,8 @@ import os
 import shutil
 import glob
 import sys
-from optparse import OptionParser
 import argparse
+from optparse import OptionParser
 from argparse import RawTextHelpFormatter
 
 from sequana import bedtools
@@ -30,12 +30,14 @@ from sequana.reporting import report_mapping
 from sequana.reporting import report_chromosome
 from sequana.reporting import report_main
 from sequana import logger
+from sequana import sequana_debug_level
+from sequana import GenomeCov
 
-from easydev import shellcmd
+from easydev import shellcmd, mkdirs
+from easydev.console import purple
 
 from pylab import show, figure, savefig
 
-from easydev.console import purple
 
 # http://stackoverflow.com/questions/18462610/argumentparser-epilog-and-description-formatting-in-conjunction-with-argumentdef
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
@@ -131,7 +133,9 @@ Issues: http://github.com/sequana/sequana
         group.add_argument('--no-report', dest="create_report",
             default=True, action='store_false',
             help="""Do not create any HTML report""")
-
+        group.add_argument("--logging-level", dest="logging_level",
+            default="INFO",
+            help="set to DEBUG, INFO, WARNING, CRITICAL, ERROR")
         group = self.add_argument_group('Annotation')
         group.add_argument("-b", "--genbank", dest="genbank",
             type=str, default=None, help='a valida genbank annotation')
@@ -200,6 +204,8 @@ def main(args=None):
     else:
         options = user_options.parse_args(args[1:])
 
+    sequana_debug_level(options.logging_level)
+
     if options.accession:
         logger.info("Download accession %s from %s\n" %
             (options.accession, options.database))
@@ -216,7 +222,6 @@ def main(args=None):
         return
 
     # We put the import here to make the --help faster
-    from sequana import GenomeCov
 
     if options.genbank:
         assert os.path.exists(options.genbank), \
@@ -245,12 +250,12 @@ def main(args=None):
             0.5, 0.5)
 
     if options.reference:
-        print('Computing GC content')
+        logger.info('Computing GC content')
         gc.compute_gc_content(options.reference, options.w_gc)
 
     if len(gc.chr_list) == 1:
         if options.verbose:
-            print("There is only one chromosome. Selected automatically.")
+            logger.warning("There is only one chromosome. Selected automatically.")
         chrom = gc.chr_list[0]
         run_analysis(gc, chrom, 1, options) 
     elif options.chromosome <-1 or options.chromosome > len(gc.chr_list) or\
@@ -280,7 +285,7 @@ def run_analysis(gc, chrom, chrom_index, options):
         print(chrom)
 
     if options.verbose:
-        print('Computing running median (w=%s)' % options.w_median)
+        logger.info('Computing running median (w=%s)' % options.w_median)
 
     chrom.running_median(n=options.w_median, circular=options.circular)
 
@@ -335,20 +340,22 @@ def run_analysis(gc, chrom, chrom_index, options):
         figure(2)
         chrom.plot_gc_vs_coverage(Nlevels=options.levels, fontsize=20)
         corr = chrom.get_gc_correlation()
-        print("GC Correlation = %s" % corr)
+        logger.info("GC Correlation = %s" % corr)
         filename_gc_cov = "coverage_vs_gc.chrom{0}.png".format(chrom_index)
-        savefig(filename_gc_cov)
+        dirimages = options.output_directory + os.sep + "images"
+        mkdirs(dirimages)
+        savefig(dirimages + os.sep + filename_gc_cov)
 
     if options.show:
         show()
 
     # Report chromosomes
     if options.verbose:
-        print("Creating report in %s" % options.output_directory)
+        logger.info("Creating report in %s" % options.output_directory)
 
     if options.genbank:
         if options.verbose:
-            print('Genbank: %s' % options.genbank)
+            logger.info('Genbank: %s' % options.genbank)
         from sequana.tools import genbank_features_parser
         features = genbank_features_parser(options.genbank)
     else:
@@ -361,15 +368,13 @@ def run_analysis(gc, chrom, chrom_index, options):
                 sample=sample_name, features=features, verbose=options.verbose)
 
         if options.reference:
-            from snakemake import shell
-            shell("cp %s report/images" %  filename_gc_cov)
             r.jinja['coverage_vs_gc'] = """Correlation: %s </br> """ % corr
             r.jinja['coverage_vs_gc'] += """<img src="images/%s">""" % filename_gc_cov
 
         r.jinja['standalone_command'] = " ".join(sys.argv)
         r.create_report()
         if options.verbose:
-            print("Report created. See ./report directory content and look for the HTML file. You can also use --show-html option")
+            print("Report created. Please see %s/ directory content" % options.output_directory)
         if options.show_html:
             from easydev import onweb
             onweb("report/%s_mapping.chrom%s.html" % (sample_name,

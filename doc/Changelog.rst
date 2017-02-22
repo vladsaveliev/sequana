@@ -8,17 +8,30 @@ Changelog
 
 * NEWS:
 
-    add sequana_debug_level function at top level to switch verbosity of
-    informative messages (default is WARNING).
+    - add sequana_debug_level function at top level to switch verbosity of
+      informative messages (default is WARNING).
+    - add pacbio module  #351
+    - quality control pipeline: atropos can be used in place of cutadapt #346
 
 * CHANGES:
 
-   - Running Median is 10 times faster
+   - Running Median is 10 times faster #345
    - sequana_coverage:  (1) --file1 alone was not working (2) automatically copy
-     cluster-config in working directory and update runme.sh accordingly
-   - sequana standalone: handles cluster_config Snakemake option
+     cluster-config in working directory and update runme.sh accordingly #342
+   - sequana standalone:
+       - handles cluster_config Snakemake option
+       - add error message when adapter name is incorrect
    - sequanix: the help dialog is now created inside designer and has a proper
      scrollable browser dialog. cluster_config Snakemake option is also handle.
+   - Remove galleria JS lib and related files (htmltools)
+   - sequana_coverage: add --logging-level option
+
+* BUG:
+
+    - --output-directory in sequana_coverage was failing 
+    - in coverage, centralness was buggy (regression) and use number of ROIs
+      instead of the total base length #347
+    - Fix multi_report summary for single end case #349
 
 0.1.20 - Feb 2017
 ---------------------

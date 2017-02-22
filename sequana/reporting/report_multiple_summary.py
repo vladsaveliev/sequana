@@ -23,6 +23,7 @@ import json
 from sequana.reporting.report_main import BaseReport
 from easydev import DevTools
 from sequana.resources.canvas.bar import CanvasBar
+from sequana import logger
 
 from sequana.lazy import pandas as pd
 
@@ -77,6 +78,7 @@ class ReadSummary(object):
                 pass # single-end
         except:
             read1 = d["percent"]["Reads with adapters"]
+            read1 = float(read1.strip("%)").strip("("))
         return read1
 
     def get_read1_with_adapters_percent(self):
