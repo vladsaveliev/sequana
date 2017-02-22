@@ -89,7 +89,7 @@ bwa_mem_phix:
 # - design_file: a valid CSV file with mapping of index and sample name
 # - fwd: a string or file (prefixed with *file:*)
 # - m: 20 means discard trimmed reads that are shorter than 20.
-#         must be >0 and <40
+#         must be > 0
 # - quality: 0 means no trimming, 30 means keep base with quality
 #        above 30
 # - mode: must be set to one of
@@ -99,6 +99,10 @@ bwa_mem_phix:
 # - rev: a string or file (prefixed with *file:*)
 # - tool: only cutadapt supported for now
 # - threads: number of threads to use (atropos only)
+# - options: See cutadapt documentation for details on 
+#            cutadapt.readthedocs.io. We change the default value
+#            of -O to 6 (at least 6 bases are required to match before
+#            trimming of an adapter)
 #
 # :Note: If design_file is provided, fwd and rev are ignored
 #
