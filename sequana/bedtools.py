@@ -21,6 +21,7 @@
 import re
 import ast
 import os
+import sys
 
 from biokit.stats import mixture
 
@@ -404,6 +405,11 @@ class ChromosomeCov(object):
     def __len__(self):
         return self.df.__len__()
 
+    def columns(self):
+        """ Return immutable ndarray implementing an ordered, sliceable set.
+        """
+        return self.df.columns
+
     def get_df(self):
         return self.df.set_index("chr", drop=True)
 
@@ -425,33 +431,6 @@ class ChromosomeCov(object):
         """
         self.gaussians_params = gaussians
         self.best_gaussian = self._get_best_gaussian()
-
-    def to_csv(self, directory, length=200000):
-        """ Write multiple CSV file with a specified length.
-
-        :param directory: directory where csv are created
-        :param length: length of your sub csv
-
-        return a list with all created files.
-        """
-        try:
-            os.makedirs(directory)
-        except FileExistsError:
-            if os.path.isdir(directory):
-                pass
-            else:
-                msg = "{0} exist and it is not a directory".format(directory)
-                logger.error(msg)
-                raise FileExistsError
-        path_name = directory + os.sep + self.chrom_name
-        file_list = list()
-        for i in range(0, len(self.df), length):
-            filename = "{0}_{1}_{2}.csv".format(
-                path_name, i, min(len(self.df), i + length))
-            self.df[i:min(i + length, len(self.df))].to_csv(
-                filename, float_format='%.3g')
-            file_list.append(filename)
-        return file_list
 
     def moving_average(self, n, circular=False):
         """Compute moving average of the genome coverage
@@ -656,7 +635,7 @@ class ChromosomeCov(object):
                         "k=1 could be a better choice"))
 
     def get_centralness(self):
-        r"""Proportion of central (normal) genome coverage
+        """Proportion of central (normal) genome coverage
 
         This is 1 - (number of non normal data) / (total length)
 
@@ -866,20 +845,33 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def write_csv(self, filename, start=None, stop=None, header=True):
+    def to_csv(self, filename=None, start=None, stop=None, **kwargs):
         """ Write CSV file of the dataframe.
 
-        :param filename: csv output filename.
-        :param header: boolean which determinate if the header is written.
+        :param str filename: csv output filename. If None, return string.
+        :param int start: start row index.
+        :param int stop: stop row index.
 
+        Params of :meth:`pandas.DataFrame.to_csv`:
+
+        :param list columns: columns you want to write.
+        :param bool header: determine that the header is written.
+        :param bool index: determine that the index is written. 
         """
-        try:
-            labels=["pos", "cov", "mapq0"]
-            self.df[labels][start:stop].to_csv(filename, header=header)
-        except NameError:
-            logger.error("You must set the file name. Nothing done")
-        except KeyError:
-            self.df[labels[:-1]][start:stop].to_csv(filename, header=header)
+        # Create directory to avoid errno 2
+        if filename:
+            directory = os.path.dirname(os.path.realpath(filename))
+            try:
+                os.makedirs(directory)
+            except FileExistsError:
+                if os.path.isdir(directory):
+                    pass
+                else:
+                    msg = "{0} exist and it is not a directory".format(
+                        directory)
+                    logger.error(msg)
+                    raise FileExistsError
+        return self.df[start:stop].to_csv(filename, **kwargs) 
 
     def plot_gc_vs_coverage(self, bins=None, Nlevels=6, fontsize=20, norm="log",
             ymin=0, ymax=100, contour=True, **kargs):
@@ -1170,9 +1162,18 @@ class FilteredGenomeCov(object):
                 FilteredGenomeCov._feature_not_wanted)]
         return merge_df
 
-    def get_low_roi(self):
-        return self.df.loc[self.df["max_zscore"] < 0]
+    def _get_sub_range(self, seq_range):
+        try:
+            return self.df[(self.df["end"] > seq_range[0]) &
+                           (self.df["start"] < seq_range[1])]
+        except TypeError:
+            return self.df
 
-    def get_high_roi(self):
-        return self.df.loc[self.df["max_zscore"] >= 0]
+    def get_low_roi(self, seq_range=None):
+        df = self._get_sub_range(seq_range)
+        return df.loc[df["max_zscore"] < 0]
+
+    def get_high_roi(self, seq_range=None):
+        df = self._get_sub_range(seq_range)
+        return df.loc[df["max_zscore"] >= 0]
 
