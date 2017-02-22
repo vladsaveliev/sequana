@@ -118,8 +118,11 @@ def main(args=None):
             mod = config.module_dict[tool].load()
             mod(data)
     # summary.html may need custom section from other modules
-    mod = config.module_dict['sequana_summary'].load()
-    mod(summary_json)
+    try:
+        mod = config.module_dict['sequana_summary'].load()
+        mod(summary_json)
+    except UnboundLocalError:
+        pass
 
 
 if __name__ == '__main__':
