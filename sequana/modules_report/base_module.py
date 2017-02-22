@@ -32,7 +32,9 @@ class SequanaBaseModule(object):
     """
     required_dir = ("css", "js", "images")
     def __init__(self):
-        self.js = list()
+        self.js_script = list()
+        self.js_function = list()
+        self.css = list()
         self.output_dir = config.output_dir
         self.path = "./"
         # Initiate jinja template
