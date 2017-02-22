@@ -5,7 +5,6 @@
 #  Copyright (c) 2016 - Sequana Development Team
 #
 #  File author(s):
-#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
 #      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
@@ -24,9 +23,10 @@ import pandas as pd
 from sequana import bedtools
 from sequana.modules_report.base_module import SequanaBaseModule
 from sequana.utils import config
+from sequana.plots.canvasjs_linegraph import CanvasJSLineGraph
 
 
-class SequanaModule(SequanaBaseModule):
+class CoverageModule(SequanaBaseModule):
     """ Write HTML report of coverage analysis. This class takes either a
     :class:`GenomeCov` instances or a csv file where analysis are stored.
     """
@@ -117,12 +117,14 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         """ Generate the sections list to fill the HTML report.
         """
         self.sections = list()
+
+        rois = self.chromosome.get_roi()
         
         self.coverage_plot()
         self.coverage_barplot()
-        # self.submappings()
+        self.subcoverage(rois)
         self.basic_stats()
-        self.regions_of_interest()
+        self.regions_of_interest(rois)
         self.normalized_coverage()
         self.zscore_distribution()
 
@@ -162,6 +164,19 @@ class ChromosomeCoverageModule(SequanaBaseModule):
                 "{0}\n{1}".format(image1, image2))
         })
 
+    def subcoverage(self, rois):
+        """ Create subcoverage report to have acces of a zoomable line plot.
+        """
+        # break the chromosome as piece of 200 Mbp
+        chrom_output_dir = os.sep.join(
+            [config.output_dir, 'coverage_reports',
+            self.chromosome.chrom_name])
+        if not os.path.exists(chrom_output_dir):
+            os.makedirs(chrom_output_dir)
+        for i in range(0, len(self.chromosome), 200000):
+            SubCoverageModule(self.chromosome, rois, i,
+                              min(i + 200000, len(self.chromosome))) 
+
     def basic_stats(self):
         """ Basics statistics section.
         """
@@ -175,10 +190,9 @@ class ChromosomeCoverageModule(SequanaBaseModule):
                 "genome coverage.</p>\n{0}".format(html_table))
         })
 
-    def regions_of_interest(self):
+    def regions_of_interest(self, rois):
         """ Region of interest section.
-        """
-        rois = self.chromosome.get_roi()
+        """ 
         low_roi = rois.get_low_roi()
         high_roi = rois.get_high_roi()
         html_low_roi = self.dataframe_to_html_table(low_roi)
@@ -219,9 +233,9 @@ class ChromosomeCoverageModule(SequanaBaseModule):
             self.chromosome.plot_hist_normalized_coverage,
             input_arg="filename")
         self.sections.append({
-            "name": "Normalized coverage",
-            "anchor": "normalized_coverage",
-            "content": (
+            'name': "Normalized coverage",
+            'anchor': 'normalized_coverage',
+            'content': (
                 "<p>Distribution of the normalized coverage with predicted "
                 "Gaussian. The red line should be followed the trend of the "
                 "barplot.</p>\n{0}".format(image))
@@ -233,13 +247,157 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         image = self.create_embedded_png(self.chromosome.plot_hist_zscore,
                                       input_arg="filename")
         self.sections.append({
-            "name": "Z-Score distribution",
-            "anchor": "zscore_distribution",
-            "content": (
+            'name': "Z-Score distribution",
+            'anchor': 'zscore_distribution',
+            'content': (
                 "<p>Distribution of the z-score (normalised coverage); You "
                 "should see a Gaussian distribution centered around 0. The "
                 "estimated parameters are mu={0:.2f} and sigma={1:.2f}.</p>\n"
                 "{2}".format(self.chromosome.best_gaussian["mu"],
                              self.chromosome.best_gaussian["sigma"],
                              image))
+        })
+
+
+class SubCoverageModule(SequanaBaseModule):
+    """ Write HTML report of subsection of chromosome with a javascript
+    coverage plot.
+    """
+    def __init__(self, chromosome, rois, start, stop):
+        super().__init__()
+        self.path = "../../"
+        self.chromosome = chromosome
+        self.rois = rois
+        self.start = start
+        self.stop = stop
+        self.title = ("Coverage analysis of chromosome {0}<br>"
+                      "positions {1} and {2}".format(
+                      self.chromosome.chrom_name, start, stop))
+        self.create_report_content()
+        self.create_html("coverage_reports/{0}/{0}_{1}_{2}.html".format(
+            self.chromosome.chrom_name, start, stop))
+
+    def create_report_content(self):
+        """ Generate the sections list to fill the HTML report.
+        """
+        self.sections = list()
+
+        self.canvasjs_line_plot()
+        self.regions_of_interest()
+
+    def canvasjs_line_plot(self):
+        """ Create the CanvasJS line plot section.
+        """
+        # set column of interest and create the csv
+        x_col = 'pos'
+        y_col = ('cov', 'mapq0', 'gc')
+        columns = self.chromosome.columns()
+        y_col = [n for n in y_col if n in columns]
+        csv = self.chromosome.to_csv(columns=[x_col] + y_col, index=False)
+        
+        # create CanvasJS stuff
+        cjs = CanvasJSLineGraph(csv, 'cov', x_col, y_col)
+        # create hidden csv section
+        html_csv, css_csv = cjs.create_hidden_csv()
+        # create js csv parser
+        js_parser = cjs.create_js_csv_parser()
+        # set options
+        cjs.set_options({'zoomEnabled': 'true',
+                         'zoomType': 'x',
+                         'exportEnabled': 'true'})
+        # set title
+        cjs.set_title("Genome Coverage")
+        # set legend
+        cjs.set_legend({'verticalAlign': 'bottom',
+                        'horizontalAlign': 'center',
+                        'cursor':'pointer'},
+                        hide_on_click=True)
+        # set axis X
+        cjs.set_x_axis({'title': "Position (bp)",
+                        'labelAngle': 30})
+        # set first axis Y
+        cjs.set_y_axis({'title': "Coverage (Count)"})
+        # set second axis Y
+        cjs.set_y2_axis({'title': "GC content (ratio)",
+                         'minimum':0,
+                         'maximum': 1,
+                         'lineColor': '#FFC425',
+                         'titleFontColor': '#FFC425',
+                         'labelFontColor': '#FFC425'})
+        # set datas
+        # Coverage
+        cjs.set_data(index=0, data_dict={'type': 'line',
+                                         'name': "Filtered coverage",
+                                         'showInLegend': 'true',
+                                         'color': '#5BC0DE',
+                                         'lineColor': '#5BC0DE'})
+        # Mapq0
+        try:
+            i = y_col.index('mapq0')
+            cjs.set_data(index=i, data_dict={'type': 'line',
+                                             'name': "Unfiltered coverage",
+                                             'showInLegend': 'true',
+                                             'color': '#D9534F',
+                                             'lineColor': '#D9534F'})
+        except ValueError:
+            pass
+        # GC
+        try:
+            i = y_col.index('gc')
+            cjs.set_data(index=i, data_dict={'type': 'line',
+                                             'axisYType': 'secondary',
+                                             'name': "GC content",
+                                             'showInLegend': 'true',
+                                             'color': '#FFC425',
+                                             'lineColor': '#FFC425'})
+        except ValueError:
+            pass
+        #
+        js_command, js_canvas, html_canvas = cjs.create_canvas_js_object()
+        self.js_script.append(js_command)
+        self.js_function.extend([js_parser, js_canvas])
+        self.css.append(css_csv)
+        self.sections.append({
+            'name': 'Interactive coverage plot',
+            'anchor': 'iplot',
+            'content': ("{0}\n{1}".format(html_csv, html_canvas))})
+
+    def regions_of_interest(self):
+        """ Region of interest section.
+        """
+        subseq = [self.start, self.stop]
+        low_roi = self.rois.get_low_roi(subseq)
+        high_roi = self.rois.get_high_roi(subseq)
+        html_low_roi = self.dataframe_to_html_table(low_roi)
+        html_high_roi = self.dataframe_to_html_table(high_roi)
+        roi_paragraph = (
+            "Regions with a z-score {0}er than {1:.2f} and at "
+            "least one base with a z-score {0}er than {2:.2f} are detected as "
+            "{0} coverage region. Thus, there are {3} {0} coverage regions "
+            "between the position {4} and the position {5}")
+        low_paragraph = roi_paragraph.format("low",
+                                             self.chromosome.thresholds.low2,
+                                             self.chromosome.thresholds.low,
+                                             len(low_roi), self.start,
+                                             self.stop)
+        high_paragraph = roi_paragraph.format("high",
+                                              self.chromosome.thresholds.high2,
+                                              self.chromosome.thresholds.high,
+                                              len(high_roi), self.start,
+                                              self.stop)
+        self.sections.append({
+            "name": "Regions Of Interest (ROI)",
+            "anchor": "roi",
+            "content": (
+                "<p>Running median is the median computed along the genome "
+                "using a sliding window. The following tables give regions of "
+                "interest detected by sequana. Here is some captions:</p>\n"
+                "<ul><li>mean_cov: the average of coverage</li>\n"
+                "<li>mean_rm: the average of running median</li>\n"
+                "<li>mean_zscore: the average of zscore</li>\n"
+                "<li>max_zscore: the higher zscore contains in the region</li>"
+                "</ul>\n"
+                "<h3>Low coverage region</h3>\n{0}\n{1}\n"
+                "<h3>High coverage region</h3>\n{2}\n{3}\n").format(
+                low_paragraph, html_low_roi, high_paragraph, html_high_roi)
         })
