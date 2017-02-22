@@ -5,7 +5,6 @@
 #  Copyright (c) 2016 - Sequana Development Team
 #
 #  File author(s):
-#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
 #      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
@@ -47,6 +46,7 @@ class SummaryModule(SequanaBaseModule):
 
         self.pipeline_inputs()
         self.pipeline_outputs()
+        # TODO add customs sections from other reports
         self.workflow()
         self.running_stats()
         self.dependencies()
