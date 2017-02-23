@@ -1,3 +1,5 @@
+
+from sequana.lazy import pylab
 import pysam
 
 
@@ -6,11 +8,9 @@ class PacBioInputBAM(object):
 
     Downsample PacBio base-call BAM file 
 
-
     TODO:
 
         number of sub reads per ZMW
-
 
     SNR ACGT:
 
@@ -35,14 +35,31 @@ class PacBioInputBAM(object):
             self.reset()
         return self._N
 
+    def __str__(self):
+        return "Length: {}".format(len(self))
+
     def reset(self):
         self.data.close()
         self.data = pysam.AlignmentFile(self.filename, check_sq=False)
 
     def stride(self, output_filename, stride=10):
+        self.reset()
         with pysam.AlignmentFile(output_filename,  "wb", template=self.data) as fh:
 
             for i, read in enumerate(self.data):
                 if i % stride == 0: 
                     fh.write(read)
+
+    def hist_snr(self, bins=50, alpha=0.5):
+        """Plot histogram of the ACGT SNRs for all reads"""
+        self.reset()
+        reads = [[x for x in read.tags if x[0]=='sn'] for read in self.data]
+        snr = [x[0][1] for x in reads]
+        pylab.hist([x[0] for x in snr], alpha=alpha, label="A", bins=bins)
+        pylab.hist([x[1] for x in snr], alpha=alpha, label="C", bins=bins)
+        pylab.hist([x[2] for x in snr], alpha=alpha, label="G", bins=bins)
+        pylab.hist([x[3] for x in snr], alpha=alpha, label="T", bins=bins)
+        pylab.legend()
+
+
 
