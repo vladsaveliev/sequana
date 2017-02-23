@@ -22,7 +22,8 @@ rule bowtie2_mapping:
     """
 
     input:
-        __bowtie2_mapping__input
+        fastq = __bowtie2_mapping__input,
+        index = __bowtie2_mapping__index_done
     output:
         sort = __bowtie2_mapping__sort
     log:

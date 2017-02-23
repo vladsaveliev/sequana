@@ -9,7 +9,6 @@ rule clean_ngs:
     params:
         adapters = config['adapter_removal']['fwd'],
         min_len = config['adapter_removal']['m'],
-        max_len = config['adapter_removal']['M'],
         quality = config['adapter_removal']['quality']
     shell:
         """

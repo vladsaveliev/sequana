@@ -48,9 +48,14 @@ sequencing:
     flowcell: "H35CTBCXY"
 
 genome:
-  dir: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
-  version: hg19
   do: yes
+  dir: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
+  name: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19 #path to index name
+  fasta: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
+  gff: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.gff
+  rRNA_fasta: no
+  rRNA_feature: "rRNA"
+
 
 #############################################################################
 # bowtie1_mapping_rna used to align reads against ribosomal RNA
@@ -58,13 +63,11 @@ genome:
 # :Parameters:
 #
 # - do: if unchecked, this rule is ignored
-# - prefix_index: the name of the reference file to be found
 # - options: any options recognised by bowtie1 tool
 # - threads: number of threads to be used
 #
 bowtie1_mapping_rna:
     do: yes
-    prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie_genomes/cryptNeo_rRNA
     options: ""
     threads: 4
 
@@ -74,36 +77,13 @@ bowtie1_mapping_rna:
 # :Parameters:
 #
 # - do: if unchecked, this rule is ignored
-# - prefix_index: the name of the reference file to be found
-# - ref: path to the reference genome file in fasta format
 # - options: any options recognised by rna-star tool
 # - threads: number of threads to be used
 #
 star_mapping:
     do: yes
-    ## if index is already computed
-    prefix_index: /pasteur/projets/specific/PF2_ngs/protected/starGenomes/cryptNeo
-    ref: /pasteur/projets/specific/PF2_ngs/protected/starGenomes/cryptNeo.fa
     options: ""
     threads: 4
-
-
-#############################################################################
-# tophat_mapping used to align reads against genome file (with bowtie1 mapper)
-#
-# :Parameters:
-#
-# - do: if unchecked, this rule is ignored
-# - prefix_index: the name of the reference file to be found
-# - options: any options recognised by tophat2 tool
-# - threads: number of threads to be used
-#
-tophat_mapping:
-    do: no
-    prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie_genomes/cryptNeo
-    options: "--no-coverage-search "
-    threads: 4
-
 
 #############################################################################
 # bowtie1_mapping_ref used to align reads against genome file
@@ -111,13 +91,11 @@ tophat_mapping:
 # :Parameters:
 #
 # - do: if unchecked, this rule is ignored
-# - prefix_index: the name of the reference file to be found
 # - options: any options recognised by bowtie1 tool
 # - threads: number of threads to be used
 #
 bowtie1_mapping_ref:
     do: no
-    prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie_genomes/cryptNeo
     options: "--chunkmbs 400 -a --best -q -e50 "
     threads: 4
 
@@ -127,16 +105,30 @@ bowtie1_mapping_ref:
 # :Parameters:
 #
 # - do: if unchecked, this rule is ignored
-# - prefix_index: the name of the reference file to be found
 # - options: any options recognised by bowtie2 tool
 # - threads: number of threads to be used
 #
 bowtie2_mapping:
     do: no
-    prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/cryptNeo
     #options: "--dovetail --no-mixed --no-discordant " for paired-end data
     options: ""
     threads: 4
+
+#############################################################################
+# tophat_mapping used to align reads against genome file
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - options: any options recognised by bowtie2 tool
+# - threads: number of threads to be used
+#
+tophat_mapping:
+    do: no
+    #options: "--dovetail --no-mixed --no-discordant " for paired-end data
+    options: "--no-coverage-search --library-type fr-firststrand "
+    threads: 4
+
 
 #############################################################################
 # feature_counts used to count reads against features
@@ -148,7 +140,7 @@ bowtie2_mapping:
 # - threads: number of threads to be used
 #
 feature_counts:
-    gff: /pasteur/projets/specific/PF2_ngs/protected/annotation/gff_data/cryptNeo.gff
+    do: yes
     #options: "-t exon -g gene_id"
     options: "-t gene -g ID"
     threads: 2
@@ -162,6 +154,7 @@ feature_counts:
 # - pf2_report: allows to plot a specific PF2 report
 #
 fastq_screen:
+    do: yes
     conf: "/pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/fastq_screen.conf"
     pf2_report: yes
 
@@ -205,7 +198,6 @@ adapter_removal:
     fwd:
     rev:
     m: 20   # min length cutoff
-    M: 120  # max length cutoff
     mode: "a"   # g for 5' adapter, a for 3' and b for both 5'/3'
     quality: "30"
     options: "-O 6 --trim-n"
@@ -237,7 +229,7 @@ coverage:
     chromSize: /pasteur/projets/specific/PF2_ngs/protected/fasta_genomes/hg19.chrom.sizes
 
 RNAseQC:
-     do: yes
+     do: no
      ref: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
      gtf: /pasteur/projets/specific/PF2_ngs/protected/annotation/gtf/hg19.gtf
      BWArRNA: /pasteur/projets/specific/PF2_ngs/protected/Genomes/human_rRNA/human_all_rRNA.fasta

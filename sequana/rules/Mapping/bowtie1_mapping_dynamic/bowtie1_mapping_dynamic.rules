@@ -1,4 +1,3 @@
-# coding: utf-8
 def bowtie1_mapping_dynamic(name, log_dir):
     """
     Read mapping for either single end and paired end data using Bowtie1.
@@ -10,9 +9,11 @@ def bowtie1_mapping_dynamic(name, log_dir):
         __bowtie1_mapping_%(name)s__bam: output bam file
         __bowtie1_mapping_%(name)s__sort: output sorted bam file
 
-    Config:
+    params:
 
         __bowtie1_mapping_%(name)s__prefix_index: path to the index file of reference genome
+
+    config:
 
         .. code-block:: yaml
 
@@ -25,16 +26,17 @@ def bowtie1_mapping_dynamic(name, log_dir):
     bowtie1_mapping_code = '''
 rule bowtie1_mapping_%(name)s:
     input:
-        fastq = __bowtie1_mapping_%(name)s__input
+        fastq = __bowtie1_mapping_%(name)s__input,
+        index = __bowtie1_mapping_%(name)s__index_done
     output:
         bam = __bowtie1_mapping_%(name)s__bam,
         sort = __bowtie1_mapping_%(name)s__sort
     log:
         out = __bowtie1_mapping_%(name)s__stdout,
         err = __bowtie1_mapping_%(name)s__stderr
-    params: 
-        prefix_index = __bowtie1_mapping_%(name)s__prefix_index,
-        options = config["bowtie1_mapping_%(name)s"]["options"]
+    params:
+        options = config["bowtie1_mapping_%(name)s"]["options"],
+        prefix_index = __bowtie1_mapping_%(name)s__prefix_index
     threads:
         int(config["bowtie1_mapping_%(name)s"]["threads"])
     run:

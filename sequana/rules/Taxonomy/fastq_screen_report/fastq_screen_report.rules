@@ -10,12 +10,12 @@ rule fastq_screen_report:
     """
 
     input :
-        __fastq_screen_report__input
+        __fastq_screen_report__input,
+        __fastq_screen_report__input_done
     log :
         __fastq_screen_report__logs
     output:
         __fastq_screen_report__figure
-
     run:
         from re import findall
         import os
@@ -29,8 +29,12 @@ rule fastq_screen_report:
         mhol=[]
         ohml=[]
         mhml=[]
+        file = ""
+        for fp in os.listdir(input[0]):
+            if fp.endswith("_screen.txt"):
+                file = fp
 
-        for line in csv.reader(open(input[0], "r"), dialect="excel-tab") :
+        for line in csv.reader(open(os.path.join(input[0], file), "r"), dialect="excel-tab") :
             if(len(line) == 0) :
                 continue
             if(line[0].startswith("#")) :
@@ -60,7 +64,7 @@ rule fastq_screen_report:
         pl.bar(ind, tuple(mhml), color="#FF6347", bottom=tuple(ohol+mhol+ohml), label="repeat")
         #p5 = bar(25, nohit, color="#6699FF")
 
-        pl.title("%s" % input[0].replace("_screen.txt","").split("/")[-1])
+        pl.title("%s" % file.replace("_screen.txt","").split("/")[-1])
         pl.ylabel("%")
         pl.ylim((0,105))
         pl.xticks(ind+0.4, species, rotation="vertical")
