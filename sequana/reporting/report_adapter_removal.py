@@ -22,6 +22,7 @@
 """
 import os
 from sequana.reporting.report_main import BaseReport
+from sequana import logger
 
 # a utility from external reports package
 from sequana.lazy import reports
@@ -127,8 +128,10 @@ class AdapterRemovalReport(BaseReport):
             df.ix[name] = [info['Length'], info['Trimmed'],
                 info['Type'], info['Sequence']]
         df.columns = ['Length', 'Trimmed', 'Type', 'Sequence']
+        df['Trimmed'] = df.Trimmed.map(lambda x: int(x.replace("times.", "")))
 
         df.to_json(self.sample_name + "/cutadapt/cutadapt_stats2.json")
+        df.sort_values(by="Trimmed", ascending=False, inplace=True)
         h = reports.HTMLTable(df)
         html = h.to_html(index=True)
         self.jinja['adapters'] = html
@@ -140,17 +143,26 @@ class AdapterRemovalReport(BaseReport):
         html += "<div>\n"
         from easydev import DevTools
         DevTools().mkdir(self.sample_name + "/cutadapt/images")
-        for key in sorted(histograms.keys()):
-            if len(histograms[key]) <= 1:
+
+        # get keys and count; Sort by number of adapters removed.
+        # TODO: could have reused the df
+        adapter_names = list(histograms.keys())
+        count = [histograms[k]['count'].sum() for k in adapter_names]
+        df2 = pd.DataFrame({'key':adapter_names, "count": count})
+        df2.sort_values(by="count", ascending=False, inplace=True)
+
+
+        for count, key in zip(df2["count"], df2['key']) :
+            if len(histograms[key]) <= 3:
                 continue
-            histograms[key].plot(logy=True, lw=2, marker="o")
-            pylab.title(name)
+            histograms[key].plot(logy=False, lw=2, marker="o")
             name = key.replace(" ", "_")
+            pylab.title(name + "(%s)" % count)
             filename =  "%s/cutadapt/images/%s.png" % (self.sample_name,name)
             try:
                 pylab.savefig(filename)
             except FileNotFoundError:
-                print("Warning:: cutadapt report, image not created")
+                logger.warning("AdapterRemovalReport, image not created")
             pylab.grid(True)
             html += '<img src="cutadapt/images/%s.png" width="45%%"></img> ' % (name)
             #except:
@@ -159,13 +171,7 @@ class AdapterRemovalReport(BaseReport):
 
         self.jinja['cutadapt'] = html
 
-
         super(AdapterRemovalReport, self).create_report(onweb=onweb)
-
-
-
-
-
 
 
 
