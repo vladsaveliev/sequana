@@ -8,12 +8,14 @@ rule star_mapping:
     Required output:
         __star_mapping__sort: output sorted bam file
 
-    Config:
+    params:
 
         __star_mapping__output_prefix1: output prefix for first-pass mapping (temporary file)
         __star_mapping__output_prefix2: output prefix for second-pass mapping
         __star_mapping__genome_dir: name of directory for new genome indexation (temporary file)
         __star_mapping__splice_file: name of the file containing splicing information get during firt-pass alignment
+
+    config:
 
         .. code-block:: yaml
 

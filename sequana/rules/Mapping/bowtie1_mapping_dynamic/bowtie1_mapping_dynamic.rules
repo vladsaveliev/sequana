@@ -9,9 +9,11 @@ def bowtie1_mapping_dynamic(name, log_dir):
         __bowtie1_mapping_%(name)s__bam: output bam file
         __bowtie1_mapping_%(name)s__sort: output sorted bam file
 
-    Config:
+    params:
 
         __bowtie1_mapping_%(name)s__prefix_index: path to the index file of reference genome
+
+    config:
 
         .. code-block:: yaml
 

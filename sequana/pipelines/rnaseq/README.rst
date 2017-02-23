@@ -54,8 +54,12 @@ Mapping on rRNA
 
 Mapping on reference genome
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Bowtie1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. snakemakerule:: bowtie1_mapping_dynamic
-.. snakemakerule:: tophat_mapping
+STAR
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. snakemakerule:: star_mapping
 
 Counting
