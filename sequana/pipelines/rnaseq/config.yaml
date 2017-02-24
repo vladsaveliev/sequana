@@ -1,7 +1,7 @@
 # ============================================================================
 # Config file for RNA-seq
 #
-# ==========================================[ Sections for the users ]========
+# ==================[ Sections for the users ]================================
 #
 # One of input_directory, input_pattern and input_samples must be provided
 # If input_directory provided, use it otherwise if input_pattern provided,
@@ -38,10 +38,15 @@ fastqc:
     options: "--nogroup"
 
 ##################################################################
-# MAPPING SECTION
+# sequencing information. These informations will be inserted as
+# read group in BAM files
 #
-#     Don't forgot to fill sequencing information
+# :Parameters:
 #
+# - platform: Name of the sequencing platform
+# - instrument: name ot the instrument type
+# - flowcell: flowcell ID
+
 sequencing:
     platform: "Illumina"
     instrument: "Hiseq2500"
@@ -55,7 +60,7 @@ sequencing:
 # - do: if unchecked, this rule is ignored
 # - dir: directory where all indexed are written
 # - name: name of prefix use in all mapping rules
-# - fasta: path to fasta file of reference genome
+# - fasta: path to Reference Genome in fasta format
 # - gff: path to GFF annotation file. Be carefull: chromosome names must me concordant with Fasta file
 # - rRNA_fasta: path to fasta file for ribosomal RNA if provided
 # - rRNA_feature: if rRNA_fasta not provided, ribosomal RNA will be extract from GFF using this feature
@@ -248,18 +253,40 @@ mark_duplicates:
     tmpdir: 'TMP_DIR=/local/scratch/' ## on Slurm cluster at Pasteur
 
 #############################################################################
-# bamCoverage write file in bigwig format from BAM files
+# bamCoverage write file in bigwig format from BAM files.
+# This tool takes an alignment of reads or fragments as input (BAM file) and
+# generates a coverage track (bigWig or bedGraph) as output. The coverage is
+# calculated as the number of reads per bin, where bins are short consecutive
+# counting windows of a defined size. It is possible to extended the length of
+# the reads to better reflect the actual fragment length. *bamCoverage* offers
+# normalization by scaling factor, Reads Per Kilobase per Million mapped reads
+# (RPKM), and 1x depth (reads per genome coverage, RPGC).
 #
 # :Parameters:
 #
 # - do: if unchecked, this rule is ignored
-# - binSize:
-# - genomeSize:
-# - extendReads:
-# - minFragmentLength:
-# - maxFragmentLength:
+# - binSize: Size of the bins, in bases, for the output of the
+#            bigwig/bedgraph file. (default: 50)
+# - genomeSize: Report read coverage normalized to 1x sequencing depth
+#                        (also known as Reads Per Genomic Content (RPGC)).
+#                        Sequencing depth is defined as: (total number of
+#                        mapped reads * fragment length) / effective genome
+#                        size. The scaling factor used is the inverse of the
+#                        sequencing depth computed for the sample to match the
+#                        1x coverage. To use this option, the effective genome
+#                        size has to be indicated after the option. The
+#                        effective genome size is the portion of the genome
+#                        that is mappable.
+# - extendReads: This parameter allows the extension of reads to
+#                fragment size.
+# - minFragmentLength: The minimum fragment length needed for read/pair
+#                      inclusion. Note that a value other than 0 will exclude
+#                      all single-end reads.
+# - maxFragmentLength: The maximum fragment length needed for read/pair
+#                      inclusion. A value of 0 disables filtering and is
+#                      needed for including single-end and orphan reads.
 # - threads: number of threads to be used
-# - chromSize:
+# - chromSize: path to index of reference genome obtain by samtools faidx
 
 
 coverage:
@@ -273,12 +300,13 @@ coverage:
     chromSize: /pasteur/projets/specific/PF2_ngs/protected/fasta_genomes/hg19.chrom.sizes
 
 #############################################################################
-# fastq_screen used to align reads against genomes file contain in conf file with bowtie2
+# RNA-SeQC allows to compute a series of quality control metrics for RNA-seq data
 #
 # :Parameters:
 #
 # - do: if unchecked, this rule is ignored
-# - gtf
+# - ref: Reference Genome in fasta format
+# - gtf: GTF File defining transcripts (must end in '.gtf')
 # - BWArRNA: Use an on the fly BWA alignment for estimating
 #            rRNA content. The value should be the rRNA
 #            reference fasta.
