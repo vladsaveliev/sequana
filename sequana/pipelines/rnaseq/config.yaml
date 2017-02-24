@@ -47,6 +47,19 @@ sequencing:
     instrument: "Hiseq2500"
     flowcell: "H35CTBCXY"
 
+#############################################################################
+# Indexing section: if checked, all index for bowtie (1&2), star, etc... will be produced in dir
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - dir: directory where all indexed are written
+# - name: name of prefix use in all mapping rules
+# - fasta: path to fasta file of reference genome
+# - gff: path to GFF annotation file. Be carefull: chromosome names must me concordant with Fasta file
+# - rRNA_fasta: path to fasta file for ribosomal RNA if provided
+# - rRNA_feature: if rRNA_fasta not provided, ribosomal RNA will be extract from GFF using this feature
+#
 genome:
   do: yes
   dir: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
@@ -135,7 +148,7 @@ tophat_mapping:
 #
 # :Parameters:
 #
-# - gff: the name of the annotation file to be found (must be gff or gtf format)
+# - do: if unchecked, this rule is ignored
 # - options: any options recognised by feature_counts tool
 # - threads: number of threads to be used
 #
@@ -150,7 +163,8 @@ feature_counts:
 #
 # :Parameters:
 #
-# - conr: the name of the configuration file
+# - do: if unchecked, this rule is ignored
+# - conf: the name of the configuration file
 # - pf2_report: allows to plot a specific PF2 report
 #
 fastq_screen:
@@ -202,20 +216,50 @@ adapter_removal:
     quality: "30"
     options: "-O 6 --trim-n"
 
-##################################################################
-#       REPORTING SECTION WITH MULTIQC
+
+#############################################################################
+#   MultiQC aggregates results from bioinformatics analyses across many
+#   samples into a single report.
+#
+# :Parameters:
+#
+# - excluded: Ignore analysis files (glob expression)
+# - output-directory: Create report in the specified output directory
 #
 multiqc:
     excluded: "-x *_init_* -x *left_kept_reads* -x *report_rnaseq* -e htseq -e slamdunk"
     output-directory: "multiqc"
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Mark duplicates (picard-tools)
-
+#############################################################################
+# fastq_screen used to align reads against genomes file contain in conf file with bowtie2
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - remove: If true do not write duplicates to the output file instead of writing them with
+#            appropriate flags set.  Default value: false. This option can be set to 'null' to clear
+#            the default value. Possible values: {true, false}
+# - tmpdir: write tempory file on this directory (default TMP_DIR=/tmp/)
+#
 mark_duplicates:
     do: yes
     remove: 'True' ## may be False
     tmpdir: 'TMP_DIR=/local/scratch/' ## on Slurm cluster at Pasteur
+
+#############################################################################
+# bamCoverage write file in bigwig format from BAM files
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - binSize:
+# - genomeSize:
+# - extendReads:
+# - minFragmentLength:
+# - maxFragmentLength:
+# - threads: number of threads to be used
+# - chromSize:
 
 
 coverage:
@@ -227,6 +271,18 @@ coverage:
     maxFragmentLength: 0 #A value of 0 disables filtering and is needed for including single-end and orphan reads.
     threads: 4
     chromSize: /pasteur/projets/specific/PF2_ngs/protected/fasta_genomes/hg19.chrom.sizes
+
+#############################################################################
+# fastq_screen used to align reads against genomes file contain in conf file with bowtie2
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - gtf
+# - BWArRNA: Use an on the fly BWA alignment for estimating
+#            rRNA content. The value should be the rRNA
+#            reference fasta.
+# - options: any options recognised by RNA-seQC tool
 
 RNAseQC:
      do: no
