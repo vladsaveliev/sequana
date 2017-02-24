@@ -14,16 +14,6 @@ class PacBioInputBAM(object):
 
         number of sub reads per ZMW > hist_ZMW_subreads(self)
 
-    SNR ACGT:
-
-        reads = [[x for x in read.tags if x[0]=='sn'] for read in b.data]
-        snr = [x[0][1] for x in reads]
-        hist([x[0] for x in snr], alpha=0.5, label="A", bins=50)
-        hist([x[1] for x in snr], alpha=0.5, label="C", bins=50)
-        hist([x[2] for x in snr], alpha=0.5, label="G", bins=50)
-        hist([x[3] for x in snr], alpha=0.5, label="T", bins=50)
-        legend()
-
     """
     def __init__(self, filename):
         self.filename = filename
@@ -65,7 +55,6 @@ class PacBioInputBAM(object):
                 c = collections.Counter(read.query_sequence)
                 GC_percent.append( (c['g'] + c['G'] + c['c'] + c['C'])/float(sum(c.values())) )
             self.reset()
-            
             self.GC_percent = GC_percent
 
     def read_len(self):
@@ -74,16 +63,23 @@ class PacBioInputBAM(object):
             self.reset()
             self.all_read_len = [read.query_length for read in self.data]
 
-    def hist_snr(self, bins=50, alpha=0.5):
+    def hist_snr(self, bins=50, alpha=0.5, hold=False, fontsize=12,
+                grid=True,xlabel="SNR",ylabel="#"):
         """Plot histogram of the ACGT SNRs for all reads"""
         self.reset()
         reads = [[x for x in read.tags if x[0]=='sn'] for read in self.data]
         snr = [x[0][1] for x in reads]
+        if hold is False:
+            pylab.clf()
         pylab.hist([x[0] for x in snr], alpha=alpha, label="A", bins=bins)
         pylab.hist([x[1] for x in snr], alpha=alpha, label="C", bins=bins)
         pylab.hist([x[2] for x in snr], alpha=alpha, label="G", bins=bins)
         pylab.hist([x[3] for x in snr], alpha=alpha, label="T", bins=bins)
         pylab.legend()
+        pylab.xlabel(xlabel, fontsize=fontsize)
+        pylab.ylabel(ylabel, fontsize=fontsize)
+        if grid is True:
+            pylab.grid(True)
 
     def hist_ZMW_subreads(self):
         """
@@ -109,9 +105,6 @@ class PacBioInputBAM(object):
         pylab.ylabel("ZMW")
         pylab.yscale('log')
         pylab.title("Nb passes")
-        #pylab.savefig("Nb_passes_hist.png")
-        #pylab.show()
-        #pylab.close()
 
     def hist_GC(self, bins=50):
         """Plot histogram GC content"""
