@@ -16,7 +16,7 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-
+"""Report for cutadapt/atropos"""
 import os
 import io
 
@@ -27,10 +27,13 @@ from sequana.reporting.report_main import BaseReport
 
 from sequana.lazy import reports
 from sequana.lazy import pandas as pd
-
+from sequana import logger
 
 class CutAdaptReport(AdapterRemovalReport):
+    """Parse a cutadapt report and stores information as dictionary
 
+
+    """
     def __init__(self, proj, output_filename="cutadapt.html",
                  directory="report", **kargs):
         """.. rubric:: Constructor
@@ -65,10 +68,7 @@ class CutAdaptReport(AdapterRemovalReport):
             tobefound.append(('total_reads', 'Total reads processed:'))
             tobefound.append(('reads_with_adapters', 'Reads with adapters:'))
             tobefound.append(('reads_too_short', 'Reads that were too short:'))
-            #tobefound.append(('reads_too_long', 'Reads that were too long:'))
             tobefound.append(('reads_kept', 'Reads written (passing filters):'))
-            #tobefound.append(('total_basepairs_processed', 'Total basepairs processed:'))
-            #tobefound.append(('total_basepairs_filtred', 'Total written (filtered):'))
         else:
             tobefound.append(('paired_total_reads', 'Total read pairs processed:'))
             tobefound.append(('paired_reads1_with_adapters', '  Read 1 with adapter:'))
@@ -132,7 +132,6 @@ class CutAdaptReport(AdapterRemovalReport):
         #logs section
         self.jinja['logs'] = "<pre>\n"+ open(self.input_filename).read() + "</pre>\n"
 
-
     def get_histogram_data(self):
         """In cutadapt logs, an adapter section contains
         an histogram of matches that starts with a header
@@ -147,12 +146,24 @@ class CutAdaptReport(AdapterRemovalReport):
             current_hist = header
             dfs = {}
 
+
+            if "variable 5'/3'" in "\n".join(data):
+                cutadapt_mode = "b"
+            else:
+                cutadapt_mode = "other"
+
             for this in data:
                 # while we have not found a new adapter histogram section,
                 # we keep going
+                # !! What about 5' / 3' 
                 if this.startswith("==="):
                     if 'read: Adapter' in this:
-                        name = this.split("read:")[1].split(" ===")[0]
+                        # We keep read: Adatpter because it may be the first
+                        # or second read so to avoid confusion we keep the full 
+                        # name for now.
+                        name = this.replace("First read: Adapter ", "R1_")
+                        name = name.replace("Second read: Adapter ", "R2_")
+                        name = name.strip().strip("===")
                         name = name.strip()
                     elif "=== Adapter" in this:
                         name = this.split("=== ")[1].split(" ===")[0]
@@ -172,14 +183,35 @@ class CutAdaptReport(AdapterRemovalReport):
                     current_hist += this
                 elif scanning_histogram is True and len(this.strip()) == 0:
                     # we found the end of the histogram
-                    # save all data
+                    # Could be a 5'/3' case ? if so another histogram is
+                    # possible
                     self.dd = current_hist
                     df = pd.read_csv(io.StringIO(current_hist), sep='\t')
-
-                    dfs[name] = df.set_index("length")
                     #reinitiate the variables
-                    current_hist = header
-                    scanning_histogram = False
+                    if cutadapt_mode != "b":
+                        dfs[name] = df.set_index("length")
+                        current_hist = header
+                        scanning_histogram = False
+                    else:
+                        # there will be another histogram so keep scanning
+                        current_hist = header
+                        # If we have already found an histogram, this is
+                        # therefore the second here.
+                        if name in dfs:
+                            dfs[name] = dfs[name].append(df.set_index("length"))
+                            scanning_histogram = False
+
+                            #Now that we have the two histograms, we can merge
+                            # them using a group by
+
+                            dfs[name] = dfs[name].reset_index().groupby("length").aggregate(sum)
+                        else:
+                            dfs[name] = df.set_index("length")
+                            scanning_histogram = True
+
+                            df.reset_index().groupby("length").aggregate(sum)
+
+
                 else:
                     pass
 

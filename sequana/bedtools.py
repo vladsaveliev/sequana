@@ -213,6 +213,9 @@ class GenomeCov(object):
             with a column named *gc*.
 
         """
+        if divmod(window_size, 2)[1] == 0:
+            logger.warning("window_size must be even. Added +1")
+            window_size += 1
         gc_dict = gc_content(fasta_file, window_size, circular, 
             letters=letters)
         for chrom in self.chr_list:
