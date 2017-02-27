@@ -153,7 +153,7 @@ class FastQ(object):
 
     An example is the :meth:`extract_head` method::
 
-        f = FastQ("")
+        f = FastQ("input_file.fastq.gz")
         f.extract_head(100000, output='test.fastq')
         f.extract_head(100000, output='test.fastq.gz')
 

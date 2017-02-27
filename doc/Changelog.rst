@@ -28,6 +28,9 @@ Changelog
 
 * BUG:
 
+    - Fix #352 : allow gc window size to be even (warning is shown and +1 to
+      window size)
+    - Fix # 354: cutadapt report that was mixing up R1/R2 trimming in the images.
     - --output-directory in sequana_coverage was failing 
     - in coverage, centralness was buggy (regression) and use number of ROIs
       instead of the total base length #347
