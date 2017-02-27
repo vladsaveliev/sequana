@@ -41,7 +41,7 @@ if manager.config.genome.do:
     include: bowtie1_index_dynamic("ref")
     # rRNA genome
     if manager.config.genome.rRNA_fasta:
-        __bowtie1_index_rna__fasta = config["genome"]["rRNA_fasta"]
+        __bowtie1_index_rna__fasta = config["genome"]["name"]+ "_rRNA.fa"
         __bowtie1_index_rna__output_done = config["genome"]["name"] + "_rRNA.1.ebwt"
         __bowtie1_index_rna__output_prefix = config["genome"]["name"]+ "_rRNA"
         __bowtie1_index_rna__log = "logs/indexing/bowtie_rRNA.log"

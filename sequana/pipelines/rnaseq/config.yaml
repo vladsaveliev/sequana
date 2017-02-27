@@ -220,6 +220,7 @@ adapter_removal:
     mode: "a"   # g for 5' adapter, a for 3' and b for both 5'/3'
     quality: "30"
     options: "-O 6 --trim-n"
+    threads: 4
 
 
 #############################################################################
