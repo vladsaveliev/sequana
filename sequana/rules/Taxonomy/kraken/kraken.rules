@@ -63,7 +63,7 @@ rule kraken:
         kraken_json = __kraken__output_json
     params:
         database = config['kraken']['database_directory']
-    threads: 4
+    threads: config['kraken']['threads']
     run:
         if len(input) == 1:
             shell("kraken -db {params.database} {input[0]} "

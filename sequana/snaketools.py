@@ -42,6 +42,7 @@ import json
 import glob
 import shutil
 
+import easydev
 from easydev import get_package_location as gpl
 from easydev import load_configfile, AttrDict
 
@@ -49,11 +50,10 @@ import ruamel.yaml
 from ruamel.yaml import comments
 
 from sequana.misc import wget
-from sequana import sequana_data
+from sequana import sequana_data, logger
 from sequana.errors import SequanaException
 
 from sequana import logger
-from easydev.profiler import do_profile
 
 __all__ = ["DOTParser", "FastQFactory", "FileFactory",
            "Module", "PipelineManager", "SnakeMakeStats",
@@ -320,6 +320,13 @@ or open a Python shell and type::
         if os.path.exists(filename):
             return filename
 
+    def __repr__(self):
+        str = "Name: %s\n" % self._name
+        str += "Path: %s\n" % self.path
+        str += "Config: %s\n" % self.config
+        str += "Config cluster: %s\n" % self.config_cluster
+        return str
+
     def __str__(self):
         txt = "Rule **" + self.name + "**:\n" + self.description
         return txt
@@ -337,6 +344,14 @@ or open a Python shell and type::
         return filename
     config = property(_get_config,
                       doc="full path to the config file of the module")
+
+    def _get_config_cluster(self):
+        # The default config file for that module
+        return self._get_file("cluster_config.json")
+    config_cluster = property(_get_config_cluster,
+                      doc="full path to the config cluster file of the module")
+    cluster_config = property(_get_config_cluster,
+                      doc="full path to the config cluster file of the module")
 
     def _get_readme(self):
         return self._get_file("README.rst")
@@ -398,7 +413,6 @@ or open a Python shell and type::
 
         executable = True
         missing = []
-        import easydev
 
         # reads the file and interpret it to figure out the
         # executables/packages and pipelines required
@@ -465,16 +479,15 @@ or open a Python shell and type::
                            doc=("Content of the README file associated with "))
     def onweb(self):
         # TOD: automatic switch
-        from easydev import onweb
         if "rules" in self._path:
             suffix = self.snakefile.split("rules/")[1]
             suffix = suffix.rsplit("/", 1)[0]
-            onweb("http://github.com/sequana/sequana/tree/"
+            easydev.onweb("http://github.com/sequana/sequana/tree/"
                   "master/sequana/rules/%s" % suffix)
         else:
             suffix = self.snakefile.split("pipelines/")[1]
             suffix = suffix.rsplit("/", 1)[0]
-            onweb("http://github.com/sequana/sequana/tree/"
+            easydev.onweb("http://github.com/sequana/sequana/tree/"
                   "master/sequana/pipelines/%s" % self.name)
 
 
@@ -492,6 +505,7 @@ modules = _get_modules_snakefiles()
 
 #: list of pipeline names found in the list of modules
 pipeline_names = [m for m in modules if Module(m).is_pipeline()]
+
 
 class SequanaConfig(object):
     """Reads YAML config file and ease access to its contents
@@ -663,7 +677,6 @@ class SequanaConfig(object):
                     wget(requirement, target + os.sep + output)
 
 
-
 class DummyManager(object):
     def __init__(self, filenames=None, samplename="custom"):
         self.config = {}
@@ -676,6 +689,7 @@ class DummyManager(object):
         elif isinstance(filenames, str):
             self.samples = {samplename: [filenames]}
             self.paired = False
+
 
 class PipelineManager(object):
     """Utility to manage easily the snakemake pipeline
@@ -759,13 +773,13 @@ class PipelineManager(object):
         else:
             self.error("No valid input provided in the config file")
 
-
         self.ff = FastQFactory(glob_dir)
         if self.ff.filenames == 0:
             self.error("No files were found.")
 
         R1 = [1 for this in self.ff.filenames if "_R1_" in this]
         R2 = [1 for this in self.ff.filenames if "_R2_" in this]
+
         if len(R2) == 0:
             self.paired = False
         else:
@@ -1095,6 +1109,9 @@ class FastQFactory(FileFactory):
     The PREFIX indicates the sample name. The SUFFIX does not convey any
     information per se.
 
+    Yet, in long reads experiments (for instance), naming convention is
+    different and may nor be single/paired end convention. 
+
     In a directory (recursively or not), there could be lots of samples. This
     class can be used to get all the sample prefix in the :attr:`tags`
     attribute.
@@ -1120,8 +1137,9 @@ class FastQFactory(FileFactory):
         super(FastQFactory, self).__init__(pattern)
 
         if len(self.filenames) == 0:
-            raise ValueError("No files found with the requested pattern (%s)"
-                             % pattern)
+            msg = "No files found with the requested pattern (%s)" % pattern
+            logger.critical(msg)
+            raise ValueError(msg)
 
         # Check the extension of each file (fastq.gz by default) TODO
         #for this in self.all_extensions:
@@ -1142,7 +1160,7 @@ class FastQFactory(FileFactory):
         self.short_tags = [x.split("_")[0] for x in self.tags]
 
         if verbose:
-            print("Found %s projects/samples " % len(self.tags))
+            logger.info("Found %s projects/samples " % len(self.tags))
 
     def _get_file(self, tag, rtag):
         assert rtag in ["_R1_", "_R2_"]
@@ -1171,8 +1189,10 @@ class FastQFactory(FileFactory):
         elif len(candidates) == 1:
             return candidates[0]
         else:
-            print('Found too many candidates: %s ' % candidates)
-            raise ValueError("Files must have the tag _R1_ or _R2_ (%s)" % tag)
+            logger.critical('Found too many candidates: %s ' % candidates)
+            msg = 'Found too many candidates or identical names: %s ' % candidates
+            msg += "Files must have the tag _R1_ or _R2_ (%s)" % tag
+            raise ValueError(msg)
 
     def get_file1(self, tag=None):
         return self._get_file(tag, "_R1_")
@@ -1209,7 +1229,6 @@ def init(filename, namespace):
 def create_recursive_cleanup(filename=".sequana_cleanup.py"):
     """
 
-
     .. todo:: set a directory
     """
     with open(filename, "w") as fh:
@@ -1217,21 +1236,21 @@ def create_recursive_cleanup(filename=".sequana_cleanup.py"):
 import subprocess
 import glob
 import os
+from easydev import shellcmd
+
 for this in glob.glob("*"):
     if os.path.isdir(this) and this not in ["fastq_sampling", "report"]:
         print(" --- Cleaning up %s directory" % this)
-        subprocess.Popen(["python", ".sequana_cleanup.py"], cwd=this)
+        if os.path.exists(this + os.sep + ".sequana_cleanup.py"):
+            subprocess.Popen(["python", ".sequana_cleanup.py"], cwd=this)
 
-from easydev import shellcmd
-shellcmd("rm  README runme.sh config.yaml" )
-shellcmd("rm  stats.txt *fa" )
-shellcmd("rm  dag.svg" )
-shellcmd("rm  *.rules" )
-
-# We can further clean additional files
+for this in ['README', 'runme.sh', 'config.yaml', 'stats.txt', 'fa', 'dag.svg', 'rulegraph.svg']:
+    try:
+        shellcmd("rm %s" % this)
+    except:
+        print("%s not found (not deleted)" % this)
 
 """)
-
 
 
 def create_cleanup(targetdir):
@@ -1245,9 +1264,7 @@ import shutil
 from easydev import shellcmd
 import time
 
-directories = glob.glob("*")
-
-for this in directories:
+for this in glob.glob("*"):
     if os.path.isdir(this) and this not in ['logs'] and 'report' not in this:
         print('Deleting %s' % this)
         time.sleep(0.1)

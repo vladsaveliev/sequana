@@ -1,0 +1,33 @@
+def bowtie1_index_dynamic(name):
+    """
+    blabla
+    """
+
+    metadata = {"name": name}
+
+    bowtie1_index_code = '''
+rule bowtie1_index_%(name)s:
+    input:
+        fasta = __bowtie1_index_%(name)s__fasta
+    output:
+        __bowtie1_index_%(name)s__output_done
+    params:
+        prefix = __bowtie1_index_%(name)s__output_prefix
+    log:
+        __bowtie1_index_%(name)s__log
+    shell:
+        """
+        bowtie-build {input.fasta} {params.prefix}  2> {log}
+        samtools faidx {input.fasta} 2>> {log}
+        if [ -e {params.prefix}.chrom.sizes ]
+        then
+            ln -s {input.fasta}.fai {params.prefix}.chrom.sizes 2>> {log}
+        fi
+        """
+    '''
+
+    from easydev import TempFile
+    tt = TempFile()
+    with open(tt.name, "w") as fh:
+        fh.write(bowtie1_index_code % metadata)
+    return fh.name

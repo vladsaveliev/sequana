@@ -113,8 +113,8 @@ class FastQStatsReport(BaseReport):
         # First argument is just an Identifier
         data = bar.stacked_bar("Test", "ACGT distribution", acgt)
 
-        data += """<script type="text/javascript" src="js/canvasjs.min.js"></script> """
-        self.jinja["canvas"] = data
+        #data += """<script type="text/javascript" src="js/canvasjs.min.js"></script> """
+        #self.jinja["canvas"] = data
 
 
 
@@ -143,13 +143,6 @@ class FastQStatsReport(BaseReport):
     <div id="chartContainerTest" style="height: 300px; width: 100%;"></div>
         """
 
-        # Copying images into the report/images directory
-        #targets = self.copy_images_to_report("%s/images/*png" % self.input_directory)
-
-        # Create table with those images
-        #from sequana.htmltools import galleria
-        #if len(targets):
-        #    html += galleria(targets)
         self.jinja["content"] = html
 
 

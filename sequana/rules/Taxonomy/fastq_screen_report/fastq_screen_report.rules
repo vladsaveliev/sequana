@@ -1,6 +1,6 @@
 rule fastq_screen_report:
     """
-    fastq_screen_report rule draw a svg plot after fastq_screen. The database use is dedicated to Biomics Pole (Institut Pasteur)
+    fastq_screen_report rule draw a svg plot after fastq_screen. The database used is dedicated to Biomics Pole (Institut Pasteur)
 
     Required input:
         __fastq_screen_report__input: a output fastq_screen directory
@@ -10,12 +10,12 @@ rule fastq_screen_report:
     """
 
     input :
-        __fastq_screen_report__input_dir
+        __fastq_screen_report__input,
+        __fastq_screen_report__input_done
     log :
         __fastq_screen_report__logs
     output:
         __fastq_screen_report__figure
-
     run:
         from re import findall
         import os
@@ -23,16 +23,17 @@ rule fastq_screen_report:
         pl.style.use('ggplot')
         import csv
         from numpy import array, arange
-        file = ""
-        for fp in os.listdir(input[0]):
-            if fp.endswith("_screen.txt"):
-                file = fp
 
         species=[]
         ohol=[]
         mhol=[]
         ohml=[]
         mhml=[]
+        file = ""
+        for fp in os.listdir(input[0]):
+            if fp.endswith("_screen.txt"):
+                file = fp
+
         for line in csv.reader(open(os.path.join(input[0], file), "r"), dialect="excel-tab") :
             if(len(line) == 0) :
                 continue

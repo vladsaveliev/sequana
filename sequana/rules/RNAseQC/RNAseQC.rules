@@ -5,38 +5,45 @@ rule RNAseQC:
         __RNAseQC__logs
     output:
         dir = __RNAseQC__output,
+        sample_index = __RNAseQC__conf,
         png = __RNAseQC__figure
     params:
         genome = config['RNAseQC']['ref'],
         gtf = config['RNAseQC']['gtf'],
-        rRNA = config['RNAseQC']['BWArRNA']
+        rRNA = config['RNAseQC']['BWArRNA'],
+        kwargs = config['RNAseQC']['options']
 
     run:
-        import os
         import pandas as pd
         import matplotlib.pyplot as pl
         pl.style.use('ggplot')
+        from re import split
 
         #create the sample index
-        for file in {input}
+        data = [(split(r'[ATCG]*\_.*',file)[0], file, 'NA') for file in input]
+        df = pd.DataFrame(data, columns=['Sample ID','Bam File','Notes'])
+        df.to_csv(output.sample_index, sep="\t",index=False)
 
         #run RNAseQC
-        shell("RNA-SeQC -o {output.dir}  -r {params.genome}  -s {input} -t {params.gtf}  -BWArRNA {params.rRNA}  2> {log}")
+        shell("RNA-SeQC -o {output.dir}  -r {params.genome}  -s {output.sample_index} -t {params.gtf}  -BWArRNA {params.rRNA} {params.kwargs} 2> {log}")
 
-        #plot results
+        if os.path.isfile(os.path.join(output.dir,'metrics.tsv')):
+            df = pd.DataFrame.from_csv(os.path.join(output.dir,'metrics.tsv'), header = 0, sep="\t")
+            #plot results
             if sum(df['rRNA rate']) == 0 :
                 frames = [df['rRNA rate'] ,df['Exonic Rate'], df['Intronic Rate'], df['Intergenic Rate']]
             else :
                 frames = [df['rRNA rate'], df['Exonic Rate'] - df['rRNA rate'], df['Intronic Rate'],
-                          df['Intergenic Rate']]
-            res = pd.concat(frames, axis=1)
-            ##légender correctement
-            res.plot(kind='bar', stacked=True)
-            pl.ylim([0,1])
-            pl.legend(('rRNA rate', 'Exonic Rate', 'Intronic Rate', 'Intergenic Rate'), loc='lower center',
-                        bbox_to_anchor=(0.5, +1.00), fancybox=True, shadow=True, ncol=4)
-            pl.tight_layout()
-            pl.savefig("Transcript-associated_Reads_metrics.svg")
+                     df['Intergenic Rate']]
+        res = pd.concat(frames, axis=1)
+        ##légender correctement
+        res.plot(kind='bar', stacked=True)
+        pl.ylim([0,1])
+        #pl.legend(('rRNA rate', 'Exonic Rate', 'Intronic Rate', 'Intergenic Rate'), loc='lower center',
+        #           bbox_to_anchor=(0.5, +1.00), fancybox=True, shadow=True, ncol=4)
+        pl.legend(('rRNA rate', 'Exonic Rate', 'Intronic Rate', 'Intergenic Rate'), loc='best')
+        pl.tight_layout()
+        pl.savefig(output.png)
 
 
 

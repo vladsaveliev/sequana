@@ -10,10 +10,9 @@ Usage
 
 Example::
 
-    sequana --pipeline rnaseq --input-dir .  --output-directory analysis
+    sequana --pipeline rnaseq --input-dir .  --output-directory analysis --adapters TruSeq
     cd analysis
-    snakemake -s rnaseq.rules -p --stats stats.txt -j 4 --cluster-config cluster_config.json --cluster "sbatch --mem={cluster.ram} --qos normal"
-
+    srun snakemake -s rnaseq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json --cluster "sbatch --mem={cluster.ram} --cpus-per-task={threads}"
 
 Requirements
 ~~~~~~~~~~~~~~~~
@@ -55,8 +54,12 @@ Mapping on rRNA
 
 Mapping on reference genome
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Bowtie1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. snakemakerule:: bowtie1_mapping_dynamic
-.. snakemakerule:: tophat_mapping
+STAR
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. snakemakerule:: star_mapping
 
 Counting

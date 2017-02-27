@@ -45,6 +45,13 @@
            </property>
            <item row="1" column="0">
             <widget class="QLabel" name="label">
+             <property name="toolTip">
+              <string>&lt;html&gt;
+&lt;body&gt;
+&lt;p&gt;Select your favorite web browser to show an HTML reports.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>Select the browser to be used</string>
              </property>
@@ -52,6 +59,13 @@
            </item>
            <item row="1" column="1">
             <widget class="QComboBox" name="preferences_options_general_browser_value">
+             <property name="toolTip">
+              <string>&lt;html&gt;
+&lt;body&gt;
+&lt;p&gt;Select your favorite web browser to show an HTML reports.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</string>
+             </property>
              <item>
               <property name="text">
                <string>pyqt5</string>
@@ -71,6 +85,9 @@
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_3">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the &lt;span style=&quot; font-style:italic;&quot;&gt;logging verbosity&lt;/span&gt; parameter to change the level of verbosity.&lt;/p&gt;&lt;p&gt;We recommend to use the &lt;span style=&quot; font-weight:600;&quot;&gt;INFO&lt;/span&gt; level. &lt;/p&gt;&lt;p&gt;For lowest verbosity, set to CRITICAL.&lt;/p&gt;&lt;p&gt;For highest verbosity, set to DEBUG.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Example&lt;/span&gt;: Selecting INFO level means: show INFO and following levels (WARNING, ERROR and CRITICAL) but not the level above (here, DEBUG).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>Logging verbosity</string>
              </property>
@@ -78,6 +95,9 @@
            </item>
            <item row="2" column="1">
             <widget class="QComboBox" name="preferences_options_general_logging_value">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the &lt;span style=&quot; font-style:italic;&quot;&gt;logging verbosity&lt;/span&gt; parameter to change the level of verbosity.&lt;/p&gt;&lt;p&gt;We recommend to use the &lt;span style=&quot; font-weight:600;&quot;&gt;INFO&lt;/span&gt; level. &lt;/p&gt;&lt;p&gt;For lowest verbosity, set to CRITICAL.&lt;/p&gt;&lt;p&gt;For highest verbosity, set to DEBUG.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Example&lt;/span&gt;: Selecting INFO level means: show INFO and following levels (WARNING, ERROR and CRITICAL) but not the level above (here, DEBUG).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="currentIndex">
               <number>1</number>
              </property>
@@ -110,6 +130,9 @@
            </item>
            <item row="3" column="0">
             <widget class="QLabel" name="label_4">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you already know what HTML page you will open, set its filename here to open it automatically. when you click on &lt;span style=&quot; font-style:italic;&quot;&gt;Open Report&lt;/span&gt; button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>HTML page to open as a report</string>
              </property>
@@ -117,6 +140,9 @@
            </item>
            <item row="3" column="1">
             <widget class="QLineEdit" name="preferences_options_general_htmlpage_value">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you already know what HTML page you will open, set its filename here to open it automatically. when you click on &lt;span style=&quot; font-style:italic;&quot;&gt;Open Report&lt;/span&gt; button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>multi_summary.html</string>
              </property>
@@ -125,7 +151,11 @@
            <item row="0" column="0">
             <widget class="QCheckBox" name="preferences_options_general_overwrite_value">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The config file and the snakefile are copied in the working directory when the SAVE button is pressed. If the files exist already, a dialog ask a confirmation. You can&lt;/p&gt;&lt;p&gt;force the copy by checking this box. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;
+&lt;body&gt;
+&lt;p&gt;The config file and the snakefile are copied in the working directory when the SAVE button is pressed. If the files exist already, a dialog ask a confirmation. You can force the copy by checking this box.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>overwrites files</string>

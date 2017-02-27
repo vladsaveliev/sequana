@@ -34,6 +34,11 @@ import numpy as np
 # overhead so the list is faster for W<20,000, which is the case in most
 # applications.
 
+def running_median(data, width, container=list):
+    rm = RunningMedian(data, width, container=list)
+    return rm.run()
+
+
 class RunningMedian:
     """Running median (fast)
 

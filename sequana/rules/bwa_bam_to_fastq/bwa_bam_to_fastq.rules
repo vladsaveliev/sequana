@@ -15,7 +15,7 @@ rule bwa_bam_to_fastq:
     output:
         fastq = __bwa_bam_to_fastq__fastq_output,
         stats = __bwa_bam_to_fastq__stats_output
-    threads: 2
+    threads: 4
     run:
         # save some stats for later
         from sequana.tools import StatsBAM2Mapped
@@ -25,7 +25,7 @@ rule bwa_bam_to_fastq:
         # zip the fastq files
         import glob
         for filename in glob.glob("%s/*.fastq" % params.wkdir):
-            shell("pigz -f %s " % filename)
+            shell("pigz -f %s -p {threads}" % filename)
 
 
 

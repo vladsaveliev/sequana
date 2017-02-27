@@ -256,8 +256,6 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
     return stats
 
 
-
-
 def bam_get_paired_distance(filename):
     """Return distance between 2 mated-reads
 
@@ -307,22 +305,11 @@ def bam_get_paired_distance(filename):
     return distances
 
 
-def gc_content(filename, window_size, circular=False):
-    """Return GC content for the different sequences found in a FASTA file
-
-    :param filename: fasta formated file
-    :param window_size: window length used to compute GC content
-    :param circular: set to True if sequences are circular.
-    :return: dictionary with keys as fasta names and values as GC content vecor
-
-    .. todo:: case when the genome is not circular -> Add NaN at start and stop of
-        the np.arange()
-
-
-    """
+def _base_content(filename, window_size, letters, circular=False):
+    # DOC: see gc_content
     fasta = FastxFile(filename)
     mid = int(window_size / 2)
-    checker = set(["G", "C", "g", "c"])
+    checker = set(letters)
     chrom_gc_content = dict()
     for chrom in fasta:
         # Create gc_content array
@@ -335,7 +322,10 @@ def gc_content(filename, window_size, circular=False):
             mid = 0
         # Count first window content
         counter = Counter(chrom.sequence[0:window_size])
-        gc_count = counter["G"] + counter["C"] + counter['g'] +counter['c']
+        gc_count = 0
+        for letter in letters:
+            gc_count += counter[letter]
+
         gc_content[mid] = gc_count
         for i in range(1, len(chrom.sequence) - window_size + 1):
             if chrom.sequence[i - 1] in checker:
@@ -346,6 +336,21 @@ def gc_content(filename, window_size, circular=False):
         chrom_gc_content[chrom.name] = gc_content / window_size
     return chrom_gc_content
 
+
+def gc_content(filename, window_size, circular=False, 
+        letters=['G', 'C', 'c', 'g']):
+    """Return GC content for the different sequences found in a FASTA file
+
+    :param filename: fasta formated file
+    :param window_size: window length used to compute GC content
+    :param circular: set to True if sequences are circular.
+    :return: dictionary with keys as fasta names and values as GC content vecor
+
+    .. todo:: case when the genome is not circular -> Add NaN at start and stop of
+        the np.arange()
+
+    """
+    return _base_content(filename, window_size, letters, circular=circular)
 
 def genbank_features_parser(input_filename):
     """ Return dictionary with features contains inside a genbank file.

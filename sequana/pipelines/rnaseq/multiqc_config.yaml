@@ -33,6 +33,7 @@ report_header_info:
     - Project Type: 'Differential gene expression'
     - Sequencing Platform: 'HiSeq 2500 High Output V4'
     - Sequencing Setup: 'SR65'
+    - Library type : 'Illumina TruSeq'
 
 #-------------------------------------------------------------------------------
 
