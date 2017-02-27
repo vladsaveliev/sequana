@@ -177,6 +177,7 @@ fastq_screen:
     conf: "/pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/fastq_screen.conf"
     pf2_report: yes
 
+
 #######################################################################
 # Quality trimming and adapter removal
 #
@@ -185,18 +186,18 @@ fastq_screen:
 # in the filenames). In such case, the fwd and rev fields are ignored.
 #
 # If there is no design_file, the fwd and rev fields are used. It can be a
-# string, or a filename. If a filename, it must be prefixed with "file:" to
+# string, or a filename. If a filename, it must be prefixed with "file:" to 
 # specify that it is a file and not a string. If the tool is cutadapt, the empty
 # fwd and rev fields means that no adapters are to be used.
 #
 # :Parameters:
 #
-# - adapter_type: can only be PCRFree or Nextera or Rubicon. Only used
-#       if design_file is provided.
+# - adapter_type: can only be one of PCRFree, Nextera, Rubicon, TruSeq. 
+#   Only used if design_file is provided.
 # - design_file: a valid CSV file with mapping of index and sample name
 # - fwd: a string or file (prefixed with *file:*)
 # - m: 20 means discard trimmed reads that are shorter than 20.
-#         must be >0 and <40
+#         must be > 0
 # - quality: 0 means no trimming, 30 means keep base with quality
 #        above 30
 # - mode: must be set to one of
@@ -205,6 +206,11 @@ fastq_screen:
 #     - b for both 5'/3'
 # - rev: a string or file (prefixed with *file:*)
 # - tool: only cutadapt supported for now
+# - threads: number of threads to use (atropos only)
+# - options: See cutadapt documentation for details on 
+#            cutadapt.readthedocs.io. We change the default value
+#            of -O to 6 (at least 6 bases are required to match before
+#            trimming of an adapter)
 #
 # :Note: If design_file is provided, fwd and rev are ignored
 #
@@ -212,11 +218,11 @@ fastq_screen:
 adapter_removal:
     do: yes
     tool: cutadapt
-    adapter_type:    # None, PCRFree, Nextera, TruSeq
+    adapter_type:
     design_file:
     fwd:
     rev:
-    m: 20   # min length cutoff
+    m: 20               # min length cutoff
     mode: "a"   # g for 5' adapter, a for 3' and b for both 5'/3'
     quality: "30"
     options: "-O 6 --trim-n"

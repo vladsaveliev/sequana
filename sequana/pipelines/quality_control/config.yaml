@@ -84,8 +84,8 @@ bwa_mem_phix:
 #
 # :Parameters:
 #
-# - adapter_type: can only be PCRFree or Nextera or Rubicon. Only used
-#       if design_file is provided.
+# - adapter_type: can only be one of PCRFree, Nextera, Rubicon, TruSeq. 
+#   Only used if design_file is provided.
 # - design_file: a valid CSV file with mapping of index and sample name
 # - fwd: a string or file (prefixed with *file:*)
 # - m: 20 means discard trimmed reads that are shorter than 20.
@@ -110,7 +110,7 @@ bwa_mem_phix:
 adapter_removal:
     do: yes
     tool: cutadapt
-    adapter_type:               # None, PCRFree, Nextera
+    adapter_type:
     design_file:
     fwd:
     rev:
