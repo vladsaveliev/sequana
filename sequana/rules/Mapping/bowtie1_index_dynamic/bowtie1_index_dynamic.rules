@@ -10,7 +10,7 @@ rule bowtie1_index_%(name)s:
     input:
         fasta = __bowtie1_index_%(name)s__fasta
     output:
-        __bowtie1_index_%(name)s__output_done
+        touch(__bowtie1_index_%(name)s__output_done)
     params:
         prefix = __bowtie1_index_%(name)s__output_prefix
     log:

@@ -2,7 +2,7 @@ rule star_index:
     input:
        fasta =  __star_index__fasta
     output:
-        __star_index__output_done
+        touch(__star_index__output_done)
     params:
         wkdir = __star_index__output_dir
     log:
