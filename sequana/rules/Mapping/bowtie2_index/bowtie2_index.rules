@@ -2,7 +2,7 @@ rule bowtie2_index:
     input:
        fasta =  __bowtie2_index__fasta
     output:
-        touch(__bowtie2_index__output_done)
+        __bowtie2_index__output_done
     params:
         prefix = __bowtie2_index__output_prefix
     log:
