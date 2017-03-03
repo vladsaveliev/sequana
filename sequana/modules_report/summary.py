@@ -24,6 +24,7 @@ from sequana.lazy import pandas as pd
 import easydev
 from sequana.modules_report.base_module import SequanaBaseModule
 from sequana.utils import config
+from sequana.utils.datatables_js import DataTable
 from sequana.snaketools import SnakeMakeStats
 
 class SummaryModule(SequanaBaseModule):
@@ -59,9 +60,8 @@ class SummaryModule(SequanaBaseModule):
         inputs = [self.copy_file(i, input_dir) for i in self.json['inputs']] 
         # create links list
         html_list = '<li>{0}</li>'
-        links = [html_list.format(
-                 self.create_link(os.path.basename(i), i, newtab=False))
-                 for i in inputs]
+        links = [html_list.format(self.create_link(os.path.basename(i), i,
+                 newtab=False, download=True)) for i in inputs]
         links = '<ul>{0}</ul>'.format("\n".join(links))
         self.sections.append({
             'name': 'Inputs',
@@ -79,9 +79,8 @@ class SummaryModule(SequanaBaseModule):
         outputs = [self.copy_file(i, output_dir) for i in self.json['outputs']] 
         # create links list
         html_list = '<li>{0}</li>'
-        links = [html_list.format(
-                 self.create_link(os.path.basename(i), i, newtab=False))
-                 for i in outputs]
+        links = [html_list.format(self.create_link(os.path.basename(i), i,
+                 newtab=False, download=True)) for i in outputs]
         links = '<ul>{0}</ul>'.format("\n".join(links))
         self.sections.append({
             'name': 'Outputs',
@@ -128,8 +127,8 @@ class SummaryModule(SequanaBaseModule):
         except KeyError:
             return
         png = self.create_embedded_png(stats.plot_and_save, 'filename',
-                                       {'outputdir': None})
-        l, c = self.create_hide_section('Stats', 'collapse/expand', png)
+                                       outputdir=None)
+        l, c = self.create_hide_section('Stats', 'collapse/expand', png, True)
         self.sections.append({
             'name': "Running Stats {0}".format(self.add_float_right(l)),
             'anchor': 'stats',
@@ -146,7 +145,8 @@ class SummaryModule(SequanaBaseModule):
         content = ("<p>Python dependencies (<b>{0}</b>){1}</p>"
                    "<p>Dependencies downloaded from bioconda "
                    "<b>{2}</b></p>".format(pypi, html_table, req))
-        l, c = self.create_hide_section('Dep', 'collapse/expand', content)
+        l, c = self.create_hide_section('Dep', 'collapse/expand', content,
+                                        hide=True)
         self.sections.append({
             'name': "Dependencies {0}".format(self.add_float_right(l)),
             'anchor': 'dependencies',
@@ -157,14 +157,23 @@ class SummaryModule(SequanaBaseModule):
         """ Return dependencies of sequana.
         """
         dep_list = easydev.get_dependencies('sequana')
-        version = [dep.version for dep in dep_list]
+        project_name = list()
+        version = list()
+        for dep in dep_list:
+            version.append(dep.version)
+            project_name.append(dep.project_name)
         pypi = 'https://pypi.python.org/pypi/{0}'
-        url = [self.create_link(dep.project_name,
-               pypi.format(dep.project_name)) for dep in dep_list]
-        version = [dep.version for dep in dep_list]
-        df = pd.DataFrame({'package': url, 'version': version})
+        df = pd.DataFrame({'package': project_name, 'version': version})
         df['sort'] = df['package'].str.lower()
         df.sort_values(by='sort', axis=0, inplace=True)
         df.drop('sort', axis=1, inplace=True)
-        html = self.dataframe_to_html_table(df)
-        return html
+        datatable = DataTable(df, 'dep')
+        datatable.datatable.datatable_options = {'scrollY': '300px',
+                                                 'scrollCollapse': 'true',
+                                                 'paging': 'false',
+                                                 'bFilter': 'false',
+                                                 'bInfo': 'false',
+                                                 'bSort': 'false'}
+        js = datatable.create_javascript_function()
+        html = datatable.create_datatable(index=False)
+        return js + '\n' + html

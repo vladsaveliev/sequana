@@ -21,42 +21,12 @@ from sequana import logger
 from sequana.plots.canvasjs_base import CanvasJS
 
 
-"""
-- Need an embedded csv file with a specified id. The id is necessary to
-recover data. (csvdata for example).
-- Create the function to parse this specific csv file:
-    - Array needed to create (cov, mapq0, gc content)
-    - Function to generate canvasJS depend of previous array (add data - change
-        title)
-
-Maybe do a class with necessary code and do method to create line in plot
-according to data present in csv file.
-
-Entry:
-    - Need csv file in a pd.DataFrame:
-        We consider the first column is the x and other columns are y to plot.
-        The plot can have two Y axis.
-    - id name of the hidden csv in html page
-        Id is the important to know where are datas.
-
-Required parameter for some function:
-    - which column you want plot.
-        To plot a column you need to set an Y-axis setup.
-
-Return:
-    - Javascript function
-    - Javascript script to execute function when document is ready
-    - Hidden section with data in csv format
-"""
-
-
 class CanvasJSLineGraph(CanvasJS):
     """ Class to create a CanvasJS linegraphe for an HTML page. It creates a
     hidden pre section with your CSV. It is necessary embedded because browsers
     forbid the reading of data stored locally. Your html page need CanvasJS and
     PapaParse.
     """
-
     def __init__(self, csv, html_id, x_column, y_columns):
         """.. rubric:: constructor
 
@@ -67,23 +37,24 @@ class CanvasJSLineGraph(CanvasJS):
         :param list y_columns: colums used as axis Y for plot.
         """
         super().__init__(html_id)
-        self.csv = csv
+        self.csv = csv.strip()
         self.html_id = html_id
         self.x_column = x_column
         self.y_columns = y_columns
+        # create hidden csv
+        self.html_cjs = self._create_hidden_csv()
+        self.html_cjs += '<script type="text/javascript">{0}\n'.format(
+            self._create_js_csv_parser())
 
-    def create_hidden_csv(self):
+    def _create_hidden_csv(self):
         """ Return the HTML code and the CSV code for your hidden CSV section.
         """
         html = '<pre id="{0}">{1}</pre>'.format(self.html_id, self.csv)
-        css = '#{0}{{display:none}}'.format(self.html_id)
-        return html, css
+        css = '<style>#{0}{{display:none}}</style>'.format(self.html_id)
+        return '{0}\n{1}\n'.format(html, css)
 
-    def create_js_csv_parser(self):
+    def _create_js_csv_parser(self):
         """ Create the efficient javascript csv parser with PapaParse.
-
-        :param str x_column: name of your data for X axis.
-        :param list y_columns: names of your data you want for Y axis.
         """
         # Create variable name
         variable = ["data_{0}".format(name) for name in self.y_columns]
@@ -122,7 +93,7 @@ class CanvasJSLineGraph(CanvasJS):
         self.data_section = [{'dataPoints': var} for var in variable]
         return function
 
-    def set_x_axis(self, axis_attr=dict()):
+    def set_axis_x(self, axis_attr=dict()):
         """ Method to configure X axis of the line graph.
 
         :param dict axis_attr: dictionary with canvasjs axisX
@@ -145,7 +116,7 @@ class CanvasJSLineGraph(CanvasJS):
         """
         self._set_axis("axisX", axis_attr)
 
-    def set_y_axis(self, axis_attr=dict()):
+    def set_axis_y(self, axis_attr=dict()):
         """ Method to configure first axis Y of the line graph.
 
         :param dict axis_attr: dictionary with canvasjs axisY
@@ -167,7 +138,7 @@ class CanvasJSLineGraph(CanvasJS):
         """
         self._set_axis('axisY', axis_attr)
 
-    def set_y2_axis(self, axis_attr=dict()):
+    def set_axis_y2(self, axis_attr=dict()):
         """ Method to configure second axis Y of the line graph.
 
         :param dict axis_attr: dictionary with canvasjs axisY
@@ -190,28 +161,32 @@ class CanvasJSLineGraph(CanvasJS):
         """
         self._set_axis('axisY2', axis_attr)
 
-    def create_canvas_js_object(self):
+    def create_canvasjs(self):
         """ Method to convert all section as javascript function.
 
-        Return command line to launch generation of plot, js function to create
-        CanvasJS object and the html div that contains CanvasJS plot.
+        Return a string which contains command line to launch generation of plot,
+        js function to create CanvasJS object and the html div that contains
+        CanvasJS plot.
         """
+        js = self.html_cjs
         # js function to create the chart container
-        js = """
+        js_canvas = """
     function drawChart_{0}({1}) {{
         console.log("Start drawChart");
         var chart = new CanvasJS.Chart("chartContainer_{0}",{2}
-        )
+        );
         chart.render()
-        }};
+    }};
         """
         canvas_attr = super().create_canvas_js_object()
-        canvas_js = js.format(self.html_id, self.variables, canvas_attr)
+        js += js_canvas.format(self.html_id, self.variables, canvas_attr)
         # js command to run the CanvasJS
-        js_command = """
+        js += """
+    $(document).ready(function(){{
         var csv_{0} = document.getElementById('{0}').innerText;
         processData_{0}(csv_{0});
+    }});
+</script>
         """.format(self.html_id)
-        canvas_html = ('<div id="chartContainer_{0}" style="height: '
-                       '450px; width: 100%;"></div>'.format(self.html_id))
-        return js_command, canvas_js, canvas_html
+        js += self.create_div_chart_container("height: 450px; width: 100%;")
+        return js

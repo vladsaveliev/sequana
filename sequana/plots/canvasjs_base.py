@@ -157,6 +157,16 @@ class CanvasJS(object):
         js += 'data:[{0}]}}'.format(','.join(data_list))
         return js
 
+    def create_div_chart_container(self, style_option=""):
+        """ HTML div that contains CanvasJS chart.
+
+        :param str style_option: css option for your chart.
+
+        return a string.
+        """
+        return '<div id="chartContainer_{0}" style="{1}"></div>'.format(
+            self.html_id, style_option)
+
     def set_data(self, data_dict, index=None):
         """ Method to convert dictionnarie as data field for CanvasJS.
 

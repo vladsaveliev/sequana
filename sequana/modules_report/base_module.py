@@ -5,7 +5,6 @@
 #  Copyright (c) 2016 - Sequana Development Team
 #
 #  File author(s):
-#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
 #      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
@@ -32,9 +31,6 @@ class SequanaBaseModule(object):
     """
     required_dir = ("css", "js", "images")
     def __init__(self):
-        self.js_script = list()
-        self.js_function = list()
-        self.css = list()
         self.output_dir = config.output_dir
         self.path = "./"
         # Initiate jinja template
@@ -45,7 +41,8 @@ class SequanaBaseModule(object):
         self._init_report()
 
     def _init_report(self):
-        """ Create the report directory.
+        """ Create the report directory. All necessary directories are copied
+        in working directory.
         """
         # Create report directory
         if os.path.isdir(config.output_dir) is False:
@@ -66,7 +63,9 @@ class SequanaBaseModule(object):
                 shutil.copy(filename, target)
 
     def create_html(self, output_filename):
-        """ Create html with Jinja2.
+        """ Create HTML file with Jinja2.
+
+        :param str output_filename: HTML output filename
         """
         report_output = self.j_template.render(config=config,
                                                module=self)
@@ -74,33 +73,60 @@ class SequanaBaseModule(object):
                   "w") as fp:
             print(report_output, file=fp)
 
-    def create_link(self, name, target, newtab=True):
-        """ Create an html link with name and target.
+    def create_link(self, name, target, newtab=True, download=False):
+        """ Create an HTML hyperlink with name and target.
+
+        :param str target: the target url.
+        :param bool newtab: open html page in a new tab.
+        :param bool download: download the target.
+
+        Return as string the HTML hyperlink to the target.
         """
+        link = '<a href="{0}" '
         if newtab:
-            link = '<a href="{0}" target="_blank">{1}</a>'
-        else:
-            link = '<a href="{0}" download="{0}">{1}</a>'
+            link += 'target="_blank" '
+        if download:
+            link += 'download="{0}" '
+        link += '>{1}</a>'
         return link.format(target, name)
 
-    def create_hide_section(self, name, link, content, hide=False):
+    def create_hide_section(self, html_id, name, content, hide=False):
         """ Create an hideable section.
+        
+        :param str html_id: add short id to connect all elements.
+        :param str name: name of the hyperlink to hide or display the content.
+        :param str content: hideable HTML content.
+        :param bool hide: set if the first state is hiding or not.
+
+        Return tuple that contains HTML hyperlink and hideable section.
         """
-        link = "<a href='#1' class='show_hide{0}'>{1}</a>".format(name, link)
-        content = "<div class='slidingDiv{0}'>\n{1}\n</div>".format(name,
+        link = "<a href='#1' class='show_hide{0}'>{1}</a>".format(html_id,
+                                                                  name)
+        content = "<div class='slidingDiv{0}'>\n{1}\n</div>".format(html_id,
                                                                     content)
+        hidden = ''
         if hide:
-            js = '$(".slidingDiv{0}").hide()\n'
-        else:
-            js = ''
-        js += ('$(".show_hide{0}").click(function(){{\n'
-               '    $(".slidingDiv{0}").slideToggle();\n}});')
-        self.js.append(js.format(name))
+            hidden = '\n$(".slidingDiv{0}").hide();'.format(html_id)
+        js = """
+<script type="text/javascript">
+    $(document).ready(function(){{{1}
+        $(".show_hide{0}").click(function(){{
+            $(".slidingDiv{0}").slideToggle();
+        }});
+    }});
+</script>
+        """.format(html_id, hidden)
+        content = js + content
         return link, content
 
     def copy_file(self, filename, target_dir):
         """ Copy a file to a target directory in report dir. Return the
         relative path of your file.
+
+        :param str filename: file to copy.
+        :param str target_dir: directory where to copy.
+
+        Return relative path of the new file location.
         """
         directory = config.output_dir + os.sep + target_dir
         try:
@@ -120,7 +146,7 @@ class SequanaBaseModule(object):
         return target_dir + os.sep + os.path.basename(filename)
 
     def add_float_right(self, content):
-        """ Add content align to right.
+        """ Align a content to right.
         """
         return '<div style="float:right">{0}</div>'.format(content)
 
@@ -131,7 +157,7 @@ class SequanaBaseModule(object):
                 '</code></pre></div>')
         return html.format(language, content)
 
-    def dataframe_to_html_table(self, dataframe, kwargs=dict()):
+    def dataframe_to_html_table(self, dataframe, **kwargs):
         """ Convert dataframe in html.
         """
         html = HTMLTable(dataframe)
@@ -155,8 +181,8 @@ class SequanaBaseModule(object):
             html = "<img "
         return '{0} src="data:image/png;base64,{1}">'.format(html, png)
 
-    def create_embedded_png(self, plot_function, input_arg, kwargs=dict(),
-                            style=None):
+    def create_embedded_png(self, plot_function, input_arg, style=None,
+                            **kwargs):
         """ Take as a plot function as input and create a html embedded png
         image. You must set the arguments name for the output to connect
         buffer.
@@ -165,11 +191,30 @@ class SequanaBaseModule(object):
         # add buffer as output of the plot function
         kwargs = dict({input_arg: buf}, **kwargs)
         plot_function(**kwargs)
+        html = '<img '
         if style:
-            html = '<img style="{0}" '.format(style)
-        else:
-            html = '<img '
+            html += 'style="{0}"'.format(style)
         html += 'src="data:image/png;base64,{0}"/>'.format(
             base64.b64encode(buf.getvalue()).decode('utf-8'))
         buf.close()
+        return html
+
+    def create_combobox(self, path_list, html_id, newtab=True):
+        """ Create a dropdown menu with QueryJS. 
+        
+        :param list path_list: list of links.
+
+        return html div and js script as string.
+        """
+        option_list = ("<li>{0}</li>\n".format(self.create_link(
+                       os.path.basename(path), path, newtab))
+                       for path in path_list)
+        html = """
+<div id="jq-dropdown-{1}" class="jq-dropdown jq-dropdown-tip jq-dropdown-scroll">
+    <ul class="jq-dropdown-menu">
+        {0}
+    </ul>
+</div>
+<a href="#" data-jq-dropdown="#jq-dropdown-{1}">Subchromosome</a>
+        """.format('\n'.join(option_list), html_id) 
         return html
