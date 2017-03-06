@@ -94,8 +94,7 @@ class SummaryModule(SequanaBaseModule):
         """ Create the interactive DAG to navigate through pages.
         """
         # move the SVG file in the images directory
-        img_dir = "images"
-        img = self.copy_file(self.json['rulegraph'], img_dir)
+        img = self.copy_file(self.json['rulegraph'], '.')
         dag_svg = self.include_svg_image(img)
         with open(self.json['snakefile'], 'r') as fp:
             code = self.add_code_section(fp.read(), 'python')
@@ -159,21 +158,23 @@ class SummaryModule(SequanaBaseModule):
         dep_list = easydev.get_dependencies('sequana')
         project_name = list()
         version = list()
+        link = list()
+        pypi = 'https://pypi.python.org/pypi/{0}'
         for dep in dep_list:
             version.append(dep.version)
             project_name.append(dep.project_name)
-        pypi = 'https://pypi.python.org/pypi/{0}'
-        df = pd.DataFrame({'package': project_name, 'version': version})
+            link.append(pypi.format(dep.project_name))
+        df = pd.DataFrame({'package': project_name, 'version': version, 
+                           'link': link})
         df['sort'] = df['package'].str.lower()
         df.sort_values(by='sort', axis=0, inplace=True)
         df.drop('sort', axis=1, inplace=True)
         datatable = DataTable(df, 'dep')
-        datatable.datatable.datatable_options = {'scrollY': '300px',
-                                                 'scrollCollapse': 'true',
-                                                 'paging': 'false',
+        datatable.datatable.datatable_options = {'paging': 'false',
                                                  'bFilter': 'false',
                                                  'bInfo': 'false',
                                                  'bSort': 'false'}
+        datatable.datatable.set_links_to_column('link', 'package')
         js = datatable.create_javascript_function()
         html = datatable.create_datatable(index=False)
         return js + '\n' + html
