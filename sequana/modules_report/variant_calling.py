@@ -21,6 +21,7 @@ import ast
 import pandas as pd
 
 from sequana.modules_report.base_module import SequanaBaseModule
+from sequana.utils.datatables_js import DataTable
 
 
 class SequanaModule(SequanaBaseModule):
@@ -40,7 +41,7 @@ class SequanaModule(SequanaBaseModule):
                     string_dict = line.split(";")[-1].strip()
                     try:
                         self.filter_dict = ast.literal_eval(string_dict)
-                    except ValueError:
+                    except SyntaxError:
                         self.filter_dict = None
                     self.df = pd.read_csv(fp)
         except FileNotFoundError:
@@ -85,7 +86,15 @@ class SequanaModule(SequanaBaseModule):
     def variant_calling(self):
         """ Variants detected section.
         """
-        html_table = self.dataframe_to_html_table(self.df, {'index': False})
+        datatable = DataTable(self.df, 'vc')
+        # set options
+        datatable.datatable.datatable_options = {'scrollX': 'true',
+                                                 'pageLength': 15,
+                                                 'scrollCollapse' : 'true',
+                                                 'dom': 'Bfrtip',
+                                                 'buttons': ['copy', 'csv']}
+        js = datatable.create_javascript_function()
+        html_tab = datatable.create_datatable(index=False, float_format='%.3g')
         nb_variants = len(self.df)
         csv_link = self.create_link('link', self.filename)
         vcf_link = self.create_link('here', 'test.vcf')
@@ -96,7 +105,7 @@ class SequanaModule(SequanaBaseModule):
                 "<p>This table present variant detected by freebayes after "
                 "filtering. There are {0} variants detected. You can download "
                 "the table as csv format on this {1} and the vcf file {2}."
-                "</p>\n{3}\n<p>Note: the freebayes score can be understood as "
-                "1 - P(locus is homozygous given the data)</p>".format(
-                    nb_variants, csv_link, vcf_link, html_table))
+                "</p>\n{4}\n{3}\n<p>Note: the freebayes score can be "
+                "understood as 1 - P(locus is homozygous given the data)</p>"\
+                .format(nb_variants, csv_link, vcf_link, html_tab, js))
         })
