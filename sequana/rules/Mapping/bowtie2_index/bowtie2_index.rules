@@ -1,0 +1,14 @@
+rule bowtie2_index:
+    input:
+       fasta =  __bowtie2_index__fasta
+    output:
+        __bowtie2_index__output_done
+    params:
+        prefix = __bowtie2_index__output_prefix
+    log:
+        __bowtie2_index__log
+    shell:
+        """
+        bowtie2-build {input.fasta} {params.prefix}  2> {log}
+        samtools faidx {input.fasta} 2>> {log}
+        """

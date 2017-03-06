@@ -17,7 +17,7 @@ __snakefile__ = srcdir(__snakefile__)
 # Generic include of some dynamic modules
 exec(open(sequana.modules["bowtie1_mapping_dynamic"], "r").read())
 exec(open(sequana.modules["fastqc"], "r").read())
-
+exec(open(sequana.modules["bowtie1_index_dynamic"], "r").read())
 
 manager = sm.PipelineManager("rnaseq", config)
 
@@ -25,6 +25,76 @@ __data__input = manager.getrawdata()
 
 
 TODO = "todo"
+
+if manager.config.genome.do:
+    # create sequence dict file
+    __create_sequence_dictionary__reference = config["genome"]["fasta"]
+    __create_sequence_dictionary__output = config["genome"]["fasta"] + ".dict"
+    __create_sequence_dictionary__log = "logs/indexing/create_sequence_dictionary.log"
+    include: sm.modules["create_sequence_dictionary"]
+    # indexing for bowtie1
+    # whole genome
+    __bowtie1_index_ref__fasta = config["genome"]["fasta"]
+    __bowtie1_index_ref__output_done = config["genome"]["name"] + ".bowtie.done"
+    __bowtie1_index_ref__output_prefix = config["genome"]["name"]
+    __bowtie1_index_ref__log = "logs/indexing/bowtie_genome.log"
+    include: bowtie1_index_dynamic("ref")
+    # rRNA genome
+    if manager.config.genome.rRNA_fasta:
+        __bowtie1_index_rna__fasta = config["genome"]["name"]+ "_rRNA.fa"
+        __bowtie1_index_rna__output_done = config["genome"]["name"] + "_rRNA.1.ebwt"
+        __bowtie1_index_rna__output_prefix = config["genome"]["name"]+ "_rRNA"
+        __bowtie1_index_rna__log = "logs/indexing/bowtie_rRNA.log"
+    else :
+        __extract_fasta_from_bed__input = config["genome"]["fasta"]
+        __extract_fasta_from_bed__gff = config["genome"]["gff"]
+        __extract_fasta_from_bed__feature = config["genome"]["rRNA_feature"]
+        __extract_fasta_from_bed__output = config["genome"]["name"]+ "_rRNA.fa"
+        __extract_fasta_from_bed__output_features = config["genome"]["name"]+ "_rRNA.gff"
+        __extract_fasta_from_bed__log = "logs/indexing/get_rRNA.log"
+        include: sm.modules["extract_fasta_from_bed"]
+        __bowtie1_index_rna__fasta = __extract_fasta_from_bed__output
+        __bowtie1_index_rna__output_done = config["genome"]["name"] + "_rRNA.1.ebwt"
+        __bowtie1_index_rna__output_prefix = config["genome"]["name"]+ "_rRNA"
+        __bowtie1_index_rna__log = "logs/indexing/bowtie_rRNA.log"
+    include: bowtie1_index_dynamic("rna")
+
+
+    # indexing for bowtie2
+    __bowtie2_index__fasta = config["genome"]["fasta"]
+    __bowtie2_index__output_done = config["genome"]["name"] + ".bowtie2.done"
+    __bowtie2_index__output_prefix = config["genome"]["name"]
+    __bowtie2_index__log = "logs/indexing/bowtie2_genome.log"
+    include: sm.modules["bowtie2_index"]
+
+    # indexing for star
+    __star_index__fasta = config["genome"]["fasta"]
+    __star_index__output_done = config["genome"]["name"] + ".star.done"
+    __star_index__output_dir = config["genome"]["dir"]
+    __star_index__log = "logs/indexing/star_genome.log"
+    include: sm.modules["star_index"]
+
+    #output index
+    __star_dir__ = __star_index__output_dir
+    __bowtie2_index__ = __bowtie2_index__output_prefix
+    __bowtie1_index__ = __bowtie1_index_ref__output_prefix
+    __RNA_index__ = __bowtie1_index_rna__output_prefix
+    __sequence_dictionary__ = __create_sequence_dictionary__output
+    expected_output.extend([__create_sequence_dictionary__output,__bowtie1_index_ref__output_done,
+                            __bowtie1_index_rna__output_done,__bowtie2_index__output_done,__star_index__output_done])
+
+else:
+    __star_dir__ = config["genome"]["dir"]
+    __star_index__output_done = config["genome"]["name"] + ".star.done"
+    __bowtie2_index__ = config["genome"]["name"]
+    __bowtie2_index__output_done = config["genome"]["name"] + ".bowtie2.done"
+    __bowtie1_index__ = config["genome"]["name"]
+    __bowtie1_index_ref__output_done = config["genome"]["name"] + ".bowtie.done"
+    __RNA_index__ = config["genome"]["name"]+ "_rRNA"
+    __bowtie1_index_rna__output_done = config["genome"]["name"] + "_rRNA.1.ebwt"
+    __sequence_dictionary__ = config["genome"]["fasta"] + ".dict"
+
+
 
 # FASTQC on input data set
 __fastqc_samples__input_fastq = __data__input
@@ -35,67 +105,69 @@ expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samp
 
 
 
+if manager.config.adapter_removal.do:
+    adapter_tool = manager.config.adapter_removal.tool
+    # Clean NGS
+    if adapter_tool == "clean_ngs":
+        if manager.paired:
+            __clean_ngs__input = __data__input # must be -if1 R1.fastq -if2 R2.fastq
+            __clean_ngs__output = ["%s  -of2 %s" % (manager.sample, manager.sample)]
+            __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
+            __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
+        else:
+            __clean_ngs__input = __data__input
+            __clean_ngs__output = [manager.getname("clean_ngs", "_clean_ngs.fastq.gz")]
+            __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
+            __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
+        include: sm.modules["clean_ngs"]
 
-adapter_tool = manager.config.adapter_removal.tool
-# Clean NGS
-if adapter_tool == "clean_ngs":
-    if manager.paired:
-        __clean_ngs__input = __data__input # must be -if1 R1.fastq -if2 R2.fastq
-        __clean_ngs__output = ["%s  -of2 %s" % (manager.sample, manager.sample)]
-        __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
-        __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
+        #expected_output.extend(expand(__clean_ngs__output, sample=manager.samples))
+    elif adapter_tool == "cutadapt":
+        __cutadapt__input_fastq = __data__input
+        __cutadapt__wkdir = manager.getwkdir("cutadapt")
+        __cutadapt__output = [manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")]
+        if manager.paired:
+            __cutadapt__output += [manager.getname("cutadapt", "_R2_.cutadapt.fastq.gz")]
+        if "adapter_fwd" in manager.config.adapter_removal.fwd :
+           __cutadapt__fwd = ""
+        else:
+           __cutadapt__fwd = manager.config.adapter_removal.fwd
+
+        if "adapter_rev" in manager.config.adapter_removal.rev:
+            __cutadapt__rev = ""
+        else:
+            __cutadapt__rev = manager.config.adapter_removal.rev
+
+        __cutadapt__design = manager.config.adapter_removal.design_file
+        __cutadapt__design_adapter = manager.config.adapter_removal.adapter_type
+        __cutadapt__options = manager.config.adapter_removal.options
+        __cutadapt__mode = manager.config.adapter_removal.mode
+        __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
+        __cutadapt__sample = manager.sample
+        __clean_ngs__output = __cutadapt__output
+        include: sm.modules["cutadapt"]
+
     else:
-        __clean_ngs__input = __data__input
-        __clean_ngs__output = [manager.getname("clean_ngs", "_clean_ngs.fastq.gz")]
-        __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
-        __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
-    include: sm.modules["clean_ngs"]
-
-    #expected_output.extend(expand(__clean_ngs__output, sample=manager.samples))
-elif adapter_tool == "cutadapt":
-    __cutadapt__input_fastq = __data__input
-    __cutadapt__wkdir = manager.getwkdir("cutadapt")
-    __cutadapt__output = [manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")]
-    if manager.paired:
-        __cutadapt__output += [manager.getname("cutadapt", "_R2_.cutadapt.fastq.gz")]
-    if "adapter_fwd" in manager.config.adapter_removal.fwd :
-       __cutadapt__fwd = ""
-    else:
-       __cutadapt__fwd = manager.config.adapter_removal.fwd
-
-    if "adapter_rev" in manager.config.adapter_removal.rev:
-        __cutadapt__rev = ""
-    else:
-        __cutadapt__rev = manager.config.adapter_removal.rev
-
-    __cutadapt__design = manager.config.adapter_removal.design_file
-    __cutadapt__design_adapter = manager.config.adapter_removal.adapter_type
-    __cutadapt__options = manager.config.adapter_removal.options
-    __cutadapt__mode = manager.config.adapter_removal.mode
-    __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
-    __cutadapt__sample = manager.sample
-    __clean_ngs__output = __cutadapt__output
-    include: sm.modules["cutadapt"]
-
+        raise ValueError("Invalid choice of adapter_removal:tool in config file. Use either clean_ngs or cutadapt")
 else:
-    raise ValueError("Invalid choice of adapter_removal:tool in config file. Use either clean_ngs or cutadapt")
+    __clean_ngs__output = __data__input
 
-
-# Fastq Screen
-__fastq_screen__input = __clean_ngs__output
-__fastq_screen__logs = manager.getname("fastq_screen", ".logs")
-__fastq_screen__output = [x.replace(".fastq.gz", "_screen.txt") for x in __clean_ngs__output]
-__fastq_screen__output = [x.replace("/"+adapter_tool+"/", "/fastq_screen/") for x in __fastq_screen__output]
-__fastq_screen__outdir = manager.getwkdir("fastq_screen")
-include: sm.modules["fastq_screen"]
-if manager.config.fastq_screen.pf2_report:
-    __fastq_screen_report__input = __fastq_screen__output
-    __fastq_screen_report__figure = manager.getname("fastq_screen", "_report.svg")
-    __fastq_screen_report__logs =  manager.getname("fastq_screen", "pf2_report.logs")
-    include: sm.modules["fastq_screen_report"]
-    expected_output.extend(expand(__fastq_screen_report__figure, sample=manager.samples))
-else:
-    expected_output.extend(expand(__fastq_screen__output, sample=manager.samples))
+if manager.config.fastq_screen.do:
+    # Fastq Screen
+    __fastq_screen__input = __clean_ngs__output
+    __fastq_screen__logs = manager.getname("fastq_screen", ".logs")
+    __fastq_screen__output = manager.getname("fastq_screen", ".done")
+    __fastq_screen__outdir = manager.getwkdir("fastq_screen")
+    include: sm.modules["fastq_screen"]
+    if manager.config.fastq_screen.pf2_report:
+        __fastq_screen_report__input = __fastq_screen__outdir
+        __fastq_screen_report__input_done = __fastq_screen__output
+        __fastq_screen_report__figure = manager.getname("fastq_screen", "_report.svg")
+        __fastq_screen_report__logs =  manager.getname("fastq_screen", "pf2_report.logs")
+        include: sm.modules["fastq_screen_report"]
+        expected_output.extend(expand(__fastq_screen_report__figure, sample=manager.samples))
+    else:
+        expected_output.extend(expand(__fastq_screen__output, sample=manager.samples))
 
 
 # FASTQC on input data set
@@ -108,9 +180,10 @@ expected_output.extend(expand(__fastqc_filtered__output_done, sample=manager.sam
 
 # rRNA
 __bowtie1_mapping_rna__input = __clean_ngs__output
+__bowtie1_mapping_rna__index_done = __bowtie1_index_rna__output_done
 __bowtie1_mapping_rna__bam = manager.getname("bowtie1_mapping_rna", ".bam")
 __bowtie1_mapping_rna__sort = manager.getname("bowtie1_mapping_rna", ".sorted.bam")
-__bowtie1_mapping_rna__prefix_index = config["bowtie1_mapping_rna"]['prefix_index']
+__bowtie1_mapping_rna__prefix_index = __RNA_index__
 __bowtie1_mapping_rna__stdout = manager.getname("bowtie1_mapping_rna", "_rRNA_mapping.txt")
 __bowtie1_mapping_rna__stderr = "%s/logs/bowtie/rRNA_mapping_stderr.txt" % manager.sample
 
@@ -120,18 +193,21 @@ expected_output.extend(expand(__bowtie1_mapping_rna__sort, sample=manager.sample
 if manager.config.bowtie1_mapping_ref.do:
     # Mapper bowtie 1
     __bowtie1_mapping_ref__input = __clean_ngs__output
+    __bowtie1_mapping_ref__index_done = __bowtie1_index_ref__output_done
     __bowtie1_mapping_ref__bam = manager.getname("bowtie1_mapping_ref", ".bam")
     __bowtie1_mapping_ref__sort = manager.getname("bowtie1_mapping_ref", ".sorted.bam")
-    __bowtie1_mapping_ref__prefix_index = config["bowtie1_mapping_ref"]['prefix_index']
+    __bowtie1_mapping_ref__prefix_index = __bowtie1_index__
     __bowtie1_mapping_ref__stdout = manager.getname("bowtie1_mapping_ref", "_ref_mapping.txt")
     __bowtie1_mapping_ref__stderr = "%s/logs/bowtie/ref_mapping_stderr.txt" % manager.sample
-
     include: bowtie1_mapping_dynamic("ref", manager.sample)
     expected_output.extend(expand(__bowtie1_mapping_ref__sort, sample=manager.samples))
     __mapping_output = __bowtie1_mapping_ref__sort
 if manager.config.star_mapping.do:
     # Mapper rna-star
     __star_mapping__input = __clean_ngs__output
+    __star_mapping__index_done = __star_index__output_done
+    __star_mapping__index = __star_dir__
+    __star_mapping__ref = config["genome"]["fasta"]
     __star_mapping__logs = manager.getname("star_mapping", ".logs")
     __star_mapping__output_prefix1 = manager.getname("star_mapping", "_init_")
     __star_mapping__output_prefix2 = manager.getname("star_mapping", "_")
@@ -140,16 +216,19 @@ if manager.config.star_mapping.do:
     __star_mapping__genome_dir = manager.getname("star_mapping", "_star_2nd_pass")
     __star_mapping__splice_file = manager.getname("star_mapping", "_init_SJ.out.tab")
     include: sm.modules["star_mapping"]
+    expected_output.extend(expand(__star_mapping__sort, sample=manager.samples))
     __mapping_output = __star_mapping__sort
 if manager.config.tophat_mapping.do:
-    # Mapper tophat
-# get the  Nam7_1/tophat_mapping/Nam7_1/align_summary.txt as tophat reporting ?
-    __tophat_mapping__input = __clean_ngs__output
-    __tophat_mapping__logs = manager.getname("tophat_mapping", ".logs")
-    __tophat_mapping__sort = manager.getname("tophat_mapping", ".sorted.bam")
-    __tophat_mapping__outdir = manager.getname("tophat_mapping")
-    include: sm.modules["tophat_mapping"]
-    expected_output.extend(expand(__tophat_mapping__sort, sample=manager.samples))
+     __tophat_mapping__input = __clean_ngs__output
+     __tophat_mapping__outdir = manager.getwkdir("tophat_mapping")
+     __tophat_mapping__bam =  manager.getname("tophat_mapping", "accepted_hits.bam")
+     __tophat_mapping__sort = manager.getname("tophat_mapping", "accepted_hits_sorted.bam")
+     __tophat_mapping__logs = manager.getname("tophat_mapping", ".logs")
+     __tophat_mapping__prefix_done = __bowtie1_index_ref__output_done
+     __tophat_mapping__prefix = __bowtie1_index__
+     include: sm.modules["tophat_mapping"]
+     expected_output.extend(expand(__tophat_mapping__sort, sample=manager.samples))
+
 
 # generating of bigwig files
 if manager.config.coverage.do:
@@ -165,17 +244,18 @@ else :
     include: sm.modules["igvtools"]
     #expected_output.extend(expand(__igvtools__output, sample=manager.samples))
 
-
 # Feature counts from subread suite
 if manager.config.star_mapping.do:
     __feature_counts__input = __star_mapping__sort
 else :
     __feature_counts__input = __bowtie1_mapping_ref__sort
-__feature_counts__output_count = manager.getname("feature_counts", "_feature.out")
-__feature_counts__output_gene_count = manager.getname("feature_counts", "_count.out")
-__feature_counts__log = manager.getname("feature_counts", ".logs")
-include: sm.modules["feature_counts"]
-expected_output.extend(expand(__feature_counts__output_gene_count, sample=manager.samples))
+if manager.config.feature_counts.do:
+	__feature_counts__output_count = manager.getname("feature_counts", "_feature.out")
+	__feature_counts__gff = config["genome"]["gff"]
+	__feature_counts__output_gene_count = manager.getname("feature_counts", "_count.out")
+	__feature_counts__log = manager.getname("feature_counts", ".logs")
+	include: sm.modules["feature_counts"]
+	expected_output.extend(expand(__feature_counts__output_gene_count, sample=manager.samples))
 
 
 # Add Read group on BAM files

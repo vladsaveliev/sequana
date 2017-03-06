@@ -21,8 +21,13 @@ In practice, we do use `Anaconda <https://anaconda.org/>`_ and in
 particular the **bioconda** channel, which can be
 added to your environment as follows (once Anaconda is installed)::
 
+    conda config --add channels conda-forge
+    conda config --add channels defaults
     conda config --add channels r
     conda config --add channels bioconda
+
+**It is important to add them in this order**. 
+
 
 This is the recommended way and we will not support manual installation.
 

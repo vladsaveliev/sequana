@@ -1,0 +1,14 @@
+rule star_index:
+    input:
+       fasta =  __star_index__fasta
+    output:
+        __star_index__output_done
+    params:
+        wkdir = __star_index__output_dir
+    log:
+        __star_index__log
+    shell:
+        """
+        STAR --runMode genomeGenerate --genomeFastaFiles {input.fasta} --genomeDir {params.wkdir}
+        samtools faidx {input.fasta}
+        """
