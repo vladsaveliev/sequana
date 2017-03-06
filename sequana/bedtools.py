@@ -292,7 +292,7 @@ class GenomeCov(object):
         :class:'ChromosomeCov' list.
         """
         # set regex to get important information about previous analysis
-        re_number = re.compile("([\d-][\d\.-]+)")
+        re_number = re.compile("([\d-][\d\.-]+)[\s,]")
         re_genbank = re.compile("genbank:([\{0}\w\.]+)".format(os.sep))
         re_chrom = re.compile("^# ([\w-]+):")
         re_gaussian = re.compile("(\[\{.+\}\])")
@@ -405,9 +405,9 @@ class GenomeCov(object):
         else:
             header = ''
         with open(output_filename, "w") as fp:
-            print("# sequana_coverage thresholds:{0} window_size:{1}{2}"\
-                .format(self.thresholds.get_args(), self.window_size, header),
-                file=fp)
+            print("# sequana_coverage thresholds:{0} window_size:{1}{2} "
+                  "circular:{3}".format(self.thresholds.get_args(),
+                  self.window_size, header, self.circular), file=fp)
             for chrom in self.chr_list:
                 print("# {0}".format(chrom.get_gaussians()), file=fp)
             df.to_csv(fp, **kwargs)
@@ -550,9 +550,8 @@ class ChromosomeCov(object):
             Use Pandas rolling function to speed up computation.
 
         """
-        if self.bed.window_size:
-            self.bed.window_size = n
-            self.bed.circular = circular
+        self.bed.window_size = n
+        self.bed.circular = circular
         # in py2/py3 the division (integer or not) has no impact
         mid = int(n / 2)
         self.range = [None, None]
@@ -679,7 +678,6 @@ class ChromosomeCov(object):
         self.gaussians_params = [{key[:-1]: self.gaussians[key][i] for key in
                                  params_key} for i in range(k)]
         self.best_gaussian = self._get_best_gaussian()
-
 
         # warning when sigma is equal to 0
         if self.best_gaussian["sigma"] == 0:
