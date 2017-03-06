@@ -246,8 +246,8 @@ def main(args=None):
     if options.high_threshold is None:
         options.high_threshold = options.threshold
 
-    gc = GenomeCov(bedfile, options.low_threshold, options.high_threshold, 
-            0.5, 0.5)
+    gc = GenomeCov(bedfile, low_threshold=options.low_threshold,
+                   high_threshold=options.high_threshold, ldtr=0.5, hdtr=0.5)
 
     if options.reference:
         logger.info('Computing GC content')
