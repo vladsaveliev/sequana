@@ -33,7 +33,7 @@ class Options(argparse.ArgumentParser):
     def __init__(self, prog="sequana_reports"):
         usage = """Welcome to SEQUANA - Reports generator
             
-            sequana_reports --modules freebayes --file variants.vcf
+sequana_reports --input-files variants.vcf --output-directory report/
 
 AUTHORS: Thomas Cokelaer, Dimitri Desvillechabrol
 Documentation: http://sequana.readthedocs.io
@@ -119,7 +119,10 @@ def main(args=None):
             mod(data)
     # summary.html may need custom section from other modules
     mod = config.module_dict['sequana_summary'].load()
-    mod(summary_json)
+    try:
+        mod(summary_json)
+    except NameError:
+        pass
 
 
 if __name__ == '__main__':
