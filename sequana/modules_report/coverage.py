@@ -45,7 +45,7 @@ class CoverageModule(SequanaBaseModule):
         except TypeError:
             self.bed = data
         try:
-            self.create_reports()
+            html_list = self.create_reports()
         except:
             msg = ("Data must be either a csv file or a :class:`GenomeCov` "
                    "instance.")
@@ -55,14 +55,14 @@ class CoverageModule(SequanaBaseModule):
                       "quality of your mapping and to highlight regions of "
                       "interest (under and over covered).</p>".format(
                       config.sample_name))
-        self.create_report_content()
-        self.create_html(config.sample_name + ".coverage.html")
+        self.create_report_content(html_list)
+        self.create_html("coverage.html")
 
-    def create_report_content(self):
+    def create_report_content(self, html_list):
         self.sections = list()
-        self.chromosome_table()
+        self.chromosome_table(html_list)
 
-    def chromosome_table(self):
+    def chromosome_table(self, html_list):
         """ Create table with links to chromosome reports
         """
         formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
@@ -70,18 +70,25 @@ class CoverageModule(SequanaBaseModule):
         df = pd.DataFrame([[formatter.format(chrom.chrom_name,
                           link.format(chrom.chrom_name)),
                           chrom.get_size(), chrom.get_mean_cov(),
-                          chrom.get_var_coef()] for chrom in
-                          self.bed.chr_list],
+                          chrom.get_var_coef(), page] for chrom, page in
+                          zip(self.bed.chr_list, html_list)],
                           columns=["chromosome", "size", "mean_coverage",
-                          "coef_variation"])
-        html_table = self.dataframe_to_html_table(df)
+                          "coef_variation", "link"])
+        datatable = DataTable(df, 'chrom')
+        datatable.datatable.datatable_options = {'pageLength': 15,
+                                                 'dom': 'Bfrtip',
+                                                 'buttons': ['copy', 'csv']}
+        datatable.datatable.set_links_to_column('link', 'chromosome')
+        js = datatable.create_javascript_function()
+        html_table = datatable.create_datatable(index=False,
+                                                float_format='%.3g')
         self.sections.append({
             "name": "Chromosomes",
             "anchor": "chromosomes",
             "content": (
                 "<p>Link to coverage analysis report for each chromosome. "
                 "Size, mean coverage and coefficient of variation are reported"
-                " in the table below.</p>\n{0}".format(html_table))
+                " in the table below.</p>\n{0}\n{1}".format(js, html_table))
             })
 
     def create_reports(self):
@@ -91,8 +98,11 @@ class CoverageModule(SequanaBaseModule):
         chrom_output_dir = config.output_dir + os.sep + "coverage_reports"
         if not os.path.exists(chrom_output_dir):
             os.makedirs(chrom_output_dir)
+        page_list = []
         for chrom in self.bed:
-            ChromosomeCoverageModule(chrom, datatable_js)
+            chrom_report = ChromosomeCoverageModule(chrom, datatable_js)
+            page_list.append(chrom_report.html_page)
+        return page_list
 
     def _init_datatable_function(self):
         """ Initiate :class:`DataTableFunction` to create table to link each
@@ -131,9 +141,9 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         self.intro = ("<p>The genome coverage analysis of the chromosome "
                       "<b>{0}</b>.</p>".format(self.chromosome.chrom_name))
         self.create_report_content()
-        self.create_html("coverage_reports/{0}.cov.html".format(
-            self.chromosome.chrom_name))
-
+        self.html_page = "coverage_reports/{0}.cov.html".format(
+            self.chromosome.chrom_name)
+        self.create_html(self.html_page)
 
     def create_report_content(self):
         """ Generate the sections list to fill the HTML report.
@@ -256,7 +266,8 @@ class ChromosomeCoverageModule(SequanaBaseModule):
                 else:
                     condition = False
             return i
-        links_list = [links[connect_link(n[0],x,i)] for n in zip(rois.df['start'])]
+        links_list = [links[connect_link(n[0],x,i)] for n in
+                     zip(rois.df['start'])]
         rois.df['link'] = links_list
         # create datatable
         low_roi = rois.get_low_roi()
@@ -302,9 +313,10 @@ class ChromosomeCoverageModule(SequanaBaseModule):
     def gc_coverate(self):
         """ 3 dimensional plot of GC content versus coverage.
         """
-        image = self.create_embedded_png(
-            self.chromosome.plot_gc_vs_coverage,
-            input_arg='filename')
+        image = self.create_embedded_png(self.chromosome.plot_gc_vs_coverage,
+                                         input_arg='filename')
+        self.sections.append({
+            'name': ""
 
     def normalized_coverage(self):
         """ Barplot of normalized coverage section.
