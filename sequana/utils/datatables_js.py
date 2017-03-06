@@ -19,7 +19,6 @@
 contains the javascript function to create DataTable. The second set table
 which use javascript created in the first class.
 """
-import sys
 from collections import OrderedDict
 
 from sequana import logger
@@ -27,6 +26,22 @@ from sequana import logger
 
 class DataTableFunction(object):
     """ Class that contains Jquery DataTables function and options.
+
+    Example:
+
+    ::
+
+        df = pandas.read_csv('data.csv')
+        datatable_js = DataTableFunction(df, 'data')
+        datatable_js.datatable_options = {'pageLength': 15,
+                                          'dom': 'Bfrtip',
+                                          'buttons': ['copy', 'csv']}
+        js = datatable_js.create_javascript_function()
+        html_datatables = [DataTable(df, "data_{0}".format(i), datatable_js)
+                           for i, df in enumerate(df_list)]
+
+    All options of datatable:
+        https://datatables.net/reference/option/
     """
     def __init__(self, df, html_id):
         """.. rubric:: contructor
@@ -106,7 +121,7 @@ class DataTableFunction(object):
 """
         return js_function.format(self.html_id,
                                   self._create_datatable_option())
-        
+
     def _create_datatable_option(self):
         """ Return DataTable options.
         """
@@ -122,7 +137,7 @@ class DataTableFunction(object):
               self.datatable_columns.items()]
         return '[{0}]'.format(',\n'.join(js))
 
-    def _coloption_2_str(self, name, options):                                          
+    def _coloption_2_str(self, name, options):
         s = "data:'{0}'".format(name)
         if options:
             s = "{0},\n{1}".format(s, self._dict_to_string(options))
@@ -130,7 +145,7 @@ class DataTableFunction(object):
 
     def _dict_to_string(self, d):
         """ Convert dict to string for CanvasJS.
-        
+
         Example:
 
         ::
@@ -167,8 +182,8 @@ class DataTableFunction(object):
         try:
             self.datatable_columns[link_col]['visible'] = 'false'
         except KeyError:
-            logger.warning("KeyError: Column name '{0}' does not exist."\
-                .format(target_col))
+            logger.warning("KeyError: Column name '{0}' does not exist."
+                           .format(target_col))
             pass
         # function to add link
         fct = """function(data, type, row, meta){{
@@ -178,13 +193,32 @@ class DataTableFunction(object):
         try:
             self.datatable_columns[target_col]['render'] = fct
         except KeyError:
-            logger.warning("KeyError: Column name '{0}' does not exist."\
-                .format(target_col))
+            logger.warning("KeyError: Column name '{0}' does not exist."
+                           .format(target_col))
             pass
 
 
 class DataTable(object):
-    """ Class that contains html table which used a javascript function.
+    """ Class that contains html table which used a javascript function. You
+    must add in your HTML file the js function
+    (:meth:`DataTable.create_javascript_function`) and the HTML code
+    (:meth:`DataTable.create_datatable`).
+
+    Example:
+
+    ::
+
+        df = pandas.read_csv('data.csv')
+        datatable = DataTable(df, 'data')
+        datatable.datatable.datatable_options = {'pageLength': 15,
+                                                 'dom': 'Bfrtip',
+                                                 'buttons': ['copy', 'csv']}
+        js = datatable.create_javascript_function()
+        html = datatable.create_datatable()
+        # Second CSV file with same format
+        df2 = pandas.read_csv('data2.csv')
+        datatable2 = DataTable(df2, 'data2', datatable.datatable)
+        html2 = datatable.create_datatable()
     """
     def __init__(self, df, html_id, datatable=None):
         """.. rubric:: contructor
@@ -223,14 +257,14 @@ class DataTable(object):
 <script type="text/javascript">
     $(document).ready(function() {{
         var {0} = document.getElementById('csv_{0}').innerText;
-        var data_array = parseCsv_{1}({0}, '#table_{0}');
+        parseCsv_{1}({0}, '#table_{0}');
+        {0} = null;
     }});
 </script>
         """.format(self.html_id, self.datatable.html_id)
         html += self._create_hidden_csv(**kwargs)
         html += self._create_html_table(style)
         return html
-
 
     def _create_hidden_csv(self, **kwargs):
         """ Return the HTML code and the CSV code for your hidden CSV section.
