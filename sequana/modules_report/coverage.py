@@ -85,16 +85,16 @@ class CoverageModule(SequanaBaseModule):
         self.sections.append({
             "name": "Chromosomes",
             "anchor": "chromosomes",
-            "content": (
+            "content":
                 "<p>Link to coverage analysis report for each chromosome. "
                 "Size, mean coverage and coefficient of variation are reported"
-                " in the table below.</p>\n{0}\n{1}".format(js, html_table))
+                " in the table below.</p>\n{0}\n{1}".format(js, html_table)
             })
 
     def create_reports(self):
         """ Create HTML report for each chromosome present in data.
         """ 
-        datatable_js = self._init_datatable_function()
+        datatable_js = CoverageModule.init_roi_datatable(self.bed[0])
         chrom_output_dir = config.output_dir + os.sep + "coverage_reports"
         if not os.path.exists(chrom_output_dir):
             os.makedirs(chrom_output_dir)
@@ -104,13 +104,15 @@ class CoverageModule(SequanaBaseModule):
             page_list.append(chrom_report.html_page)
         return page_list
 
-    def _init_datatable_function(self):
+    # I made it as static method because I need it in the coverage standalone
+    # to initiate my datatables
+    def init_roi_datatable(chrom):
         """ Initiate :class:`DataTableFunction` to create table to link each
         row with sub HTML report. All table will have the same appearance. So,
         let's initiate its only once.
         """
         # get an roi df
-        df = self.bed[0].get_roi().df.copy()
+        df = chrom.get_roi().df.copy()
         df['link'] = ''
         # set datatable options
         datatable_js = DataTableFunction(df, 'roi')
@@ -121,31 +123,35 @@ class CoverageModule(SequanaBaseModule):
                                           'scrollCollapse' : 'true',
                                           'dom': 'Bfrtip',
                                           'buttons': ['copy', 'csv']}
-        return datatable_js 
+        return datatable_js
 
 
 class ChromosomeCoverageModule(SequanaBaseModule):
     """ Write HTML report of coverage analysis for each chromosome. It is
     created by CoverageModule.
     """
-    def __init__(self, chromosome, datatable):
+    def __init__(self, chromosome, datatable, directory="coverage_reports"):
         """
         """
         super().__init__()
         # to define where are css and js
-        self.path = "../"
+        if directory in {None, '.'}:
+            self.path = ''
+            directory = '.'
+        else:
+            self.path = '../'
         self.chromosome = chromosome
         self.datatable = datatable
         self.title = "Coverage analysis of chromosome {0}".format(
             self.chromosome.chrom_name)
         self.intro = ("<p>The genome coverage analysis of the chromosome "
                       "<b>{0}</b>.</p>".format(self.chromosome.chrom_name))
-        self.create_report_content()
-        self.html_page = "coverage_reports/{0}.cov.html".format(
-            self.chromosome.chrom_name)
+        self.create_report_content(directory)
+        self.html_page = "{0}{1}{2}.cov.html".format(
+            directory, os.sep, self.chromosome.chrom_name)
         self.create_html(self.html_page)
 
-    def create_report_content(self):
+    def create_report_content(self, directory):
         """ Generate the sections list to fill the HTML report.
         """
         self.sections = list()
@@ -153,11 +159,11 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         rois = self.chromosome.get_roi()
         
         self.coverage_plot()
-        links = self.subcoverage(rois)
+        links = self.subcoverage(rois, directory)
         self.coverage_barplot()
         self.basic_stats()
         self.regions_of_interest(rois, links)
-        #self.gc_coverage()
+        self.gc_vs_coverage()
         self.normalized_coverage()
         self.zscore_distribution()
 
@@ -169,13 +175,13 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         self.sections.append({
             "name": "Coverage",
             "anchor": "coverage",
-            "content": (
+            "content":
                 "<p>The following figure shows the per-base coverage along the"
                 " reference genome (black line). The blue line indicates the "
                 "running median. From the normalised coverage, we estimate "
                 "z-scores on a per-base level. The red lines indicates the "
                 "z-scores at plus or minus N standard deviations, where N is "
-                "chosen by the user. (default:4)</p>\n{0}".format(image))
+                "chosen by the user. (default:4)</p>\n{0}".format(image)
         })
 
     def coverage_barplot(self):
@@ -191,19 +197,18 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         self.sections.append({
             'name': "Coverage histogram",
             'anchor': "cov_barplot",
-            'content': (
+            'content':
                 "<p>The following figure contains the histogram of the genome "
                 "coverage. The X and Y axis being in log scale.</p>\n"
-                "{0}\n{1}".format(image1, image2))
+                "{0}\n{1}".format(image1, image2)
         })
 
-    def subcoverage(self, rois):
+    def subcoverage(self, rois, directory):
         """ Create subcoverage report to have acces of a zoomable line plot.
         """
         # create directory
-        chrom_output_dir = os.sep.join(
-            [config.output_dir, 'coverage_reports',
-            self.chromosome.chrom_name])
+        chrom_output_dir = os.sep.join([config.output_dir, directory,
+                                       self.chromosome.chrom_name])
         if not os.path.exists(chrom_output_dir):
             os.makedirs(chrom_output_dir)
         # create the combobox to link toward different sub coverage
@@ -219,7 +224,8 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         # break the chromosome as piece of 200 Mbp
         for i in range(0, len(self.chromosome), 200000):
             SubCoverageModule(self.chromosome, rois, combobox_intra, datatable,
-                              i, min(i + 200000, len(self.chromosome)))
+                              i, min(i + 200000, len(self.chromosome)),
+                              directory)
         self.sections.append({'name': 'Subcoverage',
                               'anchor': 'subcoverage',
                               'content': combobox})
@@ -246,9 +252,9 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         self.sections.append({
             'name': "Basic stats",
             'anchor': 'basic_stats',
-            'content': (
+            'content':
                 "<p>The following table gives some basic statistics about the "
-                "genome coverage.</p>\n{0}".format(html_table))
+                "genome coverage.</p>\n{0}".format(html_table)
         })
 
     def regions_of_interest(self, rois, links):
@@ -294,7 +300,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         self.sections.append({
             'name': "Regions Of Interest (ROI)",
             'anchor': 'roi',
-            'content': (
+            'content':
                 "{4}\n"
                 "<p>Running median is the median computed along the genome "
                 "using a sliding window. The following tables give regions of "
@@ -305,18 +311,29 @@ class ChromosomeCoverageModule(SequanaBaseModule):
                 "<li>max_zscore: the higher zscore contains in the region</li>"
                 "</ul>\n"
                 "<h3>Low coverage region</h3>\n{0}\n{1}\n"
-                "<h3>High coverage region</h3>\n{2}\n{3}\n").format(
-                low_paragraph, html_low_roi, high_paragraph, html_high_roi,
-                js)
+                "<h3>High coverage region</h3>\n{2}\n{3}\n".format(
+                low_paragraph, html_low_roi, high_paragraph, html_high_roi, js)
         })
 
-    def gc_coverate(self):
+    def gc_vs_coverage(self):
         """ 3 dimensional plot of GC content versus coverage.
         """
         image = self.create_embedded_png(self.chromosome.plot_gc_vs_coverage,
                                          input_arg='filename')
+        corr = self.chromosome.get_gc_correlation()
         self.sections.append({
-            'name': ""
+            'name': 'Coverage vs GC content',
+            'anchor': 'cov_vs_gc',
+            'content': 
+                "<p>The correlation coefficient between the coverage and GC "
+                "content is <b>{0:.3g}</b> with a window size of {1}bp.</p>\n"
+                "{2}\n"
+                "<p>Note: the correlation coefficient has to be between -1.0 "
+                "and 1.0. A coefficient of 0 means no correlation, while a "
+                "coefficient of -1 or 1 means an existing "
+                "correlation between GC and Coverage</p>".format(
+                corr, self.chromosome.bed.gc_window_size, image)
+        })
 
     def normalized_coverage(self):
         """ Barplot of normalized coverage section.
@@ -327,10 +344,10 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         self.sections.append({
             'name': "Normalized coverage",
             'anchor': 'normalized_coverage',
-            'content': (
+            'content':
                 "<p>Distribution of the normalized coverage with predicted "
                 "Gaussian. The red line should be followed the trend of the "
-                "barplot.</p>\n{0}".format(image))
+                "barplot.</p>\n{0}".format(image)
         })
 
     def zscore_distribution(self):
@@ -341,13 +358,13 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         self.sections.append({
             'name': "Z-Score distribution",
             'anchor': 'zscore_distribution',
-            'content': (
+            'content':
                 "<p>Distribution of the z-score (normalised coverage); You "
                 "should see a Gaussian distribution centered around 0. The "
                 "estimated parameters are mu={0:.2f} and sigma={1:.2f}.</p>\n"
                 "{2}".format(self.chromosome.best_gaussian["mu"],
                              self.chromosome.best_gaussian["sigma"],
-                             image))
+                             image)
         })
 
 
@@ -355,9 +372,13 @@ class SubCoverageModule(SequanaBaseModule):
     """ Write HTML report of subsection of chromosome with a javascript
     coverage plot.
     """
-    def __init__(self, chromosome, rois, combobox, datatable, start, stop):
+    def __init__(self, chromosome, rois, combobox, datatable, start, stop,
+                 directory):
         super().__init__()
-        self.path = "../../"
+        if directory == ".":
+            self.path = "../"
+        else:
+            self.path = "../../"
         self.chromosome = chromosome
         self.rois = rois
         self.combobox = combobox
@@ -368,8 +389,8 @@ class SubCoverageModule(SequanaBaseModule):
                       "positions {1} and {2}".format(
                       self.chromosome.chrom_name, start, stop))
         self.create_report_content()
-        self.create_html("coverage_reports/{0}/{0}_{1}_{2}.html".format(
-            self.chromosome.chrom_name, start, stop))
+        self.create_html("{0}{4}{1}{4}{1}_{2}_{3}.html".format(
+            directory, self.chromosome.chrom_name, start, stop, os.sep))
 
     def create_report_content(self):
         """ Generate the sections list to fill the HTML report.
@@ -477,7 +498,7 @@ class SubCoverageModule(SequanaBaseModule):
         self.sections.append({
             "name": "Regions Of Interest (ROI)",
             "anchor": "roi",
-            "content": (
+            "content":
                 "{4}\n"
                 "<p>Running median is the median computed along the genome "
                 "using a sliding window. The following tables give regions of "
@@ -488,6 +509,6 @@ class SubCoverageModule(SequanaBaseModule):
                 "<li><b>max_zscore</b>: the higher zscore contains in the "
                 "region</li></ul>\n"
                 "<h3>Low coverage region</h3>\n{0}\n{1}\n"
-                "<h3>High coverage region</h3>\n{2}\n{3}\n").format(
+                "<h3>High coverage region</h3>\n{2}\n{3}\n".format(
                 low_paragraph, html_low_roi, high_paragraph, html_high_roi, js)
         })
