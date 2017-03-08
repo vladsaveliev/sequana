@@ -26,12 +26,12 @@ from optparse import OptionParser
 from argparse import RawTextHelpFormatter
 
 from sequana import bedtools
-from sequana.reporting import report_mapping
-from sequana.reporting import report_chromosome
-from sequana.reporting import report_main
+from sequana.modules_report.coverage import CoverageModule
+from sequana.modules_report.coverage import ChromosomeCoverageModule 
+from sequana.utils import config
 from sequana import logger
 from sequana import sequana_debug_level
-from sequana import GenomeCov
+from sequana.bedtools import GenomeCov
 
 from easydev import shellcmd, mkdirs
 from easydev.console import purple
@@ -107,13 +107,13 @@ Issues: http://github.com/sequana/sequana
                  "using genomecov, which must be installed."))
 
         group = self.add_argument_group("Optional biological arguments")
-        group.add_argument('-c', "--chromosome", dest="chromosome", type=int,
-            default=1,
-            help=(  "Chromosome number (if only one, no need to use: the first"
-                    " and only chromosome is chosen automatically). Default is"
-                    " first chromosome found in the BED file. You may want to"
-                    " analyse all chromosomes at the same time. If so, set this"
-                    " parameter to -1"))
+        group.add_argument(
+            '-c', "--chromosome", dest="chromosome", type=int, default=0,
+            help="Chromosome number (if only one, no need to use: the first"
+                 " and only chromosome is chosen automatically). Default is"
+                 " first chromosome found in the BED file. You may want to"
+                 " analyse all chromosomes at the same time. If so, set this"
+                 " parameter to 0.")
         group.add_argument('-o', "--circular", dest="circular",
             default=False, action="store_true",
             help="""If the DNA of the organism is circular (typically
@@ -122,8 +122,6 @@ Issues: http://github.com/sequana/sequana
         group = self.add_argument_group("General")
         group.add_argument("--output-directory", dest="output_directory",
             default="report", help="name of the output (report) directory.")
-        group.add_argument('--show', dest="show", default=False,
-            action='store_true', help="""Show the pictures (matplotlib)""")
         group.add_argument('--show-html', dest="show_html", default=False,
             action='store_true',
             help="""When report is created, you can open
@@ -246,40 +244,62 @@ def main(args=None):
     if options.high_threshold is None:
         options.high_threshold = options.threshold
 
-    gc = GenomeCov(bedfile, low_threshold=options.low_threshold,
-                   high_threshold=options.high_threshold, ldtr=0.5, hdtr=0.5)
+    config.output_dir = options.output_directory
+    config.sample_name = os.path.basename(options.input).split('.')[0]
+
+    gc = GenomeCov(bedfile, options.genbank, options.low_threshold,
+                   options.high_threshold, 0.5, 0.5)
 
     if options.reference:
         logger.info('Computing GC content')
-        gc.compute_gc_content(options.reference, options.w_gc)
+        gc.compute_gc_content(options.reference, options.w_gc,
+                              options.circular)
 
     if len(gc.chr_list) == 1:
         if options.verbose:
             logger.warning("There is only one chromosome. Selected automatically.")
         chrom = gc.chr_list[0]
-        run_analysis(gc, chrom, 1, options) 
+        chromosomes = [chrom]
+        run_analysis(chrom, options) 
     elif options.chromosome <-1 or options.chromosome > len(gc.chr_list) or\
             options.chromosome == 0:
         raise ValueError("invalid --chromosome value ; must be in [1-%s]" % len(gc.chr_list)+1)
     else:
         # For uses, we start at position 1 but in python, we start at zero
-        if options.chromosome == -1:
-            chromosomes = [this for this in range(len(gc.chr_list)) ]
+        if options.chromosome:
+            chromosomes = [gc[options.chromosome-1]]
         else:
-            chromosomes = [options.chromosome-1]
+            chromosomes = gc
 
+        if options.verbose:
+            print("There are %s chromosomes/contigs." % len(gc))
 
-        N = len(chromosomes)
-        for i,chrom_index in enumerate(chromosomes):
-            chrom = gc.chr_list[chrom_index]
-            chrom_name = gc.chr_list[chrom_index].chrom_name
+        for i, chrom in enumerate(chromosomes):
             if options.verbose:
-                print("There are %s chromosomes/contigs." % len(gc.chr_list))
-                print("==================== analysing chrom/contig %s/%s (%s)" % (i+1,N,chrom_name))
-            run_analysis(gc, chrom, chrom_index, options)
+                print("==================== analysing chrom/contig %s/%s (%s)"
+                      % (i + 1 + options.chromosome, len(gc),
+                      chrom.chrom_name))
+            run_analysis(chrom, options)
+
+    if options.verbose:
+        logger.info("Creating report in %s" % config.output_dir)
+
+    datatable = CoverageModule.init_roi_datatable(gc[0]) 
+
+    if options.chromosome:
+        ChromosomeCoverageModule(chromosomes[0], datatable, None)
+        page = "{0}{1}{2}.cov.html".format(config.output_dir, os.sep,
+                                           chrom.chrom_name)
+    else:
+        CoverageModule(gc)
+        page = "{0}{1}coverage.html".format(config.output_dir, os.sep)
+
+    if options.show_html:
+        from easydev import onweb
+        onweb(page)
 
 
-def run_analysis(gc, chrom, chrom_index, options):
+def run_analysis(chrom, options):
 
     if options.verbose:
         print(chrom)
@@ -324,61 +344,13 @@ def run_analysis(gc, chrom, chrom_index, options):
     if options.verbose:
         res = chrom._get_best_gaussian()
         print("sigma and mu of the central distribution: mu=%s, sigma=%s" %
-(round(res["mu"],3), round(res['sigma'],3)))
+            (round(res["mu"],3), round(res['sigma'],3)))
         print("Evenness: %8.3f" % chrom.get_evenness())
         print("Centralness (3 sigma): %f" % round(c3,3))
         print("Centralness (4 sigma): %f" % round(c4,4))
 
     if options.verbose:
         print("\n\n")
-
-    figure(1)
-    chrom.plot_coverage()
-
-    # With the reference, we can plot others plots such as GC versus coverage
-    if options.reference:
-        figure(2)
-        chrom.plot_gc_vs_coverage(Nlevels=options.levels, fontsize=20)
-        corr = chrom.get_gc_correlation()
-        logger.info("GC Correlation = %s" % corr)
-        filename_gc_cov = "coverage_vs_gc.chrom{0}.png".format(chrom_index)
-        dirimages = options.output_directory + os.sep + "images"
-        mkdirs(dirimages)
-        savefig(dirimages + os.sep + filename_gc_cov)
-
-    if options.show:
-        show()
-
-    # Report chromosomes
-    if options.verbose:
-        logger.info("Creating report in %s" % options.output_directory)
-
-    if options.genbank:
-        if options.verbose:
-            logger.info('Genbank: %s' % options.genbank)
-        from sequana.tools import genbank_features_parser
-        features = genbank_features_parser(options.genbank)
-    else:
-        features = None
-
-    if options.create_report:
-        sample_name = "coverage"
-        r = report_chromosome.ChromosomeMappingReport(chrom,
-                directory=options.output_directory, project="coverage", 
-                sample=sample_name, features=features, verbose=options.verbose)
-
-        if options.reference:
-            r.jinja['coverage_vs_gc'] = """Correlation: %s </br> """ % corr
-            r.jinja['coverage_vs_gc'] += """<img src="images/%s">""" % filename_gc_cov
-
-        r.jinja['standalone_command'] = " ".join(sys.argv)
-        r.create_report()
-        if options.verbose:
-            print("Report created. Please see %s/ directory content" % options.output_directory)
-        if options.show_html:
-            from easydev import onweb
-            onweb("report/%s_mapping.chrom%s.html" % (sample_name,
-                  chrom_index))
 
 
 if __name__ == "__main__":
