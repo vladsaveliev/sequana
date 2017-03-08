@@ -89,7 +89,6 @@ class CanvasJSLineGraph(CanvasJS):
         }});
     }};
         """.format(self.html_id, init_var, fill_array, self.variables)
-        logger.info("There are {0} variables created.".format(len(variable)))
         self.data_section = [{'dataPoints': var} for var in variable]
         return function
 
