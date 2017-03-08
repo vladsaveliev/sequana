@@ -64,7 +64,7 @@ class SequanaModule(SequanaBaseModule):
         self.sections.append({
             'name': "Filter Options",
             'anchor': 'filters_option',
-            'content': (
+            'content':
                 "<p>All filters parameters used is presented in this list:</p>"
                 "\n<ul><li>freebayes_score: {freebayes_score}</li>\n"
                 "<li>frequency: {frequency}</li>\n"
@@ -80,7 +80,7 @@ class SequanaModule(SequanaBaseModule):
                 "reverse strand</li>\n"
                 "<li>strand_ratio: alternate allele forward / (alternate "
                 "allele forward + alternate allele reverse)</li>"
-                "</ul>".format(**self.filter_dict))
+                "</ul>".format(**self.filter_dict)
             })
 
     def variant_calling(self):
@@ -90,7 +90,7 @@ class SequanaModule(SequanaBaseModule):
         # set options
         datatable.datatable.datatable_options = {'scrollX': 'true',
                                                  'pageLength': 15,
-                                                 'scrollCollapse' : 'true',
+                                                 'scrollCollapse': 'true',
                                                  'dom': 'Bfrtip',
                                                  'buttons': ['copy', 'csv']}
         js = datatable.create_javascript_function()
@@ -101,11 +101,11 @@ class SequanaModule(SequanaBaseModule):
         self.sections.append({
             'name': "Variants detected",
             'anchor': 'basic_stats',
-            'content': (
+            'content':
                 "<p>This table present variant detected by freebayes after "
                 "filtering. There are {0} variants detected. You can download "
                 "the table as csv format on this {1} and the vcf file {2}."
                 "</p>\n{4}\n{3}\n<p>Note: the freebayes score can be "
-                "understood as 1 - P(locus is homozygous given the data)</p>"\
-                .format(nb_variants, csv_link, vcf_link, html_tab, js))
+                "understood as 1 - P(locus is homozygous given the data)</p>"
+                .format(nb_variants, csv_link, vcf_link, html_tab, js)
         })
