@@ -42,23 +42,20 @@ def test_threshold():
 
 def test_genomecov():
 
-    filename = sequana_data("test_bedcov.bed", "testing")
-    features = genbank_features_parser(sequana_data("test_snpeff_ref.gb"))
-
-    mydata = bedtools.GenomeCov(filename)
-
+    filename = sequana_data('JB409847.bed')
+    bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
 
     # a getter for the first chromosome
-    mydata[0]
+    bed[0]
 
     # This requires to call other method before
-    for chrom in mydata:
+    for chrom in bed:
         chrom.moving_average(n=501)
         chrom.running_median(n=501, circular=True)
         chrom.running_median(n=501, circular=False)
 
         chrom.compute_zscore()
-        roi = chrom.get_roi(features=features)
+        roi = chrom.get_roi()
         with TempFile(suffix='.png') as fh:
             chrom.plot_coverage(filename=fh.name)
         with TempFile(suffix='.png') as fh:
@@ -71,6 +68,9 @@ def test_genomecov():
         chrom.get_size()
         chrom.get_mean_cov()
         chrom.get_var_coef()
+    with TempFile(suffix='.csv') as fh:
+        bed.to_csv(fh.name)
+        bed2 = bedtools.GenomeCov(fh.name)
 
 def test_gc_content():
     bed = sequana_data('JB409847.bed')
@@ -90,7 +90,7 @@ def test_gc_content():
 
     from easydev import TempFile
     with TempFile() as fh:
-        ch.write_csv(fh.name)
+        ch.to_csv(fh.name)
 
 
     ch.get_max_gc_correlation(fasta)
