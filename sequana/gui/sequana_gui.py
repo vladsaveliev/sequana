@@ -68,7 +68,6 @@ class BaseFactory(Tools):
     Currently, the :class:`SequanaFactory` and :class:`GenericFactory` are
     implemented.
 
-
     """
     def __init__(self, mode, run_button):
         self.mode = mode
