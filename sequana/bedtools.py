@@ -275,7 +275,6 @@ class GenomeCov(object):
 
     @genbank_filename.setter
     def genbank_filename(self, genbank_filename):
-        print(genbank_filename)
         if os.path.isfile(genbank_filename):
             self._genbank_filename = os.path.realpath(genbank_filename)
             self._feature_dict = genbank_features_parser(
@@ -435,7 +434,7 @@ class GenomeCov(object):
                   "{2}".format(self.thresholds.get_args(), self.window_size,
                   self.circular))
         if self.genbank_filename:
-            header += ' genbank:' + self._genbank_filename
+            header += ' genbank:' + self.genbank_filename
         if self.gc_window_size:
             header += ' gc_window_size:{0}'.format(self.gc_window_size)
         with open(output_filename, "w") as fp:

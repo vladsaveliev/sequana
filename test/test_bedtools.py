@@ -70,7 +70,7 @@ def test_genomecov():
         chrom.get_var_coef()
     with TempFile(suffix='.csv') as fh:
         bed.to_csv(fh.name)
-        bed2 = bedtools.GenomeCov(fh.name)
+        bed2 = bedtools.GenomeCov(fh.name, sequana_data('JB409847.gbk'))
 
 def test_gc_content():
     bed = sequana_data('JB409847.bed')
