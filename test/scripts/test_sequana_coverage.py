@@ -55,13 +55,23 @@ def test_input(tmpdir):
 
     directory_run = tmpdir.mkdir("report")
 
-    filename = sequana_data('test_JB409847.bed', 'testing')
+    filename = sequana_data('JB409847.bed')
     try:
-        coverage.main([prog, '-i', filename, "-o", "--output-directory", directory_run.__str__(),
-"-r", "%s/JB409847.fa" % directory_data.__str__()])
+        coverage.main([prog, '-i', filename, "-o", "--output-directory",
+                       directory_run.__str__(), "-r",
+                       "%s/JB409847.fa" % directory_data.__str__()])
         assert False
     except Exception as err:
         print(err)
         assert True
     print(os.listdir(directory_run.__str__()))
-    assert os.path.exists(directory_run.__str__() + os.sep + "coverage_mapping.chrom1.html")
+    assert os.path.exists(directory_run.__str__() + os.sep + "sequana_coverage.html")
+    try:
+        coverage.main([prog, '-i', filename, "-o", "--output-directory",
+                       directory_run.__str__(), "-r",
+                       "%s/JB409847.fa" % directory_data.__str__(), '-c', '1'])
+        assert False
+    except Exception as err:
+        print(err)
+        assert True
+    assert os.path.exists(str(directory_run) + os.sep + 'JB409847.cov.html')

@@ -12,15 +12,18 @@ rule vcf_filter:
         config["vcf_filter"]["freebayes_score"]: minimal freebayes score
         config["vcf_filter"]["frequency"]: minimal alternative allele frequency
         config["vcf_filter"]["depth"]: minimal coverage depth
-        config["vcf_filter"]["forward_depth"]: minimal coverage depth of forward strand
-        config["vcf_filter"]["reverse_depth"]: minimal coverage depth of reverse strand
+        config["vcf_filter"]["forward_depth"]: minimal coverage depth of
+            forward strand
+        config["vcf_filter"]["reverse_depth"]: minimal coverage depth of
+            reverse strand
         config["vcf_filter"]["strand_ratio"]: minimal strand ratio [0:0.5]
 
     """
     input:
         vcf = __vcf_filter__input
     output:
-        vcf = __vcf_filter__output
+        vcf = __vcf_filter__output,
+        csv = __vcf_filter__csv
     params:
         filter_dict = config["vcf_filter"]
     run:
@@ -28,3 +31,5 @@ rule vcf_filter:
         
         vcf_record = vcf_filter.VCF(input["vcf"])
         vcf_record.filter_vcf(params["filter_dict"], output["vcf"])
+        vcf_record = vcf_filter.VCF(output["vcf"])
+        vcf_record.to_csv(output["csv"], filter_dict=params["filter_dict"])

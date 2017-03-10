@@ -173,11 +173,41 @@ left-margin:5px;
  * └──────────────────────────────────────────────────────────────────────────┘
  */
 
+/*
+ * Style of Jquery Datatables
+ */
+
+table.datatable { 
+    font-size: 12pt;
+    overflow: auto
+}
+
+table.datatable th{
+    background-color: #1b85b8;
+    text-align: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 6px 14px
+}
+
+table.datatable tr{
+    line-height:.8em;
+    text-align:center
+}
+
+table.datatable td{
+    text-overflow:ellipsis;
+    overflow:hidden;
+    white-space: nowrap;
+    padding: 6px 8px
+}
+
 table.dataframe
 {
     margin-bottom: 2em;
     border: 4px solid black;
-    line-height:0.9em ; /* reduces spaecs between lines*/
+    line-height:0.9em ; /* reduces spaces between lines*/
     font-size: 12pt;
     overflow: auto;
 }
@@ -237,6 +267,7 @@ th.field-name
 tt {
     font-family: monospace;
 }
+
 pre {
     padding:    .5em;
     line-height: 1.25em;
@@ -252,6 +283,14 @@ pre {
     whitewhite-space: -moz-pre-wrap;  /* Older Versions of Mozilla */ 
 }
 
+.code {
+    height:400px;
+    background-color: #99CCFF;
+    padding:20px;
+    margin-top:10px;
+    border-bottom:5px solid #3399FF;
+    overflow: scroll;
+}
 
 dl.docutils > dd {
     margin-left: 2em;

@@ -8,6 +8,7 @@
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
 #      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
 #          <d.desvillechabrol@gmail.com>
+#      Rachel Legendre <rachel.legendre@pasteur.fr>
 #
 #  Distributed under the terms of the 3-clause BSD license.
 #  The full license is in the LICENSE file, distributed with this software.

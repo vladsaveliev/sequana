@@ -5,12 +5,11 @@ import os
 
 def test_snpeff():
     # a custom refrence
-    mydata = snpeff.SnpEff(reference=sequana_data("test_snpeff_ref.gb"))
+    mydata = snpeff.SnpEff(reference=sequana_data("JB409847.gbk"))
     with TempFile() as fh:
-        mydata.launch_snpeff(sequana_data("test.vcf"), fh.name) 
+        mydata.launch_snpeff(sequana_data("JB409847.vcf"), fh.name) 
 
     # cleanup
-    import os
     try:
         os.remove("snpEff.config")
     except:
