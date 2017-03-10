@@ -197,6 +197,9 @@ class GenomeCov(object):
         self._gc_window_size = None
         self._genbank_filename = None
         self._window_size = None
+        # the user choice have the priorities over csv file
+        if genbank_file:
+            self._genbank_filename = genbank_file
         # check is the input is a csv of a previous analysis
         try:
             self.chr_list = self._read_csv(input_filename)
@@ -208,8 +211,6 @@ class GenomeCov(object):
             self.thresholds = DoubleThresholds(low_threshold, high_threshold,
                                                ldtr, hdtr)
             self.chr_list = self._read_bed(input_filename)
-        if genbank_file:
-            self._genbank_filename = genbank_file
 
     def __getitem__(self, index):
         return self.chr_list[index]
@@ -342,7 +343,7 @@ class GenomeCov(object):
                 self.gc_window_size = int(gc.group(1))
             # get genbank
             gb = re_genbank.search(line)
-            if gb:
+            if gb and not self.genbank_filename:
                 self.genbank_filename = gb.group(1)
             # get gaussians for each chromosome
             gaussians_dict = dict()

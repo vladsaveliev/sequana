@@ -557,8 +557,8 @@ class SequanaConfig(object):
             if os.path.exists(data):
                 if data.endswith(".yaml"):
                     with open(data, "r") as fh:
-                        self._yaml_code = ruamel.yaml.load(fh.read(),
-                                                ruamel.yaml.RoundTripLoader)
+                        self._yaml_code = ruamel.yaml.load(
+                            fh.read(), ruamel.yaml.RoundTripLoader)
                 else:
                     # read a JSON
                     import yaml
@@ -575,9 +575,7 @@ class SequanaConfig(object):
         else: # or a pure dictionary ?
             self.config = AttrDict(**data)
             self._yaml_code = comments.CommentedMap(self.config.copy())
-
-        # if converts_none_to_str and self.mode == "sequana":
-        #    self._set_none_to_empty_string(self.config)
+        self.cleanup_config()
 
     def check_sequana_fields(self):
         requirements = ["input_directory",
@@ -618,8 +616,8 @@ class SequanaConfig(object):
                 if key in target.keys():
                     target[key] = value
                 else:
-                    logger.warning(
-                "This %s key was not in the original config but added" % key)
+                    logger.warning("This %s key was not in the original config"
+                                   " but added" % key)
         return target
 
     def _update_yaml(self):
@@ -628,30 +626,27 @@ class SequanaConfig(object):
     def _update_config(self):
         self._recursive_update(self.config, self._yaml_code)
 
-    def _set_none_to_empty_string(self, subdic):
-        # recursively set parameter (None) to ""
-        for key, value in subdic.items():
-            if isinstance(value, dict):
-                subdic[key] = self._set_none_to_empty_string(value)
-            else:
+    def _recursive_cleanup(self, d):
+        for key, value in d.items():
+            try:
+                self._recursive_cleanup(value)
+            except AttributeError:
                 if value is None:
-                    subdic[key] = ""
-        return subdic
+                    d[key] = ""
+                elif isinstance(value, str):
+                    if value.startswith('%('):
+                        d[key] = None
+                    else:
+                        d[key] = value.strip()
+
+    def cleanup_config(self):
+        self._recursive_cleanup(self.config)
+        self._update_yaml()
 
     def cleanup(self):
-        # assuming only 2 levels, remove the templates
-        #  %(input_directory)s and strip the strings.
-        for k1, v1 in self._yaml_code.items():
-            if isinstance(v1, dict):
-                for k2, v2 in self._yaml_code[k1].items():
-                    if isinstance(v2, str) and "%(" in v2:
-                        self._yaml_code[k1][k2] = None
-                    elif isinstance(v2, str):
-                        self._yaml_code[k1][k2] = v2.strip()
-            elif isinstance(v1, str) and "%(" in v1:
-                self._yaml_code[k1] = None
-            elif isinstance(v1, str):
-                self._yaml_code[k1] = v1.strip()
+        """ Remove template elements and change None to empty string.
+        """
+        self._recursive_cleanup(self._yaml_code)
         self._update_config()
 
     def copy_requirements(self, target):

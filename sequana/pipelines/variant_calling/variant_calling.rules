@@ -1,3 +1,20 @@
+# coding: utf-8
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016 - Sequana Development Team
+#
+#  File author(s):
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
+#          <d.desvillechabrol@gmail.com>
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  website: https://github.com/sequana/sequana
+#  documentation: http://sequana.readthedocs.io
+#
+##############################################################################
 """
 Author: Dimitri Desvillechabrol
 Affiliation: Institut Pasteur
@@ -5,57 +22,38 @@ Aim: Variant calling
 Data: paired end or single reads
 Run: snakemake -s variant_calling.rules
 """
-
-
-""" This pipeline can be used as standalone or after a denovo assembly to
-evaluate contigs.
-"""
 import sys
 
 import sequana
 from sequana import snaketools as sm
 from sequana.snaketools import SequanaConfig
-from sequana import SnpEff
 sm.init("variant_calling.rules", globals())
 
 # This must be defined before the include
 configfile: "config.yaml"
 manager = sm.PipelineManager("variant_calling", config)
 __snakefile__ = srcdir(__snakefile__)
-
-# If annotation file is not provided
-__report_mapping__ann = None
-__report_mapping__ann_format = None
-
-# check if the pipeline is called by denovo pipeline
-try:
-    __report_mapping__quast_input = __quast__output
-except NameError:
-    report_dir = manager.getreportdir("vc")
-    __bwa_mem_ref__ref_input = config["bwa_mem_ref"]["reference"]
-    __report_mapping__quast_input = []
-
 __rawdata__input = manager.getrawdata()
 
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
+# Get the snpeff config and create database
 if config["snpeff"]["do"]:
     __snpeff_download_database__output = "snpEff.config"
     __snpeff_download_database__log = "snpeff_download_database.logs"
     include: sm.modules["snpeff_download_database"]
     __snpeff_add_locus_in_fasta__config = __snpeff_download_database__output
-    __snpeff_add_locus_in_fasta__fasta_input = __bwa_mem_ref__ref_input
+    __snpeff_add_locus_in_fasta__fasta_input = config["bwa_mem_ref"]["reference"]
     __snpeff_add_locus_in_fasta__output = manager.getname(
         "snpeff_add_locus_in_fasta", ".fasta")
     __snpeff_add_locus_in_fasta__log = manager.getlogdir(
         "snpeff_add_locus_in_fasta")
     include: sm.modules["snpeff_add_locus_in_fasta"]
     __bwa_mem_ref__ref_input = __snpeff_add_locus_in_fasta__output
-    __report_mapping__ann_input = config["snpeff"]["reference"]
 else:
-    __report_mapping__ann_input = []
+    __bwa_mem_ref__ref_input = config["bwa_mem_ref"]["reference"]
 
-# Mapping
+# Mapping with BWA MEM
 __bwa_mem_ref__input = __rawdata__input
 __bwa_mem_ref__reference = manager.getname("reference", ".fasta")
 __bwa_mem_ref__fai = __bwa_mem_ref__reference + ".fai"
@@ -64,7 +62,7 @@ __bwa_mem_ref__sort_output = manager.getname("bwa_mem_ref", ".sorted.bam")
 __bwa_mem_ref__log = manager.getlogdir("bwa_mem_ref")
 include: bwa_mem_dynamic("ref", manager)
 
-# Add read groups of sample
+# Add read groups of sample for GATK
 __add_read_group__input = __bwa_mem_ref__sort_output
 __add_read_group__output = manager.getname("add_read_group/", ".rg.sorted.bam")
 __add_read_group__log_err = manager.getlogdir("add_read_group.err")
@@ -74,7 +72,8 @@ __add_read_group__rg = "ID=%s LB=%s PL=%s PU=%s SM=%s" % (
     manager.config.sequencing.flowcell, manager.sample)
 include: sm.modules["add_read_group"]
 
-# set input of next rules
+# Init all input of next rules. These rules are optional and can be inactivate
+# in the config file with the "do" option.
 __indel_realigner__input = __add_read_group__output
 __mark_duplicates__input = __add_read_group__output
 __bam_quality_filter__input = __add_read_group__output
@@ -82,7 +81,7 @@ __samtools_depth__input = __add_read_group__output
 __report_mapping__bam_input = __add_read_group__output
 __freebayes__input = __add_read_group__output
 
-# Indel realigner
+# Indel realigner with GATK
 if config["indel_realigner"]["do"]:
     __create_sequence_dictionary__reference = __bwa_mem_ref__reference
     __create_sequence_dictionary__output = __bwa_mem_ref__reference.split(
@@ -105,7 +104,7 @@ if config["indel_realigner"]["do"]:
     __samtools_depth__input = __indel_realigner__output
     __report_mapping__bam_input = __indel_realigner__output
 
-# Mark duplicates
+# Mark duplicates with picard tools
 if config["mark_duplicates"]["do"]:
     __mark_duplicates__output = manager.getname("mark_duplicates",
                                                 ".rmdup.sorted.bam")
@@ -118,7 +117,7 @@ if config["mark_duplicates"]["do"]:
     __samtools_depth__input = __mark_duplicates__output
     __report_mapping__bam_input = __mark_duplicates__output
 
-# bam quality filter
+# bam quality filter with samtools
 if config["bam_quality_filter"]["do"]:
     __bam_quality_filter__output = manager.getname("bam_quality_filter",
                                                    ".filter.sorted.bam")
@@ -128,29 +127,30 @@ if config["bam_quality_filter"]["do"]:
     __samtools_depth__input = [__bam_quality_filter__output,
                                __bam_quality_filter__input]
 
-# Mapping report
-if config["report_mapping"]["do"]:
+# Sequana_coverage analysis
+if config["sequana_coverage"]["do"]:
     __samtools_depth__output = manager.getname("samtools_depth", ".bed")
     __samtools_depth__log = manager.getlogdir("samtools_depth")
     include: sm.modules["samtools_depth"]
-    __report_mapping__input = __samtools_depth__output
-    __report_mapping__sample_dict = manager.samples
-    __report_mapping__sample = manager.sample
-    __report_mapping__directory = report_dir
-    __report_mapping__output = report_dir + "report_mapping.html"
-    include: sm.modules["report_mapping"]
-    expected_output.append(expand(__report_mapping__output,
-                               sample=manager.samples))
+    __sequana_coverage__input = __samtools_depth__output
+    __sequana_coverage__fasta = __bwa_mem_ref__reference
+    if config['snpeff']['do']:
+        __sequana_coverage__gbk = config['snpeff']['reference']
+    else:
+        __sequana_coverage__gbk = []
+    __sequana_coverage__output = manager.getname("sequana_coverage", ".csv")
+    include: sm.modules["sequana_coverage"]
+    expected_output.append(__sequana_coverage__output)
 
-# Variant calling
-# bai file is setup in freebayes rule for multi_copy_file rule
+# Variant calling with Freebayes
+# bai file is setup in freebayes rule for pipeline summary
 __freebayes__bai = __freebayes__input + ".bai"
 __freebayes__reference = __bwa_mem_ref__reference
 __freebayes__output = manager.getname("freebayes", ".raw.vcf")
 __freebayes__log = manager.getlogdir("freebayes")
 include: sm.modules["freebayes"]
 
-# snpEff
+# Annotate detected variants with snpEff
 if config["snpeff"]["do"]:
     __snpeff__input = __freebayes__output
     __snpeff__config = __snpeff_download_database__output
@@ -166,54 +166,22 @@ else:
 __vcf_filter__output = manager.getname("vcf_filter", ".filter.vcf")
 __vcf_filter__csv = manager.getname("vcf_filter", ".csv")
 include: sm.modules["vcf_filter"]
-__report_variant__input = __vcf_filter__output
-
-# report vcf
-__report_variant__directory = report_dir
-__report_variant__html_output = report_dir + "report_variant.html"
-__report_variant__csv_output = report_dir + "variants.csv"
-include: sm.modules["report_variant"]
-expected_output.append(expand(__report_variant__html_output,
-                           sample=manager.samples))
 
 include: sm.modules["conda"] # Create requirements.txt(dependencies)
 __rulegraph__input = __snakefile__
 __rulegraph__output = "rulegraph/rulegraph.svg"
-__rulegraph__mapper = {"report_mapping":"report_mapping.html",
-                       "report_variant":"report_variant.html"}
+__rulegraph__mapper = {"sequana_coverage":"sequana_coverage.html",
+                       "vcf_filter":"variant_calling.html"}
 include: sm.modules["rulegraph"]
 expected_output += ["requirements.txt", __rulegraph__output]
-
-
-file_to_copy = [__freebayes__input, __freebayes__bai, __freebayes__output,
-                __vcf_filter__output, __vcf_filter__input, __snakefile__,
-                "config.yaml", __rulegraph__output, "requirements.txt",
-                __bwa_mem_ref__reference, __bwa_mem_ref__fai]
-
-# Check if snpeff is done
-try:
-    file_to_copy.append(__snpeff__html)
-except NameError:
-    pass
-# check if there are files from denovo assembly pipeline to copy
-try:
-    __copy_multiple_files__input += file_to_copy
-except NameError:
-    __copy_multiple_files__input = file_to_copy
-
-__copy_multiple_files__output = report_dir
-__copy_multiple_files__done = manager.sample + os.sep + "copy.done"
-include: sm.modules["copy_multiple_files"]
-expected_output.append(expand(__copy_multiple_files__done,
-                           sample=manager.samples))
 
 # create a json file that summarise information of your pipeline
 # they must be complete in the onsuccess block
 __summary_pipeline__inputs = __rawdata__input
 __summary_pipeline__outputs = [
-    __freebayes__input, __freebayes__bai, __freebayes__output,
-    __vcf_filter__output, __vcf_filter__input, __bwa_mem_ref__reference,
-    __bwa_mem_ref__fai]
+    __freebayes__input, __freebayes__bai, __bwa_mem_ref__reference,
+    __bwa_mem_ref__fai, __freebayes__output, __vcf_filter__input,
+    __vcf_filter__output]
 __summary_pipeline__rulegraph = __rulegraph__output
 __summary_pipeline__requirements = 'requirements.txt'
 __summary_pipeline__snakefile = __snakefile__

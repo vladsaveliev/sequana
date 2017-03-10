@@ -21,7 +21,6 @@ import re
 import sys
 import os
 import shutil
-
 import subprocess as sp
 from collections import OrderedDict
 
@@ -30,8 +29,15 @@ from sequana import FastA
 
 
 class SnpEff(object):
-    """ Python wrapper to launch snpEff.
+    """ Python wrapper to set and launch snpEff from a genbank file. It is not
+    easy to use a custom genbank file with snpEff.
 
+    Example:
+    
+    ::
+
+        snpeff = SnpEff('file.gbk')
+        snpeff.launch_snpeff('variants.vcf', 'variant.ann.vcf')
     """
     extension = {"genbank": ".gbk", "gff": ".gff", "gtf": ".gtf"}
     def __init__(self, reference, file_format="", log=None):
@@ -51,7 +57,10 @@ class SnpEff(object):
         if not os.path.exists("snpEff.config"):
             self._get_snpeff_config()
         if not file_format:
-            self._check_format()
+            try:
+                self._check_format()
+            except FileNotFoundError:
+                pass
         else:
             self.file_format = file_format
         # Check if reference is a file
@@ -79,24 +88,28 @@ class SnpEff(object):
                   "snpEff.config.\n")
 
     def _check_format(self):
-        # # set regex for gff and gtf files
-        # self.regex = re.compile("^([^\s#]+)[ \t\v]")
+        """ Check the format of your file.
+        """
+        # set regex for gff and gtf files
+        self.regex = re.compile("^([^\s#]+)[ \t\v]")
         with open(self.reference, "r") as fp:
             first_line = fp.readline()
             if first_line.startswith('LOCUS'):
                 self.file_format = "genbank"
                 # set regex for genbank file
                 self.regex = re.compile("^LOCUS\s+([^\s]+)")
-            # elif re.search('gff-version', first_line):
-            #     self.file_format = "gff"
-            # elif first_line.startswith('#!'):
-            #     self.file_format = "gtf"
+            elif re.search('gff-version', first_line):
+                self.file_format = "gff"
+            elif first_line.startswith('#!'):
+                self.file_format = "gtf"
             else:
                 print("The format can not be determined, please relaunch " 
                       "the script with the file_format argument")
                 sys.exit(1)
 
     def _check_database(self, reference):
+        """ Check if your genbank is already added.
+        """
         proc_db = sp.Popen(["snpEff", "databases"], stdout=sp.PIPE)
         snpeff_db = {line.split()[0] for line in proc_db.stdout}
         if reference.encode("utf-8") in snpeff_db:
@@ -104,6 +117,8 @@ class SnpEff(object):
         return False
     
     def _get_snpeff_config(self):
+        """ Copy and unzip the snpEff.config file.
+        """
         from sequana import sequana_data
         CONFIG = sequana_data("snpEff.config.gz", "snpeff")
         shutil.copyfile(CONFIG, "./snpEff.config.gz")
@@ -112,7 +127,6 @@ class SnpEff(object):
 
     def _add_custom_db(self):
         """ Add your custom file in the local snpEff database.
-
         """
         # create directory and copy annotation file
         genome_dir = "data" + os.sep + self.ref_name + os.sep
@@ -148,9 +162,12 @@ class SnpEff(object):
 
     def launch_snpeff(self, vcf_filename, output, html_output=None,
                       options=""):
-        """ Launch snpEff.
+        """ Launch snpEff with the custom genbank file.
         
-        :param vcf_filename: 
+        :param str vcf_filename: input VCF filename.
+        :param str output: output VCF filename.
+        :param str html_output: filename of the HTML creates by snpEff.
+        :param str options: any options recognised by snpEff.
         """
         # Create command line for Popen
         args_ann = ["snpEff", "-formatEff"]
@@ -223,8 +240,7 @@ class SnpEff(object):
                 fp.write(contigs)
 
 
-def download_fasta_and_genbank(identifier, tag, genbank=True,
-        fasta=True):
+def download_fasta_and_genbank(identifier, tag, genbank=True, fasta=True):
     """
 
     :param identifier: valid identifier to retrieve from NCBI (genbank) and 
@@ -245,6 +261,3 @@ def download_fasta_and_genbank(identifier, tag, genbank=True,
         data = ena.get_data(identifier, 'fasta')
         with open("%s.fa" % tag, "w") as fout:
             fout.write(data.decode())
-
-
-

@@ -146,8 +146,10 @@ Issues: http://github.com/sequana/sequana
                  must have the same length as the one used to create the
                  BAM or BED file. If provided, it is used to create the
                  coverage versus GC content image""")
-        group.add_argument("-g", "--window-gc", dest="w_gc", type=int,
-            help="""Length of the running window to compute the GC content""", default=200)
+        group.add_argument(
+            "-g", "--window-gc", dest="w_gc", type=int, default=201,
+            help="""Length of the running window to compute the GC content""")
+            
         group.add_argument('-n', "--nlevels", dest="levels", type=int,
             default=3, help="""Number of levels in the contour""")
 

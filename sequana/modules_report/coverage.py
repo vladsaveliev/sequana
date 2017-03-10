@@ -46,9 +46,9 @@ class CoverageModule(SequanaBaseModule):
             self.bed = data
         try:
             html_list = self.create_reports()
-        except:
+        except TypeError:
             msg = ("Data must be either a csv file or a :class:`GenomeCov` "
-                   "instance.")
+                   "instance where zscore is computed.")
             raise TypeError(msg)
         self.title = "Coverage Report of {0}".format(config.sample_name)
         self.intro = ("<p>Report the coverage of your sample {0} to check the "
@@ -56,7 +56,7 @@ class CoverageModule(SequanaBaseModule):
                       "interest (under and over covered).</p>".format(
                       config.sample_name))
         self.create_report_content(html_list)
-        self.create_html("coverage.html")
+        self.create_html("sequana_coverage.html")
 
     def create_report_content(self, html_list):
         self.sections = list()
@@ -163,7 +163,8 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         self.coverage_barplot()
         self.basic_stats()
         self.regions_of_interest(rois, links)
-        self.gc_vs_coverage()
+        if "gc" in self.chromosome.columns():
+            self.gc_vs_coverage()
         self.normalized_coverage()
         self.zscore_distribution()
 
