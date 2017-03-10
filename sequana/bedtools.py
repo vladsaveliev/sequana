@@ -275,6 +275,7 @@ class GenomeCov(object):
 
     @genbank_filename.setter
     def genbank_filename(self, genbank_filename):
+        print(genbank_filename)
         if os.path.isfile(genbank_filename):
             self._genbank_filename = os.path.realpath(genbank_filename)
             self._feature_dict = genbank_features_parser(
