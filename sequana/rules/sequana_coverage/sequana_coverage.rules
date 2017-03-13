@@ -1,0 +1,53 @@
+rule sequana_coverage:
+    """
+    Create a CSV file with all metrics computed to analyse the coverage of the
+    mapping. This CSV is used to create the sequana_coverage report.
+
+    Required input:
+        __sequana_coverage__input: bed file from samtools depth or bedtools
+            genomecov.
+
+    Optional input:
+        __sequana_coverage__fasta: fasta file to compute GC content.
+        __sequana_coverage__gbk: genbank file to annotate regions of interest.
+
+    Required output:
+        __sequana_coverage__output: csv file
+
+    Required parameter:
+        config["sequana_coverage"]["k"]: number of gaussians predicted in the
+            gaussian pool.
+        config["sequana_coverage"]["window_size"]: window size for running
+            median. This integer must be an odd number.
+        config["sequana_coverage"]["high_threshold"]: high zscore threshold.
+        config["sequana_coverage"]["low_threshold"]: low zscore threshold.
+        config["sequana_coverage"]["circular"]: boolean if the genome is
+            circular.
+        config["sequana_coverage"]["gc_window_size"]: window size to compute
+            GC content.
+
+    NOTE: If you do not need an optional input. Initiate it as an empty list.
+    """
+    input: 
+        input_file = __sequana_coverage__input,
+        fasta      = __sequana_coverage__fasta,
+        gbk        = __sequana_coverage__gbk
+    output:
+        csv = __sequana_coverage__output
+    params:
+        k        = config["sequana_coverage"]["k"],
+        size     = config["sequana_coverage"]["window_size"],
+        high     = config["sequana_coverage"]["high_threshold"],
+        low      = config["sequana_coverage"]["low_threshold"],
+        circular = config["sequana_coverage"]["circular"],
+        gc_size  = config["sequana_coverage"]["gc_window_size"]
+    run:
+        from sequana.bedtools import GenomeCov
+
+
+        bed = GenomeCov(input.input_file, input.gbk, params.low, params.high)
+        bed.compute_gc_content(input.fasta, params.gc_size, params.circular)
+        for chrom in bed:
+            chrom.running_median(params.size, params.circular)
+            chrom.compute_zscore(params.k)
+        bed.to_csv(output.csv, float_format='%.3g')

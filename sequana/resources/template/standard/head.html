@@ -1,0 +1,45 @@
+{#  head.html
+
+    Contains metadata of html page and javascript package.
+
+    The <head> element is a container for metadata (data about data) and is
+    placed between the <html> tag and the <body> tag.
+#}
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link type="text/css" rel="stylesheet" href="{{ module.path }}css/jquery.dropdown.min.css" />
+<link type="text/css" rel="stylesheet" href="{{ module.path }}css/jquery.dataTables.min.css" />
+<link type="text/css" rel="stylesheet" href="{{ module.path }}css/buttons.dataTables.min.css" />
+<link type="text/css" rel="stylesheet" href="{{ module.path }}css/report.css"  />
+<title> Sequana report </title>
+
+{% if module.css is defined %}
+<style>
+{% for css in module.css %}
+    {{ css }}
+{% endfor %}
+</style>
+{% endif %}
+
+<script type="text/javascript" src="{{ module.path }}js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="{{ module.path }}js/jquery.dropdown.min.js"></script>
+<script type="text/javascript" src="{{ module.path }}js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="{{ module.path }}js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="{{ module.path }}js/buttons.html5.min.js"></script>
+<script type="text/javascript" src="{{ module.path }}js/papaparse.min.js"></script>
+<script type="text/javascript" src="{{ module.path }}js/sorttable.js"></script>
+<script type="text/javascript" src="{{ module.path }}js/canvasjs.min.js"></script>
+
+{# Add custom javascript dedicated for the module #}
+{% if module.js_function is defined %}
+<script type="text/javascript">
+{% for function in module.js_function %}
+    {{ function }}
+{% endfor %}
+$(document).ready(function(){
+    {% for script in module.js_script %}
+        {{ script }}
+    {% endfor %}
+});
+</script>
+{% endif %}

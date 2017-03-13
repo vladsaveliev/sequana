@@ -1,0 +1,13 @@
+rule bam_analysis:
+    """
+    """
+    input:
+        bam = __bam_analysis__input
+    output:
+        json = __bam_analysis__json
+    run:
+        from sequana import bamtools
+                
+
+        bam = bamtools.BAM(input.bam)
+

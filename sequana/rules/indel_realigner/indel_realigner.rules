@@ -4,14 +4,20 @@ rule indel_realigner:
     potentially be improved, then realigns the reads in these regions.
 
     Required input:
-        __indel_realigner__input: sorted bam file
-        __indel_realigner__reference: fasta file
-        __indel_realigner__ref_dict: reference dictionnary
+        __indel_realigner__input: sorted bam file.
+        __indel_realigner__reference: fasta file.
+        __indel_realigner__ref_dict: reference dictionnary.
 
     Required output:
-        __indel_realigner__output: bam file
+        __indel_realigner__output: bam file.
         __indel_realigner__intervals: intervals file. Must have ".intervals" 
             extension.
+
+    Required parameters:
+        config['indel_realigner']['target_creator_options']: any options
+            recognised by RealignerTargetCreator.
+        config['indel_realigner']['options']: any options recognised by
+            IndelRealigner.
     """
     input:
         bam = __indel_realigner__input,
@@ -22,15 +28,18 @@ rule indel_realigner:
         intervals = __indel_realigner__intervals
     log:
         __indel_realigner__log
+    params:
+        rtc = config['indel_realigner']['target_creator_options'],
+        it = config['indel_realigner']['options']
     shell:
         """
         # BAM must be indexed to realign INDEL
         samtools index {input.bam}
 
-        GenomeAnalysisTK -T RealignerTargetCreator -R {input.ref} \
-        -I {input.bam} -o {output.intervals} > {log} 2>&1
+        GenomeAnalysisTK -T RealignerTargetCreator {params.rtc} -R \
+        {input.ref} -I {input.bam} -o {output.intervals} > {log} 2>&1
 
-        GenomeAnalysisTK -T IndelRealigner -R {input.ref} -I {input.bam} \
-        -targetIntervals {output.intervals} -o {output.bam} >> {log} \
-        2>&1
+        GenomeAnalysisTK -T IndelRealigner {params.it} -R {input.ref} -I \
+        {input.bam} -targetIntervals {output.intervals} -o {output.bam} \
+        >> {log} 2>&1
         """
