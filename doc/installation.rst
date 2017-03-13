@@ -49,7 +49,8 @@ install everything in one go)::
 .. note:: the denovo_assembly pipelines uses Quast tool, which we ported to
     python 3.5 and was pulled on Quast official github page. This is not
     yet in bioconda but one can it from the quast github (sept 2016). This is
-    required for the de-novo pipeline
+    required for the de-novo pipeline. The denove pipeline also requires GATK, 
+    to be installed manually by users (due to licensing restrictions)
 
 .. note:: **Sequana** is not fully compatible with Python 2.7 since a dependency
     (Snakemake) is only available for Python 3.5. However, many core
