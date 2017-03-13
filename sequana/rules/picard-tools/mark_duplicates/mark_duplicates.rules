@@ -28,7 +28,8 @@ rule mark_duplicates:
         tmpdir = config["mark_duplicates"]["tmpdir"]
     shell:
         """
-        picard MarkDuplicates I={input} O={output.bam} \
+        (picard MarkDuplicates I={input} O={output.bam} \
             M={output.metrics} REMOVE_DUPLICATES={params.remove} \
-            {params.tmpdir} && samtools index {output.bam} > {log.out} 2> {log.err}
+            {params.tmpdir} && samtools index {output.bam}) \
+            > {log.out} 2> {log.err}
         """
