@@ -22,7 +22,8 @@ Aim: Variant calling
 Data: paired end or single reads
 Run: snakemake -s variant_calling.rules
 """
-import sys
+import shutil
+import os
 
 import sequana
 from sequana import snaketools as sm
@@ -32,30 +33,39 @@ sm.init("variant_calling.rules", globals())
 # This must be defined before the include
 configfile: "config.yaml"
 manager = sm.PipelineManager("variant_calling", config)
+# Clean template and replace None with empty string
+config = manager.config
 __snakefile__ = srcdir(__snakefile__)
 __rawdata__input = manager.getrawdata()
 
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
 # Get the snpeff config and create database
+reference = config["bwa_mem_ref"]["reference"]
 if config["snpeff"]["do"]:
     __snpeff_download_database__output = "snpEff.config"
     __snpeff_download_database__log = "snpeff_download_database.logs"
     include: sm.modules["snpeff_download_database"]
     __snpeff_add_locus_in_fasta__config = __snpeff_download_database__output
-    __snpeff_add_locus_in_fasta__fasta_input = config["bwa_mem_ref"]["reference"]
-    __snpeff_add_locus_in_fasta__output = manager.getname(
-        "snpeff_add_locus_in_fasta", ".fasta")
-    __snpeff_add_locus_in_fasta__log = manager.getlogdir(
-        "snpeff_add_locus_in_fasta")
+    __snpeff_add_locus_in_fasta__fasta_input = reference
+    __snpeff_add_locus_in_fasta__output = "reference/{0}".format(
+        os.path.basename(reference))
     include: sm.modules["snpeff_add_locus_in_fasta"]
-    __bwa_mem_ref__ref_input = __snpeff_add_locus_in_fasta__output
+    __bwa_mem_ref__reference = __snpeff_add_locus_in_fasta__output
+    __bwa_index_ref__log = "reference/logs/bwa_index.log"
+elif not os.path.isfile(reference + ".fai"):
+    exec(open(sequana.modules["dynamic_copy"], "r").read)
+    __copy_ref__input = reference
+    __copy_ref__output = "reference/" + os.path.basename(reference)
+    include: dynamic_copy("ref", manager)
+    __bwa_mem_ref__reference = __copy_ref__output
+    __bwa_index_ref__log = "reference/logs/bwa_index.log"
 else:
-    __bwa_mem_ref__ref_input = config["bwa_mem_ref"]["reference"]
+    __bwa_mem_ref__reference = reference
+    __bwa_index_ref__log = "logs/bwa_index.log"
 
 # Mapping with BWA MEM
 __bwa_mem_ref__input = __rawdata__input
-__bwa_mem_ref__reference = manager.getname("reference", ".fasta")
 __bwa_mem_ref__fai = __bwa_mem_ref__reference + ".fai"
 __bwa_mem_ref__mem_output = manager.getname("bwa_mem_ref", ".bam")
 __bwa_mem_ref__sort_output = manager.getname("bwa_mem_ref", ".sorted.bam")
