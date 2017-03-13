@@ -3,7 +3,7 @@ import pkg_resources
 try:
     version = pkg_resources.require("sequana")[0].version
 except:
-    version = ">=0.18.0"
+    version = ">=0.20.0"
 
 import colorlog as logger
 def sequana_debug_level(level="WARNING"):
