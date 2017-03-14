@@ -16,4 +16,4 @@ rule copy_%(name)s:
         """
 '''
     from sequana.snaketools import build_dynamic_rule
-    return build_dynamic_rule(bwa_mem_code % metadata, project.pipeline_dir)
+    return build_dynamic_rule(dynamic_copy % metadata, project.pipeline_dir)
