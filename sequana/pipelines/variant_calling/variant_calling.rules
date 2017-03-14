@@ -52,7 +52,7 @@ if config["snpeff"]["do"]:
     include: sm.modules["snpeff_add_locus_in_fasta"]
     __bwa_mem_ref__reference = __snpeff_add_locus_in_fasta__output
 elif not os.path.isfile(reference + ".fai"):
-    exec(open(sequana.modules["dynamic_copy"], "r").read)
+    exec(open(sequana.modules["dynamic_copy"], "r").read())
     __copy_ref__input = reference
     __copy_ref__output = "reference/" + os.path.basename(reference)
     include: dynamic_copy("ref", manager)
