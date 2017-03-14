@@ -22,7 +22,6 @@ Aim: Variant calling
 Data: paired end or single reads
 Run: snakemake -s variant_calling.rules
 """
-import shutil
 import os
 
 import sequana
@@ -44,7 +43,7 @@ exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 reference = config["bwa_mem_ref"]["reference"]
 if config["snpeff"]["do"]:
     __snpeff_download_database__output = "snpEff.config"
-    __snpeff_download_database__log = "snpeff_download_database.logs"
+    __snpeff_download_database__log = "common_logs/snpeff_download_database.log"
     include: sm.modules["snpeff_download_database"]
     __snpeff_add_locus_in_fasta__config = __snpeff_download_database__output
     __snpeff_add_locus_in_fasta__fasta_input = reference
@@ -52,17 +51,14 @@ if config["snpeff"]["do"]:
         os.path.basename(reference))
     include: sm.modules["snpeff_add_locus_in_fasta"]
     __bwa_mem_ref__reference = __snpeff_add_locus_in_fasta__output
-    __bwa_index_ref__log = "reference/logs/bwa_index.log"
 elif not os.path.isfile(reference + ".fai"):
     exec(open(sequana.modules["dynamic_copy"], "r").read)
     __copy_ref__input = reference
     __copy_ref__output = "reference/" + os.path.basename(reference)
     include: dynamic_copy("ref", manager)
     __bwa_mem_ref__reference = __copy_ref__output
-    __bwa_index_ref__log = "reference/logs/bwa_index.log"
 else:
     __bwa_mem_ref__reference = reference
-    __bwa_index_ref__log = "logs/bwa_index.log"
 
 # Mapping with BWA MEM
 __bwa_mem_ref__input = __rawdata__input
@@ -70,6 +66,7 @@ __bwa_mem_ref__fai = __bwa_mem_ref__reference + ".fai"
 __bwa_mem_ref__mem_output = manager.getname("bwa_mem_ref", ".bam")
 __bwa_mem_ref__sort_output = manager.getname("bwa_mem_ref", ".sorted.bam")
 __bwa_mem_ref__log = manager.getlogdir("bwa_mem_ref")
+__bwa_index_ref__log = "common_logs/bwa_index.log"
 include: bwa_mem_dynamic("ref", manager)
 
 # Add read groups of sample for GATK
@@ -96,8 +93,7 @@ if config["indel_realigner"]["do"]:
     __create_sequence_dictionary__reference = __bwa_mem_ref__reference
     __create_sequence_dictionary__output = __bwa_mem_ref__reference.split(
         ".fa")[0] + ".dict"
-    __create_sequence_dictionary__log = manager.getlogdir(
-        "create_sequence_dictionary")
+    __create_sequence_dictionary__log = "common_logs/create_sequence_dictionary.log"
     include: sm.modules["create_sequence_dictionary"]
 
     __indel_realigner__reference = __bwa_mem_ref__reference
@@ -150,7 +146,8 @@ if config["sequana_coverage"]["do"]:
         __sequana_coverage__gbk = []
     __sequana_coverage__output = manager.getname("sequana_coverage", ".csv")
     include: sm.modules["sequana_coverage"]
-    expected_output.append(__sequana_coverage__output)
+    expected_output.append(expand(__sequana_coverage__output,
+                                  sample=manager.samples))
 
 # Variant calling with Freebayes
 # bai file is setup in freebayes rule for pipeline summary
@@ -183,7 +180,7 @@ __rulegraph__output = "rulegraph/rulegraph.svg"
 __rulegraph__mapper = {"sequana_coverage":"sequana_coverage.html",
                        "vcf_filter":"variant_calling.html"}
 include: sm.modules["rulegraph"]
-expected_output += ["requirements.txt", __rulegraph__output]
+expected_output.extend(["requirements.txt", __rulegraph__output])
 
 # create a json file that summarise information of your pipeline
 # they must be complete in the onsuccess block
