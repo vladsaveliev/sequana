@@ -84,13 +84,17 @@ class PacBioInputBAM(object):
         self.data.close()
         self.data = pysam.AlignmentFile(self.filename, check_sq=False)
 
-    def stride(self, output_filename, stride=10):
+    def stride(self, output_filename, stride=10, shift=0, random=False):
         self.reset()
         with pysam.AlignmentFile(output_filename,  "wb", template=self.data) as fh:
+            if random:
+                shift = np.random.randint(stride)
 
             for i, read in enumerate(self.data):
-                if i % stride == 0: 
+                if (i + shift) % stride == 0: 
                     fh.write(read)
+                    if random:
+                        shift = np.random.randint(stride)
 
 
     def hist_snr(self, bins=50, alpha=0.5, hold=False, fontsize=12,
@@ -170,6 +174,20 @@ class PacBioInputBAM(object):
         pylab.xlabel("Read length", fontsize=12)
         pylab.ylabel("GC %", fontsize=12)
         pylab.title("GC % vs length \n Mean length : %.2f , Mean GC : %.2f" %(mean_len, mean_GC))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
