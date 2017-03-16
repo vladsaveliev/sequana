@@ -65,13 +65,9 @@ class CoverageModule(SequanaBaseModule):
     def chromosome_table(self, html_list):
         """ Create table with links to chromosome reports
         """
-        formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
-        link = "coverage_reports" + os.sep + "{0}.cov.html"
-        df = pd.DataFrame([[formatter.format(chrom.chrom_name,
-                          link.format(chrom.chrom_name)),
-                          chrom.get_size(), chrom.get_mean_cov(),
-                          chrom.get_var_coef(), page] for chrom, page in
-                          zip(self.bed.chr_list, html_list)],
+        df = pd.DataFrame([[chrom.chrom_name, chrom.get_size(),
+                          chrom.get_mean_cov(), chrom.get_var_coef(), page] for
+                          chrom, page in zip(self.bed.chr_list, html_list)],
                           columns=["chromosome", "size", "mean_coverage",
                           "coef_variation", "link"])
         datatable = DataTable(df, 'chrom')
