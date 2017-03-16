@@ -34,7 +34,8 @@ from .kraken import KrakenResults, KrakenPipeline, KrakenAnalysis, KrakenDownloa
 from .phred import Quality
 from .running_median import RunningMedian
 from .snpeff import SnpEff
-from .vcf_filter import VCF
+from .freebayes_vcf_filter import VCF_freebayes
+from .freebayes_bcf_filter import BCF_freebayes
 
 
 # The standalone app

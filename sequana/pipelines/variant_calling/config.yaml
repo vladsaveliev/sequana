@@ -144,7 +144,7 @@ sequana_coverage:
     gc_window_size: 201
 
 ##############################################################################
-# Filter VCF
+# Filter BCF
 #
 # :Paramaters:
 #
@@ -155,7 +155,7 @@ sequana_coverage:
 # - reverse_depth: threshold for minimum coverage depth of reverse strand
 # - strand_ratio: threshold for minimum strand ratio between 0 and 0.5
 #
-vcf_filter:
+freebayes_bcf_filter:
     freebayes_score: 200
     frequency: 0.8
     min_depth: 10
