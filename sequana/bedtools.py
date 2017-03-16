@@ -887,8 +887,8 @@ class ChromosomeCov(object):
         pylab.clf()
         bins = self._set_bins(self.df["zscore"][self.range[0]:self.range[1]],
                 binwidth)
-        self.df["zscore"][self.range[0]:self.range[1]].hist(grid=True,
-                bins=bins, **hist_kargs)
+        self.df["zscore"][self.range[0]:self.range[1]].hist(
+                grid=True, bins=bins, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
@@ -906,8 +906,11 @@ class ChromosomeCov(object):
         # if there are a NaN -> can't set up binning
         data_scale = self.df["scale"][self.range[0]:self.range[1]].dropna()
         bins = self._set_bins(data_scale, binwidth)
-        self.mixture_fitting.plot(self.gaussians_params, bins=bins, Xmin=0,
-                                  Xmax=max_z)
+        try:
+            self.mixture_fitting.plot(self.gaussians_params, bins=bins, Xmin=0,
+                                      Xmax=max_z)
+        except ZeroDivisionError:
+            pass
         pylab.grid(True)
         pylab.xlim([0,max_z])
         pylab.xlabel("Normalised per-base coverage")
