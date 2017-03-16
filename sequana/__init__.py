@@ -28,14 +28,14 @@ from .bedtools import GenomeCov
 from .coverage import Coverage
 from .fastq import FastQ, FastQC, Identifier
 from .fasta import FastA
+from .freebayes_vcf_filter import VCF_freebayes
+from .freebayes_bcf_filter import BCF_freebayes
 from .kraken_builder import KrakenBuilder
 from .krona import KronaMerger
 from .kraken import KrakenResults, KrakenPipeline, KrakenAnalysis, KrakenDownload
 from .phred import Quality
 from .running_median import RunningMedian
 from .snpeff import SnpEff
-from .freebayes_vcf_filter import VCF_freebayes
-from .freebayes_bcf_filter import BCF_freebayes
 
 
 # The standalone app
