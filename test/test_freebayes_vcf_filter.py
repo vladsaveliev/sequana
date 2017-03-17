@@ -17,7 +17,11 @@ def test_vcf_filter():
         assert compare_file
 
 def test_constructor():
-    VCF_freebayes('dummy')
+    try:
+        VCF_freebayes('dummy')
+        assert False
+    except FileNotFoundError:
+        assert True
 
 def test_to_csv():
     filter_dict = {'freebayes_score': 200, 'frequency': 0.85, 'min_depth': 10,
