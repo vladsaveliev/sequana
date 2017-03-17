@@ -165,28 +165,21 @@ if config["snpeff"]["do"]:
     __snpeff__html = manager.getname("snpeff", ".snpeff.html")
     __snpeff__log = manager.getlogdir("snpeff")
     include: sm.modules["snpeff"]
-    __vcf_to_bcf_fb__input = __snpeff__output
+    __freebayes_vcf_filter__input = __snpeff__output
 else:
-    __vcf_to_bcf_fb__input = __freebayes__output
-
-# Convert VCF to BCF (fastest format to filter)
-exec(open(sequana.modules["dynamic_vcf_to_bcf"], "r").read())
-__vcf_to_bcf_fb__output = manager.getname("vcf_to_bcf_fb", ".raw.bcf")
-__vcf_to_bcf_fb__log = manager.getlogdir("vcf_to_bcf_fb")
-include: dynamic_vcf_to_bcf("fb", manager)
+    __freebayes_vcf_filter__input = __freebayes__output
 
 # Freebayes filter
-__freebayes_bcf_filter__input = __vcf_to_bcf_fb__output
-__freebayes_bcf_filter__output = manager.getname("freebayes_bcf_filter",
+__freebayes_vcf_filter__output = manager.getname("freebayes_vcf_filter",
                                                  ".filter.vcf")
-__freebayes_bcf_filter__csv = manager.getname("freebayes_bcf_filter", ".csv")
-include: sm.modules["freebayes_bcf_filter"]
+__freebayes_vcf_filter__csv = manager.getname("freebayes_vcf_filter", ".csv")
+include: sm.modules["freebayes_vcf_filter"]
 
 include: sm.modules["conda"] # Create requirements.txt(dependencies)
 __rulegraph__input = __snakefile__
 __rulegraph__output = "rulegraph/rulegraph.svg"
 __rulegraph__mapper = {"sequana_coverage":"sequana_coverage.html",
-                       "vcf_filter":"variant_calling.html"}
+                       "freebayes_vcf_filter":"variant_calling.html"}
 include: sm.modules["rulegraph"]
 expected_output.extend(["requirements.txt", __rulegraph__output])
 
@@ -195,8 +188,8 @@ expected_output.extend(["requirements.txt", __rulegraph__output])
 __summary_pipeline__inputs = __rawdata__input
 __summary_pipeline__outputs = [
     __freebayes__input, __freebayes__bai, __bwa_mem_ref__reference,
-    __bwa_mem_ref__fai, __freebayes__output, __vcf_to_bcf_fb__input,
-    __freebayes_bcf_filter__output]
+    __bwa_mem_ref__fai, __freebayes__output, __freebayes_vcf_filter__input,
+    __freebayes_vcf_filter__output]
 __summary_pipeline__rulegraph = __rulegraph__output
 __summary_pipeline__requirements = 'requirements.txt'
 __summary_pipeline__snakefile = __snakefile__

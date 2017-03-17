@@ -10,13 +10,15 @@ rule freebayes_vcf_filter:
         __freebayes_vcf_filter__csv: CSV file
 
     Required parameters:
-        config["freebayes_vcf_filter"]["freebayes_score"]: minimal freebayes score
-        config["freebayes_vcf_filter"]["frequency"]: minimal alternative allele frequency
+        config["freebayes_vcf_filter"]["freebayes_score"]: minimal freebayes
+            score
+        config["freebayes_vcf_filter"]["frequency"]: minimal alternative allele
+            frequency
         config["freebayes_vcf_filter"]["depth"]: minimal coverage depth
-        config["freebayes_vcf_filter"]["forward_depth"]: minimal coverage depth of
-            forward strand
-        config["freebayes_vcf_filter"]["reverse_depth"]: minimal coverage depth of
-            reverse strand
+        config["freebayes_vcf_filter"]["forward_depth"]: minimal coverage depth
+            of forward strand
+        config["freebayes_vcf_filter"]["reverse_depth"]: minimal coverage depth
+            of reverse strand
         config["freebayes_vcf_filter"]["strand_ratio"]: minimal strand ratio [0:0.5]
     """
     input:
@@ -29,7 +31,7 @@ rule freebayes_vcf_filter:
     run:
         from sequana.freebayes_vcf_filter import VCF_freebayes
         
-        vcf_record = VCF_freebayes(input["vcf"])
-        vcf_record.filter_vcf(params["filter_dict"], output["vcf"])
-        vcf_record = vcf_filter.VCF_freebayes(output["vcf"])
-        vcf_record.to_csv(output["csv"], filter_dict=params["filter_dict"])
+        v = VCF_freebayes(input["vcf"])
+        filter_v = v.filter_vcf(params["filter_dict"])
+        filter_v.to_vcf(output["vcf"])
+        filter_v.to_csv(output["csv"])
