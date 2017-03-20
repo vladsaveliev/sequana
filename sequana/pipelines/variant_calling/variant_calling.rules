@@ -45,6 +45,7 @@ if config["snpeff"]["do"]:
     __snpeff_download_database__output = "snpEff.config"
     __snpeff_download_database__log = "common_logs/snpeff_download_database.log"
     include: sm.modules["snpeff_download_database"]
+    from sequana.snpeff import SnpEff
     __snpeff_add_locus_in_fasta__config = __snpeff_download_database__output
     __snpeff_add_locus_in_fasta__fasta_input = reference
     __snpeff_add_locus_in_fasta__output = "reference/{0}".format(
@@ -60,14 +61,19 @@ elif not os.path.isfile(reference + ".fai"):
 else:
     __bwa_mem_ref__reference = reference
 
-# Mapping with BWA MEM
-__bwa_mem_ref__input = __rawdata__input
-__bwa_mem_ref__fai = __bwa_mem_ref__reference + ".fai"
-__bwa_mem_ref__mem_output = manager.getname("bwa_mem_ref", ".bam")
-__bwa_mem_ref__sort_output = manager.getname("bwa_mem_ref", ".sorted.bam")
-__bwa_mem_ref__log = manager.getlogdir("bwa_mem_ref")
-__bwa_index_ref__log = "common_logs/bwa_index.log"
-include: bwa_mem_dynamic("ref", manager)
+if config['input_extension'].endswith('bam') or \
+    config['input_pattern'].endswith('bam'):
+    __bwa_mem_ref__fai = __bwa_mem_ref__reference + ".fai"
+    __bwa_mem_ref__sort_output = __rawdata__input
+else:
+    # Mapping with BWA MEM
+    __bwa_mem_ref__input = __rawdata__input
+    __bwa_mem_ref__fai = __bwa_mem_ref__reference + ".fai"
+    __bwa_mem_ref__mem_output = manager.getname("bwa_mem_ref", ".bam")
+    __bwa_mem_ref__sort_output = manager.getname("bwa_mem_ref", ".sorted.bam")
+    __bwa_mem_ref__log = manager.getlogdir("bwa_mem_ref")
+    __bwa_index_ref__log = "common_logs/bwa_index.log"
+    include: bwa_mem_dynamic("ref", manager)
 
 # Add read groups of sample for GATK
 __add_read_group__input = __bwa_mem_ref__sort_output
@@ -188,8 +194,10 @@ expected_output.extend(["requirements.txt", __rulegraph__output])
 __summary_pipeline__inputs = __rawdata__input
 __summary_pipeline__outputs = [
     __freebayes__input, __freebayes__bai, __bwa_mem_ref__reference,
-    __bwa_mem_ref__fai, __freebayes__output, __freebayes_vcf_filter__input,
+    __freebayes__output, __freebayes_vcf_filter__input,
     __freebayes_vcf_filter__output]
+if os.path.isfile(__bwa_mem_ref__fai):
+    __summary_pipeline__outputs.append(__bwa_mem_ref__fai)
 __summary_pipeline__rulegraph = __rulegraph__output
 __summary_pipeline__requirements = 'requirements.txt'
 __summary_pipeline__snakefile = __snakefile__
