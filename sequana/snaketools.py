@@ -771,10 +771,16 @@ class PipelineManager(object):
         else:
             self.error("No valid input provided in the config file")
 
-        if glob_dir.endswith('bam'):
-            self._get_bam_files(glob_dir)
-        else:
-            self._get_fastq_files(glob_dir)
+        try:
+            if glob_dir.endswith('bam'):
+                self._get_bam_files(glob_dir)
+            else:
+                self._get_fastq_files(glob_dir)
+        except AttributeError:
+            if glob_dir[0].endswith('bam'):
+                self._get_bam_files(glob_dir)
+            else:
+                self._get_fastq_files(glob_dir)
         # finally, keep track of the config file
         self.config = cfg.config
 
