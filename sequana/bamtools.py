@@ -33,7 +33,6 @@ import os
 import json
 from collections import Counter
 from collections import OrderedDict
-import json
 
 from sequana.lazy import pandas as pd
 from sequana.lazy import numpy as np
@@ -57,7 +56,6 @@ Interesting commands::
     samtools flagstat contaminant.bam
     samtools stats contaminant.bam
 """
-
 
 __all__ = ['BAM','Alignment', 'SAMFlags']
 
