@@ -771,6 +771,16 @@ class PipelineManager(object):
         else:
             self.error("No valid input provided in the config file")
 
+        if glob_dir.endswith('bam'):
+            self._get_bam_files(glob_dir)
+        else:
+            self._get_fastq_files(glob_dir)
+        # finally, keep track of the config file
+        self.config = cfg.config
+
+    def _get_fastq_files(self, glob_dir):    
+        """
+        """
         self.ff = FastQFactory(glob_dir)
         if self.ff.filenames == 0:
             self.error("No files were found.")
@@ -817,8 +827,13 @@ class PipelineManager(object):
             self.sample = "{sample}"
             self.basename = "{sample}/%s/{sample}"
 
-        # finally, keep track of the config file
-        self.config = cfg.config
+    def _get_bam_files(self, pattern):
+        ff = FileFactory(pattern)
+        self.samples = {tag: fl for tag, fl in zip(ff.filenames, ff.realpaths)}
+        self.mode = "wc"
+        self.sample = "{sample}"
+        self.basename = "{sample}/%s/{sample}"
+
 
     def error(self, msg):
         msg += ("\nPlease check the content of your config file. You must have "
