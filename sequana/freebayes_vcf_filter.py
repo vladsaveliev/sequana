@@ -274,8 +274,8 @@ class Filtered_freebayes(object):
         :params str output_filename: output CSV filename.
         """
         with open(output_filename, "w") as fp:
-            print("# sequana_variant_calling; {0}".format(self._vcf.filters),
-                  file=fp)
+            print("# sequana_variant_calling;{0}".format(
+                self._vcf.filters_params), file=fp)
             if self.df.empty:
                 print(",".join(Filtered_freebayes._col_index), file=fp)
             else:
