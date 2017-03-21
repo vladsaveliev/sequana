@@ -30,7 +30,7 @@ from sequana.lazy import numpy as np
 from sequana.lazy import pylab
 
 
-from sequana import running_median, logger
+from sequana import logger
 from sequana.tools import gc_content, genbank_features_parser
 from sequana.errors import SequanaException
 
@@ -886,9 +886,9 @@ class ChromosomeCov(object):
         """
         pylab.clf()
         bins = self._set_bins(self.df["zscore"][self.range[0]:self.range[1]],
-                binwidth)
+                              binwidth)
         self.df["zscore"][self.range[0]:self.range[1]].hist(
-                grid=True, bins=bins, **hist_kargs)
+            grid=True, bins=bins, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
@@ -904,8 +904,11 @@ class ChromosomeCov(object):
         """
         pylab.clf()
         # if there are a NaN -> can't set up binning
-        data_scale = self.df["scale"][self.range[0]:self.range[1]].dropna()
-        bins = self._set_bins(data_scale, binwidth)
+        d = self.df["scale"][self.range[0]:self.range[1]].dropna()
+        # remove outlier -> plot crash if range between min and max is too high
+        d = d[np.abs(d - d.mean()) <= (4 * d.std())]
+        bins = self._set_bins(d, binwidth)
+        self.mixture_fitting.data = d
         try:
             self.mixture_fitting.plot(self.gaussians_params, bins=bins, Xmin=0,
                                       Xmax=max_z)
@@ -1013,15 +1016,15 @@ class ChromosomeCov(object):
 
         try:
             h2.plot(bins=bins, xlabel="Per-base coverage",
-                ylabel=r'GC content (%)' ,
-                Nlevels=Nlevels, contour=contour, norm=norm,
-                fontsize=fontsize, **kwargs)
+                    ylabel=r'GC content (%)',
+                    Nlevels=Nlevels, contour=contour, norm=norm,
+                    fontsize=fontsize, **kwargs)
         except:
             h2.plot(bins=bins, xlabel="Per-base coverage",
-                ylabel=r'GC content (%)' ,
-                Nlevels=Nlevels, contour=False, norm=norm,
-                fontsize=fontsize, **kwargs)
-        pylab.ylim([ymin,ymax])
+                    ylabel=r'GC content (%)' ,
+                    Nlevels=Nlevels, contour=False, norm=norm,
+                    fontsize=fontsize, **kwargs)
+        pylab.ylim([ymin, ymax])
         try:
             pylab.tight_layout()
         except:
@@ -1036,19 +1039,20 @@ class ChromosomeCov(object):
         (default window size is 101)
 
         """
-        return self.df[['cov', 'gc']].corr().iloc[0,1]
+        return self.df[['cov', 'gc']].corr().iloc[0, 1]
 
     def get_max_gc_correlation(self, reference):
         """Plot correlation between coverage and GC content by varying the GC window
 
          The GC content uses a moving window of size W. This parameter affects
-         the correlation bewteen coverage and GC. This function find the *optimal*
-         window length.
+         the correlation bewteen coverage and GC. This function find the
+         *optimal* window length.
 
         """
         pylab.clf()
         corrs = []
         wss = []
+
         def func(params):
             ws = int(round(params[0]))
             if ws < 10:
@@ -1060,7 +1064,7 @@ class ChromosomeCov(object):
             return corr
 
         from scipy.optimize import fmin
-        res = fmin(func, 100, xtol=1, disp=False) # guess is 200
+        res = fmin(func, 100, xtol=1, disp=False)  # guess is 200
         pylab.plot(wss, corrs, "o")
         pylab.xlabel("GC window size")
         pylab.ylabel("Correlation")
@@ -1071,23 +1075,25 @@ class ChromosomeCov(object):
         """Return basic stats about the coverage data"""
         data = self.df
 
-        stats ={
+        stats = {
             'DOC': self.df['cov'].mean(),
             'STD': self.df['cov'].std(),
             'Median': self.df['cov'].median(),
-            'BOC': 100 * sum(self.df['cov'] > 0) / float(len(self.df)) }
-        stats['CV'] = stats['STD'] /  stats['DOC']
-        stats['MAD'] = np.median(abs(data['cov'].median() - data['cov']).dropna())
+            'BOC': 100 * sum(self.df['cov'] > 0) / float(len(self.df))}
+        stats['CV'] = stats['STD'] / stats['DOC']
+        stats['MAD'] = np.median(abs(data['cov'].median() -
+                                 data['cov']).dropna())
 
-        names = ['BOC','CV', 'DOC', 'MAD', 'Median', "STD"]
-        descriptions = [("breadth of coverage: the proportion (in %s) of the "
-            "genome covered by at least one read. "),
-            ("the coefficient of variation"),
-            ("the sequencing depth (Depth of Coverage), that is the average of"
-            "the genome coverage"),
-            ("median of the absolute median deviation median(|X-median(X)|)"),
-            ("Median of the coverage"),
-            ("standard deviation")
+        names = ['BOC', 'CV', 'DOC', 'MAD', 'Median', 'STD']
+        descriptions = [
+            "breadth of coverage: the proportion (in %s) of the "
+            "genome covered by at least one read.",
+            "the coefficient of variation.",
+            "the sequencing depth (Depth of Coverage), that is the average of "
+            "the genome coverage.",
+            "median of the absolute median deviation median(|X-median(X)|).",
+            "Median of the coverage.",
+            "standard deviation."
         ]
 
         if 'gc' in self.df.columns:
@@ -1096,8 +1102,8 @@ class ChromosomeCov(object):
             descriptions.append("GC content in %")
 
         df = pd.DataFrame({
-            "name":names, 
-            "Value":[stats[x] for x in names],
+            "name": names,
+            "Value": [stats[x] for x in names],
             "Description": descriptions})
 
         if output == "json":
@@ -1113,13 +1119,15 @@ class FilteredGenomeCov(object):
     :target: developers only
     """
     _feature_not_wanted = {"gene", "regulatory", "source"}
+
     def __init__(self, df, threshold, feature_list=None):
         """ .. rubric:: constructor
 
         :param df: dataframe with filtered position used within
             :class:`GenomeCov`. Must contain the following columns:
             ["pos", "cov", "rm", "zscore"]
-        :param int threshold: a :class:`~sequana.bedtools.DoubleThresholds` instance.
+        :param int threshold: a :class:`~sequana.bedtools.DoubleThresholds`
+            instance.
 
         """
         if isinstance(feature_list, list) and len(feature_list) == 0:
@@ -1130,13 +1138,14 @@ class FilteredGenomeCov(object):
         self.df = self._dict_to_df(region_list, feature_list)
 
         def func(x):
-            try: return x.split(".")[0]
-            except: return x
+            try:
+                return x.split(".")[0]
+            except:
+                return x
         for column in ['gene_end', 'gene_start']:
             if column in self.df.columns:
                 self.df[column] = self.df[column].astype(str)
                 self.df[column] = self.df[column].apply(func)
-
 
     def __str__(self):
         return self.df.__str__()
@@ -1150,14 +1159,14 @@ class FilteredGenomeCov(object):
         max_cov = np.max(df["cov"].loc[start:stop])
         rm = np.mean(df["rm"].loc[start:stop])
         zscore = np.mean(df["zscore"].loc[start:stop])
-        if zscore >= 0 :
+        if zscore >= 0:
             max_zscore = df["zscore"].loc[start:stop].max()
         else:
             max_zscore = df["zscore"].loc[start:stop].min()
         size = stop - start + 1
         return {"chr": chrom, "start": start, "end": stop + 1, "size": size,
                 "mean_cov": cov, "mean_rm": rm, "mean_zscore": zscore,
-                "max_zscore":max_zscore, "max_cov":max_cov}
+                "max_zscore": max_zscore, "max_cov": max_cov}
 
     def _merge_region(self, df, threshold, zscore_label="zscore"):
         """Merge position side by side of a data frame.
@@ -1173,7 +1182,7 @@ class FilteredGenomeCov(object):
         start = 1
         stop = 1
         prev = 1
-        # handle case where for example position n-1 have a zscore of -5 and n 
+        # handle case where for example position n-1 have a zscore of -5 and n
         # have a zscore of 5. It is two different regions.
         region_zscore = 0
 
@@ -1185,19 +1194,19 @@ class FilteredGenomeCov(object):
             else:
                 if region_start:
                     merge_df.append(self._merge_row(df, region_start,
-                        region_stop))
+                                    region_stop))
                     region_start = None
                 start = stop
                 prev = stop
                 region_zscore = zscore
 
-            if zscore >0 and  zscore> threshold.high:
+            if zscore > 0 and zscore > threshold.high:
                 if not region_start:
                     region_start = pos
                     region_stop = pos
                 else:
                     region_stop = pos
-            elif zscore <0 and zscore<threshold.low:
+            elif zscore < 0 and zscore < threshold.low:
                 if not region_start:
                     region_start = pos
                     region_stop = pos
@@ -1205,7 +1214,7 @@ class FilteredGenomeCov(object):
                     region_stop = pos
 
         if start < stop and region_start:
-            merge_df.append(self._merge_row(df, region_start,region_stop))
+            merge_df.append(self._merge_row(df, region_start, region_stop))
         return merge_df
 
     def _add_annotation(self, region_list, feature_list):
@@ -1221,8 +1230,9 @@ class FilteredGenomeCov(object):
             try:
                 feature = next(iter_feature)
             except StopIteration:
-                msg = ("Features types ({0}) are not present in the annotation "
-                       "file. Please change what types you want")
+                print("Features types ({0}) are not present in the annotation"
+                      " file. Please change what types you want".format(
+                      feature['type']))
                 return region_ann
         # merge regions and annotations
         for region in region_list:
@@ -1236,7 +1246,7 @@ class FilteredGenomeCov(object):
                 # A feature exist for detected ROI
                 feature_exist = True
                 # put locus_tag in gene field if gene doesn't exist
-                try: 
+                try:
                     feature["gene"]
                 except KeyError:
                     try:
@@ -1270,18 +1280,17 @@ class FilteredGenomeCov(object):
     def _dict_to_df(self, region_list, annotation):
         """ Convert dictionary as dataframe.
         """
-        if annotation:
-            colnames = ["chr", "start", "end", "size", "mean_cov", "max_cov", "mean_rm", 
-                        "mean_zscore", "max_zscore", "gene_start", "gene_end",
-                        "type", "gene", "strand", "product"]
-        else:
-            colnames = ["chr", "start", "end", "size", "mean_cov", "max_cov", "mean_rm",
-                    "mean_zscore", "max_zscore"]
+        merge_df = pd.DataFrame(region_list)
+        colnames = ["chr", "start", "end", "size", "mean_cov", "max_cov",
+                    "mean_rm", "mean_zscore", "max_zscore", "gene_start",
+                    "gene_end", "type", "gene", "strand", "product"]
+        if not annotation:
+            colnames = colnames[:9]
         merge_df = pd.DataFrame(region_list, columns=colnames)
         int_column = ["start", "end", "size"]
         merge_df[int_column] = merge_df[int_column].astype(int)
         if annotation:
-            merge_df.rename(columns = {"gene": "gene_name"}, inplace=True)
+            merge_df.rename(columns={"gene": "gene_name"}, inplace=True)
             # maybe let the user set what he wants
             return merge_df.loc[~merge_df["type"].isin(
                 FilteredGenomeCov._feature_not_wanted)]
@@ -1301,4 +1310,3 @@ class FilteredGenomeCov(object):
     def get_high_roi(self, seq_range=None):
         df = self._get_sub_range(seq_range)
         return df.loc[df["max_zscore"] >= 0]
-
