@@ -112,7 +112,6 @@ format_contigs:
 # - threads: number of threads to be used.
 #
 bwa_mem_assembly:
-    reference: "%(reference)s"
     index_algorithm: 'is'
     options: '-T 30'
     threads: 2
