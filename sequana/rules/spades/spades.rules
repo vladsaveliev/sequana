@@ -39,14 +39,15 @@ rule spades:
         options = config["spades"]["options"],
         outdir = __spades__outdir
     run:
-        cmd = "spades.py -k %s -m %i -t %i %s"
+        cmd = "spades.py -k %s -m %i -t %i %s" % (params.k, params.m, threads,
+                                                  params.options)
         if params.careful:
             cmd += " --careful"
         if params.only_assembler:
             cmd += " --only-assembler"
-        cmd += " %s -o %s > %s 2>&1"
-        shell(cmd % (params.k, params.m, threads, params.options,
-                     input.fastq, params.outdir, log.l))
+        cmd += " -1 %s -2 %s -o %s > %s 2>&1" % (
+            input.fastq[0], input.fastq[1], params.outdir, log.l)
+        shell(cmd)
  
         import shutil
         shutil.copy("%s/scaffolds.fasta" % params.outdir, output.scaffolds)
