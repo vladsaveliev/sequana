@@ -1,3 +1,20 @@
+# coding: utf-8
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016 - Sequana Development Team
+#
+#  File author(s):
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
+#          <d.desvillechabrol@gmail.com>
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  website: https://github.com/sequana/sequana
+#  documentation: http://sequana.readthedocs.io
+#
+##############################################################################
 """
 Author: Dimitri Desvillechabrol
 Affiliation: Institut Pasteur
@@ -5,7 +22,6 @@ Aim: Denovo assembly
 Data: paired end
 Run: snakemake -s denovo_assembly.rules
 """
-
 import os
 
 import sequana
@@ -17,13 +33,13 @@ sm.init("denovo_assembly.rules", globals())
 # This must be defined before the include
 configfile: "config.yaml"
 manager = sm.PipelineManager("denovo_assembly", config)
+config = manager.config
 __snakefile__ = srcdir(__snakefile__)
 report_dir = manager.getreportdir("da")
 
 __rawdata__input = manager.getrawdata()
 
-exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
-
+# digital normalisation with khmer if coverage is too high
 if config["digital_normalisation"]["do"]:
     __digital_normalisation__input = __rawdata__input
     __digital_normalisation__prefix = manager.getwkdir("digital_normalisation")
@@ -36,37 +52,137 @@ if config["digital_normalisation"]["do"]:
 else:
     __spades__input = __rawdata__input
 
+# de novo assembly with Spades
 __spades__outdir = manager.getwkdir("spades")
 __spades__contigs = manager.getname("spades", ".contigs.fasta")
 __spades__scaffolds = manager.getname("spades", ".scaffolds.fasta")
 __spades__log = manager.getlogdir("spades")
 include: sm.modules["spades"]
 
+exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
+
+# evaluate assembly with Quast
+__quast__genes = []
+if config["quast"]["reference"]:
+    __quast__reference = config["quast"]["reference"]
+    if config["quast"]["genes_file"]:
+        __quast__genes = config["quast"]["genes_file"]
+else:
+    __quast__reference = []
 __quast__input = [__spades__contigs, __spades__scaffolds]
 __quast__outdir = manager.getwkdir("quast")
 __quast__output = manager.getname("quast", ".quast.html")
 __quast__log = manager.getlogdir("quast")
 include: sm.modules["quast"]
 
+# reduce names of contigs
 __format_contigs__input = __spades__contigs
 __format_contigs__output = manager.getname("format_contigs", ".fasta")
 include: sm.modules["format_contigs"]
 
-__copy_multiple_files__input = [__quast__output, __spades__contigs,
-                                __spades__scaffolds]
+# assess de novo quality with coverage analysis and variant calling
+__bwa_mem_assembly__reference = __format_contigs__output
+__bwa_mem_assembly__input = __rawdata__input
+__bwa_mem_assembly__fai = __bwa_mem_assembly__reference + ".fai"
+__bwa_mem_assembly__mem_output = manager.getname("bwa_mem_assembly", ".bam")
+__bwa_mem_assembly__sort_output = manager.getname("bwa_mem_assembly",
+                                                  ".sorted.bam")
+__bwa_mem_assembly__log = manager.getlogdir("bwa_mem_assembly")
+__bwa_index_assembly__log = "common_logs/bwa_index.log"
+include: bwa_mem_dynamic("assembly", manager)
 
-if config["do_mapping_evaluation"]:
-    # remove snpeff analysis
-    config = dict(config, **{"snpeff": {"do": False}})
-    __bwa_mem_ref__ref_input = __format_contigs__output
-    __report_mapping__quast_input = __quast__output
-    include: sm.modules["variant_calling"]
+# initiate variables
+__mark_duplicates__input = __bwa_mem_assembly__sort_output
+__bam_quality_filter__input = __bwa_mem_assembly__sort_output
+__samtools_depth__input = __bwa_mem_assembly__mem_output
 
+# Mark duplicates with picard tools
+if config["mark_duplicates"]["do"]:
+    __mark_duplicates__output = manager.getname("mark_duplicates",
+                                                ".rmdup.sorted.bam")
+    __mark_duplicates__metrics = manager.getname("mark_duplicates", ".metrics")
+    __mark_duplicates__log_err = manager.getlogdir("mark_duplicates.err")
+    __mark_duplicates__log_std = manager.getlogdir("mark_duplicates.std")
+    include: sm.modules["mark_duplicates"]
+    __bam_quality_filter__input = __mark_duplicates__output
+    __freebayes__input = __mark_duplicates__output
+    __samtools_depth__input = __mark_duplicates__output
 
-final_output += [expand(__quast__output, sample=manager.samples),
-                 expand(__format_contigs__output, sample=manager.samples)]
+# Bam quality filter with samtools
+if config["bam_quality_filter"]["do"]:
+    __bam_quality_filter__output = manager.getname("bam_quality_filter",
+                                                   ".filter.sorted.bam")
+    __bam_quality_filter__log = manager.getlogdir("bam_quality_filter")
+    include: sm.modules["bam_quality_filter"]
+    __freebayes__input = __bam_quality_filter__output
+    __samtools_depth__input = [__bam_quality_filter__output,
+                               __bam_quality_filter__input]
 
+# Sequana_coverage analysis
+if config["sequana_coverage"]["do"]:
+    __samtools_depth__output = manager.getname("samtools_depth", ".bed")
+    __samtools_depth__log = manager.getlogdir("samtools_depth")
+    include: sm.modules["samtools_depth"]
+    __sequana_coverage__input = __samtools_depth__output
+    __sequana_coverage__fasta = __bwa_mem_assembly__reference
+    __sequana_coverage__gbk = []
+    __sequana_coverage__output = manager.getname("sequana_coverage", ".csv")
+    include: sm.modules["sequana_coverage"]
+    expected_output.append(expand(__sequana_coverage__output,
+                                  sample=manager.samples))
+ 
+# Variant calling with Freebayes
+if config["freebayes"]["do"]:
+    __freebayes__bai = __freebayes__input + ".bai"
+    __freebayes__reference = __bwa_mem_assembly__reference
+    __freebayes__output = manager.getname("freebayes", ".raw.vcf")
+    __freebayes__log = manager.getlogdir("freebayes")
+    include: sm.modules["freebayes"]
 
-rule pipeline_denovo:
+    # Freebayes filter
+    __freebayes_vcf_filter__input = __freebayes__output
+    __freebayes_vcf_filter__output = manager.getname("freebayes_vcf_filter",
+                                                     ".filter.vcf")
+    __freebayes_vcf_filter__csv = manager.getname("freebayes_vcf_filter",
+                                                  ".csv")
+    include: sm.modules["freebayes_vcf_filter"]
+    expected_output.append(expand(__freebayes_vcf_filter__csv,
+                                  sample=manager.samples))
+
+# Create requirements.txt(dependencies)
+include: sm.modules["conda"] 
+
+# Create rulegraph
+__rulegraph__input = __snakefile__
+__rulegraph__output = "rulegraph/rulegraph.svg"
+__rulegraph__mapper = {"sequana_coverage":"sequana_coverage.html",
+                       "freebayes_vcf_filter":"variant_calling.html"}
+include: sm.modules["rulegraph"]
+expected_output.extend(["requirements.txt", __rulegraph__output])
+
+# create a json file that summarise information of your pipeline
+# they must be complete in the onsuccess block
+__summary_pipeline__inputs = __rawdata__input
+__summary_pipeline__outputs = [__format_contigs__output]
+__summary_pipeline__rulegraph = __rulegraph__output
+__summary_pipeline__requirements = "requirements.txt"
+__summary_pipeline__snakefile = __snakefile__
+__summary_pipeline__config = "config.yaml"
+__summary_pipeline__name = "De Novo Assembly"
+__summary_pipeline__json_output = manager.getname("summary_pipeline", ".json")
+include: sm.modules["summary_pipeline"]
+expected_output.append(expand(__summary_pipeline__json_output,
+                              sample=manager.samples))
+
+# these rules don't need to be submit on a node.
+localrules: conda, rulegraph
+
+rule pipeline_variant:
     input:
-        final_output
+        expected_output
+
+onsuccess:
+    # add file name for snakemake stats in json
+    snake_parser = snakemake.get_argument_parser().parse_args()
+    json_list = expand(__summary_pipeline__json_output, sample=manager.samples)
+    sm.add_stats_summary_json(json_list, snake_parser)

@@ -37,7 +37,6 @@ config = manager.config
 __snakefile__ = srcdir(__snakefile__)
 __rawdata__input = manager.getrawdata()
 
-exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
 # Get the snpeff config and create database
 reference = config["bwa_mem_ref"]["reference"]
@@ -67,6 +66,7 @@ if config['input_extension'].endswith('bam') or \
     __bwa_mem_ref__sort_output = __rawdata__input
 else:
     # Mapping with BWA MEM
+    exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
     __bwa_mem_ref__input = __rawdata__input
     __bwa_mem_ref__fai = __bwa_mem_ref__reference + ".fai"
     __bwa_mem_ref__mem_output = manager.getname("bwa_mem_ref", ".bam")
@@ -91,7 +91,6 @@ __indel_realigner__input = __add_read_group__output
 __mark_duplicates__input = __add_read_group__output
 __bam_quality_filter__input = __add_read_group__output
 __samtools_depth__input = __add_read_group__output
-__report_mapping__bam_input = __add_read_group__output
 __freebayes__input = __add_read_group__output
 
 # Indel realigner with GATK
@@ -114,7 +113,6 @@ if config["indel_realigner"]["do"]:
     __bam_quality_filter__input = __indel_realigner__output
     __freebayes__input = __indel_realigner__output
     __samtools_depth__input = __indel_realigner__output
-    __report_mapping__bam_input = __indel_realigner__output
 
 # Mark duplicates with picard tools
 if config["mark_duplicates"]["do"]:
@@ -127,7 +125,6 @@ if config["mark_duplicates"]["do"]:
     __bam_quality_filter__input = __mark_duplicates__output
     __freebayes__input = __mark_duplicates__output
     __samtools_depth__input = __mark_duplicates__output
-    __report_mapping__bam_input = __mark_duplicates__output
 
 # bam quality filter with samtools
 if config["bam_quality_filter"]["do"]:
@@ -181,7 +178,10 @@ __freebayes_vcf_filter__output = manager.getname("freebayes_vcf_filter",
 __freebayes_vcf_filter__csv = manager.getname("freebayes_vcf_filter", ".csv")
 include: sm.modules["freebayes_vcf_filter"]
 
-include: sm.modules["conda"] # Create requirements.txt(dependencies)
+# Create requirements.txt(dependencies)
+include: sm.modules["conda"] 
+
+# Create rulegraph
 __rulegraph__input = __snakefile__
 __rulegraph__output = "rulegraph/rulegraph.svg"
 __rulegraph__mapper = {"sequana_coverage":"sequana_coverage.html",
@@ -199,11 +199,11 @@ __summary_pipeline__outputs = [
 if os.path.isfile(__bwa_mem_ref__fai):
     __summary_pipeline__outputs.append(__bwa_mem_ref__fai)
 __summary_pipeline__rulegraph = __rulegraph__output
-__summary_pipeline__requirements = 'requirements.txt'
+__summary_pipeline__requirements = "requirements.txt"
 __summary_pipeline__snakefile = __snakefile__
-__summary_pipeline__config = 'config.yaml'
+__summary_pipeline__config = "config.yaml"
 __summary_pipeline__name = "Variant Calling"
-__summary_pipeline__json_output = manager.getname('summary_pipeline', '.json')
+__summary_pipeline__json_output = manager.getname("summary_pipeline", ".json")
 include: sm.modules["summary_pipeline"]
 expected_output.append(expand(__summary_pipeline__json_output,
                               sample=manager.samples))

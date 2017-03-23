@@ -3,29 +3,49 @@ rule quast:
     assembly. It provides a HTML file.
 
     Required input:
-        __quast__input: list of fasta files
+        - __quast__input: list of fasta files
+        - __quast__reference: Reference genome file (optional)
+        - __quast__genes: Gene positions in the reference genome.
 
     Required output:
-        __quast__output: html file
+        - __quast__output: html file
 
     Required parameters:
-        __quast__outdir: output directory
+        - __quast__outdir: output directory
 
-    Contributors:
-        Sequana consortium
+    Logs:
+        - __quast__log
+
     """
     input:
-        fasta = __quast__input
+        assembly = __quast__input,
+        reference = __quast__reference,
+        genes = __quast__genes
     output:
-        __quast__output
+        html = __quast__output
     log:
-        __quast__log
+        l = __quast__log
     params:
-        options = config["quast"]["options"],
-        directory = __quast__outdir
-    shell:
-        """
-        quast.py {params.options} {input.fasta} -o {params.directory} > {log} \
-            2>&1
-        mv {params.directory}report.html {output}
-        """
+        mapping = __quast__mapping,
+        directory = __quast__outdir,
+        gene_finding = config["quast"]["gene_finding"],
+        options = config["quast"]["options"]
+    threads:
+        t = config["quast"]["threads"]
+    run:
+        import shutil
+
+        cmd = "quast.py -t %i -o %s %s" % (threads.t, params.directory,
+                                           params.options)
+        if input.reference:
+            cmd += " -R " + input.reference
+            if input.genes:
+                cmd += " -G " + input.genes
+        if params.gene_finding:
+            cmd += " -f"
+        if isinstance(input.a, list):
+            fasta = " ".join([f for f in input.assembly])
+        else:
+            fasta = input.a
+        shell("%s %s" % (cmd, fasta))
+        shutil.copy(params.directory + "/report.html", output.html)
