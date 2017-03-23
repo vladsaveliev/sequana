@@ -31,11 +31,11 @@ rule quast:
         gene_finding = config["quast"]["gene_finding"],
         options = config["quast"]["options"]
     threads:
-        t = config["quast"]["threads"]
+        config["quast"]["threads"]
     run:
         import shutil
 
-        cmd = "quast.py -t %i -o %s %s" % (threads.t, params.directory,
+        cmd = "quast.py -t %i -o %s %s" % (threads, params.directory,
                                            params.options)
         if input.reference:
             cmd += " -R " + input.reference

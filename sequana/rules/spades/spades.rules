@@ -30,7 +30,7 @@ rule spades:
     log:
         l = __spades__log
     threads:
-        t = config["spades"]["threads"]
+        config["spades"]["threads"]
     params:
         k = config["spades"]["k"],
         careful = config["spades"]["careful"],
@@ -45,7 +45,7 @@ rule spades:
         if params.only_assembler:
             cmd += " --only-assembler"
         cmd += " %s -o %s > %s 2>&1"
-        shell(cmd % (params.k, params.m, threads.t, params.options,
+        shell(cmd % (params.k, params.m, threads, params.options,
                      input.fastq, params.outdir, log.l))
  
         import shutil
