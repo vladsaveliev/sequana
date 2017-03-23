@@ -26,7 +26,6 @@ rule quast:
     log:
         l = __quast__log
     params:
-        mapping = __quast__mapping,
         directory = __quast__outdir,
         gene_finding = config["quast"]["gene_finding"],
         options = config["quast"]["options"]
