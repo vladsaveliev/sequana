@@ -74,9 +74,10 @@ __quast__outdir = manager.getwkdir("quast")
 __quast__output = manager.getname("quast", ".quast.html")
 __quast__log = manager.getlogdir("quast")
 include: sm.modules["quast"]
+expected_output.append(expand(__quast__output, sample=manager.samples))
 
 # reduce names of contigs
-__format_contigs__input = __spades__contigs
+__format_contigs__input = __spades__scaffolds
 __format_contigs__output = manager.getname("format_contigs", ".fasta")
 include: sm.modules["format_contigs"]
 
