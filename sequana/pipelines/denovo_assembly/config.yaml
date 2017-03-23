@@ -68,6 +68,7 @@ spades:
     only_assembler: no
     memory: 250
     threads: 8
+    options: ""
 
 ##############################################################################
 # Quast - Compute metrics to assess assembly
