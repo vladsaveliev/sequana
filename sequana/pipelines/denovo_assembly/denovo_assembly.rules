@@ -71,10 +71,10 @@ else:
     __quast__reference = []
 __quast__input = [__spades__contigs, __spades__scaffolds]
 __quast__outdir = manager.getwkdir("quast")
-__quast__output = manager.getname("quast", ".quast.html")
+__quast__json = manager.getname("quast", ".json")
 __quast__log = manager.getlogdir("quast")
 include: sm.modules["quast"]
-expected_output.append(expand(__quast__output, sample=manager.samples))
+expected_output.append(expand(__quast__json, sample=manager.samples))
 
 # reduce names of contigs
 __format_contigs__input = __spades__scaffolds
