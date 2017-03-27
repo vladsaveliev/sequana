@@ -198,6 +198,10 @@ __summary_pipeline__outputs = [
     __freebayes_vcf_filter__output]
 if os.path.isfile(__bwa_mem_ref__fai):
     __summary_pipeline__outputs.append(__bwa_mem_ref__fai)
+if config["snpeff"]["do"]:
+    __summary_pipeline__html = [__snpeff__html]
+else:
+    __summary_pipeline__html = []
 __summary_pipeline__rulegraph = __rulegraph__output
 __summary_pipeline__requirements = "requirements.txt"
 __summary_pipeline__snakefile = __snakefile__
