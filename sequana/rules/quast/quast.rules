@@ -42,7 +42,7 @@ rule quast:
                 cmd += " -G " + input.genes
         if params.gene_finding:
             cmd += " -f"
-        if isinstance(input.a, list):
+        if isinstance(input.assembly, list):
             fasta = " ".join([f for f in input.assembly])
         else:
             fasta = input.a
