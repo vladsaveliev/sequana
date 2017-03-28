@@ -32,6 +32,7 @@ rule quast:
         config["quast"]["threads"]
     run:
         import json
+        import os
 
         cmd = "quast.py -t %i -o %s %s" % (threads, params.directory,
                                            params.options)
@@ -46,7 +47,8 @@ rule quast:
         else:
             fasta = input.a
         shell("%s %s" % (cmd, fasta))
-        quast_json = {'tool': 'quast', 'directory': params.directory}
+        quast_json = {'tool': 'quast',
+                      'directory': os.path.realpath(params.directory)}
         quast_json = json.dumps(quast_json)
         with open(output.json, 'w') as fp:
             print(quast_json, file=fp)

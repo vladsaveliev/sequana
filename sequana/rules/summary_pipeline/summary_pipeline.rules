@@ -33,15 +33,21 @@ rule summary_pipeline:
         name = __summary_pipeline__name
     run:
         import json
-        
+        import os.path
+
+        # use real path
+        inputs = [os.path.realpath(f) for f in input['inputs']]
+        outputs = [os.path.realpath(f) for f in input['outputs']]
+        html = [os.path.realpath(f) for f in input['html']]
+        # create json
         summary = {'tool': 'sequana_summary',
-                   'inputs': input['inputs'],
-                   'outputs': input['outputs'],
-                   'html': input['html'],
-                   'rulegraph': input['rulegraph'],
-                   'requirements': input['requirements'],
-                   'snakefile': input['snakefile'],
-                   'config': input['config'],
+                   'inputs': inputs,
+                   'outputs': outputs,
+                   'html': html,
+                   'rulegraph': os.path.realpath(input['rulegraph']),
+                   'requirements': os.path.realpath(input['requirements']),
+                   'snakefile': os.path.realpath(input['snakefile']),
+                   'config': os.path.realpath(input['config']),
                    'name': params['name']}
         js = json.dumps(summary)
         with open(output['json'], 'w') as fp:
