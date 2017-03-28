@@ -29,6 +29,6 @@ def QuastModule(data):
     dst = os.path.join(config.output_dir, 'quast')
     if os.path.isdir(dst):
         shutil.rmtree(dst)
-    else:
+    elif os.path.isfile(dst):
         os.remove(dst)
     shutil.copytree(quast["directory"], config.output_dir)
