@@ -31,4 +31,4 @@ def QuastModule(data):
         shutil.rmtree(dst)
     elif os.path.isfile(dst):
         os.remove(dst)
-    shutil.copytree(quast["directory"], config.output_dir)
+    shutil.copytree(quast["directory"], dst)
