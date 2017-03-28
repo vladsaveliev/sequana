@@ -101,18 +101,27 @@ def main(args=None):
     else:
         config.sample_name = os.path.basename(input_files[0]).split('.')[0]
 
+    re_sequana = re.compile("sequana_\w+")
     for f in input_files:
+        tool = None
         # get tools to retrieve module
         with open(f, 'r') as fp:
             if f.endswith('json'):
                 data = json.load(fp)
-                tool = data['tool']
+                try:
+                    tool = data['tool']
+                except KeyError:
+                    pass
             else:
                 line = fp.readline()
-                tool = re.findall("sequana_\w+", line)[0]
-                data = f
+                search_re = re_sequana.search(line)
+                if search_re:
+                    tool = search_re.group(0)
+                    data = f
         # load and execute module
-        if tool == 'sequana_summary':
+        if not tool:
+            continue
+        elif tool == 'sequana_summary':
             summary_json = data
         else:
             mod = config.module_dict[tool].load()
