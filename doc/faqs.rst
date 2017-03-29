@@ -88,6 +88,34 @@ add a file called **matplotlibrc** with the following content::
 Save, exit the shell, start a new shell.
 
 
+pysam
+~~~~~~~~~~~~~~~~~~
+
+::
+
+    from pysam.libchtslib import *
+    ...ImportError: libhts.so.1: cannot open shared object file: No such file or directory
+
+
+This may be solved by removing conda installation and using pip instead::
+
+     conda remove pysam
+     pip install pysam
+
+
+qt
+~~~~~~~~~~~~~~~~~~
+::
+
+    from PyQt5.QtWebKitWidgets import QWebView
+    ...ImportError: libQt5WebKitWidgets.so.5: cannot open shared object file: No such file or directory
+
+This may be solved by re-installation qt using the main anaconda channel
+(instead of bioconda)::
+
+     conda install --override-channels -c anaconda qt
+
+
 Expected input format
 ----------------------------
 

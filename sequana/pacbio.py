@@ -115,8 +115,8 @@ class PacBioInputBAM(object):
         if grid is True:
             pylab.grid(True)
 
-    def hist_ZMW_subreads(self, hold=False, fontsize=12,
-                            grid=True,xlabel="Number of ZMW passes",ylabel="#"):
+    def hist_ZMW_subreads(self, hold=False, alpha=0.5, fontsize=12,
+                            grid=True,xlabel="Number of ZMW passes",ylabel="#", label=""):
         """
         Plot histogram of number of reads per ZMW
         """
@@ -130,7 +130,7 @@ class PacBioInputBAM(object):
         # histogram nb passes
         if hold is False:
             pylab.clf()
-        pylab.hist(k, weights=val, bins=max_nb_pass)
+        pylab.hist(k, weights=val, bins=max_nb_pass, alpha=alpha, label=label)
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
         pylab.yscale('log')
@@ -138,8 +138,26 @@ class PacBioInputBAM(object):
         if grid is True:
             pylab.grid(True)
 
-    def hist_GC(self, bins=50, hold=False, fontsize=12,
-                grid=True,xlabel="GC %",ylabel="#"):
+    def hist_len(self, bins=50, alpha=0.5, hold=False, fontsize=12,
+                grid=True,xlabel="Read Length",ylabel="#", label=""):
+        """Plot histogram Read length"""
+
+        if self._df is None:
+            self._get_df()
+        mean_len =  np.mean(self._df.loc[:,'read_length'])
+
+        # histogram GC percent
+        if hold is False:
+            pylab.clf()
+        pylab.hist(self._df.loc[:,'read_length'], bins=bins, alpha=alpha, label=label + ", mean : " + str(abs(mean_len)) + ", N : " + str(self._N) )
+        pylab.xlabel(xlabel, fontsize=fontsize)
+        pylab.ylabel(ylabel, fontsize=fontsize)
+        pylab.title("Read length  \n Mean length : %.2f" %(mean_len), fontsize=fontsize)
+        if grid is True:
+            pylab.grid(True)
+
+    def hist_GC(self, bins=50, alpha=0.5, hold=False, fontsize=12,
+                grid=True,xlabel="GC %",ylabel="#",label=""):
         """Plot histogram GC content"""
 
         if self._df is None:
@@ -149,7 +167,7 @@ class PacBioInputBAM(object):
         # histogram GC percent
         if hold is False:
             pylab.clf()
-        pylab.hist(self._df.loc[:,'GC_content'], bins=bins)
+        pylab.hist(self._df.loc[:,'GC_content'], bins=bins, alpha=alpha, label=label + ", mean : " + str(round(mean_GC,2)) + ", N : " + str(self._N))
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
         pylab.title("GC %%  \n Mean GC : %.2f" %(mean_GC), fontsize=fontsize)
@@ -173,7 +191,7 @@ class PacBioInputBAM(object):
         #pylab.plot(self._df.loc[:,'read_length'] , self._df.loc[:,'GC_content'], 'bo', alpha=alpha)
         pylab.xlabel("Read length", fontsize=12)
         pylab.ylabel("GC %", fontsize=12)
-        pylab.title("GC % vs length \n Mean length : %.2f , Mean GC : %.2f" %(mean_len, mean_GC))
+        pylab.title("GC %% vs length \n Mean length : %.2f , Mean GC : %.2f" %(mean_len, mean_GC))
 
 
 
