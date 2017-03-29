@@ -18,15 +18,21 @@
 ##############################################################################
 """Utilities for the genome coverage"""
 
+import re
+import ast
+import os
+import sys
+
+from biokit.stats import mixture
+
 from sequana.lazy import pandas as pd
 from sequana.lazy import numpy as np
 from sequana.lazy import pylab
 
 
-from sequana import running_median, logger
-from sequana.tools import gc_content
+from sequana import logger
+from sequana.tools import gc_content, genbank_features_parser
 from sequana.errors import SequanaException
-#from sequana.tools import genbank_features_parser
 
 from easydev import do_profile
 
@@ -34,7 +40,8 @@ __all__ = ["GenomeCov", "ChromosomeCov", "DoubleThresholds"]
 
 
 class DoubleThresholds(object):
-    """Simple structure to handle the double threshold for negative and positive sides
+    """Simple structure to handle the double threshold for negative and
+    positive sides
 
     Used yb GenomeCov and related classes.
 
@@ -43,15 +50,16 @@ class DoubleThresholds(object):
         dt = DoubleThresholds(-3,4,0.5,0.5)
 
     This means the low threshold is -3 while the high threshold is 4. The two
-    following values must be between 0 and 1 and are used to define the value of
-    the double threshold set to half the value of th the main threshold by default.
+    following values must be between 0 and 1 and are used to define the value
+    of the double threshold set to half the value of th the main threshold by
+    default.
 
     Internally, the main thresholds are stored in the low and high attributes.
     The secondary thresholds are derived from the main thresholds and the
-    two ratios. The ratios are named ldtr and hdtr for low double threshold ratio
-    and high double threshold ration. The secondary thresholds are denoted low2 and
-    high2 are are update automatically if low, high, ldtr or hdtr are changed.
-
+    two ratios. The ratios are named ldtr and hdtr for low double threshold
+    ratio and high double threshold ration. The secondary thresholds are
+    denoted low2 and high2 are are update automatically if low, high, ldtr or
+    hdtr are changed.
 
     """
     def __init__(self, low=-3, high=3, ldtr=0.5, hdtr=0.5):
@@ -70,6 +78,7 @@ class DoubleThresholds(object):
 
     def _get_ldtr(self):
         return self._ldtr
+
     def _set_ldtr(self, ldtr):
         self._ldtr = ldtr
         self._low2 = self._low * self._ldtr
@@ -77,6 +86,7 @@ class DoubleThresholds(object):
 
     def _get_hdtr(self):
         return self._hdtr
+    
     def _set_hdtr(self, hdtr):
         self._hdtr = hdtr
         self._high2 = self._high * self._hdtr
@@ -84,19 +94,21 @@ class DoubleThresholds(object):
 
     def _get_low(self):
         return self._low
+    
     def _set_low(self, value):
         assert value < 0.
         self._low = value
         self._low2 = self._low * self._ldtr
-    low = property(_get_low,_set_low)
+    low = property(_get_low, _set_low)
 
     def _get_high(self):
         return self._high
+    
     def _set_high(self, value):
         assert value > 0.
         self._high = value
         self._high2 = self._high * self._ldtr
-    high = property(_get_high,_set_high)
+    high = property(_get_high, _set_high)
 
     def _get_low2(self):
         return self._low * self._ldtr
@@ -105,6 +117,10 @@ class DoubleThresholds(object):
     def _get_high2(self):
         return self._high * self._hdtr
     high2 = property(_get_high2)
+
+    def get_args(self):
+        return "%.2f,%.2f,%.2f,%.2f" % (self.low, self.high, self.ldtr,
+                                     self.hdtr)
 
     def copy(self):
         thresholds = DoubleThresholds(self.low, self.high, 
@@ -154,14 +170,15 @@ class GenomeCov(object):
 
     """
 
-    def __init__(self, input_filename=None,
-        low_threshold=-3, high_threshold=3, ldtr=0.5, hdtr=0.5):
+    def __init__(self, input_filename, genbank_file=None,
+                 low_threshold=-3, high_threshold=3, ldtr=0.5, hdtr=0.5):
         """.. rubric:: constructor
 
         :param str input_filename: the input data with results of a bedtools
             genomecov run. This is just a 3-column file. The first column is a
             string (chromosome), second column is the base postion and third
             is the coverage.
+        :param str genbank_file: annotation file of your referenve.
         :param float low_threshold: threshold used to identify under-covered
             genomic region of interest (ROI). Must be negative
         :param float high_threshold: threshold used to identify over-covered
@@ -174,25 +191,26 @@ class GenomeCov(object):
             between 0 and 1.
 
         """
-        self.thresholds = DoubleThresholds(low_threshold, high_threshold,
-            ldtr, hdtr)
-
-        df = pd.read_table(input_filename, header=None)
+        # Keep information if the genome is circular and the window size used
+        self._circular = None
+        self._feature_dict = None
+        self._gc_window_size = None
+        self._genbank_filename = None
+        self._window_size = None
+        # the user choice have the priorities over csv file
+        if genbank_file:
+            self._genbank_filename = genbank_file
+        # check is the input is a csv of a previous analysis
         try:
-            df = df.rename(columns={0: "chr", 1: "pos", 2: "cov", 3: "mapq0"})
-            df = df.set_index("chr", drop=False)
-            # Create a list of ChromosomeCov for each chromosome present in the
-            # bedtools.
-            self.chr_list = [ChromosomeCov(df.loc[key], self.thresholds) for key in
-                    df.index.unique()]
-            ChromosomeCov.count = 0
-        except IOError as e:
-            print("I/0 error({0}): {1}".format(e.errno, e.strerror))
-
-        # Set the link to this instance in each chromosome
-        # useful if one wants to recompute GC content with different window
-        for chrom in self.chr_list:
-            chrom.bed = self
+            self.chr_list = self._read_csv(input_filename)
+        except FileNotFoundError as e:
+            print("FileNotFound error({0}): {1}".format(e.errno, e.strerror))
+            sys.exit(1)
+        if not self.chr_list:
+            # read bed file
+            self.thresholds = DoubleThresholds(low_threshold, high_threshold,
+                                               ldtr, hdtr)
+            self.chr_list = self._read_bed(input_filename)
 
     def __getitem__(self, index):
         return self.chr_list[index]
@@ -200,8 +218,164 @@ class GenomeCov(object):
     def __iter__(self):
         return self.chr_list.__iter__()
 
+    def __len__(self):
+        return len(self.chr_list)
+
+    @property
+    def circular(self):
+        """ Get the circularity of chromosome(s). It must be a boolean.
+        """
+        return self._circular
+
+    @circular.setter
+    def circular(self, circular):
+        if isinstance(circular, bool):
+            self._circular = circular
+        else:
+            logger.error("TypeError: Circular must be a boolean. True if your "
+                         "genome is circular and False if not.")
+            sys.exit(1)
+
+    @property
+    def feature_dict(self):
+        """ Get the features dictionary of the genbank.
+        """
+        return self._feature_dict
+
+    @feature_dict.setter
+    def feature_dict(self, anything):
+        logger.error("AttributeError: You can't set attribute.\n"
+                     "GenomeCov.feature_dict is set when"
+                     "GenomeCov.genbank_filename is set.")
+        sys.exit(1)
+
+    @property
+    def gc_window_size(self):
+        """ Get or set the window size to compute the GC content.
+        """
+        return self._gc_window_size
+
+    @gc_window_size.setter
+    def gc_window_size(self, n):
+        if n % 2 == 0:
+            logger.warning("Window size must be an odd number.")
+            self._gc_window_size = n + 1
+            logger.warning("{0} is incremented to {1}".format(
+                n, self._window_size))
+        else:
+            self._gc_window_size = n
+
+    @property
+    def genbank_filename(self):
+        """ Get or set the genbank filename to annotate ROI detected with
+        :meth:`ChromosomeCov.get_roi`. Changing the genbank filename will 
+        configure the :attr:`GenomeCov.feature_dict`.
+        """
+        return self._genbank_filename
+
+    @genbank_filename.setter
+    def genbank_filename(self, genbank_filename):
+        if os.path.isfile(genbank_filename):
+            self._genbank_filename = os.path.realpath(genbank_filename)
+            self._feature_dict = genbank_features_parser(
+                genbank_filename)
+        else:
+            logger.error("FileNotFoundError: The genbank file doesn't exist.")
+            sys.exit(1)
+
+    @property
+    def window_size(self):
+        """ Get or set the window size to compute the running median. Size
+        must be an interger.
+        """
+        return self._window_size
+
+    @window_size.setter
+    def window_size(self, n):
+        if n % 2 == 0:
+            logger.warning("Window size must be an odd number.")
+            self._window_size = n + 1
+            logger.warning("{0} is incremented to {1}".format(
+                n, self._window_size))
+        else:
+            self._window_size = n
+
+    def _read_bed(self, input_filename):
+        """ Read bed generated by samtools depth tools and create
+        :class:'ChromosomeCov' list.
+        """
+        df = pd.read_table(input_filename, header=None)
+        df = df.rename(columns={0: "chr", 1: "pos", 2: "cov", 3: "mapq0"})
+        chr_list = self._set_chr_list(df)
+        # Set the link to this instance in each chromosome
+        # useful if one wants to recompute GC content with different window
+        return chr_list
+
+    def _read_csv(self, input_filename):
+        """ Read csv generated by :class:'GenomeCov' and create
+        :class:'ChromosomeCov' list.
+        """
+        # set regex to get important information about previous analysis
+        re_threshold = re.compile("thresholds:([\d,\.-]+)")
+        re_window_size = re.compile("\swindow_size:(\d+)")
+        re_circular = re.compile("circular:(\w+)")
+        re_gc_window_size = re.compile("gc_window_size:(\d+)")
+        re_genbank = re.compile("genbank:([\{0}\w\.]+)".format(os.sep))
+        re_chrom = re.compile("^# ([\w-]+):")
+        re_gaussian = re.compile("(\[\{.+\}\])")
+        with open(input_filename, "r") as fp:
+            line = fp.readline()
+            # check if file was generated by sequana_coverage
+            if not line.startswith("# sequana_coverage"):
+                return None
+            # get thresholds
+            thresholds = re_threshold.findall(line)[0]
+            thresholds = [float(f) for f in thresholds.split(',')]
+            self.thresholds = DoubleThresholds(*thresholds)
+            # get window size
+            self.window_size = int(re_window_size.search(line).group(1))
+            # get circular
+            circular = re_circular.search(line).group(1)
+            self.circular = False if circular == "False" else True
+            # get gc_window_size
+            gc = re_gc_window_size.search(line)
+            if gc:
+                self.gc_window_size = int(gc.group(1))
+            # get genbank
+            gb = re_genbank.search(line)
+            if gb and not self.genbank_filename:
+                self.genbank_filename = gb.group(1)
+            # get gaussians for each chromosome
+            gaussians_dict = dict()
+            for line in fp:
+                chrom = re_chrom.search(line)
+                if chrom:
+                    gaussians = re_gaussian.search(line)
+                    gaussians = ast.literal_eval(gaussians.group(1))
+                    gaussians_dict[chrom.group(1)] = gaussians
+                else:
+                    break
+            df = pd.read_csv(fp, header=None, names=line.strip().split(","))
+        chr_list = self._set_chr_list(df)
+        # Add gaussians and range informations
+        for chrom in chr_list:
+            chrom.set_gaussians(gaussians_dict[chrom.chrom_name])
+            if self.circular:
+                chrom.range = [None, None]
+            else:
+                mid = int(self.window_size/2)
+                chrom.range = [mid, -mid]
+            chrom.mixture_fitting = mixture.EM(
+                chrom.df['scale'][chrom.range[0]:chrom.range[1]])
+        return chr_list
+
+    def _set_chr_list(self, df):
+        df = df.set_index("chr", drop=False)
+        return [ChromosomeCov(df.loc[key], self, self.thresholds) for key in
+                df.index.unique()]
+
     def compute_gc_content(self, fasta_file, window_size=101, circular=False,
-            letters=['G', 'C', 'c', 'g']):
+                           letters=['G', 'C', 'c', 'g']):
         """ Compute GC content of genome sequence.
 
         :param str fasta_file: fasta file name.
@@ -213,15 +387,13 @@ class GenomeCov(object):
             with a column named *gc*.
 
         """
-        if divmod(window_size, 2)[1] == 0:
-            logger.warning("window_size must be even. Added +1")
-            window_size += 1
-        gc_dict = gc_content(fasta_file, window_size, circular, 
-            letters=letters)
+        self.gc_window_size = window_size
+        self.circular = circular
+        gc_dict = gc_content(fasta_file, self.gc_window_size, circular, 
+                             letters=letters)
         for chrom in self.chr_list:
             if chrom.chrom_name in gc_dict.keys():
                 chrom.df["gc"] = gc_dict[chrom.chrom_name]
-                chrom._ws_gc = window_size
             else:
                 msg = ("The chromosome (or contig) %s in your"
                        " BED/BAM file was not found in the reference provided."
@@ -249,6 +421,27 @@ class GenomeCov(object):
                 histtype='step', hold=True, lw=lw)
             pylab.legend()
 
+    def to_csv(self, output_filename, **kwargs):
+        """ Write all data in a csv.
+
+        :param str output_filename: csv output file name.
+        :param **dict kwargs: parameters of :meth:`pandas.DataFrame.to_csv`.
+        """
+        # Concatenate all df
+        df_list = [chrom.get_df() for chrom in self.chr_list]
+        df = pd.concat(df_list)
+        header = ("# sequana_coverage thresholds:{0} window_size:{1} circular:"
+                  "{2}".format(self.thresholds.get_args(), self.window_size,
+                  self.circular))
+        if self.genbank_filename:
+            header += ' genbank:' + self.genbank_filename
+        if self.gc_window_size:
+            header += ' gc_window_size:{0}'.format(self.gc_window_size)
+        with open(output_filename, "w") as fp:
+            print(header, file=fp)
+            for chrom in self.chr_list:
+                print("# {0}".format(chrom.get_gaussians()), file=fp)
+            df.to_csv(fp, **kwargs)
 
 class ChromosomeCov(object):
     """Factory to manipulate coverage and extract region of interests.
@@ -276,9 +469,8 @@ class ChromosomeCov(object):
 
     .. seealso:: sequana_coverage standalone application
     """
-    count = 0
 
-    def __init__(self, df=None, thresholds=None):
+    def __init__(self, df, genomecov, thresholds=None):
         """.. rubric:: constructor
 
         :param df: dataframe with position for a chromosome used within
@@ -288,9 +480,7 @@ class ChromosomeCov(object):
             the double threshold values.
 
         """
-        # Chromosome position becomes the index
-        ChromosomeCov.count += 1
-        self.chrom_index = ChromosomeCov.count
+        self._bed = genomecov
         self.df = df.set_index("pos", drop=False)
         self.chrom_name = df["chr"].iloc[0]
 
@@ -309,13 +499,34 @@ class ChromosomeCov(object):
         txt = "\nGenome length: %s" % int(len(self.df))
         txt += "\nSequencing depth (DOC): %8.2f " % _getter(stats,'DOC')
         txt += "\nSequencing depth (median): %8.2f " % _getter(stats, 'Median')
-        txt += "\nBreadth of coverage (BOC) (percent): %.2f " % _getter(stats,'BOC')
-        txt += "\nGenome coverage standard deviation : %8.2f " % _getter(stats,'STD')
-        txt += "\nGenome coverage coefficient variation : %8.2f " % _getter(stats,'CV')
+        txt += "\nBreadth of coverage (BOC) (percent): %.2f " % _getter(
+            stats, 'BOC')
+        txt += "\nGenome coverage standard deviation : %8.2f " % _getter(
+            stats,'STD')
+        txt += "\nGenome coverage coefficient variation : %8.2f " % _getter(
+            stats,'CV')
         return txt
 
     def __len__(self):
         return self.df.__len__()
+
+    @property
+    def bed(self):
+        return self._bed
+
+    @bed.setter
+    def bed(self):
+        logger.error("AttributeError: You can't set the ChromosomeCov.bed. "
+                     "Setting is done automatically when the class is "
+                     "created.")
+
+    def columns(self):
+        """ Return immutable ndarray implementing an ordered, sliceable set.
+        """
+        return self.df.columns
+
+    def get_df(self):
+        return self.df.set_index("chr", drop=True)
 
     def get_size(self):
         return self.__len__()
@@ -325,6 +536,16 @@ class ChromosomeCov(object):
 
     def get_var_coef(self):
         return np.sqrt(self.df["cov"].var()) / self.get_mean_cov()
+
+    def get_gaussians(self):
+        return "{0}: {1}".format(self.chrom_name, self.gaussians_params)
+
+    def set_gaussians(self, gaussians):
+        """ Set gaussians predicted if you read a csv file generated by 
+        :class:`GenomeCov`.
+        """
+        self.gaussians_params = gaussians
+        self.best_gaussian = self._get_best_gaussian()
 
     def moving_average(self, n, circular=False):
         """Compute moving average of the genome coverage
@@ -371,7 +592,10 @@ class ChromosomeCov(object):
             Use Pandas rolling function to speed up computation.
 
         """
-        mid = int(n / 2)# in py2/py3 the division (integer or not) has no impact
+        self.bed.window_size = n
+        self.bed.circular = circular
+        # in py2/py3 the division (integer or not) has no impact
+        mid = int(n / 2)
         self.range = [None, None]
         try:
             if circular:
@@ -384,7 +608,8 @@ class ChromosomeCov(object):
                 #self.df["rm"] = rm[mid:-mid]
                 rm = pd.concat([self.df['cov'][-mid:],
                                 self.df['cov'],
-                                self.df['cov'][:mid]]).rolling(n, center=True).median()
+                                self.df['cov'][:mid]]).rolling(
+                                n, center=True).median()
                 self.df["rm"] = rm[mid:-mid]
 
             else:
@@ -444,9 +669,9 @@ class ChromosomeCov(object):
         self.df = self.df.replace(-np.inf, np.nan)
 
     def _get_best_gaussian(self):
-        results = self.mixture_fitting.results
-        indice = np.argmax(results.pis)
-        return {"mu": results.mus[indice], "sigma": results.sigmas[indice]}
+        results_pis = [model["pi"] for model in self.gaussians_params]
+        indice = np.argmax(results_pis)
+        return self.gaussians_params[indice]
 
     def compute_zscore(self, k=2, step=10, use_em=True, verbose=True):
         """ Compute zscore of coverage and normalized coverage.
@@ -491,6 +716,9 @@ class ChromosomeCov(object):
 
         # keep gaussians informations
         self.gaussians = self.mixture_fitting.results
+        params_key = ("mus", "sigmas", "pis")
+        self.gaussians_params = [{key[:-1]: self.gaussians[key][i] for key in
+                                 params_key} for i in range(k)]
         self.best_gaussian = self._get_best_gaussian()
 
         # warning when sigma is equal to 0
@@ -521,7 +749,7 @@ class ChromosomeCov(object):
                         "k=1 could be a better choice"))
 
     def get_centralness(self):
-        r"""Proportion of central (normal) genome coverage
+        """Proportion of central (normal) genome coverage
 
         This is 1 - (number of non normal data) / (total length)
 
@@ -533,15 +761,14 @@ class ChromosomeCov(object):
         Cminus = sum(filtered.get_low_roi()['size'])
         return 1 - (Cplus+Cminus) / float(len(self))
 
-    def get_roi(self, features=None):
-        """Keep positions with zscore outside of the thresholds range
+    def get_roi(self):
+        """Keep positions with zscore outside of the thresholds range.
 
-        :param features:
         :return: a dataframe from :class:`FilteredGenomeCov`
 
         .. note:: depends on the :attr:`thresholds` low and high values.
         """
-
+        features = self.bed.feature_dict
         try:
             second_high = self.thresholds.high2
             second_low = self.thresholds.low2
@@ -581,8 +808,9 @@ class ChromosomeCov(object):
                 return FilteredGenomeCov(self.df.query(query), self.thresholds)
         except KeyError:
             logger.error("Column zscore is missing in data frame.\n"
-                  "You must run compute_zscore before get low coverage.\n\n",
-                  self.__doc__) 
+                         "You must run compute_zscore before get low coverage."
+                         "\n\n", self.__doc__) 
+            sys.exit(1)
 
     def plot_coverage(self, filename=None, fontsize=16, 
             rm_lw=1, rm_color="#0099cc", rm_label="Running median", 
@@ -658,9 +886,9 @@ class ChromosomeCov(object):
         """
         pylab.clf()
         bins = self._set_bins(self.df["zscore"][self.range[0]:self.range[1]],
-                binwidth)
-        self.df["zscore"][self.range[0]:self.range[1]].hist(grid=True,
-                bins=bins, **hist_kargs)
+                              binwidth)
+        self.df["zscore"][self.range[0]:self.range[1]].hist(
+            grid=True, bins=bins, **hist_kargs)
         pylab.xlabel("Z-Score", fontsize=fontsize)
         try:
             pylab.tight_layout()
@@ -676,9 +904,16 @@ class ChromosomeCov(object):
         """
         pylab.clf()
         # if there are a NaN -> can't set up binning
-        data_scale = self.df["scale"][self.range[0]:self.range[1]].dropna()
-        bins = self._set_bins(data_scale, binwidth)
-        self.mixture_fitting.plot(bins=bins, Xmin=0, Xmax=max_z)
+        d = self.df["scale"][self.range[0]:self.range[1]].dropna()
+        # remove outlier -> plot crash if range between min and max is too high
+        d = d[np.abs(d - d.mean()) <= (4 * d.std())]
+        bins = self._set_bins(d, binwidth)
+        self.mixture_fitting.data = d
+        try:
+            self.mixture_fitting.plot(self.gaussians_params, bins=bins, Xmin=0,
+                                      Xmax=max_z)
+        except ZeroDivisionError:
+            pass
         pylab.grid(True)
         pylab.xlim([0,max_z])
         pylab.xlabel("Normalised per-base coverage")
@@ -732,23 +967,38 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def write_csv(self, filename, start=None, stop=None, header=True):
+    def to_csv(self, filename=None, start=None, stop=None, **kwargs):
         """ Write CSV file of the dataframe.
 
-        :param filename: csv output filename.
-        :param header: boolean which determinate if the header is written.
+        :param str filename: csv output filename. If None, return string.
+        :param int start: start row index.
+        :param int stop: stop row index.
 
+        Params of :meth:`pandas.DataFrame.to_csv`:
+
+        :param list columns: columns you want to write.
+        :param bool header: determine if the header is written.
+        :param bool index: determine if the index is written. 
+        :param str float_format: determine the float format.
         """
-        try:
-            labels=["pos", "cov", "mapq0"]
-            self.df[labels][start:stop].to_csv(filename, header=header)
-        except NameError:
-            logger.error("You must set the file name. Nothing done")
-        except KeyError:
-            self.df[labels[:-1]][start:stop].to_csv(filename, header=header)
+        # Create directory to avoid errno 2
+        if filename:
+            directory = os.path.dirname(os.path.realpath(filename))
+            try:
+                os.makedirs(directory)
+            except FileExistsError:
+                if os.path.isdir(directory):
+                    pass
+                else:
+                    msg = "{0} exist and it is not a directory".format(
+                        directory)
+                    logger.error(msg)
+                    raise FileExistsError
+        return self.df[start:stop].to_csv(filename, **kwargs) 
 
-    def plot_gc_vs_coverage(self, bins=None, Nlevels=6, fontsize=20, norm="log",
-            ymin=0, ymax=100, contour=True, **kargs):
+    def plot_gc_vs_coverage(self, filename=None, bins=None, Nlevels=6,
+                            fontsize=20, norm="log", ymin=0, ymax=100,
+                            contour=True, **kwargs):
 
         if Nlevels is None or Nlevels==0:
             contour = False
@@ -758,7 +1008,7 @@ class ChromosomeCov(object):
         data = data.dropna()
         if bins is None:
             bins = [100, min(int(data['gc'].max()-data['gc'].min()+1),
-                max(5,self._ws_gc-4))]
+                    max(5,self.bed.gc_window_size - 4))]
             bins[0] = max(10, min(bins[0], self.df['cov'].max()))
 
         from biokit import Hist2D
@@ -766,17 +1016,21 @@ class ChromosomeCov(object):
 
         try:
             h2.plot(bins=bins, xlabel="Per-base coverage",
-                ylabel=r'GC content (%)' ,
-                Nlevels=Nlevels, contour=contour, norm=norm,
-                fontsize=fontsize, **kargs)
+                    ylabel=r'GC content (%)',
+                    Nlevels=Nlevels, contour=contour, norm=norm,
+                    fontsize=fontsize, **kwargs)
         except:
             h2.plot(bins=bins, xlabel="Per-base coverage",
-                ylabel=r'GC content (%)' ,
-                Nlevels=Nlevels, contour=False, norm=norm,
-                fontsize=fontsize, **kargs)
-        pylab.ylim([ymin,ymax])
-        corr = self.get_gc_correlation()
-        return corr
+                    ylabel=r'GC content (%)' ,
+                    Nlevels=Nlevels, contour=False, norm=norm,
+                    fontsize=fontsize, **kwargs)
+        pylab.ylim([ymin, ymax])
+        try:
+            pylab.tight_layout()
+        except:
+            pass
+        if filename:
+            pylab.savefig(filename)
 
     def get_gc_correlation(self):
         """Return the correlation between the coverage and GC content
@@ -785,19 +1039,20 @@ class ChromosomeCov(object):
         (default window size is 101)
 
         """
-        return self.df[['cov', 'gc']].corr().iloc[0,1]
+        return self.df[['cov', 'gc']].corr().iloc[0, 1]
 
     def get_max_gc_correlation(self, reference):
         """Plot correlation between coverage and GC content by varying the GC window
 
          The GC content uses a moving window of size W. This parameter affects
-         the correlation bewteen coverage and GC. This function find the *optimal*
-         window length.
+         the correlation bewteen coverage and GC. This function find the
+         *optimal* window length.
 
         """
         pylab.clf()
         corrs = []
         wss = []
+
         def func(params):
             ws = int(round(params[0]))
             if ws < 10:
@@ -809,7 +1064,7 @@ class ChromosomeCov(object):
             return corr
 
         from scipy.optimize import fmin
-        res = fmin(func, 100, xtol=1, disp=False) # guess is 200
+        res = fmin(func, 100, xtol=1, disp=False)  # guess is 200
         pylab.plot(wss, corrs, "o")
         pylab.xlabel("GC window size")
         pylab.ylabel("Correlation")
@@ -820,23 +1075,25 @@ class ChromosomeCov(object):
         """Return basic stats about the coverage data"""
         data = self.df
 
-        stats ={
+        stats = {
             'DOC': self.df['cov'].mean(),
             'STD': self.df['cov'].std(),
             'Median': self.df['cov'].median(),
-            'BOC': 100 * sum(self.df['cov'] > 0) / float(len(self.df)) }
-        stats['CV'] = stats['STD'] /  stats['DOC']
-        stats['MAD'] = np.median(abs(data['cov'].median() - data['cov']).dropna())
+            'BOC': 100 * sum(self.df['cov'] > 0) / float(len(self.df))}
+        stats['CV'] = stats['STD'] / stats['DOC']
+        stats['MAD'] = np.median(abs(data['cov'].median() -
+                                 data['cov']).dropna())
 
-        names = ['BOC','CV', 'DOC', 'MAD', 'Median', "STD"]
-        descriptions = [("breadth of coverage: the proportion (in %s) of the "
-            "genome covered by at least one read. "),
-            ("the coefficient of variation"),
-            ("the sequencing depth (Depth of Coverage), that is the average of"
-            "the genome coverage"),
-            ("median of the absolute median deviation median(|X-median(X)|)"),
-            ("Median of the coverage"),
-            ("standard deviation")
+        names = ['BOC', 'CV', 'DOC', 'MAD', 'Median', 'STD']
+        descriptions = [
+            "breadth of coverage: the proportion (in %s) of the "
+            "genome covered by at least one read.",
+            "the coefficient of variation.",
+            "the sequencing depth (Depth of Coverage), that is the average of "
+            "the genome coverage.",
+            "median of the absolute median deviation median(|X-median(X)|).",
+            "Median of the coverage.",
+            "standard deviation."
         ]
 
         if 'gc' in self.df.columns:
@@ -845,8 +1102,8 @@ class ChromosomeCov(object):
             descriptions.append("GC content in %")
 
         df = pd.DataFrame({
-            "name":names, 
-            "Value":[stats[x] for x in names],
+            "name": names,
+            "Value": [stats[x] for x in names],
             "Description": descriptions})
 
         if output == "json":
@@ -862,13 +1119,15 @@ class FilteredGenomeCov(object):
     :target: developers only
     """
     _feature_not_wanted = {"gene", "regulatory", "source"}
+
     def __init__(self, df, threshold, feature_list=None):
         """ .. rubric:: constructor
 
         :param df: dataframe with filtered position used within
             :class:`GenomeCov`. Must contain the following columns:
             ["pos", "cov", "rm", "zscore"]
-        :param int threshold: a :class:`~sequana.bedtools.DoubleThresholds` instance.
+        :param int threshold: a :class:`~sequana.bedtools.DoubleThresholds`
+            instance.
 
         """
         if isinstance(feature_list, list) and len(feature_list) == 0:
@@ -879,13 +1138,14 @@ class FilteredGenomeCov(object):
         self.df = self._dict_to_df(region_list, feature_list)
 
         def func(x):
-            try: return x.split(".")[0]
-            except: return x
+            try:
+                return x.split(".")[0]
+            except:
+                return x
         for column in ['gene_end', 'gene_start']:
             if column in self.df.columns:
                 self.df[column] = self.df[column].astype(str)
                 self.df[column] = self.df[column].apply(func)
-
 
     def __str__(self):
         return self.df.__str__()
@@ -899,14 +1159,14 @@ class FilteredGenomeCov(object):
         max_cov = np.max(df["cov"].loc[start:stop])
         rm = np.mean(df["rm"].loc[start:stop])
         zscore = np.mean(df["zscore"].loc[start:stop])
-        if zscore >= 0 :
+        if zscore >= 0:
             max_zscore = df["zscore"].loc[start:stop].max()
         else:
             max_zscore = df["zscore"].loc[start:stop].min()
         size = stop - start + 1
         return {"chr": chrom, "start": start, "end": stop + 1, "size": size,
                 "mean_cov": cov, "mean_rm": rm, "mean_zscore": zscore,
-                "max_zscore":max_zscore, "max_cov":max_cov}
+                "max_zscore": max_zscore, "max_cov": max_cov}
 
     def _merge_region(self, df, threshold, zscore_label="zscore"):
         """Merge position side by side of a data frame.
@@ -922,7 +1182,7 @@ class FilteredGenomeCov(object):
         start = 1
         stop = 1
         prev = 1
-        # handle case where for example position n-1 have a zscore of -5 and n 
+        # handle case where for example position n-1 have a zscore of -5 and n
         # have a zscore of 5. It is two different regions.
         region_zscore = 0
 
@@ -934,19 +1194,19 @@ class FilteredGenomeCov(object):
             else:
                 if region_start:
                     merge_df.append(self._merge_row(df, region_start,
-                        region_stop))
+                                    region_stop))
                     region_start = None
                 start = stop
                 prev = stop
                 region_zscore = zscore
 
-            if zscore >0 and  zscore> threshold.high:
+            if zscore > 0 and zscore > threshold.high:
                 if not region_start:
                     region_start = pos
                     region_stop = pos
                 else:
                     region_stop = pos
-            elif zscore <0 and zscore<threshold.low:
+            elif zscore < 0 and zscore < threshold.low:
                 if not region_start:
                     region_start = pos
                     region_stop = pos
@@ -954,7 +1214,7 @@ class FilteredGenomeCov(object):
                     region_stop = pos
 
         if start < stop and region_start:
-            merge_df.append(self._merge_row(df, region_start,region_stop))
+            merge_df.append(self._merge_row(df, region_start, region_stop))
         return merge_df
 
     def _add_annotation(self, region_list, feature_list):
@@ -970,8 +1230,9 @@ class FilteredGenomeCov(object):
             try:
                 feature = next(iter_feature)
             except StopIteration:
-                msg = ("Features types ({0}) are not present in the annotation "
-                       "file. Please change what types you want")
+                print("Features types ({0}) are not present in the annotation"
+                      " file. Please change what types you want".format(
+                      feature['type']))
                 return region_ann
         # merge regions and annotations
         for region in region_list:
@@ -985,7 +1246,7 @@ class FilteredGenomeCov(object):
                 # A feature exist for detected ROI
                 feature_exist = True
                 # put locus_tag in gene field if gene doesn't exist
-                try: 
+                try:
                     feature["gene"]
                 except KeyError:
                     try:
@@ -1019,26 +1280,33 @@ class FilteredGenomeCov(object):
     def _dict_to_df(self, region_list, annotation):
         """ Convert dictionary as dataframe.
         """
-        if annotation:
-            colnames = ["chr", "start", "end", "size", "mean_cov", "max_cov", "mean_rm", 
-                        "mean_zscore", "max_zscore", "gene_start", "gene_end",
-                        "type", "gene", "strand", "product"]
-        else:
-            colnames = ["chr", "start", "end", "size", "mean_cov", "max_cov", "mean_rm",
-                    "mean_zscore", "max_zscore"]
+        merge_df = pd.DataFrame(region_list)
+        colnames = ["chr", "start", "end", "size", "mean_cov", "max_cov",
+                    "mean_rm", "mean_zscore", "max_zscore", "gene_start",
+                    "gene_end", "type", "gene", "strand", "product"]
+        if not annotation:
+            colnames = colnames[:9]
         merge_df = pd.DataFrame(region_list, columns=colnames)
         int_column = ["start", "end", "size"]
         merge_df[int_column] = merge_df[int_column].astype(int)
         if annotation:
-            merge_df.rename(columns = {"gene": "gene_name"}, inplace=True)
+            merge_df.rename(columns={"gene": "gene_name"}, inplace=True)
             # maybe let the user set what he wants
             return merge_df.loc[~merge_df["type"].isin(
                 FilteredGenomeCov._feature_not_wanted)]
         return merge_df
 
-    def get_low_roi(self):
-        return self.df.loc[self.df["max_zscore"] < 0]
+    def _get_sub_range(self, seq_range):
+        try:
+            return self.df[(self.df["end"] > seq_range[0]) &
+                           (self.df["start"] < seq_range[1])]
+        except TypeError:
+            return self.df
 
-    def get_high_roi(self):
-        return self.df.loc[self.df["max_zscore"] >= 0]
+    def get_low_roi(self, seq_range=None):
+        df = self._get_sub_range(seq_range)
+        return df.loc[df["max_zscore"] < 0]
 
+    def get_high_roi(self, seq_range=None):
+        df = self._get_sub_range(seq_range)
+        return df.loc[df["max_zscore"] >= 0]

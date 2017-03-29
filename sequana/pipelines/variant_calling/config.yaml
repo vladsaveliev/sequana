@@ -8,6 +8,7 @@
 # use it, otherwise use input_samples.
 # If input_extension provided, use it otherwise assume fastq.gz
 # ============================================================================
+#
 input_directory: "%(input_directory)s"
 input_extension: "%(input_extension)s"
 input_pattern: "%(input_pattern)s"
@@ -15,79 +16,149 @@ input_samples:
     file1: "%(file1)s"
     file2: "%(file2)s"
 
-# =========================================== Sequencing information
-
+##############################################################################
+# Sequencing information section
+#
+# :Parameters:
+# 
+# - platform: name of the technology
+# - instrument: name of the instrument
+# - flowcell: name of the flowcell
+#
 sequencing:
     platform: "Illumina"
     instrument: "Unknown"
     flowcell: "Unknown"
 
-# =========================================== Sections related to variant calling
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bwa
-
+##############################################################################
+# BWA - Mapping
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - reference_file: the name of the reference file
+# - index_algorithm: the BWA index algorithm (is or bwtsw)
+# - options: any options recognised by BWA MEM tool
+# - threads: number of threads to be used
+#
 bwa_mem_ref:
-    reference: "%(reference)s"  # Genome of reference
-    # IS is for small genome and bwtsw for large genome (like human)
-    index_algorithm: 'is' # Algorithm for constructing index [is|bwtsw]
+    reference: "%(reference)s"
+    index_algorithm: 'is'
     options: '-T 30'
     threads: 2
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SnpEff
-
-#Results filter options:
-#	-no-downstream: Do not show DOWNSTREAM changes
-#	-no-intergenic: Do not show INTERGENIC changes
-#	-no-intron: Do not show INTRON changes
-#	-no-upstream: Do not show UPSTREAM changes
-#	-no-utr: Do not show 5_PRIME_UTR or 3_PRIME_UTR changes
+##############################################################################
+# SnpEff - Annotate variants detected
+#
+# :Paramaters:
+#
+# - do: if unchecked, this rule is ignored
+# - reference: genbank file
+# - options: any options recognised by snpEff
+#
+#   Results filter options:
+#	    -no-downstream: Do not show DOWNSTREAM changes
+#	    -no-intergenic: Do not show INTERGENIC changes
+#	    -no-intron: Do not show INTRON changes
+#	    -no-upstream: Do not show UPSTREAM changes
+#	    -no-utr: Do not show 5_PRIME_UTR or 3_PRIME_UTR changes
+#
 snpeff:
     do: no
     reference:
     options: "-no-downstream -no-upstream"
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Freebayes
-
+##############################################################################
+# Freebayes - Variant caller
+#
+# :Paramaters:
+#
+# - ploidy: set the ploidy of your samples
+# - options: any options recognised by freebayes
+#
 freebayes:
-    ploidy: 1  # Set the ploidy of your sample (default:2)
-    # Additional options
-    options: ''
+    ploidy: 1
+    options:
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Indel realigner (GATK)
-
+##############################################################################
+# GATK - INDEL realigner
+#
+# :Paramaters:
+#
+# - do: if unchecked, this rule is ignored
+# - target_creator_options: any options recognised by GATK
+#       RealignerTargetCreator
+# - options: any options recognised by GATK IndelRealigner
+#
 indel_realigner:
     do: yes
-    options: ''
+    target_creator_options:
+    options:
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Mark duplicates (picard-tools)
-
+##############################################################################
+# Picard-tools - MarkDuplicates
+#
+# :Paramaters:
+#
+# - do: if unchecked, this rule is ignored
+# - remove: boolean if you want remove or not duplicated reads
+# - tmpdir: set the temporary directory
+#
 mark_duplicates:
     do: yes
-    remove: no # yes/no
-    tmpdir: "" # temporary directory
+    remove: no
+    tmpdir: ""
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Bam quality filter
-
+##############################################################################
+# Filter reads with a mapping score lower than an integer 
+#
+# :Paramaters:
+#
+# - do: if unchecked, this rule is ignored
+# - threshold: mapping score threshold (between 0 and 60)
+#
 bam_quality_filter:
     do: yes
-    threshold: 30  # between 0 and 60
+    threshold: 30
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Report Mapping
-
-report_mapping:
+##############################################################################
+# Sequana coverage - Analyse the coverage of the mapping 
+#
+# :Paramaters:
+#
+# - do: if unchecked, this rule is ignored
+# - k: number of gaussian predicted
+# - circular: if your genome is circular
+# - window_size: window size to compute the running median
+# - low_threshold: threshold to detect low coverage regions (> 2)
+# - high_threshold: threshold to detect high coverage regions (< 2)
+# - gc_window_size: window size to compute GC content
+#
+sequana_coverage:
     do: yes
-    k: 2                      # Number of gaussian predicted
-    circular: no              # If your genome is circular
-    window_size: 30001        # Window size for compute the running median
-    high_threshold: 4.0         # Threshold to detect high coverage regions 
-    low_threshold: -4.0         # Threshold to detect low coverage regions
+    k: 2
+    circular: no
+    window_size: 30001
+    low_threshold: -4.0
+    high_threshold: 4.0
+    gc_window_size: 201
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ VCF filter (dedicated to freebayes)
-
-vcf_filter:
-    freebayes_score: 200         # Minimal freebayes score
-    frequency: 0.8               # Minimal alternative allele frequency
-    min_depth: 10                    # Minimal coverage depth
-    forward_depth: 3             # Minimal coverage depth of forward strand
-    reverse_depth: 3             # Minimal coverage depth of reverse strand
-    strand_ratio: 0.2            # Minimal strand ratio between 0 and 0.5 
+##############################################################################
+# Filter VCF
+#
+# :Paramaters:
+#
+# - freebayes_score: threshold for minimum freebayes score
+# - frequency: threshold for minimum alternative allele frequency
+# - min_depth: threshold for minimum coverage depth
+# - forward_depth: threshold for minimum coverage depth of forward strand
+# - reverse_depth: threshold for minimum coverage depth of reverse strand
+# - strand_ratio: threshold for minimum strand ratio between 0 and 0.5
+#
+freebayes_vcf_filter:
+    freebayes_score: 200
+    frequency: 0.8
+    min_depth: 10
+    forward_depth: 3
+    reverse_depth: 3
+    strand_ratio: 0.2

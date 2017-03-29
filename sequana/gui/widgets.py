@@ -275,6 +275,7 @@ class FileBrowserOption(GeneralOption):
         self.browser.clicked_connect(task)
 
 
+
 class SVGDialog(QW.QDialog):
     def __init__(self, filename):
         super().__init__()

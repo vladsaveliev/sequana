@@ -39,6 +39,8 @@ from sequana.lazy import numpy as np
 from sequana.lazy import pylab
 
 import pysam
+from sequana import jsontool
+
 
 """
 #http://www.acgt.me/blog/2014/12/16/understanding-mapq-scores-in-sam-files-does-37-42#
@@ -54,7 +56,6 @@ Interesting commands::
     samtools flagstat contaminant.bam
     samtools stats contaminant.bam
 """
-
 
 __all__ = ['BAM','Alignment', 'SAMFlags']
 
@@ -110,6 +111,7 @@ class BAM(pysam.AlignmentFile):
         pysam.AlignmentFile.__init__(filename, mode=mode, *args)
 
         self._filename = filename
+        self.metrics_count = None
         # the BAM format can be rewinded but not SAM. This is a pain since one
         # need to reload the instance after each operation. With the BAM, we can
         # do that automatically. We therefore enfore the BAM format.
@@ -180,7 +182,9 @@ class BAM(pysam.AlignmentFile):
             - total_reads : number reads
             - mapped_reads : number of mapped reads
             - unmapped_reads : number of unmapped
-            - contamination [%]: mapped / unmapped
+            - mapped_proper_pair : R1 and R2 mapped face to face
+            - hard_clipped_reads: number of reads with supplementary alignment
+            - reads_duplicated: number of reads duplicated
 
         .. warning:: works only for BAM files. Use :meth:`get_full_stats_as_df`
             for SAM files.
@@ -204,14 +208,16 @@ class BAM(pysam.AlignmentFile):
         """
         d = {}
 
-        N1 = len(list(self.iter_unmapped_reads()))
-        N2 = len(list(self.iter_mapped_reads()))
+        samflags_count = self.get_samflags_count()
 
-        d['total_reads'] = N1 + N2
-        d['mapped_reads'] = N2
-        d['unmapped_reads'] = N1
-        d['contamination [%]'] = float(d['mapped_reads']) / float(N1+N2)
-        d['contamination [%]'] *= 100
+        # all reads - (supplementary alignmnt + secondary alignmnt)
+        d['total_reads'] = len(self) - (samflags_count[256] +
+                                        samflags_count[2048])
+        # all reads - (unmapped + supplementary alignmnt + secondary alignmnt)
+        d['mapped_reads'] = d['total_reads'] - samflags_count[4]
+        d['unmapped_reads'] = samflags_count[4]
+        d['mapped_proper_pair'] = samflags_count[2]
+        d['reads_duplicated'] = samflags_count[1024]
         return d
 
     def get_full_stats_as_df(self):
@@ -304,14 +310,15 @@ class BAM(pysam.AlignmentFile):
         df = df.sum()
         pylab.clf()
         if logy is True:
-            df.plot(kind='bar', logy=logy, grid=True)
+            barplot = df.plot(kind='bar', logy=logy, grid=True)
         else:
-            df.plot(kind='bar', grid=True)
+            barplot = df.plot(kind='bar', grid=True)
         pylab.xlabel("flags", fontsize=fontsize)
         pylab.ylabel("count", fontsize=fontsize)
         pylab.tight_layout()
         if filename:
             pylab.savefig(filename)
+        return barplot
 
     @seek
     def to_fastq(self, filename):
@@ -356,6 +363,52 @@ class BAM(pysam.AlignmentFile):
         df = pd.DataFrame({'mapq': [this.mapq for this in self]})
         return df
 
+    @seek
+    def get_mapped_read_length(self):
+        """Return dataframe with read length for each read"""
+        read_length = [read.reference_length for read in self
+                       if read.is_unmapped is False]
+        return read_length
+
+    @seek
+    def get_metrics_count(self):
+        """ Count flags/mapq/read length in one pass.
+        It is the faster and less costly method to have these interesting
+        metrics.
+        """
+        mapq_dict = {}
+        read_length_dict = {}
+        flag_dict = {}
+        for read in self:
+            self._count_item(mapq_dict, read.mapq)
+            self._count_item(flag_dict, read.flag)
+            if read.is_unmapped is False:
+                self._count_item(read_length_dict, read.reference_length)
+        self.metrics_count = {"mapq": mapq_dict,
+                              "read_length": read_length_dict,
+                              "flags": flag_dict}
+
+    def get_samflags_count(self):
+        """ Count how many reads have each flag of sam format after count
+        metrics.
+        """
+        if self.metrics_count is None:
+            self.get_metrics_count()
+
+        samflags = (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048)
+        samflags_count = dict.fromkeys(samflags, 0) 
+        for flag, count in self.metrics_count["flags"].items():
+            for samflag in samflags:
+                if flag&samflag != 0:
+                    self._count_item(samflags_count, samflag, count)
+        return samflags_count
+
+    def _count_item(self, d, item, n=1):
+        if item in d.keys():
+            d[item] += n
+        else:
+            d[item] = n
+
     def plot_bar_mapq(self, fontsize=16, filename=None):
         """Plots bar plots of the MAPQ (quality) of alignments
 
@@ -380,18 +433,33 @@ class BAM(pysam.AlignmentFile):
         if filename:
             pylab.savefig(filename)
 
-    def mapq_barplot_to_json(self, filename):
-        """ Create json to create a canvaJS barplot.
+    def bam_analysis_to_json(self, filename):
+        """ Create json file with all necessary information to generate a 
+        report about a bam file.
         """
-        df = self.get_mapq_as_df()
-        mapq_list = df["mapq"].tolist()
-        counter = Counter(mapq_list)
-        def dict_key_value(key, value):
-            return OrderedDict([("label", key), ("y", value)])
-        mapq_count = [dict_key_value(key, np.log10(counter.pop(key)))
-                      if key in counter else dict_key_value(key, 0) for key in
-                      range(max(counter) + 1)]
-        return json.dumps(mapq_count)
+        if self.metrics_count is None:
+            self.get_metrics_count()
+
+        d = {}
+        d["module"] = "bam_analysis"
+        d["metrics"] = self.get_stats()
+        d["combo_flag"] = self.metrics_count["flags"]
+        d["samflags"] = self.get_samflags_count()
+        d["read_length"] = self.metrics_count["read_length"]
+        with open(filename, "w") as fp:
+            json.dump(d, fp)
+
+    def _list_to_json_barplot(l):
+        """Take a list and convert as json format for barplot with canvaJS.
+        Return a string.
+
+        :param: list l: list of int
+        :param: bool logy: for logscale plot
+        """
+        counter = Counter(l)
+        count = [{"x": int(key), "y": np.log10(value), "c": value} 
+                 for key, value in counter.items()]
+        return json.dumps(count)
 
     @seek
     def get_gc_content(self):
@@ -569,5 +637,3 @@ class SAMFlags(object):
             if self.value & this:
                 txt += "%s: %s\n" % (this, self._flags[this])
         return txt
-
-
