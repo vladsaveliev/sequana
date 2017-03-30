@@ -1144,13 +1144,14 @@ class FastQFactory(FileFactory):
 
     """
     def __init__(self, pattern, extension=["fq.gz", "fastq.gz"],
-                 strict=True, verbose=False):
+                 read_tag="_R[12]_", verbose=False):
         """.. rubric:: Constructor
 
         :param str pattern: a global pattern (e.g., ``H*fastq.gz``)
         :param list extension: not used
-        :param strict: if true, the pattern _R1_ or _R2_ must be found
-        :param bool strict:
+        :param str read_tag: regex tag used to join paired end files. Some
+            characters need to be escaped with a '\' to be interpreted as
+            character. (e.g. '_R[12]_\.fastq\.gz')
         :param bool verbose:
         """
         super(FastQFactory, self).__init__(pattern)
@@ -1165,25 +1166,31 @@ class FastQFactory(FileFactory):
         #    assert this.endswith(extension), \
         #        "Expecting file with %s extension. Found %s" % (extension, this)
         # identify a possible tag
-        self.tags = []
-        for this in self.filenames:
-            if '_R1_' in this:
-                self.tags.append(this.split('_R1_', 1)[0])
-            elif '_R2_' in this:
-                self.tags.append(this.split('_R2_', 1)[0])
-            elif strict is True:
-                # Files must have _R1_ and _R2_
-                raise ValueError('FastQ filenames must contain _R1_ or _R2_')
-        self.tags = list(set(self.tags))
 
+        # check if tag is informative
+        if "[12]" not in read_tag:
+            msg = "Tag parameter must contain '[12]' for read 1 and 2."
+            logger.error(msg)
+            raise ValueError(msg)
+        if read_tag == "[12]":
+            msg = "Tag parameter must be more informative than just have [12]"
+            logger.error(msg)
+            raise ValueError(msg)
+
+        # get name before the read tag (R[12])
+        self.read_tag = read_tag
+        re_read_tag = re.compile(read_tag)
+        self.tags = list({re_read_tag.split(f)[0] for f in self.basenames})
         self.short_tags = [x.split("_")[0] for x in self.tags]
+        if len(self.tags) == 0:
+            msg = "No sample found. Tag '{0}' is not relevant".format(read_tag)
+            logger.error(msg)
+            raise ValueError(msg)
 
         if verbose:
             logger.info("Found %s projects/samples " % len(self.tags))
 
-    def _get_file(self, tag, rtag):
-        assert rtag in ["_R1_", "_R2_"]
-
+    def _get_file(self, tag, r):
         if tag is None:
             if len(self.tags) == 1:
                 tag = self.tags[0]
@@ -1192,32 +1199,29 @@ class FastQFactory(FileFactory):
                                  "(sequana.FastQFactory)")
         else:
             assert tag in self.tags, 'invalid tag'
+        # retrieve file of tag
+        read_tag = self.read_tag.replace("[12]", r)
+        candidates = [realpath for basename, realpath in
+                      zip(self.basenames, self.realpaths) 
+                      if read_tag in basename and basename.startswith(tag)] 
 
-        # Note that the rtag + "_" is to prevent the two following pairs to
-        # be counted as one sample:
-        # project-name_1
-        # project-name-bis_1
-        candidates = [realpath for filename, realpath in
-                      zip(self.filenames, self.realpaths)
-                      if rtag in filename and (filename.startswith(tag+"_R1") or
-                                               filename.startswith(tag+"_R2"))]
-
-        if len(candidates) == 0 and rtag == "_R2_":
+        if len(candidates) == 0 and r == "2":
             # assuming there is no R2
             return None
         elif len(candidates) == 1:
             return candidates[0]
         else:
             logger.critical('Found too many candidates: %s ' % candidates)
-            msg = 'Found too many candidates or identical names: %s ' % candidates
-            msg += "Files must have the tag _R1_ or _R2_ (%s)" % tag
+            msg = 'Found too many candidates or identical names: %s '\
+                % candidates
+            msg += "Files must have the tag %s" % read_tag
             raise ValueError(msg)
 
     def get_file1(self, tag=None):
-        return self._get_file(tag, "_R1_")
+        return self._get_file(tag, "1")
 
     def get_file2(self, tag=None):
-        return self._get_file(tag, "_R2_")
+        return self._get_file(tag, "2")
 
     def __len__(self):
         return len(self.tags)
