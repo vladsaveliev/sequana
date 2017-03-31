@@ -39,6 +39,9 @@ report_dir = manager.getreportdir("da")
 
 __rawdata__input = manager.getrawdata()
 
+# Initiate variable that are modified during the pipeline
+__summary_pipeline__outputs = []
+
 # digital normalisation with khmer if coverage is too high
 if config["digital_normalisation"]["do"]:
     __digital_normalisation__input = __rawdata__input
@@ -58,6 +61,18 @@ __spades__contigs = manager.getname("spades", ".contigs.fasta")
 __spades__scaffolds = manager.getname("spades", ".scaffolds.fasta")
 __spades__log = manager.getlogdir("spades")
 include: sm.modules["spades"]
+
+# get corrected reads if careful option is used
+if config["spades"]["careful"]:
+    __spades_get_fastq__input = __spades__outdir + "corrected/corrected.yaml"
+    __spades_get_fastq__output = [
+        manager.getname("spades_get_fastq", "R1.fastq.gz"),
+        manager.getname("spades_get_fastq", "R1.fastq.gz")]
+    include: sm.modules["spades_get_fastq"]
+    __bwa_mem_assembly__input = __spades_get_fastq__output
+    __summary_pipeline__outputs.append(__spades_get_fastq__output)
+else:
+    __bwa_mem_assembly__input = __rawdata__input
 
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
@@ -83,7 +98,6 @@ include: sm.modules["format_contigs"]
 
 # assess de novo quality with coverage analysis and variant calling
 __bwa_mem_assembly__reference = __format_contigs__output
-__bwa_mem_assembly__input = __rawdata__input
 __bwa_mem_assembly__fai = __bwa_mem_assembly__reference + ".fai"
 __bwa_mem_assembly__mem_output = manager.getname("bwa_mem_assembly", ".bam")
 __bwa_mem_assembly__sort_output = manager.getname("bwa_mem_assembly",
@@ -165,7 +179,7 @@ expected_output.extend(["requirements.txt", __rulegraph__output])
 # create a json file that summarise information of your pipeline
 # they must be complete in the onsuccess block
 __summary_pipeline__inputs = __rawdata__input
-__summary_pipeline__outputs = [__format_contigs__output]
+__summary_pipeline__outputs.append(__format_contigs__output)
 __summary_pipeline__html = []
 __summary_pipeline__rulegraph = __rulegraph__output
 __summary_pipeline__requirements = "requirements.txt"

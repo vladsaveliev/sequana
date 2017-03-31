@@ -1,0 +1,21 @@
+rule spades_get_fastq:
+    """ If the careful option is used, this rule get corrected fastq files.
+
+    Required input:
+        - __spades_get_fastq__input: corrected.yaml created by spades.
+    
+    Required output:
+        - __spades_get_fastq__output: list of fastq file [R1, R2]
+    """
+    input:
+        yaml = __spades_get_fastq__input
+    output:
+        fastq = __spades_get_fastq__output
+    run:
+        import yaml
+        import shutil
+
+        with open(input["yaml"], 'r') as fp:
+            fyml = yaml.load(fp)
+        shutil.copy(fyml["left reads"], output["fastq"][0])
+        shutil.copy(fyml["right reads"], output["fastq"][1])
