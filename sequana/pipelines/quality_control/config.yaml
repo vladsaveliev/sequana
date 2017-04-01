@@ -84,8 +84,7 @@ bwa_mem_phix:
 #
 # :Parameters:
 #
-# - adapter_type: can only be one of PCRFree, Nextera, Rubicon, TruSeq. 
-#   Only used if design_file is provided.
+# - adapter_type: to be used with a design_file only (see below for valid values)
 # - design_file: a valid CSV file with mapping of index and sample name
 # - fwd: a string or file (prefixed with *file:*)
 # - m: 20 means discard trimmed reads that are shorter than 20.
@@ -104,18 +103,19 @@ bwa_mem_phix:
 #            of -O to 6 (at least 6 bases are required to match before
 #            trimming of an adapter)
 #
-# :Note: If design_file is provided, fwd and rev are ignored
+# :Note: If design_file is provided, fwd and rev fields are ignored
 #
-#   ref: http://cutadapt.readthedocs.io/
+# adapter_choice__ = ["PCRFree", "Rubicon", "Nextera", "TruSeq"]
+# tool_choice__ = ["cutadapt", "apropos"]
 adapter_removal:
     do: yes
-    tool: cutadapt
-    adapter_type:
+    tool_choice: cutadapt
+    adapter_choice:
     design_file:
     fwd:
     rev:
-    m: 20                       # {"strict_min":0}
-    mode: "b"                   # {"values": [b,g,a]}
+    m: 20                       # {"strict_min": 0}
+    mode: "b"                   # {"values": ["b","g","a"]}
     options: "-O 6 --trim-n"
     quality: 30                 # {"range": [0,40]}
     threads: 4
