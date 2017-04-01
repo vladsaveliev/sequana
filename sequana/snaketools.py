@@ -555,7 +555,7 @@ class SequanaConfig(object):
             self._yaml_code = comments.CommentedMap()
         elif isinstance(data, str): # else is it a filename ?
             if os.path.exists(data):
-                if data.endswith(".yaml"):
+                if data.endswith(".yaml") or data.endswith(".yml"):
                     with open(data, "r") as fh:
                         self._yaml_code = ruamel.yaml.load(
                             fh.read(), ruamel.yaml.RoundTripLoader)
