@@ -61,10 +61,18 @@ expected_output.extend(expand(__fastq_stats_samples__output_done, sample=manager
 
 
 if manager.config.bwa_mem_phix.do:
+    reference = config["bwa_mem_phix"]["reference_file"]
+    if not os.path.isfile(reference + ".fai"):
+        exec(open(sequana.modules["dynamic_copy"], "r").read())
+        __copy_ref__input = reference
+        __copy_ref__output = "reference/" + os.path.basename(reference)
+        include: dynamic_copy("ref", manager)
+        __bwa_mem_phix__reference = __copy_ref__output    
+    else:
+        __bwa_mem_phix__reference = reference    
     # Mapping input / output
+    __bwa_index_phix__log = "common_logs/bwa_index.log"
     __bwa_mem_phix__input = __data__input
-    __bwa_mem_phix__ref_input = config["bwa_mem_phix"]["reference_file"]
-    __bwa_mem_phix__reference = manager.getname("reference",".fasta")
     __bwa_mem_phix__mem_output = manager.getname("bwa_mem_phix", ".bam")
     __bwa_mem_phix__sort_output = manager.getname("bwa_mem_phix", ".sorted.bam")
     __bwa_mem_phix__fai = __bwa_mem_phix__reference + ".fai"

@@ -65,13 +65,9 @@ class CoverageModule(SequanaBaseModule):
     def chromosome_table(self, html_list):
         """ Create table with links to chromosome reports
         """
-        formatter = '<a target="_blank" alt={0} href="{1}">{0}</a>'
-        link = "coverage_reports" + os.sep + "{0}.cov.html"
-        df = pd.DataFrame([[formatter.format(chrom.chrom_name,
-                          link.format(chrom.chrom_name)),
-                          chrom.get_size(), chrom.get_mean_cov(),
-                          chrom.get_var_coef(), page] for chrom, page in
-                          zip(self.bed.chr_list, html_list)],
+        df = pd.DataFrame([[chrom.chrom_name, chrom.get_size(),
+                          chrom.get_mean_cov(), chrom.get_var_coef(), page] for
+                          chrom, page in zip(self.bed.chr_list, html_list)],
                           columns=["chromosome", "size", "mean_coverage",
                           "coef_variation", "link"])
         datatable = DataTable(df, 'chrom')
@@ -248,14 +244,17 @@ class ChromosomeCoverageModule(SequanaBaseModule):
     def basic_stats(self):
         """ Basics statistics section.
         """
-        html_table = self.dataframe_to_html_table(
-            self.chromosome.get_stats(output="dataframe"), index=False)
+        li = '<li><br>{0}</br>({1}):{2:.2g}</li>'
+        df = self.chromosome.get_stats(output="dataframe")
+        stats = [li.format(tag, desc, value) for desc, value, tag in
+                 zip(df['Description'], df['Value'], df['name'])]
+        stats = '<ul>{0}</ul>'.format('\n'.join(stats))
         self.sections.append({
             'name': "Basic stats",
             'anchor': 'basic_stats',
             'content':
-                "<p>The following table gives some basic statistics about the "
-                "genome coverage.</p>\n{0}".format(html_table)
+                "<p>Here, some basic statistics about the "
+                "genome coverage.</p>\n{0}".format(stats)
         })
 
     def regions_of_interest(self, rois, links):
@@ -343,10 +342,10 @@ class ChromosomeCoverageModule(SequanaBaseModule):
             self.chromosome.plot_hist_normalized_coverage,
             input_arg="filename")
         self.sections.append({
-            'name': "Normalized coverage",
-            'anchor': 'normalized_coverage',
+            'name': "Normalised coverage",
+            'anchor': 'normalised_coverage',
             'content':
-                "<p>Distribution of the normalized coverage with predicted "
+                "<p>Distribution of the normalised coverage with predicted "
                 "Gaussian. The red line should be followed the trend of the "
                 "barplot.</p>\n{0}".format(image)
         })

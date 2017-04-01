@@ -3,26 +3,25 @@ rule format_contigs:
     than a threshold.
 
     Required input:
-        __format_contigs__input: fasta file
+        - __format_contigs__input: fasta file
 
     Required output:
-        __format_contigs__output: fasta file
+        - __format_contigs__output: fasta file
 
     Required parameter:
-        config["format_contigs"]["length_min"]: length treshold
+        - config["format_contigs"]["threshold"]: when the contig length is
+            lower than this number, the contig is not kept.
 
-    Contributors:
-        Sequana consortium
     """
     input:
         contigs = __format_contigs__input
     output:
         contigs = __format_contigs__output
     params:
-        length_min = config["format_contigs"]["length_min"]
+        threshold = config["format_contigs"]["threshold"]
     run:
         from sequana import FastA
 
         contigs = FastA(input.contigs)
         contigs.format_contigs_denovo(output_file=output.contigs,
-            len_min=params.length_min)
+                                      len_min=params.threshold)

@@ -20,7 +20,7 @@ rule freebayes:
         ref = __freebayes__reference
     output:
         bai = __freebayes__bai,
-        vcf = __freebayes__output
+        vcf = __freebayes__output,
     log:
         __freebayes__log
     params:

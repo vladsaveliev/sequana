@@ -1,0 +1,19 @@
+# coding: utf-8
+""" Dynamic rule to copy file in another directory.
+"""
+
+def dynamic_copy(name, project):
+    metadata = {'name': name}
+    dynamic_copy = '''
+rule copy_%(name)s:
+    input:
+        flin = __copy_%(name)s__input
+    output:
+        flout = __copy_%(name)s__output
+    shell:
+        """
+        cp {input.flin} {output.flout}
+        """
+'''
+    from sequana.snaketools import build_dynamic_rule
+    return build_dynamic_rule(dynamic_copy % metadata, project.pipeline_dir)

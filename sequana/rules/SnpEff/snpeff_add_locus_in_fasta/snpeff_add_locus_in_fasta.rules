@@ -20,10 +20,8 @@ rule snpeff_add_locus_in_fasta:
         ann = config["snpeff"]["reference"]
     output:
         fasta = __snpeff_add_locus_in_fasta__output
-    log:
-        l = __snpeff_add_locus_in_fasta__log
     run:
         from sequana import SnpEff
         
-        snpeff = SnpEff(reference=input.ann, log=log.l)
+        snpeff = SnpEff(reference=input.ann)
         snpeff.add_locus_in_fasta(input.fasta, output.fasta)

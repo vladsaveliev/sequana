@@ -19,6 +19,25 @@ def bwa_mem_dynamic(name, project):
         metadata['executable'] = "bwa"
 
     bwa_mem_code = '''
+rule bwa_index_%(name)s:
+    """BWA INDEX
+
+    Index the reference with BWA INDEX and SAMTOOLS FAIDX.
+    """
+    input:
+        reference = __bwa_mem_%(name)s__reference
+    output:
+        fai = __bwa_mem_%(name)s__fai
+    params:
+        index = config["bwa_mem_%(name)s"]["index_algorithm"]
+    log:
+        __bwa_index_%(name)s__log
+    shell:
+        """
+        bwa index -a {params.index} {input.reference} 2> {log}
+        samtools faidx {input.reference}
+        """
+
 rule bwa_mem_%(name)s:
     """BWA MEM
 
@@ -28,43 +47,25 @@ rule bwa_mem_%(name)s:
 
     """
     input:
+        fai = __bwa_mem_%(name)s__fai,
         fastq = __bwa_mem_%(name)s__input,
-        reference = __bwa_mem_%(name)s__ref_input
+        reference = __bwa_mem_%(name)s__reference
     output:
         mem = __bwa_mem_%(name)s__mem_output,
-        sort = __bwa_mem_%(name)s__sort_output,
-        reference = __bwa_mem_%(name)s__reference,
-        fai = __bwa_mem_%(name)s__fai
+        sort = __bwa_mem_%(name)s__sort_output
     log:
         __bwa_mem_%(name)s__log
     params:
-        index = config["bwa_mem_%(name)s"]["index_algorithm"],
         mem = config["bwa_mem_%(name)s"]["options"],
         bwa_exe = "%(executable)s"
     threads:
         int(config["bwa_mem_%(name)s"]["threads"])
     shell:
         """
-        # Symbolic link of the reference
-        if [[ {input.reference} == /* ]];
-        then
-            ln -sf {input.reference} {output.reference}
-        else
-            ln -sf $(pwd)/{input.reference} {output.reference}
-        fi
-
-        # this ensures that the symlink is updated (see
-        # https://bitbucket.org/snakemake/snakemake/wiki/FAQ)
-        touch -h {output.reference}
-
-        # Indexing
-        bwa index -a {params.index} {output.reference} 2> {log}
-        samtools faidx {output.reference}
-
         # Mapping
         ({params.bwa_exe} mem -t {threads} {params.mem} \
-        {output.reference} {input.fastq} | \
-        samtools view -Sbh -> {output.mem}) 2>> {log}
+        {input.reference} {input.fastq} | \
+        samtools view -Sbh -> {output.mem}) 2> {log}
  
         # Sorting
         samtools sort -o {output.sort} {output.mem} 2>> {log}

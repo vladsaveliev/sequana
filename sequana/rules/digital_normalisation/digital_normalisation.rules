@@ -5,16 +5,26 @@ rule digital_normalisation:
     unnormalised data.
 
     Required input:
-        __digital_normalisation__input: list of paired fastq files
+        - __digital_normalisation__input: list of paired fastq files
 
     Required output:
-        __digital_normalisation__output: list of paired fastq files
+        - __digital_normalisation__output: list of paired fastq files
 
     Required parameters:
-        __digital_normalisation__prefix: output prefix
+        - __digital_normalisation__prefix: output prefix
+        - config["digital_normalisation"]["ksize"]: kmer size used to 
+            normalised the coverage.
+        - config["digital_normalisation"]["cutoff"]: when the median k-mer
+            coverage level is above this number the read is not kept.
+        - config["digital_normalisation"]["max_memory_usage"]: maximum amount
+            of memory to use for data structure.
+        - config["digital_normalisation"]["threads"]: number of threads to be
+            used.
+        - config["digital_normalisation"]["options"]: any options recognised by
+            normalize-by-median.py.
 
-    Contributors:
-        Sequana consortium
+    Logs:
+        - __digital_normalisation__log
     """
     input:
         fastq = __digital_normalisation__input
@@ -27,8 +37,7 @@ rule digital_normalisation:
         prefix = __digital_normalisation__prefix,
         ksize = config["digital_normalisation"]["ksize"],
         cutoff = config["digital_normalisation"]["cutoff"],
-        n_tables = config["digital_normalisation"]["n_tables"],
-        max_ts = config["digital_normalisation"]["max-tablesize"],
+        m = config["digital_normalisation"]["max_memory_usage"],
         options = config["digital_normalisation"]["options"]
     threads:
         config["digital_normalisation"]["threads"]
@@ -47,8 +56,7 @@ rule digital_normalisation:
 
         # digital norm
         normalize-by-median.py --paired --ksize {params.ksize} \
-            --cutoff {params.cutoff} --n_table {params.n_tables} \
-            --max-tablesize {params.max_ts} {params.options} \
+            --cutoff {params.cutoff} -M {params.m} {params.options} \
             --savegraph {output.graph} {params.prefix}.pe \
             --output {params.prefix}.pe.keep >> {log} 2>&1
 

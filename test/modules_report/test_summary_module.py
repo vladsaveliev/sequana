@@ -14,6 +14,7 @@ def test_summary_module(tmpdir):
                         sequana_data('Hm2_GTGAAA_L005_R1_001.fastq.gz'),
                         sequana_data('Hm2_GTGAAA_L005_R2_001.fastq.gz')],
                     'outputs': [sequana_data('JB409847.vcf')],
+                    'html': [sequana_data('JB409847.vcf')],
                     'rulegraph': sequana_data('test_summary_module.svg'),
                     'requirements': sequana_data('test_gui_generic_config.yaml'),
                     'snakefile': sequana_data('test_gui_generic_config.yaml'),

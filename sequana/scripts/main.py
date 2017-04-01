@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 #
 #  This file is part of Sequana software
 #
@@ -32,6 +31,7 @@ from easydev import DevTools, SmartFormatter, onweb
 from sequana.misc import textwrap
 from sequana.snaketools import pipeline_names as valid_pipelines
 from sequana.snaketools import FastQFactory
+from sequana.snaketools import FileFactory
 from sequana.adapters import FindAdaptersFromDesign, AdapterReader
 from sequana import SequanaConfig, sequana_data
 from sequana import logger, Module, sequana_debug_level
@@ -510,7 +510,7 @@ def main(args=None):
         logger.critical(help_input + "\n\nUse --help for more information")
         sys.exit(1)
 
-    assert options.extension in ["fastq", "fq", "fastq.gz", "fq.gz"]
+    assert options.extension in ["fastq", "fq", "fastq.gz", "fq.gz", "bam"]
 
     # Note that we use abspath to make it more robust and easier to debug
     # If no options, we use input_directory and set it to "."
@@ -543,7 +543,10 @@ def main(args=None):
         options.pattern = ""
         options.extension = ""
 
-    ff = FastQFactory(data, verbose=options.verbose)
+    if options.extension == 'bam' or options.pattern.endswith('bam'):
+        ff = FileFactory(data)
+    else:
+        ff = FastQFactory(data, verbose=options.verbose)
 
     if options.pipeline == 'quality_control':
         # check combo
