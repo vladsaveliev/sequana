@@ -769,6 +769,14 @@ class SequanaGUI(QMainWindow, Tools):
         return option
 
     def _get_snakemake_command(self, snakefile):
+        """If the cluster option is selected, then the cluster field in 
+        the snakemake menu must be set to a string different from empty string.
+
+        If we are on TARS, we also must set the option to cluster (not local)
+
+        If one of the previous cases is true, this function returns None
+
+        """
         dialog = self.snakemake_dialog      # an alias
         snakemake_line = ["-s", snakefile, "--stat", "stats.txt", "-p"]
 
@@ -782,16 +790,18 @@ class SequanaGUI(QMainWindow, Tools):
         elif self.ui.comboBox_local.currentText() == "cluster":
             cluster = dialog.ui.snakemake_options_cluster_cluster_value.text()
             if len(cluster.strip()) == 0:
-                msg = WarningMessage(("You are on TARS cluster. Please set the"
-                    "batch options and select the cluster option (not local)"))
+                msg = WarningMessage(("You selected a 'cluster run' but the "
+                    "cluster preferences are not set. Either switch to a local "
+                    "run or set a correct string in the Snakemake options menu "
+                    "(in cluster tab/ cluster field.)"))
                 msg.exec_()
+                return None
             snakemake_line += dialog.get_snakemake_cluster_options()
 
             cluster_config = dialog.ui.snakemake_options_cluster_config_value.text()
             cluster_config = cluster_config.strip()
             if len(cluster_config):
                 snakemake_line += ["--cluster-config", cluster_config]
-
 
         snakemake_line += dialog.get_snakemake_general_options()
         snakemake_line += self.get_until_starting_option()
