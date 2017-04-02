@@ -220,7 +220,7 @@ class GenericFactory(BaseFactory):
         # Define the Snakefile browser and config widgets
         self._snakefile_browser = FileBrowser(directory=False)
         self._config_browser = FileBrowser(directory=False,
-            file_filter="YAML file (*.json *.yaml)")
+            file_filter="YAML file (*.json *.yaml *.yml)")
 
         # when a snakefile or config is chosen, switch off run button
         self._config_browser.clicked_connect(self._switch_off_run)
