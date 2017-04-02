@@ -99,8 +99,8 @@ class FileBrowser(QW.QWidget):
         directory_path = self.dialog.get_directory_path()
         if directory_path:
             self.set_filenames(directory_path)
-        else:
-            self.set_empty_path()
+        #else:
+        #    self.set_empty_path()
 
     def browse_file(self):
         try:
