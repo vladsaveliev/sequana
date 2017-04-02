@@ -501,6 +501,10 @@ class SequanaGUI(QMainWindow, Tools):
         if misc.on_cluster(['tars-']) is True:
              self.ui.comboBox_local.setCurrentText("cluster")
 
+        # connect show advanced button with the until/starting frame
+        self.ui.show_advanced_control.clicked.connect(self.click_advanced)
+        self.ui.frame_control.hide()
+
     #|-----------------------------------------------------|
     #|                       MENU related                  |
     #|-----------------------------------------------------|
@@ -700,6 +704,15 @@ class SequanaGUI(QMainWindow, Tools):
             self.ui.tabs.setCurrentIndex(2)
 
     # --------------------------------------------------------------------
+    #  Advanced control
+    # --------------------------------------------------------------------
+    def click_advanced(self):
+        if self.ui.frame_control.isHidden():
+            self.ui.frame_control.show()
+        else:
+            self.ui.frame_control.hide()
+
+    # --------------------------------------------------------------------
     # Others
     # --------------------------------------------------------------------
 
@@ -818,6 +831,9 @@ class SequanaGUI(QMainWindow, Tools):
 
     def click_run(self):
         # set focus on the snakemake output
+        if self.snakefile is None or self.working_dir is None:
+            self.warning('Working directory or snakefile not set.')
+            return
         self.ui.tabs.setCurrentIndex(0)
         self.shell_error = ""
         self.shell = ""
@@ -1148,7 +1164,8 @@ class SequanaGUI(QMainWindow, Tools):
     # -----------------------------------------------------------------------
 
     def unlock_snakemake(self):
-        if self.working_dir is None:
+        if self.working_dir is None or self.snakefile is None:
+            self.warning("working directory or snakefile not set")
             return
 
         # FIXME this does not work as expected
@@ -1185,6 +1202,9 @@ class SequanaGUI(QMainWindow, Tools):
 
     def show_dag(self):
         self.info("Creating DAG image.")
+        if self.snakefile is None:
+            self.warning("No snakefile")
+            return
 
         # We just need the basename because we will run it in the wkdir
         snakefile = os.path.basename(self.snakefile)
