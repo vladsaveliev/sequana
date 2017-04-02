@@ -136,6 +136,8 @@ class SnakemakeDialog(QW.QDialog):
                 value = widget.value()
             elif isinstance(widget, QW.QCheckBox):
                 value = widget.isChecked()
+            elif isinstance(widget, QW.QSpinBox):
+                value = widget.value()
             else:
                 raise NotImplementedError("for developers")
             items[name] = value

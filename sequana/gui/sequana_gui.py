@@ -907,12 +907,17 @@ class SequanaGUI(QMainWindow, Tools):
 
             if isinstance(contains, dict) and (
                     rule not in SequanaGUI._not_a_rule):
-                rule_box = Ruleform(rule, contains, count, self._browser_keyword)
+                # Get the docstring from the Yaml section/rule
+                docstring = docparser._block2docstring(rule)
+
+                # Get any special keywords
+                specials = docparser._get_specials(rule)
+
+                rule_box = Ruleform(rule, contains, count,
+                    self._browser_keyword, specials=specials)
                 rule_box.connect_all_option(
                     lambda: self.ui.run_btn.setEnabled(False))
 
-                # Get the docstring from the Yaml section/rule
-                docstring = docparser._block2docstring(rule)
 
                 # Try to interpret it with sphinx
                 from sequana.misc import rest2html
