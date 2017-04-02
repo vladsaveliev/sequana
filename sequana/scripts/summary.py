@@ -51,11 +51,13 @@ Issues: http://github.com/sequana/sequana
             help="""Several files may be processed in parallel. By default 4
                 threads are used""")
 
+
 def get_fastq_stats(filename, sample=1e16):
     from sequana import FastQC
     ff = FastQC(filename, max_sample=sample, verbose=False)
     stats = ff.get_stats()
     return stats
+
 
 def get_bed_stats(filename):
     from sequana import GenomeCov
@@ -96,8 +98,6 @@ def main(args=None):
         else:
             sms = SequanaMultipleSummary(verbose=options.verbose)
         sms.create_report()
-        if options.verbose:
-            print("Done. ")
         sys.exit(0)
 
     # We put the import here to make the --help faster
@@ -115,7 +115,6 @@ def main(args=None):
     for this in ff.realpaths:
         print(" - " + this)
 
-
     mc = MultiProcessing(options.thread, progress=True)
     if extension in ["fastq", "fastq.gz"]:
         for filename in ff.realpaths:
@@ -128,7 +127,6 @@ def main(args=None):
     elif extension.endswith("bam"):
         for filename in ff.realpaths:
             mc.add_job(get_bam_stats, filename)
-
     mc.run()
 
     results = {}

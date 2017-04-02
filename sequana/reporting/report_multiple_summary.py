@@ -26,6 +26,7 @@ from sequana.resources.canvas.bar import CanvasBar
 from sequana import logger
 
 from sequana.lazy import pandas as pd
+import reports
 
 __all__ = ['SequanaMultipleSummary']
 
@@ -125,7 +126,13 @@ class SequanaMultipleSummary(BaseReport):
             output_filename="multi_summary.html",
             **kargs)
 
-        print("Sequana Summary is still a tool in progress and have been " +
+        from sequana import sequana_debug_level
+        sequana_debug_level(level="INFO")
+        if verbose is False:
+            sequana_debug_level(level="WARNING")
+
+
+        logger.info("Sequana Summary is still a tool in progress and have been " +
               "  tested with the quality_control pipeline only for now.")
         self.verbose = verbose
         workdir = "."
@@ -135,18 +142,25 @@ class SequanaMultipleSummary(BaseReport):
 
         self.filenames = list(glob.iglob(pattern, recursive=True))
         self.summaries = [ReadSummary(filename) for filename in self.filenames]
+        self.projects = [ReadSummary(filename).data['project'] for filename in self.filenames]
 
         if self.verbose:
-            print("Found %s projects/samples/ directories" % len(self.summaries))
+            logger.info("Found %s projects/samples/ directories" % len(self.summaries))
+            for filename in self.filenames:
+                logger.info(filename)
 
         # The base has a navigation, that we do not want
         self.jinja['nav_off'] = 'True'
 
         self.jinja['n_samples'] = len(self.summaries)
 
-        self.jinja['links'] = [{'href': this.replace(".json", ".html"),
-                                'caption': this.split("/",1)[0]}
-                               for this in self.filenames]
+        # We should get the link name from the project name contained in the json
+
+        print(self.projects)
+        self.jinja['links'] = [{'href': filename.replace(".json", ".html"),'caption': project}
+                               for filename, project in zip(self.filenames,self.projects)]
+
+        print(self.jinja["links"])
 
         self.jinja['canvas'] = '<script type="text/javascript" src="js/canvasjs.min.js"></script>'
         self.jinja['canvas'] += """<script type="text/javascript">
@@ -154,16 +168,19 @@ class SequanaMultipleSummary(BaseReport):
 
         self.jinja['sections'] = []
 
+        # This will used to stored all information
+        self.df = {}
+
         # The order does not matter here, everything is done in JINJA
         try:self.populate_nreads_raw()
         except Exception as err:
             print(err)
 
-        try:self.populate_phix()
+        try: self.populate_phix()
         except Exception as err:
             print(err)
 
-        try:self.populate_gc_samples()
+        try: self.populate_gc_samples()
         except Exception as err:
             print(err)
 
@@ -171,14 +188,27 @@ class SequanaMultipleSummary(BaseReport):
         except Exception as err:
             print(err)
 
-        try:self.populate_mean_quality()
+        try: self.populate_mean_quality()
         except Exception as err:
             print(err)
 
-        try:self.populate_adapters()
+        try: self.populate_adapters()
         except Exception as err:
             print(err)
 
+        # Now we have all data in df as dictionaries. Let us merge them together
+        keys = list(self.df.keys())
+        if len(keys) >= 1:
+            df = pd.DataFrame(self.df[keys[0]])
+        if len(keys) > 1: # we can merge things
+            for key in keys[1:]:
+                df = pd.merge(df, pd.DataFrame(self.df[key]), on=['name', 'url'])
+        #df.set_index("name", inplace=True)
+        df.drop("url", axis=1, inplace=True)
+
+        htmltable = self.htmltable(df, "multi_summary")
+        htmltable.to_csv()
+        self.jinja['sections'].insert(0, htmltable.to_html())
 
         self.jinja['canvas'] += """
     function onClick(e){
@@ -203,12 +233,16 @@ class SequanaMultipleSummary(BaseReport):
     def populate_adapters(self):
         title = "Adapters content"
         df = self._get_df("get_adapters_percent")
+        self.df['adapters_percent'] = df.copy()
+        self.df['adapters_percent'].columns = ['name', 'url', 'adapters_percent']
         cb = CanvasBar(df, "Adapters content", "adapters", xlabel="Percentage")
         self.jinja['canvas'] += cb.to_html()
         self.jinja['sections'].append(self._get_div("adapters", title))
 
     def populate_nreads_raw(self):
         df = self._get_df("get_nreads_raw")
+        self.df['nreads_raw'] = df.copy()
+        self.df['nreads_raw'].columns = ['name', 'url', 'nreads_raw']
         cb = CanvasBar(df, "Number of reads (raw data)", "nreads_raw",
                     xlabel="Number of reads")
         self.jinja['canvas'] += cb.to_html()
@@ -218,6 +252,8 @@ class SequanaMultipleSummary(BaseReport):
     def populate_mean_quality(self):
         title = "Mean quality"
         df = self._get_df("get_mean_quality_samples")
+        self.df['mean_quality'] = df.copy()
+        self.df['mean_quality'].columns = ['name', 'url', 'mean_quality']
         cb = CanvasBar(df, title, "mean_quality", xlabel="mean quality")
         self.jinja['canvas'] += cb.to_html(options={'maxrange':40})
         self.jinja['sections'].append(self._get_div("mean_quality", title))
@@ -225,6 +261,8 @@ class SequanaMultipleSummary(BaseReport):
     def populate_gc_samples(self):
         title = "GC content"
         df = self._get_df("get_gc_content_samples")
+        self.df['gc_sample'] = df.copy()
+        self.df['gc_sample'].columns = ['name', 'url', 'gc_sample']
         cb = CanvasBar(df, title, "populate_gc_samples", xlabel="Percentage")
         self.jinja['canvas'] += cb.to_html(options={"maxrange":100})
         self.jinja['sections'].append(self._get_div("populate_gc_samples",title))
@@ -232,6 +270,8 @@ class SequanaMultipleSummary(BaseReport):
     def populate_phix(self):
         title = "Phix content"
         df = self._get_df("get_phix_percent")
+        self.df['phix'] = df.copy()
+        self.df['phix'].columns = ['name', 'url', 'phix']
         cb = CanvasBar(df, title, "phix", xlabel="Percentage")
         self.jinja['canvas'] += cb.to_html()
         self.jinja['sections'].append(self._get_div("phix", title))
@@ -239,6 +279,8 @@ class SequanaMultipleSummary(BaseReport):
     def populate_trimming(self):
         title = "Trimming"
         df = self._get_df("get_trimming_percent")
+        self.df['trimming'] = df.copy()
+        self.df['trimming'].columns = ['name', 'url', 'trimming']
         cb = CanvasBar(df, title, "trimming", xlabel="Percentage")
         self.jinja['canvas'] += cb.to_html()
         self.jinja['sections'].append(self._get_div("trimming", title))
