@@ -312,6 +312,9 @@ class SequanaGUI(QMainWindow, Tools):
         self._undefined_section = "Parameters in no sections/rules"
         self._config = None
 
+        # Set the regex to catch steps in the progres bar
+        self._step_regex = re.compile("([0-9]+) of ([0-9]+) steps")
+
         self._ipython_tab = ipython
         self.initUI()
         self.read_settings()
@@ -838,8 +841,6 @@ class SequanaGUI(QMainWindow, Tools):
         self.shell_error = ""
         self.shell = ""
 
-        # Set the regex to catch steps
-        self._step_regex = re.compile("([0-9]+) of ([0-9]+) steps")
 
         # Prepare the command and working directory.
         if self.working_dir is None:
