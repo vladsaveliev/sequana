@@ -19,6 +19,7 @@ import sys
 import os
 import re
 import time
+import psutil
 import subprocess as sp
 import argparse
 import signal
@@ -978,15 +979,33 @@ class SequanaGUI(QMainWindow, Tools):
         pal.setColor(QtGui.QPalette.Highlight, self._colors['orange'])
         self.ui.progressBar.setPalette(pal)
 
+        # For windows:
+        # http://stackoverflow.com/questions/8232544/how-to-terminate-a-process-without-os-kill-osgeo4w-python-2-5
+
         if self.process.state() != 0:
-            self.info("Process running, stopping it... ")
-            # We must use a ctrl+C interruption like so that snakemake
-            # handles the interruption smoothly
+            pid = self.process.pid()
+            self.warning("Process {} running , stopping it... ".format(pid))
+            # We must use a ctrl+C interruption so that snakemake
+            # handles the interruption smoothly. However, child processes
+            # are lost so we also need to get their IDs and kill them.
             self.info("killing the main snakemake process. This may take a few seconds ")
             try:
-                os.kill(self.process.pid(), signal.SIGINT)
+                self.info("process pid={} being killed".format(self.process.pid()))
+                pid_children = [this.pid for this in 
+                                psutil.Process(pid).children(recursive=True)]
+                # Kills the main process
+                os.kill(pid, signal.SIGINT)
+                # And the children
+                for this in pid_children:
+                    self.info("Remove pid {} ".format(this))
+                    try:
+                        os.kill(this, signal.SIGINT)
+                    except Exception as err:
+                        print(err)
                 time.sleep(4)
-            except:
+
+            except Exception as err:
+                print(err)
                 pass # already stopped ?
             self.info("Process killed successfully.")
         self.ui.save_btn.setEnabled(True)
