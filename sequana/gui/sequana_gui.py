@@ -330,8 +330,8 @@ class SequanaGUI(QMainWindow, Tools):
                            border-radius: 5px;
                            margin:5px;
                            opacity: 255;
-                           }
-                           }
+                           } ;
+
                             """)
 
         # User option.
@@ -629,6 +629,11 @@ class SequanaGUI(QMainWindow, Tools):
         self.ui.layout_generic_snakefile.addWidget(gaf._snakefile_browser)
         self.ui.layout_generic_config.addWidget(gaf._config_browser)
         self.ui.layout_generic_wkdir.addWidget(gaf._directory_browser)
+
+        # When user press the cancel button, the config file browser is reset
+        self.ui.cancel_push_button.clicked.connect(
+            self.generic_factory._config_browser.set_empty_path)
+
 
     # ---------------------------------------------------------------------
     # Fotter connectors
