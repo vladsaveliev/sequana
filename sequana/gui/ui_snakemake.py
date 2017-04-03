@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'snakemake.ui'
 #
-# Created by: PyQt5 UI code generator 5.6
+# Created by: PyQt5 UI code generator 5.8.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -52,7 +52,6 @@ class Ui_Snakemake(object):
         self.tab_cluster = QtWidgets.QWidget()
         self.tab_cluster.setObjectName("tab_cluster")
         self.gridLayout_3 = QtWidgets.QGridLayout(self.tab_cluster)
-        self.gridLayout_3.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_3.setObjectName("gridLayout_3")
         self.gridLayout_2 = QtWidgets.QGridLayout()
         self.gridLayout_2.setContentsMargins(5, 5, 5, 5)
