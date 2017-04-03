@@ -291,7 +291,8 @@ class SequanaGUI(QMainWindow, Tools):
     """
     _not_a_rule = {"requirements", "gatk_bin", "input_directory",
                     "input_samples", "input_pattern", "ignore"}
-    _browser_keyword = {"reference"}
+    _browser_keywords = {"reference"}
+    _to_exclude = ["atac-seq", "compressor"]
 
     def __init__(self, parent=None, ipython=True, user_options={}):
         super(SequanaGUI, self).__init__(parent=parent)
@@ -329,6 +330,7 @@ class SequanaGUI(QMainWindow, Tools):
                            border-radius: 5px;
                            margin:5px;
                            opacity: 255;
+                           }
                            }
                             """)
 
@@ -564,6 +566,7 @@ class SequanaGUI(QMainWindow, Tools):
     def set_sequana_pipeline(self):
         # The pipeline connectors
         pipelines = sorted(snaketools.pipeline_names)
+        pipelines = [this for this in pipelines if this not in self._to_exclude]
         self.ui.choice_button.addItems(pipelines)
         self.ui.choice_button.activated[str].connect(self._update_sequana)
 
@@ -931,8 +934,19 @@ class SequanaGUI(QMainWindow, Tools):
                 # Get any special keywords
                 specials = docparser._get_specials(rule)
 
-                rule_box = Ruleform(rule, contains, count,
-                    self._browser_keyword, specials=specials)
+                #self.ui.preferences_options_general_addbrowser_value
+                dialog = self.preferences_dialog.ui
+                option = dialog.preferences_options_general_addbrowser_value.text()
+                option = option.strip()
+                option = option.replace(";", " ").replace(",", " ")
+                if len(option):
+                    keywords = option.split()
+                else:
+                    keywords = []
+                keywords += self._browser_keywords
+                keywords = list(set(keywords))
+
+                rule_box = Ruleform(rule, contains, count, keywords, specials=specials)
                 rule_box.connect_all_option(
                     lambda: self.ui.run_btn.setEnabled(False))
 
