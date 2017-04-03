@@ -215,10 +215,12 @@ fastq_screen:
 # :Note: If design_file is provided, fwd and rev are ignored
 #
 #   ref: http://cutadapt.readthedocs.io/
+# adapter_choice__ = ["PCRFree", "Rubicon", "Nextera", "TruSeq"]
+# tool_choice_ = ["cutadapt", "clean_ngs"]
 adapter_removal:
     do: yes
-    tool: cutadapt
-    adapter_type:
+    tool_choice: cutadapt
+    adapter_choice:
     design_file:
     fwd:
     rev:
