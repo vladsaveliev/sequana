@@ -19,6 +19,10 @@
 """Snakemake Dialog for the main GUI application"""
 import multiprocessing
 
+# Just to check the version
+from distutils.version import StrictVersion
+import snakemake
+
 from sequana.gui.ui_snakemake import Ui_Snakemake
 from PyQt5 import QtWidgets as QW
 from PyQt5 import QtCore
@@ -49,7 +53,7 @@ class SnakemakeDialog(QW.QDialog):
         # Get the objects themselves
         widgets = [getattr(self.ui, this) for this in names]
 
-        # the double underescore __  is used i nplace or dash - in qt designer
+        # the double underscore __  is used instead of dash - in qt designer
         # because dash is not acceptable within the object name. so we must
         # replace it. We also strip the prefix and suffix (_value)
         names = [this.replace(prefix + "_", "") for this in names]
@@ -57,7 +61,11 @@ class SnakemakeDialog(QW.QDialog):
         names = [this.replace("_value", "") for this in names]
 
         options = []
+        snakemake_version = StrictVersion(snakemake.version.__version__)
         for name, widget in zip(names, widgets):
+            # This option is valid for snakemake above 3.10
+            if name == "restart-times" and snakemake_version < StrictVersion("3.10"):
+                continue
             options.append(SOptions(name, widget))
         return options
 
@@ -147,8 +155,6 @@ class SnakemakeDialog(QW.QDialog):
 
 class SOptions(object):
     """
-
-
     """
     def __init__(self, name, widget):
         self.name = name
@@ -184,5 +190,3 @@ class SOptions(object):
                 return []
             else:
                 return ["--" + self.name, value]
-
-
