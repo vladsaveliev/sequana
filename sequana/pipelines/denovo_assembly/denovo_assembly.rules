@@ -64,7 +64,8 @@ include: sm.modules["spades"]
 
 # get corrected reads if careful option is used
 if config["spades"]["careful"]:
-    __spades_get_fastq__input = __spades__outdir + "corrected/corrected.yaml"
+    __spades_get_fastq__input = __spades__scaffolds
+    __spades_get_fastq__yaml = __spades__outdir + "corrected/corrected.yaml"
     __spades_get_fastq__output = [
         manager.getname("spades_get_fastq", "R1.fastq.gz"),
         manager.getname("spades_get_fastq", "R1.fastq.gz")]
