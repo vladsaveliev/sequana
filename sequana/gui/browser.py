@@ -85,26 +85,17 @@ class Browser(Qt.QMainWindow):
         #self.zoomOne = Qt.QShortcut("Ctrl+f", self, activated=lambda: self.wb.back())
 
         # Javascript and other settings
-        # ------------------------------------------------------------ 
+        # ------------------------------------------------------------
         try:
-            # pyqt 5.6
+            # pyqt 5.6 with WebKit version
             self.wb.settings().setAttribute(QtWebKit.QWebSettings.PluginsEnabled,
                                         True)
         except:
-            self.wb.settings().setAttribute(
-                QWebEngineSettings.PluginsEnabled, True)
+            # Qt with Webengine version
             self.wb.settings().setAttribute(
                 QWebEngineSettings.JavascriptEnabled,  True)
             self.wb.settings().setAttribute(
-                    QWebEngineSettings.LocalContentCanAccessFileUrls, True)
-            self.wb.settings().setAttribute(
-                QWebEngineSettings.JavascriptCanAccessClipboard, True)
-            self.wb.settings().setAttribute(
-                QWebEngineSettings.LocalContentCanAccessRemoteUrls, True)
-            self.wb.settings().setAttribute(
-                QWebEngineSettings.SpatialNavigationEnabled, True)
-            self.wb.settings().setAttribute(
-                QWebEngineSettings.AllowRunningInsecureContent, True)
+                QWebEngineSettings.Accelerated2dCanvasEnabled, False)
 
         # Add components on the page
         self.sb.addPermanentWidget(self.search)
@@ -114,3 +105,8 @@ class Browser(Qt.QMainWindow):
         # No caching
         # self.wb.settings().setObjectCacheCapacities(0,0,0)
 
+
+
+#if __name__ == "__main__": 
+#
+#    b = Browser()
