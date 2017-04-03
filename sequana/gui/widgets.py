@@ -268,7 +268,10 @@ class ComboboxOptions(GeneralOption):
         super().__init__(option)
         self.choice = QW.QComboBox()
         self.choice.addItems(values)
+        self.choice.setStyleSheet("QComboBox { selection-background-color: #5964FF; }");
         self.layout.addWidget(self.choice)
+        
+
     def get_value(self):
         return self.choice.currentText()
     def set_enable(self, switch_bool):
