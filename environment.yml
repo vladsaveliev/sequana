@@ -2,6 +2,9 @@ name: sequana_env
 
 channels:
 - bioconda
+- defaults
+- r
+- conda-forge
 
 dependencies:
 - numpy
@@ -14,6 +17,7 @@ dependencies:
 - pillow
 - ipython
 - jupyter
+- sphinx
 - pip:
   - matplotlib
   - easydev>=0.9.30
