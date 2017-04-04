@@ -10,7 +10,7 @@ from sequana import snaketools as sm
 sm.init("rnaseq.rules", globals())
 
 
-# This must be defined before the include 
+# This must be defined before the include
 configfile: "config.yaml"
 __snakefile__ = srcdir(__snakefile__)
 
@@ -35,13 +35,13 @@ if manager.config.genome.do:
     # indexing for bowtie1
     # whole genome
     __bowtie1_index_ref__fasta = config["genome"]["fasta"]
-    __bowtie1_index_ref__output_done = config["genome"]["name"] + ".bowtie.done"
+    __bowtie1_index_ref__output_done = config["genome"]["name"] + ".1.ebwt"
     __bowtie1_index_ref__output_prefix = config["genome"]["name"]
     __bowtie1_index_ref__log = "logs/indexing/bowtie_genome.log"
     include: bowtie1_index_dynamic("ref")
     # rRNA genome
     if manager.config.genome.rRNA_fasta:
-        __bowtie1_index_rna__fasta = config["genome"]["name"]+ "_rRNA.fa"
+        __bowtie1_index_rna__fasta = config["genome"]["rRNA_fasta"]
         __bowtie1_index_rna__output_done = config["genome"]["name"] + "_rRNA.1.ebwt"
         __bowtie1_index_rna__output_prefix = config["genome"]["name"]+ "_rRNA"
         __bowtie1_index_rna__log = "logs/indexing/bowtie_rRNA.log"
@@ -62,14 +62,14 @@ if manager.config.genome.do:
 
     # indexing for bowtie2
     __bowtie2_index__fasta = config["genome"]["fasta"]
-    __bowtie2_index__output_done = config["genome"]["name"] + ".bowtie2.done"
+    __bowtie2_index__output_done = config["genome"]["name"] + ".1.bt2"
     __bowtie2_index__output_prefix = config["genome"]["name"]
     __bowtie2_index__log = "logs/indexing/bowtie2_genome.log"
     include: sm.modules["bowtie2_index"]
 
     # indexing for star
     __star_index__fasta = config["genome"]["fasta"]
-    __star_index__output_done = config["genome"]["name"] + ".star.done"
+    __star_index__output_done = config["genome"]["dir"] +  "/SAindex"
     __star_index__output_dir = config["genome"]["dir"]
     __star_index__log = "logs/indexing/star_genome.log"
     include: sm.modules["star_index"]
@@ -85,11 +85,11 @@ if manager.config.genome.do:
 
 else:
     __star_dir__ = config["genome"]["dir"]
-    __star_index__output_done = config["genome"]["name"] + ".star.done"
+    __star_index__output_done = config["genome"]["dir"] +  "/SAindex"
     __bowtie2_index__ = config["genome"]["name"]
-    __bowtie2_index__output_done = config["genome"]["name"] + ".bowtie2.done"
+    __bowtie2_index__output_done = config["genome"]["name"] + ".1.bt2"
     __bowtie1_index__ = config["genome"]["name"]
-    __bowtie1_index_ref__output_done = config["genome"]["name"] + ".bowtie.done"
+    __bowtie1_index_ref__output_done = config["genome"]["name"] + ".1.ebwt"
     __RNA_index__ = config["genome"]["name"]+ "_rRNA"
     __bowtie1_index_rna__output_done = config["genome"]["name"] + "_rRNA.1.ebwt"
     __sequence_dictionary__ = config["genome"]["fasta"] + ".dict"
@@ -345,8 +345,8 @@ onsuccess:
         shell('cp -r %s/cutadapt/ %s' % (proj, report_dir))
 
         from sequana.reporting.report_summary import SequanaSummary
-        summary = SequanaSummary(proj, directory=report_dir, 
-            output_filename="summary.html", 
+        summary = SequanaSummary(proj, directory=report_dir,
+            output_filename="summary.html",
             snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
             manager=manager)
         summary.create_report()
