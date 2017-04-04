@@ -1,16 +1,16 @@
 rule summary_pipeline:
     """ Create a JSON file that summarise all information about the pipeline.
-    This JSON file is used by the sequana reports. It must be created
+    This JSON file is used by the sequana reports. It creates
     the summary report for your samples.
-    
+
     Required input:
         - __summary_pipeline__inputs = list of the pipeline input.
         - __summary_pipeline__outputs = list of the pipeline outputs.
-        - __summary_pipeline__html = list of html page created by rules.
+        - __summary_pipeline__html = list of html pages created by rules.
         - __summary_pipeline__rulegraph = the rulegraph SVG filename.
-        - __summary_pipeline__requirements = the requirements filename.
+        - __summary_pipeline__requirements = the requirements filename (conda).
         - __summary_pipeline__snakefile = the snakemake file.
-        - __summary_pipeline__config = the config file.
+        - __summary_pipeline__config = the snakemake config file.
 
     Required output:
         - __summary_pipeline__json_output = the json output file.
