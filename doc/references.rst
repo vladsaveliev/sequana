@@ -119,7 +119,7 @@ General tools
 
 VCF module
 ------------
-.. automodule:: sequana.vcf_filter
+.. automodule:: sequana.freebayes_vcf_filter
     :members:
     :undoc-members:
 
