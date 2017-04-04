@@ -58,6 +58,19 @@ class Options(argparse.ArgumentParser, SequanaOptions):
         (tars), the --snakemake-options must be used to provide the slurm
         sbatch command (see help below for example).
 
+    Note for CLUSTER usage: consider an example where we request 4 jobs (default) 
+    and 4 threads (default). Each job is laucnhed independently. Yet, with a
+    scheduler like SLURM, it is highly possible that the requested resources 
+    will occur on the same node if that node has 4 cpus starting 16 threads in
+    total irrespective of the current occupation by other users. 
+    For SLURM scheduler, once can provide an option to look for nodes that have 
+    at least 4 cpus (threads) available. The option is -c. So, please use
+
+        sbatch -c 4
+
+    in such case.
+    
+
 AUTHORS: Thomas Cokelaer
 Documentation: http://sequana.readthedocs.io
 Issues: http://github.com/sequana/sequana"""
@@ -78,6 +91,9 @@ Issues: http://github.com/sequana/sequana"""
         group.add_argument("--recursive", dest="recursive",
             default=False,
             action="store_true", help="""recursive search""")
+        group.add_argument("--dryrun", dest="dryrun",
+            default=False,
+            action="store_true", help="""Do not execute anything""")
 
         group = self.add_argument_group("JOBS RELATED (threads/cores)")
         group.add_argument("--threads", dest="threads",
@@ -155,8 +171,6 @@ def main(args=None):
         raise ValueError("""--target and --source combo not valid.
 Must be one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
 
-
-
     # Create the config file locally
     module = Module("compressor")
 
@@ -176,6 +190,9 @@ Must be one of fastq, fastq.gz, fastq.bz2 or fastq.dsrc""")
         # Run the snakemake command itself.
         cmd = 'snakemake -s %s  --configfile %s -j %s ' % \
                 (rule, temp.name, options.jobs)
+
+        if options.dryrun:
+            cmd += " --dryrun "
 
         if options.verbose is False:
             cmd += " --quiet "
