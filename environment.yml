@@ -13,6 +13,7 @@ dependencies:
 - kraken
 - pillow
 - ipython
+- jupyter
 - pip:
   - matplotlib
   - easydev>=0.9.30
