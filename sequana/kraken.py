@@ -52,8 +52,22 @@ class KrakenResults(object):
         C	HISEQ:426:C5T65ACXX:5:2301:18719:16377	1	203	1:71 A:31 1:71
         C	HISEQ:426:C5T65ACXX:5:2301:21238:16397	1	202	1:71 A:31 1:71
 
-    Where each row corresponds to one read. See kraken documentation for
-    details.
+    Where each row corresponds to one read. 
+
+    ::
+
+        "562:13 561:4 A:31 0:1 562:3" would indicate that:
+
+        the first 13 k-mers mapped to taxonomy ID #562
+        the next 4 k-mers mapped to taxonomy ID #561
+        the next 31 k-mers contained an ambiguous nucleotide
+        the next k-mer was not in the database
+        the last 3 k-mers mapped to taxonomy ID #562
+
+
+    See kraken documentation for details.
+
+
 
     .. note:: This takes care of fetching taxons and the corresponding lineages
         from online web services.
