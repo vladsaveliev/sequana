@@ -12,6 +12,7 @@ dependencies:
 - krona
 - kraken
 - pillow
+- ipython
 - pip:
   - matplotlib
   - easydev>=0.9.30
