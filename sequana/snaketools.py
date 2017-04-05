@@ -1326,7 +1326,4 @@ def add_stats_summary_json(json_list, parser):
         jdict['stats'] = parser.stats
         j = json.dumps(jdict)
         with open(jfile, 'w') as fp:
-            try:
-                print(j, file=fp)
-            except: # This is for RTD, which currently runs under py2 only
-                pass 
+            print(j, file=fp)
