@@ -19,6 +19,7 @@ dependencies:
 - jupyter
 - sphinx
 - reports
+- pip
 - pip:
   - bioservices
   - biokit>=0.3.2
