@@ -1,4 +1,4 @@
-name: sequana_env
+name: sequana
 
 channels:
 - bioconda
@@ -6,8 +6,8 @@ channels:
 - r
 - conda-forge
 
-dependenciies:
-- python=3.5.1=0
+dependencies:
+- python=3.5.1
 - numpy
 - pandas
 - matplotlib
