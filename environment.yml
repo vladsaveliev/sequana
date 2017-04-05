@@ -16,13 +16,10 @@ dependencies:
 - krona
 - kraken
 - pillow
-- ipython
 - jupyter
 - sphinx
+- reports
 - pip:
-  - matplotlib
-  - easydev>=0.9.30
   - bioservices
   - biokit>=0.3.2
-  - mpld3
-  - reports
+  - ipython
