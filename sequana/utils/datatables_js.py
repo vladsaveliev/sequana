@@ -43,12 +43,13 @@ class DataTableFunction(object):
     All options of datatable:
         https://datatables.net/reference/option/
     """
-    def __init__(self, df, html_id):
+    def __init__(self, df, html_id, index=False):
         """.. rubric:: contructor
 
         :param df: data frame.
         :param str html_id: the ID used in the HTML file.
         """
+        self.index = index
         self._html_id = html_id
         self._datatable_options = dict()
         self._datatable_columns = self._set_datatable_columns(df)
@@ -95,7 +96,11 @@ class DataTableFunction(object):
         """ Fill :attr:`DataTableFunction.datatable_columns` with header of
         :param:`DataTableFunction.df`.
         """
-        column_dict = OrderedDict((name, dict()) for name in df.columns)
+        if self.index is True:
+            columns = [""] + list(df.columns)
+        else:
+            columns = list(df.columns)
+        column_dict = OrderedDict((name, dict()) for name in columns)
         return column_dict
 
     def create_javascript_function(self):
@@ -199,8 +204,9 @@ class DataTableFunction(object):
 
 
 class DataTable(object):
-    """ Class that contains html table which used a javascript function. You
-    must add in your HTML file the js function
+    """ Class that contains html table which used a javascript function. 
+
+    You  must add in your HTML file the JS function
     (:meth:`DataTable.create_javascript_function`) and the HTML code
     (:meth:`DataTable.create_datatable`).
 
@@ -219,8 +225,12 @@ class DataTable(object):
         df2 = pandas.read_csv('data2.csv')
         datatable2 = DataTable(df2, 'data2', datatable.datatable)
         html2 = datatable.create_datatable()
+
+    The reason to include the JS manually is that you may include many HTML
+    table but need to include the JS only once.
+
     """
-    def __init__(self, df, html_id, datatable=None):
+    def __init__(self, df, html_id, datatable=None, index=False):
         """.. rubric:: contructor
 
         :param df: data frame.
@@ -228,13 +238,16 @@ class DataTable(object):
         :param DataTableFunction datatable: javascript function to create the
             Jquery Datatables. If None, a :class:`DataTableFunction` is
             generated from the df.
+        :param bool index: indicates whether the index dataframe should 
+            be included in the CSV table
         """
+        self.index = index
         self._df = df
         self._html_id = html_id
         if datatable:
             self.datatable = datatable
         else:
-            self.datatable = DataTableFunction(df, html_id)
+            self.datatable = DataTableFunction(df, html_id, index=index)
 
     def __len__(self):
         return len(self.df)
@@ -250,7 +263,7 @@ class DataTable(object):
     def create_datatable(self, style="width:100%", **kwargs):
         """ Return string well formated to include in a HTML page.
 
-        :param str style: css option of your table.
+        :param str style: CSS option of your table.
         :param **dict kwargs: parameters of :meth:`pandas.DataFrame.to_csv`.
         """
         html = """
@@ -271,7 +284,7 @@ class DataTable(object):
 
         :param **dict kwargs: parameters of :meth:`pandas.DataFrame.to_csv`.
         """
-        csv = self._df.to_csv(**kwargs)
+        csv = self._df.to_csv(index=self.index, **kwargs)
         html = '<pre id="csv_{0}">{1}</pre>'.format(self.html_id, csv.strip())
         css = '<style>#csv_{0}{{display:none}}</style>'.format(self.html_id)
         return '{0}\n{1}\n'.format(css, html)
@@ -288,7 +301,11 @@ class DataTable(object):
             .format(self.html_id, style)
         # create table's header
         th = '<th>{0}</th>'
-        header = [th.format(name) for name in self.df]
+        if self.index is True:
+            header = [th.format("")]
+            header += [th.format(name) for name in self.df]
+        else:
+            header = [th.format(name) for name in self.df]
         header = '<thead>{0}</thead>'.format("\n".join(header))
         html_table = """
     {0}
