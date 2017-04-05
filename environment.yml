@@ -1,4 +1,4 @@
-name: py35
+name: sequana_env
 
 channels:
 - bioconda
