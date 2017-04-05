@@ -49,6 +49,6 @@ rule summary_pipeline:
                    'snakefile': os.path.realpath(input['snakefile']),
                    'config': os.path.realpath(input['config']),
                    'name': params['name']}
-        js = json.dumps(summary)
+        js = json.dumps(summary, indent=4, sort_keys=True)
         with open(output['json'], 'w') as fp:
             print(js, file=fp)
