@@ -20,6 +20,7 @@ dependencies:
 - reports
 - bioservices
 - pip
+- easydev>=0.9.34
 - pip:
   - biokit>=0.3.2
   - ipython
