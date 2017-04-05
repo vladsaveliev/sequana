@@ -23,3 +23,4 @@ dependencies:
 - pip:
   - biokit>=0.3.2
   - ipython
+  - jupyter
