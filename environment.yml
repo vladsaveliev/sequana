@@ -16,11 +16,9 @@ dependencies:
 - krona
 - kraken
 - pillow
-- jupyter
 - sphinx
 - reports
+- bioservices
 - pip
 - pip:
-  - bioservices
   - biokit>=0.3.2
-  - ipython
