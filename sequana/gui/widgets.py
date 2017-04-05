@@ -275,7 +275,7 @@ class ComboboxOptions(GeneralOption):
     def get_value(self):
         return self.choice.currentText()
     def set_enable(self, switch_bool):
-        self.check_box.setEnabled(switch_bool)
+        self.choice.setEnabled(switch_bool)
     def connect(self, task):
         self.choice.currentIndexChanged.connect(task)
 
