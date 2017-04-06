@@ -11,7 +11,7 @@ rule igvtools:
     input:
         __igvtools__input
     params:
-        chromSize = config['coverage']['chromSize']
+        chromSize = config['coverage']['chromSize_file']
     log:
         __igvtools__log
     output:
