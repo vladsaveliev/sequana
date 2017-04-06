@@ -34,14 +34,14 @@ class CutadaptModule(SequanaBaseModule):
     """ Write HTML report of coverage analysis. This class takes either a
     :class:`GenomeCov` instances or a csv file where analysis are stored.
     """
-    def __init__(self, cutadapt_log, sample_name):
+    def __init__(self, cutadapt_log, sample_name, output_filename):
         """
         :param input: 
         """
         super().__init__()
         # Expected input data is the cutadapt log file
         if os.path.exists(cutadapt_log) is False:
-            logger.error("This file {} does not exists".format(cutadapt_log))
+            logger.error("This file {} does not exist".format(cutadapt_log))
         self.input_filename = cutadapt_log
         self.sample_name = sample_name
 
@@ -50,7 +50,7 @@ class CutadaptModule(SequanaBaseModule):
         self.read_data()
         self.parse()
         self.create_report_content()
-        self.create_html("cutadapt.html")
+        self.create_html(output_filename)
 
     def create_report_content(self):
         """ Generate the sections list to fill the HTML report.
