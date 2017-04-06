@@ -197,5 +197,5 @@ class SummaryModule(SequanaBaseModule):
                                                  'bSort': 'false'}
         datatable.datatable.set_links_to_column('link', 'package')
         js = datatable.create_javascript_function()
-        html = datatable.create_datatable(index=False)
+        html = datatable.create_datatable()
         return js + '\n' + html

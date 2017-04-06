@@ -76,8 +76,7 @@ class CoverageModule(SequanaBaseModule):
                                                  'buttons': ['copy', 'csv']}
         datatable.datatable.set_links_to_column('link', 'chromosome')
         js = datatable.create_javascript_function()
-        html_table = datatable.create_datatable(index=False,
-                                                float_format='%.3g')
+        html_table = datatable.create_datatable(float_format='%.3g')
         self.sections.append({
             "name": "Chromosomes",
             "anchor": "chromosomes",
