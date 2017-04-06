@@ -199,6 +199,9 @@ class CutadaptModule(SequanaBaseModule):
         })
 
     def add_histogram_section(self):
+        """Show only histograms with at least 3 counts
+
+        """
         # This would work for cutadapt only
         histograms = self._get_histogram_data()
         html = ""
@@ -217,6 +220,7 @@ class CutadaptModule(SequanaBaseModule):
 
             def plotter(filename, key):
                 name = key.replace(" ", "_")
+                pylab.ioff()
                 histograms[key].plot(logy=False, lw=2, marker="o")
                 pylab.title(name + "(%s)" % count)
                 pylab.grid(True)
