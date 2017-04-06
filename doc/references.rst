@@ -13,13 +13,13 @@ Adapters
     :members:
     :undoc-members:
 
-BAMTOOLs related
+BAMTOOLS related
 --------------------
 .. automodule:: sequana.bamtools
     :members:
     :undoc-members:
 
-BEDTOOLs related (coverage)
+BEDTOOLS related (coverage)
 ---------------------------
 .. automodule:: sequana.bedtools
     :members:

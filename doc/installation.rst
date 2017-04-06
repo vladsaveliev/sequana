@@ -97,5 +97,13 @@ install everything in one go)::
 
 .. include:: ../docker/README.rst
 
+For developers
+=================
+
+For the documentation::
+
+    pip install sphinx sphinx_rtd_theme pytest pytest-qt pytest-mock
+
+
 
 
