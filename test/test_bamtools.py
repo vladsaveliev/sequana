@@ -7,7 +7,8 @@ from easydev import TempFile
 datatest = sequana_data("test.bam", "testing")
 
 
-def test_bam():
+def test_bam(tmpdir):
+
     s = BAM(datatest)
     assert len(s) == 1000
 
@@ -38,6 +39,8 @@ def test_bam():
     s.get_length_count()
     s.plot_gc_content()
 
+    with TempFile(suffix=".json") as fh:
+        s.bam_analysis_to_json(fh.name)
 
 def test_alignment():
     s = BAM(datatest)

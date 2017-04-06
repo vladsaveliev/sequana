@@ -6,14 +6,11 @@ import collections #lazy ?
 import pysam
 from biokit.viz import hist2d
 
-class PacBioInputBAM(object):
-    """PacBio utilities
 
-    Downsample PacBio base-call BAM file 
+class BAMPacbio(object):
+    """Pacbio utilities
 
-    TODO:
-
-        number of sub reads per ZMW > hist_ZMW_subreads(self)
+    Downsample PacBio base-call BAM file
 
     """
     def __init__(self, filename):
@@ -35,7 +32,7 @@ class PacBioInputBAM(object):
         if self._df is None:
             self.reset()
             N = 0
-            
+
             all_results = []
             for read in self.data:
                 res = []
@@ -56,13 +53,14 @@ class PacBioInputBAM(object):
                 res = res + snr
                 #res[6] = ZMW name
                 res.append(read.qname.split('/')[1])
-                
+
                 # aggregate results
                 all_results.append(res)
 
-            self._df = pd.DataFrame(all_results, columns=['read_length','GC_content','snr_A','snr_C','snr_G','snr_T','ZMW'])
+            self._df = pd.DataFrame(all_results,
+                columns=['read_length','GC_content','snr_A','snr_C','snr_G','snr_T','ZMW'])
             self._N = N
-            self.reset()     
+            self.reset()
         return self._df
 
     df = property(_get_df)
@@ -91,10 +89,21 @@ class PacBioInputBAM(object):
                 shift = np.random.randint(stride)
 
             for i, read in enumerate(self.data):
-                if (i + shift) % stride == 0: 
+                if (i + shift) % stride == 0:
                     fh.write(read)
                     if random:
                         shift = np.random.randint(stride)
+
+    def filter_length(self, output_filename, threshold,longer=True):
+        self.reset()
+        with pysam.AlignmentFile(output_filename,  "wb", template=self.data) as fh:
+            for read in self.data:
+                if longer:
+                    if read.query_length > threshold: 
+                        fh.write(read)
+                else:
+                    if read.query_length < threshold: 
+                        fh.write(read)
 
 
     def hist_snr(self, bins=50, alpha=0.5, hold=False, fontsize=12,
@@ -192,22 +201,3 @@ class PacBioInputBAM(object):
         pylab.xlabel("Read length", fontsize=12)
         pylab.ylabel("GC %", fontsize=12)
         pylab.title("GC %% vs length \n Mean length : %.2f , Mean GC : %.2f" %(mean_len, mean_GC))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

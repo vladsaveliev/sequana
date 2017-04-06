@@ -13,13 +13,13 @@ Adapters
     :members:
     :undoc-members:
 
-BAMTOOLs related
+BAMTOOLS related
 --------------------
 .. automodule:: sequana.bamtools
     :members:
     :undoc-members:
 
-BEDTOOLs related (coverage)
+BEDTOOLS related (coverage)
 ---------------------------
 .. automodule:: sequana.bedtools
     :members:
@@ -119,7 +119,7 @@ General tools
 
 VCF module
 ------------
-.. automodule:: sequana.vcf_filter
+.. automodule:: sequana.freebayes_vcf_filter
     :members:
     :undoc-members:
 

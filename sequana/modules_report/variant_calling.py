@@ -94,7 +94,7 @@ class VariantCallingModule(SequanaBaseModule):
                                                  'dom': 'Bfrtip',
                                                  'buttons': ['copy', 'csv']}
         js = datatable.create_javascript_function()
-        html_tab = datatable.create_datatable(index=False, float_format='%.3g')
+        html_tab = datatable.create_datatable(float_format='%.3g')
         nb_variants = len(self.df)
         csv_link = self.create_link('link', self.filename)
         vcf_link = self.create_link('here', 'test.vcf')

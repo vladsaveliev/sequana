@@ -3,6 +3,15 @@ Changelog
 
 .. contents::
 
+
+0.1.22 - March 2017
+----------------------
+
+* CHANGES: 
+
+   - Sequanix/Sequana: 
+     - config file can have the yml extension (in addition to yaml)
+
 0.1.21 - Feb 2017
 -------------------
 
