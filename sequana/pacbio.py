@@ -11,10 +11,6 @@ class PacBioInputBAM(object):
 
     Downsample PacBio base-call BAM file 
 
-    TODO:
-
-        number of sub reads per ZMW > hist_ZMW_subreads(self)
-
     """
     def __init__(self, filename):
         self.filename = filename
@@ -95,6 +91,17 @@ class PacBioInputBAM(object):
                     fh.write(read)
                     if random:
                         shift = np.random.randint(stride)
+
+    def filter_length(self, output_filename, threshold,longer=True):
+        self.reset()
+        with pysam.AlignmentFile(output_filename,  "wb", template=self.data) as fh:
+            for read in self.data:
+                if longer:
+                    if read.query_length > threshold: 
+                        fh.write(read)
+                else:
+                    if read.query_length < threshold: 
+                        fh.write(read)
 
 
     def hist_snr(self, bins=50, alpha=0.5, hold=False, fontsize=12,
