@@ -77,6 +77,11 @@ Taxonomy related (Kraken - Krona)
     :members:
     :undoc-members:
 
+Pacbio module
+----------------
+.. automodule:: sequana.pacbio
+    :members:
+    :undoc-members:
 
 Phred quality
 ------------------
