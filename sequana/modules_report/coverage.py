@@ -76,8 +76,7 @@ class CoverageModule(SequanaBaseModule):
                                                  'buttons': ['copy', 'csv']}
         datatable.datatable.set_links_to_column('link', 'chromosome')
         js = datatable.create_javascript_function()
-        html_table = datatable.create_datatable(index=False,
-                                                float_format='%.3g')
+        html_table = datatable.create_datatable(float_format='%.3g')
         self.sections.append({
             "name": "Chromosomes",
             "anchor": "chromosomes",
@@ -281,8 +280,8 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         js = self.datatable.create_javascript_function()
         lroi = DataTable(low_roi, "lroi", self.datatable)
         hroi = DataTable(high_roi, "hroi", self.datatable)
-        html_low_roi = lroi.create_datatable(index=False, float_format='%.3g')
-        html_high_roi = hroi.create_datatable(index=False, float_format='%.3g')
+        html_low_roi = lroi.create_datatable(float_format='%.3g')
+        html_high_roi = hroi.create_datatable(float_format='%.3g')
         rois.df.drop('link', 1, inplace=True)
         roi_paragraph = (
             "<p>Regions with a z-score {0}er than {1:.2f} and at "
@@ -478,8 +477,8 @@ class SubCoverageModule(SequanaBaseModule):
         js = self.datatable.create_javascript_function()
         lroi = DataTable(low_roi, "lroi", self.datatable)
         hroi = DataTable(high_roi, "hroi", self.datatable)
-        html_low_roi = lroi.create_datatable(index=False, float_format='%.3g')
-        html_high_roi = hroi.create_datatable(index=False, float_format='%.3g')
+        html_low_roi = lroi.create_datatable(float_format='%.3g')
+        html_high_roi = hroi.create_datatable(float_format='%.3g')
         roi_paragraph = (
             "<p>Regions with a z-score {0}er than {1:.2f} and at "
             "least one base with a z-score {0}er than {2:.2f} are detected as "

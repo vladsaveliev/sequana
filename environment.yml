@@ -1,9 +1,13 @@
-name: sequana_env
+name: sequana
 
 channels:
 - bioconda
+- defaults
+- r
+- conda-forge
 
 dependencies:
+- python=3.5.0
 - numpy
 - pandas
 - matplotlib
@@ -12,10 +16,12 @@ dependencies:
 - krona
 - kraken
 - pillow
+- sphinx
+- reports
+- bioservices
+- pip
+- easydev>=0.9.34
 - pip:
-  - matplotlib
-  - easydev>=0.9.30
-  - bioservices
   - biokit>=0.3.2
-  - mpld3
-  - reports
+  - ipython
+  - jupyter
