@@ -224,7 +224,7 @@ Use sequana.snaketools
 Assuming there will be a config file named *config.yaml*, the pipeline should be
 written as follows:
 
-.. code-block:: snakemake
+.. code-block:: 
 
     import sequana
     from sequana import snaketools as sm
