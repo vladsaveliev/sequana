@@ -15,9 +15,9 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-""" Utils to create a Jquery DataTables for your HTML file. First class
+""" Utilities to create a Jquery DataTable for your HTML file. First class
 contains the javascript function to create DataTable. The second set table
-which use javascript created in the first class.
+that uses javascript created in the first class.
 """
 from collections import OrderedDict
 
@@ -164,10 +164,10 @@ class DataTableFunction(object):
         return ',\n'.join(s)
 
     def _check_type(self, value):
-        """ Check type of value to fill javascript sections. String must be
-        surrounded by quote and not boolean or integer.
+        """ Check value type to fill javascript sections. String must be
+        surrounded by quotes and not boolean or integer.
 
-        Javascript variable must not be surrounded by quote. Custom variables
+        Javascript variable must not be surrounded by quotes. Custom variables
         start with 'data_'.
         """
         try:
@@ -178,12 +178,12 @@ class DataTableFunction(object):
         return value
 
     def set_links_to_column(self, link_col, target_col):
-        """ Hidden a column with url and connect its with some columns.
+        """Hide a column with urls and connect it with a column.
 
         :param: str link_col: column with your URL.
         :param: str target_col: column to connect.
         """
-        # hidden the link column
+        # hide the link column
         try:
             self.datatable_columns[link_col]['visible'] = 'false'
         except KeyError:
