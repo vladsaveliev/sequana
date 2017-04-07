@@ -14,5 +14,4 @@ def test_datatables():
                                           'dom': 'Bfrtip',
                                           'buttons': ['copy', 'csv']}
         datatable = DataTable(rois.df, 'rois', datatable_js)
-        html_table = datatable.create_datatable(index=False,
-                                                float_format='%.3g')
+        html_table = datatable.create_datatable(float_format='%.3g')
