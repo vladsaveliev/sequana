@@ -50,7 +50,10 @@ class SummaryModule(SequanaBaseModule):
         self.pipeline_outputs()
         if self.json['html']:
             self.pipeline_html()
-        # TODO add customs sections from other reports
+
+        for section in config.summary_sections:
+            self.sections.append(section)
+
         self.workflow()
         self.running_stats()
         self.dependencies()
@@ -114,8 +117,10 @@ class SummaryModule(SequanaBaseModule):
     def workflow(self):
         """ Create the interactive DAG to navigate through pages.
         """
+        snakefile = self.copy_file(self.json['snakefile'], './inputs')
+        configfile = self.copy_file(self.json['config'], './inputs')
         # move the SVG file in the images directory
-        img = self.copy_file(self.json['rulegraph'], '.')
+        img = self.copy_file(self.json['rulegraph'], './images')
         dag_svg = self.include_svg_image(img)
         with open(self.json['snakefile'], 'r') as fp:
             code = self.add_code_section(fp.read(), 'python')
@@ -130,13 +135,16 @@ class SummaryModule(SequanaBaseModule):
         self.sections.append({
             'name': 'Workflow',
             'anchor': 'workflow',
-            'content':
-                "<p>The following network shows the workflow of the pipeline. "
-                "Blue boxes are clickable and redirect to dedicated reports."
-                "</p>\n{0}\n"
-                "<p>The analysis was performed with the following Snakemake "
-                "and config file:</p>\n"
-                "<u><li>{1}</li>\n<li>{2}</li></u>\n".format(dag_svg, sf, c)
+            'content':"""
+                <p>The following network shows the workflow of the pipeline. 
+                Blue boxes are clickable and redirect to dedicated reports.</p>
+                {0}
+                <p>The analysis was performed with the following
+                <a href="{3}">Snakemake</a> and <a href="{4}">configfile</a>:</p>
+                <ul>
+                    <li>{1}</li>
+                    <li>{2}</li>
+                </ul>""".format(dag_svg, sf, c, snakefile, configfile)
         })
 
     def running_stats(self):
@@ -163,9 +171,9 @@ class SummaryModule(SequanaBaseModule):
         pypi = self.create_link('Pypi', 'http://pypi.python.org')
         req = self.copy_file(self.json['requirements'], 'inputs')
         req = self.create_link('requirements', req)
-        content = ("<p>Python dependencies (<b>{0}</b>){1}</p>"
-                   "<p>Dependencies downloaded from bioconda "
-                   "<b>{2}</b></p>".format(pypi, html_table, req))
+        content = ("<p>Dependencies downloaded from bioconda "
+                   "<b>{2}</b></p>"
+                   "<p>Python dependencies (<b>{0}</b>){1}</p>".format(pypi, html_table, req))
         l, c = self.create_hide_section('Dep', 'collapse/expand', content,
                                         hide=True)
         self.sections.append({
