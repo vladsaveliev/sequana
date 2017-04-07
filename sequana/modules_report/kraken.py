@@ -75,20 +75,32 @@ interactive and more detailled version based on Krona. Finally, note that the
 unclassified 
 species in the pie plot may correspond to species not present in the data base
 or adapters (if not removed).</p> 
-    <a href="./kraken/kraken.html"> <img src="{1}"></img></a>
+    <a href="./kraken/kraken.html"> {1} </a>
     <br>
-""".format("?", pngimage)
+""".format("?", self.png_to_embedded_png(pngimage))
 
         df = pd.read_csv(self.directory + os.sep + "kraken.csv")
 
+        datatable = DataTable(df, "kraken", index=False)
+        # add links 
+        if "ena" in df.columns:
+            urlena = "http://www.ebi.ac.uk/ena/data/view/"
+            datatable.datatable.set_links_to_column([urlena + this for this in df['ena']], "ena")
+        datatable.datatable.datatable_options = {
+            'scrollX': '300px',
+            'pageLength': 15,
+            'scrollCollapse': 'true',
+            'dom': 'irtpB',
+            "paging": "false",
+            'buttons': ['copy', 'csv']}
+        js = datatable.create_javascript_function()
+        html_tab = datatable.create_datatable(float_format='%.3g')
+
+        html += "{} {}".format(html_tab, js)
         """# Rounding and convert in string to avoid exp notation
         df['percentage']  = df['percentage'].apply(lambda x: str(round(x,4)))
-        #self.jinja['kraken_json'] = df.to_json()
+        #self.jinja['kraken_json'] = df.to_json()"""
 
-        table = self.htmltable(df, tablename="kraken")
-        if "ena" in table.df.columns:
-            table.add_href('ena', url="http://www.ebi.ac.uk/ena/data/view/")
-        """
         return html
 
     def add_summary_section(self):
