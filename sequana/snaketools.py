@@ -567,7 +567,7 @@ class SequanaConfig(object):
                             json.loads(fh.read())))
                 config = load_configfile(data)
             else:
-                raise IOError("input string must be an existing file")
+                raise IOError("input string must be an existing file (%s)" % data)
             self.config = AttrDict(**config)
         elif isinstance(data, SequanaConfig): # else maybe a SequanaConfig ?
             self.config = AttrDict(**data.config)
