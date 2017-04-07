@@ -60,7 +60,8 @@ class SummaryModule(SequanaBaseModule):
         """
         # copy inputs in the input directory
         input_dir = "inputs"
-        inputs = [self.copy_file(i, input_dir) for i in self.json['inputs']] 
+
+        inputs = [self.copy_file(i, input_dir) for i in self.json['inputs']]
         # create links list
         html_list = '<li>{0}</li>'
         links = [html_list.format(self.create_link(os.path.basename(i), i,
@@ -79,7 +80,7 @@ class SummaryModule(SequanaBaseModule):
         """
         # copy outputs in the output directory
         output_dir = "outputs"
-        outputs = [self.copy_file(i, output_dir) for i in self.json['outputs']] 
+        outputs = [self.copy_file(i, output_dir) for i in self.json['outputs']]
         # create links list
         html_list = '<li>{0}</li>'
         links = [html_list.format(self.create_link(os.path.basename(i), i,
@@ -185,7 +186,7 @@ class SummaryModule(SequanaBaseModule):
             version.append(dep.version)
             project_name.append(dep.project_name)
             link.append(pypi.format(dep.project_name))
-        df = pd.DataFrame({'package': project_name, 'version': version, 
+        df = pd.DataFrame({'package': project_name, 'version': version,
                            'link': link})
         df['sort'] = df['package'].str.lower()
         df.sort_values(by='sort', axis=0, inplace=True)
