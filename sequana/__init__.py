@@ -22,10 +22,10 @@ from .datatools import sequana_data
 
 from .snaketools import *
 from .adapters import AdapterReader, FindAdaptersFromDesign, Adapter
-from .expdesign import ExpDesignAdapter
 from .bamtools import BAM, SAMFlags
 from .bedtools import GenomeCov
 from .coverage import Coverage
+from .expdesign import ExpDesignAdapter
 from .fastq import FastQ, FastQC, Identifier
 from .fasta import FastA
 from .freebayes_vcf_filter import VCF_freebayes
@@ -33,6 +33,7 @@ from .freebayes_bcf_filter import BCF_freebayes
 from .kraken_builder import KrakenBuilder
 from .krona import KronaMerger
 from .kraken import KrakenResults, KrakenPipeline, KrakenAnalysis, KrakenDownload
+from .pacbio import BAMPacbio
 from .phred import Quality
 from .running_median import RunningMedian
 from .snpeff import SnpEff
