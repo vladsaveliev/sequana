@@ -27,7 +27,7 @@ from sequana.lazy import pylab
 from sequana import logger
 
 from sequana.lazy import reports
-
+from sequana.utils.datatables_js import DataTable
 
 class FastQCModule(SequanaBaseModule):
     """ Write HTML report for fastqc.
@@ -58,11 +58,24 @@ class FastQCModule(SequanaBaseModule):
         df = pd.DataFrame({"names": names})
         df.sort_values(by='names')
 
-        formatter = '<a target="_blank" alt={1} href="{0}.html">{1}</a>'
-        df["names"] = [formatter.format(link, name) for link,name in zip(names, names)]
+        #datatable.datatable.set_links_to_column([urlena + this for this in df['ena']], "ena")
 
-        h = reports.HTMLTable(df)
-        html = h.to_html(index=True, class_outer="")
+        datatable = DataTable(df, "fastqc", index=False)
+        formatter = '<a target="_blank" alt={1} href="{0}.html">{1}</a>'
+        #datatable.datatable.set_links_to_column([], "ena")
+        datatable.datatable.datatable_options = {
+            'scrollX': '300px',
+            'pageLength': 15,
+            'scrollCollapse': 'true',
+            'dom': 'irtpB',
+            "paging": "false",
+            'buttons': ['copy', 'csv']}
+        js = datatable.create_javascript_function()
+        html_tab = datatable.create_datatable(float_format='%.3g')
+
+        html = html_tab + "{} {}".format(html_tab, js)
+
+        df["names"] = [formatter.format(link, name) for link,name in zip(names, names)]
 
         self.sections.append({
              "name": "FastQC report(s)",

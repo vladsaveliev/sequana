@@ -43,8 +43,7 @@ class KrakenModule(SequanaBaseModule):
         self.title = "Kraken report"
         self.directory = input_directory
         self.create_report_content()
-        if output_filename:
-            self.create_html(output_filename)
+        self.create_html(output_filename)
 
     def create_report_content(self):
         """ Generate the sections list to fill the HTML report.
@@ -72,17 +71,17 @@ Besides, be aware that closely related species may not be classified precisely.
     <p>The following <b>clickable image</b> is a simplified version (only genus
 are shown) of an
 interactive and more detailled version based on Krona. Finally, note that the
-unclassified 
+unclassified
 species in the pie plot may correspond to species not present in the data base
-or adapters (if not removed).</p> 
-    <a href="./kraken/kraken.html"> {1} </a>
+or adapters (if not removed).</p>
+    <div style="text-align:center"><a href="./kraken/kraken.html"> {1} </a></div>
     <br>
 """.format("?", self.png_to_embedded_png(pngimage))
 
         df = pd.read_csv(self.directory + os.sep + "kraken.csv")
 
         datatable = DataTable(df, "kraken", index=False)
-        # add links 
+        # add links
         if "ena" in df.columns:
             urlena = "http://www.ebi.ac.uk/ena/data/view/"
             datatable.datatable.set_links_to_column([urlena + this for this in df['ena']], "ena")

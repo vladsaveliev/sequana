@@ -99,16 +99,16 @@ class FastQStatsModule(SequanaBaseModule):
                 "mean quality", "n_reads", "average read length"]]
         return df
 
-    def _get_stats_section(self):
+    def _get_stats_section(self, tablename="stats"):
         self.df_stats = self.get_stats()
         filenames, mode = self._get_files("*boxplot.png")
 
-        datatable = DataTable(self.df_stats, "stats", index=True)
+        datatable = DataTable(self.df_stats, tablename, index=True)
         datatable.datatable.datatable_options = {
             'scrollX': '300px',
             'pageLength': 15,
             'scrollCollapse': 'true',
-            'dom': 'irtpB',
+            'dom': 'rtpB',
             "paging": "false",
             'buttons': ['copy', 'csv']}
         js = datatable.create_javascript_function()
@@ -134,11 +134,10 @@ class FastQStatsModule(SequanaBaseModule):
    <figcaption style="font-style:italic">Fig1: R1 reads</figcaption>
    </figure>""".format(href, self.png_to_embedded_png(filenames[0]))
 
-
         if len(filenames) == 2:
             filename = os.path.split(filenames[1])[1].replace("_boxplot.png", "_fastqc.html")
             href = self.path_to_fastqc + os.sep + filename
-            html+="""
+            html += """
    <figure style="float:right; width:49%; padding:0px; margin:0px;">
        <a href="{}">{}</a>
    <figcaption style="font-style:italic">Fig2: R2 reads</figcaption>
