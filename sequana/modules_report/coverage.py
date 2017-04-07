@@ -152,7 +152,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         self.sections = list()
 
         rois = self.chromosome.get_roi()
-        
+
         self.coverage_plot()
         links = self.subcoverage(rois, directory)
         self.coverage_barplot()
@@ -410,7 +410,7 @@ class SubCoverageModule(SequanaBaseModule):
         csv = self.chromosome.to_csv(start=self.start, stop=self.stop,
                                      columns=[x_col] + y_col, index=False,
                                      float_format="%.3g")
-        
+
         # create CanvasJS stuff
         cjs = CanvasJSLineGraph(csv, 'cov', x_col, y_col)
         # set options
