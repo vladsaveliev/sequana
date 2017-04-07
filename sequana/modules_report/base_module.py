@@ -92,7 +92,7 @@ class SequanaBaseModule(object):
 
     def create_hide_section(self, html_id, name, content, hide=False):
         """ Create an hideable section.
-        
+
         :param str html_id: add short id to connect all elements.
         :param str name: name of the hyperlink to hide or display the content.
         :param str content: hideable HTML content.
@@ -173,8 +173,9 @@ class SequanaBaseModule(object):
     def png_to_embedded_png(self, png, style=None):
         """ Include a PNG file as embedded file.
         """
+        import base64
         with open(png, 'rb') as fp:
-            png = fp.read().encode('base64').replace('\n','')
+            png = base64.b64encode(fp.read()).decode()
         if style:
             html = '<img style="{0}"'.format(style)
         else:
@@ -200,8 +201,8 @@ class SequanaBaseModule(object):
         return html
 
     def create_combobox(self, path_list, html_id, newtab=True):
-        """ Create a dropdown menu with QueryJS. 
-        
+        """ Create a dropdown menu with QueryJS.
+
         :param list path_list: list of links.
 
         return html div and js script as string.
@@ -216,5 +217,5 @@ class SequanaBaseModule(object):
     </ul>
 </div>
 <a href="#" data-jq-dropdown="#jq-dropdown-{1}">Subchromosome</a>
-        """.format('\n'.join(option_list), html_id) 
+        """.format('\n'.join(option_list), html_id)
         return html
