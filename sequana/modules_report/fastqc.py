@@ -19,6 +19,7 @@
 """Module to write coverage report"""
 import os
 import io
+import glob
 
 from sequana.modules_report.base_module import SequanaBaseModule
 
@@ -29,6 +30,7 @@ from sequana import logger
 from sequana.lazy import reports
 from sequana.utils.datatables_js import DataTable
 
+
 class FastQCModule(SequanaBaseModule):
     """ Write HTML report for fastqc.
 
@@ -38,10 +40,11 @@ class FastQCModule(SequanaBaseModule):
     def __init__(self, output_filename="fastqc.html", pattern="*/*_fastqc.html"):
         """
 
-        :param input: 
+        :param input:
         :param pattern: we use a glob to search for the relevant files
         """
         super().__init__()
+        self.title = "FastQC"
         self.pattern = pattern
         self.create_report_content()
         self.create_html(output_filename)
@@ -51,31 +54,26 @@ class FastQCModule(SequanaBaseModule):
         self.add_main_section()
 
     def add_main_section(self):
-        import glob
         links = glob.glob("{}".format(self.pattern))
         names = [filename.rsplit('/',1)[1].split('.html')[0] for filename in links]
 
-        df = pd.DataFrame({"names": names})
+        df = pd.DataFrame({"names": names, "links":links})
         df.sort_values(by='names')
 
-        #datatable.datatable.set_links_to_column([urlena + this for this in df['ena']], "ena")
-
         datatable = DataTable(df, "fastqc", index=False)
-        formatter = '<a target="_blank" alt={1} href="{0}.html">{1}</a>'
-        #datatable.datatable.set_links_to_column([], "ena")
+        datatable.datatable.set_links_to_column("links", "names")
+
         datatable.datatable.datatable_options = {
             'scrollX': '300px',
             'pageLength': 15,
             'scrollCollapse': 'true',
-            'dom': 'irtpB',
+            'dom': 'rtpB',
             "paging": "false",
             'buttons': ['copy', 'csv']}
         js = datatable.create_javascript_function()
-        html_tab = datatable.create_datatable(float_format='%.3g')
+        html_tab = datatable.create_datatable()
 
-        html = html_tab + "{} {}".format(html_tab, js)
-
-        df["names"] = [formatter.format(link, name) for link,name in zip(names, names)]
+        html = "{} {}".format(html_tab, js)
 
         self.sections.append({
              "name": "FastQC report(s)",

@@ -84,7 +84,8 @@ or adapters (if not removed).</p>
         # add links
         if "ena" in df.columns:
             urlena = "http://www.ebi.ac.uk/ena/data/view/"
-            datatable.datatable.set_links_to_column([urlena + this for this in df['ena']], "ena")
+            datatable.datatable.set_links_to_column("ena", 
+                [urlena + this for this in df['ena']])
         datatable.datatable.datatable_options = {
             'scrollX': '300px',
             'pageLength': 15,
