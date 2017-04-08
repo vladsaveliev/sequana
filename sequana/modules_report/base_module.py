@@ -67,6 +67,8 @@ class SequanaBaseModule(object):
 
         :param str output_filename: HTML output filename
         """
+        if output_filename is None:
+            return
         report_output = self.j_template.render(config=config,
                                                module=self)
         with open(os.sep.join([config.output_dir,output_filename]),
