@@ -67,13 +67,8 @@ rule fastqc_%(name)s:
             pass
 
         # report
-        from sequana.reporting.report_fastqc import FastQCReport
-        s = FastQCReport(
-                params.wkdir,
-                output_filename="fastqc_%(name)s.html",
-                directory=params.wkdir)
-        s.jinja['main_link'] = '../summary.html'
-        s.create_report()
+        from sequana.modules_report.fastqc import FastQCModule
+        s = FastQCModule("fastqc_%(name)s.html", pattern="%%s/*_fastqc.html" %% params.wkdir)
 
     '''
     from sequana.snaketools import build_dynamic_rule
