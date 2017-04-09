@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>604</width>
+    <width>647</width>
     <height>738</height>
    </rect>
   </property>
@@ -1291,8 +1291,8 @@ Once saved, the DAG and RUN buttons should be available.</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>552</width>
-               <height>217</height>
+               <width>98</width>
+               <height>28</height>
               </rect>
              </property>
             </widget>
@@ -1465,8 +1465,8 @@ text-align: center;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>604</width>
-     <height>19</height>
+     <width>647</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1474,6 +1474,7 @@ text-align: center;
      <string>&amp;File</string>
     </property>
     <addaction name="separator"/>
+    <addaction name="action_import_configfile"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuOption">
@@ -1561,6 +1562,11 @@ text-align: center;
    </property>
    <property name="shortcut">
     <string>Ctrl+H</string>
+   </property>
+  </action>
+  <action name="action_import_configfile">
+   <property name="text">
+    <string>Import Config File (sequana pipeline only)</string>
    </property>
   </action>
  </widget>

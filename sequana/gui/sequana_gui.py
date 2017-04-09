@@ -146,7 +146,7 @@ class BaseFactory(Tools):
 class SequanaFactory(BaseFactory):
     def __init__(self, run_button, combobox):
         super(SequanaFactory, self).__init__("sequana", run_button)
-        self._config = None
+        self._imported_config = None
         self._choice_button = combobox
 
         # Some widgets to be used: a file browser for paired files
@@ -163,9 +163,6 @@ class SequanaFactory(BaseFactory):
         self._sequana_directory_tab.clicked_connect(self._switch_off_run)
         self._choice_button.activated.connect(self._switch_off_run)
         self._sequana_paired_tab.clicked_connect(self._switch_off_run)
-
-        # TODO: if change tab A-2 from valid input directory to non-set input
-        # samples, call switch off
 
     def _get_pipeline(self):
         index = self._choice_button.currentIndex()
@@ -194,6 +191,9 @@ class SequanaFactory(BaseFactory):
     clusterconfigfile = property(_get_clusterconfigfile)
 
     def _get_config(self):
+        if self._imported_config:
+            cfg = snaketools.SequanaConfig(self._imported_config)
+            return cfg
         if self.configfile:
             try:
                 cfg = snaketools.SequanaConfig(self.configfile)
@@ -312,7 +312,7 @@ class SequanaGUI(QMainWindow, Tools):
 
         # some global attributes
         self._undefined_section = "Parameters in no sections/rules"
-        self._config = None
+        #self._config = None
 
         # Set the regex to catch steps in the progres bar
         self._step_regex = re.compile("([0-9]+) of ([0-9]+) steps")
@@ -400,6 +400,13 @@ class SequanaGUI(QMainWindow, Tools):
             self.ui.tabs_pipeline.setCurrentIndex(0)
             self.ui.tabWidget.setCurrentIndex(1)
 
+        if isset(user_options, "sequana_configfile"):
+            cfg = user_options.sequana_configfile
+            self.info("Replace Sequana config file")
+            self.menuImportConfig(cfg)
+
+        # We may have set some pipeline, snakefile, working directory
+
         # We may have set some pipeline, snakefile, working directory
         self.create_base_form()
         self.fill_until_starting()
@@ -465,6 +472,7 @@ class SequanaGUI(QMainWindow, Tools):
 
         # Connectors to actions related to the menu bar
         self.ui.actionQuit.triggered.connect(self.menuQuit)
+        self.ui.action_import_configfile.triggered.connect(self.menuImportConfig)
         self.ui.actionHelp.triggered.connect(self.menuHelp)
         self.ui.actionAbout.triggered.connect(self.menuAbout)
         self.ui.actionSnakemake.triggered.connect(self.snakemake_dialog.exec_)
@@ -514,6 +522,18 @@ class SequanaGUI(QMainWindow, Tools):
     #|-----------------------------------------------------|
     #|                       MENU related                  |
     #|-----------------------------------------------------|
+    def menuImportConfig(self, configfile=None):
+        if configfile is None:
+            file_filter="YAML file (*.json *.yaml *.yml)"
+            browser = FileBrowser(file_filter=file_filter)
+            browser.browse_file()
+            configfile = browser.paths
+        if configfile:
+            self.sequana_factory._imported_config = configfile
+        else:
+            self.sequana_factory._imported_config = None
+        self.create_base_form()
+
     def menuAbout(self):
         from sequana import version
         url = 'sequana.readthedocs.io'
@@ -592,6 +612,9 @@ class SequanaGUI(QMainWindow, Tools):
         hlayout.addWidget(saf._sequana_pattern_label)
         hlayout.addWidget(saf._sequana_pattern_lineedit)
         self.ui.layout_sequana_input_dir.addLayout(hlayout)
+
+        # Reset imported config file in SequanaFactory
+        self.sequana_factory._imported_config = None
 
     @QtCore.pyqtSlot(str)
     def _update_sequana(self, index):
@@ -841,6 +864,14 @@ class SequanaGUI(QMainWindow, Tools):
 
         return snakemake_line
 
+    def _set_pb_color(self, color):
+        #self.ui.progressBar.setStyleSheet("""
+        #    QProgressBar::chunk {background: {}}; 
+        #    text-align:center}""".format(color))
+        pal = self.ui.progressBar.palette()
+        pal.setColor(QtGui.QPalette.Highlight, self._colors['blue'])
+        self.ui.progressBar.setPalette(pal)
+
     def click_run(self):
         # set focus on the snakemake output
         if self.snakefile is None or self.working_dir is None:
@@ -869,9 +900,7 @@ class SequanaGUI(QMainWindow, Tools):
             return
 
         # the progress bar
-        pal = self.ui.progressBar.palette()
-        pal.setColor(QtGui.QPalette.Highlight, self._colors['blue'])
-        self.ui.progressBar.setPalette(pal)
+        self._set_pb_color(self._colors['blue'])
         self.ui.progressBar.setValue(1)
 
         # Start process
@@ -994,9 +1023,7 @@ class SequanaGUI(QMainWindow, Tools):
 
     def click_stop(self):
         """The stop button"""
-        pal = self.ui.progressBar.palette()
-        pal.setColor(QtGui.QPalette.Highlight, self._colors['orange'])
-        self.ui.progressBar.setPalette(pal)
+        self._set_pb_color(self._colors['orange'])
 
         # For windows:
         # http://stackoverflow.com/questions/8232544/how-to-terminate-a-process-without-os-kill-osgeo4w-python-2-5
@@ -1053,12 +1080,10 @@ class SequanaGUI(QMainWindow, Tools):
     def end_run(self):
         pal = self.ui.progressBar.palette()
         if self.ui.progressBar.value() >= 100 :
-            pal.setColor(QtGui.QPalette.Highlight, self._colors['green'])
-            self.ui.progressBar.setPalette(pal)
+            self._set_pb_color(self._colors['green'])
             self.info('Run done. Status: successful')
         else:
-            pal.setColor(QtGui.QPalette.Highlight, self._colors['red'])
-            self.ui.progressBar.setPalette(pal)
+            self._set_pb_color(self._colors['red'])
             text = 'Run manually to check the exact error or check the log.'
             if "--unlock" in self.shell_error:
                 text += "<br>You may need to unlock the directory. "
@@ -1495,6 +1520,9 @@ class Options(argparse.ArgumentParser):
         group_mut.add_argument("-f", "--input-files", dest="input_files",
             default=None, nargs="*",
             help="input files")
+        group.add_argument("-C", "--replace-configfile", dest="sequana_configfile",
+            default=None,
+            help="Replace default sequana config file with local configfile")
 
         group = self.add_argument_group("GENERIC PIPELINES")
         group.add_argument("-s", "--snakefile", dest="snakefile",
