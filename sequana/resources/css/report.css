@@ -254,9 +254,9 @@ th.field-name
     padding-right: 1em;
 }
 
-.table_outer { 
-    max-height: 25em; 
-    width: auto; 
+.table_outer {
+    max-height: 25em;
+    width: auto;
     overflow: scroll; }
 
 /*
@@ -385,7 +385,7 @@ div.footer {
     font-family: "futura", "lucida grande", "lucida sans unicode",
                  verdana, arial, helvetica, sans-serif;
     font-size: .8em;
-    line-height: 1.1em;
+    line-height: 2.0em;
     position: fixed;
     left: 0;
     bottom: 0;
