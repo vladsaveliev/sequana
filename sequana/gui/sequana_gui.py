@@ -865,12 +865,12 @@ class SequanaGUI(QMainWindow, Tools):
         return snakemake_line
 
     def _set_pb_color(self, color):
-        #self.ui.progressBar.setStyleSheet("""
-        #    QProgressBar::chunk {background: {}}; 
-        #    text-align:center}""".format(color))
-        pal = self.ui.progressBar.palette()
-        pal.setColor(QtGui.QPalette.Highlight, self._colors['blue'])
-        self.ui.progressBar.setPalette(pal)
+        self.ui.progressBar.setStyleSheet("""
+            QProgressBar::chunk {{ background: {}; 
+            text-align:center}}""".format(color))
+        #pal = self.ui.progressBar.palette()
+        #pal.setColor(QtGui.QPalette.Highlight, self._colors['blue'])
+        #self.ui.progressBar.setPalette(pal)
 
     def click_run(self):
         # set focus on the snakemake output
@@ -900,7 +900,7 @@ class SequanaGUI(QMainWindow, Tools):
             return
 
         # the progress bar
-        self._set_pb_color(self._colors['blue'])
+        self._set_pb_color(self._colors['blue'].name())
         self.ui.progressBar.setValue(1)
 
         # Start process
@@ -935,7 +935,6 @@ class SequanaGUI(QMainWindow, Tools):
             #   section:
             #      item1: 10
             #      item2: 20
-
 
         """
         self.rule_list = []
@@ -1023,7 +1022,7 @@ class SequanaGUI(QMainWindow, Tools):
 
     def click_stop(self):
         """The stop button"""
-        self._set_pb_color(self._colors['orange'])
+        self._set_pb_color(self._colors['orange'].name())
 
         # For windows:
         # http://stackoverflow.com/questions/8232544/how-to-terminate-a-process-without-os-kill-osgeo4w-python-2-5
@@ -1080,10 +1079,10 @@ class SequanaGUI(QMainWindow, Tools):
     def end_run(self):
         pal = self.ui.progressBar.palette()
         if self.ui.progressBar.value() >= 100 :
-            self._set_pb_color(self._colors['green'])
+            self._set_pb_color(self._colors['green'].name())
             self.info('Run done. Status: successful')
         else:
-            self._set_pb_color(self._colors['red'])
+            self._set_pb_color(self._colors['red'].name())
             text = 'Run manually to check the exact error or check the log.'
             if "--unlock" in self.shell_error:
                 text += "<br>You may need to unlock the directory. "
