@@ -8,15 +8,18 @@
 <head>
     {% include 'head.html' %}
 </head>
+<body>
 <div class="document" id="unset">
 <header>
     {% include 'header.html' %}
 </header>
-<body>
-    {% include 'content.html' %}
+
+{% include 'content.html' %}
+
+<div><hr></div>
     <div class="footer">
         {% include 'footer.html' %}
     </div>
-</body>
 </div>
+</body>
 </html>
