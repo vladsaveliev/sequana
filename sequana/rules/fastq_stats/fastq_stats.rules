@@ -6,7 +6,11 @@ def fastq_stats_dynamic(name, manager):
 
     fastq_stats_code = '''
 rule fastq_stats_%(name)s:
-    """Analyse fastq to extract basic stats"""
+    """Analyse fastq to extract basic stats
+
+    Creates boxplot quality image + GC content + basic stats in JSON file
+
+    """
     input:
         fastq = __fastq_stats_%(name)s__input_fastq
     output:
@@ -28,7 +32,7 @@ rule fastq_stats_%(name)s:
             output_boxplot = formatter(ff.basenames[i] + "_boxplot.png")
             output_json = formatter(ff.basenames[i] + ".json")
 
-            fastq = FastQC(filename, max_sample=100000)
+            fastq = FastQC(filename, max_sample=500000)
             if len(fastq.fastq) != 0:
                 pylab.clf()
                 fastq.boxplot_quality()
@@ -48,14 +52,6 @@ rule fastq_stats_%(name)s:
                 shutil.copy(location, output_boxplot)
                 # this will be handled inside report_fastq_stats
                 touch(output_json)
-
-            from sequana.reporting.report_fastq_stats import FastQStatsReport
-            s = FastQStatsReport(
-                  params.wkdir,
-                  output_filename="fastq_stats_%(name)s.html",
-                  directory=params.wkdir)
-            s.jinja['main_link'] = '../summary.html'
-            s.create_report()
 
     '''
     from sequana.snaketools import build_dynamic_rule
