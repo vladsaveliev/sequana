@@ -365,11 +365,16 @@ onsuccess:
         with open(report_dir + "/summary.json", "w") as fp:
             data = json.dumps(sample_summary, indent=4, sort_keys=True)
             fp.write(data)
+        sm.create_cleanup(proj)
 
     try:
         print("Create multi summary file")
         shell("sequana_summary -m")
     except: pass
+
+    from sequana.snaketools import create_recursive_cleanup
+    create_recursive_cleanup("cleanup.py", 
+        ["fastq_sampling", "logs", "common_logs", "images", "rulegraph"])
 
 onerror:
     print("An error occurred. See message above.")
