@@ -95,7 +95,7 @@ class CutadaptModule(SequanaBaseModule):
             "content": "<pre>\n"+ self._rawdata + "</pre>\n"
         })
 
-    def _get_stat_section(self):
+    def _get_stats(self):
         if self.mode == "pe":
             prefix = "paired_"
         else:
@@ -124,7 +124,10 @@ class CutadaptModule(SequanaBaseModule):
                    self.jinja['%sreads_kept_percent' % prefix]]
         if self.mode != "pe":
             df.index = [this.replace("paired", "").replace("Pairs", "Reads") for this in df.index]
+        return df
 
+    def _get_stat_section(self):
+        df = self._get_stats()
         #df.to_json(self.sample_name + "/cutadapt/cutadapt_stats1.json")
         datatable = DataTable(df, "cutadapt", index=True)
         datatable.datatable.datatable_options = {
@@ -255,7 +258,7 @@ class CutadaptModule(SequanaBaseModule):
             key, pattern = this
             found = [line for line in data if line.startswith(pattern)]
             if len(found) == 0:
-                print("ReportCutadapt: %s (not found)" % pattern)
+                logger.warning("ReportCutadapt: %s (not found)" % pattern)
             elif len(found) == 1:
                 text = found[0].split(":", 1)[1].strip()
                 try:

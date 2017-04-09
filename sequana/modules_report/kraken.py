@@ -51,20 +51,25 @@ class KrakenModule(SequanaBaseModule):
         self.sections = list()
         self.add_summary_section()
 
+    def _get_stats(self):
+        df = pd.read_csv(self.directory + os.sep + "kraken.csv")
+        return df
+
     def _get_summary_section(self):
 
         # TODO: embedded image
         pngimage = self.directory + os.sep + "kraken.png"
         html = """
     <p>Overview of the Taxonomic content of the filtered reads. </p>
-    <p>The taxonomic analysis is performed with Kraken and the
-database <b>{0}</b>. The analysis is performed with a Kmer
+    <p>The taxonomic analysis is performed with Kraken (see database name in 
+the configuration file. The analysis is performed with a Kmer
 approach.
 The details about the database itself are available in the <a
 href="http://sequana.readthedocs.io">Sequana documentation</a>.
 The taxonomic analysis should give a good idea of the content of the FastQ
 files but should be used as a sanity check. Indeed, species absent
-from the database won't be detected; close species may be detected instead.
+from the database won't be detected leading to false detection (close species 
+may be detected instead). 
 Besides, be aware that closely related species may not be classified precisely.
 </p>
 
@@ -74,12 +79,11 @@ interactive and more detailled version based on Krona. Finally, note that the
 unclassified
 species in the pie plot may correspond to species not present in the data base
 or adapters (if not removed).</p>
-    <div style="text-align:center"><a href="./kraken/kraken.html"> {1} </a></div>
+    <div style="text-align:center"><a href="./kraken/kraken.html"> {0} </a></div>
     <br>
-""".format("?", self.png_to_embedded_png(pngimage))
+""".format(self.png_to_embedded_png(pngimage))
 
-        df = pd.read_csv(self.directory + os.sep + "kraken.csv")
-
+        df = self._get_stats()
         datatable = DataTable(df, "kraken", index=False)
         # add links
         if "ena" in df.columns:

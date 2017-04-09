@@ -114,7 +114,7 @@ class FastQStatsModule(SequanaBaseModule):
         js = datatable.create_javascript_function()
         html_tab = datatable.create_datatable(float_format='%.3g')
 
-        html = """<p>The following table gives some basic statistics about the raw data before any filtering.
+        html = """<p>The following table gives some basic statistics about the data before any filtering.
    The A, C, G, T, N rows report the percentage of each bases in the overall sequences.
    The GC content is provided in percentage as well. </p>
    <div>{} {}</div>
