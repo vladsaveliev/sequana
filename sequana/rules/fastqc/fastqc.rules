@@ -65,11 +65,6 @@ rule fastqc_%(name)s:
             " {newinput} {params.kargs} > {log.fastqc}")
         else:
             pass
-
-        # report
-        from sequana.modules_report.fastqc import FastQCModule
-        s = FastQCModule("fastqc_%(name)s.html", pattern="%%s/*_fastqc.html" %% params.wkdir)
-
     '''
     from sequana.snaketools import build_dynamic_rule
     return build_dynamic_rule(fastqc_code % metadata, manager.pipeline_dir)
