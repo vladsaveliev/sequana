@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(604, 738)
+        MainWindow.resize(647, 738)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -544,7 +544,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 552, 217))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 98, 28))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.gridLayout_4.addWidget(self.scrollArea, 0, 0, 1, 1)
@@ -611,7 +611,7 @@ class Ui_MainWindow(object):
         self.gridLayout_2.addLayout(self.vlayout, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 604, 19))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 647, 26))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -640,7 +640,10 @@ class Ui_MainWindow(object):
         self.actionHelp = QtWidgets.QAction(MainWindow)
         self.actionHelp.setEnabled(True)
         self.actionHelp.setObjectName("actionHelp")
+        self.action_import_configfile = QtWidgets.QAction(MainWindow)
+        self.action_import_configfile.setObjectName("action_import_configfile")
         self.menuFile.addSeparator()
+        self.menuFile.addAction(self.action_import_configfile)
         self.menuFile.addAction(self.actionQuit)
         self.menuOption.addAction(self.actionSnakemake)
         self.menuOption.addAction(self.actionPreferences)
@@ -771,4 +774,5 @@ class Ui_MainWindow(object):
         self.actionAbout.setShortcut(_translate("MainWindow", "Ctrl+A"))
         self.actionHelp.setText(_translate("MainWindow", "Quick Start"))
         self.actionHelp.setShortcut(_translate("MainWindow", "Ctrl+H"))
+        self.action_import_configfile.setText(_translate("MainWindow", "Import Config File (sequana pipeline only)"))
 
