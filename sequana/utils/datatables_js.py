@@ -40,6 +40,19 @@ class DataTableFunction(object):
         html_datatables = [DataTable(df, "data_{0}".format(i), datatable_js)
                            for i, df in enumerate(df_list)]
 
+    .. note:: the **dom** field is a string made of letters, each of them having
+        a precise meaning. The order of the letter is important. For instance if
+        **B** is first, the buttons are put before the table. If **B** is at the 
+        end, it is shown below the table. Here are some of the valid letters and
+        their meaning:
+
+        - **B**: add the Buttons (copy/csv)
+        - **i**: add *showing 1 to N of M entries* 
+        - **f**:
+        - **r**:
+        - **t**:
+        - **p**: 
+
     All options of datatable:
         https://datatables.net/reference/option/
     """
