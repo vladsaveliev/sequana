@@ -381,6 +381,10 @@ x!="description"] +  ["description"]]
                 #  smaller, xx-large, larger
                 text.set_size("small")
                 text.set_color(textcolor)
+            for wedge in ax.patches:
+                wedge.set_linewidth(1)
+                wedge.set_edgecolor("k")
+            self.ax = ax
         elif kind == "barh":
             ax = data.plot(kind=kind,  **kargs)
             pylab.xlabel(" percentage ")
