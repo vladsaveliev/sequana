@@ -109,19 +109,19 @@ class BAMPacbio(object):
                     if random:
                         shift = np.random.randint(stride)
 
-    def filter_length(self, output_filename, threshold, longer=True):
-        """
+    def filter_length(self, output_filename, threshold_min, threshold_max):
+        """Write reads within the length range to BAM output
+
+        :param str output_filename: name of output file
+        :param int threshold_min: minimum length
+        :param int threshold_max: maximum length
 
         """
         self.reset()
         with pysam.AlignmentFile(output_filename,  "wb", template=self.data) as fh:
             for read in self.data:
-                if longer:
-                    if read.query_length > threshold:
-                        fh.write(read)
-                else:
-                    if read.query_length < threshold:
-                        fh.write(read)
+                if ((read.query_length > threshold_min) & (read.query_length < threshold_max)):
+                    fh.write(read)
 
 
     def hist_snr(self, bins=50, alpha=0.5, hold=False, fontsize=12,
