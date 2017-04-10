@@ -523,11 +523,19 @@ class SequanaGUI(QMainWindow, Tools):
     #|                       MENU related                  |
     #|-----------------------------------------------------|
     def menuImportConfig(self, configfile=None):
-        if configfile is None:
+        # The connector send a False signal but default is None
+        # so we need to handle the two cases
+        if configfile and os.path.exists(configfile) is False:
+            self.error("Config file (%s) does not exists" % configfile)
+            return
+
+        if configfile is None or configfile is False:
+            self.info("Importing config file.")
             file_filter="YAML file (*.json *.yaml *.yml)"
             browser = FileBrowser(file_filter=file_filter)
             browser.browse_file()
             configfile = browser.paths
+
         if configfile:
             self.sequana_factory._imported_config = configfile
         else:
@@ -613,8 +621,6 @@ class SequanaGUI(QMainWindow, Tools):
         hlayout.addWidget(saf._sequana_pattern_lineedit)
         self.ui.layout_sequana_input_dir.addLayout(hlayout)
 
-        # Reset imported config file in SequanaFactory
-        self.sequana_factory._imported_config = None
 
     @QtCore.pyqtSlot(str)
     def _update_sequana(self, index):
@@ -637,6 +643,8 @@ class SequanaGUI(QMainWindow, Tools):
                 self.sequana_factory.clusterconfigfile)
         self.fill_until_starting()
         self.switch_off()
+        # Reset imported config file in SequanaFactory
+        self.sequana_factory._imported_config = None
 
     def set_generic_pipeline(self):
 
