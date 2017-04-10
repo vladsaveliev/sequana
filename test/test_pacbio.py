@@ -12,7 +12,7 @@ def test_pacbio():
         b.stride(fh.name, stride=2)
 
     with TempFile() as fh:
-        b.filter_length(fh.name, threshold=500)
+        b.filter_length(fh.name, threshold_min=500)
 
     b.hist_snr()
     b.hist_ZMW_subreads()
