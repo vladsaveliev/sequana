@@ -184,13 +184,13 @@ if manager.config['adapter_removal']['do']:
 # if no database provided, let us make sure kraken option is off
 if manager.config.kraken.database_directory is False:
     manager.config.kraken.do = False
-# else
+
 if manager.config.kraken.do:
     if manager.config.adapter_removal.do:
         # todo: handle all adapter removal cases
         __kraken__input = __cutadapt__output
-    elif manager.config.phix_removal.do:
-        __kraken__input = [x for x in __bwa_bam_to_fastq__output if "unmapped" in x]
+    elif manager.config.bwa_mem_phix.do:
+        __kraken__input = [x for x in __bwa_bam_to_fastq__fastq_output if "unmapped" in x]
     else:
         __kraken__input = __data_input
 
@@ -232,8 +232,8 @@ __summary_pipeline__inputs = __rawdata__input
 if manager.config.adapter_removal.do:
     # todo: handle all adapter removal cases
     __summary_pipeline__outputs = [ __cutadapt__output ]
-elif manager.config.phix_removal.do:
-    __summary_pipeline__outputs = [x for x in __bwa_bam_to_fastq__output if "unmapped" in x]
+elif manager.config.bwa_mem_phix.do:
+    __summary_pipeline__outputs = [x for x in __bwa_bam_to_fastq__fastq_output if "unmapped" in x]
 
 __summary_pipeline__html = []
 __summary_pipeline__rulegraph = __rulegraph__output
@@ -286,7 +286,7 @@ onsuccess:
         # add all sections in addition to standard summary
         conf.summary_sections = []
 
-        # First the samples section ------------------------------ 
+        # First the samples section ------------------------------
         indir = proj + "/fastq_stats_samples"
 
         fqmod =FastQStatsModule(indir, "fastqc_samples")
