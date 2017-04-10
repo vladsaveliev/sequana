@@ -116,7 +116,7 @@ class BAMPacbio(object):
                     if random:
                         shift = np.random.randint(stride)
 
-    def filter_length(self, output_filename, threshold_min, threshold_max):
+    def filter_length(self, output_filename, threshold_min=0, threshold_max=np.inf):
         """Write reads within the length range to BAM output
 
         :param str output_filename: name of output file
