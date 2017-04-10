@@ -49,7 +49,8 @@ class CutadaptModule(SequanaBaseModule):
 
         self.read_data()
         self.parse()
-        self.create_report_content()
+        try:self.create_report_content()
+        except:pass
         self.create_html(output_filename)
 
     def create_report_content(self):
@@ -271,10 +272,13 @@ class CutadaptModule(SequanaBaseModule):
 
         dd = {}
         positions = []
+        executable = "cutadapt"
         for pos, this in enumerate(data):
-            if this.startswith("Command line parameters: "):
+            if "This is Atropos" in line:
+                executable = "atropos" 
+            if "Command line parameters: " in this:
                 cmd = this.split("Command line parameters: ")[1]
-                self.jinja['command'] = "cutadapt " + cmd
+                self.jinja['command'] = executable + cmd
             if this.startswith("=== ") and "Adapter" in this:
                 name = this.split("=== ")[1].split(" ===")[0].strip()
                 dd['name'] = name
