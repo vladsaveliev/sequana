@@ -270,8 +270,6 @@ def _test_only(qtbot):
 def test_import_config_from_menu(qtbot):
     widget = sequana_gui.SequanaGUI(ipython=True)
     qtbot.addWidget(widget)
-    # A dummy file should change nothing
-    widget.menuImportConfig("test")
     assert widget.sequana_factory._imported_config is None
     # while an existing config file should
     # First, we simulate selection of quality control pipeline
