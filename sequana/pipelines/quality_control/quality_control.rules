@@ -325,13 +325,16 @@ onsuccess:
         })
 
         # The Kraken section
-        krakenmod = KrakenModule(proj + "/kraken")
-        sample_summary['kraken_json'] = krakenmod._get_stats().to_json()
-        conf.summary_sections.append({
-            "name": "Kraken ",
-            "anchor'": "kraken",
-            "content": krakenmod._get_summary_section()
-        })
+        if manager.config.kraken.do:
+            krakenmod = KrakenModule(proj + "/kraken")
+            sample_summary['kraken_json'] = krakenmod._get_stats().to_json()
+            conf.summary_sections.append({
+                "name": "Kraken ",
+                "anchor'": "kraken",
+                "content": krakenmod._get_summary_section()
+            })
+            print("Copying files")
+            shell('cp -r %s/kraken/ %s' % (proj, report_dir))
 
         # The cutadapt report (independent)
         if manager.config.adapter_removal.do:
@@ -339,9 +342,6 @@ onsuccess:
             filename = proj + "/logs/cutadapt/cutadapt.txt"
             CutadaptModule(filename, proj, "cutadapt.html")
 
-        print("Copying files")
-        if manager.config.kraken.do:
-            shell('cp -r %s/kraken/ %s' % (proj, report_dir))
 
         shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
         #shell('cp -r %s/fastq_stats*/ %s' % (proj, report_dir))
