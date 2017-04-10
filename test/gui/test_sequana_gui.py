@@ -267,4 +267,23 @@ def _test_only(qtbot):
     execute("sequanix --no-splash --testing")
 
 
+def test_import_config_from_menu(qtbot):
+    widget = sequana_gui.SequanaGUI(ipython=True)
+    qtbot.addWidget(widget)
+    # A dummy file should change nothing
+    widget.menuImportConfig("test")
+    assert widget.sequana_factory._imported_config is None
+    # while an existing config file should
+    # First, we simulate selection of quality control pipeline
+    index = widget.sequana_factory._choice_button.findText("quality_control")
+    widget.sequana_factory._choice_button.setCurrentIndex(index)
+    widget.ui.tabs_pipeline.setCurrentIndex(0) # set sequana pipeline mode
+    widget._update_sequana("quality_control")
+
+    qc = Module("quality_control")
+    widget.menuImportConfig(qc.config)
+    assert widget.sequana_factory._imported_config is not None
+
+    widget.close()
+
 
