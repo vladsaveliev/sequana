@@ -482,7 +482,7 @@ class ChromosomeCov(object):
         """
         self._bed = genomecov
         self.df = df.set_index("pos", drop=False)
-        self.chrom_name = df["chr"].iloc[0]
+        self.chrom_name = str(df["chr"].iloc[0])
 
         try:
             self.thresholds = thresholds.copy()
