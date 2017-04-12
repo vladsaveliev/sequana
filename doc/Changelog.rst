@@ -14,11 +14,12 @@ Changelog
      - dropdown widgets in the form based on the docstrings in the config file
      - can import config to override default sequana config file
      - subprocesses killed when the main pipeline is stopped
-   - Remoed ./reporting modules being moved to new modules_report framework 
+   - Removed ./reporting modules being moved to new modules_report framework 
 
 * BUGS:
 
    - kraken fixes for special cases where all reads are unclassified
+   - Fix various regression bug + add missing __init__ in ./plots 
 
 0.1.21 - Feb 2017
 -------------------
