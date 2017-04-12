@@ -8,9 +8,9 @@ rule RNAseQC:
         sample_index = __RNAseQC__conf,
         png = __RNAseQC__figure
     params:
-        genome = config['RNAseQC']['ref'],
-        gtf = config['RNAseQC']['gtf'],
-        rRNA = config['RNAseQC']['BWArRNA'],
+        genome = config['genome']['fasta_file'],
+        gtf = config['RNAseQC']['gtf_file'],
+        rRNA = config['RNAseQC']['BWArRNA_file'],
         kwargs = config['RNAseQC']['options']
 
     run:
@@ -20,7 +20,7 @@ rule RNAseQC:
         from re import split
 
         #create the sample index
-        data = [(split(r'[ATCG]*\_.*',file)[0], file, 'NA') for file in input]
+        data = [(split(r'[ATCG]{7,8}\_.*',file)[0], file, 'NA') for file in input]
         df = pd.DataFrame(data, columns=['Sample ID','Bam File','Notes'])
         df.to_csv(output.sample_index, sep="\t",index=False)
 

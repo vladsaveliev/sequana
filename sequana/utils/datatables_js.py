@@ -15,9 +15,9 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-""" Utils to create a Jquery DataTables for your HTML file. First class
+""" Utilities to create a Jquery DataTable for your HTML file. First class
 contains the javascript function to create DataTable. The second set table
-which use javascript created in the first class.
+that uses javascript created in the first class.
 """
 from collections import OrderedDict
 
@@ -40,15 +40,29 @@ class DataTableFunction(object):
         html_datatables = [DataTable(df, "data_{0}".format(i), datatable_js)
                            for i, df in enumerate(df_list)]
 
+    .. note:: the **dom** field is a string made of letters, each of them having
+        a precise meaning. The order of the letter is important. For instance if
+        **B** is first, the buttons are put before the table. If **B** is at the 
+        end, it is shown below the table. Here are some of the valid letters and
+        their meaning:
+
+        - **B**: add the Buttons (copy/csv)
+        - **i**: add *showing 1 to N of M entries* 
+        - **f**:
+        - **r**:
+        - **t**:
+        - **p**: 
+
     All options of datatable:
         https://datatables.net/reference/option/
     """
-    def __init__(self, df, html_id):
+    def __init__(self, df, html_id, index=False):
         """.. rubric:: contructor
 
         :param df: data frame.
         :param str html_id: the ID used in the HTML file.
         """
+        self.index = index
         self._html_id = html_id
         self._datatable_options = dict()
         self._datatable_columns = self._set_datatable_columns(df)
@@ -95,7 +109,11 @@ class DataTableFunction(object):
         """ Fill :attr:`DataTableFunction.datatable_columns` with header of
         :param:`DataTableFunction.df`.
         """
-        column_dict = OrderedDict((name, dict()) for name in df.columns)
+        if self.index is True:
+            columns = [""] + list(df.columns)
+        else:
+            columns = list(df.columns)
+        column_dict = OrderedDict((name, dict()) for name in columns)
         return column_dict
 
     def create_javascript_function(self):
@@ -159,10 +177,10 @@ class DataTableFunction(object):
         return ',\n'.join(s)
 
     def _check_type(self, value):
-        """ Check type of value to fill javascript sections. String must be
-        surrounded by quote and not boolean or integer.
+        """ Check value type to fill javascript sections. String must be
+        surrounded by quotes and not boolean or integer.
 
-        Javascript variable must not be surrounded by quote. Custom variables
+        Javascript variable must not be surrounded by quotes. Custom variables
         start with 'data_'.
         """
         try:
@@ -173,12 +191,12 @@ class DataTableFunction(object):
         return value
 
     def set_links_to_column(self, link_col, target_col):
-        """ Hidden a column with url and connect its with some columns.
+        """Hide a column with urls and connect it with a column.
 
         :param: str link_col: column with your URL.
         :param: str target_col: column to connect.
         """
-        # hidden the link column
+        # hide the link column
         try:
             self.datatable_columns[link_col]['visible'] = 'false'
         except KeyError:
@@ -199,8 +217,9 @@ class DataTableFunction(object):
 
 
 class DataTable(object):
-    """ Class that contains html table which used a javascript function. You
-    must add in your HTML file the js function
+    """ Class that contains html table which used a javascript function. 
+
+    You  must add in your HTML file the JS function
     (:meth:`DataTable.create_javascript_function`) and the HTML code
     (:meth:`DataTable.create_datatable`).
 
@@ -219,8 +238,12 @@ class DataTable(object):
         df2 = pandas.read_csv('data2.csv')
         datatable2 = DataTable(df2, 'data2', datatable.datatable)
         html2 = datatable.create_datatable()
+
+    The reason to include the JS manually is that you may include many HTML
+    table but need to include the JS only once.
+
     """
-    def __init__(self, df, html_id, datatable=None):
+    def __init__(self, df, html_id, datatable=None, index=False):
         """.. rubric:: contructor
 
         :param df: data frame.
@@ -228,13 +251,16 @@ class DataTable(object):
         :param DataTableFunction datatable: javascript function to create the
             Jquery Datatables. If None, a :class:`DataTableFunction` is
             generated from the df.
+        :param bool index: indicates whether the index dataframe should 
+            be included in the CSV table
         """
+        self.index = index
         self._df = df
         self._html_id = html_id
         if datatable:
             self.datatable = datatable
         else:
-            self.datatable = DataTableFunction(df, html_id)
+            self.datatable = DataTableFunction(df, html_id, index=index)
 
     def __len__(self):
         return len(self.df)
@@ -250,7 +276,7 @@ class DataTable(object):
     def create_datatable(self, style="width:100%", **kwargs):
         """ Return string well formated to include in a HTML page.
 
-        :param str style: css option of your table.
+        :param str style: CSS option of your table.
         :param **dict kwargs: parameters of :meth:`pandas.DataFrame.to_csv`.
         """
         html = """
@@ -271,7 +297,7 @@ class DataTable(object):
 
         :param **dict kwargs: parameters of :meth:`pandas.DataFrame.to_csv`.
         """
-        csv = self._df.to_csv(**kwargs)
+        csv = self._df.to_csv(index=self.index, **kwargs)
         html = '<pre id="csv_{0}">{1}</pre>'.format(self.html_id, csv.strip())
         css = '<style>#csv_{0}{{display:none}}</style>'.format(self.html_id)
         return '{0}\n{1}\n'.format(css, html)
@@ -288,7 +314,11 @@ class DataTable(object):
             .format(self.html_id, style)
         # create table's header
         th = '<th>{0}</th>'
-        header = [th.format(name) for name in self.df]
+        if self.index is True:
+            header = [th.format("")]
+            header += [th.format(name) for name in self.df]
+        else:
+            header = [th.format(name) for name in self.df]
         header = '<thead>{0}</thead>'.format("\n".join(header))
         html_table = """
     {0}

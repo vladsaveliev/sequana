@@ -33,6 +33,9 @@ class QIPythonWidget(RichJupyterWidget):
             guisupport.get_app_qt4().exit()
         self.exit_requested.connect(stop)
 
+        self.setStyleSheet("* { selection-background-color: #5964FF; }");
+
+
     def pushVariables(self,variableDict):
         """ Given a dictionary containing name / value pairs, push those 
         variables to the IPython console widget """

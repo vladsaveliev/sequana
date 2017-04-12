@@ -52,8 +52,22 @@ class KrakenResults(object):
         C	HISEQ:426:C5T65ACXX:5:2301:18719:16377	1	203	1:71 A:31 1:71
         C	HISEQ:426:C5T65ACXX:5:2301:21238:16397	1	202	1:71 A:31 1:71
 
-    Where each row corresponds to one read. See kraken documentation for
-    details.
+    Where each row corresponds to one read. 
+
+    ::
+
+        "562:13 561:4 A:31 0:1 562:3" would indicate that:
+
+        the first 13 k-mers mapped to taxonomy ID #562
+        the next 4 k-mers mapped to taxonomy ID #561
+        the next 31 k-mers contained an ambiguous nucleotide
+        the next k-mer was not in the database
+        the last 3 k-mers mapped to taxonomy ID #562
+
+
+    See kraken documentation for details.
+
+
 
     .. note:: This takes care of fetching taxons and the corresponding lineages
         from online web services.
@@ -171,10 +185,16 @@ class KrakenResults(object):
         self._taxons.sort_values(ascending=False, inplace=True)
 
         category = self.df.groupby("status").size()
+
         if 'C' in category.index:
             self.classified = category['C']
+        else:
+            self.classified = 0
+
         if 'U' in category.index:
             self.unclassified = category['U']
+        else:
+            self.unclassified = 0
 
     def _get_taxons(self):
         try:
@@ -246,16 +266,20 @@ x!="description"] +  ["description"]]
         return df
 
     def kraken_to_krona(self, output_filename=None, mode=None, nofile=False):
+        """
+
+        :return: status: True is everything went fine otherwise False 
+        """
         if output_filename is None:
             output_filename = self.filename + ".summary"
         taxon_to_find = list(self.taxons.index)
-
+        print(taxon_to_find)
         if len(taxon_to_find) == 0:
             logger.warning("No reads were identified. You will need a more complete database")
             self.output_filename = output_filename
             with open(output_filename, "w") as fout:
                 fout.write("%s\t%s" % (self.unclassified, "Unclassified"))
-            return
+            return False
         # classified reads as root  (1)
         try:
             if self.verbose:
@@ -264,6 +288,9 @@ x!="description"] +  ["description"]]
             taxon_to_find.pop(taxon_to_find.index(1))
         except:
             pass
+
+        if len(taxon_to_find) == 0:
+            return False
 
         if mode != "adapters":
             df = self.get_taxonomy_biokit(taxon_to_find)
@@ -305,6 +332,7 @@ x!="description"] +  ["description"]]
             except:
                 pass #unclassified may not exists
         self._data_created = True
+        return True
 
     def plot(self, kind="pie", cmap="copper", threshold=1, radius=0.9,
                 textcolor="red", **kargs):
@@ -326,7 +354,7 @@ x!="description"] +  ["description"]]
             or the standalone application **sequana_taxonomy**.
         """
         if self._data_created == False:
-            self.kraken_to_krona()
+            status = self.kraken_to_krona()
 
         if kind not in ['barh', 'pie']:
             logger.error('kind parameter: Only barh and pie are supported')
@@ -367,6 +395,10 @@ x!="description"] +  ["description"]]
                 #  smaller, xx-large, larger
                 text.set_size("small")
                 text.set_color(textcolor)
+            for wedge in ax.patches:
+                wedge.set_linewidth(1)
+                wedge.set_edgecolor("k")
+            self.ax = ax
         elif kind == "barh":
             ax = data.plot(kind=kind,  **kargs)
             pylab.xlabel(" percentage ")
@@ -375,7 +407,7 @@ x!="description"] +  ["description"]]
 
     def to_js(self, output="krona.html", onweb=False):
         if self._data_created == False:
-            self.kraken_to_krona()
+            status = self.kraken_to_krona()
         execute("ktImportText %s -o %s" % (self.output_filename, output))
         if onweb is True:
             import easydev
@@ -448,14 +480,17 @@ class KrakenPipeline(object):
 
         prefix = self.output_directory + os.sep
 
-        self.kr.kraken_to_krona(output_filename=prefix+"kraken.out.summary")
         self.kr.kraken_to_json(prefix + "kraken.json", self.dbname)
         self.kr.kraken_to_csv(prefix + "kraken.csv", self.dbname)
 
         # Transform to Krona HTML
         from snakemake import shell
         kraken_html = self.output_directory + os.sep + "kraken.html"
-        shell("ktImportText %s -o %s" % (prefix+"kraken.out.summary", kraken_html))
+        status = self.kr.kraken_to_krona(output_filename=prefix+"kraken.out.summary")
+        if status is True:
+            shell("ktImportText %s -o %s" % (prefix+"kraken.out.summary", kraken_html))
+        else:
+            shell("touch {}".format(kraken_html))
 
     def show(self):
         """Opens the filename defined in the constructor"""

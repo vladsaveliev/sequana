@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>604</width>
-    <height>706</height>
+    <width>647</width>
+    <height>738</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -55,6 +55,15 @@
        </color>
       </brush>
      </colorrole>
+     <colorrole role="ToolTipBase">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>170</green>
+        <blue>127</blue>
+       </color>
+      </brush>
+     </colorrole>
     </active>
     <inactive>
      <colorrole role="BrightText">
@@ -90,6 +99,15 @@
         <red>170</red>
         <green>0</green>
         <blue>0</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="ToolTipBase">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>170</green>
+        <blue>127</blue>
        </color>
       </brush>
      </colorrole>
@@ -131,11 +149,23 @@
        </color>
       </brush>
      </colorrole>
+     <colorrole role="ToolTipBase">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>170</green>
+        <blue>127</blue>
+       </color>
+      </brush>
+     </colorrole>
     </disabled>
    </palette>
   </property>
   <property name="windowTitle">
    <string>Sequanix (Sequana GUI)</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
   </property>
   <property name="tabShape">
    <enum>QTabWidget::Rounded</enum>
@@ -173,7 +203,7 @@
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>151</height>
+          <height>167</height>
          </size>
         </property>
         <property name="toolTip">
@@ -203,17 +233,14 @@
          </attribute>
          <layout class="QGridLayout" name="gridLayout_6">
           <item row="0" column="0">
-           <layout class="QVBoxLayout" name="verticalLayout_4">
-            <property name="spacing">
-             <number>6</number>
-            </property>
-            <item>
+           <layout class="QGridLayout" name="gridLayout_20">
+            <item row="0" column="0">
              <widget class="QTabWidget" name="tabs_sequana">
               <property name="enabled">
                <bool>true</bool>
               </property>
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -463,7 +490,7 @@
                <enum>QTabWidget::Rounded</enum>
               </property>
               <property name="currentIndex">
-               <number>0</number>
+               <number>1</number>
               </property>
               <property name="documentMode">
                <bool>false</bool>
@@ -481,10 +508,7 @@
                <attribute name="title">
                 <string>1 - Pipeline selection</string>
                </attribute>
-               <layout class="QHBoxLayout" name="layout_sequana">
-                <property name="spacing">
-                 <number>6</number>
-                </property>
+               <layout class="QGridLayout" name="gridLayout_19">
                 <property name="sizeConstraint">
                  <enum>QLayout::SetDefaultConstraint</enum>
                 </property>
@@ -494,10 +518,10 @@
                 <property name="rightMargin">
                  <number>6</number>
                 </property>
-                <item>
+                <item row="0" column="0">
                  <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
                   <property name="spacing">
-                   <number>4</number>
+                   <number>6</number>
                   </property>
                   <property name="rightMargin">
                    <number>0</number>
@@ -552,6 +576,15 @@
                           <red>255</red>
                           <green>238</green>
                           <blue>221</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="Highlight">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>89</red>
+                          <green>100</green>
+                          <blue>255</blue>
                          </color>
                         </brush>
                        </colorrole>
@@ -629,6 +662,15 @@
                          </color>
                         </brush>
                        </colorrole>
+                       <colorrole role="Highlight">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>89</red>
+                          <green>100</green>
+                          <blue>255</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
                        <colorrole role="HighlightedText">
                         <brush brushstyle="SolidPattern">
                          <color alpha="255">
@@ -703,6 +745,15 @@
                          </color>
                         </brush>
                        </colorrole>
+                       <colorrole role="Highlight">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>89</red>
+                          <green>100</green>
+                          <blue>255</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
                        <colorrole role="HighlightedText">
                         <brush brushstyle="SolidPattern">
                          <color alpha="255">
@@ -733,11 +784,17 @@
                       </disabled>
                      </palette>
                     </property>
+                    <property name="contextMenuPolicy">
+                     <enum>Qt::DefaultContextMenu</enum>
+                    </property>
                     <property name="toolTip">
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sequana pipelines are automatically fetched from sequana library.&lt;/p&gt;&lt;p&gt;Each pipeline is defined by a pipeline name. Its config file is fetched automatically.&lt;/p&gt;&lt;p&gt;Each pipeline require the user to define the input. It may be one of:&lt;/p&gt;&lt;p&gt;&lt;ul&gt;&lt;li&gt; a directory&lt;/li&gt;&lt;li&gt; a set of FastQ input file&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="autoFillBackground">
                      <bool>false</bool>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">selection-background-color: rgb(89, 100, 255);</string>
                     </property>
                     <property name="currentText">
                      <string>Select a Sequana pipeline</string>
@@ -781,7 +838,7 @@
                      <string notr="true">background-color:white</string>
                     </property>
                     <property name="currentIndex">
-                     <number>0</number>
+                     <number>1</number>
                     </property>
                     <widget class="QWidget" name="tab_4">
                      <attribute name="title">
@@ -862,7 +919,7 @@
                <string notr="true">background-color:#ffeedd</string>
               </property>
               <property name="currentIndex">
-               <number>0</number>
+               <number>1</number>
               </property>
               <widget class="QWidget" name="snakefile">
                <attribute name="title">
@@ -880,7 +937,18 @@
                </attribute>
                <layout class="QGridLayout" name="gridLayout_13">
                 <item row="0" column="0">
-                 <layout class="QHBoxLayout" name="layout_generic_config"/>
+                 <layout class="QHBoxLayout" name="layout_generic_config">
+                  <property name="spacing">
+                   <number>6</number>
+                  </property>
+                 </layout>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QPushButton" name="cancel_push_button">
+                  <property name="text">
+                   <string>cancel selection</string>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </widget>
@@ -940,23 +1008,6 @@
               <layout class="QGridLayout" name="gridLayout_16">
                <item row="1" column="1">
                 <layout class="QFormLayout" name="formLayout">
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label">
-                   <property name="text">
-                    <string>Until</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QComboBox" name="until_box">
-                   <property name="editable">
-                    <bool>false</bool>
-                   </property>
-                   <property name="currentText">
-                    <string/>
-                   </property>
-                  </widget>
-                 </item>
                  <item row="2" column="0">
                   <widget class="QLabel" name="label_2">
                    <property name="text">
@@ -966,6 +1017,23 @@
                  </item>
                  <item row="2" column="1">
                   <widget class="QComboBox" name="starting_box"/>
+                 </item>
+                 <item row="3" column="1">
+                  <widget class="QComboBox" name="until_box">
+                   <property name="editable">
+                    <bool>false</bool>
+                   </property>
+                   <property name="currentText">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="0">
+                  <widget class="QLabel" name="label">
+                   <property name="text">
+                    <string>Until</string>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </item>
@@ -1223,8 +1291,8 @@ Once saved, the DAG and RUN buttons should be available.</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>654</width>
-               <height>181</height>
+               <width>98</width>
+               <height>28</height>
               </rect>
              </property>
             </widget>
@@ -1397,8 +1465,8 @@ text-align: center;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>604</width>
-     <height>19</height>
+     <width>647</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1406,6 +1474,7 @@ text-align: center;
      <string>&amp;File</string>
     </property>
     <addaction name="separator"/>
+    <addaction name="action_import_configfile"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuOption">
@@ -1495,11 +1564,15 @@ text-align: center;
     <string>Ctrl+H</string>
    </property>
   </action>
+  <action name="action_import_configfile">
+   <property name="text">
+    <string>Import Config File (sequana pipeline only)</string>
+   </property>
+  </action>
  </widget>
  <tabstops>
   <tabstop>tabs_pipeline</tabstop>
   <tabstop>choice_button</tabstop>
-  <tabstop>until_box</tabstop>
   <tabstop>starting_box</tabstop>
   <tabstop>tabs</tabstop>
   <tabstop>run_btn</tabstop>

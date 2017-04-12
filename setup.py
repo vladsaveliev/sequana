@@ -72,7 +72,7 @@ setup(
     # qtconsole is required by Sequanix
     install_requires = ["easydev>=0.9.32", "reports>=0.3.0", "matplotlib>=2.0.0",
         "pyVCF", "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14",
-        "biokit>=0.4.1", "pysam", "docutils", "mock", "qtconsole",
+        "biokit>=0.4.1", "pysam", "docutils", "mock", "qtconsole", "psutil",
         "ruamel.yaml>=0.13.2", "colorlog"] + extra_packages,
 
     # here below '': pattern means include that pattern in all packages

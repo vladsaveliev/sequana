@@ -84,7 +84,7 @@ bwa_mem_phix:
 #
 # :Parameters:
 #
-# - adapter_type: to be used with a design_file only (see below for valid values)
+# - adapter_choice: to be used with a design_file only (see below for valid values)
 # - design_file: a valid CSV file with mapping of index and sample name
 # - fwd: a string or file (prefixed with *file:*)
 # - m: 20 means discard trimmed reads that are shorter than 20.
@@ -105,12 +105,12 @@ bwa_mem_phix:
 #
 # :Note: If design_file is provided, fwd and rev fields are ignored
 #
-# adapter_choice__ = ["PCRFree", "Rubicon", "Nextera", "TruSeq"]
-# tool_choice__ = ["cutadapt", "apropos"]
+# adapter_choice__ = ["", "PCRFree", "Rubicon", "Nextera", "TruSeq"]
+# tool_choice__ = ["cutadapt", "atropos"]
 adapter_removal:
     do: yes
     tool_choice: cutadapt
-    adapter_choice:
+    adapter_choice: 
     design_file:
     fwd:
     rev:

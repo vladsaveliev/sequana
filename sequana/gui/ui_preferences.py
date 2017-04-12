@@ -33,6 +33,9 @@ class Ui_Preferences(object):
         self.formLayout = QtWidgets.QFormLayout()
         self.formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
         self.formLayout.setObjectName("formLayout")
+        self.preferences_options_general_overwrite_value = QtWidgets.QCheckBox(self.tab_general)
+        self.preferences_options_general_overwrite_value.setObjectName("preferences_options_general_overwrite_value")
+        self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.preferences_options_general_overwrite_value)
         self.label = QtWidgets.QLabel(self.tab_general)
         self.label.setObjectName("label")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label)
@@ -59,9 +62,12 @@ class Ui_Preferences(object):
         self.preferences_options_general_htmlpage_value = QtWidgets.QLineEdit(self.tab_general)
         self.preferences_options_general_htmlpage_value.setObjectName("preferences_options_general_htmlpage_value")
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.preferences_options_general_htmlpage_value)
-        self.preferences_options_general_overwrite_value = QtWidgets.QCheckBox(self.tab_general)
-        self.preferences_options_general_overwrite_value.setObjectName("preferences_options_general_overwrite_value")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.preferences_options_general_overwrite_value)
+        self.preferences_options_general_addbrowser_value = QtWidgets.QLineEdit(self.tab_general)
+        self.preferences_options_general_addbrowser_value.setObjectName("preferences_options_general_addbrowser_value")
+        self.formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.preferences_options_general_addbrowser_value)
+        self.label_2 = QtWidgets.QLabel(self.tab_general)
+        self.label_2.setObjectName("label_2")
+        self.formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.label_2)
         self.verticalLayout_2.addLayout(self.formLayout)
         self.tabs.addTab(self.tab_general, "")
         self.gridLayout_2.addWidget(self.tabs, 0, 0, 1, 1)
@@ -83,6 +89,12 @@ class Ui_Preferences(object):
     def retranslateUi(self, Preferences):
         _translate = QtCore.QCoreApplication.translate
         Preferences.setWindowTitle(_translate("Preferences", "Preferences"))
+        self.preferences_options_general_overwrite_value.setToolTip(_translate("Preferences", "<html>\n"
+"<body>\n"
+"<p>The config file and the snakefile are copied in the working directory when the SAVE button is pressed. If the files exist already, a dialog ask a confirmation. You can force the copy by checking this box.</p>\n"
+"</body>\n"
+"</html>"))
+        self.preferences_options_general_overwrite_value.setText(_translate("Preferences", "overwrites files"))
         self.label.setToolTip(_translate("Preferences", "<html>\n"
 "<body>\n"
 "<p>Select your favorite web browser to show an HTML reports.</p>\n"
@@ -109,11 +121,7 @@ class Ui_Preferences(object):
         self.label_4.setText(_translate("Preferences", "HTML page to open as a report"))
         self.preferences_options_general_htmlpage_value.setToolTip(_translate("Preferences", "<html><head/><body><p>If you already know what HTML page you will open, set its filename here to open it automatically. when you click on <span style=\" font-style:italic;\">Open Report</span> button.</p></body></html>"))
         self.preferences_options_general_htmlpage_value.setText(_translate("Preferences", "multi_summary.html"))
-        self.preferences_options_general_overwrite_value.setToolTip(_translate("Preferences", "<html>\n"
-"<body>\n"
-"<p>The config file and the snakefile are copied in the working directory when the SAVE button is pressed. If the files exist already, a dialog ask a confirmation. You can force the copy by checking this box.</p>\n"
-"</body>\n"
-"</html>"))
-        self.preferences_options_general_overwrite_value.setText(_translate("Preferences", "overwrites files"))
+        self.label_2.setToolTip(_translate("Preferences", "<html><head/><body><p>In Sequanix, we a config file is loaded, we dynamically created a form that is editable.</p><p><br/></p><p>In the form, widgets are automatically included for fields ending in _file or _browser. One can add specific field to be transformed into a browser widget. </p><p><br/></p><p>This can be done by adding the field names in this preference box. </p><p><br/></p><p>Fields must be separated by commas, semi-columns or spaces</p></body></html>"))
+        self.label_2.setText(_translate("Preferences", "Form browser keywords"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_general), _translate("Preferences", "General"))
 
