@@ -273,7 +273,6 @@ x!="description"] +  ["description"]]
         if output_filename is None:
             output_filename = self.filename + ".summary"
         taxon_to_find = list(self.taxons.index)
-        print(taxon_to_find)
         if len(taxon_to_find) == 0:
             logger.warning("No reads were identified. You will need a more complete database")
             self.output_filename = output_filename
