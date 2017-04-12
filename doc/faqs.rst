@@ -73,6 +73,9 @@ This may be solved by re-installation graphviz using the main anaconda channel
 
     conda install --override-channels -c anaconda graphviz=2.38.0 
 
+:Update April 2017: replace anaconda with conda-forge
+
+
 matplotlib
 ~~~~~~~~~~~~~~~~~
 

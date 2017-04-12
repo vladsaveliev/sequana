@@ -224,7 +224,7 @@ Use sequana.snaketools
 Assuming there will be a config file named *config.yaml*, the pipeline should be
 written as follows:
 
-.. code-block:: snakemake
+.. code-block:: 
 
     import sequana
     from sequana import snaketools as sm
@@ -301,3 +301,33 @@ do not use the print() function but the logger::
     logger.warning("test")
     logger.error("test")
     logger.critical("test")
+
+
+
+Testing with pytest
+===============================
+
+We moved from nosetests to pytest. This framwork is slightly more flexible but
+the main reason to move was to be able to test Qt application. 
+
+In order to run the test locally, you will need to use::
+
+    pip install pytest pytest-cov pytest-qt pytest-xdist pytest-mock pytest-timeout
+
+
+Then, you can type for instance::
+
+    pytest -v --durations=10  test/ --cov=sequana --cov-report term --timeout 300 -n 2
+
+Here, -n 2 requires two CPUs to run the test. The option durations=10 means
+*show the 10 longest tests*. 
+
+
+If you want to test a single file (e.g. test_pacbio)::
+
+    cd test
+    pytest test_pacbio.py --cov sequana.pacbio --cov-report term-missing
+
+
+
+

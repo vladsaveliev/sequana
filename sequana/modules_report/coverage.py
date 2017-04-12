@@ -25,7 +25,7 @@ from sequana.modules_report.base_module import SequanaBaseModule
 from sequana.utils import config
 from sequana.utils.datatables_js import DataTable, DataTableFunction
 from sequana.plots.canvasjs_linegraph import CanvasJSLineGraph
-
+from sequana import logger
 
 class CoverageModule(SequanaBaseModule):
     """ Write HTML report of coverage analysis. This class takes either a
@@ -76,8 +76,7 @@ class CoverageModule(SequanaBaseModule):
                                                  'buttons': ['copy', 'csv']}
         datatable.datatable.set_links_to_column('link', 'chromosome')
         js = datatable.create_javascript_function()
-        html_table = datatable.create_datatable(index=False,
-                                                float_format='%.3g')
+        html_table = datatable.create_datatable(float_format='%.3g')
         self.sections.append({
             "name": "Chromosomes",
             "anchor": "chromosomes",
@@ -96,6 +95,7 @@ class CoverageModule(SequanaBaseModule):
             os.makedirs(chrom_output_dir)
         page_list = []
         for chrom in self.bed:
+            logger.info("Creating coverage report {}".format(chrom.chrom_name))
             chrom_report = ChromosomeCoverageModule(chrom, datatable_js)
             page_list.append(chrom_report.html_page)
         return page_list
@@ -153,7 +153,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         self.sections = list()
 
         rois = self.chromosome.get_roi()
-        
+
         self.coverage_plot()
         links = self.subcoverage(rois, directory)
         self.coverage_barplot()
@@ -205,7 +205,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         """
         # create directory
         chrom_output_dir = os.sep.join([config.output_dir, directory,
-                                       self.chromosome.chrom_name])
+                                       str(self.chromosome.chrom_name)])
         if not os.path.exists(chrom_output_dir):
             os.makedirs(chrom_output_dir)
         # create the combobox to link toward different sub coverage
@@ -281,8 +281,8 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         js = self.datatable.create_javascript_function()
         lroi = DataTable(low_roi, "lroi", self.datatable)
         hroi = DataTable(high_roi, "hroi", self.datatable)
-        html_low_roi = lroi.create_datatable(index=False, float_format='%.3g')
-        html_high_roi = hroi.create_datatable(index=False, float_format='%.3g')
+        html_low_roi = lroi.create_datatable(float_format='%.3g')
+        html_high_roi = hroi.create_datatable(float_format='%.3g')
         rois.df.drop('link', 1, inplace=True)
         roi_paragraph = (
             "<p>Regions with a z-score {0}er than {1:.2f} and at "
@@ -411,7 +411,7 @@ class SubCoverageModule(SequanaBaseModule):
         csv = self.chromosome.to_csv(start=self.start, stop=self.stop,
                                      columns=[x_col] + y_col, index=False,
                                      float_format="%.3g")
-        
+
         # create CanvasJS stuff
         cjs = CanvasJSLineGraph(csv, 'cov', x_col, y_col)
         # set options
@@ -478,8 +478,8 @@ class SubCoverageModule(SequanaBaseModule):
         js = self.datatable.create_javascript_function()
         lroi = DataTable(low_roi, "lroi", self.datatable)
         hroi = DataTable(high_roi, "hroi", self.datatable)
-        html_low_roi = lroi.create_datatable(index=False, float_format='%.3g')
-        html_high_roi = hroi.create_datatable(index=False, float_format='%.3g')
+        html_low_roi = lroi.create_datatable(float_format='%.3g')
+        html_high_roi = hroi.create_datatable(float_format='%.3g')
         roi_paragraph = (
             "<p>Regions with a z-score {0}er than {1:.2f} and at "
             "least one base with a z-score {0}er than {2:.2f} are detected as "

@@ -41,6 +41,8 @@ class YamlDocParser(object):
         r = YamlDocParser(module.config)
         r.sections['fastqc']
 
+    Those lines are removed from the docstring but available as a dictionary
+
     """
     def __init__(self, filename):
         """.. rubric:: constructor
@@ -67,6 +69,8 @@ class YamlDocParser(object):
         """
         self.filename = filename
         self.regex_section = re.compile("^[a-z,A-Z,_,0-9]+:")
+        self._specials = ["choice__"]
+
         self.sections = {}
         self._read_data()
         self._parse_data()
@@ -89,9 +93,8 @@ class YamlDocParser(object):
         before each top-level sections. See doc in the constructor
 
         Removes all # so that the block of comments can be interpreted as
-        a docstring in Sequanix
+        a standard docstring in Sequanix
         """
-
         current_block = []
         current_section = "docstring"
 
@@ -128,10 +131,40 @@ class YamlDocParser(object):
         for line in comments.split("\n"):
             if "#############" in line:
                 pass
+            elif sum([this in line for this in self._specials]):
+                pass
             else:
                 if len(line)<2: # an empty line (to keep)
                     docstring.append("")
                 else:
                     docstring.append(line[2:]) # strip the "# "characters
-        docstring = "\n".join(docstring)
+        docstring = "\n".join(docstring).strip()
         return docstring
+
+    def _get_specials(self, section):
+        """This method extracts data from the docstring
+
+        Lines such as ::
+
+            field_choice__ = ["a", "b"]
+
+        are extracted. Where _choice is a special keyword to be
+        found.
+
+        """
+        if section not in self.sections.keys():
+            logger.warning("%s not found in the yaml " % section)
+            return
+        comments = self.sections[section]
+        specials = {}
+        for line in comments.split("\n"):
+            if "#############" in line:
+                pass
+            elif sum([this in line for this in self._specials]):
+                for special in self._specials:
+                    line = line[2:]
+                    key, value = line.split("=", 1)
+                    key = key.strip().rstrip("__")
+                    value = value.strip()
+                    specials[key] = list(eval(value))
+        return specials

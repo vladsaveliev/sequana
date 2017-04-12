@@ -58,6 +58,11 @@ class QPlainTextEditLogger(colorlog.StreamHandler):
         self.bgcolor = "#aabbcc"
         self.widget.setStyleSheet("background-color: %s" % self.bgcolor)
 
+        self.widget.setStyleSheet("""* { 
+            selection-background-color: #5964FF;
+            background-color: %s
+            }""" % self.bgcolor);
+
 
     def emit(self, record):
         formatter = """<span style="color:%(color)s;

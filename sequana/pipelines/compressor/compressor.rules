@@ -14,7 +14,9 @@ cfg = ss.SequanaConfig(config).config
 
 
 if cfg.compressor.verbose:
-    print(cfg)
+    print("Compressor parameters")
+    for k,v in cfg.compressor.items():
+        print("{}: {}".format(k,v))
 
 if cfg.compressor.target.startswith("fastq"):
     name = "fastq"

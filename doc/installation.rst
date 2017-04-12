@@ -3,6 +3,7 @@ Installation
 
 
 .. _installation_conda:
+
 Installation using Conda
 ============================
 
@@ -17,23 +18,53 @@ For example, we use Matplotlib, Pandas that requires compilation.
 Besides, many pipelines rely on third-party software such as BWA or samtools that are not
 Python libraries. 
 
-In practice, we do use `Anaconda <https://anaconda.org/>`_ and in
-particular the **bioconda** channel, which can be
-added to your environment as follows (once Anaconda is installed)::
+Install conda executable
+----------------------------
+
+In practice, we do use `Anaconda <https://anaconda.org/>`_ . We recommend to
+install **conda** executable via the manual installer. You may have the choice
+between Python 2 and 3. We recommend to choose a Python version 3.
+
+channels
+-----------
+
+When you want to install a new package, you have to use this type of syntax::
+
+    conda install ipython
+
+where **ipython** is the package you wish to install. Note that by default,
+**conda** looks on the official Anaconda website (channel). However, there are
+many channels available. We will use the **bioconda** channel. To use it, type
+these commands (once for all)::
 
     conda config --add channels conda-forge
     conda config --add channels defaults
     conda config --add channels r
     conda config --add channels bioconda
 
-**It is important to add them in this order**. 
+.. warning:: it is important to add them in this order**, as mentionned on bioconda webpage
+(https://bioconda.github.io/).
 
+Create an environment
+-------------------------
 
-This is the recommended way and we will not support manual installation.
+Once **conda** is installed, open a new shell.
+Although this is not required strictly speaking, we would
+recomment to create an environment dedicated to Sequana. This environment can
+later be removed without affecting your system or conda installation. A
+**conda** environment is nothing else than a directory and can be created as
+follows::
+
+    conda create --name sequana python=3.5
+
+Then, since you may have several environments, you must activate the **sequana**
+environment itself::
+
+    source activate sequana
 
 Here are compulsary packages that must be installed::
 
-    conda install numpy matplotlib pandas snakemake graphviz scipy
+    conda install numpy matplotlib pandas snakemake graphviz pygraphviz scipy
 
 Then, depending on the pipelines or standalone applications you want to use,
 you will need to install other packages. Here is a list
@@ -49,14 +80,30 @@ install everything in one go)::
 .. note:: the denovo_assembly pipelines uses Quast tool, which we ported to
     python 3.5 and was pulled on Quast official github page. This is not
     yet in bioconda but one can it from the quast github (sept 2016). This is
-    required for the de-novo pipeline
+    required for the de-novo pipeline. The denove pipeline also requires GATK, 
+    to be installed manually by users (due to licensing restrictions)
 
 .. note:: **Sequana** is not fully compatible with Python 2.7 since a dependency
     (Snakemake) is only available for Python 3.5. However, many core
     functionalities would work under Python 2.7
 
 
+.. note:: For GATK (variant caller), please go to
+   https://software.broadinstitute.org/gatk/download/auth?package=GATK and
+   download the file GenomeAnalysisTK-3.7.tar.bz2 ; then type::
+
+    gatk-register GenomeAnalysisTK-3.7.tar.bz2
+
+
 .. include:: ../docker/README.rst
+
+For developers
+=================
+
+For the documentation::
+
+    pip install sphinx sphinx_rtd_theme pytest pytest-qt pytest-mock
+
 
 
 
