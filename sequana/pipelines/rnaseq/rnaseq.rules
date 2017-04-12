@@ -106,7 +106,7 @@ expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samp
 
 
 if manager.config.adapter_removal.do:
-    adapter_tool = manager.config.adapter_removal.tool
+    adapter_tool = manager.config.adapter_removal.tool_choice
     # Clean NGS
     if adapter_tool == "clean_ngs":
         if manager.paired:
