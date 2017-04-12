@@ -73,21 +73,19 @@ class KrakenResults(object):
         from online web services.
 
     """
-    def __init__(self, filename="kraken.out", verbose=True):
+    def __init__(self, filename="kraken.out"):
         """.. rubric:: **constructor**
 
         :param filename: the input from KrakenAnalysis class
-        :param verbose:
 
         """
         self.filename = filename
-        self.verbose = verbose
 
         on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 
         if on_rtd is False:
             from biokit import Taxonomy
-            self.tax = Taxonomy(verbose=self.verbose)
+            self.tax = Taxonomy(verbose=True)
         else:
             class Taxonomy(object):
                 from sequana import sequana_data # must be local
@@ -126,8 +124,7 @@ class KrakenResults(object):
         if len(ids) == 0:
             return pd.DataFrame()
 
-        if self.verbose:
-            logger.info('Retrieving taxon using biokit.Taxonomy')
+        logger.info('Retrieving taxon using biokit.Taxonomy')
 
         if isinstance(ids, list) is False:
             ids = [ids]
@@ -166,8 +163,7 @@ class KrakenResults(object):
     def _parse_data(self):
         taxonomy = {}
 
-        if self.verbose:
-            logger.info("Reading kraken data")
+        logger.info("Reading kraken data")
         # we select only col 0,2,3 to save memoty, which is required on very
         # large files
         self._df = pd.read_csv(self.filename, sep="\t", header=None,
@@ -281,9 +277,8 @@ x!="description"] +  ["description"]]
             return False
         # classified reads as root  (1)
         try:
-            if self.verbose:
-                logger.warning("Removing taxon 1 (%s values) " % self.taxons.ix[1])
-                logger.info("Found %s taxons " % len(taxon_to_find))
+            logger.warning("Removing taxon 1 (%s values) " % self.taxons.ix[1])
+            logger.info("Found %s taxons " % len(taxon_to_find))
             taxon_to_find.pop(taxon_to_find.index(1))
         except:
             pass
@@ -346,7 +341,7 @@ x!="description"] +  ["description"]]
 
             from sequana import KrakenResults, sequana_data
             test_file = sequana_data("test_kraken.out", "testing")
-            k = KrakenResults(test_file, verbose=False)
+            k = KrakenResults(test_file)
             df = k.plot(kind='pie')
 
         .. seealso:: to generate the data see :class:`KrakenPipeline`
@@ -438,7 +433,7 @@ class KrakenPipeline(object):
 
     """
     def __init__(self, fastq, database, threads=4, output_directory="kraken",
-            verbose=True, dbname=None):
+            dbname=None):
         """.. rubric:: Constructor
 
         :param fastq: either a fastq filename or a list of 2 fastq filenames
@@ -452,7 +447,6 @@ class KrakenPipeline(object):
         KtImportTex is then used to create the Krona page.
 
         """
-        self.verbose = verbose
         # Set and create output directory
         self._devtools = DevTools()
         self.output_directory = output_directory
@@ -472,7 +466,7 @@ class KrakenPipeline(object):
 
         # Translate kraken output to a format understood by Krona and save png
         # image
-        self.kr = KrakenResults(kraken_results, verbose=self.verbose)
+        self.kr = KrakenResults(kraken_results)
 
         df = self.kr.plot(kind="pie")
         pylab.savefig(self.output_directory + os.sep + "kraken.png")
@@ -644,8 +638,7 @@ class KrakenDownload(object):
         baseurl = "https://github.com/sequana/data/raw/master/"
 
         # download only if required
-        if verbose:
-            logger.info("Downloading the database into %s" % base)
+        logger.info("Downloading the database into %s" % base)
 
         md5sums = [
             "28661f8baf0514105b0c6957bec0fc6e",
@@ -662,8 +655,7 @@ class KrakenDownload(object):
             url = baseurl + "kraken_toydb/%s" % filename
             filename = base + os.sep + filename
             if os.path.exists(filename) and md5(filename) == md5sum:
-                if verbose:
-                    logger.warning("%s already present" % filename)
+                logger.warning("%s already present" % filename)
             else:
                 logger.info("Downloading %s" % url)
                 wget(url, filename)
@@ -674,13 +666,12 @@ class KrakenDownload(object):
         taxondir = base + os.sep + "taxonomy"
         dv.mkdir(base)
         dv.mkdir(taxondir)
-        if verbose:
-            logger.info("Downloading minikraken (4Gb)")
+
+        logger.info("Downloading minikraken (4Gb)")
 
         filename = base + os.sep + "minikraken.tgz"
         if os.path.exists(filename) and md5(filename) == "30eab12118158d0b31718106785195e2":
-            if verbose:
-                logger.warning("%s already present" % filename)
+            logger.warning("%s already present" % filename)
         else:
             wget("https://ccb.jhu.edu/software/kraken/dl/minikraken.tgz", filename)
         # unzipping. requires tar and gzip
