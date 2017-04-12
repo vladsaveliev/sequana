@@ -22,7 +22,6 @@ import json
 
 from sequana.modules_report.base_module import SequanaBaseModule
 
-from sequana.reporting.report_main import BaseReport
 from easydev import DevTools
 from sequana.resources.canvas.bar import CanvasBar
 from sequana import logger
