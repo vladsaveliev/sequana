@@ -874,8 +874,16 @@ class SequanaGUI(QMainWindow, Tools):
 
     def _set_pb_color(self, color):
         self.ui.progressBar.setStyleSheet("""
-            QProgressBar::chunk {{ background: {}; 
-            text-align:center}}""".format(color))
+            QProgressBar {{
+                color: black;
+                border: 2px solid grey;
+                margin: 2px;
+                border-radius: 5px;
+                text-align: center;
+            }}
+            QProgressBar::chunk {{
+                background: {};
+                }}""".format(color))
         #pal = self.ui.progressBar.palette()
         #pal.setColor(QtGui.QPalette.Highlight, self._colors['blue'])
         #self.ui.progressBar.setPalette(pal)
