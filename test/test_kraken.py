@@ -30,11 +30,10 @@ else:
 
 def test_kraken_results():
     test_file = sequana_data("test_kraken.out", "testing")
-    k = KrakenResults(test_file, verbose=False)
+    k = KrakenResults(test_file )
     df = k.plot(kind='pie')
     print(df)
 
-    #k = KrakenResults(test_file, verbose=True)
     df = k.plot(kind='barh')
 
     df = k.get_taxonomy_biokit(11234)
