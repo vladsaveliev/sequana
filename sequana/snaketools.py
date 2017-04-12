@@ -123,7 +123,11 @@ class SnakeMakeStats(object):
     def plot_and_save(self, filename="snakemake_stats.png",
                       outputdir="report"):
         import pylab
-        self.plot()
+        # If the plot cannot be created (e.g. no valid stats), we create an empty
+        # axes
+        try: self.plot()
+        except:
+            pylab.bar([0],[0])
         if outputdir is None:
             pylab.savefig(filename)
         else:
