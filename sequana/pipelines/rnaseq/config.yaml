@@ -224,8 +224,8 @@ adapter_removal:
     design_file:
     fwd:
     rev:
-    m: 20               # min length cutoff
-    mode: "a"   # g for 5' adapter, a for 3' and b for both 5'/3'
+    m: 20
+    mode: "a"
     quality: "30"
     options: "-O 6 --trim-n"
     threads: 4
