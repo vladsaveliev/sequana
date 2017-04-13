@@ -25,7 +25,7 @@ from sequana.modules_report.base_module import SequanaBaseModule
 from sequana.utils import config
 from sequana.utils.datatables_js import DataTable, DataTableFunction
 from sequana.plots.canvasjs_linegraph import CanvasJSLineGraph
-
+from sequana import logger
 
 class CoverageModule(SequanaBaseModule):
     """ Write HTML report of coverage analysis. This class takes either a
@@ -95,6 +95,7 @@ class CoverageModule(SequanaBaseModule):
             os.makedirs(chrom_output_dir)
         page_list = []
         for chrom in self.bed:
+            logger.info("Creating coverage report {}".format(chrom.chrom_name))
             chrom_report = ChromosomeCoverageModule(chrom, datatable_js)
             page_list.append(chrom_report.html_page)
         return page_list
@@ -152,7 +153,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         self.sections = list()
 
         rois = self.chromosome.get_roi()
-        
+
         self.coverage_plot()
         links = self.subcoverage(rois, directory)
         self.coverage_barplot()
@@ -204,7 +205,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         """
         # create directory
         chrom_output_dir = os.sep.join([config.output_dir, directory,
-                                       self.chromosome.chrom_name])
+                                       str(self.chromosome.chrom_name)])
         if not os.path.exists(chrom_output_dir):
             os.makedirs(chrom_output_dir)
         # create the combobox to link toward different sub coverage
@@ -410,7 +411,7 @@ class SubCoverageModule(SequanaBaseModule):
         csv = self.chromosome.to_csv(start=self.start, stop=self.stop,
                                      columns=[x_col] + y_col, index=False,
                                      float_format="%.3g")
-        
+
         # create CanvasJS stuff
         cjs = CanvasJSLineGraph(csv, 'cov', x_col, y_col)
         # set options

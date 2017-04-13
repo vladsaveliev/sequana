@@ -123,7 +123,11 @@ class SnakeMakeStats(object):
     def plot_and_save(self, filename="snakemake_stats.png",
                       outputdir="report"):
         import pylab
-        self.plot()
+        # If the plot cannot be created (e.g. no valid stats), we create an empty
+        # axes
+        try: self.plot()
+        except:
+            pylab.bar([0],[0])
         if outputdir is None:
             pylab.savefig(filename)
         else:
@@ -567,7 +571,7 @@ class SequanaConfig(object):
                             json.loads(fh.read())))
                 config = load_configfile(data)
             else:
-                raise IOError("input string must be an existing file")
+                raise IOError("input string must be an existing file (%s)" % data)
             self.config = AttrDict(**config)
         elif isinstance(data, SequanaConfig): # else maybe a SequanaConfig ?
             self.config = AttrDict(**data.config)
@@ -1245,53 +1249,63 @@ def init(filename, namespace):
     Module(filename.replace(".rules", "")).check('error')
 
 
-def create_recursive_cleanup(filename=".sequana_cleanup.py"):
-    """
+def create_recursive_cleanup(filename="sequana_cleanup.py", additional_dir=[]):
+    """Create general cleanup
 
-    .. todo:: set a directory
+    :param filename: name of the script to be called 
+
     """
     with open(filename, "w") as fh:
         fh.write("""
-import subprocess
-import glob
-import os
+import subprocess, glob, os
 from easydev import shellcmd
 
 for this in glob.glob("*"):
-    if os.path.isdir(this) and this not in ["fastq_sampling", "report"]:
+    if os.path.isdir(this):
         print(" --- Cleaning up %s directory" % this)
-        if os.path.exists(this + os.sep + ".sequana_cleanup.py"):
-            subprocess.Popen(["python", ".sequana_cleanup.py"], cwd=this)
+        if os.path.exists(this + os.sep + "sequana_cleanup.py"):
+            pid = subprocess.Popen(["python", "sequana_cleanup.py"], cwd=this)
+            pid.wait()  # we do not want to run e.g. 48 cleanup at the same time
 
-for this in ['README', 'runme.sh', 'config.yaml', 'stats.txt', 'fa', 'dag.svg', 'rulegraph.svg']:
+# Remove some files
+for this in ["README", "requirements.txt", 'runme.sh', 'config.yaml', 'stats.txt',
+             "dag.svg", "rulegraph.svg", "*rules", "*.fa"]:
     try:
         shellcmd("rm %s" % this)
     except:
         print("%s not found (not deleted)" % this)
 
-""")
+# Remove some directories
+for this in {1}:
+    try:
+        shellcmd("rm -rf %s" % this)
+    except:
+        print("%s not found (not deleted)" % this)
+
+shellcmd("rm -f {0}")
+print("done")
+""".format(filename, additional_dir))
 
 
-def create_cleanup(targetdir):
-    """A script to include in directory created by the different pipelines"""
-    filename = targetdir + os.sep + ".sequana_cleanup.py"
+def create_cleanup(targetdir, exclude=['logs']):
+    """A script to include in directory created by the different pipelines to
+cleanup the directory"""
+    filename = targetdir + os.sep + "sequana_cleanup.py"
     with open(filename, "w") as fout:
         fout.write("""
-import glob
-import os
-import shutil
+import glob, os, shutil, time
 from easydev import shellcmd
-import time
 
+exclude = {}
 for this in glob.glob("*"):
-    if os.path.isdir(this) and this not in ['logs'] and 'report' not in this:
+    if os.path.isdir(this) and this not in exclude and this.startswith('report') is False:
         print('Deleting %s' % this)
         time.sleep(0.1)
         shellcmd("rm -rf %s" % this)
-shellcmd("rm -f  README config.yaml snakejob.* slurm-*")
-shellcmd("rm -f .sequana_cleanup.py")
+shellcmd("rm -f  snakejob.* slurm-*")
 shellcmd("rm -rf .snakemake")
-""")
+shellcmd("rm -f sequana_cleanup.py")
+""".format(exclude))
     return filename
 
 

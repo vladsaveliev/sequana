@@ -1,0 +1,827 @@
+2017-04-10 21:43:18,567 INFO: This is Atropos 1.0.23 with Python 3.5.3
+2017-04-10 21:43:18,567 INFO: Command line parameters: trim -p Hm2_GTGAAA_L004/cutadapt/Hm2_GTGAAA_L004_R2_.cutadapt.fastq.gz -pe1 Hm2_GTGAAA_L004/bwa_bam_to_fastq/Hm2_GTGAAA_L004_R1_.unmapped.fastq.gz -pe2 Hm2_GTGAAA_L004/bwa_bam_to_fastq/Hm2_GTGAAA_L004_R2_.unmapped.fastq.gz --progress bar -T 4 -b file:/home/cokelaer/Work/github/sequana/sequana/resources/data/adapters/adapters_Nextera_fwd.fa -B file:/home/cokelaer/Work/github/sequana/sequana/resources/data/adapters/adapters_Nextera_rev.fa -m 20 -q 30 -O 6 --trim-n -o Hm2_GTGAAA_L004/cutadapt/Hm2_GTGAAA_L004_R1_.cutadapt.fastq.gz
+2017-04-10 21:43:18,602 INFO: Loading list of known contaminants from https://gist.githubusercontent.com/jdidion/c151526b8ccd84945cd31dfa4f83591d/raw/eaa6b2d99983f5b14f75357c93c1540142436a49/sequencing_adapters.fa
+2017-04-10 21:43:18,733 INFO: Trimming 112 adapters with at most 10.0% errors in paired-end mode ...
+2017-04-10 21:43:18,760 INFO: Starting 2 worker processes
+2017-04-10 21:43:18,813 INFO: Starting 1 worker processes
+Wallclock time: 6.34 s (2535 us/read; 0.02 M reads/minute).
+CPU time (main process): 0.09 s
+
+=== Summary ===
+
+Total read pairs processed:		         2,500
+  Read 1 with adapter:			           197 (7.9%)
+  Read 2 with adapter:			           262 (10.5%)
+Pairs that were too short:		              80 (3.2%)
+Pairs written (passing filters):			        2,420 (96.8%)
+
+Total basepairs processed:			      505,000 bp
+	 Read 1:       252,500 bp
+	 Read 2:       252,500 bp
+Quality-trimmed:                                41,352 bp (8.2%)
+	 Read 1:        17,366 bp
+	 Read 2:        23,986 bp
+End Ns trimmed:                                      1 bp (0.0%)
+	 Read 1:             1 bp
+	 Read 2:             0 bp
+Total written (filtered):                      450,955 bp (89.3%)
+	 Read 1:       224,897 bp
+	 Read 2:       226,058 bp
+
+=== First read: Adapter Universal_Adapter|name:universal ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT; Type: variable 5'/3'; Length: 58; Trimmed: 2 times.
+2 times, it overlapped the 5' end of a read
+0 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-39 bp: 3; 40-49 bp: 4; 50-58 bp: 5
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+6	1	0.6	0	1
+7	1	0.2	0	1
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+
+=== First read: Adapter Nextera_transposase_seq_1|name:transposase_seq_1 ===
+
+Sequence: TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG; Type: variable 5'/3'; Length: 33; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_transposase_seq_2|name:transposase_seq_2 ===
+
+Sequence: GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG; Type: variable 5'/3'; Length: 34; Trimmed: 1 times.
+0 times, it overlapped the 5' end of a read
+1 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-34 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+7	1	0.2	0	1
+
+=== First read: Adapter Nextera_index_N501|name:N501|seq:TAGATCGC ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACTAGATCGCTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N502|name:N502|seq:CTCTCTAT ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACCTCTCTATTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N503|name:N503|seq:TATCCTCT ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACTATCCTCTTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N504|name:N504|seq:AGAGTAGA ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACAGAGTAGATCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N505|name:N505|seq:GTAAGGAG ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACGTAAGGAGTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N506|name:N506|seq:ACTGCATA ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACACTGCATATCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N507|name:N507|seq:AAGGAGTA ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACAAGGAGTATCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N508|name:N508|seq:CTAAGCCT ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACCTAAGCCTTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N517|name:N517|seq:GCGTAAGA ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACGCGTAAGATCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S501|name:S501|seq:TAGATCGC ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACTAGATCGCTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S502|name:S502|seq:CTCTCTAT ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACCTCTCTATTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S503|name:S503|seq:TATCCTCT ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACTATCCTCTTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S504|name:S504|seq:AGAGTAGA ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACAGAGTAGATCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S505|name:S505|seq:GTAAGGAG ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACGTAAGGAGTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S506|name:S506|seq:ACTGCATA ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACACTGCATATCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S507|name:S507|seq:AAGGAGTA ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACAAGGAGTATCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S508|name:S508|seq:CTAAGCCT ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACCTAAGCCTTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S510|name:S510|seq:CGTCTAAT ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACCGTCTAATTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S511|name:S511|seq:TCTCTCCG ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACTCTCTCCGTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S513|name:S513|seq:TCGACTAG ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACTCGACTAGTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S515|name:S515|seq:TTCTAGCT ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACTTCTAGCTTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S516|name:S516|seq:CCTAGAGT ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACCCTAGAGTTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S517|name:S517|seq:GCGTAAGA ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACGCGTAAGATCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S518|name:S518|seq:CTATTAAG ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACCTATTAAGTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S520|name:S520|seq:AAGGCTAT ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACAAGGCTATTCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S521|name:S521|seq:GAGCCTTA ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACGAGCCTTATCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_S522|name:S522|seq:TTATGCGA ===
+
+Sequence: AATGATACGGCGACCACCGAGATCTACACTTATGCGATCGTCGGCAGCGTC; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N701|name:N701|seq:TAAGGCGA ===
+
+Sequence: TAAGGCGAATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 3 times.
+2 times, it overlapped the 5' end of a read
+1 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+6	1	0.6	0	1
+11	1	0.0	1	0 1
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+6	1	0.6	0	1
+
+=== First read: Adapter Nextera_index_N702|name:N702|seq:CGTACTAG ===
+
+Sequence: CGTACTAGATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N703|name:N703|seq:AGGCAGAA ===
+
+Sequence: AGGCAGAAATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 3 times.
+0 times, it overlapped the 5' end of a read
+3 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+6	2	0.6	0	2
+36	1	0.0	3	0 0 0 1
+
+=== First read: Adapter Nextera_index_N704|name:N704|seq:TCCTGAGC ===
+
+Sequence: TCCTGAGCATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 1 times.
+0 times, it overlapped the 5' end of a read
+1 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+7	1	0.2	0	1
+
+=== First read: Adapter Nextera_index_N705|name:N705|seq:GGACTCCT ===
+
+Sequence: GGACTCCTATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N706|name:N706|seq:TAGGCATG ===
+
+Sequence: TAGGCATGATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N707|name:N707|seq:CTCTCTAC ===
+
+Sequence: CTCTCTACATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 1 times.
+0 times, it overlapped the 5' end of a read
+1 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+6	1	0.6	0	1
+
+=== First read: Adapter Nextera_index_N708|name:N708|seq:CAGAGAGG ===
+
+Sequence: CAGAGAGGATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 2 times.
+0 times, it overlapped the 5' end of a read
+2 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+6	2	0.6	0	2
+
+=== First read: Adapter Nextera_index_N709|name:N709|seq:GCTACGCT ===
+
+Sequence: GCTACGCTATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N710|name:N710|seq:CGAGGCTG ===
+
+Sequence: CGAGGCTGATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N711|name:N711|seq:AAGAGGCA ===
+
+Sequence: AAGAGGCAATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 3 times.
+0 times, it overlapped the 5' end of a read
+3 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+6	3	0.6	0	3
+
+=== First read: Adapter Nextera_index_N712|name:N712|seq:GTAGAGGA ===
+
+Sequence: GTAGAGGAATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 175 times.
+0 times, it overlapped the 5' end of a read
+175 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+7	2	0.2	0	2
+28	4	0.0	2	0 0 0 4
+29	9	0.0	2	0 0 0 9
+30	8	0.0	3	0 0 0 8
+31	9	0.0	3	0 0 0 9
+32	8	0.0	3	0 0 0 8
+33	13	0.0	3	0 0 0 13
+34	20	0.0	3	0 0 0 20
+35	30	0.0	3	0 0 0 30
+36	53	0.0	3	0 0 0 53
+37	12	0.0	3	0 0 0 12
+38	3	0.0	3	0 0 0 3
+40	1	0.0	3	0 0 0 1
+67	3	0.0	3	0 0 0 3
+
+=== First read: Adapter Nextera_index_N714|name:N714|seq:GCTCATGA ===
+
+Sequence: GCTCATGAATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N715|name:N715|seq:ATCTCAGG ===
+
+Sequence: ATCTCAGGATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 2 times.
+0 times, it overlapped the 5' end of a read
+2 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+6	1	0.6	0	1
+9	1	0.0	0	0 1
+
+=== First read: Adapter Nextera_index_N716|name:N716|seq:ACTCGCTA ===
+
+Sequence: ACTCGCTAATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N718|name:N718|seq:GGAGCTAC ===
+
+Sequence: GGAGCTACATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N719|name:N719|seq:GCGTAGTA ===
+
+Sequence: GCGTAGTAATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N720|name:N720|seq:CGGAGCCT ===
+
+Sequence: CGGAGCCTATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 1 times.
+0 times, it overlapped the 5' end of a read
+1 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+7	1	0.2	0	1
+
+=== First read: Adapter Nextera_index_N721|name:N721|seq:TACGCTGC ===
+
+Sequence: TACGCTGCATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N722|name:N722|seq:ATGCGCAG ===
+
+Sequence: ATGCGCAGATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 1 times.
+0 times, it overlapped the 5' end of a read
+1 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+6	1	0.6	0	1
+
+=== First read: Adapter Nextera_index_N723|name:N723|seq:TAGCGCTC ===
+
+Sequence: TAGCGCTCATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N724|name:N724|seq:ACTGAGCG ===
+
+Sequence: ACTGAGCGATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 1 times.
+0 times, it overlapped the 5' end of a read
+1 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+7	1	0.2	0	1
+
+=== First read: Adapter Nextera_index_N726|name:N726|seq:CCTAAGAC ===
+
+Sequence: CCTAAGACATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N727|name:N727|seq:CGATCAGT ===
+
+Sequence: CGATCAGTATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== First read: Adapter Nextera_index_N728|name:N728|seq:TGCAGCTA ===
+
+Sequence: TGCAGCTAATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 1 times.
+0 times, it overlapped the 5' end of a read
+1 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+6	1	0.6	0	1
+
+=== First read: Adapter Nextera_index_N729|name:N729|seq:TCGACGTC ===
+
+Sequence: TCGACGTCATCTCGTATGCCGTCTTCTGCTTG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Universal_Adapter|name:universal ===
+
+Sequence: TCTAGCCTTCTCGCAGCACATCCCTTTCTCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 58; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_transposase_seq_1|name:transposase_seq_1 ===
+
+Sequence: GACAGAGAATATGTGTAGACTGCGACGGCTGCT; Type: variable 5'/3'; Length: 33; Trimmed: 248 times.
+247 times, it overlapped the 5' end of a read
+1 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-33 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+6	243	0.6	0	243
+7	1	0.2	0	1
+8	1	0.0	0	1
+10	2	0.0	1	0 2
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+8	1	0.0	0	1
+
+=== Second read: Adapter Nextera_transposase_seq_2|name:transposase_seq_2 ===
+
+Sequence: GACAGAGAATATGTGTAGAGGCTCGGGTGCTCTG; Type: variable 5'/3'; Length: 34; Trimmed: 1 times.
+1 times, it overlapped the 5' end of a read
+0 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-34 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+6	1	0.6	0	1
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+
+=== Second read: Adapter Nextera_index_N501|name:N501|seq:CGCTAGAT ===
+
+Sequence: CTGCGACGGCTGCTCGCTAGATCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N502|name:N502|seq:TATCTCTC ===
+
+Sequence: CTGCGACGGCTGCTTATCTCTCCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N503|name:N503|seq:TCTCCTAT ===
+
+Sequence: CTGCGACGGCTGCTTCTCCTATCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N504|name:N504|seq:AGATGAGA ===
+
+Sequence: CTGCGACGGCTGCTAGATGAGACACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N505|name:N505|seq:GAGGAATG ===
+
+Sequence: CTGCGACGGCTGCTGAGGAATGCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N506|name:N506|seq:ATACGTCA ===
+
+Sequence: CTGCGACGGCTGCTATACGTCACACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N507|name:N507|seq:ATGAGGAA ===
+
+Sequence: CTGCGACGGCTGCTATGAGGAACACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N508|name:N508|seq:TCCGAATC ===
+
+Sequence: CTGCGACGGCTGCTTCCGAATCCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N517|name:N517|seq:AGAATGCG ===
+
+Sequence: CTGCGACGGCTGCTAGAATGCGCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S501|name:S501|seq:CGCTAGAT ===
+
+Sequence: CTGCGACGGCTGCTCGCTAGATCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S502|name:S502|seq:TATCTCTC ===
+
+Sequence: CTGCGACGGCTGCTTATCTCTCCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S503|name:S503|seq:TCTCCTAT ===
+
+Sequence: CTGCGACGGCTGCTTCTCCTATCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S504|name:S504|seq:AGATGAGA ===
+
+Sequence: CTGCGACGGCTGCTAGATGAGACACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S505|name:S505|seq:GAGGAATG ===
+
+Sequence: CTGCGACGGCTGCTGAGGAATGCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S506|name:S506|seq:ATACGTCA ===
+
+Sequence: CTGCGACGGCTGCTATACGTCACACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S507|name:S507|seq:ATGAGGAA ===
+
+Sequence: CTGCGACGGCTGCTATGAGGAACACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S508|name:S508|seq:TCCGAATC ===
+
+Sequence: CTGCGACGGCTGCTTCCGAATCCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S510|name:S510|seq:TAATCTGC ===
+
+Sequence: CTGCGACGGCTGCTTAATCTGCCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S511|name:S511|seq:GCCTCTCT ===
+
+Sequence: CTGCGACGGCTGCTGCCTCTCTCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S513|name:S513|seq:GATCAGCT ===
+
+Sequence: CTGCGACGGCTGCTGATCAGCTCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S515|name:S515|seq:TCGATCTT ===
+
+Sequence: CTGCGACGGCTGCTTCGATCTTCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S516|name:S516|seq:TGAGATCC ===
+
+Sequence: CTGCGACGGCTGCTTGAGATCCCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S517|name:S517|seq:AGAATGCG ===
+
+Sequence: CTGCGACGGCTGCTAGAATGCGCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S518|name:S518|seq:GAATTATC ===
+
+Sequence: CTGCGACGGCTGCTGAATTATCCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S520|name:S520|seq:TATCGGAA ===
+
+Sequence: CTGCGACGGCTGCTTATCGGAACACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S521|name:S521|seq:ATTCCGAG ===
+
+Sequence: CTGCGACGGCTGCTATTCCGAGCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_S522|name:S522|seq:AGCGTATT ===
+
+Sequence: CTGCGACGGCTGCTAGCGTATTCACATCTAGAGCCACCAGCGGCATAGTAA; Type: variable 5'/3'; Length: 51; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N701|name:N701|seq:AGCGGAAT ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTAAGCGGAAT; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N702|name:N702|seq:GATCATGC ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTAGATCATGC; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N703|name:N703|seq:AAGACGGA ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTAAAGACGGA; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N704|name:N704|seq:CGAGTCCT ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTACGAGTCCT; Type: variable 5'/3'; Length: 32; Trimmed: 2 times.
+2 times, it overlapped the 5' end of a read
+0 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+6	2	0.6	0	2
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+
+=== Second read: Adapter Nextera_index_N705|name:N705|seq:TCCTCAGG ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTATCCTCAGG; Type: variable 5'/3'; Length: 32; Trimmed: 1 times.
+1 times, it overlapped the 5' end of a read
+0 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+6	1	0.6	0	1
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+
+=== Second read: Adapter Nextera_index_N706|name:N706|seq:GTACGGAT ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTAGTACGGAT; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N707|name:N707|seq:CATCTCTC ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTACATCTCTC; Type: variable 5'/3'; Length: 32; Trimmed: 2 times.
+2 times, it overlapped the 5' end of a read
+0 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+6	1	0.6	0	1
+9	1	0.0	0	0 1
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+
+=== Second read: Adapter Nextera_index_N708|name:N708|seq:GGAGAGAC ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTAGGAGAGAC; Type: variable 5'/3'; Length: 32; Trimmed: 3 times.
+3 times, it overlapped the 5' end of a read
+0 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+6	2	0.6	0	2
+11	1	0.0	1	0 1
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+
+=== Second read: Adapter Nextera_index_N709|name:N709|seq:TCGCATCG ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTATCGCATCG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N710|name:N710|seq:GTCGGAGC ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTAGTCGGAGC; Type: variable 5'/3'; Length: 32; Trimmed: 1 times.
+1 times, it overlapped the 5' end of a read
+0 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+6	1	0.6	0	1
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+
+=== Second read: Adapter Nextera_index_N711|name:N711|seq:ACGGAGAA ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTAACGGAGAA; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N712|name:N712|seq:AGGAGATG ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTAAGGAGATG; Type: variable 5'/3'; Length: 32; Trimmed: 1 times.
+1 times, it overlapped the 5' end of a read
+0 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+6	1	0.6	0	1
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+
+=== Second read: Adapter Nextera_index_N714|name:N714|seq:AGTACTCG ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTAAGTACTCG; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N715|name:N715|seq:GGACTCTA ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTAGGACTCTA; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N716|name:N716|seq:ATCGCTCA ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTAATCGCTCA; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N718|name:N718|seq:CATCGAGG ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTACATCGAGG; Type: variable 5'/3'; Length: 32; Trimmed: 1 times.
+1 times, it overlapped the 5' end of a read
+0 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+6	1	0.6	0	1
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+
+=== Second read: Adapter Nextera_index_N719|name:N719|seq:ATGATGCG ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTAATGATGCG; Type: variable 5'/3'; Length: 32; Trimmed: 1 times.
+1 times, it overlapped the 5' end of a read
+0 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+9	1	0.0	0	0 1
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+
+=== Second read: Adapter Nextera_index_N720|name:N720|seq:TCCGAGGC ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTATCCGAGGC; Type: variable 5'/3'; Length: 32; Trimmed: 1 times.
+1 times, it overlapped the 5' end of a read
+0 times, it overlapped the 3' end or was within the read
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-32 bp: 3
+
+Overview of removed sequences (5')
+length	count	expect	max.err	error counts
+6	1	0.6	0	1
+
+
+Overview of removed sequences (3' or within)
+length	count	expect	max.err	error counts
+
+=== Second read: Adapter Nextera_index_N721|name:N721|seq:CGTCGCAT ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTACGTCGCAT; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N722|name:N722|seq:GACGCGTA ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTAGACGCGTA; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N723|name:N723|seq:CTCGCGAT ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTACTCGCGAT; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N724|name:N724|seq:GCGAGTCA ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTAGCGAGTCA; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N726|name:N726|seq:CAGAATCC ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTACAGAATCC; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N727|name:N727|seq:TGACTAGC ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTATGACTAGC; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N728|name:N728|seq:ATCGACGT ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTAATCGACGT; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+
+=== Second read: Adapter Nextera_index_N729|name:N729|seq:CTGCAGCT ===
+
+Sequence: GTTCGTCTTCTGCCGTATGCTCTACTGCAGCT; Type: variable 5'/3'; Length: 32; Trimmed: 0 times.
+

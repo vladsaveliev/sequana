@@ -1,13 +1,17 @@
-import os
-import tempfile
-
+from sequana import sequana_data
 from sequana.modules_report.cutadapt import CutadaptModule
+from sequana.utils import config
 from sequana import bedtools, sequana_data
 
 
-def test_report():
+def test_cutadapt_module(tmpdir):
+    directory = tmpdir.mkdir('test_module')
+    config.output_dir = str(directory)
+    config.sample_name = 'JB409847'
+    c = CutadaptModule(sequana_data('test_cutadapt_paired.txt'), "TEST", "test.html")
+
+def test_output():
     # Used the PCRFree adapters
-    fh = tempfile.TemporaryDirectory()
     filename = sequana_data("test_cutadapt_paired.txt")
     mod = CutadaptModule(filename, "sample_name")
     assert mod.jinja['command'].startswith("cutadapt")

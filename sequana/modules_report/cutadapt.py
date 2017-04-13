@@ -34,9 +34,9 @@ class CutadaptModule(SequanaBaseModule):
     """ Write HTML report of coverage analysis. This class takes either a
     :class:`GenomeCov` instances or a csv file where analysis are stored.
     """
-    def __init__(self, cutadapt_log, sample_name, output_filename):
+    def __init__(self, cutadapt_log, sample_name, output_filename=None):
         """
-        :param input: 
+        :param input:
         """
         super().__init__()
         # Expected input data is the cutadapt log file
@@ -71,7 +71,7 @@ class CutadaptModule(SequanaBaseModule):
             else:
                 self.jinja['mode'] = "Single-end"
                 self.mode = "se"
- 
+
     def _get_data_tobefound(self):
         tobefound = []
         if self.mode == 'se':
@@ -95,7 +95,7 @@ class CutadaptModule(SequanaBaseModule):
             "content": "<pre>\n"+ self._rawdata + "</pre>\n"
         })
 
-    def add_stat_section(self):
+    def _get_stats(self):
         if self.mode == "pe":
             prefix = "paired_"
         else:
@@ -124,25 +124,34 @@ class CutadaptModule(SequanaBaseModule):
                    self.jinja['%sreads_kept_percent' % prefix]]
         if self.mode != "pe":
             df.index = [this.replace("paired", "").replace("Pairs", "Reads") for this in df.index]
+        return df
 
+    def _get_stat_section(self):
+        df = self._get_stats()
         #df.to_json(self.sample_name + "/cutadapt/cutadapt_stats1.json")
         datatable = DataTable(df, "cutadapt", index=True)
         datatable.datatable.datatable_options = {
             'scrollX': '300px',
             'pageLength': 15,
             'scrollCollapse': 'true',
-            'dom': 'Brtp',
+            'dom': 'rtpB',
             "paging": "false",
             'buttons': ['copy', 'csv']}
         js = datatable.create_javascript_function()
         html_tab = datatable.create_datatable(float_format='%.3g')
         #csv_link = self.create_link('link', self.filename)
         #vcf_link = self.create_link('here', 'test.vcf')
+        html = "Reads statistics after trimming and adapter removal. The " +\
+               "A, C, G, T, N rows report the percentage of each bases in " +\
+               "the overall sequences"
+        html += "<p>{} {}</p>".format(html_tab, js)
+        return html
 
+    def add_stat_section(self):
         self.sections.append({
             "name": "Stats",
             "anchor": "stats",
-            "content": "<p>{} {}</p>".format(html_tab, js)
+            "content": self._get_stat_section()
         })
 
     def add_adapters_section(self):
@@ -161,13 +170,12 @@ class CutadaptModule(SequanaBaseModule):
         # df.to_json(self.sample_name + "/cutadapt/cutadapt_stats2.json")
         df.sort_values(by="Trimmed", ascending=False, inplace=True)
 
-
         datatable = DataTable(df, "adapters", index=True)
         datatable.datatable.datatable_options = {
             'scrollX': 'true',
             'pageLength': 15,
             'scrollCollapse': 'true',
-            'dom': 'Bfrtip',
+            'dom': 'frtipB',
             'buttons': ['copy', 'csv']}
         js = datatable.create_javascript_function()
         html_tab = datatable.create_datatable(float_format='%.3g')
@@ -250,7 +258,7 @@ class CutadaptModule(SequanaBaseModule):
             key, pattern = this
             found = [line for line in data if line.startswith(pattern)]
             if len(found) == 0:
-                print("ReportCutadapt: %s (not found)" % pattern)
+                logger.warning("ReportCutadapt: %s (not found)" % pattern)
             elif len(found) == 1:
                 text = found[0].split(":", 1)[1].strip()
                 try:
@@ -263,10 +271,13 @@ class CutadaptModule(SequanaBaseModule):
 
         dd = {}
         positions = []
+        executable = "cutadapt"
         for pos, this in enumerate(data):
-            if this.startswith("Command line parameters: "):
+            if "This is Atropos" in this:
+                executable = "atropos" 
+            if "Command line parameters: " in this:
                 cmd = this.split("Command line parameters: ")[1]
-                self.jinja['command'] = "cutadapt " + cmd
+                self.jinja['command'] = executable + " " + cmd
             if this.startswith("=== ") and "Adapter" in this:
                 name = this.split("=== ")[1].split(" ===")[0].strip()
                 dd['name'] = name
@@ -305,11 +316,11 @@ class CutadaptModule(SequanaBaseModule):
             for this in data:
                 # while we have not found a new adapter histogram section,
                 # we keep going
-                # !! What about 5' / 3' 
+                # !! What about 5' / 3'
                 if this.startswith("==="):
                     if 'read: Adapter' in this:
                         # We keep read: Adatpter because it may be the first
-                        # or second read so to avoid confusion we keep the full 
+                        # or second read so to avoid confusion we keep the full
                         # name for now.
                         name = this.replace("First read: Adapter ", "R1_")
                         name = name.replace("Second read: Adapter ", "R2_")
