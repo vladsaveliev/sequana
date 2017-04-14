@@ -18,6 +18,8 @@ __snakefile__ = srcdir(__snakefile__)
 exec(open(sequana.modules["bowtie1_mapping_dynamic"], "r").read())
 exec(open(sequana.modules["fastqc"], "r").read())
 exec(open(sequana.modules["bowtie1_index_dynamic"], "r").read())
+exec(open(sequana.modules["miRNA_count_dynamic"], "r").read())
+
 
 manager = sm.PipelineManager("smallrnaseq", config)
 
@@ -47,7 +49,7 @@ if manager.config.genome.do:
     #output index
     __haipin_index__ = __bowtie1_index_hairpin__output_prefix
     __mature_index__ = __bowtie1_index_mature__output_prefix
-    expected_output.extend([__bowtie1_index_ref__output_done, __bowtie1_index_mature__output_done])
+    expected_output.extend([__bowtie1_index_hairpin__output_done, __bowtie1_index_mature__output_done])
 
 else:
 

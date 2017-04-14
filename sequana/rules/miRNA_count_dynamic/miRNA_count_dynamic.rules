@@ -28,5 +28,5 @@ rule miRNA_count_%(name)s:
     from easydev import TempFile
     tt = TempFile()
     with open(tt.name, "w") as fh:
-        fh.write(bowtie1_index_code % metadata)
+        fh.write(miRNA_count_code % metadata)
     return fh.name
