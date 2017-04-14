@@ -1,4 +1,7 @@
-def miRNA_count_dynamic(name):
+def miRNA_count_dynamic(name, log_dir):
+
+    metadata = {"name": name, "log_dir": log_dir}
+
     """
     miRNA_count ....
 
@@ -8,8 +11,6 @@ def miRNA_count_dynamic(name):
     Required output:
         __miRNA_count__output: tabulated file
     """
-
-    metadata = {"name": name}
 
     miRNA_count_code = '''
 rule miRNA_count_%(name)s:
