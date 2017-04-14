@@ -7,7 +7,7 @@ This pipeline is part of Sequana software (sequana.readthedocs.io)
 import os
 import sequana
 from sequana import snaketools as sm
-sm.init("rnaseq.rules", globals())
+sm.init("smallrnaseq.rules", globals())
 
 
 # This must be defined before the include
