@@ -45,7 +45,7 @@ if manager.config.genome.do:
 
 
     #output index
-    __haipin_index__ = __bowtie1_index_ref__output_prefix
+    __haipin_index__ = __bowtie1_index_hairpin__output_prefix
     __mature_index__ = __bowtie1_index_mature__output_prefix
     expected_output.extend([__bowtie1_index_ref__output_done, __bowtie1_index_mature__output_done])
 
