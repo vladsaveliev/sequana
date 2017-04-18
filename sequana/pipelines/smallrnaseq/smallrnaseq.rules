@@ -72,7 +72,7 @@ expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samp
 
 
 if manager.config.adapter_removal.do:
-    adapter_tool = manager.config.adapter_removal.tool
+    adapter_tool = manager.config.adapter_removal.tool_choice
     if adapter_tool == "cutadapt":
         __cutadapt__input_fastq = __data__input
         __cutadapt__wkdir = manager.getwkdir("cutadapt")
@@ -89,7 +89,7 @@ if manager.config.adapter_removal.do:
             __cutadapt__rev = manager.config.adapter_removal.rev
 
         __cutadapt__design = manager.config.adapter_removal.design_file
-        __cutadapt__design_adapter = manager.config.adapter_removal.adapter_type
+        __cutadapt__design_adapter = manager.config.adapter_removal.adapter_choice
         __cutadapt__options = manager.config.adapter_removal.options
         __cutadapt__mode = manager.config.adapter_removal.mode
         __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
