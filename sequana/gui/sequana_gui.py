@@ -155,6 +155,8 @@ class SequanaFactory(BaseFactory):
 
         # Set the file browser input_directory tab
         self._sequana_directory_tab = FileBrowser(directory=True)
+        self._sequana_readtag_label = QW.QLabel("Read tag (e.g. _[12].fastq)")
+        self._sequana_readtag_lineedit = QW.QLineEdit("_R[12]_")
         self._sequana_pattern_label = QW.QLabel(
             "<div><i>Optional</i> pattern (e.g., Samples_1?/*fastq.gz)</div>")
         self._sequana_pattern_lineedit = QW.QLineEdit()
@@ -616,6 +618,10 @@ class SequanaGUI(QMainWindow, Tools):
 
         # add widget for the input directory
         self.ui.layout_sequana_input_dir.addWidget(saf._sequana_directory_tab)
+        hlayout = QW.QHBoxLayout()
+        hlayout.addWidget(saf._sequana_readtag_label)
+        hlayout.addWidget(saf._sequana_readtag_lineedit)
+        self.ui.layout_sequana_input_dir.addLayout(hlayout)
         hlayout = QW.QHBoxLayout()
         hlayout.addWidget(saf._sequana_pattern_label)
         hlayout.addWidget(saf._sequana_pattern_lineedit)
@@ -1169,13 +1175,19 @@ class SequanaGUI(QMainWindow, Tools):
                 filename = self.sequana_factory._sequana_directory_tab.get_filenames()
                 form_dict["input_directory"] = (filename)
 
-                # If pattern provided, the input_direcotry is reset but used in 
+                # If pattern provided, the input_directory is reset but used in 
                 # the pattern as the basename
                 pattern = self.sequana_factory._sequana_pattern_lineedit.text()
                 if len(pattern.strip()):
                     form_dict["input_pattern"] = (filename)
                     form_dict["input_pattern"] += os.sep + pattern.strip()
                     form_dict["input_directory"] = ""
+
+                readtag = self.sequana_factory._sequana_readtag_lineedit.text()
+                if len(readtag.strip()):
+                    form_dict["input_readtag"] = readtag
+                else:
+                    form_dict["input_readtag"] = "_R[12]_"
 
             elif self.ui.tabWidget.currentIndex() == 1:
                 filename = self.sequana_factory._sequana_paired_tab.get_filenames()

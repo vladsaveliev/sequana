@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(647, 738)
+        MainWindow.resize(654, 738)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -320,7 +320,7 @@ class Ui_MainWindow(object):
         self.gridLayout_9 = QtWidgets.QGridLayout(self.tab_5)
         self.gridLayout_9.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_9.setObjectName("gridLayout_9")
-        self.layout_sequana_input_files = QtWidgets.QHBoxLayout()
+        self.layout_sequana_input_files = QtWidgets.QVBoxLayout()
         self.layout_sequana_input_files.setObjectName("layout_sequana_input_files")
         self.gridLayout_9.addLayout(self.layout_sequana_input_files, 0, 0, 1, 1)
         self.tabWidget.addTab(self.tab_5, "")
@@ -611,7 +611,7 @@ class Ui_MainWindow(object):
         self.gridLayout_2.addLayout(self.vlayout, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 647, 26))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 654, 25))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -654,7 +654,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabs_pipeline.setCurrentIndex(1)
+        self.tabs_pipeline.setCurrentIndex(0)
         self.tabs_sequana.setCurrentIndex(1)
         self.tabWidget.setCurrentIndex(1)
         self.tabs_generic.setCurrentIndex(1)
