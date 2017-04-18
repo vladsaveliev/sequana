@@ -760,7 +760,8 @@ class PipelineManager(object):
 
             if "input_extension" in cfg.config.keys() and \
                     cfg.config['input_extension'] not in (None, ""):
-                glob_dir = directory + os.sep + "*"+cfg.config['input_extension']
+                glob_dir = directory + os.sep + "*" + \
+                           cfg.config['input_extension']
             else:
                 glob_dir = directory + os.sep + pattern
         # otherwise, the input_pattern can be used
@@ -775,28 +776,34 @@ class PipelineManager(object):
         else:
             self.error("No valid input provided in the config file")
 
+        if not cfg.config.input_readtag:
+            cfg.config.input_readtag = "_R[12]_"
+
         try:
             if glob_dir.endswith('bam'):
                 self._get_bam_files(glob_dir)
             else:
-                self._get_fastq_files(glob_dir)
+                self._get_fastq_files(glob_dir, cfg.config.input_readtag)
         except AttributeError:
             if glob_dir[0].endswith('bam'):
                 self._get_bam_files(glob_dir)
             else:
-                self._get_fastq_files(glob_dir)
+                self._get_fastq_files(glob_dir, cfg.config.input_readtag)
         # finally, keep track of the config file
         self.config = cfg.config
 
-    def _get_fastq_files(self, glob_dir):    
+    def _get_fastq_files(self, glob_dir, read_tag):    
         """
         """
-        self.ff = FastQFactory(glob_dir)
+        self.ff = FastQFactory(glob_dir, read_tag=read_tag)
         if self.ff.filenames == 0:
             self.error("No files were found.")
 
-        R1 = [1 for this in self.ff.filenames if "_R1_" in this]
-        R2 = [1 for this in self.ff.filenames if "_R2_" in this]
+        # change [12] regex
+        rt1 = read_tag.replace("[12]", "1")
+        rt2 = read_tag.replace("[12]", "2")
+        R1 = [1 for this in self.ff.filenames if rt1 in this]
+        R2 = [1 for this in self.ff.filenames if rt2 in this]
 
         if len(R2) == 0:
             self.paired = False
@@ -804,7 +811,8 @@ class PipelineManager(object):
             if R1 == R2:
                 self.paired = True
             else:
-                raise ValueError("Mix of paired and single-end data sets not implemented yet")
+                raise ValueError("Mix of paired and single-end data sets not "
+                                 "implemented yet")
 
         # Note, however, that another mode is the samples.file1/file2 . If
         # provided, filenames is not empty and superseeds
@@ -1130,7 +1138,8 @@ class FastQFactory(FileFactory):
         PREFIX_R2_SUFFIX.fastq.gz
 
     The PREFIX indicates the sample name. The SUFFIX does not convey any
-    information per se.
+    information per se. The default read tag ("_R[12]_") handle this case.
+    It can be changed if data have another read tags. (e.g. "[12].fastq.gz")
 
     Yet, in long reads experiments (for instance), naming convention is
     different and may nor be single/paired end convention. 

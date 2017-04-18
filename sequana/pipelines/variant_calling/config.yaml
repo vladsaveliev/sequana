@@ -10,6 +10,7 @@
 # ============================================================================
 #
 input_directory: "%(input_directory)s"
+input_readtag: "%(input_readtag)s"
 input_extension: "%(input_extension)s"
 input_pattern: "%(input_pattern)s"
 input_samples:
