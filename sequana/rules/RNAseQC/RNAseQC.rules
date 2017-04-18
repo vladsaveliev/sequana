@@ -20,7 +20,7 @@ rule RNAseQC:
         from re import split
 
         #create the sample index
-        data = [(split(r'[ATCG]{7,8}\_.*',file)[0], file, 'NA') for file in input]
+        data = [(split(r'.[ATCG]{7,8}\_.*',file)[0], file, 'NA') for file in input]
         df = pd.DataFrame(data, columns=['Sample ID','Bam File','Notes'])
         df.to_csv(output.sample_index, sep="\t",index=False)
 
