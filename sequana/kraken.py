@@ -166,8 +166,16 @@ class KrakenResults(object):
         logger.info("Reading kraken data")
         # we select only col 0,2,3 to save memoty, which is required on very
         # large files
-        self._df = pd.read_csv(self.filename, sep="\t", header=None,
-                               usecols=[0,2,3])
+        reader = pd.read_csv(self.filename, sep="\t", header=None,
+                               usecols=[0,2,3], chunksize=50000)
+
+        for chunk in reader:
+            try:
+                self._df
+                self._df = pd.concat([self._df, chunk])
+            except AttributeError:
+                self._df = chunk
+
         self._df.columns = ["status", "taxon", "quality"]
 
         # This gives the list of taxons as index and their amount
