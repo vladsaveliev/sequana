@@ -1,7 +1,19 @@
-
-
 Sequanix Tutorial
 ====================
+
+Sequanix is a graphical interface dedicated to running Snakemake workflows.
+
+This GUI can be used to load Snakefile and their configuration file. A 
+working directory has to be set. Once done, the configuration file can be 
+changed in the GUI. Finally, one can run the snakefile and see the progress.
+Tooltips are automatically created from the configuration file (if
+documented).
+
+Since snakemake has the ability to run jobs locally or on a cluster, this 
+application can also be run either locally or a distributed computing
+platform (e.g., cluster with slurm scheduler). Of course, this means you can use a X
+environment on your cluster (ssh -X should do it)
+
 
 prerequisites
 ------------------

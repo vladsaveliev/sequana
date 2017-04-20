@@ -3,7 +3,7 @@
 Tutorial
 ==========
 
-Following the introductory example in :ref:`quick_start`, we will look at other pipelines such as
+In the introductory example in :ref:`quick_start`, we will look at other pipelines such as
 the taxonomic classification, variant calling and coverage. 
 
 

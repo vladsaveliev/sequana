@@ -173,7 +173,8 @@ Using **Sequanix** standalone
 ---------------------------------
 
 An even easier way is to use our graphical interface named **Sequanix**. A
-snapshot can be found in the :ref:`sequanix` section.
+snapshot can be found in the :ref:`sequanix` section and a tutorial in
+:ref:`tutorial_sequanix`.
 
 
 
@@ -187,11 +188,9 @@ if you have a BAM file, you can use the following code to create a basic
 report::
 
     from sequana import BAM, sequana_data, BAMReport
-    b = BAM(sequana_data("test.bam", "testing"))
+    filename sequana_data("test.bam", "testing")
 
-    r = BAMReport()
-    r.set_data(b)
-    r.create_report()
+    r = BAMModule(filename, "bam.html")
 
-that results can be shown in `report/bam.html <_static/report/bam.html>`_
+that results can be shown in `bam.html <_static/bam.html>`_
 

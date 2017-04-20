@@ -128,15 +128,25 @@ VCF module
     :members:
     :undoc-members:
 
-Reports
------------
-.. automodule:: sequana.reporting.report_main
-.. automodule:: sequana.reporting.report_bam
-.. automodule:: sequana.reporting.report_summary
+Module Reports
+-------------------
+
+.. automodule:: sequana.modules_report.base_module
+    :members:
+    :undoc-members:
+.. automodule:: sequana.modules_report.bamqc
+    :members:
+    :undoc-members:
+.. automodule:: sequana.modules_report.coverage
+    :members:
+    :undoc-members:
 
 
 Others
 ---------
+
+data related
+~~~~~~~~~~~~~~~~
 .. automodule:: sequana.datatools
     :members:
     :undoc-members:
@@ -144,10 +154,18 @@ Others
 .. automodule:: sequana.resources.data
 
 
+report related
+~~~~~~~~~~~~~~~~~~
+
+.. automodule:: sequana.utils.datatables_js
+    :members:
+    :undoc-members:
+
+
 
 .. Standalone applications
     ---------------------------
-    
+
     .. automodule:: sequana.scripts.coverage
         :members:
         :undoc-members:

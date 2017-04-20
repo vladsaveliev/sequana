@@ -9,6 +9,11 @@ In this section we first look at how to include a new module (snakemake rule) in
 The rule simply counts the number of reads in a fastq file.
 The pipeline will only contains that unique rule. 
 
+In the remaining sections, we will explain our choice concerning the continuous
+integration (section :ref:`pytest` ) and how to add check that new code do not
+introduce bugs. In the :ref:`module_reports` section, we explain how to create
+new component in the HTML module reports.
+
 
 How to write a new module
 ==============================
@@ -224,7 +229,7 @@ Use sequana.snaketools
 Assuming there will be a config file named *config.yaml*, the pipeline should be
 written as follows:
 
-.. code-block:: 
+.. code-block:: python
 
     import sequana
     from sequana import snaketools as sm
@@ -303,6 +308,7 @@ do not use the print() function but the logger::
     logger.critical("test")
 
 
+.. _pytest:
 
 Testing with pytest
 ===============================
@@ -327,6 +333,106 @@ If you want to test a single file (e.g. test_pacbio)::
 
     cd test
     pytest test_pacbio.py --cov sequana.pacbio --cov-report term-missing
+
+
+
+.. _module_reports:
+
+Module reports
+======================
+
+In Sequana, we integrate HTML reports with the different pipelines. The **module reports**
+are generic enough that one can reuse them in different context.
+
+Modules reports all inherit from :class:`~sequana.modules_report.base_module.SequanaBaseModule`
+
+
+Module reports creates sections. A section may contains embedded PNG file or
+data tables (see :mod:`sequana.utils.datatables_js`).
+
+
+Here is an example of a Module report class. The final HTML page contains two
+sections. The first one contains a datatable that is dynamic. The second
+section contains an embedded image. The input is just a list with random values
+but can be anything.
+
+::
+
+    from numpy import random
+    import pandas as pd
+
+    df = pd.Series(random.randn(10000))
+
+    from sequana.modules_report.base_module import SequanaBaseModule
+    from sequana.utils.datatables_js import DataTable
+
+    class MyModule(SequanaBaseModule):
+        def __init__(self, df, output="mytest.html"):
+            super().__init__()
+            self.data = df
+            self.summary = self.data.describe().to_frame()
+
+            self.title = "Super Module"
+            self.create_report_content()
+            self.create_html(output)
+
+        def create_report_content(self):
+            self.sections = list()
+            self.add_table()
+            self.add_image()
+
+        def add_table(self):
+            datatable = DataTable(self.summary, "table", index=True)
+            datatable.datatable.datatable_options = {
+                'scrollX': '300px',
+                'pageLength': 15,
+                'scrollCollapse': 'true',
+                'dom': 'tB',
+                "paging": "false",
+                'buttons': ['copy', 'csv']}
+            js = datatable.create_javascript_function()
+            html_tab = datatable.create_datatable(float_format='%.3g')
+            html = "{} {}".format(html_tab, js)
+
+            self.sections.append({
+              "name": "Table",
+              "anchor": "table",
+              "content": html
+            })
+
+        def add_image(self):
+            import pylab
+            def plotter(filename):
+                pylab.ioff()
+                self.data.hist()
+                pylab.savefig(filename)
+            html = self.create_embedded_png(plotter, "filename",
+                        style='width:65%')
+            self.sections.append({
+              "name": "Image",
+              "anchor": "table",
+              "content": html
+            })
+
+    MyModule(df, "mytest.html")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
