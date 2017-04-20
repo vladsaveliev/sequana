@@ -112,7 +112,7 @@ class SummaryModule(SequanaBaseModule):
             'anchor': 'ext_html',
             'content':
                 "<p>Link to HTML pages created by the pipeline.</p>\n{0}"
-                    .format(links)
+                "\n".format(links)
         })
 
     def workflow(self):
@@ -125,7 +125,7 @@ class SummaryModule(SequanaBaseModule):
         dag_svg = self.include_svg_image(img)
         with open(self.json['snakefile'], 'r') as fp:
             code = self.add_code_section(fp.read(), 'python')
-        sf = self.create_hide_section('Sf', "Show/hide Snakemake file",code,
+        sf = self.create_hide_section('Sf', "Show/hide Snakemake file", code,
                                       hide=True)
         sf = "\n".join(sf)
         with open(self.json['config'], 'r') as fp:
@@ -136,16 +136,17 @@ class SummaryModule(SequanaBaseModule):
         self.sections.append({
             'name': 'Workflow',
             'anchor': 'workflow',
-            'content':"""
-                <p>The following network shows the workflow of the pipeline. 
-                Blue boxes are clickable and redirect to dedicated reports.</p>
-                {0}
-                <p>The analysis was performed with the following
-                <a href="{3}">Snakemake</a> and <a href="{4}">configfile</a>:</p>
-                <ul>
-                    <li>{1}</li>
-                    <li>{2}</li>
-                </ul>""".format(dag_svg, sf, c, snakefile, configfile)
+            'content':
+                "<p>The following network shows the workflow of the pipeline. "
+                "Blue boxes are clickable and redirect to dedicated reports."
+                "</p>\n{0}\n"
+                "<p>The analysis was performed with the following "
+                '<a href="{3}">Snakemake</a> and <a href="{4}">configfile</a>:'
+                "</p>\n"
+                "<ul>\n"
+                "    <li>{1}</li>\n"
+                "    <li>{2}</li>\n"
+                "</ul>".format(dag_svg, sf, c, snakefile, configfile)
         })
 
     def running_stats(self):
@@ -174,7 +175,8 @@ class SummaryModule(SequanaBaseModule):
         req = self.create_link('requirements', req)
         content = ("<p>Dependencies downloaded from bioconda "
                    "<b>{2}</b></p>"
-                   "<p>Python dependencies (<b>{0}</b>){1}</p>".format(pypi, html_table, req))
+                   "<p>Python dependencies (<b>{0}</b>){1}</p>".format(
+                        pypi, html_table, req))
         l, c = self.create_hide_section('Dep', 'collapse/expand', content,
                                         hide=True)
         self.sections.append({
