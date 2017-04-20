@@ -167,7 +167,7 @@ class KrakenResults(object):
         # we select only col 0,2,3 to save memoty, which is required on very
         # large files
         reader = pd.read_csv(self.filename, sep="\t", header=None,
-                               usecols=[0,2,3], chunksize=50000)
+                               usecols=[0,2,3], chunksize=1000)
 
         for chunk in reader:
             try:
