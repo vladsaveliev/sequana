@@ -15,9 +15,15 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-""" Utilities to create a Jquery DataTable for your HTML file. First class
-contains the javascript function to create DataTable. The second set table
-that uses javascript created in the first class.
+""" Utilities to create a Jquery DataTable for your HTML file. 
+
+
+.. autosummary::
+
+    DataTableFunction
+    DataTable
+
+
 """
 from collections import OrderedDict
 
@@ -31,6 +37,9 @@ class DataTableFunction(object):
 
     ::
 
+        import pandas as pd
+        from sequana.utils import DataTableFunction
+
         df = pandas.read_csv('data.csv')
         datatable_js = DataTableFunction(df, 'data')
         datatable_js.datatable_options = {'pageLength': 15,
@@ -40,18 +49,37 @@ class DataTableFunction(object):
         html_datatables = [DataTable(df, "data_{0}".format(i), datatable_js)
                            for i, df in enumerate(df_list)]
 
-    .. note:: the **dom** field is a string made of letters, each of them having
-        a precise meaning. The order of the letter is important. For instance if
-        **B** is first, the buttons are put before the table. If **B** is at the 
-        end, it is shown below the table. Here are some of the valid letters and
-        their meaning:
+    Here, the datatable_options dictionary is used to fine tune the appearance
+    of the table. 
+
+    .. note::  DataTables add a number of elements around the table to control
+        the table or show additional information about it. There are controlled
+        by the order in the document (**DOM**) defined as a string made of 
+        letters, each of them having a precise meaning. The order of the letter 
+        is important. For instance if **B** is first, the buttons are put before 
+        the table. If **B** is at the end, it is shown below the table. 
+        Here are some of the valid letters and their meaning:
 
         - **B**: add the Buttons (copy/csv)
-        - **i**: add *showing 1 to N of M entries* 
-        - **f**:
-        - **r**:
-        - **t**:
-        - **p**: 
+        - **i**: add *showing 1 to N of M entries*
+        - **f**: add a search bar (**f** filtering)
+        - **r**: processing display element
+        - **t**: the table itself
+        - **p**: pagination control
+
+        Each option can be specified multiple times (with the exception of the 
+        table itself).
+
+    .. note:: other useful options are:
+
+        - pageLength: 15
+        - scrollX: "true"
+        - paging: 15
+        - buttons: ['copy', 'csv]
+
+        Note that buttons can also be excel, pdf, print, ...
+
+
 
     All options of datatable:
         https://datatables.net/reference/option/
@@ -69,19 +97,18 @@ class DataTableFunction(object):
 
     @property
     def html_id(self):
-        """ Get the html_id. Html_id cannot be set by the user after the
-        initiation of the class.
+        """ Get the html_id, which cannot be set by the user after the
+        instanciation of the class.
         """
         return self._html_id
 
     @property
     def datatable_options(self):
-        """ Get, set or delete the DataTable options. Setter take a dict as
-        parameters with desired options and update the dictionary.
+        """ Get, set or delete the DataTable options. Setter takes a dict as
+        parameter with the desired options and updates the current dictionary.
 
-        Example:
+        Example::
 
-        ..
             datatable = DataTableFunction("tab")
             datatable.datatable_options = {'dom': 'Bfrtip',
                                            'buttons': ['copy', 'csv']}
@@ -101,7 +128,7 @@ class DataTableFunction(object):
     @property
     def datatable_columns(self):
         """ Get datatable_columns dictionary. It is automatically set from the
-        df you want plot.
+        dataframe you want to plot.
         """
         return self._datatable_columns
 
@@ -193,8 +220,8 @@ class DataTableFunction(object):
     def set_links_to_column(self, link_col, target_col):
         """Hide a column with urls and connect it with a column.
 
-        :param: str link_col: column with your URL.
-        :param: str target_col: column to connect.
+        :param str link_col: column with your URLs.
+        :param str target_col: column to connect.
         """
         # hide the link column
         try:
@@ -234,6 +261,7 @@ class DataTable(object):
                                                  'buttons': ['copy', 'csv']}
         js = datatable.create_javascript_function()
         html = datatable.create_datatable()
+
         # Second CSV file with same format
         df2 = pandas.read_csv('data2.csv')
         datatable2 = DataTable(df2, 'data2', datatable.datatable)
@@ -247,7 +275,7 @@ class DataTable(object):
         """.. rubric:: contructor
 
         :param df: data frame.
-        :param str html_id: the ID used in the HTML file.
+        :param str html_id: the unique ID used in the HTML file.
         :param DataTableFunction datatable: javascript function to create the
             Jquery Datatables. If None, a :class:`DataTableFunction` is
             generated from the df.
