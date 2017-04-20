@@ -26,6 +26,9 @@ from reports import HTMLTable
 from sequana.utils import config
 
 
+__all__ = ["SequanaBaseModule"]
+
+
 class SequanaBaseModule(object):
     """ Generic Module to write HTML reports.
     """
