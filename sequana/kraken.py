@@ -167,7 +167,7 @@ class KrakenResults(object):
         # we select only col 0,2,3 to save memoty, which is required on very
         # large files
         reader = pd.read_csv(self.filename, sep="\t", header=None,
-                               usecols=[0,2,3], chunksize=50000)
+                               usecols=[0,2,3], chunksize=1000)
 
         for chunk in reader:
             try:
@@ -565,7 +565,7 @@ class KrakenAnalysis(object):
         for this in self.fastq:
             self._devtools.check_exists(database)
 
-    def run(self, output_filename=None):
+    def run(self, output_filename=None, output_filename_unclassified=None):
         """Performs the kraken analysis
 
         :param str output_filename: if not provided, a temporary file is used
@@ -577,25 +577,38 @@ class KrakenAnalysis(object):
         else:
             self.kraken_output = output_filename
 
+        if output_filename_unclassified is None:
+            self.output_unclassified = False
+            self.output_filename_unclassified = None
+        else:
+            self.output_unclassified = True
+            self.output_filename_unclassified = output_filename_unclassified
+
         params = {
             "database": self.database,
             "thread": self.threads,
             "file1": self.fastq[0],
             "kraken_output": self.kraken_output,
+            "output_filename_unclassified" : self.output_filename_unclassified,
             }
 
         if self.paired:
             params["file2"] = self.fastq[1]
 
         command = "kraken -db %(database)s %(file1)s "
+
         if self.paired:
             command += " %(file2)s --paired"
         command += " --threads %(thread)s --out %(kraken_output)s"
+
+        if self.output_unclassified:
+            command +=  " --unclassified-out %(output_filename_unclassified)s --only-classified-output"
 
         command = command % params
         # Somehow there is an error using easydev.execute with pigz
         from snakemake import shell
         shell(command)
+
 
 
 class KrakenDownload(object):
