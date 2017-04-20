@@ -228,7 +228,8 @@ def main(args=None):
             "%s does not exists" % options.genbank
 
     if options.verbose:
-        logger.info("Reading %s" % options.input)
+        logger.info("Reading %s. This may take time depending on " 
+            "your input file" % options.input)
 
     if options.input.endswith(".bam"):
         bedfile = options.input.replace(".bam", ".bed")
