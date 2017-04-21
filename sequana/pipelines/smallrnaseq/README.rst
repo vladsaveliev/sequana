@@ -1,5 +1,5 @@
-:Overview: RNASeq
-:Input: FastQ raw data from Illumina Sequencer (either paired or not)
+:Overview: small RNASeq (miRNA)
+:Input: FastQ raw data from Illumina Sequencer (single end only)
 :Output: 
 :Config file requirements:
 
@@ -18,9 +18,9 @@ Example::
 Requirements
 ~~~~~~~~~~~~~~~~
 
-.. include:: ../sequana/pipelines/rnaseq/requirements.txt
+.. include:: ../sequana/pipelines/smallrnaseq/requirements.txt
 
-.. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/rnaseq/dag.png
+.. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/smallrnaseq/dag.png
 
 
 Details
@@ -32,7 +32,7 @@ Details
 Rules and configuration details
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Here is a documented configuration file :download:`../sequana/pipelines/rnaseq/config.yaml` to be used with the pipeline. Each rule used in the pipeline may have a section in the
+Here is a documented configuration file :download:`../sequana/pipelines/smallrnaseq/config.yaml` to be used with the pipeline. Each rule used in the pipeline may have a section in the
 configuration file. Here are the rules and their developer and user documentation.
 
 
@@ -49,23 +49,13 @@ Cutadapt
 ^^^^^^^^^
 .. snakemakerule:: cutadapt
 
-Mapping on rRNA
-^^^^^^^^^^^^^^^^^^^^^
-.. snakemakerule:: bowtie1_mapping_dynamic
-
-Mapping on reference genome
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 Bowtie1
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. snakemakerule:: bowtie1_mapping_dynamic
-STAR
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. snakemakerule:: star_mapping
 
 Counting
 ^^^^^^^^^^^^
-.. snakemakerule:: feature_counts
+.. snakemakerule:: miRNA_count_dynamic
 
 Reporting
 ^^^^^^^^^^^^

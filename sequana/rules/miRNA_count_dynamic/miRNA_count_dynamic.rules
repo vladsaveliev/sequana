@@ -1,6 +1,6 @@
-def miRNA_count_dynamic(name, log_dir):
+def miRNA_count_dynamic(name, project):
 
-    metadata = {"name": name, "log_dir": log_dir}
+    metadata = {"name": name}
 
     """
     miRNA_count ....
@@ -20,12 +20,12 @@ rule miRNA_count_%(name)s:
         __miRNA_count_%(name)s__output
     log:
         __miRNA_count_%(name)s__log
-    run:
-        shell("""samtools view {input} | gawk -v FS='\t' '!/^@/{print $3}' | sort | uniq -c | gawk '{print $2 '\t' $1 }'  > {output}""")
+    shell:
+    """
+        samtools view {input} | gawk -v FS='\\t' '!/^@/{print $3}' | sort | uniq -c | gawk '{print $2 '\\t' $1 }'  > {output}
+    """
+
     '''
 
-    from easydev import TempFile
-    tt = TempFile()
-    with open(tt.name, "w") as fh:
-        fh.write(miRNA_count_code % metadata)
-    return fh.name
+    from sequana.snaketools import build_dynamic_rule
+    return build_dynamic_rule(miRNA_count_code % metadata, project.pipeline_dir)
