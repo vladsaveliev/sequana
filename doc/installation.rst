@@ -1,3 +1,5 @@
+.. _installation:
+
 Installation
 ##########################################
 
@@ -41,6 +43,7 @@ these commands (once for all)::
     conda config --add channels defaults
     conda config --add channels r
     conda config --add channels bioconda
+
 
 .. warning:: it is important to add them in this order**, as mentionned on bioconda webpage
 (https://bioconda.github.io/).

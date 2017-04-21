@@ -1,6 +1,6 @@
 {#  content.html
 
-    Template for the report content. It uses modules object to fill 
+    Template for the report content. It uses modules object to fill
     automatically the HTML page.
 #}
 
@@ -8,7 +8,11 @@
 {{ module.intro if module.intro }}
 {% for section in module.sections %}
 <div id="{{section["anchor"]}}">
-    <h2 id="{{section["anchor"]}}">{{section["name"]}}</h2>
-        {{section["content"]}}
-</div> 
+    {% if section["name"] %}
+        <h2 id="{{section["anchor"]}}">{{section["name"]}}
+            <div style="float:right">{{section["title_links"]}}</div>
+        </h2>
+    {% endif %}
+    {{section["content"]}}
+</div>
 {% endfor %}

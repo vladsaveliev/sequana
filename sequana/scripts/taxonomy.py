@@ -25,7 +25,9 @@ from optparse import OptionParser
 import argparse
 
 from easydev import DevTools
-from sequana import logger
+from sequana import logger, sequana_debug_level
+from sequana.modules_report.kraken import KrakenModule
+
 
 class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana_taxonomy"):
@@ -91,8 +93,8 @@ Issues: http://github.com/sequana/sequana
                 in a dedicated Synapse page (www.synapse.org). minikraken
                 is donwload from the kraken's author page, and toydb from
                 sequana github.""")
-        self.add_argument('--verbose', dest="verbose", default=False,
-            action="store_true")
+        self.add_argument('--level', dest="level", 
+            default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
 
 
 def main(args=None):
@@ -107,6 +109,8 @@ def main(args=None):
         user_options.parse_args(["prog", "--help"])
     else:
        options = user_options.parse_args(args[1:])
+
+    sequana_debug_level(options.level)
 
     # We put the import here to make the --help faster
     from sequana import KrakenPipeline, SequanaConfig
@@ -125,7 +129,6 @@ def main(args=None):
     if options.file2:
         devtools.check_exists(options.file2)
         fastq.append(options.file2)
-
 
     from sequana import sequana_config_path as scfg
     if options.database == "toydb":
@@ -151,7 +154,7 @@ def main(args=None):
 
     # if DB exists locally, use it otherwise add the sequana path
     k = KrakenPipeline(fastq, options.database, threads=options.thread,
-        output_directory=output_directory, verbose=options.verbose)
+        output_directory=output_directory)
 
     k.run()
 
@@ -162,25 +165,21 @@ def main(args=None):
     cfg.config.input_extension = None
     cfg.config.kraken = {"database": options.database, "do": True}
 
-    from sequana.reporting.report_summary import SequanaSummary
-    from sequana.snaketools import DummyManager
-
     filenames = [options.file1]
     if options.file2:
         filenames.append(options.file1)
-    manager = DummyManager(filenames)
 
-    sample = "custom"
-    ss = SequanaSummary(sample, options.directory, output_filename="summary.html",
-        configfile=cfg,
-        include_all=False, workflow=False, manager=manager)
+    # This statements sets the directory where HTML will be saved
+    from sequana.utils import config
+    config.output_dir = options.directory
 
-    ss.include_kraken()
-    ss.create_report()
+    # output_directory first argument: the directory where to find the data
+    # output_filename is relative to the config.output_dir defined above
+    kk = KrakenModule(output_directory, output_filename="summary.html")
 
-    if options.verbose:
-        logger.info("Open ./%s/summary.html" % options.directory)
-        logger.info("or ./%s/kraken/kraken.html" % options.directory)
+
+    logger.info("Open ./%s/summary.html" % options.directory)
+    logger.info("or ./%s/kraken/kraken.html" % options.directory)
 
     if options.html is True:
         ss.onweb()

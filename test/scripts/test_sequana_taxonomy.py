@@ -48,12 +48,12 @@ def test_analysis(krakendb):
     # that must have been downloaded
     try:
         df = taxonomy.main([prog, '--file1', file1, "--database", "toydb",
-            "--file2", file2, "--verbose", "--output-directory", directory.name])
+            "--file2", file2, "--level", "INFO", "--output-directory", directory.name])
     except:
         HOME = os.getenv('HOME')
         database = os.sep.join([HOME, 'database'])
         df = taxonomy.main([prog, '--file1', file1, "--database", database,
-            "--file2", file2, "--verbose", "--output-directory", directory.name])
+            "--file2", file2,  "--output-directory", directory.name])
     from sequana import logger
     logger.info(directory.name)
 

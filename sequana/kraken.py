@@ -73,21 +73,19 @@ class KrakenResults(object):
         from online web services.
 
     """
-    def __init__(self, filename="kraken.out", verbose=True):
+    def __init__(self, filename="kraken.out"):
         """.. rubric:: **constructor**
 
         :param filename: the input from KrakenAnalysis class
-        :param verbose:
 
         """
         self.filename = filename
-        self.verbose = verbose
 
         on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 
         if on_rtd is False:
             from biokit import Taxonomy
-            self.tax = Taxonomy(verbose=self.verbose)
+            self.tax = Taxonomy(verbose=True)
         else:
             class Taxonomy(object):
                 from sequana import sequana_data # must be local
@@ -126,8 +124,7 @@ class KrakenResults(object):
         if len(ids) == 0:
             return pd.DataFrame()
 
-        if self.verbose:
-            logger.info('Retrieving taxon using biokit.Taxonomy')
+        logger.info('Retrieving taxon using biokit.Taxonomy')
 
         if isinstance(ids, list) is False:
             ids = [ids]
@@ -166,12 +163,19 @@ class KrakenResults(object):
     def _parse_data(self):
         taxonomy = {}
 
-        if self.verbose:
-            logger.info("Reading kraken data")
+        logger.info("Reading kraken data")
         # we select only col 0,2,3 to save memoty, which is required on very
         # large files
-        self._df = pd.read_csv(self.filename, sep="\t", header=None,
-                               usecols=[0,2,3])
+        reader = pd.read_csv(self.filename, sep="\t", header=None,
+                               usecols=[0,2,3], chunksize=1000)
+
+        for chunk in reader:
+            try:
+                self._df
+                self._df = pd.concat([self._df, chunk])
+            except AttributeError:
+                self._df = chunk
+
         self._df.columns = ["status", "taxon", "quality"]
 
         # This gives the list of taxons as index and their amount
@@ -185,10 +189,16 @@ class KrakenResults(object):
         self._taxons.sort_values(ascending=False, inplace=True)
 
         category = self.df.groupby("status").size()
+
         if 'C' in category.index:
             self.classified = category['C']
+        else:
+            self.classified = 0
+
         if 'U' in category.index:
             self.unclassified = category['U']
+        else:
+            self.unclassified = 0
 
     def _get_taxons(self):
         try:
@@ -260,24 +270,29 @@ x!="description"] +  ["description"]]
         return df
 
     def kraken_to_krona(self, output_filename=None, mode=None, nofile=False):
+        """
+
+        :return: status: True is everything went fine otherwise False 
+        """
         if output_filename is None:
             output_filename = self.filename + ".summary"
         taxon_to_find = list(self.taxons.index)
-
         if len(taxon_to_find) == 0:
             logger.warning("No reads were identified. You will need a more complete database")
             self.output_filename = output_filename
             with open(output_filename, "w") as fout:
                 fout.write("%s\t%s" % (self.unclassified, "Unclassified"))
-            return
+            return False
         # classified reads as root  (1)
         try:
-            if self.verbose:
-                logger.warning("Removing taxon 1 (%s values) " % self.taxons.ix[1])
-                logger.info("Found %s taxons " % len(taxon_to_find))
+            logger.warning("Removing taxon 1 (%s values) " % self.taxons.ix[1])
+            logger.info("Found %s taxons " % len(taxon_to_find))
             taxon_to_find.pop(taxon_to_find.index(1))
         except:
             pass
+
+        if len(taxon_to_find) == 0:
+            return False
 
         if mode != "adapters":
             df = self.get_taxonomy_biokit(taxon_to_find)
@@ -319,6 +334,7 @@ x!="description"] +  ["description"]]
             except:
                 pass #unclassified may not exists
         self._data_created = True
+        return True
 
     def plot(self, kind="pie", cmap="copper", threshold=1, radius=0.9,
                 textcolor="red", **kargs):
@@ -333,14 +349,14 @@ x!="description"] +  ["description"]]
 
             from sequana import KrakenResults, sequana_data
             test_file = sequana_data("test_kraken.out", "testing")
-            k = KrakenResults(test_file, verbose=False)
+            k = KrakenResults(test_file)
             df = k.plot(kind='pie')
 
         .. seealso:: to generate the data see :class:`KrakenPipeline`
             or the standalone application **sequana_taxonomy**.
         """
         if self._data_created == False:
-            self.kraken_to_krona()
+            status = self.kraken_to_krona()
 
         if kind not in ['barh', 'pie']:
             logger.error('kind parameter: Only barh and pie are supported')
@@ -381,6 +397,10 @@ x!="description"] +  ["description"]]
                 #  smaller, xx-large, larger
                 text.set_size("small")
                 text.set_color(textcolor)
+            for wedge in ax.patches:
+                wedge.set_linewidth(1)
+                wedge.set_edgecolor("k")
+            self.ax = ax
         elif kind == "barh":
             ax = data.plot(kind=kind,  **kargs)
             pylab.xlabel(" percentage ")
@@ -389,7 +409,7 @@ x!="description"] +  ["description"]]
 
     def to_js(self, output="krona.html", onweb=False):
         if self._data_created == False:
-            self.kraken_to_krona()
+            status = self.kraken_to_krona()
         execute("ktImportText %s -o %s" % (self.output_filename, output))
         if onweb is True:
             import easydev
@@ -421,7 +441,7 @@ class KrakenPipeline(object):
 
     """
     def __init__(self, fastq, database, threads=4, output_directory="kraken",
-            verbose=True, dbname=None):
+            dbname=None):
         """.. rubric:: Constructor
 
         :param fastq: either a fastq filename or a list of 2 fastq filenames
@@ -435,7 +455,6 @@ class KrakenPipeline(object):
         KtImportTex is then used to create the Krona page.
 
         """
-        self.verbose = verbose
         # Set and create output directory
         self._devtools = DevTools()
         self.output_directory = output_directory
@@ -455,21 +474,24 @@ class KrakenPipeline(object):
 
         # Translate kraken output to a format understood by Krona and save png
         # image
-        self.kr = KrakenResults(kraken_results, verbose=self.verbose)
+        self.kr = KrakenResults(kraken_results)
 
         df = self.kr.plot(kind="pie")
         pylab.savefig(self.output_directory + os.sep + "kraken.png")
 
         prefix = self.output_directory + os.sep
 
-        self.kr.kraken_to_krona(output_filename=prefix+"kraken.out.summary")
         self.kr.kraken_to_json(prefix + "kraken.json", self.dbname)
         self.kr.kraken_to_csv(prefix + "kraken.csv", self.dbname)
 
         # Transform to Krona HTML
         from snakemake import shell
         kraken_html = self.output_directory + os.sep + "kraken.html"
-        shell("ktImportText %s -o %s" % (prefix+"kraken.out.summary", kraken_html))
+        status = self.kr.kraken_to_krona(output_filename=prefix+"kraken.out.summary")
+        if status is True:
+            shell("ktImportText %s -o %s" % (prefix+"kraken.out.summary", kraken_html))
+        else:
+            shell("touch {}".format(kraken_html))
 
     def show(self):
         """Opens the filename defined in the constructor"""
@@ -543,7 +565,7 @@ class KrakenAnalysis(object):
         for this in self.fastq:
             self._devtools.check_exists(database)
 
-    def run(self, output_filename=None):
+    def run(self, output_filename=None, output_filename_unclassified=None):
         """Performs the kraken analysis
 
         :param str output_filename: if not provided, a temporary file is used
@@ -555,25 +577,38 @@ class KrakenAnalysis(object):
         else:
             self.kraken_output = output_filename
 
+        if output_filename_unclassified is None:
+            self.output_unclassified = False
+            self.output_filename_unclassified = None
+        else:
+            self.output_unclassified = True
+            self.output_filename_unclassified = output_filename_unclassified
+
         params = {
             "database": self.database,
             "thread": self.threads,
             "file1": self.fastq[0],
             "kraken_output": self.kraken_output,
+            "output_filename_unclassified" : self.output_filename_unclassified,
             }
 
         if self.paired:
             params["file2"] = self.fastq[1]
 
         command = "kraken -db %(database)s %(file1)s "
+
         if self.paired:
             command += " %(file2)s --paired"
         command += " --threads %(thread)s --out %(kraken_output)s"
+
+        if self.output_unclassified:
+            command +=  " --unclassified-out %(output_filename_unclassified)s --only-classified-output"
 
         command = command % params
         # Somehow there is an error using easydev.execute with pigz
         from snakemake import shell
         shell(command)
+
 
 
 class KrakenDownload(object):
@@ -624,8 +659,7 @@ class KrakenDownload(object):
         baseurl = "https://github.com/sequana/data/raw/master/"
 
         # download only if required
-        if verbose:
-            logger.info("Downloading the database into %s" % base)
+        logger.info("Downloading the database into %s" % base)
 
         md5sums = [
             "28661f8baf0514105b0c6957bec0fc6e",
@@ -642,8 +676,7 @@ class KrakenDownload(object):
             url = baseurl + "kraken_toydb/%s" % filename
             filename = base + os.sep + filename
             if os.path.exists(filename) and md5(filename) == md5sum:
-                if verbose:
-                    logger.warning("%s already present" % filename)
+                logger.warning("%s already present" % filename)
             else:
                 logger.info("Downloading %s" % url)
                 wget(url, filename)
@@ -654,13 +687,12 @@ class KrakenDownload(object):
         taxondir = base + os.sep + "taxonomy"
         dv.mkdir(base)
         dv.mkdir(taxondir)
-        if verbose:
-            logger.info("Downloading minikraken (4Gb)")
+
+        logger.info("Downloading minikraken (4Gb)")
 
         filename = base + os.sep + "minikraken.tgz"
         if os.path.exists(filename) and md5(filename) == "30eab12118158d0b31718106785195e2":
-            if verbose:
-                logger.warning("%s already present" % filename)
+            logger.warning("%s already present" % filename)
         else:
             wget("https://ccb.jhu.edu/software/kraken/dl/minikraken.tgz", filename)
         # unzipping. requires tar and gzip

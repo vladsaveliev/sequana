@@ -25,6 +25,10 @@ from sequana.modules_report.base_module import SequanaBaseModule
 from sequana.utils import config
 from sequana.utils.datatables_js import DataTable, DataTableFunction
 from sequana.plots.canvasjs_linegraph import CanvasJSLineGraph
+from sequana import logger
+
+__all__ = ["CoverageModule", "ChromosomeCoverageModule"]
+
 
 
 class CoverageModule(SequanaBaseModule):
@@ -95,6 +99,7 @@ class CoverageModule(SequanaBaseModule):
             os.makedirs(chrom_output_dir)
         page_list = []
         for chrom in self.bed:
+            logger.info("Creating coverage report {}".format(chrom.chrom_name))
             chrom_report = ChromosomeCoverageModule(chrom, datatable_js)
             page_list.append(chrom_report.html_page)
         return page_list
@@ -152,7 +157,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         self.sections = list()
 
         rois = self.chromosome.get_roi()
-        
+
         self.coverage_plot()
         links = self.subcoverage(rois, directory)
         self.coverage_barplot()
@@ -204,7 +209,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         """
         # create directory
         chrom_output_dir = os.sep.join([config.output_dir, directory,
-                                       self.chromosome.chrom_name])
+                                       str(self.chromosome.chrom_name)])
         if not os.path.exists(chrom_output_dir):
             os.makedirs(chrom_output_dir)
         # create the combobox to link toward different sub coverage
@@ -243,7 +248,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
     def basic_stats(self):
         """ Basics statistics section.
         """
-        li = '<li><br>{0}</br>({1}):{2:.2g}</li>'
+        li = '<li><b>{0}</b> ({1}): {2:.2f}</li>'
         df = self.chromosome.get_stats(output="dataframe")
         stats = [li.format(tag, desc, value) for desc, value, tag in
                  zip(df['Description'], df['Value'], df['name'])]
@@ -252,7 +257,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
             'name': "Basic stats",
             'anchor': 'basic_stats',
             'content':
-                "<p>Here, some basic statistics about the "
+                "<p>Here are some basic statistics about the "
                 "genome coverage.</p>\n{0}".format(stats)
         })
 
@@ -303,7 +308,8 @@ class ChromosomeCoverageModule(SequanaBaseModule):
                 "{4}\n"
                 "<p>Running median is the median computed along the genome "
                 "using a sliding window. The following tables give regions of "
-                "interest detected by sequana. Here is some captions:</p>\n"
+                "interest detected by sequana. Here are the definitions of the "
+                "columns:</p>\n"
                 "<ul><li>mean_cov: the average of coverage</li>\n"
                 "<li>mean_rm: the average of running median</li>\n"
                 "<li>mean_zscore: the average of zscore</li>\n"
@@ -410,7 +416,7 @@ class SubCoverageModule(SequanaBaseModule):
         csv = self.chromosome.to_csv(start=self.start, stop=self.stop,
                                      columns=[x_col] + y_col, index=False,
                                      float_format="%.3g")
-        
+
         # create CanvasJS stuff
         cjs = CanvasJSLineGraph(csv, 'cov', x_col, y_col)
         # set options

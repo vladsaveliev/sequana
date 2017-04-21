@@ -123,7 +123,11 @@ class SnakeMakeStats(object):
     def plot_and_save(self, filename="snakemake_stats.png",
                       outputdir="report"):
         import pylab
-        self.plot()
+        # If the plot cannot be created (e.g. no valid stats), we create an empty
+        # axes
+        try: self.plot()
+        except:
+            pylab.bar([0],[0])
         if outputdir is None:
             pylab.savefig(filename)
         else:
@@ -567,7 +571,7 @@ class SequanaConfig(object):
                             json.loads(fh.read())))
                 config = load_configfile(data)
             else:
-                raise IOError("input string must be an existing file")
+                raise IOError("input string must be an existing file (%s)" % data)
             self.config = AttrDict(**config)
         elif isinstance(data, SequanaConfig): # else maybe a SequanaConfig ?
             self.config = AttrDict(**data.config)
@@ -756,7 +760,8 @@ class PipelineManager(object):
 
             if "input_extension" in cfg.config.keys() and \
                     cfg.config['input_extension'] not in (None, ""):
-                glob_dir = directory + os.sep + "*"+cfg.config['input_extension']
+                glob_dir = directory + os.sep + "*" + \
+                           cfg.config['input_extension']
             else:
                 glob_dir = directory + os.sep + pattern
         # otherwise, the input_pattern can be used
@@ -771,28 +776,34 @@ class PipelineManager(object):
         else:
             self.error("No valid input provided in the config file")
 
+        if not cfg.config.input_readtag:
+            cfg.config.input_readtag = "_R[12]_"
+
         try:
             if glob_dir.endswith('bam'):
                 self._get_bam_files(glob_dir)
             else:
-                self._get_fastq_files(glob_dir)
+                self._get_fastq_files(glob_dir, cfg.config.input_readtag)
         except AttributeError:
             if glob_dir[0].endswith('bam'):
                 self._get_bam_files(glob_dir)
             else:
-                self._get_fastq_files(glob_dir)
+                self._get_fastq_files(glob_dir, cfg.config.input_readtag)
         # finally, keep track of the config file
         self.config = cfg.config
 
-    def _get_fastq_files(self, glob_dir):    
+    def _get_fastq_files(self, glob_dir, read_tag):    
         """
         """
-        self.ff = FastQFactory(glob_dir)
+        self.ff = FastQFactory(glob_dir, read_tag=read_tag)
         if self.ff.filenames == 0:
             self.error("No files were found.")
 
-        R1 = [1 for this in self.ff.filenames if "_R1_" in this]
-        R2 = [1 for this in self.ff.filenames if "_R2_" in this]
+        # change [12] regex
+        rt1 = read_tag.replace("[12]", "1")
+        rt2 = read_tag.replace("[12]", "2")
+        R1 = [1 for this in self.ff.filenames if rt1 in this]
+        R2 = [1 for this in self.ff.filenames if rt2 in this]
 
         if len(R2) == 0:
             self.paired = False
@@ -800,7 +811,8 @@ class PipelineManager(object):
             if R1 == R2:
                 self.paired = True
             else:
-                raise ValueError("Mix of paired and single-end data sets not implemented yet")
+                raise ValueError("Mix of paired and single-end data sets not "
+                                 "implemented yet")
 
         # Note, however, that another mode is the samples.file1/file2 . If
         # provided, filenames is not empty and superseeds
@@ -1126,7 +1138,8 @@ class FastQFactory(FileFactory):
         PREFIX_R2_SUFFIX.fastq.gz
 
     The PREFIX indicates the sample name. The SUFFIX does not convey any
-    information per se.
+    information per se. The default read tag ("_R[12]_") handle this case.
+    It can be changed if data have another read tags. (e.g. "[12].fastq.gz")
 
     Yet, in long reads experiments (for instance), naming convention is
     different and may nor be single/paired end convention. 
@@ -1144,13 +1157,14 @@ class FastQFactory(FileFactory):
 
     """
     def __init__(self, pattern, extension=["fq.gz", "fastq.gz"],
-                 strict=True, verbose=False):
+                 read_tag="_R[12]_", verbose=False):
         """.. rubric:: Constructor
 
         :param str pattern: a global pattern (e.g., ``H*fastq.gz``)
         :param list extension: not used
-        :param strict: if true, the pattern _R1_ or _R2_ must be found
-        :param bool strict:
+        :param str read_tag: regex tag used to join paired end files. Some
+            characters need to be escaped with a '\' to be interpreted as
+            character. (e.g. '_R[12]_\.fastq\.gz')
         :param bool verbose:
         """
         super(FastQFactory, self).__init__(pattern)
@@ -1165,25 +1179,31 @@ class FastQFactory(FileFactory):
         #    assert this.endswith(extension), \
         #        "Expecting file with %s extension. Found %s" % (extension, this)
         # identify a possible tag
-        self.tags = []
-        for this in self.filenames:
-            if '_R1_' in this:
-                self.tags.append(this.split('_R1_', 1)[0])
-            elif '_R2_' in this:
-                self.tags.append(this.split('_R2_', 1)[0])
-            elif strict is True:
-                # Files must have _R1_ and _R2_
-                raise ValueError('FastQ filenames must contain _R1_ or _R2_')
-        self.tags = list(set(self.tags))
 
+        # check if tag is informative
+        if "[12]" not in read_tag:
+            msg = "Tag parameter must contain '[12]' for read 1 and 2."
+            logger.error(msg)
+            raise ValueError(msg)
+        if read_tag == "[12]":
+            msg = "Tag parameter must be more informative than just have [12]"
+            logger.error(msg)
+            raise ValueError(msg)
+
+        # get name before the read tag (R[12])
+        self.read_tag = read_tag
+        re_read_tag = re.compile(read_tag)
+        self.tags = list({re_read_tag.split(f)[0] for f in self.basenames})
         self.short_tags = [x.split("_")[0] for x in self.tags]
+        if len(self.tags) == 0:
+            msg = "No sample found. Tag '{0}' is not relevant".format(read_tag)
+            logger.error(msg)
+            raise ValueError(msg)
 
         if verbose:
             logger.info("Found %s projects/samples " % len(self.tags))
 
-    def _get_file(self, tag, rtag):
-        assert rtag in ["_R1_", "_R2_"]
-
+    def _get_file(self, tag, r):
         if tag is None:
             if len(self.tags) == 1:
                 tag = self.tags[0]
@@ -1192,32 +1212,29 @@ class FastQFactory(FileFactory):
                                  "(sequana.FastQFactory)")
         else:
             assert tag in self.tags, 'invalid tag'
+        # retrieve file of tag
+        read_tag = self.read_tag.replace("[12]", r)
+        candidates = [realpath for basename, realpath in
+                      zip(self.basenames, self.realpaths) 
+                      if read_tag in basename and basename.startswith(tag)] 
 
-        # Note that the rtag + "_" is to prevent the two following pairs to
-        # be counted as one sample:
-        # project-name_1
-        # project-name-bis_1
-        candidates = [realpath for filename, realpath in
-                      zip(self.filenames, self.realpaths)
-                      if rtag in filename and (filename.startswith(tag+"_R1") or
-                                               filename.startswith(tag+"_R2"))]
-
-        if len(candidates) == 0 and rtag == "_R2_":
+        if len(candidates) == 0 and r == "2":
             # assuming there is no R2
             return None
         elif len(candidates) == 1:
             return candidates[0]
         else:
             logger.critical('Found too many candidates: %s ' % candidates)
-            msg = 'Found too many candidates or identical names: %s ' % candidates
-            msg += "Files must have the tag _R1_ or _R2_ (%s)" % tag
+            msg = 'Found too many candidates or identical names: %s '\
+                % candidates
+            msg += "Files must have the tag %s" % read_tag
             raise ValueError(msg)
 
     def get_file1(self, tag=None):
-        return self._get_file(tag, "_R1_")
+        return self._get_file(tag, "1")
 
     def get_file2(self, tag=None):
-        return self._get_file(tag, "_R2_")
+        return self._get_file(tag, "2")
 
     def __len__(self):
         return len(self.tags)
@@ -1245,53 +1262,63 @@ def init(filename, namespace):
     Module(filename.replace(".rules", "")).check('error')
 
 
-def create_recursive_cleanup(filename=".sequana_cleanup.py"):
-    """
+def create_recursive_cleanup(filename="sequana_cleanup.py", additional_dir=[]):
+    """Create general cleanup
 
-    .. todo:: set a directory
+    :param filename: name of the script to be called 
+
     """
     with open(filename, "w") as fh:
         fh.write("""
-import subprocess
-import glob
-import os
+import subprocess, glob, os
 from easydev import shellcmd
 
 for this in glob.glob("*"):
-    if os.path.isdir(this) and this not in ["fastq_sampling", "report"]:
+    if os.path.isdir(this):
         print(" --- Cleaning up %s directory" % this)
-        if os.path.exists(this + os.sep + ".sequana_cleanup.py"):
-            subprocess.Popen(["python", ".sequana_cleanup.py"], cwd=this)
+        if os.path.exists(this + os.sep + "sequana_cleanup.py"):
+            pid = subprocess.Popen(["python", "sequana_cleanup.py"], cwd=this)
+            pid.wait()  # we do not want to run e.g. 48 cleanup at the same time
 
-for this in ['README', 'runme.sh', 'config.yaml', 'stats.txt', 'fa', 'dag.svg', 'rulegraph.svg']:
+# Remove some files
+for this in ["README", "requirements.txt", 'runme.sh', 'config.yaml', 'stats.txt',
+             "dag.svg", "rulegraph.svg", "*rules", "*.fa"]:
     try:
         shellcmd("rm %s" % this)
     except:
         print("%s not found (not deleted)" % this)
 
-""")
+# Remove some directories
+for this in {1}:
+    try:
+        shellcmd("rm -rf %s" % this)
+    except:
+        print("%s not found (not deleted)" % this)
+
+shellcmd("rm -f {0}")
+print("done")
+""".format(filename, additional_dir))
 
 
-def create_cleanup(targetdir):
-    """A script to include in directory created by the different pipelines"""
-    filename = targetdir + os.sep + ".sequana_cleanup.py"
+def create_cleanup(targetdir, exclude=['logs']):
+    """A script to include in directory created by the different pipelines to
+cleanup the directory"""
+    filename = targetdir + os.sep + "sequana_cleanup.py"
     with open(filename, "w") as fout:
         fout.write("""
-import glob
-import os
-import shutil
+import glob, os, shutil, time
 from easydev import shellcmd
-import time
 
+exclude = {}
 for this in glob.glob("*"):
-    if os.path.isdir(this) and this not in ['logs'] and 'report' not in this:
+    if os.path.isdir(this) and this not in exclude and this.startswith('report') is False:
         print('Deleting %s' % this)
         time.sleep(0.1)
         shellcmd("rm -rf %s" % this)
-shellcmd("rm -f  README config.yaml snakejob.* slurm-*")
-shellcmd("rm -f .sequana_cleanup.py")
+shellcmd("rm -f  snakejob.* slurm-*")
 shellcmd("rm -rf .snakemake")
-""")
+shellcmd("rm -f sequana_cleanup.py")
+""".format(exclude))
     return filename
 
 

@@ -138,6 +138,7 @@ User guide and reference
     case_examples
     developers
     applications
+    sequanix.rst
     references
     faqs
     Changelog

@@ -3,7 +3,7 @@
 Tutorial
 ==========
 
-Following the introductory example in :ref:`quick_start`, we will look at other pipelines such as
+In the introductory example in :ref:`quick_start`, we will look at other pipelines such as
 the taxonomic classification, variant calling and coverage. 
 
 
@@ -76,8 +76,8 @@ FASTA files mixing measles viruses and others viruses)::
     kd.download("toydb")
     database_path = sequana_config_path + "/kraken_toydb"
 
-Then, you may use a Sequana pipeline (see :ref:`pipeline_taxon` and :mod:`sequana.kraken`) or this standalone
-application::
+Then, you may use a Sequana pipeline (see :ref:`pipeline_taxon` and
+ :mod:`sequana.kraken`) or this standalone application::
 
     sequana_taxonomy  --file1 Test_R1.cutadapt.fastq.gz
         --file2 Test_R2.cutadapt.fastq.gz --database  <database_path>

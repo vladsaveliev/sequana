@@ -15,6 +15,8 @@ body {
 }
 
 
+header {background: black;color:white;}
+
 /*
  * ┌──────────────────────────────────────────────────────────────────────────┐
  * │                                                                 Document │
@@ -67,16 +69,19 @@ h1.title {
     margin-bottom:  0.0em;
     padding-bottom: 0.0em;
     margin-top:  0.2em;
-    padding-top: 0.2em;
+    padding-top: 0.4em;
+    text-align: center;
 }
 h2.subtitle {
     font-size:     1.0em;
     padding-top:   0.5em;
-    margin-top:    0.0em;
     color:         #999;
     border-bottom: none;
     margin-top:  0.2em;
+    margin-left: 0;
+    margin-right: 0;
     padding-top: 0.2em;
+    text-align: center;
 }
 
 p {
@@ -168,12 +173,43 @@ left-margin:5px;
  * └──────────────────────────────────────────────────────────────────────────┘
  */
 
+/*
+ * Style of Jquery Datatables
+ */
+
+table.datatable { 
+    font-size: 12pt;
+    overflow: auto
+}
+
+table.datatable th{
+    background-color: #1b85b8;
+    text-align: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 6px 14px
+}
+
+table.datatable tr{
+    line-height:.8em;
+    text-align:center
+}
+
+table.datatable td{
+    text-overflow:ellipsis;
+    overflow:hidden;
+    white-space: nowrap;
+    padding: 6px 8px
+}
+
 table.dataframe
 {
     margin-bottom: 2em;
     border: 4px solid black;
-    line-height:0.9em ; /* reduces spaecs between lines*/
+    line-height:0.9em ; /* reduces spaces between lines*/
     font-size: 12pt;
+    overflow: auto;
 }
 
 table.dataframe th
@@ -218,7 +254,10 @@ th.field-name
     padding-right: 1em;
 }
 
-.table_outer { height: 25em; overflow: auto; }
+.table_outer {
+    max-height: 25em;
+    width: auto;
+    overflow: scroll; }
 
 /*
  * ┌──────────────────────────────────────────────────────────────────────────┐
@@ -228,6 +267,7 @@ th.field-name
 tt {
     font-family: monospace;
 }
+
 pre {
     padding:    .5em;
     line-height: 1.25em;
@@ -243,6 +283,14 @@ pre {
     whitewhite-space: -moz-pre-wrap;  /* Older Versions of Mozilla */ 
 }
 
+.code {
+    height:400px;
+    background-color: #99CCFF;
+    padding:20px;
+    margin-top:10px;
+    border-bottom:5px solid #3399FF;
+    overflow: scroll;
+}
 
 dl.docutils > dd {
     margin-left: 2em;
@@ -337,7 +385,7 @@ div.footer {
     font-family: "futura", "lucida grande", "lucida sans unicode",
                  verdana, arial, helvetica, sans-serif;
     font-size: .8em;
-    line-height: 1.1em;
+    line-height: 2.0em;
     position: fixed;
     left: 0;
     bottom: 0;
@@ -371,5 +419,53 @@ div.copyright{
     padding-left:3px;
     max-width:40%;
 }
+
+
+/*
+ * ┌──────────────────────────────────────────────────────────────────────────┐
+ * │                                                             Collapse div │
+ * └──────────────────────────────────────────────────────────────────────────┘
+ */
+div#tabs p{display:none;}
+div#tabs p.tab1:target {display:block;}
+div#tabs p.tab2:target {display:block;}
+div#tabs p.tab3:target {display:block;}
+
+
+/* multi columns */
+
+.multicolumns
+{ 
+    -moz-column-width: 11.5em; /* Firefox */
+    -webkit-column-width: 11.5em; /* webkit, Safari, Chrome */
+    column-width: 11.5em;
+}
+/*remove standard list and bullet formatting from ul*/
+.multicolumns ul
+{
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+/* correct webkit/chrome uneven margin on the first column*/
+.multicolumns ul li:first-child
+{
+    margin-top:0px;
+}
+
+
+.multicolumns ul li
+{
+    overflow:hidden;
+}
+
+
+
+
+
+
+
+
+
 
 

@@ -3,17 +3,28 @@ Changelog
 
 .. contents::
 
+2017
+------
 
 0.1.22 - March 2017
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-* CHANGES: 
+* CHANGES:
 
-   - Sequanix/Sequana: 
+   - Sequanix/Sequana:
      - config file can have the yml extension (in addition to yaml)
+     - dropdown widgets in the form based on the docstrings in the config file
+     - can import config to override default sequana config file
+     - subprocesses killed when the main pipeline is stopped
+   - Removed ./reporting modules being moved to new modules_report framework 
+
+* BUGS:
+
+   - kraken fixes for special cases where all reads are unclassified
+   - Fix various regression bug + add missing __init__ in ./plots 
 
 0.1.21 - Feb 2017
--------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 * NEWS:
 
@@ -46,7 +57,7 @@ Changelog
     - Fix multi_report summary for single end case #349
 
 0.1.20 - Feb 2017
----------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 * CHANGES: 
 
@@ -54,7 +65,7 @@ Changelog
       misc module.
 
 0.1.19 - Feb 2017
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 * CHANGES:
@@ -86,7 +97,7 @@ Changelog
 
 
 0.1.17/0.1.18 - Jan 2017
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 :Main NEWS: The GUI was completed and the current pipelines stabilised (RNA-seq,
     quality control, variant calling). The test suite was switched from nosetests to
@@ -122,8 +133,10 @@ Changelog
     - add rubicon adapters
     - add ability to read JSON in SequanaConfig
 
+2016
+----------
 0.1.16
------------
+~~~~~~~~~~~
 
 * BUG Fixes:
 
@@ -137,7 +150,7 @@ Changelog
 
 
 0.1.15
-------------
+~~~~~~~~~~~
 
 * CHANGES:
 
@@ -150,7 +163,7 @@ Changelog
           - cleanup (removing of templates) ca be switch off
 
 0.1.14
-------------
+~~~~~~~~~~~
 
 * CHANGES:
 
@@ -188,7 +201,7 @@ Changelog
 
 
 0.1.13
------------
+~~~~~~~~~~~
 
 * CHANGES:
 
@@ -206,10 +219,8 @@ Changelog
     - a designexp module to handle adapter design files
 
 
-     
-
 0.1.12
------------
+~~~~~~~~~~~
 
 * BUGS:
 
@@ -223,7 +234,7 @@ Changelog
     - multiple_summary draft
 
 0.1.11
-----------
+~~~~~~~~~~~
 
 * NEWS:
 
@@ -244,7 +255,7 @@ Changelog
 
 
 0.1.10 - July 2016
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 * NEWS:
 
@@ -262,7 +273,7 @@ Changelog
 
 
 0.1.7 to 0.1.9 - July 2016
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * NEWS:
 
@@ -283,7 +294,7 @@ Changelog
 
 
 0.1.6 - June 2016
----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 
 * NEWS:
@@ -310,7 +321,7 @@ Changelog
 
 
 0.1.5 June 2016
---------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 * NEWS
 
@@ -333,8 +344,8 @@ Changelog
 
 
 
-0.1.4
---------
+prior 0.1.4
+~~~~~~~~~~~~~~~~
 
   - add gallery in the documentation
   - remove old pipelines/ directory
@@ -342,27 +353,6 @@ Changelog
   - Pipeline quality_taxon added
   - Taxonomy rules included
   - Fix the stats image creation
-
-
-0.1.3
---------
-
-* NEWS
-    - Update the pipeline phix_removal
-
-
-0.1.1 - 0.1.2
---------------
-* NEWS
-    - Phix pipeline added
-
-
-
-0.1.0 April 2006
-------------------
-
-* NEWS
-
   - rules in sequana/rules and pipelines in sequana/pipelines
   - standalone tool called sequana to download a Snakefile and config file
   - modules for post-analysis: bamtools, vcf_filter, fastq, ....

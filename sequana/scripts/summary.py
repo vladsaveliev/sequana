@@ -92,12 +92,13 @@ def main(args=None):
 
 
     if options.multiple is True:
-        from sequana.reporting.report_multiple_summary import SequanaMultipleSummary
+        from sequana.modules_report.multi_summary import MultiSummary
         if options.glob:
-            sms = SequanaMultipleSummary(pattern=options.glob, verbose=options.verbose)
+            sms = MultiSummary(output_filename="multi_summary.html", 
+                        pattern=options.glob, verbose=options.verbose)
         else:
-            sms = SequanaMultipleSummary(verbose=options.verbose)
-        sms.create_report()
+            sms = MultiSummary(output_filename="multi_summary.html", 
+                        verbose=options.verbose)
         sys.exit(0)
 
     # We put the import here to make the --help faster

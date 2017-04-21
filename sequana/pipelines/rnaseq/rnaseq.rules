@@ -351,12 +351,12 @@ onsuccess:
         shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
         shell('cp -r %s/cutadapt/ %s' % (proj, report_dir))
 
-        from sequana.reporting.report_summary import SequanaSummary
-        summary = SequanaSummary(proj, directory=report_dir,
-            output_filename="summary.html",
-            snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
-            manager=manager)
-        summary.create_report()
+        # from sequana.reporting.report_summary import SequanaSummary
+        # #summary = SequanaSummary(proj, directory=report_dir,
+        #     output_filename="summary.html",
+        #    snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
+        #    manager=manager)
+        # summary.create_report()
 
         # Create a cleanup python file to clean a sub-directory
         sm.create_cleanup(proj)

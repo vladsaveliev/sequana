@@ -9,6 +9,11 @@ In this section we first look at how to include a new module (snakemake rule) in
 The rule simply counts the number of reads in a fastq file.
 The pipeline will only contains that unique rule. 
 
+In the remaining sections, we will explain our choice concerning the continuous
+integration (section :ref:`pytest` ) and how to add check that new code do not
+introduce bugs. In the :ref:`module_reports` section, we explain how to create
+new component in the HTML module reports.
+
 
 How to write a new module
 ==============================
@@ -224,7 +229,7 @@ Use sequana.snaketools
 Assuming there will be a config file named *config.yaml*, the pipeline should be
 written as follows:
 
-.. code-block:: 
+.. code-block:: python
 
     import sequana
     from sequana import snaketools as sm
@@ -303,6 +308,7 @@ do not use the print() function but the logger::
     logger.critical("test")
 
 
+.. _pytest:
 
 Testing with pytest
 ===============================
@@ -330,4 +336,111 @@ If you want to test a single file (e.g. test_pacbio)::
 
 
 
+.. _module_reports:
 
+Module reports
+======================
+
+Sequana pipelines generate HTML reports. Those reports are created with
+the **module reports** stored in ./sequana/modules_report directory.
+
+A module report creates one HTML page starting from a dataset generated
+by Sequana, or a known data structure. All modules reports inherit from
+:class:`~sequana.modules_report.base_module.SequanaBaseModule` as shown
+hereafter. This class provides convenient methods to create the final HTML,
+which takes care of copying CSS and Javascript libraries.
+
+
+To explain how to write a new module report, let us consider a simple example. 
+We design here below a working example of a module report that takes as input a
+Pandas dataframe (a Pandas series made of a random normal distribution to be precise).
+The module report then creates an HTML page with two sections: a dynamic sortable table
+and a section with an embedded image. Each section is made of a dictionary that
+contains 3 keys:
+
+- name: the HTML section name
+- anchor: the ID HTML of the section
+- content: a valid HTML code
+
+First, you need to import the base class. Here we also import a convenient
+object called DataTable that will be used to created sortable table in HTML
+using javascript behind the scene. 
+
+.. code-block:: python
+
+    from sequana.modules_report.base_module import SequanaBaseModule
+    from sequana.utils.datatables_js import DataTable
+
+Then, we define a new class called **MyModule** as follows::
+
+    class MyModule(SequanaBaseModule):
+
+followed by a constructor
+
+
+.. literalinclude:: module_example.py
+    :language: python
+    :linenos:
+    :pyobject: MyModule.__init__
+
+This constructor stores the input argument (**df**) and computes some new data
+stored in the :attr:`summary` attribute. Here this computation is fast but in
+a real case example where computation may takes time, the
+computation  should be performed outside of the module. We then store a title
+in the :attr:`title` attribute. Finally two methods are called. The first one
+creates the HTML sections (*create_report_method*); the second one
+(*create_html*) is inherited from SequanaBaseModule.
+
+The first method is defined as follows:
+
+.. literalinclude:: module_example.py
+    :language: python
+    :linenos:
+    :pyobject: MyModule.create_report_content
+
+Here, the method :meth:`create_report_content` may be named as you wish but must
+define and fill the :attr:`sections` list (empty list is possible) with a set
+of HTML sections. In this example, we call two methods (add_table and add_image)
+that adds two HTML sections in the list. You may have as many **add_** methods.
+
+First, let us look at the :meth:`add_table`. It creates an HTML section made of
+a dynamic HTML table based on the DataTable class. This class takes as input a
+Pandas DataFrame.
+
+.. literalinclude:: module_example.py
+    :language: python
+    :linenos:
+    :pyobject: MyModule.add_table
+
+
+Here, we first get some data (line 2) in the form of a Pandas time Series. We
+rename the column on line 3. This is a dataframe and the DataTable class takes
+as input Pandas dataframe that are then converted into flexible HTML table.
+
+One nice feature about the DataTable is that we can add HTML links (URL) in
+a specific column of the data frame (line 3) and then link an existing column with this
+new URL column. This happens on line 11. The final HTML table
+will not show the URL column but the data column will be made of clickable
+cells.
+
+The creation of the data table itself happens on line 5 to line 11 and line
+12-14. There are two steps here: the creation of the HTML table itself (line 13)
+and the Javascript itself (line 12). 
+
+Once we have the HTML data, we can add it into the sections on line 16-19.
+
+The second section is an HTML section with an image. It may be 
+included with a standard approach (using the **img** tag) but one can also use the
+:meth:`~sequana.modules_report.SequanaBaseModule.create_embedded_png` method.
+
+
+.. literalinclude:: module_example.py
+    :language: python
+    :linenos:
+    :pyobject: MyModule.add_image
+
+Here is the full working example: 
+
+.. literalinclude:: module_example.py
+    :language: python
+    :linenos:

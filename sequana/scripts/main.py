@@ -157,9 +157,14 @@ class Options(argparse.ArgumentParser):
                 --file2 test_R2_.fastq.gz
                 --design SampleSheetUsed.csv  --adapters PCRFree
 
-        Note that files must end in fastq.gz, must contain _R1_ and _R2_ tag and
-        must have a common sample name before _R1_ and _R2_ (like in the example
-        above). You may have test after the _R1_ or _R2_ tag.
+        Note that files by default must contain _R1_ and _R2_ tag and must have
+        a common sample name before _R1_ and _R2_ (like in the example above).
+        You can change the read tag with the option --readtag:
+            
+            sequana --pipeline quality_control --file1 test_1.fastq.gz
+                --file2 test_2.fastq.gz --input-readtag "_[12].fastq.gz"
+                --design SampleSheetUsed.csv  --adapters PCRFree
+
 
         Here above, --pipeline can refer to other pipelines such as
         variant_calling. Valid pipeline names can be retrieved using :
@@ -291,10 +296,14 @@ behavious, use this option."""
                     and that the pattern must be between quotes""")
         group.add_argument("-i", "--input-directory", dest="input_directory", type=str,
             default=None,
-            help="""Search for a pair (or single) of reads in the directory, and
-                fills automatically the project and file1/file2 fields in the config
-                file. To be used with --init option. If more than two files or not
-                files ending in fastq.gz are found, an error is raised.""")
+            help="""Search for a pair (or single) of reads in the directory,
+                and fills automatically the project and file1/file2 fields in
+                the config file. To be used with --init option. If more than
+                two files or not files ending in fastq.gz are found, an error
+                is raised.""")
+        group.add_argument("-t", "--input-readtag", dest="input_readtag",
+                           type=str, default="_R[12]_", help="Define the read "
+                           "tag to bind forward and reverse reads of samples.")
         group.add_argument("-e", "--extension", type=str, default="fastq.gz",
             help="""To be used with --input-directory only""")
         group.add_argument("-o", "--working-directory", dest="target_dir", type=str,
@@ -381,8 +390,8 @@ For back compatibility we also accept this format. Here, the SampleIF,
 
         """)
         group.add_argument("--adapters", dest="adapters", type=str, default="",
-            help="""FORMAT|When using --design, you must also provide the type of
-adapters. Valid values are %s .
+            help="""FORMAT|When using --design, you must also provide the type
+of adapters. Valid values are %s .
 The files are part of Sequana and can be found here:
 
      http://github.com/sequana/sequana/resources/data/adapters
@@ -506,7 +515,7 @@ def main(args=None):
     # --file1 + --file2 : 2+4=6
     # --input-pattern alone: 16
     # none of those options redirect to input_directory=local
-    if flag not in [0, 1, 2, 4, 6, 8,16]:
+    if flag not in [0, 1, 2, 4, 6, 8, 16]:
         logger.critical(help_input + "\n\nUse --help for more information")
         sys.exit(1)
 
@@ -546,7 +555,8 @@ def main(args=None):
     if options.extension == 'bam' or options.pattern.endswith('bam'):
         ff = FileFactory(data)
     else:
-        ff = FastQFactory(data, verbose=options.verbose)
+        ff = FastQFactory(data, read_tag=options.input_readtag,
+                          verbose=options.verbose)
 
     if options.pipeline == 'quality_control':
         # check combo
@@ -720,6 +730,7 @@ def sequana_init(options):
     cfg.config.input_extension = options.extension
     cfg.config.input_samples.file1 = options.file1
     cfg.config.input_samples.file2 = options.file2
+    cfg.config.input_readtag = options.input_readtag
 
     # Dedicated section for quality control section
     if options.pipeline == "quality_control":

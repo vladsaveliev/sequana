@@ -10,6 +10,7 @@
 
 
 input_directory: "%(input_directory)s"
+input_readtag: "%(input_readtag)s"
 input_extension: "%(input_extension)s"
 input_pattern: "%(input_pattern)s"
 input_samples:
@@ -105,12 +106,12 @@ bwa_mem_phix:
 #
 # :Note: If design_file is provided, fwd and rev fields are ignored
 #
-# adapter_choice__ = ["PCRFree", "Rubicon", "Nextera", "TruSeq"]
+# adapter_choice__ = ["", "PCRFree", "Rubicon", "Nextera", "TruSeq"]
 # tool_choice__ = ["cutadapt", "atropos"]
 adapter_removal:
     do: yes
     tool_choice: cutadapt
-    adapter_choice:             
+    adapter_choice: 
     design_file:
     fwd:
     rev:
