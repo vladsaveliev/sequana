@@ -7,13 +7,11 @@
 # If input_directory provided, use it otherwise if input_pattern provided,
 # use it, otherwise use input_samples.
 # If input_extension provided, use it otherwise assume fastq.gz
-# ============================================================================
+#
 input_directory: "%(input_directory)s"
-input_pattern: "%(input_pattern)s"
+input_readtag: "%(input_readtag)s"
 input_extension: "%(input_extension)s"
-# =========================================== Sections for the users
-
-# list of your input file
+input_pattern: "%(input_pattern)s"
 input_samples:
     file1: "%(file1)s"
     file2: "%(file2)s"
