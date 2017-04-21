@@ -114,7 +114,7 @@ star_mapping:
 #
 bowtie1_mapping_ref:
     do: no
-    options: "--chunkmbs 400 -a --best -q -e50 "
+    options: "--chunkmbs 400 -m 1 "
     threads: 4
 
 #############################################################################
