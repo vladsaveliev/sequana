@@ -176,7 +176,7 @@ class KrakenResults(object):
             except AttributeError:
                 self._df = chunk
 
-        self._df.columns = ["status", "taxon", "quality"]
+        self._df.columns = ["status", "taxon", "length"]
 
         # This gives the list of taxons as index and their amount
         # above, we select only columns 0,2,3  the column are still labelled
@@ -415,6 +415,11 @@ x!="description"] +  ["description"]]
             import easydev
             easydev.onweb(output)
 
+    def boxplot_classified_vs_read_length(self):
+        """Show distribution of the read length grouped by classified or not"""
+        self.df[["status", "length"]].groupby('status').boxplot()
+
+
 
 class KrakenPipeline(object):
     """Used by the standalone application sequana_taxonomy
@@ -467,7 +472,11 @@ class KrakenPipeline(object):
             self.dbname = dbname
 
     def run(self):
-        """Run the analysis using Kraken and create the Krona output"""
+        """Run the analysis using Kraken and create the Krona output
+
+        .. todo:: reuse the KrakenResults code to simplify this method.
+
+        """
         # Run Kraken (KrakenAnalysis)
         kraken_results = self.output_directory + os.sep + "kraken.out"
         self.ka.run(output_filename=kraken_results)
