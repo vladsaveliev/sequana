@@ -1,4 +1,4 @@
-User Guide
+Overview
 ############
 
 .. contents::
@@ -95,7 +95,7 @@ Many more functionalities are available. The reference guide should help you.
 
 The Python example about the coverage is actually quite useful. We 
 therefore decided to provide a standalone
-application. There are otherstandalone applications listed in
+application. There are other standalone applications listed in
 :ref:`applications` section.
 
 The one related to the coverage example shown above is named

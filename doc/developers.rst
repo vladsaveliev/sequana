@@ -380,7 +380,6 @@ followed by a constructor
 
 .. literalinclude:: module_example.py
     :language: python
-    :linenos:
     :pyobject: MyModule.__init__
 
 This constructor stores the input argument (**df**) and computes some new data
@@ -397,6 +396,7 @@ The first method is defined as follows:
     :language: python
     :linenos:
     :pyobject: MyModule.create_report_content
+    :emphasize-lines: 2
 
 Here, the method :meth:`create_report_content` may be named as you wish but must
 define and fill the :attr:`sections` list (empty list is possible) with a set
@@ -444,3 +444,8 @@ Here is the full working example:
 .. literalinclude:: module_example.py
     :language: python
     :linenos:
+
+
+When using this module, one creates an HTML page called **mytest.html**. An
+instance of the page is available here:  `report_example.html <_static/report_example.html>`_
+
