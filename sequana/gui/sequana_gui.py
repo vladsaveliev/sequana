@@ -448,7 +448,7 @@ class SequanaGUI(QMainWindow, Tools):
         self.form.setSpacing(10)
         self.ui.scrollArea.setWidget(widget_form)
         self.ui.scrollArea.setWidgetResizable(True)
-        self.ui.scrollArea.setMinimumHeight(300)
+        self.ui.scrollArea.setMinimumHeight(200)
 
         # layout for the snakemake output
         self.output = QW.QTextEdit()

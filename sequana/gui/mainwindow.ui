@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>654</width>
-    <height>738</height>
+    <width>647</width>
+    <height>728</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -173,7 +173,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="0">
-     <layout class="QVBoxLayout" name="vlayout" stretch="0,0,0,0,1">
+     <layout class="QVBoxLayout" name="vlayout" stretch="0,0,0,0,0">
       <property name="spacing">
        <number>0</number>
       </property>
@@ -195,7 +195,7 @@
       <item>
        <widget class="QTabWidget" name="tabs_pipeline">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -214,6 +214,9 @@
         </property>
         <property name="tabPosition">
          <enum>QTabWidget::North</enum>
+        </property>
+        <property name="tabShape">
+         <enum>QTabWidget::Rounded</enum>
         </property>
         <property name="currentIndex">
          <number>0</number>
@@ -240,7 +243,7 @@
                <bool>true</bool>
               </property>
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -820,7 +823,7 @@
                   <item>
                    <widget class="QTabWidget" name="tabWidget">
                     <property name="sizePolicy">
-                     <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                       <horstretch>0</horstretch>
                       <verstretch>0</verstretch>
                      </sizepolicy>
@@ -837,8 +840,14 @@
                     <property name="styleSheet">
                      <string notr="true">background-color:white</string>
                     </property>
+                    <property name="tabShape">
+                     <enum>QTabWidget::Rounded</enum>
+                    </property>
                     <property name="currentIndex">
-                     <number>1</number>
+                     <number>0</number>
+                    </property>
+                    <property name="elideMode">
+                     <enum>Qt::ElideNone</enum>
                     </property>
                     <widget class="QWidget" name="tab_4">
                      <attribute name="title">
@@ -846,7 +855,20 @@
                      </attribute>
                      <layout class="QGridLayout" name="gridLayout_10">
                       <item row="0" column="0">
-                       <layout class="QVBoxLayout" name="layout_sequana_input_dir"/>
+                       <layout class="QVBoxLayout" name="layout_sequana_input_dir">
+                        <property name="spacing">
+                         <number>0</number>
+                        </property>
+                        <property name="sizeConstraint">
+                         <enum>QLayout::SetNoConstraint</enum>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
+                       </layout>
                       </item>
                      </layout>
                     </widget>
@@ -919,7 +941,7 @@
                <string notr="true">background-color:#ffeedd</string>
               </property>
               <property name="currentIndex">
-               <number>1</number>
+               <number>0</number>
               </property>
               <widget class="QWidget" name="snakefile">
                <attribute name="title">
@@ -987,7 +1009,7 @@
         <property name="title">
          <string>Pipeline control</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout_15">
+        <layout class="QGridLayout" name="gridLayout_15" columnstretch="1,0,2">
          <item row="0" column="0">
           <widget class="QFrame" name="frame">
            <property name="frameShape">
@@ -1125,7 +1147,7 @@
                    <enum>QFrame::Box</enum>
                   </property>
                   <property name="text">
-                   <string>Please, Check the snakemake dialog (&lt;b&gt;Ctrl+O&lt;/b&gt;) to set the number of nodes in the local or cluster tabs</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Please, Check the snakemake dialog (&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+O&lt;/span&gt;) to set the number of nodes in the local or cluster tabs and cluster options.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="wordWrap">
                    <bool>true</bool>
@@ -1291,8 +1313,8 @@ Once saved, the DAG and RUN buttons should be available.</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>98</width>
-               <height>28</height>
+               <width>595</width>
+               <height>135</height>
               </rect>
              </property>
             </widget>
@@ -1465,8 +1487,8 @@ text-align: center;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>654</width>
-     <height>25</height>
+     <width>647</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
