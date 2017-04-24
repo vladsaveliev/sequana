@@ -643,6 +643,7 @@ class KrakenHierarchical(object):
         self.output_directory = output_directory
         self.keep_temp_files = keep_temp_files
 
+        # try except
         os.mkdir(output_directory)
 
         # list of input fastq files
