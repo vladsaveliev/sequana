@@ -37,6 +37,7 @@ from .pacbio import BAMPacbio
 from .phred import Quality
 from .running_median import RunningMedian
 from .snpeff import SnpEff
+from .sequence import DNA, RNA, Sequence
 
 
 # The standalone app
