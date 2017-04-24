@@ -28,7 +28,8 @@ from sequana import sequana_config_path
 from sequana import logger
 
 
-__all__ = ['KrakenResults', "KrakenPipeline", "KrakenAnalysis", "KrakenDownload"]
+__all__ = ['KrakenResults', "KrakenPipeline", "KrakenAnalysis",
+            "KrakenDownload", "KrakenHierarchical"]
 
 
 class KrakenResults(object):
@@ -49,10 +50,10 @@ class KrakenResults(object):
 
     Then format expected looks like::
 
-        C	HISEQ:426:C5T65ACXX:5:2301:18719:16377	1	203	1:71 A:31 1:71
-        C	HISEQ:426:C5T65ACXX:5:2301:21238:16397	1	202	1:71 A:31 1:71
+        C    HISEQ:426:C5T65ACXX:5:2301:18719:16377    1    203    1:71 A:31 1:71
+        C    HISEQ:426:C5T65ACXX:5:2301:21238:16397    1    202    1:71 A:31 1:71
 
-    Where each row corresponds to one read. 
+    Where each row corresponds to one read.
 
     ::
 
@@ -272,7 +273,7 @@ x!="description"] +  ["description"]]
     def kraken_to_krona(self, output_filename=None, mode=None, nofile=False):
         """
 
-        :return: status: True is everything went fine otherwise False 
+        :return: status: True is everything went fine otherwise False
         """
         if output_filename is None:
             output_filename = self.filename + ".summary"
@@ -611,7 +612,8 @@ class KrakenAnalysis(object):
         command += " --threads %(thread)s --out %(kraken_output)s"
 
         if self.output_unclassified:
-            command +=  " --unclassified-out %(output_filename_unclassified)s --only-classified-output"
+            command +=  " --unclassified-out %(output_filename_unclassified)s "
+            command += " --only-classified-output"
 
         command = command % params
         # Somehow there is an error using easydev.execute with pigz
@@ -620,23 +622,24 @@ class KrakenAnalysis(object):
 
 
 class KrakenHierarchical(object):
-    """
-    This runs Kraken on a fastq file with multiple k-mer databases in a hierarchical way.
-    Unclassified sequences with the first database are input for the second, and so on.
+    """Kraken Hiearchical Analysis
 
+    This runs Kraken on a FastQ file(s) with multiple k-mer databases in a
+    hierarchical way. Unclassified sequences with the first database are input
+    for the second, and so on.
 
     """
     def __init__(self, filename_fastq, fof_databases, threads=1,
-        output_directory="./kraken_hierarchical/", keep_temp_files=False):
+                 output_directory="./kraken_hierarchical/", keep_temp_files=False):
         """.. rubric:: **constructor**
 
-        :param filename_fastq: fastq file to analyse
-        :param fof_databases: file with absolute paths to databases (one per line, 
-        in order of desired use)
+        :param filename_fastq: FastQ file to analyse
+        :param fof_databases: file with absolute paths to databases (one per line,
+            in order of desired use)
         :param threads: number of threads to be used by Kraken
         :param output_directory: name of the output directory
-        :param keep_temp_files: bool, if True, will keep intermediate files from each 
-        Kraken analysis, and save html report at each step
+        :param keep_temp_files: bool, if True, will keep intermediate files from each
+            Kraken analysis, and save html report at each step
 
         """
         self.filename_fastq = filename_fastq
@@ -656,13 +659,15 @@ class KrakenHierarchical(object):
 
         # list of input fastq files
         self._list_file_fastq = [filename_fastq]
+
         # list of all output to merge at the end
         self._list_kraken_output = []
 
     def _run_one_analysis(self, i, last_analysis=False):
         """
         """
-        analysis = KrakenAnalysis(self._list_file_fastq[i], self.databases[i], self.threads)
+        analysis = KrakenAnalysis(self._list_file_fastq[i], self.databases[i],
+                                  self.threads)
 
         file_kraken_class  = self.output_directory + "kraken_%d.out" %(i)
 
@@ -671,7 +676,8 @@ class KrakenHierarchical(object):
             self._list_kraken_output.append(file_kraken_class)
         else:
             file_fastq_unclass = self.output_directory + "unclassified_%d.fastq" %(i)
-            analysis.run(output_filename=file_kraken_class, output_filename_unclassified=file_fastq_unclass)
+            analysis.run(output_filename=file_kraken_class,
+                         output_filename_unclassified=file_fastq_unclass)
             self._list_file_fastq.append(file_fastq_unclass)
             self._list_kraken_output.append(file_kraken_class)
 
@@ -680,7 +686,14 @@ class KrakenHierarchical(object):
             result.to_js("%skrona_%d.html" %(prefix_output_results,i))
 
     def run(self):
-        """
+        """Run the hierachical analysis
+
+        This method does not return anything but creates a set of files:
+
+        - kraken_final.out
+        - krona_final.html
+
+        .. note:: the databases are run in the order provided in the constructor.
         """
         # Iteration over the databases
         for i in range(len(self.databases)):
@@ -697,7 +710,7 @@ class KrakenHierarchical(object):
 
         # create html report
         result = KrakenResults(file_output_final)
-        result.to_js("%skrona_final.html" %self.output_directory)
+        result.to_js("%skrona_final.html" % self.output_directory)
 
         if not self.keep_temp_files:
             # remove kraken intermediate files
