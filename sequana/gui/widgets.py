@@ -83,7 +83,8 @@ class Ruleform(QW.QGroupBox):
             elif option.endswith("_choice"):
                 try:
                     values = specials[rule]
-                    value = values[0]
+                    #value = values[0]
+                    print(value)
                     option_widget = ComboboxOptions(option, value, values)
                 except Exception as err:
                     print(err)
@@ -116,7 +117,7 @@ class Ruleform(QW.QGroupBox):
             pass
 
     def get_name(self):
-        return "---- " + self.rule_name
+        return self.rule_name
 
     def get_layout(self):
         return self.layout
@@ -288,6 +289,7 @@ class ComboboxOptions(GeneralOption):
         self.choice.addItems(values)
         self.choice.setStyleSheet("QComboBox { selection-background-color: #5964FF; }");
         self.layout.addWidget(self.choice)
+        self.choice.setCurrentText(value)
 
     def get_value(self):
         return self.choice.currentText()
