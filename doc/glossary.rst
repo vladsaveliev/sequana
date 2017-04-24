@@ -50,4 +50,14 @@ Glossary
 
         Format that defines the data lines displayed in an annotation track.
 
+    JSON
+
+        A human-readable data serialization language commonly used in
+        configuration files. See https://en.wikipedia.org/wiki/JSON
+
+    YAML
+
+        A human-readable data serialization language commonly used in
+        configuration files. See https://en.wikipedia.org/wiki/YAML
+
 

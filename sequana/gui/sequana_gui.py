@@ -448,7 +448,7 @@ class SequanaGUI(QMainWindow, Tools):
         self.form.setSpacing(10)
         self.ui.scrollArea.setWidget(widget_form)
         self.ui.scrollArea.setWidgetResizable(True)
-        self.ui.scrollArea.setMinimumHeight(300)
+        self.ui.scrollArea.setMinimumHeight(200)
 
         # layout for the snakemake output
         self.output = QW.QTextEdit()
@@ -778,6 +778,24 @@ class SequanaGUI(QMainWindow, Tools):
     # Running snakemake
     # --------------------------------------------------------------------
 
+    def _clean_line(self, line):
+        # TODO: surely there is a better way to do that and not overlap
+        # with tools.py ...
+        line = line.replace("b'\\r'", "")
+        line = line.replace("b'\r'", "")
+        line = line.replace("b'\\r '", "")
+        line = line.replace("b'\r '", "")
+        line = line.replace("b' '", "")
+        line = line.replace("\\t", "&nbsp;"*4)
+        line = line.replace("'b'", "")
+        if line.startswith("b'"):
+            line = line.replace("b'", "")
+        if line.startswith('b"'):
+            line = line.replace('b"', "")
+        line = line.rstrip("\\x1b[0m")
+        line = line.replace("\\x1b[33m", "")
+        return line
+
     def snakemake_data_stdout(self):
         """ Read standard output of snakemake process """
         data = str(self.process.readAllStandardOutput())
@@ -787,14 +805,9 @@ class SequanaGUI(QMainWindow, Tools):
         for this in data.split("\\n"):
             line = this.strip()
             if line and len(line) > 3 and "complete in" not in line: # prevent all b'' strings
-                line = line.replace("b'\\r'", "")
-                line = line.replace("b'\r'", "")
-                line = line.replace("b'\\r '", "")
-                line = line.replace("b'\r '", "")
-                line = line.replace("b' '", "")
+                line = self._clean_line(line)
                 if len(line.strip()) == 0:
                     continue
-                line = line.replace("\\t", "&nbsp;"*4)
                 self.output.append('<font style="color:blue">' + line +'</font>')
 
     def snakemake_data_error(self):
@@ -805,11 +818,10 @@ class SequanaGUI(QMainWindow, Tools):
         for this in error.split("\\n"):
             line = this.strip()
             if line and len(line) > 3 and "complete in" not in line: # prevent all b'' strings
+                line = self._clean_line(line)
                 if line.startswith("b'"):
                     line = line[2:]
                     line.rstrip("'")
-                line = line.replace("\\r","")
-                line = line.replace("\\t","&nbsp;"*4)
                 grouprex = self._step_regex.findall(line)
                 if grouprex:
                     self.output.append('<font style="color:orange">' + line +'</font>')
@@ -1004,7 +1016,6 @@ class SequanaGUI(QMainWindow, Tools):
                 rule_box = Ruleform(rule, contains, count, keywords, specials=specials)
                 rule_box.connect_all_option(
                     lambda: self.ui.run_btn.setEnabled(False))
-
 
                 # Try to interpret it with sphinx
                 from sequana.misc import rest2html
