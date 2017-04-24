@@ -95,54 +95,68 @@ Morevoer, the loaded configuration file has other advantages:
 Save, check and run the project
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once the parameters have been selected, one can save the project (arrow 5)
+Once the parameters have been set, it is time to save the project. You can
+either click the yellow box **Save** in the bottom bar or the **Ctrl+S** shortcut.
+
+The configuration and pipelines files are then save in the working directory
+defined above. If the files already exists, a dialog box ask you to confirm that
+you want to overwrite the existing files. 
+
+You can then check the pipeline by clicking the **Show Pipeline** button or use
+**Ctrl+D** shortcut. For simple pipeline, this may not be very useful but for
+complex dynamix pipelines where parts may be switched off, this may be
+convenient.
+
+Finally, once saved, the **Run** button should be clickable. Click on
+it or use **Ctrl+R** shortcut. The output of Snakemake will be shown and 
+the progress bar will move showing the stage of the analysis. 
+
+.. warning:: with long analysis, the progress bar may be stalled for while. It
+   may even stay at 0% for a long time. Just be patient.
+
+Stopping a running analysis:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you realise that you made a mistake in the configuration or simply want to
+stop the current analysis, click the **Stop** button 
 
 
-This GUI can be used to load Snakefile and their configuration file. A
-working directory has to be set. Once done, the configuration file can be
-changed in the GUI. Finally, one can run the snakefile and see the progress.
-Tooltips are automatically created from the configuration file (if
-documented).
-
-Since snakemake has the ability to run jobs locally or on a cluster, this
-application can also be run either locally or a distributed computing
-platform (e.g., cluster with slurm scheduler). Of course, this means you can use a X
-environment on your cluster (ssh -X should do it)
+.. Since snakemake has the ability to run jobs locally or on a cluster, this
+   application can also be run either locally or a distributed computing
+  platform (e.g., cluster with slurm scheduler). Of course, this means you can use a X
+  environment on your cluster (ssh -X should do it)
 
 
-Generic pipeline: a toy example
+Generic pipeline: a minimalist example
 --------------------------------------------
+
+In this section we will use a very simple Snakefile that reads FastQ files
+(gzipped) and counts the number of lines. 
 
 Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~
 
+If you do not have such files, you can again obtain the two test files used in
+the previous example. First create a directory and move into it::
+
+    mkdir data
+    cd data
+
+Copy the two files into the newly created directory:
+
+- :download:`R1 <../sequana/resources/data/Hm2_GTGAAA_L005_R1_001.fastq.gz>` 
+- :download:`R2 <../sequana/resources/data/Hm2_GTGAAA_L005_R2_001.fastq.gz>`
+
+and start **Sequanix** in a shell::
+
+    sequanix
+
+
+
 ::
 
-    sequanix -w test -s toy.rules -c toy.yaml
+    sequanix -w analysis -s minimalist.rules
 
-
-The following Snakefile is not part of Sequana, even though we use Python code
-from the library. This pipeline is made of 3 steps. It first downloads a bunch of Fastq files
-from ENA databases. Then, GC content are computed and an histogram created.
-Third, a HTML page is created. The numnber of sequences downloaded is set to 10
-by default (in the config file) to reduce download time but one can increase the
-value of course.
-
-
-.. literalinclude:: toy.rules
-    :language: python
-    :linenos:
-    :emphasize-lines: 2
-
-Here is the configuration file that has just 3 parameters. The database_choice
-must be set to a valid ENA genome list (virus.txt and bacteria.txt for
-instance). The second parameter **N** tells how many sequences should be
-downloaded. And the third parameter **bins** is used in the histogram
-
-.. literalinclude:: toy.yaml
-    :language: yaml
-    :linenos:
-    :emphasize-lines: 2
 
 
 

@@ -187,10 +187,11 @@ the **Sequana** library, they can also be used with your own code. For instance,
 if you have a BAM file, you can use the following code to create a basic
 report::
 
-    from sequana import BAM, sequana_data, BAMReport
+    from sequana import BAM, sequana_data
+    from sequana.modules_report.bamqc import BAMQCModule
     filename sequana_data("test.bam", "testing")
 
-    r = BAMModule(filename, "bam.html")
+    r = BAMQCModule(filename, "bam.html")
 
 that results can be shown in `bam.html <_static/bam.html>`_
 

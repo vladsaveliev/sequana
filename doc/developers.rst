@@ -296,7 +296,8 @@ If valid, the block comment is interpreted and a tooltip will appear in
 **Sequanix**.
 
 
-You can also use specific syntax to have specific widgets in Sequanix (see :ref:`sequanix`).
+You can also use specific syntax to have specific widgets in Sequanix 
+(see :ref:`sequanix_tutorial`).
 
 First, you may have a file browser widget by adding *_file* after a parameter::
 
@@ -316,11 +317,10 @@ provide the different items inside the documentation as follows::
     count:
         adapter_choice: PCRFree
 
-Here, inside Sequanix, you would get a dropdown button with 3 choices (PCRFree,
-TruSeq and None). Note that in the docstring of the configuration file, we added
-two extra underscores. What follows is a list with the possible choice. You may
-need to add None if no selection is possible.
-
+Note the double underscore after *_choice*. With this syntax, **Sequanix** will
+interpret the list and include the items in a dropdown button with 3 choices (PCRFree,
+TruSeq and None). This minimizes typo errors. You may need to add *None* if no selection 
+is a valid choice.
 
 
 Further coding conventions
