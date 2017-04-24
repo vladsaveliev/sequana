@@ -637,7 +637,7 @@ class KrakenHierarchical(object):
 
         """
         self.filename_fastq = filename_fastq
-        with open(fof_database, 'r') as fof:
+        with open(fof_databases, 'r') as fof:
             self.databases = [absolute_path.split('\n')[0] for absolute_path in fof.readlines()]
         self.threads = threads
         self.output_directory = output_directory
