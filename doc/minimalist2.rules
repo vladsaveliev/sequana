@@ -1,8 +1,8 @@
 import glob
 import os
 
-# Input parameter to be changed
-directory = "."
+configfile: "minimalist.yaml"
+directory = config['data_directory']
 
 directory = os.path.abspath(directory) + "/"
 filenames = glob.glob(directory + "*.fastq.gz")

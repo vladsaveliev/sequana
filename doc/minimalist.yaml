@@ -1,0 +1,3 @@
+
+# Simple config file for the minimalist case
+data_directory: "test"

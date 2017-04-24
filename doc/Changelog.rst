@@ -8,7 +8,7 @@ Changelog
 
 
 0.1.23 - March - April 2017
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * NEWS:
     - RNA-seq pipeline added (single-end only, paired-end upcoming)

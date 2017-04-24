@@ -100,7 +100,7 @@ either click the yellow box **Save** in the bottom bar or the **Ctrl+S** shortcu
 
 The configuration and pipelines files are then save in the working directory
 defined above. If the files already exists, a dialog box ask you to confirm that
-you want to overwrite the existing files. 
+you want to overwrite the existing files.
 
 You can then check the pipeline by clicking the **Show Pipeline** button or use
 **Ctrl+D** shortcut. For simple pipeline, this may not be very useful but for
@@ -108,8 +108,8 @@ complex dynamix pipelines where parts may be switched off, this may be
 convenient.
 
 Finally, once saved, the **Run** button should be clickable. Click on
-it or use **Ctrl+R** shortcut. The output of Snakemake will be shown and 
-the progress bar will move showing the stage of the analysis. 
+it or use **Ctrl+R** shortcut. The output of Snakemake will be shown and
+the progress bar will move showing the stage of the analysis.
 
 .. warning:: with long analysis, the progress bar may be stalled for while. It
    may even stay at 0% for a long time. Just be patient.
@@ -118,7 +118,7 @@ Stopping a running analysis:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you realise that you made a mistake in the configuration or simply want to
-stop the current analysis, click the **Stop** button 
+stop the current analysis, click the **Stop** button
 
 
 .. Since snakemake has the ability to run jobs locally or on a cluster, this
@@ -126,43 +126,126 @@ stop the current analysis, click the **Stop** button
   platform (e.g., cluster with slurm scheduler). Of course, this means you can use a X
   environment on your cluster (ssh -X should do it)
 
+Start Sequanix with pre-defined values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Generic pipeline: a minimalist example
---------------------------------------------
+If you use **Sequanix** regularly, it may be convenient to start the standalone
+with with pre-filled values. For instance, to pre-fill the input directory, the
+working directory and the pipeline itself as follows::
+
+   sequanix -i . -p quality_control -w analysis
+
+For help, please type::
+
+    sequanix --help
+
+
+Generic pipeline: a minimalist example with no configuration file
+---------------------------------------------------------------------
 
 In this section we will use a very simple Snakefile that reads FastQ files
-(gzipped) and counts the number of lines. 
+(gzipped) and counts the number of reads (not lines). The results are then
+summarised into a file named **summary.txt**. For those who are curious,
+here is the Snakefile.
 
-Prerequisites
-~~~~~~~~~~~~~~~~~~~~~
+.. literalinclude:: minimalist.rules
+    :language: python
+    :linenos:
+    :emphasize-lines: 5
 
-If you do not have such files, you can again obtain the two test files used in
-the previous example. First create a directory and move into it::
+.. note::
+   - the directory where to find the data is hardcoded so you must change it
+     (see highlighted line in the code below).
+   - This example does not depend on any external configuration file. We
+     will see later on to combine this Snakefile with a configuration file
+     where the directory can be set.
+
+Prerequisites: get some FastQ files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To run the pipeline, we first need to get some FastQ files (zipped). We need
+to store them in a data directory. Create one and move into the directory as
+follows::
 
     mkdir data
     cd data
 
-Copy the two files into the newly created directory:
+If you do not have FastQ files, get the following ones:
 
-- :download:`R1 <../sequana/resources/data/Hm2_GTGAAA_L005_R1_001.fastq.gz>` 
+- :download:`R1 <../sequana/resources/data/Hm2_GTGAAA_L005_R1_001.fastq.gz>`
 - :download:`R2 <../sequana/resources/data/Hm2_GTGAAA_L005_R2_001.fastq.gz>`
 
-and start **Sequanix** in a shell::
+You will also need the Snakefile (pipeline) itself:
+
+- :download:`minimalist <minimalist.rules>`
+
+.. warning:: if the data and pipeline are in a different directories, 
+   you need to change the highlighted line (line 5) to set
+   the **directory** name specifically. 
+
+Once ready, start **Sequanix** in a shell::
 
     sequanix
 
 
+The analysis
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
+Similarly to the Sequana pipeline case, you need to select the pipeline as
+follows:
+
+#. select the *Generic pipelines* tab (arrow 1)
+#. select the *pipeline section* tab (arrow 2)
+#. Click on the browse button to select the pipeline file (minimalist.rules)
+
+There is no configuration file so we can now save and run the project:
+
+.. figure:: _static/sequanix/sequanix_minimalist_arrows.png
+    :scale: 80%
+
+Save, check and run the project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Same as for a Sequana pipeline
+
+
+Start Sequanix with pre-defined values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Alternative way to start sequanix with pre-filled values for the working
+directory and the pipeline file::
 
     sequanix -w analysis -s minimalist.rules
 
+Generic pipeline: a minimalist example with a configuration file
+---------------------------------------------------------------------
+
+In this section, we use a pipeline that is almost identical to the previous one.
+
+.. literalinclude:: minimalist.rules
+    :language: python
+    :linenos:
+    :emphasize-lines: 5
+
+The only difference is that the **directory** parameter is now inside an
+external configuration file. Here are the links to get the Snakefile and the
+configuration file. 
 
 
+- :download:`minimalist file with configuration <minimalist2.rules>`
+- :download:`configuration <minimalist.yaml>`
 
+.. figure:: _static/sequanix/sequanix_minimalist_config.png
+
+You can see here that the configuration file (a single parameter *data_directory*) is interpreted and a widget is available to select the directory where to find the data (for developers, please see :ref:`developers` section).
+
+The rest of the analysis works as above.
+
+Dialogs
+----------
 
 Preference dialog
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 .. figure:: _static/sequanix/preferences_dialog.png
    :scale: 80%
@@ -171,8 +254,9 @@ Preference dialog
    It contains general options to tune Sequanix's behaviour
 
 
+
 Snakemake dialog
---------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 The Snakemake dialog contains 3 sub tab: the local, cluster and general tabs.
 
@@ -193,41 +277,6 @@ The Snakemake dialog contains 3 sub tab: the local, cluster and general tabs.
     :scale: 80%
 
     In the General tab, check boxes related to Snakemake are available. Any other options can be set in the editable line at the bottom.
-
-
-config example
-~~~~~~~~~~~~~~~~~~~
-Snakemake pipeline are usually associated with a configuration file. For instance all Sequana pipelines have their own configuration file named \textit{config.yaml}.  Although Snakemake allows the configuration to be in YAML or JSON format, we recommend to use YAML only. An example is shown in \ref{lst:listing}. In the example, the YAML is made of only one section ( bwa\_mem ). That section contains 4 arguments. This type of file can be read by Snakemake pipeline and sections are exposed as a Python dictionary in the pipeline namespace. YAML files are human-readable and can also be commented. Comments can be added anywhere but must start with the \# sign.
-
-In Sequanix, comments after section or arguments are ignored. However, we encourage developers to have a self-content documentation before the section. The comments should be encoded with the reStructuredText syntax (http://docutils.sourceforge.net/rst.html). It is an easy-to-read plaintext markup syntax and parser system. It is used in Python library to document codes but also in various software projects, generally via Sphinx syntax, which is an augmented version of reStructuredText. If comments are properly encoded, then the text is extracted and interpreted in Sequana. Finally, a tooltip showing the corresponding HTML code is shown in the Sequanix interface as soon as the user moves the mouse cursor on a section. The Fig.~\ref{fig:tooltip} shows how the listing \ref{lst:listing} is transformed and shown as a tool tip.
-
-
-First, run the sequana standalone application to initialise the pipeline **quality_control**::
-
-
-
-config example
------------------
-
-::
-
-    ############################################################
-    # BWA used to remove a contaminant
-    #
-    # :Parameters:
-    #
-    # - do: if unchecked, this rule is ignored
-    # - reference_file: the name of the reference file to be found
-    #        in the analysis directory.
-    # - index_algorithm: the BWA index algorithm
-    # - options: any options recognised by BWA tool
-    # - threads: number of threads to be used
-    #
-    bwa_mem:
-        reference_file: "phiX174.fa"
-        index_algorithm: "is"
-        options: '-T 30'
-        threads: 4
 
 
 
