@@ -270,6 +270,8 @@ This is a WIP in progress but here is an example for the previous pipeline::
 .. note:: the README uses Restructured syntax (not markdown)
 
 
+.. _config_coding_convention:
+
 Documenting the configuration file
 ---------------------------------------
 
@@ -286,12 +288,39 @@ sections corresponding to a rule as follows::
     # and is used to make the documentation clear. No spaces
     # before the section (count:) here below.
     #
-    count:  # you can add an overview
-        -item1: 1 # you can add comment for an item
-        -item1: 2 # you can add comment for an item
+    count:
+        item1: 1 # you can add comment for an item
+        item1: 2 # you can add comment for an item
 
 If valid, the block comment is interpreted and a tooltip will appear in
 **Sequanix**.
+
+
+You can also use specific syntax to have specific widgets in Sequanix (see :ref:`sequanix`).
+
+First, you may have a file browser widget by adding *_file* after a parameter::
+
+    ################################################
+    #  documentation here
+    #
+    count:
+        reference_file:
+
+You may also have the choice between several values, in which case you have to
+provide the different items inside the documentation as follows::
+
+    ################################################
+    #  documentation here
+    #
+    # adapter_choice__: ["PCRFree", "TruSeq", None]
+    count:
+        adapter_choice: PCRFree
+
+Here, inside Sequanix, you would get a dropdown button with 3 choices (PCRFree,
+TruSeq and None). Note that in the docstring of the configuration file, we added
+two extra underscores. What follows is a list with the possible choice. You may
+need to add None if no selection is possible.
+
 
 
 Further coding conventions
