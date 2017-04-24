@@ -626,14 +626,17 @@ class KrakenHierarchical(object):
 
 
     """
-    def __init__(self, filename_fastq, fof_databases, threads=1,output_directory="./kraken_hierarchical/", keep_temp_files=False):
+    def __init__(self, filename_fastq, fof_databases, threads=1,
+        output_directory="./kraken_hierarchical/", keep_temp_files=False):
         """.. rubric:: **constructor**
 
         :param filename_fastq: fastq file to analyse
-        :param fof_databases: file with absolute paths to databases (one per line, in order of desired use)
+        :param fof_databases: file with absolute paths to databases (one per line, 
+        in order of desired use)
         :param threads: number of threads to be used by Kraken
         :param output_directory: name of the output directory
-        :param keep_temp_files: bool, if True, will keep intermediate files from each Kraken analysis, and save html report at each step
+        :param keep_temp_files: bool, if True, will keep intermediate files from each 
+        Kraken analysis, and save html report at each step
 
         """
         self.filename_fastq = filename_fastq
@@ -643,8 +646,13 @@ class KrakenHierarchical(object):
         self.output_directory = output_directory
         self.keep_temp_files = keep_temp_files
 
-        # try except
-        os.mkdir(output_directory)
+        # check if the output directory already exist
+        try:
+            os.mkdir(output_directory)
+        except OSError:
+            if os.path.isdir(output_directory):
+                logger.error('Output directory already exists')
+                raise Exception
 
         # list of input fastq files
         self._list_file_fastq = [filename_fastq]
@@ -667,7 +675,7 @@ class KrakenHierarchical(object):
             self._list_kraken_output.append(file_kraken_class)
 
         if self.keep_temp_files:
-            result = kraken.KrakenResults(file_kraken_class)
+            result = KrakenResults(file_kraken_class)
             result.to_js("%skrona_%d.html" %(prefix_output_results,i))
 
     def run(self):
@@ -687,7 +695,7 @@ class KrakenHierarchical(object):
                         outfile.write(line)
 
         # create html report
-        result = kraken.KrakenResults(file_output_final)
+        result = KrakenResults(file_output_final)
         result.to_js("%skrona_final.html" %self.output_directory)
 
         if not self.keep_temp_files:
