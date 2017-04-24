@@ -672,9 +672,11 @@ class SequanaConfig(object):
                         logger.info('Copying %s from sequana' % requirement)
                         shutil.copy(sequana_data(requirement), target)
                     except:
-                        logger.warning("This requirement %s was not found in sequana.")
+                        logger.warning("This requirement %s was not found in "
+                                       " sequana.")
                 elif requirement.startswith("http"):
-                    logger.info("This file %s will be needed. Downloading" % requirement)
+                    logger.info("This file %s will be needed. Downloading" %
+                                requirement)
                     output = requirement.split("/")[-1]
                     wget(requirement, target + os.sep + output)
 
