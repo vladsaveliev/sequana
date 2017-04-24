@@ -6,8 +6,19 @@ Changelog
 2017
 ------
 
+
+0.1.23 - April 2017
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* CHANGES:
+    - All indexes for RNA-seq are now included in pipeline 
+
+
 0.1.22 - March 2017
 ~~~~~~~~~~~~~~~~~~~~~~~~
+
+* NEWS:
+    - RNA-seq pipeline added (single-end only, paired-end upcoming)
 
 * CHANGES:
 
