@@ -668,6 +668,7 @@ class KrakenHierarchical(object):
 
         if last_analysis:
             analysis.run(output_filename=file_kraken_class)
+            self._list_kraken_output.append(file_kraken_class)
         else:
             file_fastq_unclass = self.output_directory + "unclassified_%d.fastq" %(i)
             analysis.run(output_filename=file_kraken_class, output_filename_unclassified=file_fastq_unclass)
