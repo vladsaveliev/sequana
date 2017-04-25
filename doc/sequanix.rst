@@ -71,6 +71,50 @@ In the following figure, you need to
 Once done, the configuration file of the pipeline will be loaded in the **Config
 parameters** tab (arrow 4).
 
+
+Select the input data (directory or files)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once the pipeline is selected, you need to give information about the location
+of the input data. Generally, the pipelines take fastq.gz files as input. 
+
+In general we have many samples, so you need to select the **Input directory**
+tab. If you have only one or two files, you may use the other tab 
+(**Input sample(s)**).
+
+Here, we consider the first case only (directory). First click on the 
+red Browse button (figure below)
+to select the directory where is the data. By default, we assume that there is a
+special tag in the filenames (_R1_ or _R2_)
+but one can change it to another pattern. Note also that we expect by default
+the input files to end up in fastq.gz
+
+So by default if you select a directory, all files ending in *fastq.gz* will be
+selected.
+
+.. figure:: _static/sequanix/sequanix_input_data.png
+    :width: 80%
+
+    In the input data section, you have to click on the red browser button to
+    select the directory where to find the FastQ (gzipped) files.
+
+.. note:: The directory browser can create directories 
+
+    .. figure:: _static/sequanix/sequanix_browser.png
+        :width: 80%
+
+        In the browser, you can either select an existing directory, or create a new
+        one by clickin on the **Create Folder** (red ellipse on top left corner). 
+        Note that depending on your system, the layout may be different
+
+
+Select the working directory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As above, when clicking on the browser button, you may select an existing one or
+create a new one.
+
+
 Fine tune the config parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

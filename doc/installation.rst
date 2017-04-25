@@ -77,8 +77,10 @@ install everything in one go)::
 
     conda install pysam snpeff biokit bioservices spades khmer pyVCF
     conda install bwa bcftools samtools bedtools picard freebayes fastqc
-    conda install kraken krona pigz
+    conda install kraken krona pigz atropos>=1.0.23
 
+.. note:: atropos is an alternative to cutadapt with additional options but same
+   type of functionalties and arguments. We use version 1.0.23 and above though. 
 
 .. note:: the denovo_assembly pipelines uses Quast tool, which we ported to
     python 3.5 and was pulled on Quast official github page. This is not
