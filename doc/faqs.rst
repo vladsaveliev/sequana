@@ -135,7 +135,11 @@ the PREFIX is used to create directories or reports; it must be present.
 
 
 
+Sequanix related
+----------------------
 
+For question related to Sequanix, we have a dedicated section in
+:ref:`sequanix_faqs`.
 
 
 
