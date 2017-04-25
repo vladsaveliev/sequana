@@ -789,8 +789,9 @@ class SequanaGUI(QMainWindow, Tools):
         line = line.replace("b' '", "")
         line = line.replace("\\t", "&nbsp;"*4)
         line = line.replace("'b'", "")
-        if line.startswith("b'"):
-            line = line.replace("b'", "")
+        for this in ["b'", 'b"', "\r"]:
+            if line.startswith(this):
+                line = line.replace(this, "")
         if line.startswith('b"'):
             line = line.replace('b"', "")
         line = line.rstrip("\\x1b[0m")
@@ -1169,7 +1170,6 @@ class SequanaGUI(QMainWindow, Tools):
             msg = WarningMessage("You must choose a pipeline before saving.")
             msg.exec_()
             return
-
 
         # get samples names or input_directory
         if self.mode == "sequana":
