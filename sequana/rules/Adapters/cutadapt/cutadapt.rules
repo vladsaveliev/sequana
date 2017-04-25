@@ -79,6 +79,7 @@ rule cutadapt:
         if len(input.fastq) == 2:
             cmd = "%s -p {output.fastq[1]}" % executable
             if executable == "atropos":
+                cmd += " trim "
                 cmd += " -pe1 {input.fastq[0]} -pe2 {input.fastq[1]} --progress bar -T {params.thread}"
             else:
                 cmd += " {input.fastq[0]} {input.fastq[1]} "
@@ -99,7 +100,10 @@ rule cutadapt:
             cmd += " {params.kwargs} -o {output.fastq[0]} > {log}"
             shell(cmd)
         else:
-            cmd = "%s {input.fastq[0]}" % executable
+            if executable == "atropos":
+                cmd = "%s trim -se {input.fastq[0]}" % executable
+            else:
+                cmd = "%s {input.fastq[0]}" % executable
             if fwd:
                 cmd += "    -{params.mode} %s " % fwd
             else:
