@@ -22,7 +22,7 @@ rule miRNA_count_%(name)s:
         __miRNA_count_%(name)s__log
     shell:
         """
-        samtools view {input} | gawk -v FS="\t" '!/^@/{{print $3}}' | sort | uniq -c | gawk '{{print $2 "\t" $1 }}'  > {output}
+        samtools view {input} | gawk -v FS="\t" '!/^@/{{print $3}}' | sort | uniq -c | gawk '{{print $2 "\t" $1 }}' | sed '1d > {output}
         """
 
     '''
