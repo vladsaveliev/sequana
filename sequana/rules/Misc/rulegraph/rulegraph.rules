@@ -43,7 +43,8 @@ rule rulegraph:
                 try:
                     if os.path.exists(value):
                         dico[key] = os.path.realpath(value)
-                except TypeError:
+                # check overflowerror if value is a large int
+                except (TypeError, OverflowError):
                     try:
                         parse_path(value)
                     except AttributeError:
