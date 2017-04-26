@@ -251,8 +251,9 @@ class GenericFactory(BaseFactory):
             except AssertionError:
                 self.critical("Could not parse the config file %s" % filename)
                 return
-            except:
-                self.critical("Could not parse the config file %s" % filename)
+            except Exception:
+                self.critical("Could not parse the config file %s. 2" % filename)
+                return
             return configfile
     config = property(_get_config)
 
@@ -788,8 +789,9 @@ class SequanaGUI(QMainWindow, Tools):
         line = line.replace("b' '", "")
         line = line.replace("\\t", "&nbsp;"*4)
         line = line.replace("'b'", "")
-        if line.startswith("b'"):
-            line = line.replace("b'", "")
+        for this in ["b'", 'b"', "\r"]:
+            if line.startswith(this):
+                line = line.replace(this, "")
         if line.startswith('b"'):
             line = line.replace('b"', "")
         line = line.rstrip("\\x1b[0m")
@@ -983,8 +985,7 @@ class SequanaGUI(QMainWindow, Tools):
         self.necessary_dict = {}
 
         # For each section, we create a widget (RuleForm). For isntance, first,
-        # one is accessible asfollows:
-        # gui.form.itemAt(0).widget()
+        # one is accessible as follows: gui.form.itemAt(0).widget()
 
         docparser = YamlDocParser(self.configfile)
 
@@ -993,6 +994,7 @@ class SequanaGUI(QMainWindow, Tools):
             # Check if this is a dictionnary
             contains = self.config._yaml_code[rule]
 
+            # If this is a section/dictionary, create a section
             if isinstance(contains, dict) and (
                     rule not in SequanaGUI._not_a_rule):
                 # Get the docstring from the Yaml section/rule
@@ -1033,6 +1035,8 @@ class SequanaGUI(QMainWindow, Tools):
                 self.rule_list.append(rule_box)
                 rule_box.connect_do(self.fill_until_starting)
             else:
+                # this is a parameter in a section, which may be
+                # a list, a None or something else
                 if isinstance(contains, list):
                     self.necessary_dict = dict(self.necessary_dict,
                                            **{rule: contains})
@@ -1043,9 +1047,11 @@ class SequanaGUI(QMainWindow, Tools):
                     self.necessary_dict = dict(self.necessary_dict,
                                            **{rule: '{0}'.format(contains)})
 
+        # if this is a generic pipeline, you may have parameters outside of a
+        # section
         if self.mode == "generic" and len(self.necessary_dict):
-            rule_box = Ruleform(self._undefined_section, self.necessary_dict,
-                                -1, generic=True)
+            rule_box = Ruleform(self._undefined_section,
+                                self.necessary_dict, -1, generic=True)
             self.form.addWidget(rule_box)
         self._set_focus_on_config_tab()
 
@@ -1165,11 +1171,6 @@ class SequanaGUI(QMainWindow, Tools):
             msg.exec_()
             return
 
-        if self._undefined_section in form_dict.keys() and self.mode != "sequana":
-            # if sequana, we ignore input_directory and others but in the
-            # generic case, we want the entire config file
-            del form_dict[self._undefined_section]
-
         # get samples names or input_directory
         if self.mode == "sequana":
             self.info("Sequana case")
@@ -1204,6 +1205,10 @@ class SequanaGUI(QMainWindow, Tools):
                 filename = self.sequana_factory._sequana_paired_tab.get_filenames()
                 form_dict["input_samples"] = (filename)
         elif self.mode == "generic":
+            # Here we save the undefined section in the form.
+            for key, value in form_dict[self._undefined_section].items():
+                form_dict[key] = value
+            del form_dict[self._undefined_section]
             self.info("Generic case")
 
         # Let us update the attribute with the content of the form

@@ -109,7 +109,9 @@ class SnakeMakeStats(object):
         pylab.clf()
         df = pd.DataFrame(self._parse_data()['rules'])
         ts = df.ix['mean-runtime']
-        ts['total'] = self._parse_data()['total_runtime'] / float(self.N)
+        total_time = df.ix['mean-runtime'].sum()
+        #ts['total'] = self._parse_data()['total_runtime'] / float(self.N)
+        ts['total'] = total_time
         ts.sort_values(inplace=True)
 
         ts.plot.barh(fontsize=fontsize)
@@ -794,7 +796,7 @@ class PipelineManager(object):
         # finally, keep track of the config file
         self.config = cfg.config
 
-    def _get_fastq_files(self, glob_dir, read_tag):    
+    def _get_fastq_files(self, glob_dir, read_tag):
         """
         """
         self.ff = FastQFactory(glob_dir, read_tag=read_tag)
@@ -804,6 +806,7 @@ class PipelineManager(object):
         # change [12] regex
         rt1 = read_tag.replace("[12]", "1")
         rt2 = read_tag.replace("[12]", "2")
+
         R1 = [1 for this in self.ff.filenames if rt1 in this]
         R2 = [1 for this in self.ff.filenames if rt2 in this]
 
@@ -1225,6 +1228,11 @@ class FastQFactory(FileFactory):
             return None
         elif len(candidates) == 1:
             return candidates[0]
+        elif len(candidates) == 0:
+            msg = "Found no valid matches. "
+            msg += "Files must have the tag %s" % read_tag
+            logger.critical(msg)
+            raise Exception(msg)
         else:
             logger.critical('Found too many candidates: %s ' % candidates)
             msg = 'Found too many candidates or identical names: %s '\
@@ -1345,6 +1353,7 @@ def build_dynamic_rule(code, directory):
     fh.write(code)
     fh.close()
     return filename
+
 
 def add_stats_summary_json(json_list, parser):
     if not parser.stats:

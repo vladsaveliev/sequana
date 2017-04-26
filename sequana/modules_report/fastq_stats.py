@@ -78,7 +78,6 @@ class FastQStatsModule(SequanaBaseModule):
             logger.warning("FastQStatsModule: more than 2 files "
                            "matched the pattern %s" % pattern)
             return
-        print(filenames)
         return filenames, mode
 
     def get_stats(self):

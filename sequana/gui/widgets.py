@@ -83,8 +83,6 @@ class Ruleform(QW.QGroupBox):
             elif option.endswith("_choice"):
                 try:
                     values = specials[rule]
-                    #value = values[0]
-                    print(value)
                     option_widget = ComboboxOptions(option, value, values)
                 except Exception as err:
                     print(err)

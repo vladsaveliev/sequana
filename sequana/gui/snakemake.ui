@@ -48,7 +48,7 @@
           <rect>
            <x>19</x>
            <y>19</y>
-           <width>141</width>
+           <width>151</width>
            <height>81</height>
           </rect>
          </property>
@@ -234,7 +234,7 @@
            <x>20</x>
            <y>10</y>
            <width>331</width>
-           <height>247</height>
+           <height>268</height>
           </rect>
          </property>
          <layout class="QFormLayout" name="layout_general">
@@ -280,6 +280,9 @@
           </item>
           <item row="5" column="0">
            <widget class="QLabel" name="label_restart__times">
+            <property name="toolTip">
+             <string>Number of times to restart failing jobs (defaults to 0).</string>
+            </property>
             <property name="text">
              <string>restart-times</string>
             </property>

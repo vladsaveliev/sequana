@@ -1,0 +1,23 @@
+import glob
+import os
+
+# Input parameter to be changed
+directory = "."
+
+directory = os.path.abspath(directory) + "/"
+filenames = glob.glob(directory + "*.fastq.gz")
+samples = [os.path.split(this)[1].replace(".fastq.gz", "") 
+            for this in filenames]
+
+rule all:
+    input: "summary.txt"
+
+rule summary:
+    input:  expand("count_{sample}.txt", sample=samples)
+    output: "summary.txt"
+    shell:  "cat count_*.txt > summary.txt"
+
+rule count:
+    input: directory + "{sample}.fastq.gz"
+    output: temp("count_{sample}.txt")
+    shell: "gunzip -c {input} | wc - | awk '{{print $1/4}}' > {output}"
