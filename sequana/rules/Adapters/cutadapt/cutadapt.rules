@@ -77,11 +77,11 @@ rule cutadapt:
             rev = params.rev
 
         if len(input.fastq) == 2:
-            cmd = "%s -p {output.fastq[1]}" % executable
             if executable == "atropos":
-                cmd += " trim "
+                cmd = "%s trim -p {output.fastq[1]}" % executable
                 cmd += " -pe1 {input.fastq[0]} -pe2 {input.fastq[1]} --progress bar -T {params.thread}"
             else:
+                cmd = "%s -p {output.fastq[1]}" % executable
                 cmd += " {input.fastq[0]} {input.fastq[1]} "
 
             mode2 = params.mode.upper()
