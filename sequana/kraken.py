@@ -728,6 +728,7 @@ class KrakenHierarchical(object):
         # the output is saved in this file
         file_kraken_class = _pathto("kraken_%d.out" % iteration)
         output_filename_unclassified = _pathto("unclassified_%d.fastq" % iteration)
+        file_fastq_unclass = _pathto("unclassified_%d.fastq" % iteration)
 
         if iteration == 0:
             inputs = self.inputs
@@ -741,8 +742,6 @@ class KrakenHierarchical(object):
             only_classified_output = False
 
         analysis = KrakenAnalysis(inputs, db, self.threads)
-        file_fastq_unclass = _pathto("unclassified_%d.fastq" % iteration)
-
         analysis.run(output_filename=file_kraken_class,
                      output_filename_unclassified=output_filename_unclassified,
                      only_classified_output=only_classified_output)
