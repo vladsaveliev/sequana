@@ -165,10 +165,20 @@ class KrakenResults(object):
         taxonomy = {}
 
         logger.info("Reading kraken data")
+        columns = ["status", "taxon", "length"]
         # we select only col 0,2,3 to save memoty, which is required on very
         # large files
-        reader = pd.read_csv(self.filename, sep="\t", header=None,
+        try:
+            reader = pd.read_csv(self.filename, sep="\t", header=None,
                                usecols=[0,2,3], chunksize=1000)
+        except pd.parser.EmptyDataError:
+            raise NotImplementedError  # this section is for the case
+                #only_classified_output when there is no found classified read
+            self.unclassified = N # size of the input data set
+            self.classified = 0
+            self._df = pd.DataFrame([], columns=columns)
+            self._taxons = self._df.taxon
+            return
 
         for chunk in reader:
             try:
@@ -177,7 +187,7 @@ class KrakenResults(object):
             except AttributeError:
                 self._df = chunk
 
-        self._df.columns = ["status", "taxon", "length"]
+        self._df.columns = columns
 
         # This gives the list of taxons as index and their amount
         # above, we select only columns 0,2,3  the column are still labelled
@@ -248,7 +258,7 @@ class KrakenResults(object):
             df.reset_index(inplace=True)
             starter = ['percentage', 'name', 'ena', 'taxon', "gi", 'count']
             df = df[starter + [x for x in df.columns if x not in starter and
-x!="description"] +  ["description"]]
+                                x!="description"] +  ["description"]]
 
             df['gi'] = [int(x) for x in df['gi'].fillna(-1)]
             from easydev import precision
@@ -356,6 +366,8 @@ x!="description"] +  ["description"]]
         .. seealso:: to generate the data see :class:`KrakenPipeline`
             or the standalone application **sequana_taxonomy**.
         """
+        if len(self._df) == 0:
+            return 
         if self._data_created == False:
             status = self.kraken_to_krona()
 
@@ -421,7 +433,6 @@ x!="description"] +  ["description"]]
         self.df[["status", "length"]].groupby('status').boxplot()
 
 
-
 class KrakenPipeline(object):
     """Used by the standalone application sequana_taxonomy
 
@@ -472,7 +483,9 @@ class KrakenPipeline(object):
         else:
             self.dbname = dbname
 
-    def run(self):
+    def run(self, output_filename_classified=None, 
+                output_filename_unclassified=None,
+                only_classified_output=False):
         """Run the analysis using Kraken and create the Krona output
 
         .. todo:: reuse the KrakenResults code to simplify this method.
@@ -480,7 +493,11 @@ class KrakenPipeline(object):
         """
         # Run Kraken (KrakenAnalysis)
         kraken_results = self.output_directory + os.sep + "kraken.out"
-        self.ka.run(output_filename=kraken_results)
+        self.ka.run(output_filename=kraken_results,
+            output_filename_unclassified=output_filename_unclassified,
+            output_filename_classified=output_filename_classified,
+            only_classified_output=only_classified_output
+        )
 
         # Translate kraken output to a format understood by Krona and save png
         # image
@@ -575,11 +592,14 @@ class KrakenAnalysis(object):
         for this in self.fastq:
             self._devtools.check_exists(database)
 
-    def run(self, output_filename=None, output_filename_unclassified=None):
+    def run(self, output_filename=None, output_filename_classified=None,
+            output_filename_unclassified=None, only_classified_output=False):
         """Performs the kraken analysis
 
         :param str output_filename: if not provided, a temporary file is used
             and stored in :attr:`kraken_output`.
+        :param str output_filename_classified: not compressed
+        :param str output_filename_unclassified: not compressed
 
         """
         if output_filename is None:
@@ -587,19 +607,13 @@ class KrakenAnalysis(object):
         else:
             self.kraken_output = output_filename
 
-        if output_filename_unclassified is None:
-            self.output_unclassified = False
-            self.output_filename_unclassified = None
-        else:
-            self.output_unclassified = True
-            self.output_filename_unclassified = output_filename_unclassified
-
         params = {
             "database": self.database,
             "thread": self.threads,
             "file1": self.fastq[0],
             "kraken_output": self.kraken_output,
-            "output_filename_unclassified" : self.output_filename_unclassified,
+            "output_filename_unclassified": output_filename_unclassified,
+            "output_filename_classified": output_filename_classified,
             }
 
         if self.paired:
@@ -611,9 +625,14 @@ class KrakenAnalysis(object):
             command += " %(file2)s --paired"
         command += " --threads %(thread)s --out %(kraken_output)s"
 
-        if self.output_unclassified:
+        if output_filename_unclassified:
             command +=  " --unclassified-out %(output_filename_unclassified)s "
+
+        if only_classified_output is True:
             command += " --only-classified-output"
+
+        if output_filename_classified:
+            command +=  " --classified-out %(output_filename_classified)s "
 
         command = command % params
         # Somehow there is an error using easydev.execute with pigz
@@ -677,7 +696,8 @@ class KrakenHierarchical(object):
         else:
             file_fastq_unclass = self.output_directory + "unclassified_%d.fastq" %(i)
             analysis.run(output_filename=file_kraken_class,
-                         output_filename_unclassified=file_fastq_unclass)
+                         output_filename_unclassified=file_fastq_unclass,
+                         only_classified_output=True)
             self._list_file_fastq.append(file_fastq_unclass)
             self._list_kraken_output.append(file_kraken_class)
 
