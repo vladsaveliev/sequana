@@ -27,11 +27,9 @@ __data__input = manager.getrawdata()
 
 TODO = "todo"
 
+__prefix_name__ = join(config["genome"]["dir_file"], config["genome"]["name"])
 
 if manager.config.genome.do:
-
-    __prefix_name__ = join(config["genome"]["dir_file"], config["genome"]["name"])
-
     # create sequence dict file
     __create_sequence_dictionary__reference = config["genome"]["fasta_file"]
     __create_sequence_dictionary__output = config["genome"]["fasta_file"] + ".dict"
