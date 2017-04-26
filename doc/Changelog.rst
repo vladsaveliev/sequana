@@ -13,6 +13,8 @@ Changelog
 * NEWS:
     - RNA-seq pipeline added (single-end only, paired-end upcoming)
       including all indexes for RNA-seq
+    - Hierarchical kraken 
+    - add new standalone called **sequana_fox** to expose the pyqt5 browser.
 
 * CHANGES:
 
