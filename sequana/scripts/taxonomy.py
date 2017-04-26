@@ -93,7 +93,11 @@ Issues: http://github.com/sequana/sequana
                 in a dedicated Synapse page (www.synapse.org). minikraken
                 is donwload from the kraken's author page, and toydb from
                 sequana github.""")
-        self.add_argument('--level', dest="level", 
+        self.add_argument("--unclassified-out",
+            help="save unclassified sequences to filename")
+        self.add_argument("--classified-out",
+            help="save unclassified sequences to filename")
+        self.add_argument('--level', dest="level",
             default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
 
 
@@ -156,14 +160,17 @@ def main(args=None):
     k = KrakenPipeline(fastq, options.database, threads=options.thread,
         output_directory=output_directory)
 
-    k.run()
+    _pathto = lambda x: "{}/kraken/{}".format(options.directory, x) if x else x
+    k.run(output_filename_classified=_pathto(options.classified_out),
+          output_filename_unclassified=_pathto(options.unclassified_out))
 
-    cfg = SequanaConfig()
+    """cfg = SequanaConfig()
     cfg.config.input_directory = None
     cfg.config.input_samples = {"file1": options.file1, "file2": options.file2}
     cfg.config.input_pattern = None
     cfg.config.input_extension = None
     cfg.config.kraken = {"database": options.database, "do": True}
+    """
 
     filenames = [options.file1]
     if options.file2:
@@ -176,7 +183,6 @@ def main(args=None):
     # output_directory first argument: the directory where to find the data
     # output_filename is relative to the config.output_dir defined above
     kk = KrakenModule(output_directory, output_filename="summary.html")
-
 
     logger.info("Open ./%s/summary.html" % options.directory)
     logger.info("or ./%s/kraken/kraken.html" % options.directory)
