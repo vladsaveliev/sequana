@@ -1,6 +1,7 @@
-from sequana import  KrakenResults, KrakenAnalysis, KrakenDownload
+from sequana.kraken import *
 from sequana import sequana_data, sequana_config_path
 import os
+import tempfile
 
 
 def run_kraken_taxon():
@@ -19,6 +20,15 @@ def run_kraken_taxon():
     kt.run()
 
     kt = KrakenAnalysis(file2, database=database)
+    kt.run()
+
+    p = tempfile.TemporaryDirectory()
+
+    kt = KrakenHierarchical([file1, file2], [database, database],
+            output_directory=p.name, force=True)
+    kt.run()
+
+    kt = KrakenHierarchical(file1, [database, database], force=True)
     kt.run()
 
 if "TRAVIS_PYTHON_VERSION" in os.environ:
