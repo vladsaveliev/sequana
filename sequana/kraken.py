@@ -643,27 +643,54 @@ class KrakenAnalysis(object):
 class KrakenHierarchical(object):
     """Kraken Hiearchical Analysis
 
-    This runs Kraken on a FastQ file(s) with multiple k-mer databases in a
+    This runs Kraken on a FastQ file with multiple k-mer databases in a
     hierarchical way. Unclassified sequences with the first database are input
     for the second, and so on.
 
+    The input may be a single FastQ file or paired, gzipped or not. FastA are
+    also accepted.
+
+    
+
     """
     def __init__(self, filename_fastq, fof_databases, threads=1,
-                 output_directory="./kraken_hierarchical/", keep_temp_files=False):
+                 output_directory="./kraken_hierarchical/", 
+                 keep_temp_files=False, force=False):
         """.. rubric:: **constructor**
 
         :param filename_fastq: FastQ file to analyse
-        :param fof_databases: file with absolute paths to databases (one per line,
-            in order of desired use)
+        :param fof_databases: file that contains a list of databases paths 
+            (one per line). The order is important. Note that you may also
+            provide a list of datab ase paths.
         :param threads: number of threads to be used by Kraken
         :param output_directory: name of the output directory
-        :param keep_temp_files: bool, if True, will keep intermediate files from each
-            Kraken analysis, and save html report at each step
-
+        :param keep_temp_files: bool, if True, will keep intermediate files
+            from each Kraken analysis, and save html report at each step
+        :param bool force: if the output directory already exists, the
+            instanciation fails so that the existing data is not overrwritten. 
+            If you wish to overwrite the existing directory, set this 
+            parameter to True.
         """
+        # When running kraken in paired mode and saving the unclassified reads
+        # in a file, the output file (fastq) contains both R1 and R2 so there
+        # are concatenated in the same file. Actually, if there is R1 and R2,
+        # there are concatenated as R1 N R2 (with the letter N as link). 
+        # So, in the hiearchical search, paired case, the first iteration has 2
+        # input files, must subsequent iterations will have only one file as
+        # input, that is the output of the previous run (provided by
+        # --unclassified-out option)
         self.filename_fastq = filename_fastq
-        with open(fof_databases, 'r') as fof:
-            self.databases = [absolute_path.split('\n')[0] for absolute_path in fof.readlines()]
+
+        # input databases may be stored in a file
+        if isinstance(fof_databases, str) and os.path.exists(fof_databases):
+            with open(fof_databases, 'r') as fof:
+                self.databases = [absolute_path.split('\n')[0] for absolute_path in fof.readlines()]
+        # or simply provided as a list
+        elif isinstance(fof_databases, list):
+            self.databases = fof_databases[:]
+        else:
+            raise TypeError("input databases must be a list of valid kraken "
+                            "databases or a file (see documebntation)")
         self.threads = threads
         self.output_directory = output_directory
         self.keep_temp_files = keep_temp_files
@@ -672,38 +699,60 @@ class KrakenHierarchical(object):
         try:
             os.mkdir(output_directory)
         except OSError:
-            if os.path.isdir(output_directory):
-                logger.error('Output directory already exists')
+            if os.path.isdir(output_directory) and force is False:
+                logger.error('Output directory %s already exists' % output_directory)
                 raise Exception
+            elif force is True:
+                logger.warning("Output directory %s already exists. You may"
+                    "overwrite existing results" % output_directory)
 
         # list of input fastq files
-        self._list_file_fastq = [filename_fastq]
-
-        # list of all output to merge at the end
-        self._list_kraken_output = []
-
-    def _run_one_analysis(self, i, last_analysis=False):
-        """
-        """
-        analysis = KrakenAnalysis(self._list_file_fastq[i], self.databases[i],
-                                  self.threads)
-
-        file_kraken_class  = self.output_directory + "kraken_%d.out" %(i)
-
-        if last_analysis:
-            analysis.run(output_filename=file_kraken_class)
-            self._list_kraken_output.append(file_kraken_class)
+        if isinstance(filename_fastq, list) and len(filename_fastq) == 2:
+            self.inputs = filename_fastq[:]
+        elif isinstance(filename_fastq, str):
+            self.inputs = [filename_fastq]
         else:
-            file_fastq_unclass = self.output_directory + "unclassified_%d.fastq" %(i)
-            analysis.run(output_filename=file_kraken_class,
-                         output_filename_unclassified=file_fastq_unclass,
-                         only_classified_output=True)
-            self._list_file_fastq.append(file_fastq_unclass)
-            self._list_kraken_output.append(file_kraken_class)
+            raise TypeError("input file must be a string or list of 2 filenames")
+
+    def _run_one_analysis(self, iteration):
+        """ Run one analysis """
+        db = self.databases[iteration]
+        logger.info("Analysing data using database {}".format(db))
+
+        # By default, the output contains only classified reads
+        only_classified_output = True
+
+        # a convenient alias
+        _pathto = lambda x: self.output_directory + x
+
+        # the output is saved in this file
+        file_kraken_class = _pathto("kraken_%d.out" % iteration)
+        output_filename_unclassified = _pathto("unclassified_%d.fastq" % iteration)
+
+        if iteration == 0:
+            inputs = self.inputs
+        else:
+            # previous results
+            inputs = self._list_kraken_input[iteration-1]
+
+        # if this is the last iteration (even if iteration is zero), save
+        # classified and unclassified in the final kraken results.
+        if iteration == len(self.databases) -1:
+            only_classified_output = False
+
+        analysis = KrakenAnalysis(inputs, db, self.threads)
+        file_fastq_unclass = _pathto("unclassified_%d.fastq" % iteration)
+
+        analysis.run(output_filename=file_kraken_class,
+                     output_filename_unclassified=output_filename_unclassified,
+                     only_classified_output=only_classified_output)
+
+        self._list_kraken_input.append(file_fastq_unclass)
+        self._list_kraken_output.append(file_kraken_class)
 
         if self.keep_temp_files:
             result = KrakenResults(file_kraken_class)
-            result.to_js("%skrona_%d.html" %(prefix_output_results,i))
+            result.to_js("%skrona_%d.html" %(prefix_output_results, iteration))
 
     def run(self):
         """Run the hierachical analysis
@@ -715,12 +764,15 @@ class KrakenHierarchical(object):
 
         .. note:: the databases are run in the order provided in the constructor.
         """
-        # Iteration over the databases
-        for i in range(len(self.databases)):
-            is_last = (i == (len(self.databases)-1) )
-            self._run_one_analysis(i, is_last)
+        # list of all output to merge at the end
+        self._list_kraken_output = []
+        self._list_kraken_input = []
 
-        # concatenate all files
+        # Iteration over the databases
+        for iteration in range(len(self.databases)):
+            self._run_one_analysis(iteration)
+
+        # concatenate all kraken output files
         file_output_final = self.output_directory + "kraken_final.out"
         with open(file_output_final, 'w') as outfile:
             for fname in self._list_kraken_output:
@@ -729,15 +781,15 @@ class KrakenHierarchical(object):
                         outfile.write(line)
 
         # create html report
+        logger.info("Analysing results")
         result = KrakenResults(file_output_final)
         result.to_js("%skrona_final.html" % self.output_directory)
 
+        # remove kraken intermediate files (including unclassified files)
         if not self.keep_temp_files:
-            # remove kraken intermediate files
             for f_temp in self._list_kraken_output:
                 os.remove(f_temp)
-            # remove unclassified files
-            for f_temp in self._list_file_fastq[1:len(self._list_file_fastq)]:
+            for f_temp in self._list_kraken_input:
                 os.remove(f_temp)
 
 
