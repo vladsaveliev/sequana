@@ -188,6 +188,9 @@ onsuccess:
         shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
         shell('cp -r %s/cutadapt/ %s' % (proj, report_dir))
 
+        """
+        # Commented by TC Avril 2017 since reporting package is now removed
+        # and create_cleanup will be deprecated
         from sequana.reporting.report_summary import SequanaSummary
         summary = SequanaSummary(proj, directory=report_dir,
             output_filename="summary.html",
@@ -197,9 +200,10 @@ onsuccess:
 
         # Create a cleanup python file to clean a sub-directory
         sm.create_cleanup(proj)
+        """
 
-    sm.create_recursive_cleanup()
-    sm.message("Done. To further cleanup the directory, type \n python .sequana_cleanup.py")
+    #sm.create_recursive_cleanup()
+    #sm.message("Done. To further cleanup the directory, type \n python .sequana_cleanup.py")
 
 onerror:
     print("An error occurred. See message above.")
