@@ -27,11 +27,9 @@ __data__input = manager.getrawdata()
 
 TODO = "todo"
 
+__prefix_name__ = join(config["genome"]["dir_file"], config["genome"]["name"])
 
 if manager.config.genome.do:
-
-    __prefix_name__ = join(config["genome"]["dir_file"], config["genome"]["name"])
-
     # create sequence dict file
     __create_sequence_dictionary__reference = config["genome"]["fasta_file"]
     __create_sequence_dictionary__output = config["genome"]["fasta_file"] + ".dict"
@@ -268,7 +266,9 @@ __add_read_group__input = __mapping_output
 __add_read_group__output = manager.getname("add_read_group/", "_RG_sorted.bam")
 __add_read_group__log_err = "%s/logs/AddOrReplaceReadGroups/stderr.logs" % manager.sample
 __add_read_group__log_std ="%s/logs/AddOrReplaceReadGroups/stdout.logs" % manager.sample
-__add_read_group__rg = "ID=%s LB=%s PL=%s PU=%s SM=%s" % (manager.sample, manager.sample, manager.config.sequencing.platform, manager.config.sequencing.flowcell, manager.sample)
+__add_read_group__rg = "ID=%s LB=%s PL=%s PU=%s SM=%s" % (
+    manager.sample, manager.sample, manager.config.sequencing.platform,
+    manager.config.sequencing.flowcell, manager.sample)
 include: sm.modules["add_read_group"]
 
 

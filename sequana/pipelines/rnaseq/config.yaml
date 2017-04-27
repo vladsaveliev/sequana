@@ -115,7 +115,7 @@ star_mapping:
 #
 bowtie1_mapping_ref:
     do: no
-    options: "--chunkmbs 400 -a --best -q -e50 "
+    options: "--chunkmbs 400 -m 1 "
     threads: 4
 
 #############################################################################
@@ -247,7 +247,7 @@ multiqc:
 
 
 #############################################################################
-# fastq_screen used to align reads against genomes file contain in conf file with bowtie2
+# mark_duplicates (picard-tools) allows to mark PCR duplicate in BAM files
 #
 # :Parameters:
 #
