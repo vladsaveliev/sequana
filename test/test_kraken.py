@@ -28,8 +28,11 @@ def run_kraken_taxon():
             output_directory=p.name, force=True)
     kt.run()
 
-    kt = KrakenHierarchical(file1, [database, database], force=True)
+    kt = KrakenHierarchical(file1, [database, database],
+output_directory=p.name, force=True)
     kt.run()
+
+    p.cleanup()
 
 if "TRAVIS_PYTHON_VERSION" in os.environ:
     pass
