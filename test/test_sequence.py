@@ -10,7 +10,7 @@ def test_dna():
     assert dna.get_reverse() == "TTTTGCA"
     assert dna.get_reverse_complement() == "AAAACGT"
     dna.check()
-   
+    dna.stats()
 
     # inplace functions
     dna.reverse()

@@ -1,9 +1,16 @@
 import string
 from collections import Counter
-
+from sequana.fasta import FastA
 
 class Sequence(object):
-    def __init__(self, sequence, complement_in="ACGT", complement_out="TGCA", letters=""):
+    def __init__(self, sequence, complement_in=b"ACGT", complement_out=b"TGCA", letters=""):
+
+        if sequence.endswith(".fa") or sequence.endswith(".fasta"):
+            fasta = FastA(sequence)
+            sequence = fasta.next().sequence
+        else: # assume correct string sequence
+            pass
+
         self._data = sequence
         try:
             self._translate = string.maketrans(complement_in, complement_out)
@@ -47,6 +54,12 @@ class Sequence(object):
         c = Counter(self._data)
         ratio = (c['G'] + c['C']) / len(self.sequence)
         return ratio
+
+    def stats(self):
+        from collections import Counter
+        return Counter(self.sequence)
+
+    
 
 
 class DNA(Sequence):
