@@ -2,9 +2,24 @@ import string
 from collections import Counter
 from sequana.fasta import FastA
 
-class Sequence(object):
-    def __init__(self, sequence, complement_in=b"ACGT", complement_out=b"TGCA", letters=""):
 
+class Sequence(object):
+    """Abstract base classe for other specialised sequences such as DNA.
+
+
+    Sequenced is the base class for other classes such as :class:`DNA` and
+    :class:`RNA`.
+
+    ::
+
+        s = Sequence("ACGT")
+        s.stats()
+        s.get_complement()
+
+
+    """
+    def __init__(self, sequence, complement_in=b"ACGT", complement_out=b"TGCA", letters=""):
+        """.. rubric:: Constructor"""
         if sequence.endswith(".fa") or sequence.endswith(".fasta"):
             fasta = FastA(sequence)
             sequence = fasta.next().sequence
@@ -48,7 +63,7 @@ class Sequence(object):
                 raise ValueError("Found unexpected letter in the sequence (%s)" % key)
 
     def __len__(self):
-        return len(self_data)
+        return len(self._data)
 
     def gc_content(self):
         c = Counter(self._data)
@@ -58,8 +73,6 @@ class Sequence(object):
     def stats(self):
         from collections import Counter
         return Counter(self.sequence)
-
-    
 
 
 class DNA(Sequence):
