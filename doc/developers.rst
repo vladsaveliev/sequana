@@ -270,6 +270,8 @@ This is a WIP in progress but here is an example for the previous pipeline::
 .. note:: the README uses Restructured syntax (not markdown)
 
 
+.. _config_coding_convention:
+
 Documenting the configuration file
 ---------------------------------------
 
@@ -286,12 +288,39 @@ sections corresponding to a rule as follows::
     # and is used to make the documentation clear. No spaces
     # before the section (count:) here below.
     #
-    count:  # you can add an overview
-        -item1: 1 # you can add comment for an item
-        -item1: 2 # you can add comment for an item
+    count:
+        item1: 1 # you can add comment for an item
+        item1: 2 # you can add comment for an item
 
 If valid, the block comment is interpreted and a tooltip will appear in
 **Sequanix**.
+
+
+You can also use specific syntax to have specific widgets in Sequanix 
+(see :ref:`sequanix_tutorial`).
+
+First, you may have a file browser widget by adding *_file* after a parameter::
+
+    ################################################
+    #  documentation here
+    #
+    count:
+        reference_file:
+
+You may also have the choice between several values, in which case you have to
+provide the different items inside the documentation as follows::
+
+    ################################################
+    #  documentation here
+    #
+    # adapter_choice__: ["PCRFree", "TruSeq", None]
+    count:
+        adapter_choice: PCRFree
+
+Note the double underscore after *_choice*. With this syntax, **Sequanix** will
+interpret the list and include the items in a dropdown button with 3 choices (PCRFree,
+TruSeq and None). This minimizes typo errors. You may need to add *None* if no selection 
+is a valid choice.
 
 
 Further coding conventions
@@ -380,7 +409,6 @@ followed by a constructor
 
 .. literalinclude:: module_example.py
     :language: python
-    :linenos:
     :pyobject: MyModule.__init__
 
 This constructor stores the input argument (**df**) and computes some new data
@@ -397,6 +425,7 @@ The first method is defined as follows:
     :language: python
     :linenos:
     :pyobject: MyModule.create_report_content
+    :emphasize-lines: 2
 
 Here, the method :meth:`create_report_content` may be named as you wish but must
 define and fill the :attr:`sections` list (empty list is possible) with a set
@@ -444,3 +473,8 @@ Here is the full working example:
 .. literalinclude:: module_example.py
     :language: python
     :linenos:
+
+
+When using this module, one creates an HTML page called **mytest.html**. An
+instance of the page is available here:  `report_example.html <_static/report_example.html>`_
+

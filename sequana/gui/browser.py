@@ -13,8 +13,8 @@ except:
     from PyQt5.QtWebKitWidgets import QWebView
     from PyQt5 import QtWebKit
     from PyQt5.Qt import QWebPage
-from PyQt5.QtWidgets import QProgressBar, QLineEdit
 
+from PyQt5.QtWidgets import QProgressBar, QLineEdit
 
 # potential resources for improvements:
 # https://github.com/ralsina/devicenzo/blob/master/devicenzo.py
@@ -35,10 +35,10 @@ class Browser(Qt.QMainWindow):
         self.pbar = QProgressBar()
         self.pbar.setMaximumWidth(120)
 
-
         # Main page QWebView
         # -------------------------------------------------------------
-        self.wb = QWebView(
+        self.wb = SequanaQWebView(
+            parent=self,
             loadProgress=self.pbar.setValue,
             loadFinished=self.pbar.hide,
             loadStarted=self.pbar.show,
@@ -50,7 +50,10 @@ class Browser(Qt.QMainWindow):
         # Main menu tool bar
         # -------------------------------------------------------------
         self.tb = self.addToolBar("Main Toolbar")
-        for a in (QWebPage.Back, QWebPage.Forward, QWebPage.Reload):
+        for a in (  QWebPage.Back,
+                    QWebPage.Forward,
+                    QWebPage.Reload,
+                    QWebPage.DownloadLinkToDisk):
             self.tb.addAction(self.wb.pageAction(a))
 
         self.url = QLineEdit(returnPressed =lambda:self.wb.setUrl(
@@ -116,7 +119,34 @@ class Browser(Qt.QMainWindow):
         # self.wb.settings().setObjectCacheCapacities(0,0,0)
 
 
+class SequanaQWebView(QWebView):
+    """This is the webview for the application.
 
-#if __name__ == "__main__": 
-#
-#    b = Browser()
+    It represents a browser window, either the main one or a popup.
+    It's a simple wrapper around QWebView that configures some basic settings.
+    """
+    def __init__(self, parent=None, **kwargs):
+        """Constructor for the class"""
+        super(SequanaQWebView, self).__init__(parent)
+        self.kwargs = kwargs
+        self.config = {}
+        self.config['allow_popups'] = True
+        self.settings().setAttribute(
+            QtWebKit.QWebSettings.JavascriptCanOpenWindows, True)
+        self.settings().setAttribute(QtWebKit.QWebSettings.LocalStorageEnabled, True)
+
+    def createWindow(self, type):
+        """Handle requests for a new browser window.
+
+        Method called whenever the browser requests a new window
+        (e.g., <a target='_blank'> or window.open()).
+        Overridden from QWebView to allow for popup windows, if enabled.
+        """
+        if self.config.get("allow_popups"):
+            self.popup = SequanaQWebView(**self.kwargs)
+            self.popup.setObjectName("web_content")
+            self.popup.setWindowTitle("Sequana browser")
+            self.popup.page().windowCloseRequested.connect(self.popup.close)
+            self.popup.show()
+            return self.popup
+

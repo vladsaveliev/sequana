@@ -1,5 +1,5 @@
 from sequana.bamtools import BAM, Alignment, SAMFlags
-from sequana.reporting.report_bam import BAMReport
+from sequana.modules_report.bamqc import BAMQCModule
 from sequana import sequana_data
 from easydev import TempFile
 
@@ -42,6 +42,7 @@ def test_bam(tmpdir):
     with TempFile(suffix=".json") as fh:
         s.bam_analysis_to_json(fh.name)
 
+
 def test_alignment():
     s = BAM(datatest)
     # no need to call reset but does not harm and reminds us that it shoudl be
@@ -59,7 +60,4 @@ def test_samflags():
 
 
 def test_bamreport():
-    b = BAM(datatest)
-    r = BAMReport()
-    r.set_data(b)
-    r.create_report()
+    r = BAMQCModule(datatest, "bam.html")

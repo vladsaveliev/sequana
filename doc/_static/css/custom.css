@@ -1,6 +1,11 @@
 
 
 
+/* This is a hack to fix */
+div.linenodiv pre{
+line-height:1.17;
+}
+
 
 
 div.body p.sphx-glr-script-out {

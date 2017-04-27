@@ -63,4 +63,4 @@ class MyModule(SequanaBaseModule):
 df = pd.Series(random.randn(10000))
 
 # and pass it as a first argument.
-MyModule(df, "mytest.html")
+MyModule(df, "report_example.html")

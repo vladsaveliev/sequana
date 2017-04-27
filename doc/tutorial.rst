@@ -3,10 +3,6 @@
 Tutorial
 ==========
 
-In the introductory example in :ref:`quick_start`, we will look at other pipelines such as
-the taxonomic classification, variant calling and coverage. 
-
-
 The following example will show how to run the quality control on a pair of
 FastQ files. The data comes from a sequencing (using HiSeq technology) of a
 Measles virus. For testing purposes, you can download :download:`R1

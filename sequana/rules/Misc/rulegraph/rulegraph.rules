@@ -1,6 +1,3 @@
-
-
-
 rule rulegraph:
     """Rulegraph 
 
@@ -35,19 +32,35 @@ rule rulegraph:
         # We tried with temporary directory but this was creating errs
         # more probably because temp dir was handle in the code rather than 
         # by snakemake itself. Finally, we decided to use a physical directory
-        # named after the rule. The snakemake call is performed in the directory
+        # named after the rule. The snakemake call is performed in the
+        # directory
         import os
         from sequana import SequanaConfig, DOTParser
+
+        # change relative path to absolute path
+        def parse_path(dico):
+            for key, value in dico.items():
+                try:
+                    if os.path.exists(value):
+                        dico[key] = os.path.realpath(value)
+                # check overflowerror if value is a large int
+                except (TypeError, OverflowError):
+                    try:
+                        parse_path(value)
+                    except AttributeError:
+                        pass
+
+        cfg = SequanaConfig(params.configname)
+        parse_path(cfg.config)
+        cfg._update_yaml()
+
         cwd = os.getcwd()
         os.chdir(params.directory)
-        output_filename = cwd + os.sep + output.dot
-
+        output_filename = cwd + os.sep + output.dot        
         # if it fails, we must reset the current working directory
         try:
-            configname = ".." + os.sep + params.configname
-            cfg = SequanaConfig(config)
             cfg.copy_requirements(target=".")
-            shell("cp %s . " % (cwd + os.sep + "config.yaml"))
+            cfg.save(filename=params.configname)
             shell("snakemake -s {input.filename} --rulegraph --nolock > rg.dot ")
         except Exception as err:
             print(err)

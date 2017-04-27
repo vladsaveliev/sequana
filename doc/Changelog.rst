@@ -6,22 +6,29 @@ Changelog
 2017
 ------
 
-0.1.22 - March 2017
-~~~~~~~~~~~~~~~~~~~~~~~~
+
+0.1.23 - March - April 2017
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* NEWS:
+    - RNA-seq pipeline added (single-end only, paired-end upcoming)
+      including all indexes for RNA-seq
+    - Hierarchical kraken 
+    - add new standalone called **sequana_fox** to expose the pyqt5 browser.
 
 * CHANGES:
 
-   - Sequanix/Sequana:
+    - Sequanix/Sequana:
      - config file can have the yml extension (in addition to yaml)
      - dropdown widgets in the form based on the docstrings in the config file
      - can import config to override default sequana config file
      - subprocesses killed when the main pipeline is stopped
-   - Removed ./reporting modules being moved to new modules_report framework 
+   - Removed ./reporting modules being moved to new modules_report framework
 
 * BUGS:
 
    - kraken fixes for special cases where all reads are unclassified
-   - Fix various regression bug + add missing __init__ in ./plots 
+   - Fix various regression bug + add missing __init__ in ./plots
 
 0.1.21 - Feb 2017
 ~~~~~~~~~~~~~~~~~~~~~~~~

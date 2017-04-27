@@ -16,10 +16,7 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-"""Utilities to access to online FASTA, taxon, lineage ...
-
-
-"""
+"""Utilities to access to online FASTA, taxon, lineage ..."""
 import os
 import glob
 import math
@@ -33,6 +30,7 @@ except:
 from easydev import AttrDict, execute, Progress
 
 from sequana import logger
+
 
 class EUtilsTools(object):
     """Simple wrapper around EUtils to fetch basic informatino about an accession number

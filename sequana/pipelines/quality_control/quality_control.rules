@@ -219,9 +219,9 @@ __rulegraph__mapper = {
     "fastqc_phix": "../fastqc_phix.html",
     "fastqc_cutadapt": "../fastqc_cutadapt.html",
     "cutadapt": "../cutadapt.html",
-    "kraken": "../html/kraken.html",
-    "kraken_translate": "../html/kraken.html",
-    "kraken_to_krona": "../html/kraken.html",
+    "kraken": "../kraken/kraken.html",
+    "kraken_translate": "../kraken/kraken.html",
+    "kraken_to_krona": "../kraken/kraken.html",
 
 }
 include: sm.modules['rulegraph']

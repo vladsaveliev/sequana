@@ -1,4 +1,5 @@
 import string
+from collections import Counter
 
 
 class Sequence(object):
@@ -39,6 +40,15 @@ class Sequence(object):
             if key not in self._letters:
                 raise ValueError("Found unexpected letter in the sequence (%s)" % key)
 
+    def __len__(self):
+        return len(self_data)
+
+    def gc_content(self):
+        c = Counter(self._data)
+        ratio = (c['G'] + c['C']) / len(self.sequence)
+        return ratio
+
+
 class DNA(Sequence):
     """Simple DNA class
 
@@ -52,3 +62,16 @@ class DNA(Sequence):
         super(DNA, self).__init__(sequence, complement_in=b"ACGTacgt",
             complement_out=b"TGCAtgca", letters="ACGTacgtNn")
 
+
+class RNA(Sequence):
+    """Simple RNA class
+
+
+        >>> d = RNA("ACGUUUU")
+        >>> d.complement
+        >>> d.reverse_complement
+
+    """
+    def __init__(self, sequence):
+        super(RNA, self).__init__(sequence, complement_in=b"ACGUacgu",
+            complement_out=b"UGCAugca", letters="ACGUacguNn")
