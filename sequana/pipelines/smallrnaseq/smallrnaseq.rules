@@ -140,7 +140,7 @@ expected_output.extend(expand(__bowtie1_mapping_mature__sort, sample=manager.sam
 
 # counting step
 __miRNA_count_mature__input = __bowtie1_mapping_mature__sort
-__miRNA_count_mature__output = manager.getname("miRNA_counts", "miRNA_mature_counts.txt")
+__miRNA_count_mature__output = manager.getname("miRNA_counts", "_miRNA_mature_counts.txt")
 __miRNA_count_mature__log = "%s/logs/counts/mature_counts.txt" % manager.sample
 include: miRNA_count_dynamic("mature", manager)
 expected_output.extend(expand(__miRNA_count_mature__output, sample=manager.samples))
@@ -159,7 +159,7 @@ expected_output.extend(expand(__bowtie1_mapping_hairpin__sort, sample=manager.sa
 
 # counting step
 __miRNA_count_hairpin__input = __bowtie1_mapping_hairpin__sort
-__miRNA_count_hairpin__output = manager.getname("miRNA_counts", "miRNA_hairpin_counts.txt")
+__miRNA_count_hairpin__output = manager.getname("miRNA_counts", "_miRNA_hairpin_counts.txt")
 __miRNA_count_hairpin__log = "%s/logs/counts/hairpin_counts.txt" % manager.sample
 include: miRNA_count_dynamic("hairpin", manager)
 expected_output.extend(expand(__miRNA_count_hairpin__output, sample=manager.samples))
