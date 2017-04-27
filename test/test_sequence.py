@@ -1,5 +1,8 @@
-from sequana.sequence import DNA
+from sequana.sequence import DNA, RNA
+from sequana import sequana_data
 
+
+datafile = sequana_data("measles.fa")
 
 
 def test_dna():
@@ -24,3 +27,13 @@ def test_dna():
         assert False
     except:
         assert True
+
+
+    # read a file and tests the __len__ method
+    dna = DNA(datafile)
+    assert len(dna) == 15894
+    dna.gc_content()
+
+
+def test_rna():
+    rna = RNA("ACUG")
