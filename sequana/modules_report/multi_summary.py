@@ -27,7 +27,6 @@ from sequana.resources.canvas.bar import CanvasBar
 from sequana import logger
 
 from sequana.lazy import pandas as pd
-import reports
 
 __all__ = ['SequanaMultipleSummary']
 

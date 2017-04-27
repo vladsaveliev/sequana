@@ -179,8 +179,6 @@ class CutadaptModule(SequanaBaseModule):
             'buttons': ['copy', 'csv']}
         js = datatable.create_javascript_function()
         html_tab = datatable.create_datatable(float_format='%.3g')
-        #h = reports.HTMLTable(df)
-        #html = h.to_html(index=True)
         self.jinja['adapters'] = "tralala"
         self.sections.append({
             "name": "Adapters",

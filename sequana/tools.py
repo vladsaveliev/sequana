@@ -30,7 +30,6 @@ from sequana import BAM
 
 from pysam import FastxFile
 from easydev import precision
-from sequana.lazy import reports
 
 
 __all__ = ['StatsBAM2Mapped', 'bam_to_mapped_unmapped_fastq']
@@ -74,7 +73,7 @@ class StatsBAM2Mapped(DataContainer):
         elif bamfile.endswith(".json"):
             self.data = self.read_json(bamfile)
 
-    def to_html(self, with_stats=True):
+    def to_html(self):
         data = self.data
 
         html = "Reads with Phix: %s %%<br>" % precision(data['contamination'], 3)
@@ -88,10 +87,6 @@ class StatsBAM2Mapped(DataContainer):
             df = pd.DataFrame({
               'R1': [data['R1_mapped'], data['R1_unmapped']]})
         df.index = ['mapped', 'unmapped']
-
-        if with_stats:
-            h = reports.HTMLTable(df)
-            html += h.to_html(index=True)
 
         html += "Unpaired: %s <br>" % data['unpaired']
         html += "duplicated: %s <br>" % data['duplicated']

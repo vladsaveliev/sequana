@@ -27,7 +27,6 @@ from sequana.lazy import pandas as pd
 from sequana.lazy import pylab
 from sequana import logger
 
-from sequana.lazy import reports
 from sequana.utils.datatables_js import DataTable
 
 
