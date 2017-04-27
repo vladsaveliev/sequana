@@ -19,10 +19,10 @@ Changelog
 * CHANGES:
 
     - Sequanix/Sequana:
-     - config file can have the yml extension (in addition to yaml)
-     - dropdown widgets in the form based on the docstrings in the config file
-     - can import config to override default sequana config file
-     - subprocesses killed when the main pipeline is stopped
+      - config file can have the yml extension (in addition to yaml)
+      - dropdown widgets in the form based on the docstrings in the config file
+      - can import config to override default sequana config file
+      - subprocesses killed when the main pipeline is stopped
    - Removed ./reporting modules being moved to new modules_report framework
 
 * BUGS:

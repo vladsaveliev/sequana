@@ -126,7 +126,7 @@ One major interest of **Sequanix** is that the Snakemake configuration file is
 loaded and can then be changed dynamically. In other word, you do not need to
 use an esoteric text editor, which may be the only option on a cluster.
 
-Morevoer, the loaded configuration file has other advantages:
+Moreover, the loaded configuration file has other advantages:
 
 - file can be selecting thanks to a file browser. If no file is selected, the button is red (green otherwise)
 - Some buttons have dedicated widgets (e.g. in the figure above, the number of threads has its own dropbox limited typing errors)
@@ -148,7 +148,7 @@ you want to overwrite the existing files.
 
 You can then check the pipeline by clicking the **Show Pipeline** button or use
 **Ctrl+D** shortcut. For simple pipeline, this may not be very useful but for
-complex dynamix pipelines where parts may be switched off, this may be
+complex dynamic pipelines where parts may be switched off, this may be
 convenient.
 
 .. figure:: _static/sequanix/sequanix_dag_qc.png
@@ -342,12 +342,12 @@ Brief description of the options:
     can select firefox, safari, chrome instead. 
 :logging verbosity: there are 5 level of verbosity. By default, we use INFO. It
     may be useful to set the option to DEBUG if there are errors and you wish to
-    provide a complete bug report to sequana developers.
+    provide a complete bug report to Sequana developers.
 :HTML page to open as a report: If you set a filename here, then when pressing
     **Open report**, instead of opening a file browser, sequanix open the file
     provided.
 :Form browser keywords: In the config parameters, if you wish to associate a
-    parameter name with a breowser widget, add the names here (separated by comma)
+    parameter name with a browser widget, add the names here (separated by comma)
 
 
 
@@ -374,7 +374,7 @@ The Snakemake dialog contains 3 sub tab: the local, cluster and general tabs.
 Running analysis locally
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 If you run the analaysis locally, you do not need to change much. The only
-option to tune is the number of cires to be used locally. This happens in the 
+option to tune is the number of cores to be used locally. This happens in the 
 **Local** tab. By default the cores parameter is set to the number of cores
 found on the computer. You may reduce this number if you wish.
 
@@ -391,10 +391,10 @@ Running analysis on a cluster
 
 If you run the analysis on a cluster, this is a bit more complicated.
 
-First, similarly to the local run, you may proivide the number of cores to be
-used. This happens in the **Cluster** tab. Here, you can set the paramters
+First, similarly to the local run, you may provide the number of cores to be
+used. This happens in the **Cluster** tab. Here, you can set the parameters
 **jobs** to the required number of CPUS. If you know that at a given time, you
-may have N jobs running, set this paramter to N. For instance, of you have 48
+may have N jobs running, set this parameter to N. For instance, of you have 48
 samples, and you perform 48 independent analysis, set *jobs* to 48.
 
 Second, you must set the *cluster* commands. We will not provide an exhaustive 
@@ -450,7 +450,7 @@ Here is a brief description:
 :nohooks: Do not invoke onstart, onsuccess or onerror hooks after execution.
 :restart-times:  Number of times to restart failing jobs (defaults to 0).
 :verbose: Print debugging output
-:summary: Print a summary of all files created by the workflow. The has the following columns: filename, modification time, rule version, status, plan. Thereby rule version contains the versionthe file was created with (see the version keyword of rules), and status denotes whether the file is missing, its input files are newer or if version or implementation of the rule changed since file creation. Finally the last column denotes whether the file will be updated or created during the next workflow execution.
+:summary: Print a summary of all files created by the workflow. The has the following columns: filename, modification time, rule version, status, plan. Thereby rule version contains the version the file was created with (see the version keyword of rules), and status denotes whether the file is missing, its input files are newer or if version or implementation of the rule changed since file creation. Finally the last column denotes whether the file will be updated or created during the next workflow execution.
 :any other options:
 
 .. _sequanix_faqs:
