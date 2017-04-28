@@ -58,6 +58,7 @@ Mapping on reference genome
 Bowtie1
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. snakemakerule:: bowtie1_mapping_dynamic
+
 STAR
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. snakemakerule:: star_mapping
