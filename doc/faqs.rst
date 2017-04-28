@@ -146,4 +146,30 @@ For question related to Sequanix, we have a dedicated section in
 :ref:`sequanix_faqs`.
 
 
+QXcbConnection issue
+----------------------
+If you get this error::
+
+    QXcbConnection: Could not connect to display localhost:10.0
+
+this is an issue with your Qt backend. You need to change it to Agg.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
