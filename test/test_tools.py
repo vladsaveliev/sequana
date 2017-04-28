@@ -6,7 +6,6 @@ from sequana.tools import bam_get_paired_distance
 def test_StatsBAM2Mapped():
     data = sequana_data("test.bam", "testing")
     res = StatsBAM2Mapped(data)
-    res.to_html()
 
 
 def test_bam2fastq():

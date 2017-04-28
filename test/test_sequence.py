@@ -34,6 +34,11 @@ def test_dna():
     assert len(dna) == 15894
     dna.gc_content()
 
+    # test occurences
+    dna._data = "ACGTGGGGGTT"
+    assert dna.get_occurences("GGG", False) == [4]
+    assert dna.get_occurences("GGG", True) == [4, 5, 6]
+
 
 def test_rna():
     rna = RNA("ACUG")
