@@ -26,6 +26,7 @@ links.
     pipeline_denovo_assembly.rst
     pipeline_quality_control.rst
     pipeline_rnaseq.rst
+    pipeline_smallrnaseq.rst
     pipeline_variant_calling.rst
     pipeline_compressor.rst
 
