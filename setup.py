@@ -7,8 +7,8 @@ from setuptools import setup, find_packages
 import glob
 
 _MAJOR               = 0
-_MINOR               = 1
-_MICRO               = 22
+_MINOR               = 2
+_MICRO               = 0
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -70,7 +70,7 @@ setup(
     # pillow, sphinx-gallery and numpydoc are  for the doc only
     # mock is for the test only
     # qtconsole is required by Sequanix
-    install_requires = ["easydev>=0.9.32", "reports>=0.3.0", "matplotlib>=2.0.0",
+    install_requires = ["easydev>=0.9.34", "reports>=0.3.0", "matplotlib>=2.0.0",
         "pyVCF", "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14",
         "biokit>=0.4.1", "pysam", "docutils", "mock", "qtconsole", "psutil",
         "ruamel.yaml>=0.13.2", "colorlog"] + extra_packages,

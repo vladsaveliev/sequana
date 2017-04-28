@@ -133,6 +133,10 @@ Besides, the filename convention is as follows::
 that is **_R1_** and **_R2_** indicates the paired or single-ended files and
 the PREFIX is used to create directories or reports; it must be present.
 
+.. versionadded:: 0.2
+    more flexible tags are now possible in sequana pipelines and sequanix using
+    e.g. _R[12] in the **input_readtag** in the configuration file of the
+    pipelines.
 
 
 Sequanix related
