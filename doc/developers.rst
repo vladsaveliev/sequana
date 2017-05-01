@@ -349,6 +349,10 @@ In order to run the test locally, you will need to use::
 
     pip install pytest pytest-cov pytest-qt pytest-xdist pytest-mock pytest-timeout
 
+The first is the main package, the second is required for coverage. The third
+provides fixtures for Qt testing and the fourth is used to use several CPU
+during testing. The fifth is for mocking and the sixth to constraint long tests.
+
 
 Then, you can type for instance::
 
