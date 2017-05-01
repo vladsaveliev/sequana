@@ -125,7 +125,8 @@ class ENADownload(object):
             'bacteria': ("bacteria.txt", "Bacteria"),
             'organelle': ("organelle.txt", "Organelle"),
             'viroid': ("viroid.txt", "Viroid"),
-            "macaca_fascicularis": ("macaca", "MacacaFascicularis")
+            "macaca_fascicularis": ("macaca", "MacacaFascicularis"),
+            "mus_musculus": ("mus_musculus", "MusMusculus")
         }
 
     def download_list(self):
@@ -168,6 +169,14 @@ class ENADownload(object):
                 "CM001285", "CM001286", "CM001287", "CM001288", "CM001289", 
                 "CM001290", "CM001291","CM001292",  "CM001293", "CM001294", 
                 "CM001295", "CM001296"]
+        elif filelist == "mus_musculus": #19 +x+y chromosomes + 5 mitochondrion
+            # could also add strain C57BL. 
+            identifiers = ["AY172335", "CM000209", "CM000210", "CM000211"
+                "CM000212", "CM000213", "CM000214", "CM000215", "CM000216"
+                "CM000217", "CM000218", "CM000219", "CM000220", "CM000221"
+                "CM000222", "CM000223", "CM000224", "CM000225", "CM000226"
+                "CM000227", "CM000228", "CM000229", "CM000225", "CM000226"
+                "EF108342", "AB042432", "AY675564", "DQ874614"]
         elif isinstance(filelist, str) and filelist in self._metadata.keys():
             name = self._metadata[filelist][0]
             logger.info("Downloading list from http://www.ebi.ac.uk/genomes/%s" % name)
