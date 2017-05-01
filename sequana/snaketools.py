@@ -1272,44 +1272,6 @@ def init(filename, namespace):
     Module(filename.replace(".rules", "")).check('error')
 
 
-def create_recursive_cleanup(filename="sequana_cleanup.py", additional_dir=[]):
-    """Create general cleanup
-
-    :param filename: name of the script to be called 
-
-    """
-    with open(filename, "w") as fh:
-        fh.write("""
-import subprocess, glob, os
-from easydev import shellcmd
-
-for this in glob.glob("*"):
-    if os.path.isdir(this):
-        print(" --- Cleaning up %s directory" % this)
-        if os.path.exists(this + os.sep + "sequana_cleanup.py"):
-            pid = subprocess.Popen(["python", "sequana_cleanup.py"], cwd=this)
-            pid.wait()  # we do not want to run e.g. 48 cleanup at the same time
-
-# Remove some files
-for this in ["README", "requirements.txt", 'runme.sh', 'config.yaml', 'stats.txt',
-             "dag.svg", "rulegraph.svg", "*rules", "*.fa"]:
-    try:
-        shellcmd("rm %s" % this)
-    except:
-        print("%s not found (not deleted)" % this)
-
-# Remove some directories
-for this in {1}:
-    try:
-        shellcmd("rm -rf %s" % this)
-    except:
-        print("%s not found (not deleted)" % this)
-
-shellcmd("rm -f {0}")
-print("done")
-""".format(filename, additional_dir))
-
-
 def create_cleanup(targetdir, exclude=['logs']):
     """A script to include in directory created by the different pipelines to
 cleanup the directory"""
@@ -1365,3 +1327,64 @@ def add_stats_summary_json(json_list, parser):
         j = json.dumps(jdict)
         with open(jfile, 'w') as fp:
             print(j, file=fp)
+
+
+class OnSuccess(object):
+    def __init__(self, toclean=["fastq_sampling", "logs", "common_logs",
+            "images", "rulegraph"]):
+        self.makefile_filename = "Makefile"
+        self.cleanup_filename = "sequana_cleanup.py"
+        self.toclean = toclean 
+
+    def __call__(self):
+        self.add_makefile()
+        self.create_recursive_cleanup(self.toclean)
+
+    def add_makefile(self):
+        with open(self.makefile_filename, "w") as fh:
+            fh.write("bundle:\n")
+            if easydev.cmd_exists("pigz"):
+                fh.write("\ttar cvf - * | pigz  -p 4 > results.tar.gz\n")
+            else:
+                fh.write("\ttar cvfz results.tar.gz *\n")
+            fh.write("clean:\n")
+
+            th = self.cleanup_filename
+            fh.write('\tif [ -f %s ]; then python %s ; else echo "cleaned already"; fi;\n' % (th, th))
+
+    def create_recursive_cleanup(self, additional_dir=[]):
+        """Create general cleanup
+
+        :param additional_dir: extra directories to remove 
+
+        """
+        with open(self.cleanup_filename, "w") as fh:
+            fh.write("""
+import subprocess, glob, os
+from easydev import shellcmd
+
+for this in glob.glob("*"):
+    if os.path.isdir(this):
+        print(" --- Cleaning up %s directory" % this)
+        if os.path.exists(this + os.sep + "sequana_cleanup.py"):
+            pid = subprocess.Popen(["python", "sequana_cleanup.py"], cwd=this)
+            pid.wait()  # we do not want to run e.g. 48 cleanup at the same time
+
+# Remove some files
+for this in ["README", "requirements.txt", 'runme.sh', 'config.yaml', 'stats.txt',
+             "dag.svg", "rulegraph.svg", "*rules", "*.fa"]:
+    try:
+        shellcmd("rm %s" % this)
+    except:
+        print("%s not found (not deleted)" % this)
+
+# Remove some directories
+for this in {1}:
+    try:
+        shellcmd("rm -rf %s" % this)
+    except:
+        print("%s not found (not deleted)" % this)
+
+shellcmd("rm -f {0}")
+print("done")
+    """.format(self.cleanup_filename, additional_dir))
