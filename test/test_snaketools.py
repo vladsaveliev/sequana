@@ -253,16 +253,15 @@ def test_copy_requirements():
         assert True
 
 
-def test_create_cleanup():
-    fh = tempfile.TemporaryDirectory()
-    directory = fh.name
-    filename = snaketools.create_cleanup(directory)
+def test_onsuccess(tmpdir):
+    directory = tmpdir.mkdir("onsuccess")
+    p1 = directory.join("Makefile")
+    p2 = directory.join("cleanup.py")
 
+    onsuc = snaketools.OnSuccess()
+    onsuc.makefile_filename = p1
+    onsuc.makefile_cleanup = p2
 
-def test_create_recursive_cleanup():
-    fh = tempfile.TemporaryDirectory()
-    directory = fh.name
-    snaketools.create_recursive_cleanup()
 
 
 def test_build_dynamic_rule():
