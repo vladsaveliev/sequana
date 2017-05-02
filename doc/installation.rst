@@ -119,12 +119,7 @@ should install the latest release posted on http://pypi.python.org/pypi/sequana 
 
 .. include:: ../docker/README.rst
 
-For developers
-=================
 
-For the documentation::
-
-    pip install sphinx sphinx_rtd_theme pytest pytest-qt pytest-mock
 
 
 

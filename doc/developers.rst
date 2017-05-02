@@ -482,3 +482,10 @@ Here is the full working example:
 When using this module, one creates an HTML page called **mytest.html**. An
 instance of the page is available here:  `report_example.html <_static/report_example.html>`_
 
+Documentation
+-----------------------
+
+::
+
+    conda install sphinx sphinx_rtd_theme
+
