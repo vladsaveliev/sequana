@@ -1,0 +1,98 @@
+import glob
+import os
+
+from sequana import pacbio
+import pylab
+
+# Input parameter to be changed
+directory = "input_files"
+
+directory = os.path.abspath(directory) + "/"
+filenames = glob.glob(directory + "*.bam")
+samples = [os.path.split(this)[1].replace(".bam", "") 
+            for this in filenames]
+output_directory = "output_files/"
+
+rule all:
+    input: output_directory + "report.html"
+
+rule html_report:
+    input:  expand(output_directory + "hist_read_len_{sample}.png", sample=samples) + [output_directory + "hist_read_len_all.png"] +
+            expand(output_directory + "GC_content_{sample}.png", sample=samples) + [output_directory + "GC_content_all.png"] +
+            expand(output_directory + "ZMW_passes_{sample}.png", sample=samples) + [output_directory + "ZMW_passes_all.png"] +
+            expand(output_directory + "SNR_{sample}.png", sample=samples)
+    output: output_directory + "report.html"
+    shell: "touch {output}"
+
+rule read_len:
+    input: filenames
+    output: 
+        read_len   = expand(output_directory + "hist_read_len_{sample}.png", sample=samples) + [output_directory + "hist_read_len_all.png"],
+        GC_content = expand(output_directory + "GC_content_{sample}.png", sample=samples) + [output_directory + "GC_content_all.png"],
+        ZMW        = expand(output_directory + "ZMW_passes_{sample}.png", sample=samples) + [output_directory + "ZMW_passes_all.png"],
+        SNR        = expand(output_directory + "SNR_{sample}.png", sample=samples)
+     
+    run:
+        ########## labels for plots
+        short_name      = [bam_file.replace(".bam","").split("/")[-1] for bam_file in input]
+        bam_pacbio_list = [pacbio.BAMPacbio(bam_file) for bam_file in input]
+
+        ########## Read length
+        # individual histograms
+        pylab.clf()
+        for i in range(len(input)):
+            bam_pacbio_list[i].hist_len(label=short_name[i])
+            pylab.title("Read length")
+            pylab.legend()
+            pylab.savefig(output.read_len[i])
+
+        # one histogram with all
+        pylab.clf()
+        for i in range(len(input)):
+            bam_pacbio_list[i].hist_len(hold=True,label=short_name[i])
+        pylab.title("Read length")
+        pylab.legend()
+        pylab.savefig(output.read_len[-1])
+
+        ########## GC content
+        # individual histograms
+        pylab.clf()
+        for i in range(len(input)):
+            bam_pacbio_list[i].hist_GC(label=short_name[i])
+            pylab.title("GC content")
+            pylab.legend()
+            pylab.savefig(output.GC_content[i])
+
+        # one histogram with all
+        pylab.clf()
+        for i in range(len(input)):
+            bam_pacbio_list[i].hist_GC(hold=True,label=short_name[i])
+        pylab.title("GC content")
+        pylab.legend()
+        pylab.savefig(output.GC_content[-1])
+
+        ########## ZMW passes
+        # individual histograms
+        pylab.clf()
+        for i in range(len(input)):
+            bam_pacbio_list[i].hist_ZMW_subreads(label=short_name[i])
+            pylab.title("ZMW passes")
+            pylab.legend()
+            pylab.savefig(output.ZMW[i])
+
+        # one histogram with all
+        pylab.clf()
+        for i in range(len(input)):
+            bam_pacbio_list[i].hist_ZMW_subreads(hold=True,label=short_name[i])
+        pylab.title("ZMW passes")
+        pylab.legend()
+        pylab.savefig(output.ZMW[-1])
+
+        ########## SNR
+        # individual histograms
+        pylab.clf()
+        for i in range(len(input)):
+            bam_pacbio_list[i].hist_snr()
+            pylab.title("SNR %s" %short_name[i])
+            pylab.legend()
+            pylab.savefig(output.SNR[i])
