@@ -917,7 +917,6 @@ class SequanaGUI(QMainWindow, Tools):
         self.shell_error = ""
         self.shell = ""
 
-
         # Prepare the command and working directory.
         if self.working_dir is None:
             self.warning("Set the working directory first")
@@ -953,6 +952,7 @@ class SequanaGUI(QMainWindow, Tools):
                 args.append(this)
         snakemake_args = args
         self.info("Starting process with snakemake %s " % " ".join(snakemake_args))
+        self.output.clear()
         self.process.setWorkingDirectory(self.working_dir)
         self.process.start("snakemake", snakemake_args)
 
