@@ -1046,7 +1046,7 @@ class FastQC(object):
             qc.histogram_gc_content()
 
         """
-        pylab.hist(self.gc_list, bins=range(0, self.maximum))
+        pylab.hist(self.gc_list, bins=range(0, 100))
         pylab.grid()
         pylab.title("GC content distribution (per sequence)")
         pylab.xlabel(r"Mean GC content (%)", fontsize=self.fontsize)
