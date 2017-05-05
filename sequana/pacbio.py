@@ -1,10 +1,29 @@
+# -*- coding: utf-8 -*-
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016-2017 - Sequana Development Team
+#
+#  File author(s):
+#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
+#      Mélissa Cardonl <melissa.cardon@pasteur.fr>, 
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  website: https://github.com/sequana/sequana
+#  documentation: http://sequana.readthedocs.io
+#
+##############################################################################
+"""Pacbio QC and stats"""
+import collections
 
 from sequana.lazy import pylab
 from sequana.lazy import numpy as np
 from sequana.lazy import pandas as pd
-import collections #lazy ?
+from sequana.lazy import biokit
+
 import pysam
-from biokit.viz import hist2d
 
 
 class BAMPacbio(object):
@@ -60,7 +79,7 @@ class BAMPacbio(object):
                 res.append(read.query_length)
                 # res[1] = GC content
                 c = collections.Counter(read.query_sequence)
-                res.append( 100 * (c['g'] + c['G'] + c['c'] + c['C']) / 
+                res.append( 100 * (c['g'] + c['G'] + c['c'] + c['C']) /
                             float(sum(c.values())) )
                 # res[2] = snr A
                 # res[3] = snr C
@@ -83,10 +102,9 @@ class BAMPacbio(object):
 
     def _get_stats(self):
         return self.df.read_length.describe().to_dict()
-    stats = property(_get_stats)
+    stats = property(_get_stats, doc="return basic stats about the read length")
 
     def _get_ZMW_passes(self):
-        print()
         if self._nb_pass is None:
             if self._df is None:
                 self._get_df()
@@ -95,7 +113,7 @@ class BAMPacbio(object):
             distrib_nb_passes = [zmw_passes[z] for z in zmw_passes.keys()]
             self._nb_pass = collections.Counter(distrib_nb_passes)
         return self._nb_pass
-    nb_pass = property(_get_ZMW_passes)
+    nb_pass = property(_get_ZMW_passes, doc="number of passes (ZMW)")
 
     def reset(self):
         self.data.close()
@@ -109,6 +127,8 @@ class BAMPacbio(object):
         :param int shift: number of reads to ignore at the begining of input file
         :param bool random: if True, at each step the read to output is randomly selected
         """
+        assert output_filename != self.filename, \
+            "output filename should be different from the input filename"
         self.reset()
         with pysam.AlignmentFile(output_filename,"wb", template=self.data) as fh:
             if random:
@@ -120,15 +140,18 @@ class BAMPacbio(object):
                     if random:
                         shift = np.random.randint(stride)
 
-    def filter_length(self, output_filename, threshold_min=0, 
+    def filter_length(self, output_filename, threshold_min=0,
         threshold_max=np.inf):
-        """Write reads within the length range to BAM output
+        """Select and Write reads within a given range
 
         :param str output_filename: name of output file
-        :param int threshold_min: minimum length
-        :param int threshold_max: maximum length
+        :param int threshold_min: minimum length of the reads to keep
+        :param int threshold_max: maximum length of the reads to keep
 
         """
+        assert threshold_min < threshold_max
+        assert output_filename != self.filename, \
+            "output filename should be different from the input filename"
         self.reset()
         with pysam.AlignmentFile(output_filename,  "wb", template=self.data) as fh:
             for read in self.data:
@@ -182,7 +205,7 @@ class BAMPacbio(object):
         :param bool grid:
         :param str xlabel:
         :param str ylabel:
-        :param str label:
+        :param str label: label of the histogram (for the legend)
 
         .. plot::
             :include-source:
@@ -202,7 +225,10 @@ class BAMPacbio(object):
         # histogram nb passes
         if hold is False:
             pylab.clf()
-        pylab.hist(k, weights=val, bins=max_nb_pass, alpha=alpha, label=label)
+        pylab.bar(k, val, alpha=alpha, label=label)
+        if len(k) < 5:
+            pylab.xticks(range(6), range(6))
+
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
         pylab.yscale('log')
@@ -221,7 +247,7 @@ class BAMPacbio(object):
         :param bool grid:
         :param str xlabel:
         :param str ylabel:
-        :param str label:
+        :param str label: label of the histogram (for the legend)
 
         .. plot::
             :include-source:
@@ -239,7 +265,7 @@ class BAMPacbio(object):
         # histogram GC percent
         if hold is False:
             pylab.clf()
-        pylab.hist(self._df.loc[:,'read_length'], bins=bins, alpha=alpha, 
+        pylab.hist(self._df.loc[:,'read_length'], bins=bins, alpha=alpha,
             label=label + ", mean : " + str(abs(mean_len)) + ", N : " + str(self._N) )
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
@@ -248,17 +274,17 @@ class BAMPacbio(object):
             pylab.grid(True)
 
     def hist_GC(self, bins=50, alpha=0.5, hold=False, fontsize=12,
-                grid=True,xlabel="GC %",ylabel="#",label=""):
+                grid=True, xlabel="GC %", ylabel="#", label=""):
         """Plot histogram GC content
 
         :param int bins: binning for the histogram
         :param float alpha: transparency of the histograms
         :param bool hold:
-        :param int fontsize:
-        :param bool grid:
-        :param str xlabel:
+        :param int fontsize: fontsize of the x and y labels and title.
+        :param bool grid: add grid or not
+        :param str xlabel: 
         :param str ylabel:
-        :param str label:
+        :param str label: label of the histogram (for the legend)
 
         .. plot::
             :include-source:
@@ -287,13 +313,14 @@ class BAMPacbio(object):
             pylab.grid(True)
         pylab.xlim([0, 100])
 
-    def plot_GC_read_len(self, alpha=0.07, hold=False, fontsize=12,
-                grid=True,xlabel="GC %",ylabel="#"):
+    def plot_GC_read_len(self, hold=False, fontsize=12, bins=[40,40],
+                grid=True, xlabel="GC %", ylabel="#"):
         """Plot GC content versus read length
 
-        :param float alpha: transparency of the 2D histogram
         :param bool hold:
-        :param int fontsize:
+        :param int fontsize: for x and y labels and title
+        :param bins: a integer or tuple of 2 integers to specify
+            the binning of the x and y 2D histogram.
         :param bool grid:
         :param str xlabel:
         :param str ylabel:
@@ -304,7 +331,7 @@ class BAMPacbio(object):
             from sequana.pacbio import BAMPacbio
             from sequana import sequana_data
             b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
-            b.plot_GC_read_len()
+            b.plot_GC_read_len(bins=[10, 10])
 
         """
         if self._df is None:
@@ -315,9 +342,12 @@ class BAMPacbio(object):
         if hold is False:
             pylab.clf()
         data = self._df.loc[:,['read_length','GC_content']]
-        h = hist2d.Hist2D(data)
-        res = h.plot(bins=[40, 40], contour=False, nnorm='log', Nlevels=6)
-        #pylab.plot(self._df.loc[:,'read_length'] , self._df.loc[:,'GC_content'], 'bo', alpha=alpha)
-        pylab.xlabel("Read length", fontsize=12)
-        pylab.ylabel("GC %", fontsize=12)
-        pylab.title("GC %% vs length \n Mean length : %.2f , Mean GC : %.2f" %(mean_len, mean_GC))
+        h = biokit.viz.hist2d.Hist2D(data)
+        res = h.plot(bins=bins, contour=False, nnorm='log', Nlevels=6)
+        pylab.xlabel("Read length", fontsize=fontsize)
+        pylab.ylabel("GC %", fontsize=fontsize)
+        pylab.title("GC %% vs length \n Mean length : %.2f , Mean GC : %.2f" % 
+            (mean_len, mean_GC), fontsize=fontsize)
+        pylab.ylim([0, 100])
+        if grid is True:
+            pylab.grid(True)
