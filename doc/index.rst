@@ -78,6 +78,10 @@ To join the project, please let us know on `github <https://github.com/sequana/s
       _static/sequanix.png
    :target: applications.html#sequanix
 
+.. |pacbio| image::
+      _images/sphx_glr_plot_qc_pacbio_002.png
+   :target: auto_examples/plot_qc_pacbio.html
+
 
 .. raw:: html
 
@@ -103,6 +107,7 @@ To join the project, please let us know on `github <https://github.com/sequana/s
 * |kraken|
 * |bam|
 * |sequanix|
+* |pacbio|
 
 .. raw:: html
 
