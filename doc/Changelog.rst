@@ -20,7 +20,7 @@ Changelog
 
 * NEW: 
 
-    - pacbio:
+    - pacbio module: cleanup and add funcion to convert input BAM into Fasta
 
 
 
