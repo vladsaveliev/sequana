@@ -710,6 +710,7 @@ class PipelineManager(object):
 
         - input_directory:  #a_path
         - input_extension:  fastq.gz  # this is the default. could be also fq.gz
+        - input_readtag: _R[12]_ # default
         - input_pattern:    # a_global_pattern e.g. H*fastq.gz
         - input_samples:
             - file1:
@@ -856,7 +857,6 @@ class PipelineManager(object):
         self.mode = "wc"
         self.sample = "{sample}"
         self.basename = "{sample}/%s/{sample}"
-
 
     def error(self, msg):
         msg += ("\nPlease check the content of your config file. You must have "
