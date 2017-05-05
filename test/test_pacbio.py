@@ -4,9 +4,9 @@ from easydev import TempFile
 
 def test_pacbio():
     b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
-    assert len(b) == 8
+    assert len(b) == 130
     b.df
-    assert b.nb_pass[1] == 8
+    assert b.nb_pass[1] == 130
 
 
     with TempFile() as fh:

@@ -7,6 +7,21 @@ Changelog
 ------
 
 
+* BUG FIXES:
+
+    - sequanix:
+        - rulegraph issue on SLURM system. Avoid the os.chdir 
+    - fastq_samples/ fastq module: fix histogram_gc_content maximum range
+
+* CHANGES:
+
+    - sequanix:
+        - snakemake output is now cleared
+
+* NEW: 
+
+    - pacbio:
+
 
 
 0.2. - March - April 2017
