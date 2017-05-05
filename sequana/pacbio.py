@@ -60,7 +60,8 @@ class BAMPacbio(object):
                 res.append(read.query_length)
                 # res[1] = GC content
                 c = collections.Counter(read.query_sequence)
-                res.append( (c['g'] + c['G'] + c['c'] + c['C'])/float(sum(c.values())) )
+                res.append( 100 * (c['g'] + c['G'] + c['c'] + c['C']) / 
+                            float(sum(c.values())) )
                 # res[2] = snr A
                 # res[3] = snr C
                 # res[4] = snr G
@@ -78,8 +79,11 @@ class BAMPacbio(object):
             self._N = N
             self.reset()
         return self._df
-
     df = property(_get_df)
+
+    def _get_stats(self):
+        return self.df.read_length.describe().to_dict()
+    stats = property(_get_stats)
 
     def _get_ZMW_passes(self):
         print()
@@ -116,7 +120,8 @@ class BAMPacbio(object):
                     if random:
                         shift = np.random.randint(stride)
 
-    def filter_length(self, output_filename, threshold_min=0, threshold_max=np.inf):
+    def filter_length(self, output_filename, threshold_min=0, 
+        threshold_max=np.inf):
         """Write reads within the length range to BAM output
 
         :param str output_filename: name of output file
@@ -130,9 +135,8 @@ class BAMPacbio(object):
                 if ((read.query_length > threshold_min) & (read.query_length < threshold_max)):
                     fh.write(read)
 
-
     def hist_snr(self, bins=50, alpha=0.5, hold=False, fontsize=12,
-                grid=True,xlabel="SNR",ylabel="#"):
+                grid=True, xlabel="SNR", ylabel="#"):
         """Plot histogram of the ACGT SNRs for all reads
 
         :param int bins: binning for the histogram
@@ -168,7 +172,8 @@ class BAMPacbio(object):
             pylab.grid(True)
 
     def hist_ZMW_subreads(self, alpha=0.5, hold=False, fontsize=12,
-                            grid=True,xlabel="Number of ZMW passes",ylabel="#", label=""):
+                          grid=True, xlabel="Number of ZMW passes",
+                          ylabel="#", label=""):
         """Plot histogram of number of reads per ZMW (number of passes)
 
         :param float alpha: transparency of the histograms
@@ -191,7 +196,7 @@ class BAMPacbio(object):
             self._get_ZMW_passes()
 
         max_nb_pass = max(self._nb_pass.keys())
-        k = range(1,max_nb_pass+1)
+        k = range(1, max_nb_pass+1)
         val = [self._nb_pass[i] for i in k]
 
         # histogram nb passes
@@ -227,7 +232,6 @@ class BAMPacbio(object):
             b.hist_len()
 
         """
-
         if self._df is None:
             self._get_df()
         mean_len =  np.mean(self._df.loc[:,'read_length'])
@@ -235,7 +239,8 @@ class BAMPacbio(object):
         # histogram GC percent
         if hold is False:
             pylab.clf()
-        pylab.hist(self._df.loc[:,'read_length'], bins=bins, alpha=alpha, label=label + ", mean : " + str(abs(mean_len)) + ", N : " + str(self._N) )
+        pylab.hist(self._df.loc[:,'read_length'], bins=bins, alpha=alpha, 
+            label=label + ", mean : " + str(abs(mean_len)) + ", N : " + str(self._N) )
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
         pylab.title("Read length  \n Mean length : %.2f" %(mean_len), fontsize=fontsize)
@@ -272,12 +277,15 @@ class BAMPacbio(object):
         # histogram GC percent
         if hold is False:
             pylab.clf()
-        pylab.hist(self._df.loc[:,'GC_content'], bins=bins, alpha=alpha, label=label + ", mean : " + str(round(mean_GC,2)) + ", N : " + str(self._N))
+        pylab.hist(self._df.loc[:,'GC_content'], bins=bins,
+            alpha=alpha, label=label + ", mean : " + str(round(mean_GC,2))
+            + ", N : " + str(self._N))
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
         pylab.title("GC %%  \n Mean GC : %.2f" %(mean_GC), fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
+        pylab.xlim([0, 100])
 
     def plot_GC_read_len(self, alpha=0.07, hold=False, fontsize=12,
                 grid=True,xlabel="GC %",ylabel="#"):
@@ -299,7 +307,6 @@ class BAMPacbio(object):
             b.plot_GC_read_len()
 
         """
-
         if self._df is None:
             self._get_df()
         mean_len =  np.mean(self._df.loc[:,'read_length'])
@@ -309,7 +316,7 @@ class BAMPacbio(object):
             pylab.clf()
         data = self._df.loc[:,['read_length','GC_content']]
         h = hist2d.Hist2D(data)
-        res = h.plot(bins=[40,40], contour=False, nnorm='log', Nlevels=6)
+        res = h.plot(bins=[40, 40], contour=False, nnorm='log', Nlevels=6)
         #pylab.plot(self._df.loc[:,'read_length'] , self._df.loc[:,'GC_content'], 'bo', alpha=alpha)
         pylab.xlabel("Read length", fontsize=12)
         pylab.ylabel("GC %", fontsize=12)
