@@ -16,7 +16,6 @@ def test_pacbio():
 
     b.stats
 
-
     # test nb_pass from scratch
     b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
     b.nb_pass
@@ -42,9 +41,18 @@ def test_pacbio():
     b._nb_pass = None
     b.hist_ZMW_subreads()
 
+    with TempFile() as fh:
+        b.to_fasta(fh.name, threads=1)
+    with TempFile() as fh:
+        b.to_fastq(fh.name, threads=1)
+
+
 def test_pacbio_stride():
     b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
     with TempFile() as fh:
         b.stride(fh.name, stride=2)
     with TempFile() as fh:
         b.stride(fh.name, stride=2, random=True)
+
+
+
