@@ -140,6 +140,36 @@ class BAMPacbio(object):
                     if random:
                         shift = np.random.randint(stride)
 
+    def _to_fastX(self, mode, output_filename, threads=2):
+        # for now, we use samtools
+        # can use bamtools as well but as long and output 10% larger (sequences
+        # are split on 80-characters length)
+        from snakemake import shell
+        cmd = "samtools %s  -@ %s %s > %s" % (mode, threads, 
+            self.filename, output_filename)
+        print("Please be patient")
+        print("This may be long depending on your input data file: ")
+        print("typically, a minute per  500,000 reads")
+        shell(cmd)
+        print("done")
+
+    def to_fasta(self, output_filename, threads=2):
+        """Export BAM reads into a Fasta file
+
+        :param output_filename: name of the output file (use .fasta extension)
+        :param int threads: number of threads to use
+
+        .. note:: this executes a shell command based on samtools
+
+        .. warning:: this takes a few minutes for 500,000 reads
+
+        """
+        self._to_fastX("fasta", output_filename, threads=threads)
+
+    def to_fastq(self, output_filename, threads=2):
+        """Export BAM reads into FastQ file"""
+        self._to_fastX("fastq", output_filename, threads=threads)
+
     def filter_length(self, output_filename, threshold_min=0,
         threshold_max=np.inf):
         """Select and Write reads within a given range
