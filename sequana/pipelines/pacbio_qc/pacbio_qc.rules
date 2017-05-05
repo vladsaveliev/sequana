@@ -22,15 +22,49 @@ samples = [os.path.split(this)[1].replace(".bam", "")
 sm.message("Number of samples: %d" % len(samples))
 
 rule all:
-    input: expand("report_{sample}.html", sample=samples)
+    input:
+        expand("report_{sample}.html", sample=samples),
+        expand("{sample}/kraken/kraken.html", sample=samples)
 
 rule html_report:
-    input:  "summary_{sample}.json"
+    input:  "summary_{sample}.json", "{sample}/kraken/kraken.html"
     output: "report_{sample}.html"
+    params: dir="{sample}/kraken"
     run:
         from sequana.modules_report.pacbio_input_bam import PacbioInputBAMModule as Module
-        Module(input[0], output[0])
+        m = Module(input[0])
 
+        from sequana.modules_report.kraken import KrakenModule
+        kr = KrakenModule(params.dir)
+        html = kr._get_summary_section()
+        toreplace = "./kraken/kraken.html"
+        target = params.dir + "/kraken.html"
+        html = html.replace(toreplace, target)
+        m.sections.append({
+          "name": "Taxonomic content",
+          "anchor": "kraken",
+          "content": html
+        })
+        m.create_html(output[0])
+
+rule tofasta:
+    input: directory + "/{sample}.bam"
+    output: "{sample}.fasta"
+    threads: 4
+    run:
+        from sequana import pacbio
+        p = pacbio.BAMPacbio(input[0])
+        p.to_fasta(output[0], threads=threads)
+
+rule kraken:
+    input: "{sample}.fasta"
+    output: "{sample}/kraken/kraken.html"
+    params:
+        database=config['kraken']['database_directory']
+    shell:
+        """
+        sequana_taxonomy --file1 {input} --database {params.database} --output-directory {wildcards.sample}
+        """
 
 rule read_len:
     input: directory + "/{sample}.bam"
@@ -87,7 +121,8 @@ rule read_len:
             data['stats'] = bam_pacbio.stats
             data['sample'] = "{sample}"
             json.dump(data, fh, indent=True, sort_keys=True)
-
         pylab.close()
 
-
+onsuccess:
+    #clean up
+    pass

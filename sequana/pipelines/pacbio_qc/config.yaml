@@ -14,3 +14,6 @@ input_readtag: "%(input_readtag)"
 input_samples: 
     file1: ""
     file2: ""
+
+kraken:
+    database_directory: toydb
