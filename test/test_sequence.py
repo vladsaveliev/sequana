@@ -1,6 +1,5 @@
-from sequana.sequence import DNA, RNA
+from sequana.sequence import DNA, RNA, Repeats
 from sequana import sequana_data
-
 
 datafile = sequana_data("measles.fa")
 
@@ -42,3 +41,22 @@ def test_dna():
 
 def test_rna():
     rna = RNA("ACUG")
+
+
+def test_repeats():
+    rep = Repeats(datafile)
+    rep.threshold = 11
+    assert len(rep.begin_end_repeat_position) == 158
+    rep.do_merge = True
+    assert len(rep.begin_end_repeat_position) == 156
+    rep.do_merge = False
+    assert len(rep.begin_end_repeat_position) == 158
+    assert rep.df_shustring.shape == (15888,2)
+    assert rep.longest_shustring == 15
+
+    # test histogram
+    rep = Repeats(datafile)
+    rep.threshold = 11
+    rep.hist_length_repeats()
+
+

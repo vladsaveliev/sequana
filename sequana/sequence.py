@@ -161,10 +161,10 @@ class Repeats(object):
     """Class for finding repeats in DNA or RNA linear sequences.
 
     .. note:: You may use a Fasta file as input
-
+    .. note:: Works with shustring package from Bioconda (April 2017)
 
     """
-    def __init__(self, filename_fasta,merge=False):
+    def __init__(self, filename_fasta, merge=False):
         """.. rubric:: Constructor
 
         Input must be a fasta file with valid DNA or RNA characters
@@ -245,7 +245,6 @@ class Repeats(object):
         return self._longest_shustring
     longest_shustring = property(_get_longest_shustring)
 
-
     def _find_begin_end_repeats(self,force=False):
         """Returns position of repeats longer than threshold
         as an ordered list
@@ -322,8 +321,9 @@ class Repeats(object):
                 prev_tup = self._begin_end_repeat_position[0]
                 b = prev_tup[0]
                 begin_end_repeat_position_merge = []
-                for i in range(1,len(self._begin_end_repeat_position),1):
+                for i in range(1,len(self._begin_end_repeat_position)):
                     tup = self._begin_end_repeat_position[i]
+                    
                     if tup[0] == prev_tup[1]:
                         # concat
                         e = tup[1]
@@ -331,14 +331,19 @@ class Repeats(object):
                         if i == (len(self._begin_end_repeat_position) -1):
                             # last tup : append to result
                             begin_end_repeat_position_merge.append((b,e))
+                        
                     else:
                         # real end of repeat : append result and update b, e
                         e = prev_tup[1]
                         begin_end_repeat_position_merge.append((b,e))
                         prev_tup = tup
                         b = prev_tup[0]
+                        if i == (len(self._begin_end_repeat_position) -1):
+                            # last tup : append to result
+                            begin_end_repeat_position_merge.append(tup)
 
-            self._begin_end_repeat_position = begin_end_repeat_position_merge
+                self._begin_end_repeat_position = begin_end_repeat_position_merge
+
 
     def _get_do_merge(self):
         return self._do_merge
@@ -360,7 +365,7 @@ class Repeats(object):
     do_merge = property(_get_do_merge,_set_do_merge)
 
     def hist_length_repeats(self, bins=50, alpha=0.5, hold=False, fontsize=12,
-                        grid=True, label="",xlabel="Repeat length", ylabel="#"):
+                        grid=True, label="Repeat length",xlabel="Repeat length", ylabel="#"):
         # check that user has set a threshold
         if self._list_len_repeats is None:
             self._get_list_len_repeats()
