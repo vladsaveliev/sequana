@@ -21,6 +21,7 @@ dependencies:
 - bioservices
 - pip
 - easydev>=0.9.34
+- shustring
 - pip:
   - biokit>=0.3.2
   - ipython
