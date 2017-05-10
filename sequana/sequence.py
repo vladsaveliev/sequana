@@ -375,7 +375,7 @@ class Repeats(object):
 
     def hist_length_repeats(self, bins=None, alpha=0.5, hold=False,
             fontsize=12, grid=True, label="Repeat length",
-            bel="Repeat length", ylabel="#"):
+            xlabel="Repeat length", ylabel="#"):
         """Plots histogram of the repeat lengths
 
 
