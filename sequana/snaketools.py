@@ -1147,7 +1147,7 @@ class FastQFactory(FileFactory):
     It can be changed if data have another read tags. (e.g. "[12].fastq.gz")
 
     Yet, in long reads experiments (for instance), naming convention is
-    different and may nor be single/paired end convention. 
+    different and may nor be single/paired end convention.
 
     In a directory (recursively or not), there could be lots of samples. This
     class can be used to get all the sample prefix in the :attr:`tags`
@@ -1220,8 +1220,8 @@ class FastQFactory(FileFactory):
         # retrieve file of tag
         read_tag = self.read_tag.replace("[12]", r)
         candidates = [realpath for basename, realpath in
-                      zip(self.basenames, self.realpaths) 
-                      if read_tag in basename and basename.startswith(tag)] 
+                      zip(self.basenames, self.realpaths)
+                      if read_tag in basename and basename.startswith(tag)]
 
         if len(candidates) == 0 and r == "2":
             # assuming there is no R2
@@ -1334,7 +1334,7 @@ class OnSuccess(object):
             "images", "rulegraph"]):
         self.makefile_filename = "Makefile"
         self.cleanup_filename = "sequana_cleanup.py"
-        self.toclean = toclean 
+        self.toclean = toclean
 
     def __call__(self):
         self.add_makefile()
@@ -1352,10 +1352,10 @@ class OnSuccess(object):
             th = self.cleanup_filename
             fh.write('\tif [ -f %s ]; then python %s ; else echo "cleaned already"; fi;\n' % (th, th))
 
-    def create_recursive_cleanup(self, additional_dir=[]):
+    def create_recursive_cleanup(self, additional_dir=[".snakemake"]):
         """Create general cleanup
 
-        :param additional_dir: extra directories to remove 
+        :param additional_dir: extra directories to remove
 
         """
         with open(self.cleanup_filename, "w") as fh:
