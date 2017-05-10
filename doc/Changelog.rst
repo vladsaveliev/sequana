@@ -6,23 +6,26 @@ Changelog
 2017
 ------
 
-
 * BUG FIXES:
 
     - sequanix:
-        - rulegraph issue on SLURM system. Avoid the os.chdir 
+        - rulegraph issue on SLURM system. Avoid the os.chdir
     - fastq_samples/ fastq module: fix histogram_gc_content maximum range
+    - rulegraph rule: fix issue #405 (spaces in path to snakefile)
 
 * CHANGES:
 
     - sequanix:
         - snakemake output is now cleared
+    - quality_control pipeline: default to atropos instead of cutadapt for
+          adapter trimming
 
-* NEW: 
+* NEW:
 
     - pacbio module: cleanup and add funcion to convert input BAM into Fasta
-
-
+    - sequence module: Repeats class added
+    - new pipeline called qc_pacbio to perform quick QC and taxonomy analysis
+          for pacbio
 
 0.2. - March - April 2017
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
