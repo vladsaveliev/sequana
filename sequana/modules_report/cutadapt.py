@@ -216,6 +216,7 @@ class CutadaptModule(SequanaBaseModule):
         # get keys and count; Sort by number of adapters removed.
         # TODO: could have reused the df
         adapter_names = list(histograms.keys())
+
         count = [histograms[k]['count'].sum() for k in adapter_names]
         df2 = pd.DataFrame({'key':adapter_names, "count": count})
         df2.sort_values(by="count", ascending=False, inplace=True)
@@ -344,7 +345,6 @@ class CutadaptModule(SequanaBaseModule):
                     # we found the end of the histogram
                     # Could be a 5'/3' case ? if so another histogram is
                     # possible
-                    self.dd = current_hist
                     df = pd.read_csv(io.StringIO(current_hist), sep='\t')
                     #reinitiate the variables
                     if cutadapt_mode != "b":
@@ -357,18 +357,13 @@ class CutadaptModule(SequanaBaseModule):
                         # If we have already found an histogram, this is
                         # therefore the second here.
                         if name in dfs:
-                            dfs[name] = dfs[name].append(df.set_index("length"))
+                            if len(df):
+                                dfs[name] = dfs[name].append(df.set_index("length"))
                             scanning_histogram = False
-
-                            #Now that we have the two histograms, we can merge
-                            # them using a group by
-
                             dfs[name] = dfs[name].reset_index().groupby("length").aggregate(sum)
                         else:
                             dfs[name] = df.set_index("length")
                             scanning_histogram = True
-
-                            df.reset_index().groupby("length").aggregate(sum)
                 else:
                     pass
         return dfs
