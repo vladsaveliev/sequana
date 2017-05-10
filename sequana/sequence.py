@@ -8,6 +8,9 @@ from sequana.lazy import pandas as pd
 from sequana.lazy import pylab
 
 
+__all__ = ["DNA", "RNA", "Repeats", "Sequence"]
+
+
 class Sequence(object):
     """Abstract base classe for other specialised sequences such as DNA.
 
@@ -123,7 +126,7 @@ class Sequence(object):
 
         # reverse find-all without overlaps, you can combine positive and
         # negative lookahead into an expression like this:
-        #res = [m.start() for m in re.finditer('(?=%s)(?!.{1,%d}%s)' % (search, 
+        #res = [m.start() for m in re.finditer('(?=%s)(?!.{1,%d}%s)' % (search,
         #    len(pattern)-1, pattern), 'ttt')]
 
 
@@ -155,13 +158,22 @@ class RNA(Sequence):
             complement_out=b"UGCAugca", letters="ACGUacguNn")
 
 
-
-
 class Repeats(object):
     """Class for finding repeats in DNA or RNA linear sequences.
 
-    .. note:: You may use a Fasta file as input
+    Computation is performed each time the :attr:`threshold` is set 
+    to a new value.
+
+    .. plot::
+        :include-source:
+
+        from sequana import sequana_data, Repeats
+        rr = Repeats(sequana_data("measles.fa"))
+        rr.threshold = 4
+        rr.hist_length_repeats()
+
     .. note:: Works with shustring package from Bioconda (April 2017)
+    .. todo:: use a specific sequence (right now it is the first one)
 
     """
     def __init__(self, filename_fasta, merge=False):
@@ -169,8 +181,8 @@ class Repeats(object):
 
         Input must be a fasta file with valid DNA or RNA characters
 
-        :param str filename_fasta: String of a Fasta File, only the first
-         sequence is used.
+        :param str filename_fasta: a Fasta file, only the first
+            sequence is used !
         :param int threshold: Minimal length of repeat to output
         """
         self._threshold                       = None
@@ -188,10 +200,11 @@ class Repeats(object):
         self._do_merge                        = merge
 
     def _get_header(self):
-        """get first line of fasta (needed in input shustring) 
+        """get first line of fasta (needed in input shustring)
         and replace spaces by underscores
         """
         if self._header is None:
+            # -n is to specify the DNA nature of the sequence
             first_line = subprocess.check_output(["head","-n","1",self._filename_fasta])
             first_line = first_line.decode('utf8')
             first_line = first_line.replace("\n","").replace(" ","_")
@@ -205,13 +218,13 @@ class Repeats(object):
         Uses shustring tool"""
         if self._df_shustring is None:
             # read fasta
-            task_read           = subprocess.Popen(["cat", self._filename_fasta], 
+            task_read           = subprocess.Popen(["cat", self._filename_fasta],
                 stdout=subprocess.PIPE)
             # replace spaces of fasta
-            task_replace_spaces = subprocess.Popen(["sed","s/ /_/g"], 
+            task_replace_spaces = subprocess.Popen(["sed","s/ /_/g"],
                 stdin=task_read.stdout, stdout=subprocess.PIPE)
             # shustring command
-            task_shus           = subprocess.Popen(['shustring','-r','-q','-l',self.header], 
+            task_shus           = subprocess.Popen(['shustring','-r','-q','-l',self.header],
                 stdin=task_replace_spaces.stdout, stdout=subprocess.PIPE)
 
             # read stdout line by line and append to list
@@ -284,9 +297,6 @@ class Repeats(object):
 
         self._get_merge_repeats()
 
-            
-
-        #return self._begin_end_repeat_position
     def _get_be_repeats(self):
         self._find_begin_end_repeats()
         return self._begin_end_repeat_position
@@ -323,7 +333,7 @@ class Repeats(object):
                 begin_end_repeat_position_merge = []
                 for i in range(1,len(self._begin_end_repeat_position)):
                     tup = self._begin_end_repeat_position[i]
-                    
+
                     if tup[0] == prev_tup[1]:
                         # concat
                         e = tup[1]
@@ -331,7 +341,7 @@ class Repeats(object):
                         if i == (len(self._begin_end_repeat_position) -1):
                             # last tup : append to result
                             begin_end_repeat_position_merge.append((b,e))
-                        
+
                     else:
                         # real end of repeat : append result and update b, e
                         e = prev_tup[1]
@@ -361,14 +371,21 @@ class Repeats(object):
             else:
                 # data is already merged : need to compute again to un-merge
                 self._find_begin_end_repeats(force=True)
-
     do_merge = property(_get_do_merge,_set_do_merge)
 
-    def hist_length_repeats(self, bins=50, alpha=0.5, hold=False, fontsize=12,
-                        grid=True, label="Repeat length",xlabel="Repeat length", ylabel="#"):
+    def hist_length_repeats(self, bins=None, alpha=0.5, hold=False,
+            fontsize=12, grid=True, label="Repeat length",
+            bel="Repeat length", ylabel="#"):
+        """Plots histogram of the repeat lengths
+
+
+        """
         # check that user has set a threshold
         if self._list_len_repeats is None:
             self._get_list_len_repeats()
+
+        if bins is None:
+            bins = range(max(0, self.threshold -1), max(self._list_len_repeats)+2)
 
         if hold is False:
             pylab.clf()
