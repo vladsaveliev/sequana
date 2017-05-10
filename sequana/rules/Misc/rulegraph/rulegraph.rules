@@ -66,7 +66,7 @@ rule rulegraph:
         try:
             cfg.copy_requirements(target="rulegraph")
             cfg.save(filename="rulegraph" + os.sep + params.configname)
-            shell("cd rulegraph; snakemake -s {input.filename} --rulegraph --nolock  > rg.dot; cd .. ")
+            shell('cd rulegraph; snakemake -s "{input.filename}" --rulegraph --nolock  > rg.dot; cd .. ')
         except Exception as err:
             print(err)
             #make sure we come back to the correct directory
