@@ -40,6 +40,8 @@ Here is a snapshot.
 .. image:: _static/sequanix.png
 
 
+.. _sequana_app:
+
 sequana
 ---------
 
