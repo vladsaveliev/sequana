@@ -19,8 +19,9 @@ Python libraries. Yet, using **conda**, this process is simplied.
 Install conda executable
 ----------------------------
 
-In practice, we do use `Anaconda <https://anaconda.org/>`_ . We recommend to
-install **conda** executable via the manual installer. You may have the choice
+In practice, we do use `Anaconda <https://conda.readthedocs.io/>`_ . We recommend to
+install **conda** executable via the manual installer (`download <https//continuum.io/downloads>`). 
+You may have the choice
 between Python 2 and 3. We recommend to choose a Python version 3.
 
 channels
