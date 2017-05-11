@@ -1,10 +1,11 @@
 import re
 import string
 import subprocess
-from collections import Counter
+from collections import Counter, deque
 
 from sequana.fasta import FastA
 from sequana.lazy import pandas as pd
+from sequana.lazy import numpy as np
 from sequana.lazy import pylab
 
 
@@ -47,7 +48,7 @@ class Sequence(object):
         """
         if sequence.endswith(".fa") or sequence.endswith(".fasta"):
             fasta = FastA(sequence)
-            sequence = fasta.next().sequence
+            sequence = fasta.next().sequence.upper()
         else: # assume correct string sequence
             pass
 
@@ -140,8 +141,226 @@ class DNA(Sequence):
 
     """
     def __init__(self, sequence):
-        super(DNA, self).__init__(sequence, complement_in=b"ACGTacgt",
-            complement_out=b"TGCAtgca", letters="ACGTacgtNn")
+        super(DNA, self).__init__(sequence, complement_in=b"ACGT",
+            complement_out=b"TGCA", letters="ACGTN")
+
+        self._window       = None
+        self._type_window  = None
+        self._slide_window = None
+        self._seq_right    = None
+        self._dict_nuc     = dict_nuc = {'A' : 0, 'T' : 1, 'G' : 2, 'C' : 3}
+        self._cumul        = None
+        self._Xn           = None
+        self._Yn           = None
+        self._Zn           = None
+        self._ignored_nuc  = None
+        self._AT_skew_slide = None
+        self._GC_skew_slide = None
+        self._GC_content_slide = None
+        self._AT_content_slide = None
+
+    def _get_window(self):
+        return self._window
+
+    def _set_window(self,window):
+        if (window > 0) & (window < 1):
+            self._type_window = 'adapted to genome length : %.1f %% of total length' %(window*100)
+            self._window = int(round(self.__len__() * window))
+
+        elif (window >= 1) & ( window <= self.__len__()):
+            self._type_window = 'fixed window length : %d' %(window)
+            self._window = int(window)
+        else:
+            raise ValueError("Incorrect value for window: choose either float ]0,1]" +
+                            " (fraction of genome) or integer [1,genome_length] (window size)")
+
+        self._compute_skews()
+
+    window = property(_get_window, _set_window)
+
+    def _get_type_window(self):
+        return self._type_window
+
+    type_window = property(_get_type_window)
+
+    def _init_sliding_window(self):
+        """slide_window : deque of n first nucleotides (size of window)
+        seq_right : deque of the rest of the genome, with the n-1 nucleotides at the end (circular DNA)
+        """
+        # split sequence_reference in two : sliding window and seq_right
+        # for circular genome : add begining at the end of genome
+        self._slide_window = deque(self.sequence[0:self._window])
+        self._seq_right = deque( self.sequence[self._window:self.__len__()] + self.sequence[0:(self._window-1)] )
+
+    def _init_list_results(self):
+        # init IJ content and IJ skew
+        IJ_content_res = np.empty((1,self.__len__()))
+        IJ_content_res[:] = np.NAN
+        IJ_skew_res = np.empty((1,self.__len__()))
+        IJ_skew_res[:] = np.NAN
+        return IJ_content_res, IJ_skew_res
+
+    def _init_cumul_nuc(self):
+        """Cumulative of nucleotide count along genome (init from first window)"""
+        # ATGC (index stored in self._dict_nuc)
+        cumul = np.zeros((4,(self.__len__()+self._window) ))
+        for j in range(self._window):
+            nuc = self.sequence[j]
+            if nuc in self._dict_nuc:
+                cumul[self._dict_nuc[nuc]][j] += 1
+        self._cumul = cumul
+    
+    def _compute_skews(self):
+        ### initialisation =  Calculating GC skew and AT skew for first window
+        self._init_sliding_window()
+        GC_content_slide, GC_skew_slide = self._init_list_results()
+        AT_content_slide, AT_skew_slide = self._init_list_results()
+        self._init_cumul_nuc()
+
+        c = Counter(self._slide_window)
+        dict_counts = {'G' : c['G'], 'C' : c['C'], 'A' : c['A'], 'T' : c['T']}
+        i = 0
+
+        # GC
+        sumGC = float(dict_counts['G'] + dict_counts['C'])
+        GC_content_slide[0][i] = sumGC
+        if sumGC > 0:
+            GC_skew_slide[0][i] = (dict_counts['G'] - dict_counts['C'])/sumGC
+        # AT
+        sumAT = float(dict_counts['A'] + dict_counts['T'])
+        AT_content_slide[0][i] = sumAT
+        if sumAT > 0:
+            AT_skew_slide[0][i] = (dict_counts['A'] - dict_counts['T'])/sumAT
+
+        ### Compute for all genome
+        while(self._seq_right):
+            out_nuc = self._slide_window.popleft()
+            in_nuc = self._seq_right.popleft()
+            self._slide_window.append(in_nuc)
+
+            i += 1
+            # if in and out are the same : do nothing, append same result
+            if out_nuc != in_nuc:
+                # remove out from counters
+                if out_nuc in self._dict_nuc:
+                    dict_counts[out_nuc] -= 1
+                if in_nuc in self._dict_nuc:
+                    dict_counts[in_nuc] += 1
+                sumGC = float(dict_counts['G'] + dict_counts['C'])
+                sumAT = float(dict_counts['A'] + dict_counts['T'])
+
+            # fill results
+            # GC
+            GC_content_slide[0][i] = sumGC
+            if sumGC > 0:
+                GC_skew_slide[0][i] = (dict_counts['G'] - dict_counts['C'])/sumGC
+            # AT
+            AT_content_slide[0][i] = sumAT
+            if sumAT > 0:
+                AT_skew_slide[0][i] = (dict_counts['A'] - dict_counts['T'])/sumAT
+            # cumul
+            if in_nuc in self._dict_nuc:
+                self._cumul[self._dict_nuc[in_nuc]][i+self._window-1] +=1
+
+        self._GC_content_slide = GC_content_slide/float(self._window)
+        self._AT_content_slide = AT_content_slide/float(self._window)
+        self._cumul = np.delete(self._cumul, range(self.__len__(),self._cumul.shape[1]),1)
+        self._cumul = np.cumsum(self._cumul,axis=1)
+
+        ### save result for Z curve
+        self._Xn = list((self._cumul[self._dict_nuc['A']] + self._cumul[self._dict_nuc['G']]) -\
+         (self._cumul[self._dict_nuc['C']] + self._cumul[self._dict_nuc['T']]))
+
+        self._Yn = list((self._cumul[self._dict_nuc['A']] + self._cumul[self._dict_nuc['C']]) -\
+         (self._cumul[self._dict_nuc['G']] + self._cumul[self._dict_nuc['T']]))
+
+        self._Zn = list((self._cumul[self._dict_nuc['A']] + self._cumul[self._dict_nuc['T']]) -\
+         (self._cumul[self._dict_nuc['C']] + self._cumul[self._dict_nuc['G']]))
+
+        self._AT_skew_slide = AT_skew_slide
+        self._GC_skew_slide = GC_skew_slide
+
+        ### check proportion of ignored nucleotides
+        GC_content_total = (self._cumul[self._dict_nuc['G']][-1] + self._cumul[self._dict_nuc['C']][-1]) / float(self.__len__())
+        AT_content_total = (self._cumul[self._dict_nuc['A']][-1] + self._cumul[self._dict_nuc['T']][-1]) / float(self.__len__())
+        self._ignored_nuc = 1.0 - GC_content_total - AT_content_total
+
+    def _get_AT_skew(self):
+        if self._AT_skew_slide is None:
+            raise AttributeError("Please set a valid window to compute skew")
+        else:
+            return self._AT_skew_slide
+
+    AT_skew = property(_get_AT_skew)
+
+    def _get_GC_skew(self):
+        if self._GC_skew_slide is None:
+            raise AttributeError("Please set a valid window to compute skew")
+        else:
+            return self._GC_skew_slide
+
+    GC_skew = property(_get_GC_skew)
+
+    def plot_all_skews(self,figsize=(10, 12), fontsize=16, alpha=0.5):
+        if self._window is None:
+            raise AttributeError("Please set a valid window to compute skew")
+
+        # create figure
+        fig, axarr = pylab.subplots(9,1, sharex=True, figsize=figsize)
+
+        main_title = "Window size = %d (%.0f %% of genome )\n\
+        GC content = %.0f %%, AT content = %.0f %%, ignored = %.0f %%" \
+        % (self._window, self._window*100/self.__len__(), 
+            self.gc_content()*100, (1-self.gc_content())*100, self._ignored_nuc*100)
+
+        pylab.suptitle(main_title, fontsize=fontsize)
+
+        # GC skew
+        axarr[0].set_title("GC skew (blue) - Cumulative sum (red)")
+        axarr[0].plot(list(self._GC_skew_slide[0]),'b-',alpha=alpha)
+        axarr[0].set_ylabel("(G -C) / (G + C)")
+
+        axarr[1].plot(list(np.cumsum(self._GC_skew_slide[0])),'r-',alpha=alpha)
+        axarr[1].set_ylabel("(G -C) / (G + C)")
+        
+        # AT skew
+        axarr[2].set_title("AT skew (blue) - Cumulative sum (red)")
+        axarr[2].plot(list(self._AT_skew_slide[0]),'b-',alpha=alpha)
+        axarr[2].set_ylabel("(A -T) / (A + T)")
+
+        axarr[3].plot(list(np.cumsum(self._AT_skew_slide[0])),'r-',alpha=alpha)
+        axarr[3].set_ylabel("(A -T) / (A + T)")
+
+        # Xn
+        axarr[4].set_title("Cumulative RY skew (Purine - Pyrimidine)")
+        axarr[4].plot(self._Xn,'g-',alpha=alpha)
+        axarr[4].set_ylabel("(A + G) - (C + T)")
+
+        # Yn
+        axarr[5].set_title("Cumulative MK skew (Amino - Keto)")
+        axarr[5].plot(self._Yn,'g-',alpha=alpha)
+        axarr[5].set_ylabel("(A + C) - (G + T)")
+
+        # Zn
+        axarr[6].set_title("Cumulative H-bond skew (Weak H-bond - Strong H-bond)")
+        axarr[6].plot(self._Zn,'g-',alpha=alpha)
+        axarr[6].set_ylabel("(A + T) - (G + C)")
+
+        # GC content
+        axarr[7].set_title("GC content")
+        axarr[7].plot(list(self._GC_content_slide[0]),'k-',alpha=alpha)
+        axarr[7].set_ylabel("GC")
+
+        # AT content
+        axarr[8].set_title("AT content")
+        axarr[8].plot(list(self._AT_content_slide[0]),'k-',alpha=alpha)
+        axarr[8].set_ylabel("AT")
+
+        fig.tight_layout()
+        fig.subplots_adjust(top=0.88)
+
+
+
 
 
 class RNA(Sequence):
@@ -154,8 +373,8 @@ class RNA(Sequence):
 
     """
     def __init__(self, sequence):
-        super(RNA, self).__init__(sequence, complement_in=b"ACGUacgu",
-            complement_out=b"UGCAugca", letters="ACGUacguNn")
+        super(RNA, self).__init__(sequence, complement_in=b"ACGU",
+            complement_out=b"UGCA", letters="ACGUN")
 
 
 class Repeats(object):
