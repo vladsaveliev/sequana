@@ -5,11 +5,18 @@
 Usage
 ~~~~~~~
 
-Please use sequanix.
+First copy the BAM files into a directory. Start sequanix in that directory.
+Input BAM files must have the extension **.bam**.
 
-::
+Then, start sequanix as follows::
 
-    sequana --pipeline pacbio_qc --input-directory . --working-directory analysis --extension bam
+    sequana --pipeline pacbio_qc --input-directory . --working-directory analysis
+
+In the configuration panel, set the Kraken database. 
+
+Save the project and press Run. Once done, open the HTML report for the bam of
+interest
+
 
 
 Requirements
