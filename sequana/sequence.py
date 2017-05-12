@@ -158,6 +158,8 @@ class DNA(Sequence):
         self._GC_skew_slide = None
         self._GC_content_slide = None
         self._AT_content_slide = None
+        self._template_fft     = None
+        self._c_fft            = None
 
     def _get_window(self):
         return self._window
@@ -174,7 +176,12 @@ class DNA(Sequence):
             raise ValueError("Incorrect value for window: choose either float ]0,1]" +
                             " (fraction of genome) or integer [1,genome_length] (window size)")
 
+        print("Computing GC skew")
         self._compute_skews()
+
+        #### takes a too long time
+        # print("Computing fft")
+        # self._myfft_gc_skew(self._window)
 
     window = property(_get_window, _set_window)
 
@@ -239,6 +246,9 @@ class DNA(Sequence):
             self._slide_window.append(in_nuc)
 
             i += 1
+
+            if i % 500000 == 0:
+                print("%d / %d" % (i, self.__len__()))
             # if in and out are the same : do nothing, append same result
             if out_nuc != in_nuc:
                 # remove out from counters
@@ -301,11 +311,45 @@ class DNA(Sequence):
 
     GC_skew = property(_get_GC_skew)
 
+
+    def _create_template_fft(self,M=1000):
+        M_3 =  int(M/3)
+        W = [-0.5] * M_3 + list(np.linspace(-0.5,0.5,M-2*M_3)) + [0.5] * M_3
+        return list(W * np.hanning(M))
+
+    def _myfft_gc_skew(self,M):
+        """
+        x : GC_skew vector (list)
+        param N: length of the GC skew vector
+        param M: length of the template
+        param A: amplitude between positive and negative GC skew vector
+
+        """
+        x = self._GC_skew_slide[0]
+
+        N = len(x)
+        template =  self._create_template_fft(M) + [0] * (N-M)
+        template/=pylab.norm(template)
+        print("1")
+        c = np.fft.fft(x)
+        print("1bis")
+
+        c = abs(np.fft.ifft(
+                        np.fft.fft(x) * pylab.conj(np.fft.fft(template))
+                        )**2)/pylab.norm(x)/pylab.norm(template)
+        print("2")
+        # shift the SNR vector by the template length so that the peak is at the END of the template
+        c = np.roll(c, M//2)
+        print("3")
+        self._template_fft = template
+        self._c_fft        = c*2./N
+
     def plot_all_skews(self,figsize=(10, 12), fontsize=16, alpha=0.5):
         if self._window is None:
             raise AttributeError("Please set a valid window to compute skew")
 
         # create figure
+        # fig, axarr = pylab.subplots(10,1, sharex=True, figsize=figsize)
         fig, axarr = pylab.subplots(9,1, sharex=True, figsize=figsize)
 
         main_title = "Window size = %d (%.0f %% of genome )\n\
@@ -355,6 +399,11 @@ class DNA(Sequence):
         axarr[8].set_title("AT content")
         axarr[8].plot(list(self._AT_content_slide[0]),'k-',alpha=alpha)
         axarr[8].set_ylabel("AT")
+
+        # # FFT
+        # axarr[9].set_title("FFT")
+        # axarr[9].plot(list(self._c_fft),'g-',alpha=alpha)
+        # axarr[9].set_ylabel("FFT")
 
         fig.tight_layout()
         fig.subplots_adjust(top=0.88)
