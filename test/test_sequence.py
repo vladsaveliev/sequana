@@ -32,6 +32,18 @@ def test_dna():
     dna = DNA(datafile)
     assert len(dna) == 15894
     dna.gc_content()
+    # tests for the ORF and CDS functions
+    assert dna.ORF_pos.shape == (1525, 6)
+    dna.type_filter = "CDS"
+    assert dna.ORF_pos.shape == (328, 6)
+    dna.threshold = 20
+    assert dna.ORF_pos.shape == (231, 6)
+    dna.type_filter = "ORF"
+    assert dna.ORF_pos.shape == (964, 6)
+    dna.threshold = 0
+    assert dna.ORF_pos.shape == (1525, 6)
+    dna.hist_ORF_CDS_linearscale()
+    dna.barplot_count_ORF_CDS_by_frame()
 
     # test occurences
     dna._data = "ACGTGGGGGTT"
