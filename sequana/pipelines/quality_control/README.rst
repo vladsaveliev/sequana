@@ -1,5 +1,5 @@
 :Overview: Quality control, trimming (adapter removal) and taxonomic overview
-:Input: A set of FastQ (paired of single-end) 
+:Input: A set of FastQ (paired or single-end)
 :Output: fastqc, cleanup FastQ files
 
 Usage

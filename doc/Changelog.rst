@@ -13,12 +13,14 @@ Changelog
     - fastq_samples/ fastq module: fix histogram_gc_content maximum range
     - rulegraph rule: fix issue #405 (spaces in path to snakefile)
 
+
 * CHANGES:
 
     - sequanix:
         - snakemake output is now cleared
     - quality_control pipeline: default to atropos instead of cutadapt for
-          adapter trimming
+          adapter trimming. Kraken does not save classified reads, but only
+          unclassified reads that are also compressed now.
 
 * NEW:
 
