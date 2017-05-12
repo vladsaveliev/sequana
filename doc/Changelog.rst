@@ -19,7 +19,8 @@ Changelog
     - sequanix:
         - snakemake output is now cleared
     - quality_control pipeline: default to atropos instead of cutadapt for
-          adapter trimming. Kraken does not save classified reads, but only
+          adapter trimming. Kraken: remove classified reads and keep
+          unclassified. Unclassified reads are now compressed.
           unclassified reads that are also compressed now.
 
 * NEW:
@@ -28,6 +29,7 @@ Changelog
     - sequence module: Repeats class added
     - new pipeline called qc_pacbio to perform quick QC and taxonomy analysis
           for pacbio
+    - add ORD, CDS, GC SKEW in sequence module
 
 0.2. - March - April 2017
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
