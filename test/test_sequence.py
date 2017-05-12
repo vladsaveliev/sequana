@@ -60,3 +60,10 @@ def test_repeats():
     rep.hist_length_repeats()
 
 
+
+def test_gc_skew():
+
+    data = sequana_data("measles.fa")
+    dna = DNA(data)
+    dna.window = 100
+    dna.plot_all_skews()
