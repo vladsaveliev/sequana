@@ -493,7 +493,7 @@ commons ones are:
 - bug in the pipeline (Fill an issue on http://github.com/sequana/sequana/issues)
 - bug in Sequanix (fill an issue)
 - cluster issue: a job is killed because not enough memory was allocated (adapt
-the cluster option by increasing relevant resources such as memory requirements)
+  the cluster option by increasing relevant resources such as memory requirements)
 
 By experience, the first 2 type of errors are the most common.
 

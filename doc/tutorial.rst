@@ -30,7 +30,7 @@ First, run the sequana standalone application to initialise the pipeline
 **quality_control**::
 
     sequana --pipeline quality_control --output-directory TEST --adapters
-PCRFree
+    PCRFree
 
 This command downloads the required configuration file(s) in particular
 the config file and the pipeline itself. This example should work out of

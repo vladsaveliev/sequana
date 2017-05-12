@@ -311,6 +311,7 @@ latex_use_parts = False
 # Additional stuff for the LaTeX preamble.
 
 latex_elements['latex_preamble'] =r"""
+
 \definecolor{VerbatimColor}{rgb}{.9,1,0.9}
 \definecolor{VerbatimBorderColor}{rgb}{0,0,0}
 
