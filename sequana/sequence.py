@@ -8,6 +8,8 @@ from sequana.lazy import pandas as pd
 from sequana.lazy import numpy as np
 from sequana.lazy import pylab
 
+from sequana import logger
+from easydev import do_profile
 
 __all__ = ["DNA", "RNA", "Repeats", "Sequence"]
 
@@ -176,13 +178,12 @@ class DNA(Sequence):
             raise ValueError("Incorrect value for window: choose either float ]0,1]" +
                             " (fraction of genome) or integer [1,genome_length] (window size)")
 
-        print("Computing GC skew")
+        logger.info("Computing GC skew")
         self._compute_skews()
 
         #### takes a too long time
         # print("Computing fft")
         # self._myfft_gc_skew(self._window)
-
     window = property(_get_window, _set_window)
 
     def _get_type_window(self):
@@ -216,7 +217,8 @@ class DNA(Sequence):
             if nuc in self._dict_nuc:
                 cumul[self._dict_nuc[nuc]][j] += 1
         self._cumul = cumul
-    
+
+    @do_profile()
     def _compute_skews(self):
         ### initialisation =  Calculating GC skew and AT skew for first window
         self._init_sliding_window()
@@ -232,12 +234,12 @@ class DNA(Sequence):
         sumGC = float(dict_counts['G'] + dict_counts['C'])
         GC_content_slide[0][i] = sumGC
         if sumGC > 0:
-            GC_skew_slide[0][i] = (dict_counts['G'] - dict_counts['C'])/sumGC
+            GC_skew_slide[0][i] = (dict_counts['G'] - dict_counts['C']) / sumGC
         # AT
         sumAT = float(dict_counts['A'] + dict_counts['T'])
         AT_content_slide[0][i] = sumAT
         if sumAT > 0:
-            AT_skew_slide[0][i] = (dict_counts['A'] - dict_counts['T'])/sumAT
+            AT_skew_slide[0][i] = (dict_counts['A'] - dict_counts['T']) / sumAT
 
         ### Compute for all genome
         while(self._seq_right):
@@ -248,7 +250,7 @@ class DNA(Sequence):
             i += 1
 
             if i % 500000 == 0:
-                print("%d / %d" % (i, self.__len__()))
+                logger.info("%d / %d" % (i, self.__len__()))
             # if in and out are the same : do nothing, append same result
             if out_nuc != in_nuc:
                 # remove out from counters
@@ -291,8 +293,10 @@ class DNA(Sequence):
         self._GC_skew_slide = GC_skew_slide
 
         ### check proportion of ignored nucleotides
-        GC_content_total = (self._cumul[self._dict_nuc['G']][-1] + self._cumul[self._dict_nuc['C']][-1]) / float(self.__len__())
-        AT_content_total = (self._cumul[self._dict_nuc['A']][-1] + self._cumul[self._dict_nuc['T']][-1]) / float(self.__len__())
+        GC_content_total = (self._cumul[self._dict_nuc['G']][-1] +
+            self._cumul[self._dict_nuc['C']][-1]) / float(self.__len__())
+        AT_content_total = (self._cumul[self._dict_nuc['A']][-1] +
+            self._cumul[self._dict_nuc['T']][-1]) / float(self.__len__())
         self._ignored_nuc = 1.0 - GC_content_total - AT_content_total
 
     def _get_AT_skew(self):
@@ -300,7 +304,6 @@ class DNA(Sequence):
             raise AttributeError("Please set a valid window to compute skew")
         else:
             return self._AT_skew_slide
-
     AT_skew = property(_get_AT_skew)
 
     def _get_GC_skew(self):
@@ -308,16 +311,14 @@ class DNA(Sequence):
             raise AttributeError("Please set a valid window to compute skew")
         else:
             return self._GC_skew_slide
-
     GC_skew = property(_get_GC_skew)
 
-
-    def _create_template_fft(self,M=1000):
-        M_3 =  int(M/3)
-        W = [-0.5] * M_3 + list(np.linspace(-0.5,0.5,M-2*M_3)) + [0.5] * M_3
+    def _create_template_fft(self, M=1000):
+        M_3 =  int(M / 3)
+        W = [-0.5] * M_3 + list(np.linspace(-0.5, 0.5, M - 2*M_3)) + [0.5] * M_3
         return list(W * np.hanning(M))
 
-    def _myfft_gc_skew(self,M):
+    def _myfft_gc_skew(self, M):
         """
         x : GC_skew vector (list)
         param N: length of the GC skew vector
@@ -330,19 +331,14 @@ class DNA(Sequence):
         N = len(x)
         template =  self._create_template_fft(M) + [0] * (N-M)
         template/=pylab.norm(template)
-        print("1")
         c = np.fft.fft(x)
-        print("1bis")
-
         c = abs(np.fft.ifft(
                         np.fft.fft(x) * pylab.conj(np.fft.fft(template))
                         )**2)/pylab.norm(x)/pylab.norm(template)
-        print("2")
         # shift the SNR vector by the template length so that the peak is at the END of the template
         c = np.roll(c, M//2)
-        print("3")
         self._template_fft = template
-        self._c_fft        = c*2./N
+        self._c_fft = c*2./N
 
     def plot_all_skews(self,figsize=(10, 12), fontsize=16, alpha=0.5):
         if self._window is None:
@@ -354,7 +350,7 @@ class DNA(Sequence):
 
         main_title = "Window size = %d (%.0f %% of genome )\n\
         GC content = %.0f %%, AT content = %.0f %%, ignored = %.0f %%" \
-        % (self._window, self._window*100/self.__len__(), 
+        % (self._window, self._window*100/self.__len__(),
             self.gc_content()*100, (1-self.gc_content())*100, self._ignored_nuc*100)
 
         pylab.suptitle(main_title, fontsize=fontsize)
@@ -366,14 +362,14 @@ class DNA(Sequence):
 
         axarr[1].plot(list(np.cumsum(self._GC_skew_slide[0])),'r-',alpha=alpha)
         axarr[1].set_ylabel("(G -C) / (G + C)")
-        
+
         # AT skew
         axarr[2].set_title("AT skew (blue) - Cumulative sum (red)")
         axarr[2].plot(list(self._AT_skew_slide[0]),'b-',alpha=alpha)
         axarr[2].set_ylabel("(A -T) / (A + T)")
 
         axarr[3].plot(list(np.cumsum(self._AT_skew_slide[0])),'r-',alpha=alpha)
-        axarr[3].set_ylabel("(A -T) / (A + T)")
+        axarr[3].set_ylabel("(A -T) / (A + T)", rotation=0)
 
         # Xn
         axarr[4].set_title("Cumulative RY skew (Purine - Pyrimidine)")
@@ -409,9 +405,6 @@ class DNA(Sequence):
         fig.subplots_adjust(top=0.88)
 
 
-
-
-
 class RNA(Sequence):
     """Simple RNA class
 
@@ -429,7 +422,7 @@ class RNA(Sequence):
 class Repeats(object):
     """Class for finding repeats in DNA or RNA linear sequences.
 
-    Computation is performed each time the :attr:`threshold` is set 
+    Computation is performed each time the :attr:`threshold` is set
     to a new value.
 
     .. plot::
