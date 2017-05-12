@@ -140,26 +140,38 @@ class DNA(Sequence):
         >>> d.reverse_complement
 
     """
-    def __init__(self, sequence):
+    def __init__(self, sequence, 
+        codons_stop=["TAA","TGA","TAG"], 
+        codons_stop_rev=["TTA","TCA","CTA"], 
+        codons_start=["ATG"], 
+        codons_start_rev=["CAT"]):
+
         super(DNA, self).__init__(sequence, complement_in=b"ACGT",
             complement_out=b"TGCA", letters="ACGTN")
 
-        self._window       = None
-        self._type_window  = None
-        self._slide_window = None
-        self._seq_right    = None
-        self._dict_nuc     = dict_nuc = {'A' : 0, 'T' : 1, 'G' : 2, 'C' : 3}
-        self._cumul        = None
-        self._Xn           = None
-        self._Yn           = None
-        self._Zn           = None
-        self._ignored_nuc  = None
-        self._AT_skew_slide = None
-        self._GC_skew_slide = None
+        self._window           = None
+        self._type_window      = None
+        self._slide_window     = None
+        self._seq_right        = None
+        self._dict_nuc         = dict_nuc = {'A' : 0, 'T' : 1, 'G' : 2, 'C' : 3}
+        self._cumul            = None
+        self._Xn               = None
+        self._Yn               = None
+        self._Zn               = None
+        self._ignored_nuc      = None
+        self._AT_skew_slide    = None
+        self._GC_skew_slide    = None
         self._GC_content_slide = None
         self._AT_content_slide = None
         self._template_fft     = None
         self._c_fft            = None
+        self._codons_stop      = codons_stop
+        self._codons_stop_rev  = codons_stop_rev
+        self._codons_start     = codons_start
+        self._codons_start_rev = codons_start_rev
+        self._ORF_pos          = None
+        self._threshold        = None
+        self._type_filter      = None
 
     def _get_window(self):
         return self._window
@@ -291,8 +303,10 @@ class DNA(Sequence):
         self._GC_skew_slide = GC_skew_slide
 
         ### check proportion of ignored nucleotides
-        GC_content_total = (self._cumul[self._dict_nuc['G']][-1] + self._cumul[self._dict_nuc['C']][-1]) / float(self.__len__())
-        AT_content_total = (self._cumul[self._dict_nuc['A']][-1] + self._cumul[self._dict_nuc['T']][-1]) / float(self.__len__())
+        GC_content_total = (self._cumul[self._dict_nuc['G']][-1] +
+         self._cumul[self._dict_nuc['C']][-1]) / float(self.__len__())
+        AT_content_total = (self._cumul[self._dict_nuc['A']][-1] +
+         self._cumul[self._dict_nuc['T']][-1]) / float(self.__len__())
         self._ignored_nuc = 1.0 - GC_content_total - AT_content_total
 
     def _get_AT_skew(self):
@@ -408,7 +422,178 @@ class DNA(Sequence):
         fig.tight_layout()
         fig.subplots_adjust(top=0.88)
 
+    def _update_ORF_frame(self, i, nuc, j, frame, d_vars):
+        d_vars["codon"][j] = d_vars["codon"][j] + nuc
 
+        if len(d_vars["codon"][j]) == 3:
+            # test for start forward (if none already found)
+            is_start = d_vars["codon"][j] in self._codons_start
+            if is_start & np.isnan(d_vars["pos_ATG_f"][j]):
+                d_vars["pos_ATG_f"][j] = i-2
+            # test for stop forward
+            is_stop = d_vars["codon"][j] in self._codons_stop
+            if is_stop:
+                d_vars["end_f"][j] = i
+                # test is length of CDS or ORF found is enough to be in output
+                if self._type_filter == "CDS":
+                    len_to_filter = d_vars["end_f"][j] - d_vars["pos_ATG_f"][j] # len_CDS
+                else:
+                    len_to_filter = d_vars["end_f"][j] - d_vars["begin_f"][j]   # len_ORF
+
+                if len_to_filter > self._threshold:
+                    len_ORF = d_vars["end_f"][j] - d_vars["begin_f"][j]
+                    len_CDS = d_vars["end_f"][j] - d_vars["pos_ATG_f"][j]
+                    self._ORF_pos.append([d_vars["begin_f"][j],d_vars["end_f"][j],\
+                        frame+1, d_vars["pos_ATG_f"][j], len_ORF, len_CDS])
+                d_vars["begin_f"][j] = i+1
+                d_vars["pos_ATG_f"][j] = np.nan
+
+            # test for start reverse
+            is_start_rev = d_vars["codon"][j] in self._codons_start_rev
+            if is_start_rev :
+                d_vars["pos_ATG_r"][j] = i
+            # test for stop reverse
+            is_stop_rev = d_vars["codon"][j] in self._codons_stop_rev
+            if is_stop_rev:
+                d_vars["end_r"][j] = i-3
+                # test is length of CDS or ORF found is enough to be in output
+                if self._type_filter == "CDS":
+                    len_to_filter = d_vars["pos_ATG_r"][j] - d_vars["begin_r"][j]# len_CDS
+                else:
+                    len_to_filter = d_vars["end_r"][j] - d_vars["begin_r"][j]   # len_ORF
+
+                if len_to_filter > self._threshold:
+                    len_ORF = d_vars["end_r"][j] - d_vars["begin_r"][j]
+                    len_CDS = d_vars["pos_ATG_r"][j] - d_vars["begin_r"][j]
+                    self._ORF_pos.append([d_vars["begin_r"][j],d_vars["end_r"][j],\
+                        -(frame+1), d_vars["pos_ATG_r"][j], len_ORF, len_CDS])
+                d_vars["begin_r"][j] = i-3+1
+                d_vars["pos_ATG_r"][j] = np.nan
+
+            # reset codon
+            d_vars["codon"][j] = ""
+
+        return d_vars
+
+    def _find_ORF_CDS(self):
+        """Function for finding ORF and CDS in both strands of DNA"""
+        # init variables
+        d_vars = {
+        "codon" : ["","-","--"],
+        "begin_f" : [0]*3,
+        "begin_r" : [0]*3,
+        "end_f" : [0]*3,
+        "end_r" : [0]*3,
+        "pos_ATG_f" : [np.nan]*3,
+        "pos_ATG_r" : [np.nan]*3
+        }
+        print("Finding ORF and CDS")
+        # result list
+        self._ORF_pos = []
+
+        if self._threshold is None:
+            self._threshold = 0
+
+        if self._type_filter is None:
+            self._type_filter = "ORF"
+
+        # search ORF and CDS
+        for i, nuc in enumerate(self.sequence):
+            #print(i, nuc)
+            frame = (i+3-2) % 3
+            # if (i % 200000)==0:
+            #     print("%d / %d" %(i, len_genome))
+            for j in range(3):
+                d_vars = self._update_ORF_frame(i, nuc, j, frame, d_vars)
+
+        # convert result to dataframe
+        self._ORF_pos = pd.DataFrame(self._ORF_pos)
+        self._ORF_pos.columns = ["begin_pos","end_pos","frame","pos_ATG","len_ORF","len_CDS"]
+
+    def _get_ORF_pos(self):
+        if self._ORF_pos is None:
+            self._find_ORF_CDS()
+        return self._ORF_pos
+
+    ORF_pos = property(_get_ORF_pos)
+
+    def _get_threshold(self):
+        return self._threshold
+
+    def _set_threshold(self, value):
+        if value < 0:
+            raise ValueError("Threshold cannot be negative")
+        if (value < self._threshold) | (self._threshold is None) :
+            # need to compute again the result
+            self._threshold = value
+            self._find_ORF_CDS()
+        elif value > self._threshold:
+            # do not compute result again : filter existing df
+            self._threshold = value
+            if self._type_filter == "ORF":
+                self._ORF_pos = self._ORF_pos[self._ORF_pos["len_ORF"] > self._threshold]
+            elif self._type_filter == "CDS":
+                self._ORF_pos = self._ORF_pos[self._ORF_pos["len_CDS"] > self._threshold]
+
+    threshold = property(_get_threshold, _set_threshold)
+
+    def _get_type_filter(self):
+        return self._type_filter
+
+    def _set_type_filter(self,value):
+        if value not in ["ORF","CDS"]:
+            raise ValueError("Please select valid type of filter : ORF (default), CDS")
+        if self._ORF_pos is None:
+            self._type_filter = value
+        elif self._type_filter != value:
+            self._type_filter = value
+            if value == "ORF":
+                # need to compute again the result
+                self._find_ORF_CDS()
+            else:
+                # need to filter the result by CDS length
+                self._ORF_pos = self._ORF_pos[self._ORF_pos["len_CDS"] > self._threshold]
+
+    type_filter = property(_get_type_filter, _set_type_filter)
+
+    def hist_ORF_CDS_linearscale(self, alpha=0.5, bins=40, xlabel="Length", ylabel="#"):
+        if self._ORF_pos is None:
+            self._find_ORF_CDS()
+
+        n_ORF = self._ORF_pos["len_ORF"].dropna().shape[0]
+        n_CDS = self._ORF_pos["len_CDS"].dropna().shape[0]
+
+        # plot for all ORF and CDS
+        pylab.hist(self._ORF_pos["len_ORF"].dropna(),alpha=alpha, label="ORF, N = " + str(n_ORF),bins=bins)
+        pylab.hist(self._ORF_pos["len_CDS"].dropna(),alpha=alpha, label="CDS, N = " + str(n_CDS),bins=bins)
+        pylab.xlabel(xlabel)
+        pylab.ylabel(ylabel)
+        pylab.legend()
+        pylab.title("Length of ORF and CDS (after filter %s > %d)" \
+            %(self._type_filter, self._threshold))
+
+    def hist_ORF_CDS_logscale(self, alpha=0.5, bins=40, xlabel="Length", ylabel="#"):
+        self.hist_ORF_CDS_linearscale(alpha, bins, xlabel, ylabel)
+        pylab.yscale("log")
+
+    def barplot_count_ORF_CDS_by_frame(self, alpha=0.5, bins=40, 
+        xlabel="Frame", ylabel="#", bar_width=0.35):
+        if self._ORF_pos is None:
+                self._find_ORF_CDS()
+        # number of ORF and CDS found by frame
+        frames = [-3, -2, -1, 1, 2, 3]
+        nb_res_ORF = []
+        nb_res_CDS = []
+        for fr in frames:
+            nb_res_ORF.append(self._ORF_pos[self._ORF_pos["frame"] == fr]["len_ORF"].dropna().shape[0])
+            nb_res_CDS.append(self._ORF_pos[self._ORF_pos["frame"] == fr]["len_CDS"].dropna().shape[0])
+
+        pylab.bar(np.array(frames)-(bar_width/2), nb_res_ORF, bar_width, alpha=alpha, label="ORF N = %d" %sum(nb_res_ORF))
+        pylab.bar(np.array(frames)+(bar_width/2), nb_res_CDS, bar_width, alpha=alpha, label="CDS N = %d" %sum(nb_res_CDS))
+        pylab.xlabel(xlabel)
+        pylab.ylabel(ylabel)
+        pylab.legend(loc=1)
+        pylab.title("Number of ORF and CDS by frame")
 
 
 
