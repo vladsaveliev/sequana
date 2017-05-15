@@ -820,8 +820,8 @@ class Repeats(object):
                 self._find_begin_end_repeats(force=True)
     do_merge = property(_get_do_merge,_set_do_merge)
 
-    def hist_length_repeats(self, bins=None, alpha=0.5, hold=False,
-            fontsize=12, grid=True, label="Repeat length",
+    def hist_length_repeats(self, bins=20, alpha=0.5, hold=False,
+            fontsize=12, grid=True, title="Repeat length",
             xlabel="Repeat length", ylabel="#"):
         """Plots histogram of the repeat lengths
 
@@ -831,13 +831,10 @@ class Repeats(object):
         if self._list_len_repeats is None:
             self._get_list_len_repeats()
 
-        if bins is None:
-            bins = range(max(0, self.threshold -1), max(self._list_len_repeats)+2)
-
         if hold is False:
             pylab.clf()
-        pylab.hist(self._list_len_repeats, alpha=alpha, label=label, bins=bins)
-        pylab.legend()
+        pylab.hist(self._list_len_repeats, alpha=alpha, bins=bins)
+        pylab.title(title)
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
         if grid is True:
