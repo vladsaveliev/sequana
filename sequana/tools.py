@@ -303,10 +303,10 @@ def bam_get_paired_distance(filename):
 def _base_content(filename, window_size, letters, circular=False):
     # DOC: see gc_content
     fasta = FastxFile(filename)
-    mid = int(window_size / 2)
     checker = set(letters)
     chrom_gc_content = dict()
     for chrom in fasta:
+        mid = int(window_size / 2)
         # Create gc_content array
         gc_content = np.empty(len(chrom.sequence))
         gc_content[:] = np.nan
