@@ -189,7 +189,7 @@ class BAMPacbio(object):
                     fh.write(read)
 
     def hist_snr(self, bins=50, alpha=0.5, hold=False, fontsize=12,
-                grid=True, xlabel="SNR", ylabel="#"):
+                grid=True, xlabel="SNR", ylabel="#",title=""):
         """Plot histogram of the ACGT SNRs for all reads
 
         :param int bins: binning for the histogram
@@ -199,6 +199,7 @@ class BAMPacbio(object):
         :param bool grid:
         :param str xlabel:
         :param str ylabel:
+        :param str title:
 
         .. plot::
             :include-source:
@@ -221,12 +222,13 @@ class BAMPacbio(object):
         pylab.legend()
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
+        pylab.title(title,fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
 
     def hist_ZMW_subreads(self, alpha=0.5, hold=False, fontsize=12,
                           grid=True, xlabel="Number of ZMW passes",
-                          ylabel="#", label=""):
+                          ylabel="#", label="", title="Number of ZMW passes"):
         """Plot histogram of number of reads per ZMW (number of passes)
 
         :param float alpha: transparency of the histograms
@@ -236,6 +238,7 @@ class BAMPacbio(object):
         :param str xlabel:
         :param str ylabel:
         :param str label: label of the histogram (for the legend)
+        :param str title:
 
         .. plot::
             :include-source:
@@ -262,12 +265,13 @@ class BAMPacbio(object):
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
         pylab.yscale('log')
-        pylab.title("Number of ZMW passes",fontsize=fontsize)
+        pylab.title(title,fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
 
     def hist_len(self, bins=50, alpha=0.5, hold=False, fontsize=12,
-                grid=True,xlabel="Read Length",ylabel="#", label=""):
+                grid=True,xlabel="Read Length",ylabel="#", label="",
+                title=None):
         """Plot histogram Read length
 
         :param int bins: binning for the histogram
@@ -278,6 +282,7 @@ class BAMPacbio(object):
         :param str xlabel:
         :param str ylabel:
         :param str label: label of the histogram (for the legend)
+        :param str title:
 
         .. plot::
             :include-source:
@@ -292,19 +297,23 @@ class BAMPacbio(object):
             self._get_df()
         mean_len =  np.mean(self._df.loc[:,'read_length'])
 
+        # set title if not provided
+        if title is None:
+            title = "Read length  \n Mean length : %.2f" %(mean_len)
+
         # histogram GC percent
         if hold is False:
             pylab.clf()
         pylab.hist(self._df.loc[:,'read_length'], bins=bins, alpha=alpha,
-            label=label + ", mean : " + str(abs(mean_len)) + ", N : " + str(self._N) )
+            label=  "%s, mean : %.0f, N : %d" % (label, mean_len, self._N) )
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
-        pylab.title("Read length  \n Mean length : %.2f" %(mean_len), fontsize=fontsize)
+        pylab.title(title, fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
 
     def hist_GC(self, bins=50, alpha=0.5, hold=False, fontsize=12,
-                grid=True, xlabel="GC %", ylabel="#", label=""):
+                grid=True, xlabel="GC %", ylabel="#", label="",title=None):
         """Plot histogram GC content
 
         :param int bins: binning for the histogram
@@ -315,6 +324,7 @@ class BAMPacbio(object):
         :param str xlabel: 
         :param str ylabel:
         :param str label: label of the histogram (for the legend)
+        :param str title:
 
         .. plot::
             :include-source:
@@ -330,6 +340,10 @@ class BAMPacbio(object):
             self._get_df()
         mean_GC =  np.mean(self._df.loc[:,'GC_content'])
 
+        # set title if needed
+        if title is None:
+            title = "GC %%  \n Mean GC : %.2f" %(mean_GC)
+
         # histogram GC percent
         if hold is False:
             pylab.clf()
@@ -338,7 +352,7 @@ class BAMPacbio(object):
             + ", N : " + str(self._N))
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
-        pylab.title("GC %%  \n Mean GC : %.2f" %(mean_GC), fontsize=fontsize)
+        pylab.title(title, fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
         pylab.xlim([0, 100])
