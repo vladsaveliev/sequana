@@ -40,9 +40,12 @@ Here is a snapshot.
 .. image:: _static/sequanix.png
 
 
+.. _sequana_app:
+
 sequana
 ---------
 
+:Deprecated: will be removed and replaced by Sequanix
 :Overview: Creates project(s) to run a **Sequana** pipeline(s)
 
 The **sequana** executable can be used to create pipelines (and associated

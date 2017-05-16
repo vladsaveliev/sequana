@@ -51,11 +51,13 @@ Issues: http://github.com/sequana/sequana
             help="""Several files may be processed in parallel. By default 4
                 threads are used""")
 
+
 def get_fastq_stats(filename, sample=1e16):
     from sequana import FastQC
     ff = FastQC(filename, max_sample=sample, verbose=False)
     stats = ff.get_stats()
     return stats
+
 
 def get_bed_stats(filename):
     from sequana import GenomeCov
@@ -90,14 +92,13 @@ def main(args=None):
 
 
     if options.multiple is True:
-        from sequana.reporting.report_multiple_summary import SequanaMultipleSummary
+        from sequana.modules_report.multi_summary import MultiSummary
         if options.glob:
-            sms = SequanaMultipleSummary(pattern=options.glob, verbose=options.verbose)
+            sms = MultiSummary(output_filename="multi_summary.html", 
+                        pattern=options.glob, verbose=options.verbose)
         else:
-            sms = SequanaMultipleSummary(verbose=options.verbose)
-        sms.create_report()
-        if options.verbose:
-            print("Done. ")
+            sms = MultiSummary(output_filename="multi_summary.html", 
+                        verbose=options.verbose)
         sys.exit(0)
 
     # We put the import here to make the --help faster
@@ -115,7 +116,6 @@ def main(args=None):
     for this in ff.realpaths:
         print(" - " + this)
 
-
     mc = MultiProcessing(options.thread, progress=True)
     if extension in ["fastq", "fastq.gz"]:
         for filename in ff.realpaths:
@@ -128,7 +128,6 @@ def main(args=None):
     elif extension.endswith("bam"):
         for filename in ff.realpaths:
             mc.add_job(get_bam_stats, filename)
-
     mc.run()
 
     results = {}

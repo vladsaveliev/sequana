@@ -1,0 +1,31 @@
+def miRNA_count_dynamic(name, project):
+
+    metadata = {"name": name}
+
+    """
+    miRNA_count ....
+
+    Required input:
+        __miRNA_count__input: bam file
+
+    Required output:
+        __miRNA_count__output: tabulated file
+    """
+
+    miRNA_count_code = '''
+rule miRNA_count_%(name)s:
+    input:
+        __miRNA_count_%(name)s__input
+    output:
+        __miRNA_count_%(name)s__output
+    log:
+        __miRNA_count_%(name)s__log
+    shell:
+        """
+        samtools view {input} | gawk -v FS="\t" '!/^@/{{print $3}}' | sort | uniq -c | gawk '{{print $2 "\t" $1 }}' | sed '1d' > {output}
+        """
+
+    '''
+
+    from sequana.snaketools import build_dynamic_rule
+    return build_dynamic_rule(miRNA_count_code % metadata, project.pipeline_dir)

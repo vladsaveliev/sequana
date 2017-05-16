@@ -171,9 +171,9 @@ include: sm.modules["conda"]
 # Create rulegraph
 __rulegraph__input = __snakefile__
 __rulegraph__output = "rulegraph/rulegraph.svg"
-__rulegraph__mapper = {"sequana_coverage":"sequana_coverage.html",
-                       "freebayes_vcf_filter":"variant_calling.html",
-                       "quast": "quast/icarus.html"}
+__rulegraph__mapper = {"sequana_coverage":"../sequana_coverage.html",
+                       "freebayes_vcf_filter":"../variant_calling.html",
+                       "quast": "../quast/icarus.html"}
 include: sm.modules["rulegraph"]
 expected_output.extend(["requirements.txt", __rulegraph__output])
 

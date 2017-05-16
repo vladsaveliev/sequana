@@ -13,13 +13,13 @@ Adapters
     :members:
     :undoc-members:
 
-BAMTOOLs related
+BAMTOOLS related
 --------------------
 .. automodule:: sequana.bamtools
     :members:
     :undoc-members:
 
-BEDTOOLs related (coverage)
+BEDTOOLS related (coverage)
 ---------------------------
 .. automodule:: sequana.bedtools
     :members:
@@ -44,12 +44,24 @@ Experimental design
     :members:
     :undoc-members:
 
-
 FASTQ module
 ---------------
 .. automodule:: sequana.fastq
     :members:
     :undoc-members:
+
+FASTA module
+---------------
+.. automodule:: sequana.fasta
+    :members:
+    :undoc-members:
+
+Sequence module
+---------------
+.. automodule:: sequana.sequence
+    :members:
+    :undoc-members:
+
 
 Kmer module
 ---------------
@@ -77,6 +89,11 @@ Taxonomy related (Kraken - Krona)
     :members:
     :undoc-members:
 
+Pacbio module
+----------------
+.. automodule:: sequana.pacbio
+    :members:
+    :undoc-members:
 
 Phred quality
 ------------------
@@ -89,7 +106,6 @@ Running median
 .. automodule:: sequana.running_median
     :members:
     :undoc-members:
-
 
 Snakemake module
 -----------------
@@ -119,19 +135,29 @@ General tools
 
 VCF module
 ------------
-.. automodule:: sequana.vcf_filter
+.. automodule:: sequana.freebayes_vcf_filter
     :members:
     :undoc-members:
 
-Reports
------------
-.. automodule:: sequana.reporting.report_main
-.. automodule:: sequana.reporting.report_bam
-.. automodule:: sequana.reporting.report_summary
+Module Reports
+-------------------
+
+.. automodule:: sequana.modules_report.base_module
+    :members:
+    :undoc-members:
+.. automodule:: sequana.modules_report.bamqc
+    :members:
+    :undoc-members:
+.. automodule:: sequana.modules_report.coverage
+    :members:
+    :undoc-members:
 
 
 Others
 ---------
+
+data related
+~~~~~~~~~~~~~~~~
 .. automodule:: sequana.datatools
     :members:
     :undoc-members:
@@ -139,10 +165,18 @@ Others
 .. automodule:: sequana.resources.data
 
 
+report related
+~~~~~~~~~~~~~~~~~~
+
+.. automodule:: sequana.utils.datatables_js
+    :members:
+    :undoc-members:
+
+
 
 .. Standalone applications
     ---------------------------
-    
+
     .. automodule:: sequana.scripts.coverage
         :members:
         :undoc-members:

@@ -3,10 +3,6 @@
 Tutorial
 ==========
 
-Following the introductory example in :ref:`quick_start`, we will look at other pipelines such as
-the taxonomic classification, variant calling and coverage. 
-
-
 The following example will show how to run the quality control on a pair of
 FastQ files. The data comes from a sequencing (using HiSeq technology) of a
 Measles virus. For testing purposes, you can download :download:`R1
@@ -34,7 +30,7 @@ First, run the sequana standalone application to initialise the pipeline
 **quality_control**::
 
     sequana --pipeline quality_control --output-directory TEST --adapters
-PCRFree
+    PCRFree
 
 This command downloads the required configuration file(s) in particular
 the config file and the pipeline itself. This example should work out of
@@ -76,8 +72,8 @@ FASTA files mixing measles viruses and others viruses)::
     kd.download("toydb")
     database_path = sequana_config_path + "/kraken_toydb"
 
-Then, you may use a Sequana pipeline (see :ref:`pipeline_taxon` and :mod:`sequana.kraken`) or this standalone
-application::
+Then, you may use a Sequana pipeline (see :ref:`pipeline_taxon` and
+ :mod:`sequana.kraken`) or this standalone application::
 
     sequana_taxonomy  --file1 Test_R1.cutadapt.fastq.gz
         --file2 Test_R2.cutadapt.fastq.gz --database  <database_path>

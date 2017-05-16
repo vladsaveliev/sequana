@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>604</width>
-    <height>551</height>
+    <width>647</width>
+    <height>728</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -16,8 +16,156 @@
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
+  <property name="palette">
+   <palette>
+    <active>
+     <colorrole role="BrightText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>170</red>
+        <green>0</green>
+        <blue>0</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="HighlightedText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>170</red>
+        <green>0</green>
+        <blue>0</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="AlternateBase">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>247</red>
+        <green>10</green>
+        <blue>46</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="NoRole">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>170</red>
+        <green>0</green>
+        <blue>0</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="ToolTipBase">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>170</green>
+        <blue>127</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </active>
+    <inactive>
+     <colorrole role="BrightText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>170</red>
+        <green>0</green>
+        <blue>0</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="HighlightedText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>170</red>
+        <green>0</green>
+        <blue>0</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="AlternateBase">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>247</red>
+        <green>10</green>
+        <blue>46</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="NoRole">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>170</red>
+        <green>0</green>
+        <blue>0</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="ToolTipBase">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>170</green>
+        <blue>127</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </inactive>
+    <disabled>
+     <colorrole role="BrightText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>170</red>
+        <green>0</green>
+        <blue>0</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="HighlightedText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>170</red>
+        <green>0</green>
+        <blue>0</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="AlternateBase">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>247</red>
+        <green>10</green>
+        <blue>46</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="NoRole">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>170</red>
+        <green>0</green>
+        <blue>0</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="ToolTipBase">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>170</green>
+        <blue>127</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </disabled>
+   </palette>
+  </property>
   <property name="windowTitle">
    <string>Sequanix (Sequana GUI)</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
   </property>
   <property name="tabShape">
    <enum>QTabWidget::Rounded</enum>
@@ -25,7 +173,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="0">
-     <layout class="QVBoxLayout" name="vlayout" stretch="0,1,0,0,1">
+     <layout class="QVBoxLayout" name="vlayout" stretch="0,0,0,0,0">
       <property name="spacing">
        <number>0</number>
       </property>
@@ -55,7 +203,7 @@
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>151</height>
+          <height>167</height>
          </size>
         </property>
         <property name="toolTip">
@@ -66,6 +214,9 @@
         </property>
         <property name="tabPosition">
          <enum>QTabWidget::North</enum>
+        </property>
+        <property name="tabShape">
+         <enum>QTabWidget::Rounded</enum>
         </property>
         <property name="currentIndex">
          <number>0</number>
@@ -85,14 +236,14 @@
          </attribute>
          <layout class="QGridLayout" name="gridLayout_6">
           <item row="0" column="0">
-           <layout class="QVBoxLayout" name="verticalLayout_4">
-            <item>
+           <layout class="QGridLayout" name="gridLayout_20">
+            <item row="0" column="0">
              <widget class="QTabWidget" name="tabs_sequana">
               <property name="enabled">
                <bool>true</bool>
               </property>
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -102,6 +253,232 @@
                 <width>0</width>
                 <height>0</height>
                </size>
+              </property>
+              <property name="palette">
+               <palette>
+                <active>
+                 <colorrole role="Button">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>255</red>
+                    <green>238</green>
+                    <blue>221</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="Light">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>170</red>
+                    <green>0</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="BrightText">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>170</red>
+                    <green>0</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="Base">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>255</red>
+                    <green>238</green>
+                    <blue>221</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="Window">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>255</red>
+                    <green>238</green>
+                    <blue>221</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="HighlightedText">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>170</red>
+                    <green>0</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="AlternateBase">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>170</red>
+                    <green>0</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="NoRole">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>170</red>
+                    <green>0</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                </active>
+                <inactive>
+                 <colorrole role="Button">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>255</red>
+                    <green>238</green>
+                    <blue>221</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="Light">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>170</red>
+                    <green>0</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="BrightText">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>170</red>
+                    <green>0</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="Base">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>255</red>
+                    <green>238</green>
+                    <blue>221</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="Window">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>255</red>
+                    <green>238</green>
+                    <blue>221</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="HighlightedText">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>170</red>
+                    <green>0</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="AlternateBase">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>170</red>
+                    <green>0</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="NoRole">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>170</red>
+                    <green>0</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                </inactive>
+                <disabled>
+                 <colorrole role="Button">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>255</red>
+                    <green>238</green>
+                    <blue>221</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="Light">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>170</red>
+                    <green>0</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="BrightText">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>170</red>
+                    <green>0</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="Base">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>255</red>
+                    <green>238</green>
+                    <blue>221</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="Window">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>255</red>
+                    <green>238</green>
+                    <blue>221</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="HighlightedText">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>170</red>
+                    <green>0</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="AlternateBase">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>170</red>
+                    <green>0</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                 <colorrole role="NoRole">
+                  <brush brushstyle="SolidPattern">
+                   <color alpha="255">
+                    <red>170</red>
+                    <green>0</green>
+                    <blue>0</blue>
+                   </color>
+                  </brush>
+                 </colorrole>
+                </disabled>
+               </palette>
               </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left tab:&lt;/span&gt; Select one of the pipeline in the combo box. In order to get information about a pipeline, please see the Help menu. &lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle tab:&lt;/span&gt; Select one of this option&lt;/li&gt;&lt;ol style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;&quot;&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Input directory: the directory where fastq.gz files are stored (all Sequana pipelines expect fastq.gz as input)&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Input samples: select one or two files (fastq.gz) in a directory&lt;/li&gt;&lt;/ol&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right tab: &lt;/span&gt;Select working directory where Snakefile/pipeline and config files will be copied. Pipelines are also ran in that directory. &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -116,7 +493,7 @@
                <enum>QTabWidget::Rounded</enum>
               </property>
               <property name="currentIndex">
-               <number>1</number>
+               <number>0</number>
               </property>
               <property name="documentMode">
                <bool>false</bool>
@@ -127,17 +504,14 @@
               <property name="movable">
                <bool>true</bool>
               </property>
-              <property name="tabBarAutoHide" stdset="0">
+              <property name="tabBarAutoHide">
                <bool>false</bool>
               </property>
               <widget class="QWidget" name="Pipeline">
                <attribute name="title">
                 <string>1 - Pipeline selection</string>
                </attribute>
-               <layout class="QHBoxLayout" name="layout_sequana">
-                <property name="spacing">
-                 <number>6</number>
-                </property>
+               <layout class="QGridLayout" name="gridLayout_19">
                 <property name="sizeConstraint">
                  <enum>QLayout::SetDefaultConstraint</enum>
                 </property>
@@ -147,10 +521,10 @@
                 <property name="rightMargin">
                  <number>6</number>
                 </property>
-                <item>
+                <item row="0" column="0">
                  <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
                   <property name="spacing">
-                   <number>4</number>
+                   <number>6</number>
                   </property>
                   <property name="rightMargin">
                    <number>0</number>
@@ -160,10 +534,272 @@
                   </property>
                   <item>
                    <widget class="QComboBox" name="choice_button">
+                    <property name="palette">
+                     <palette>
+                      <active>
+                       <colorrole role="Button">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>255</red>
+                          <green>238</green>
+                          <blue>221</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="Light">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>170</red>
+                          <green>0</green>
+                          <blue>0</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="BrightText">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>170</red>
+                          <green>0</green>
+                          <blue>0</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="Base">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>255</red>
+                          <green>238</green>
+                          <blue>221</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="Window">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>255</red>
+                          <green>238</green>
+                          <blue>221</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="Highlight">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>89</red>
+                          <green>100</green>
+                          <blue>255</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="HighlightedText">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>170</red>
+                          <green>0</green>
+                          <blue>0</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="AlternateBase">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>170</red>
+                          <green>0</green>
+                          <blue>0</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="NoRole">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>170</red>
+                          <green>0</green>
+                          <blue>0</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                      </active>
+                      <inactive>
+                       <colorrole role="Button">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>255</red>
+                          <green>238</green>
+                          <blue>221</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="Light">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>170</red>
+                          <green>0</green>
+                          <blue>0</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="BrightText">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>170</red>
+                          <green>0</green>
+                          <blue>0</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="Base">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>255</red>
+                          <green>238</green>
+                          <blue>221</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="Window">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>255</red>
+                          <green>238</green>
+                          <blue>221</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="Highlight">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>89</red>
+                          <green>100</green>
+                          <blue>255</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="HighlightedText">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>170</red>
+                          <green>0</green>
+                          <blue>0</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="AlternateBase">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>170</red>
+                          <green>0</green>
+                          <blue>0</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="NoRole">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>170</red>
+                          <green>0</green>
+                          <blue>0</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                      </inactive>
+                      <disabled>
+                       <colorrole role="Button">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>255</red>
+                          <green>238</green>
+                          <blue>221</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="Light">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>170</red>
+                          <green>0</green>
+                          <blue>0</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="BrightText">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>170</red>
+                          <green>0</green>
+                          <blue>0</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="Base">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>255</red>
+                          <green>238</green>
+                          <blue>221</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="Window">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>255</red>
+                          <green>238</green>
+                          <blue>221</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="Highlight">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>89</red>
+                          <green>100</green>
+                          <blue>255</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="HighlightedText">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>170</red>
+                          <green>0</green>
+                          <blue>0</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="AlternateBase">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>170</red>
+                          <green>0</green>
+                          <blue>0</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                       <colorrole role="NoRole">
+                        <brush brushstyle="SolidPattern">
+                         <color alpha="255">
+                          <red>170</red>
+                          <green>0</green>
+                          <blue>0</blue>
+                         </color>
+                        </brush>
+                       </colorrole>
+                      </disabled>
+                     </palette>
+                    </property>
+                    <property name="contextMenuPolicy">
+                     <enum>Qt::DefaultContextMenu</enum>
+                    </property>
                     <property name="toolTip">
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sequana pipelines are automatically fetched from sequana library.&lt;/p&gt;&lt;p&gt;Each pipeline is defined by a pipeline name. Its config file is fetched automatically.&lt;/p&gt;&lt;p&gt;Each pipeline require the user to define the input. It may be one of:&lt;/p&gt;&lt;p&gt;&lt;ul&gt;&lt;li&gt; a directory&lt;/li&gt;&lt;li&gt; a set of FastQ input file&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
-                    <property name="currentText" stdset="0">
+                    <property name="autoFillBackground">
+                     <bool>false</bool>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">selection-background-color: rgb(89, 100, 255);</string>
+                    </property>
+                    <property name="currentText">
                      <string>Select a Sequana pipeline</string>
                     </property>
                     <item>
@@ -187,7 +823,7 @@
                   <item>
                    <widget class="QTabWidget" name="tabWidget">
                     <property name="sizePolicy">
-                     <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
                       <horstretch>0</horstretch>
                       <verstretch>0</verstretch>
                      </sizepolicy>
@@ -204,8 +840,14 @@
                     <property name="styleSheet">
                      <string notr="true">background-color:white</string>
                     </property>
+                    <property name="tabShape">
+                     <enum>QTabWidget::Rounded</enum>
+                    </property>
                     <property name="currentIndex">
                      <number>0</number>
+                    </property>
+                    <property name="elideMode">
+                     <enum>Qt::ElideNone</enum>
                     </property>
                     <widget class="QWidget" name="tab_4">
                      <attribute name="title">
@@ -213,7 +855,20 @@
                      </attribute>
                      <layout class="QGridLayout" name="gridLayout_10">
                       <item row="0" column="0">
-                       <layout class="QVBoxLayout" name="layout_sequana_input_dir"/>
+                       <layout class="QVBoxLayout" name="layout_sequana_input_dir">
+                        <property name="spacing">
+                         <number>0</number>
+                        </property>
+                        <property name="sizeConstraint">
+                         <enum>QLayout::SetNoConstraint</enum>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
+                       </layout>
                       </item>
                      </layout>
                     </widget>
@@ -223,7 +878,7 @@
                      </attribute>
                      <layout class="QGridLayout" name="gridLayout_9">
                       <item row="0" column="0">
-                       <layout class="QHBoxLayout" name="layout_sequana_input_files"/>
+                       <layout class="QVBoxLayout" name="layout_sequana_input_files"/>
                       </item>
                      </layout>
                     </widget>
@@ -273,6 +928,12 @@
             </property>
             <item>
              <widget class="QTabWidget" name="tabs_generic">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Left tab:&lt;/span&gt; Select a valid local Snakefile. &lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Middle tab:&lt;/span&gt; Select a config file. This is optional. Note that Snakefiles may be using a config file or not. For instance if &lt;i&gt;configfile: &quot;config.yaml&quot;&lt;/i&gt; is found, a config file is expected. Users have to check with the author of the snakefile whether a config file is required or not.&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Right tab: &lt;/span&gt;Select working directory where Snakefile and config files will be copied. Pipelines are also ran in that directory. &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
@@ -280,7 +941,7 @@
                <string notr="true">background-color:#ffeedd</string>
               </property>
               <property name="currentIndex">
-               <number>1</number>
+               <number>0</number>
               </property>
               <widget class="QWidget" name="snakefile">
                <attribute name="title">
@@ -298,7 +959,18 @@
                </attribute>
                <layout class="QGridLayout" name="gridLayout_13">
                 <item row="0" column="0">
-                 <layout class="QHBoxLayout" name="layout_generic_config"/>
+                 <layout class="QHBoxLayout" name="layout_generic_config">
+                  <property name="spacing">
+                   <number>6</number>
+                  </property>
+                 </layout>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QPushButton" name="cancel_push_button">
+                  <property name="text">
+                   <string>cancel selection</string>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </widget>
@@ -337,108 +1009,160 @@
         <property name="title">
          <string>Pipeline control</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout_15">
+        <layout class="QGridLayout" name="gridLayout_15" columnstretch="1,0,2">
          <item row="0" column="0">
-          <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,0,1">
-           <property name="margin">
-            <number>2</number>
+          <widget class="QFrame" name="frame">
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
            </property>
-           <item>
-            <layout class="QFormLayout" name="formLayout">
-             <item row="1" column="0">
-              <widget class="QLabel" name="label">
-               <property name="text">
-                <string>Until</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QComboBox" name="until_box">
-               <property name="editable">
-                <bool>false</bool>
-               </property>
-               <property name="currentText" stdset="0">
-                <string/>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_2">
-               <property name="text">
-                <string>Starting</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QComboBox" name="starting_box"/>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout_5">
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_5">
-               <item>
-                <widget class="QLabel" name="label_3">
-                 <property name="text">
-                  <string>&lt;b&gt;Is it a local or cluster run ?&lt;/b&gt;</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QComboBox" name="comboBox_local">
-                 <item>
-                  <property name="text">
-                   <string>local</string>
-                  </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_17">
+            <item row="1" column="0">
+             <widget class="QFrame" name="frame_control">
+              <property name="frameShape">
+               <enum>QFrame::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_16">
+               <item row="1" column="1">
+                <layout class="QFormLayout" name="formLayout">
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="label_2">
+                   <property name="text">
+                    <string>Starting</string>
+                   </property>
+                  </widget>
                  </item>
-                 <item>
-                  <property name="text">
-                   <string>cluster</string>
-                  </property>
+                 <item row="2" column="1">
+                  <widget class="QComboBox" name="starting_box"/>
                  </item>
-                </widget>
+                 <item row="3" column="1">
+                  <widget class="QComboBox" name="until_box">
+                   <property name="editable">
+                    <bool>false</bool>
+                   </property>
+                   <property name="currentText">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="0">
+                  <widget class="QLabel" name="label">
+                   <property name="text">
+                    <string>Until</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </item>
               </layout>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_4">
-               <property name="autoFillBackground">
-                <bool>false</bool>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background-color:orange</string>
-               </property>
-               <property name="frameShape">
-                <enum>QFrame::Box</enum>
-               </property>
-               <property name="text">
-                <string>Please, Check the snakemake dialog to set the number of nodes in the local or cluster tabs</string>
-               </property>
-               <property name="wordWrap">
-                <bool>true</bool>
-               </property>
-               <property name="margin">
-                <number>1</number>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QPushButton" name="show_advanced_control">
+              <property name="text">
+               <string>show advanced control</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="0" column="2">
+          <widget class="QFrame" name="frame_3">
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_18">
+            <item row="0" column="2">
+             <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1">
+              <property name="leftMargin">
+               <number>2</number>
+              </property>
+              <property name="topMargin">
+               <number>2</number>
+              </property>
+              <property name="rightMargin">
+               <number>2</number>
+              </property>
+              <property name="bottomMargin">
+               <number>2</number>
+              </property>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_5">
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_5">
+                  <item>
+                   <widget class="QLabel" name="label_3">
+                    <property name="text">
+                     <string>&lt;b&gt;Is it a local or cluster run ?&lt;/b&gt;</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="comboBox_local">
+                    <item>
+                     <property name="text">
+                      <string>local</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>cluster</string>
+                     </property>
+                    </item>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_4">
+                  <property name="autoFillBackground">
+                   <bool>false</bool>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">background-color:orange</string>
+                  </property>
+                  <property name="frameShape">
+                   <enum>QFrame::Box</enum>
+                  </property>
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Please, Check the snakemake dialog (&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+O&lt;/span&gt;) to set the number of nodes in the local or cluster tabs and cluster options.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="wordWrap">
+                   <bool>true</bool>
+                  </property>
+                  <property name="margin">
+                   <number>1</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -446,7 +1170,7 @@
       <item>
        <widget class="QTabWidget" name="tabs">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -476,7 +1200,7 @@
          <string notr="true">background-color:#ffffff</string>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="snakemake">
          <property name="sizePolicy">
@@ -486,7 +1210,7 @@
           </sizepolicy>
          </property>
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the output of the snakemake execution. &lt;/p&gt;&lt;p&gt;Be aware that we parse the output so colors and output may be slightly different.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string/>
          </property>
          <attribute name="title">
           <string>&amp;Snakemake output</string>
@@ -589,8 +1313,8 @@ Once saved, the DAG and RUN buttons should be available.</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>96</width>
-               <height>26</height>
+               <width>98</width>
+               <height>28</height>
               </rect>
              </property>
             </widget>
@@ -739,6 +1463,9 @@ Once saved, the DAG and RUN buttons should be available.</string>
     &lt;/ul&gt;
 &lt;/p&gt;</string>
         </property>
+        <property name="toolTipDuration">
+         <number>-1</number>
+        </property>
         <property name="styleSheet">
          <string notr="true">border: 2px solid grey;
 margin:2px;
@@ -748,9 +1475,6 @@ text-align: center;
         </property>
         <property name="value">
          <number>1</number>
-        </property>
-        <property name="toolTipDuration" stdset="0">
-         <number>-1</number>
         </property>
        </widget>
       </item>
@@ -763,8 +1487,8 @@ text-align: center;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>604</width>
-     <height>22</height>
+     <width>647</width>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -772,6 +1496,7 @@ text-align: center;
      <string>&amp;File</string>
     </property>
     <addaction name="separator"/>
+    <addaction name="action_import_configfile"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuOption">
@@ -861,11 +1586,15 @@ text-align: center;
     <string>Ctrl+H</string>
    </property>
   </action>
+  <action name="action_import_configfile">
+   <property name="text">
+    <string>Import Config File (sequana pipeline only)</string>
+   </property>
+  </action>
  </widget>
  <tabstops>
   <tabstop>tabs_pipeline</tabstop>
   <tabstop>choice_button</tabstop>
-  <tabstop>until_box</tabstop>
   <tabstop>starting_box</tabstop>
   <tabstop>tabs</tabstop>
   <tabstop>run_btn</tabstop>

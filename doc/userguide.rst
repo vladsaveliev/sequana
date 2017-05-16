@@ -1,4 +1,4 @@
-User Guide
+Overview
 ############
 
 .. contents::
@@ -95,7 +95,7 @@ Many more functionalities are available. The reference guide should help you.
 
 The Python example about the coverage is actually quite useful. We 
 therefore decided to provide a standalone
-application. There are otherstandalone applications listed in
+application. There are other standalone applications listed in
 :ref:`applications` section.
 
 The one related to the coverage example shown above is named
@@ -173,7 +173,8 @@ Using **Sequanix** standalone
 ---------------------------------
 
 An even easier way is to use our graphical interface named **Sequanix**. A
-snapshot can be found in the :ref:`sequanix` section.
+snapshot can be found in the :ref:`sequanix` section and a tutorial in
+:ref:`tutorial_sequanix`.
 
 
 
@@ -186,12 +187,11 @@ the **Sequana** library, they can also be used with your own code. For instance,
 if you have a BAM file, you can use the following code to create a basic
 report::
 
-    from sequana import BAM, sequana_data, BAMReport
-    b = BAM(sequana_data("test.bam", "testing"))
+    from sequana import BAM, sequana_data
+    from sequana.modules_report.bamqc import BAMQCModule
+    filename sequana_data("test.bam", "testing")
 
-    r = BAMReport()
-    r.set_data(b)
-    r.create_report()
+    r = BAMQCModule(filename, "bam.html")
 
-that results can be shown in `report/bam.html <_static/report/bam.html>`_
+that results can be shown in `bam.html <_static/bam.html>`_
 

@@ -184,8 +184,8 @@ include: sm.modules["conda"]
 # Create rulegraph
 __rulegraph__input = __snakefile__
 __rulegraph__output = "rulegraph/rulegraph.svg"
-__rulegraph__mapper = {"sequana_coverage":"sequana_coverage.html",
-                       "freebayes_vcf_filter":"variant_calling.html"}
+__rulegraph__mapper = {"sequana_coverage":"../sequana_coverage.html",
+                       "freebayes_vcf_filter":"../variant_calling.html"}
 include: sm.modules["rulegraph"]
 expected_output.extend(["requirements.txt", __rulegraph__output])
 
@@ -213,7 +213,7 @@ expected_output.append(expand(__summary_pipeline__json_output,
                               sample=manager.samples))
 
 # these rules don't need to be submit on a node.
-# snpeff_download_database could be need an internet connection
+# snpeff_download_database needs an internet connection
 localrules: snpeff_download_database, conda, rulegraph
 
 rule pipeline_variant:

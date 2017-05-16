@@ -24,6 +24,7 @@ from PyQt5 import QtWidgets as QW
 
 __all__ = ['Logger', 'Tools', 'QPlainTextEditLogger']
 
+
 class Logger(object):
     def info(self, text):
         colorlog.info(text)
@@ -58,6 +59,10 @@ class QPlainTextEditLogger(colorlog.StreamHandler):
         self.bgcolor = "#aabbcc"
         self.widget.setStyleSheet("background-color: %s" % self.bgcolor)
 
+        self.widget.setStyleSheet("""* {
+            selection-background-color: #5964FF;
+            background-color: %s
+            }""" % self.bgcolor);
 
     def emit(self, record):
         formatter = """<span style="color:%(color)s;
@@ -78,8 +83,9 @@ class QPlainTextEditLogger(colorlog.StreamHandler):
             msg = msg.replace("\x1b[33m", "")
             params = {'msg':msg, 'weight':"normal", "color":"yellow"}
             self.widget.appendHtml(formatter % params)
-        elif msg.startswith('\x1b[31m'): # error
+        elif msg.startswith('\x1b[31m') or msg.startswith("\\x1b[31m"): # error
             msg = msg.replace("\x1b[31m", "")
+            msg = msg.replace("\\x1b[31m", "")
             params = {'msg':msg, 'weight':"normal", "color":"red"}
             self.widget.appendHtml(formatter % params)
         elif msg.startswith('\x1b[36m'): # debug

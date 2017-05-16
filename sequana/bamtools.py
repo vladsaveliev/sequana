@@ -78,7 +78,7 @@ class BAM(pysam.AlignmentFile):
     useful information or plot various statistical analysis.
 
     The interest of this BAM class is that it will rewind the file each time you
-    want to access to the data. Note also that Python2.7 and 3.5 behave differently 
+    want to access to the data. Note also that Python2.7 and 3.5 behave differently
     and we would recommend the Python 3.5 version. For instance,
     :meth:`to_fastq` would work only with Python 3.5.
 
@@ -93,9 +93,10 @@ class BAM(pysam.AlignmentFile):
 
 
     .. note:: Once you loop over this data structure,  you must call
-        :meth:`reset` to rewind the loop. The methods implemented in this data
-        structure take care of that for you thanks to a decorator called seek.
-        If you want to use the :meth:`next` funtion, call :meth:`reset` to make sure you
+        :meth:`reset` to force the next iterator to start at position 0.
+        The methods implemented in this data structure take care of that
+        for you thanks to a decorator called seek.
+        If you want to use the :meth:`next` function, call :meth:`reset` to make sure you
         start at the beginning.
 
 
@@ -396,7 +397,7 @@ class BAM(pysam.AlignmentFile):
             self.get_metrics_count()
 
         samflags = (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048)
-        samflags_count = dict.fromkeys(samflags, 0) 
+        samflags_count = dict.fromkeys(samflags, 0)
         for flag, count in self.metrics_count["flags"].items():
             for samflag in samflags:
                 if flag&samflag != 0:
@@ -434,8 +435,10 @@ class BAM(pysam.AlignmentFile):
             pylab.savefig(filename)
 
     def bam_analysis_to_json(self, filename):
-        """ Create json file with all necessary information to generate a 
-        report about a bam file.
+        """ Create a json file with information related to the bam file.
+
+        This includes some metrics (see :meth:`get_stats`; eg MAPQ),
+        combination of flags, SAM flags, counters abour the read length.
         """
         if self.metrics_count is None:
             self.get_metrics_count()
@@ -447,17 +450,17 @@ class BAM(pysam.AlignmentFile):
         d["samflags"] = self.get_samflags_count()
         d["read_length"] = self.metrics_count["read_length"]
         with open(filename, "w") as fp:
-            json.dump(d, fp)
+            json.dump(d, fp, indent=True, sort_keys=True)
 
     def _list_to_json_barplot(l):
         """Take a list and convert as json format for barplot with canvaJS.
-        Return a string.
 
         :param: list l: list of int
         :param: bool logy: for logscale plot
+        :return: string (json)
         """
         counter = Counter(l)
-        count = [{"x": int(key), "y": np.log10(value), "c": value} 
+        count = [{"x": int(key), "y": np.log10(value), "c": value}
                  for key, value in counter.items()]
         return json.dumps(count)
 
@@ -478,8 +481,12 @@ class BAM(pysam.AlignmentFile):
         data = [this.rlen for this in self]
         return collections.Counter(data)
 
-    def plot_gc_content(self, fontsize=16):
+    def plot_gc_content(self, fontsize=16, ec="k", bins=100):
         """plot GC content histogram
+
+        :params bins: a value for the number of bins or an array (with a copy()
+            method)
+        :param ec: add black contour on the bars
 
         .. plot::
             :include-source:
@@ -490,14 +497,19 @@ class BAM(pysam.AlignmentFile):
 
         """
         data = self.get_gc_content()
-        X = pylab.array(range(100))
-        pylab.hist(data, X, normed=True)
-        pylab.grid()
+        try:
+            X = np.linspace(0, 100, bins)
+        except:
+            X = bins.copy()
+
+        pylab.hist(data, X, normed=True, ec=ec)
+        pylab.grid(True)
         mu = pylab.mean(data)
         sigma = pylab.std(data)
+
+        X = pylab.linspace(X.min(), X.max(), 100)
         pylab.plot(X, pylab.normpdf(X, mu, sigma), lw=2, color="r", ls="--")
         pylab.xlabel("GC content", fontsize=16)
-
 
 
 class Alignment(object):

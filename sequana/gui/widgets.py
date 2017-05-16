@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -34,8 +34,26 @@ __all__ = ["Ruleform", "GeneralOption", "BooleanOption",
 class Ruleform(QW.QGroupBox):
     do_option = "do"
     def __init__(self, rule_name, rule_dict, count=0, browser_keywords=[],
-                 generic=False):
+                 generic=False, specials=None):
         super().__init__(rule_name)
+
+        self.setStyleSheet("""QGroupBox
+            {
+                font-weight:bold;
+                font-size: 18px;
+                border: 2px solid gray;
+                border-radius: 4px;
+                margin-top: 0.5em;
+            }
+            QGroupBox::Title {
+                subcontrol-origin: margin;
+                color:red;
+                left: 20px;
+                padding: 0 3px 0 3px
+            }
+
+
+        """)
 
         # to handle recursive case
         self.do_widget = None
@@ -62,6 +80,14 @@ class Ruleform(QW.QGroupBox):
             elif option.endswith("_file"):
                 option_widget = FileBrowserOption(option, value,
                                                   directory=False)
+            elif option.endswith("_choice"):
+                try:
+                    values = specials[rule]
+                    option_widget = ComboboxOptions(option, value, values)
+                except Exception as err:
+                    print(err)
+                    option_widget = TextOption(option, value)
+
             elif option in browser_keywords:
                 option_widget = FileBrowserOption(option, value,
                                                   directory=False)
@@ -254,7 +280,27 @@ class NumberOption(GeneralOption):
         self.number.valueChanged.connect(task)
 
 
+class ComboboxOptions(GeneralOption):
+    def __init__(self, option, value, values):
+        super().__init__(option)
+        self.choice = QW.QComboBox()
+        self.choice.addItems(values)
+        self.choice.setStyleSheet("QComboBox { selection-background-color: #5964FF; }");
+        self.layout.addWidget(self.choice)
+        self.choice.setCurrentText(value)
+
+    def get_value(self):
+        return self.choice.currentText()
+
+    def set_enable(self, switch_bool):
+        self.choice.setEnabled(switch_bool)
+
+    def connect(self, task):
+        self.choice.currentIndexChanged.connect(task)
+
+
 class FileBrowserOption(GeneralOption):
+    """ A file browser dialog"""
     def __init__(self, option, value=None, directory=False):
         super().__init__(option)
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -275,8 +321,8 @@ class FileBrowserOption(GeneralOption):
         self.browser.clicked_connect(task)
 
 
-
 class SVGDialog(QW.QDialog):
+    """Dialog to show a SVG image"""
     def __init__(self, filename):
         super().__init__()
         self.main_layout = QW.QVBoxLayout(self)

@@ -43,6 +43,20 @@
            <property name="fieldGrowthPolicy">
             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
            </property>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="preferences_options_general_overwrite_value">
+             <property name="toolTip">
+              <string>&lt;html&gt;
+&lt;body&gt;
+&lt;p&gt;The config file and the snakefile are copied in the working directory when the SAVE button is pressed. If the files exist already, a dialog ask a confirmation. You can force the copy by checking this box.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>overwrites files</string>
+             </property>
+            </widget>
+           </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label">
              <property name="toolTip">
@@ -79,6 +93,11 @@
              <item>
               <property name="text">
                <string>safari</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>chrome</string>
               </property>
              </item>
             </widget>
@@ -148,17 +167,16 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="0">
-            <widget class="QCheckBox" name="preferences_options_general_overwrite_value">
+           <item row="4" column="1">
+            <widget class="QLineEdit" name="preferences_options_general_addbrowser_value"/>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_2">
              <property name="toolTip">
-              <string>&lt;html&gt;
-&lt;body&gt;
-&lt;p&gt;The config file and the snakefile are copied in the working directory when the SAVE button is pressed. If the files exist already, a dialog ask a confirmation. You can force the copy by checking this box.&lt;/p&gt;
-&lt;/body&gt;
-&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In Sequanix, we a config file is loaded, we dynamically created a form that is editable.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;In the form, widgets are automatically included for fields ending in _file or _browser. One can add specific field to be transformed into a browser widget. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;This can be done by adding the field names in this preference box. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Fields must be separated by commas, semi-columns or spaces&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>overwrites files</string>
+              <string>Form browser keywords</string>
              </property>
             </widget>
            </item>

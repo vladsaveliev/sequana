@@ -25,7 +25,9 @@ from optparse import OptionParser
 import argparse
 
 from easydev import DevTools
-from sequana import logger
+from sequana import logger, sequana_debug_level
+from sequana.modules_report.kraken import KrakenModule
+
 
 class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana_taxonomy"):
@@ -73,10 +75,12 @@ Issues: http://github.com/sequana/sequana
             help="""R1 fastq file (zipped) """)
         self.add_argument("--file2", dest="file2", type=str,
             help="""R2 fastq file (zipped) """)
-        self.add_argument("--database", dest="database", type=str,
-            #choices=["sequana_db1", "toydb", "minikraken"],
-            help="""Path to a valid Kraken database. If you do not have any, use
-                --download option""")
+        self.add_argument("--databases", dest="databases", type=str,
+            nargs="+",
+            help="""Path to a valid Kraken database(s). If you do not have any, use
+                --download option. You may use several, in which case, an
+                iterative taxonomy is performed as explained in online sequana
+                documentation (see HierarchicalKRaken""")
         self.add_argument("--output-directory", dest="directory", type=str,
             help="""name of the output directory""", default="taxonomy")
         self.add_argument("--thread", dest="thread", type=int,
@@ -89,10 +93,14 @@ Issues: http://github.com/sequana/sequana
             default=None, choices=["sequana_db1", "toydb", "minikraken"],
             help="""download an official sequana DB. The sequana_db1 is stored
                 in a dedicated Synapse page (www.synapse.org). minikraken
-                is donwload from the kraken's author page, and toydb from
+                is downloaded from the kraken's author page, and toydb from
                 sequana github.""")
-        self.add_argument('--verbose', dest="verbose", default=False,
-            action="store_true")
+        self.add_argument("--unclassified-out",
+            help="save unclassified sequences to filename")
+        self.add_argument("--classified-out",
+            help="save unclassified sequences to filename")
+        self.add_argument('--level', dest="level",
+            default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
 
 
 def main(args=None):
@@ -108,8 +116,11 @@ def main(args=None):
     else:
        options = user_options.parse_args(args[1:])
 
+    sequana_debug_level(options.level)
+
     # We put the import here to make the --help faster
     from sequana import KrakenPipeline, SequanaConfig
+    from sequana.kraken import KrakenHierarchical
     devtools = DevTools()
 
     if options.download:
@@ -128,59 +139,52 @@ def main(args=None):
 
 
     from sequana import sequana_config_path as scfg
-    if options.database == "toydb":
-        options.database = "kraken_toydb"
-    elif options.database == "minikraken":
-        options.database = "minikraken_20141208"
-    else:
-        if options.database is None:
-            logger.critical("You must provide a database")
-            sys.exit(1)
+    if options.databases is None:
+        logger.critical("You must provide a database")
+        sys.exit(1)
 
-    if os.path.exists(scfg + os.sep + options.database): # in Sequana path
-        options.database = scfg + os.sep + options.database
-    elif os.path.exists(options.database): # local database
-        pass
-    else:
-        msg = "Invalid database name (%s). Neither found locally "
-        msg += "or in the sequana path %s; Use the --download option"
-        raise ValueError(msg % (options.database, scfg))
+    databases = []
+    for database in options.databases:
+        if database == "toydb":
+            database = "kraken_toydb"
+        elif database == "minikraken":
+            database = "minikraken_20141208"
+
+        if os.path.exists(scfg + os.sep + database): # in Sequana path
+            databases.append(scfg + os.sep + database)
+        elif os.path.exists(database): # local database
+            databases.append(database)
+        else:
+            msg = "Invalid database name (%s). Neither found locally "
+            msg += "or in the sequana path %s; Use the --download option"
+            raise ValueError(msg % (database, scfg))
 
     output_directory = options.directory + os.sep + "kraken"
     devtools.mkdirs(output_directory)
 
-    # if DB exists locally, use it otherwise add the sequana path
-    k = KrakenPipeline(fastq, options.database, threads=options.thread,
-        output_directory=output_directory, verbose=options.verbose)
+    # if there is only one database, use the pipeline else KrakenHierarchical
+    if len(databases) == 1:
+        k = KrakenPipeline(fastq, databases[0], threads=options.thread,
+            output_directory=output_directory)
 
-    k.run()
+        _pathto = lambda x: "{}/kraken/{}".format(options.directory, x) if x else x
+        k.run(output_filename_classified=_pathto(options.classified_out),
+              output_filename_unclassified=_pathto(options.unclassified_out))
+    else:
+        k = KrakenHierarchical(fastq, databases, threads=options.thread,
+            output_directory=output_directory+os.sep, force=True)
+        k.run(output_prefix="kraken")
 
-    cfg = SequanaConfig()
-    cfg.config.input_directory = None
-    cfg.config.input_samples = {"file1": options.file1, "file2": options.file2}
-    cfg.config.input_pattern = None
-    cfg.config.input_extension = None
-    cfg.config.kraken = {"database": options.database, "do": True}
+    # This statements sets the directory where HTML will be saved
+    from sequana.utils import config
+    config.output_dir = options.directory
 
-    from sequana.reporting.report_summary import SequanaSummary
-    from sequana.snaketools import DummyManager
+    # output_directory first argument: the directory where to find the data
+    # output_filename is relative to the config.output_dir defined above
+    kk = KrakenModule(output_directory, output_filename="summary.html")
 
-    filenames = [options.file1]
-    if options.file2:
-        filenames.append(options.file1)
-    manager = DummyManager(filenames)
-
-    sample = "custom"
-    ss = SequanaSummary(sample, options.directory, output_filename="summary.html",
-        configfile=cfg,
-        include_all=False, workflow=False, manager=manager)
-
-    ss.include_kraken()
-    ss.create_report()
-
-    if options.verbose:
-        logger.info("Open ./%s/summary.html" % options.directory)
-        logger.info("or ./%s/kraken/kraken.html" % options.directory)
+    logger.info("Open ./%s/summary.html" % options.directory)
+    logger.info("or ./%s/kraken/kraken.html" % options.directory)
 
     if options.html is True:
         ss.onweb()

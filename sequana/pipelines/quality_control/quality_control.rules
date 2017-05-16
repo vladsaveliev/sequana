@@ -20,12 +20,14 @@ exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 exec(open(sequana.modules["fastqc"], "r").read())
 exec(open(sequana.modules["fastq_stats"], "r").read())
 
-
+# A convenient manager
 manager = sm.PipelineManager("quality_control", config)
 
+
+# Starting of the pipeline
 __rawdata__input = manager.getrawdata()
 
-
+# We can add this optional sampling of the data
 if manager.config.fastq_sampling.do is True:
     __fastq_sampling__input_fastq = __rawdata__input
     # TODO: here 001 is added manually but needs to be taken care
@@ -60,6 +62,7 @@ include: fastq_stats_dynamic("samples", manager)
 expected_output.extend(expand(__fastq_stats_samples__output_done, sample=manager.samples))
 
 
+# Do we want to remove the Phix ?
 if manager.config.bwa_mem_phix.do:
     reference = config["bwa_mem_phix"]["reference_file"]
     if not os.path.isfile(reference + ".fai"):
@@ -67,9 +70,9 @@ if manager.config.bwa_mem_phix.do:
         __copy_ref__input = reference
         __copy_ref__output = "reference/" + os.path.basename(reference)
         include: dynamic_copy("ref", manager)
-        __bwa_mem_phix__reference = __copy_ref__output    
+        __bwa_mem_phix__reference = __copy_ref__output
     else:
-        __bwa_mem_phix__reference = reference    
+        __bwa_mem_phix__reference = reference
     # Mapping input / output
     __bwa_index_phix__log = "common_logs/bwa_index.log"
     __bwa_mem_phix__input = __data__input
@@ -80,7 +83,7 @@ if manager.config.bwa_mem_phix.do:
 
     include: bwa_mem_dynamic("phix", manager)
 
-    # BWA_BAM_TO_FASTQ 
+    # BWA_BAM_TO_FASTQ
     __bwa_bam_to_fastq__input = __bwa_mem_phix__sort_output
 
     if manager.paired is True:
@@ -92,7 +95,7 @@ if manager.config.bwa_mem_phix.do:
         _params = {"sample": manager.sample}
 
         __bwa_bam_to_fastq__fastq_output = [
-            "%(sample)s/bwa_bam_to_fastq/%(sample)s_R1_.unmapped.fastq.gz" % _params, 
+            "%(sample)s/bwa_bam_to_fastq/%(sample)s_R1_.unmapped.fastq.gz" % _params,
             "%(sample)s/bwa_bam_to_fastq/%(sample)s_R1_.mapped.fastq.gz" % _params,
             "%(sample)s/bwa_bam_to_fastq/%(sample)s_R2_.unmapped.fastq.gz" % _params,
             "%(sample)s/bwa_bam_to_fastq/%(sample)s_R2_.mapped.fastq.gz" % _params]
@@ -106,7 +109,7 @@ if manager.config.bwa_mem_phix.do:
 
     include: sm.modules['bwa_bam_to_fastq']
 
-    # Run a fastqc and fastq_stats on the data without phix
+    # Run a FASTQC and FASTQ_STATS on the data without phix
     __fastqc_phix__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output if "unmapped" in x]
     __fastqc_phix__output_done = manager.getname("fastqc_phix", ".fastqc.done")
     __fastqc_phix__wkdir = manager.getwkdir("fastqc_phix")
@@ -118,10 +121,15 @@ if manager.config.bwa_mem_phix.do:
     __fastq_stats_phix__wkdir = manager.getwkdir("fastq_stats_phix")
     include: fastq_stats_dynamic("phix", manager)
     expected_output.extend(expand(__fastq_stats_phix__output_done, sample=manager.samples))
+else:
+    _params = {"sample": manager.sample}
+    __cutadapt__input_fastq = [this % _params for this in __data__input]
 
 
-if manager.config.adapter_removal.do:
-    adapter_removal = manager.config.adapter_removal.tool
+
+# Perform the adapter removal and trimming
+if manager.config['adapter_removal']['do']:
+    adapter_removal = manager.config['adapter_removal']['tool_choice']
 
     from sequana.adapters import _get_registered_adapters as registered
     from sequana.adapters import get_sequana_adapters
@@ -139,8 +147,11 @@ if manager.config.adapter_removal.do:
 
     if adapter_removal in ["cutadapt", "atropos"]:
         adapter_removal = "cutadapt"
-        __cutadapt__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output 
-                                   if "unmapped" in x]
+        if manager.config.bwa_mem_phix.do:
+            __cutadapt__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output 
+                                       if "unmapped" in x]
+        else:
+            pass # do in the bwa_mem_phix else 
         __cutadapt__wkdir = "%s/cutadapt" % manager.sample
         __cutadapt__output = [x.replace("bwa_bam_to_fastq", 
                               "cutadapt").replace("unmapped","cutadapt")
@@ -151,7 +162,7 @@ if manager.config.adapter_removal.do:
         __cutadapt__rev = manager.config.adapter_removal.rev
 
         __cutadapt__design = manager.config.adapter_removal.design_file
-        __cutadapt__design_adapter = manager.config.adapter_removal.adapter_type
+        __cutadapt__design_adapter = manager.config['adapter_removal']['adapter_choice']
         __cutadapt__options = manager.config.adapter_removal.options
         __cutadapt__mode = manager.config.adapter_removal.mode
         __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
@@ -163,6 +174,7 @@ if manager.config.adapter_removal.do:
     else:
         raise ValueError("trimming must be either cutadapt or atropos or skewer")
 
+    # Now we can perform again a FastQC and FastQ stats 
     __fastqc_cutadapt__input_fastq = __cutadapt__output
     __fastqc_cutadapt__output_done = manager.getname("fastqc_cutadapt", ".done")
     __fastqc_cutadapt__wkdir = manager.getwkdir("fastqc_cutadapt")
@@ -184,8 +196,8 @@ if manager.config.kraken.do:
     if manager.config.adapter_removal.do:
         # todo: handle all adapter removal cases
         __kraken__input = __cutadapt__output
-    elif manager.config.phix_removal.do:
-        __kraken__input = [x for x in __bwa_bam_to_fastq__output if "unmapped" in x]
+    elif manager.config.bwa_mem_phix.do:
+        __kraken__input = [x for x in __bwa_bam_to_fastq__fastq_output if "unmapped" in x]
     else:
         __kraken__input = __data_input
 
@@ -199,23 +211,21 @@ if manager.config.kraken.do:
     expected_output.append(expand(__kraken__output_json, sample=manager.samples))
 
 
-
-
-# Include rule graph for each sample
+# Include the rule graph
 __rulegraph__input = __snakefile__
 __rulegraph__output = "rulegraph/rulegraph.svg"
 __rulegraph__mapper = {
-    "fastqc_samples": "fastqc_samples/fastqc_samples.html",
-    "fastqc_phix": "fastqc_phix/fastqc_phix.html",
-    "fastqc_cutadapt": "fastqc_cutadapt/fastqc_cutadapt.html",
-    "cutadapt": "cutadapt.html",
-    "kraken": "kraken/kraken.html",
-    "kraken_translate": "kraken/kraken.html",
-    "kraken_to_krona": "kraken/kraken.html",
+    "fastqc_samples": "../fastqc_samples.html",
+    "fastqc_phix": "../fastqc_phix.html",
+    "fastqc_cutadapt": "../fastqc_cutadapt.html",
+    "cutadapt": "../cutadapt.html",
+    "kraken": "../kraken/kraken.html",
+    "kraken_translate": "../kraken/kraken.html",
+    "kraken_to_krona": "../kraken/kraken.html",
 
 }
 include: sm.modules['rulegraph']
-expected_output.extend(["rulegraph/rulegraph.svg"])
+expected_output.extend([__rulegraph__output])
 
 
 # Add Conda
@@ -223,63 +233,143 @@ __conda__output = "requirements.txt"
 include: sm.modules['conda']   # Create requirements.txt(dependencies)
 expected_output.extend([__conda__output])
 
+
+# create a json file that summarise information of your pipeline
+__summary_pipeline__inputs = __rawdata__input
+if manager.config.adapter_removal.do:
+    # todo: handle all adapter removal cases
+    __summary_pipeline__outputs = [ __cutadapt__output ]
+elif manager.config.bwa_mem_phix.do:
+    __summary_pipeline__outputs = [x for x in __bwa_bam_to_fastq__fastq_output if "unmapped" in x]
+
+__summary_pipeline__html = []
+__summary_pipeline__rulegraph = __rulegraph__output
+__summary_pipeline__requirements = "requirements.txt"
+__summary_pipeline__snakefile = __snakefile__
+__summary_pipeline__config = "config.yaml"
+__summary_pipeline__name = "Quality Control"
+__summary_pipeline__json_output = manager.getname("summary_pipeline", ".json")
+include: sm.modules["summary_pipeline"]
+expected_output.append(expand(__summary_pipeline__json_output,
+                              sample=manager.samples))
+
 # Those rules takes a couple of seconds so no need for a cluster
 localrules: conda, rulegraph
-
 
 rule pipeline_quality_control:
     input: expected_output
 
 
 onsuccess:
-    import os
-    # Create plots about stats
-    sm.plot_stats(N=len(manager.samples))
+    from sequana.modules_report.fastq_stats import FastQStatsModule
+    from sequana.modules_report.bwa_bam_to_fastq import BWABAMtoFastQModule
+    from sequana.modules_report.kraken import KrakenModule
+    from sequana.modules_report.phix import PhixModule
+    from sequana.modules_report.cutadapt import CutadaptModule
+    from sequana.modules_report.fastqc import FastQCModule
+    from sequana.modules_report.summary import SummaryModule
+
+    # the stats image
+    snake_parser = snakemake.get_argument_parser().parse_args()
+    json_list = expand(__summary_pipeline__json_output, sample=manager.samples)
+    sm.add_stats_summary_json(json_list, snake_parser)
 
     # Main directory
+    from sequana.utils import config as conf
     report_dir_format = "%(proj)s/report_qc_%(proj)s"
+
+
     for proj in manager.samples.keys():
+        sample_summary = {}
+
         report_dir = report_dir_format % {"proj": proj}
-        try:os.mkdir(report_dir)
-        except:pass
+        conf.output_dir = report_dir   # ensure files are stored in the correct location
 
-        shell("cp %s %s" % (__snakefile__, report_dir))
-        shell("cp rulegraph/rulegraph.svg %s" % (report_dir))
-        shell("cp config.yaml %s" % report_dir)
-        shell("cp requirements.txt %s" % report_dir)
-        try:shell("cp snakemake_stats.png %s" % report_dir)
-        except:print("Could not copy snakemake_stats.png. use --stat stats.txt next time")
+        # Create the 3 FastQC HTML files (independent)
+        for this in ["fastqc_phix", "fastqc_samples", "fastqc_cutadapt"]:
+            FastQCModule("{}.html".format(this),
+                         proj + "/{}/*_fastqc.html".format(this))
 
-        if manager.config.adapter_removal.do:
-            from sequana.reporting import report_cutadapt
-            this = report_cutadapt.CutAdaptReport(proj, directory=report_dir)
-            this.read_data(proj + "/logs/cutadapt/{0}.txt".format("cutadapt"))
-            this.create_report()
+        # add all sections in addition to standard summary
+        conf.summary_sections = []
 
+        # First the samples section ------------------------------
+        indir = proj + "/fastq_stats_samples"
+
+        fqmod =FastQStatsModule(indir, "fastqc_samples")
+        sample_summary["fastq_stats_samples_json"] = fqmod.get_stats().to_json()
+
+        conf.summary_sections.append({
+            "name": "Stats (input data)",
+            "title_links": '<a href="fastqc_samples.html">FastQC</a>',
+            "anchor'": "stats",
+            "content": fqmod._get_stats_section()
+        })
+
+        # the phix section ---------------------------------
+        phixmod = PhixModule(proj)
+        sample_summary["phix_section_json"] = phixmod._get_stats().to_json()
+        sample_summary["phix_section"] = phixmod._get_summary()
+        conf.summary_sections.append({
+            "name": "Phix ",
+            "title_links": '<a href="fastqc_phix.html">FastQC</a>',
+            "anchor'": "phix",
+            "content": phixmod._get_html()
+        })
+
+        # the cutadapt section ----------------------------
+        cutadapt_mod = CutadaptModule(proj + "/logs/cutadapt/cutadapt.txt", proj)
+        sample_summary["cutadapt_json"] = cutadapt_mod._get_stats().to_json()
+        html = cutadapt_mod._get_stat_section()
+        html += FastQStatsModule(proj + "/fastq_stats_cutadapt", "fastqc_cutadapt")._get_stats_section(
+            tablename="cutadapt2")
+        conf.summary_sections.append({
+            "name": "Adapter ",
+            "title_links": '<a href="fastqc_cutadapt.html">FastQC</a>|' +
+                '<a href="cutadapt.html">Cutadapt</a>|',
+            "anchor'": "phix",
+            "content": html
+        })
+
+        # The Kraken section
         if manager.config.kraken.do:
+            krakenmod = KrakenModule(proj + "/kraken")
+            sample_summary['kraken_json'] = krakenmod._get_stats().to_json()
+            conf.summary_sections.append({
+                "name": "Kraken ",
+                "anchor'": "kraken",
+                "content": krakenmod._get_summary_section()
+            })
+            print("Copying files")
             shell('cp -r %s/kraken/ %s' % (proj, report_dir))
-        shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
-        shell('cp -r %s/fastq_stats*/ %s' % (proj, report_dir))
 
-        if manager.config.bwa_mem_phix.do:
-            shell('cp -r %s/bwa_bam_to_fastq/ %s' % (proj, report_dir))
-        #shell('rm -f %s/bwa_bam_to_fastq/*fastq ' % (report_dir))
-
-        # Copy the fastq files
+        # The cutadapt report (independent)
         if manager.config.adapter_removal.do:
-            shell('cp -r %s/cutadapt %s' % (proj, report_dir))
-            #shell('mv  %s/cutadapt/*fastq.gz %s' % (report_dir, report_dir))
-        elif manager.config.bwa_mem_phix.do:
-            shell('cp -r %s/bwa_bam_to_fastq/*unmapped* %s' % (proj, report_dir))
+            from sequana.modules_report.cutadapt import CutadaptModule
+            filename = proj + "/logs/cutadapt/cutadapt.txt"
+            CutadaptModule(filename, proj, "cutadapt.html")
 
-        from sequana.reporting.report_summary import SequanaSummary
-        summary = SequanaSummary(proj, directory=report_dir,
-            output_filename="summary.html",
-            snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
-            manager=manager)
-        summary.create_report()
+        shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
 
-        # Create a cleanup python file to clean a sub-directory
+        filename = report_dir + "/../summary_pipeline/%s.json" % proj
+        #
+        intro = """
+            <b>Sample:</b> {} <br><b>Paired data:</b> {}<br>
+            <b>Data Type:</b> {}<br><b>Pipeline:</b>
+<a target="_blank" href="http://sequana.readthedocs.io/en/master/pipelines.html#{}">{}</a><br>
+            """.format(
+                    proj,
+                    manager.paired,
+                    config.get('datatype', "unspecified"),
+                    "quality_control",
+                     __summary_pipeline__name)
+        SummaryModule(json.loads(open(filename).read()), intro=intro)
+
+        # save sample summary
+        sample_summary['project'] = proj
+        with open(report_dir + "/summary.json", "w") as fp:
+            data = json.dumps(sample_summary, indent=4, sort_keys=True)
+            fp.write(data)
         sm.create_cleanup(proj)
 
     try:
@@ -287,16 +377,8 @@ onsuccess:
         shell("sequana_summary -m")
     except: pass
 
-    garbage = ['snakemake_stats.png',  "rulegraph.svg", "requirements.txt"]
-    for filename in garbage:
-        import os
-        try: os.remove(filename)
-        except:pass
-
-    sm.create_recursive_cleanup()
-    sm.message("Done. To further cleanup the directory, type \n python .sequana_cleanup.py")
+    from sequana.snaketools import OnSuccess
+    sm.OnSuccess()() # create instance and execute to create Makefile and cleanup
 
 onerror:
     print("An error occurred. See message above.")
-
-

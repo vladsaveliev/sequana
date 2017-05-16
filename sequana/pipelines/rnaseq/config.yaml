@@ -9,6 +9,7 @@
 # If input_extension provided, use it otherwise assume fastq.gz
 # ============================================================================
 input_directory: "%(input_directory)s"
+input_readtag: "%(input_readtag)s"
 input_pattern: "%(input_pattern)s"
 input_extension: "%(input_extension)s"
 # =========================================== Sections for the users
@@ -67,11 +68,11 @@ sequencing:
 #
 genome:
   do: yes
-  dir: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
-  name: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19 #path to index name
-  fasta: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
-  gff: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.gff
-  rRNA_fasta: no
+  dir_file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
+  name: "hg19" #path to index name
+  fasta_file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
+  gff_file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.gff
+  rRNA_file:
   rRNA_feature: "rRNA"
 
 
@@ -114,7 +115,7 @@ star_mapping:
 #
 bowtie1_mapping_ref:
     do: no
-    options: "--chunkmbs 400 -a --best -q -e50 "
+    options: "--chunkmbs 400 -m 1 "
     threads: 4
 
 #############################################################################
@@ -215,15 +216,17 @@ fastq_screen:
 # :Note: If design_file is provided, fwd and rev are ignored
 #
 #   ref: http://cutadapt.readthedocs.io/
+# adapter_choice__ = ["PCRFree", "Rubicon", "Nextera", "TruSeq"]
+# tool_choice__ = ["cutadapt", "clean_ngs"]
 adapter_removal:
     do: yes
-    tool: cutadapt
-    adapter_type:
+    tool_choice: cutadapt
+    adapter_choice:
     design_file:
     fwd:
     rev:
-    m: 20               # min length cutoff
-    mode: "a"   # g for 5' adapter, a for 3' and b for both 5'/3'
+    m: 20
+    mode: "a"
     quality: "30"
     options: "-O 6 --trim-n"
     threads: 4
@@ -244,7 +247,7 @@ multiqc:
 
 
 #############################################################################
-# fastq_screen used to align reads against genomes file contain in conf file with bowtie2
+# mark_duplicates (picard-tools) allows to mark PCR duplicate in BAM files
 #
 # :Parameters:
 #
@@ -304,7 +307,7 @@ coverage:
     minFragmentLength: 0 #Note that a value other than 0 will exclude all single-end reads.
     maxFragmentLength: 0 #A value of 0 disables filtering and is needed for including single-end and orphan reads.
     threads: 4
-    chromSize: /pasteur/projets/specific/PF2_ngs/protected/fasta_genomes/hg19.chrom.sizes
+    chromSize_file: /pasteur/projets/specific/PF2_ngs/protected/fasta_genomes/hg19.chrom.sizes
 
 #############################################################################
 # RNA-SeQC allows to compute a series of quality control metrics for RNA-seq data
@@ -321,7 +324,6 @@ coverage:
 
 RNAseQC:
      do: no
-     ref: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
-     gtf: /pasteur/projets/specific/PF2_ngs/protected/annotation/gtf/hg19.gtf
-     BWArRNA: /pasteur/projets/specific/PF2_ngs/protected/Genomes/human_rRNA/human_all_rRNA.fasta
+     gtf_file: /pasteur/projets/specific/PF2_ngs/protected/annotation/gtf/hg19.gtf
+     BWArRNA_file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/human_rRNA/human_all_rRNA.fasta
      options: ""

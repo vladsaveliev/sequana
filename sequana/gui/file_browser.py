@@ -54,6 +54,10 @@ class FileBrowser(QW.QWidget):
         widget_layout.addWidget(self.btn)
         widget_layout.addWidget(self.btn_filename)
 
+        # By default the selection and background colors are too close, so 
+        # we force the selection to be bluish (instead of whitish)
+        self.setStyleSheet("* { selection-background-color: #5964FF; }");
+
     def _setup_true(self):
         self.setup = True
 
@@ -80,7 +84,6 @@ class FileBrowser(QW.QWidget):
 
     def browse_paired_file(self):
         self.dialog = QW.QFileDialog(self)
-
         file_path = self.dialog.getOpenFileNames(self,
             "Select a sample", ".", self.filter)[0]
 
@@ -99,8 +102,8 @@ class FileBrowser(QW.QWidget):
         directory_path = self.dialog.get_directory_path()
         if directory_path:
             self.set_filenames(directory_path)
-        else:
-            self.set_empty_path()
+        #else:
+        #    self.set_empty_path()
 
     def browse_file(self):
         try:

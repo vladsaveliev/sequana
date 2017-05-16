@@ -109,11 +109,11 @@ Issues: http://github.com/sequana/sequana
         group = self.add_argument_group("Optional biological arguments")
         group.add_argument(
             '-c', "--chromosome", dest="chromosome", type=int, default=0,
-            help="Chromosome number (if only one, no need to use: the first"
-                 " and only chromosome is chosen automatically). Default is"
+            help="Chromosome number (if only one, no need to use: the single"
+                 " chromosome is chosen automatically). Default is "
                  " first chromosome found in the BED file. You may want to"
                  " analyse all chromosomes at the same time. If so, set this"
-                 " parameter to 0.")
+                 " parameter to 0")
         group.add_argument('-o', "--circular", dest="circular",
             default=False, action="store_true",
             help="""If the DNA of the organism is circular (typically
@@ -228,7 +228,8 @@ def main(args=None):
             "%s does not exists" % options.genbank
 
     if options.verbose:
-        logger.info("Reading %s" % options.input)
+        logger.info("Reading %s. This may take time depending on " 
+            "your input file" % options.input)
 
     if options.input.endswith(".bam"):
         bedfile = options.input.replace(".bam", ".bed")
@@ -262,12 +263,11 @@ def main(args=None):
             logger.warning("There is only one chromosome. Selected automatically.")
         chrom = gc.chr_list[0]
         chromosomes = [chrom]
-        run_analysis(chrom, options) 
-    elif options.chromosome <-1 or options.chromosome > len(gc.chr_list) or\
-            options.chromosome == 0:
-        raise ValueError("invalid --chromosome value ; must be in [1-%s]" % len(gc.chr_list)+1)
-    else:
-        # For uses, we start at position 1 but in python, we start at zero
+        run_analysis(chrom, options)
+    elif options.chromosome <=-1 or options.chromosome > len(gc.chr_list):
+        raise ValueError("invalid chromosome index ; must be in [1-{}]".format(len(gc.chr_list)+1))
+    else: # chromosome index is zero 
+        # For user, we start at position 1 but in python, we start at zero
         if options.chromosome:
             chromosomes = [gc[options.chromosome-1]]
         else:
@@ -275,6 +275,8 @@ def main(args=None):
 
         if options.verbose:
             print("There are %s chromosomes/contigs." % len(gc))
+            for this in gc.chr_list:
+                print("    {}".format(this.chrom_name))
 
         for i, chrom in enumerate(chromosomes):
             if options.verbose:

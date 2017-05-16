@@ -7,8 +7,8 @@ from setuptools import setup, find_packages
 import glob
 
 _MAJOR               = 0
-_MINOR               = 1
-_MICRO               = 21
+_MINOR               = 2
+_MICRO               = 1
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -43,7 +43,7 @@ packages = [this for this in packages if this not in ['test']]
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
-    extra_packages = ["pillow"]  # 
+    extra_packages = ["pillow", "numpydoc", "sphinx"]  # 
 else:
     extra_packages = []
 
@@ -68,13 +68,11 @@ setup(
     packages = packages,
 
     # pillow, sphinx-gallery and numpydoc are  for the doc only
-    # mock is for the test only
-    # qtconsole is required by Sequanix
-    install_requires = ["easydev>=0.9.31", "reports>=0.3.0", "matplotlib>=2.0.0",
+    # mock is for the test only qtconsole is required by Sequanix
+    install_requires = ["easydev>=0.9.34", "reports>=0.3.0", "matplotlib>=2.0.0",
         "pyVCF", "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14",
-        "biokit>=0.3.4", "pysam", "docutils", "mock", "qtconsole",
-        "numpydoc",  "blist", "sphinx", "ruamel.yaml>=0.13.2",
-        "colorlog"] + extra_packages,
+        "biokit>=0.4.1", "pysam", "docutils", "mock", "psutil", "qtconsole",
+        "ruamel.yaml>=0.13.2", "colorlog"] + extra_packages,
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
@@ -112,7 +110,8 @@ setup(
            'sequana_summary=sequana.scripts.summary:main',
            'sequana_mapping=sequana.scripts.mapping:main',
            'sequana_compressor=sequana.scripts.compressor:main',
-           'sequana_report=sequana.scripts.reports:main'
+           'sequana_report=sequana.scripts.reports:main',
+           'sequana_fox=sequana.scripts.browser:main'
         ],
         'sequana.module':[
             'sequana_coverage=sequana.modules_report.coverage:CoverageModule',

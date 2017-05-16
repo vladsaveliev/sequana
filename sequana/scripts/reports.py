@@ -27,12 +27,13 @@ import json
 import pandas as pd
 
 from sequana.utils import config
+from sequana import logger
 
 
 class Options(argparse.ArgumentParser):
     def __init__(self, prog="sequana_reports"):
         usage = """Welcome to SEQUANA - Reports generator
-            
+
 sequana_reports --input-files variants.vcf --output-directory report/
 
 AUTHORS: Thomas Cokelaer, Dimitri Desvillechabrol
@@ -44,7 +45,7 @@ Issues: http://github.com/sequana/sequana
         Create HTML reports for differents results files.
 
         You can analyse these differents files:
-            
+
             - csv from sequana_coverage
             - vcf from freebayes
         """
@@ -66,7 +67,7 @@ Issues: http://github.com/sequana/sequana
         group.add_argument('--version', dest='version', action='store_true',
                            help="Print version of sequana")
         group.add_argument('-v', '--verbose', dest='verbose',
-                           action='store_true', help="Display logs") 
+                           action='store_true', help="Display logs")
         group = self.add_argument_group("Optionnal options")
         group.add_argument('-n', '--name', type=str, dest='sample_name',
                            help="Name of your sample.")
@@ -106,6 +107,7 @@ def main(args=None):
         tool = None
         # get tools to retrieve module
         with open(f, 'r') as fp:
+            logger.info("Found {}".format(f))
             if f.endswith('json'):
                 data = json.load(fp)
                 try:

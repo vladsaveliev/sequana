@@ -6,11 +6,12 @@ This pipeline is part of Sequana software (sequana.readthedocs.io)
 """
 import os
 import sequana
+from os.path import join
 from sequana import snaketools as sm
 sm.init("rnaseq.rules", globals())
 
 
-# This must be defined before the include 
+# This must be defined before the include
 configfile: "config.yaml"
 __snakefile__ = srcdir(__snakefile__)
 
@@ -26,51 +27,53 @@ __data__input = manager.getrawdata()
 
 TODO = "todo"
 
+__prefix_name__ = join(config["genome"]["dir_file"], config["genome"]["name"])
+
 if manager.config.genome.do:
     # create sequence dict file
-    __create_sequence_dictionary__reference = config["genome"]["fasta"]
-    __create_sequence_dictionary__output = config["genome"]["fasta"] + ".dict"
+    __create_sequence_dictionary__reference = config["genome"]["fasta_file"]
+    __create_sequence_dictionary__output = config["genome"]["fasta_file"] + ".dict"
     __create_sequence_dictionary__log = "logs/indexing/create_sequence_dictionary.log"
     include: sm.modules["create_sequence_dictionary"]
     # indexing for bowtie1
     # whole genome
-    __bowtie1_index_ref__fasta = config["genome"]["fasta"]
-    __bowtie1_index_ref__output_done = config["genome"]["name"] + ".bowtie.done"
-    __bowtie1_index_ref__output_prefix = config["genome"]["name"]
+    __bowtie1_index_ref__fasta = config["genome"]["fasta_file"]
+    __bowtie1_index_ref__output_done = __prefix_name__ + ".1.ebwt"
+    __bowtie1_index_ref__output_prefix = __prefix_name__
     __bowtie1_index_ref__log = "logs/indexing/bowtie_genome.log"
     include: bowtie1_index_dynamic("ref")
     # rRNA genome
-    if manager.config.genome.rRNA_fasta:
-        __bowtie1_index_rna__fasta = config["genome"]["name"]+ "_rRNA.fa"
-        __bowtie1_index_rna__output_done = config["genome"]["name"] + "_rRNA.1.ebwt"
-        __bowtie1_index_rna__output_prefix = config["genome"]["name"]+ "_rRNA"
+    if manager.config.genome.rRNA_file:
+        __bowtie1_index_rna__fasta = config["genome"]["rRNA_file"]
+        __bowtie1_index_rna__output_done = __prefix_name__ + "_rRNA.1.ebwt"
+        __bowtie1_index_rna__output_prefix = __prefix_name__ + "_rRNA"
         __bowtie1_index_rna__log = "logs/indexing/bowtie_rRNA.log"
     else :
-        __extract_fasta_from_bed__input = config["genome"]["fasta"]
-        __extract_fasta_from_bed__gff = config["genome"]["gff"]
+        __extract_fasta_from_bed__input = config["genome"]["fasta_file"]
+        __extract_fasta_from_bed__gff = config["genome"]["gff_file"]
         __extract_fasta_from_bed__feature = config["genome"]["rRNA_feature"]
-        __extract_fasta_from_bed__output = config["genome"]["name"]+ "_rRNA.fa"
-        __extract_fasta_from_bed__output_features = config["genome"]["name"]+ "_rRNA.gff"
+        __extract_fasta_from_bed__output = __prefix_name__ + "_rRNA.fa"
+        __extract_fasta_from_bed__output_features = __prefix_name__ + "_rRNA.gff"
         __extract_fasta_from_bed__log = "logs/indexing/get_rRNA.log"
         include: sm.modules["extract_fasta_from_bed"]
         __bowtie1_index_rna__fasta = __extract_fasta_from_bed__output
-        __bowtie1_index_rna__output_done = config["genome"]["name"] + "_rRNA.1.ebwt"
-        __bowtie1_index_rna__output_prefix = config["genome"]["name"]+ "_rRNA"
+        __bowtie1_index_rna__output_done = __prefix_name__ + "_rRNA.1.ebwt"
+        __bowtie1_index_rna__output_prefix = __prefix_name__ + "_rRNA"
         __bowtie1_index_rna__log = "logs/indexing/bowtie_rRNA.log"
     include: bowtie1_index_dynamic("rna")
 
 
     # indexing for bowtie2
-    __bowtie2_index__fasta = config["genome"]["fasta"]
-    __bowtie2_index__output_done = config["genome"]["name"] + ".bowtie2.done"
-    __bowtie2_index__output_prefix = config["genome"]["name"]
+    __bowtie2_index__fasta = config["genome"]["fasta_file"]
+    __bowtie2_index__output_done = __prefix_name__ + ".1.bt2"
+    __bowtie2_index__output_prefix = __prefix_name__
     __bowtie2_index__log = "logs/indexing/bowtie2_genome.log"
     include: sm.modules["bowtie2_index"]
 
     # indexing for star
-    __star_index__fasta = config["genome"]["fasta"]
-    __star_index__output_done = config["genome"]["name"] + ".star.done"
-    __star_index__output_dir = config["genome"]["dir"]
+    __star_index__fasta = config["genome"]["fasta_file"]
+    __star_index__output_done = config["genome"]["dir_file"] +  "/SAindex"
+    __star_index__output_dir = config["genome"]["dir_file"]
     __star_index__log = "logs/indexing/star_genome.log"
     include: sm.modules["star_index"]
 
@@ -84,15 +87,15 @@ if manager.config.genome.do:
                             __bowtie1_index_rna__output_done,__bowtie2_index__output_done,__star_index__output_done])
 
 else:
-    __star_dir__ = config["genome"]["dir"]
-    __star_index__output_done = config["genome"]["name"] + ".star.done"
-    __bowtie2_index__ = config["genome"]["name"]
-    __bowtie2_index__output_done = config["genome"]["name"] + ".bowtie2.done"
-    __bowtie1_index__ = config["genome"]["name"]
-    __bowtie1_index_ref__output_done = config["genome"]["name"] + ".bowtie.done"
-    __RNA_index__ = config["genome"]["name"]+ "_rRNA"
-    __bowtie1_index_rna__output_done = config["genome"]["name"] + "_rRNA.1.ebwt"
-    __sequence_dictionary__ = config["genome"]["fasta"] + ".dict"
+    __star_dir__ = config["genome"]["dir_file"]
+    __star_index__output_done = config["genome"]["dir_file"] +  "/SAindex"
+    __bowtie2_index__ =__prefix_name__
+    __bowtie2_index__output_done = __prefix_name__ + ".1.bt2"
+    __bowtie1_index__ = __prefix_name__
+    __bowtie1_index_ref__output_done = __prefix_name__+ ".1.ebwt"
+    __RNA_index__ = __prefix_name__ + "_rRNA"
+    __bowtie1_index_rna__output_done = __prefix_name__ + "_rRNA.1.ebwt"
+    __sequence_dictionary__ = config["genome"]["fasta_file"] + ".dict"
 
 
 
@@ -106,7 +109,7 @@ expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samp
 
 
 if manager.config.adapter_removal.do:
-    adapter_tool = manager.config.adapter_removal.tool
+    adapter_tool = manager.config.adapter_removal.tool_choice
     # Clean NGS
     if adapter_tool == "clean_ngs":
         if manager.paired:
@@ -139,7 +142,7 @@ if manager.config.adapter_removal.do:
             __cutadapt__rev = manager.config.adapter_removal.rev
 
         __cutadapt__design = manager.config.adapter_removal.design_file
-        __cutadapt__design_adapter = manager.config.adapter_removal.adapter_type
+        __cutadapt__design_adapter = manager.config.adapter_removal.adapter_choice
         __cutadapt__options = manager.config.adapter_removal.options
         __cutadapt__mode = manager.config.adapter_removal.mode
         __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
@@ -207,7 +210,7 @@ if manager.config.star_mapping.do:
     __star_mapping__input = __clean_ngs__output
     __star_mapping__index_done = __star_index__output_done
     __star_mapping__index = __star_dir__
-    __star_mapping__ref = config["genome"]["fasta"]
+    __star_mapping__ref = config["genome"]["fasta_file"]
     __star_mapping__logs = manager.getname("star_mapping", ".logs")
     __star_mapping__output_prefix1 = manager.getname("star_mapping", "_init_")
     __star_mapping__output_prefix2 = manager.getname("star_mapping", "_")
@@ -251,7 +254,7 @@ else :
     __feature_counts__input = __bowtie1_mapping_ref__sort
 if manager.config.feature_counts.do:
 	__feature_counts__output_count = manager.getname("feature_counts", "_feature.out")
-	__feature_counts__gff = config["genome"]["gff"]
+	__feature_counts__gff = config["genome"]["gff_file"]
 	__feature_counts__output_gene_count = manager.getname("feature_counts", "_count.out")
 	__feature_counts__log = manager.getname("feature_counts", ".logs")
 	include: sm.modules["feature_counts"]
@@ -263,7 +266,9 @@ __add_read_group__input = __mapping_output
 __add_read_group__output = manager.getname("add_read_group/", "_RG_sorted.bam")
 __add_read_group__log_err = "%s/logs/AddOrReplaceReadGroups/stderr.logs" % manager.sample
 __add_read_group__log_std ="%s/logs/AddOrReplaceReadGroups/stdout.logs" % manager.sample
-__add_read_group__rg = "ID=%s LB=%s PL=%s PU=%s SM=%s" % (manager.sample, manager.sample, manager.config.sequencing.platform, manager.config.sequencing.flowcell, manager.sample)
+__add_read_group__rg = "ID=%s LB=%s PL=%s PU=%s SM=%s" % (
+    manager.sample, manager.sample, manager.config.sequencing.platform,
+    manager.config.sequencing.flowcell, manager.sample)
 include: sm.modules["add_read_group"]
 
 
@@ -344,12 +349,12 @@ onsuccess:
         shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
         shell('cp -r %s/cutadapt/ %s' % (proj, report_dir))
 
-        from sequana.reporting.report_summary import SequanaSummary
-        summary = SequanaSummary(proj, directory=report_dir, 
-            output_filename="summary.html", 
-            snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
-            manager=manager)
-        summary.create_report()
+        # from sequana.reporting.report_summary import SequanaSummary
+        # #summary = SequanaSummary(proj, directory=report_dir,
+        #     output_filename="summary.html",
+        #    snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
+        #    manager=manager)
+        # summary.create_report()
 
         # Create a cleanup python file to clean a sub-directory
         sm.create_cleanup(proj)

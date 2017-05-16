@@ -30,6 +30,6 @@ rule mark_duplicates:
         """
         (picard MarkDuplicates I={input} O={output.bam} \
             M={output.metrics} REMOVE_DUPLICATES={params.remove} \
-            {params.tmpdir} && samtools index {output.bam}) \
+            TMP_DIR={params.tmpdir} && samtools index {output.bam}) \
             > {log.out} 2> {log.err}
         """

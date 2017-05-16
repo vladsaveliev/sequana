@@ -37,7 +37,7 @@
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Snakemake parameters (those used by the snakemake command)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="tab_local">
         <attribute name="title">
@@ -48,7 +48,7 @@
           <rect>
            <x>19</x>
            <y>19</y>
-           <width>141</width>
+           <width>151</width>
            <height>81</height>
           </rect>
          </property>
@@ -234,10 +234,20 @@
            <x>20</x>
            <y>10</y>
            <width>331</width>
-           <height>192</height>
+           <height>268</height>
           </rect>
          </property>
          <layout class="QFormLayout" name="layout_general">
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="snakemake_options_general_quiet_value">
+            <property name="toolTip">
+             <string>Do not output any progress or rule information</string>
+            </property>
+            <property name="text">
+             <string>Quiet</string>
+            </property>
+           </widget>
+          </item>
           <item row="2" column="0">
            <widget class="QCheckBox" name="snakemake_options_general_forceall_value">
             <property name="toolTip">
@@ -248,13 +258,13 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="snakemake_options_general_quiet_value">
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="snakemake_options_general_keep__going_value">
             <property name="toolTip">
-             <string>Do not output any progress or rule information</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Go on with independent jobs if a job fails.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Quiet</string>
+             <string>keep-going</string>
             </property>
            </widget>
           </item>
@@ -268,7 +278,53 @@
             </property>
            </widget>
           </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_restart__times">
+            <property name="toolTip">
+             <string>Number of times to restart failing jobs (defaults to 0).</string>
+            </property>
+            <property name="text">
+             <string>restart-times</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QSpinBox" name="snakemake_options_general_restart__times_value"/>
+          </item>
+          <item row="6" column="0">
+           <widget class="QCheckBox" name="snakemake_options_general_verbose_value">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt; Print debugging output.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>verbose</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QCheckBox" name="snakemake_options_general_summary_value">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Print a summary of all files created by the workflow.&lt;/p&gt;&lt;p&gt;The has the following columns: filename, modification time, rule version, status, plan. Thereby rule version contains the versionthe file was created with (see the version keyword of rules), and status denotes whether the file is missing, its input files are newer or if version or implementation of the rule changed since file creation. Finally the last column denotes whether the file will be updated or created during the next workflow execution.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>summary</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="label">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add any other valid snakemake options here&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>any other options</string>
+            </property>
+           </widget>
+          </item>
           <item row="8" column="1">
+           <widget class="QLineEdit" name="snakemake_options_general_custom"/>
+          </item>
+          <item row="9" column="1">
            <spacer name="spacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -280,49 +336,6 @@
              </size>
             </property>
            </spacer>
-          </item>
-          <item row="7" column="1">
-           <widget class="QLineEdit" name="snakemake_options_general_custom"/>
-          </item>
-          <item row="7" column="0">
-           <widget class="QLabel" name="label">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add any other valid snakemake options here&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>any other options</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QCheckBox" name="snakemake_options_general_verbose_value">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt; Print debugging output.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>verbose</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0">
-           <widget class="QCheckBox" name="snakemake_options_general_summary_value">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Print a summary of all files created by the workflow.&lt;/p&gt;&lt;p&gt;The has the following columns: filename, modification time, rule version, status, plan. Thereby rule version contains the versionthe file was created with (see the version keyword of rules), and status denotes whether the file is missing, its input files are newer or if version or implementation of the rule changed since file creation. Finally the last column denotes whether the file will be updated or created during the next workflow execution.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>summary</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QCheckBox" name="snakemake_options_general_keep__going_value">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Go on with independent jobs if a job fails.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>keep-going</string>
-            </property>
-           </widget>
           </item>
          </layout>
         </widget>

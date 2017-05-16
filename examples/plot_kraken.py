@@ -44,7 +44,7 @@ a standalone application named **sequana_taxonomy**.
 #
 from sequana import KrakenResults, sequana_data
 test_file = sequana_data("test_kraken.out", "testing")
-k = KrakenResults(test_file, verbose=False)   
+k = KrakenResults(test_file)
 df = k.plot(kind='pie')
 print(df)
 
@@ -57,7 +57,7 @@ print(df)
 # A more interactive plot can be obtained using Krona:
 from sequana import KrakenResults, sequana_data
 test_file = sequana_data("test_kraken.out", "testing")
-k = KrakenResults(test_file, verbose=False)
+k = KrakenResults(test_file)
 k.to_js(onweb=False)  # The output filame is krona.html by default
 
 #######################################################################
