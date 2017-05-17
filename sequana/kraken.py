@@ -713,7 +713,7 @@ class KrakenHierarchical(object):
         else:
             raise TypeError("input file must be a string or list of 2 filenames")
 
-    def _run_one_analysis(self, iteration):
+    def _run_one_analysis(self, iteration, output_prefix):
         """ Run one analysis """
         db = self.databases[iteration]
         logger.info("Analysing data using database {}".format(db))
@@ -750,7 +750,7 @@ class KrakenHierarchical(object):
 
         if self.keep_temp_files:
             result = KrakenResults(file_kraken_class)
-            result.to_js("%skrona_%d.html" %(prefix_output_results, iteration))
+            result.to_js("%skrona_%d.html" %(output_prefix, iteration))
 
     def run(self, dbname="multiple", output_prefix="kraken_final"):
         """Run the hierachical analysis
@@ -769,7 +769,7 @@ class KrakenHierarchical(object):
 
         # Iteration over the databases
         for iteration in range(len(self.databases)):
-            self._run_one_analysis(iteration)
+            self._run_one_analysis(iteration, output_prefix)
 
         # concatenate all kraken output files
         file_output_final = self.output_directory + os.sep + "%s.out" % output_prefix
