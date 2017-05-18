@@ -750,7 +750,7 @@ class KrakenHierarchical(object):
 
         if self.keep_temp_files:
             result = KrakenResults(file_kraken_class)
-            result.to_js("%skrona_%d.html" %(prefix_output_results, iteration))
+            result.to_js("%skrona_%d.html" %(self.output_directory, iteration))
 
     def run(self, dbname="multiple", output_prefix="kraken_final"):
         """Run the hierachical analysis
