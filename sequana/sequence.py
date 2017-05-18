@@ -230,7 +230,7 @@ class DNA(Sequence):
                 cumul[self._dict_nuc[nuc]][j] += 1
         self._cumul = cumul
 
-    @do_profile()
+    #@do_profile()
     def _compute_skews(self):
         ### initialisation =  Calculating GC skew and AT skew for first window
         self._init_sliding_window()

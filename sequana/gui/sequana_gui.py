@@ -528,6 +528,12 @@ class SequanaGUI(QMainWindow, Tools):
     def menuImportConfig(self, configfile=None):
         # The connector send a False signal but default is None
         # so we need to handle the two cases
+        if self.snakefile is None:
+            self.error("You must set a pipeline first")
+            msg = WarningMessage(("You must set a pipeline first"))
+            msg.exec_()
+            return
+
         if configfile and os.path.exists(configfile) is False:
             self.error("Config file (%s) does not exists" % configfile)
             return
@@ -538,6 +544,9 @@ class SequanaGUI(QMainWindow, Tools):
             browser = FileBrowser(file_filter=file_filter)
             browser.browse_file()
             configfile = browser.paths
+
+
+        print(configfile)
 
         if configfile:
             self.sequana_factory._imported_config = configfile
@@ -987,6 +996,7 @@ class SequanaGUI(QMainWindow, Tools):
         # For each section, we create a widget (RuleForm). For isntance, first,
         # one is accessible as follows: gui.form.itemAt(0).widget()
 
+        print(self.configfile)
         docparser = YamlDocParser(self.configfile)
 
         for count, rule in enumerate(rules_list):
