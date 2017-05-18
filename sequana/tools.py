@@ -131,6 +131,8 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
         the supplementary. This flag is not used in this function. Note also that
         chimeric alignment have same QNAME and flag 4 and 8
 
+    .. note:: the contamination reported is basde on R1 only.
+
     .. todo:: comments are missing since there are not stored in the BAM file.
     """
     bam = BAM(filename)
