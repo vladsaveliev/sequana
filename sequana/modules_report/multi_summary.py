@@ -95,6 +95,18 @@ class ReadSummary(object):
         trimming = float(trimming)
         return trimming
 
+    def get_output_total_reads(self):
+        d = self.get_cutadapt_stats()
+        try:
+            trimming = d["Number of reads"]["Pairs kept"]
+        except:
+            trimming = d["Number of reads"]["Reads kept"]
+        trimming = trimming.strip()
+        for this in [",", "(", ")", "%"]:
+            trimming = trimming.replace(this, "")
+        trimming = int(trimming)
+        return trimming
+
 
 class MultiSummary(SequanaBaseModule):
     """
@@ -195,6 +207,11 @@ class MultiSummary(SequanaBaseModule):
         except Exception as err:
             print(err)
 
+        try: self.populate_output_total_reads()
+        except Exception as err:
+            print(err)
+
+
         # Now we have all data in df as dictionaries. Let us merge them together
 
         keys = list(self.df.keys())
@@ -203,6 +220,24 @@ class MultiSummary(SequanaBaseModule):
         if len(keys) > 1: # we can merge things
             for key in keys[1:]:
                 df = pd.merge(df, pd.DataFrame(self.df[key]), on=['name', 'url'])
+
+        # For the quality_control pipeline
+        columns = []
+        for this in ["name",
+                    "url",
+                    "N_raw",
+                    "GC_raw_(%)",
+                    "Mean_quality_raw",
+                    'Phix_content_(%)',
+                    "Adapters_content_(%)",
+                    "Trimmed_reads_(%)",
+                    "N_final"
+                    ]:
+            if this in df.columns:
+                columns.append(this)
+        df = df[columns]
+        df.rename(columns={"name": "Sample name"}, inplace=True)
+
 
         from sequana.utils.datatables_js import DataTable
         datatable = DataTable(df, "multi_summary")
@@ -213,7 +248,8 @@ class MultiSummary(SequanaBaseModule):
             'dom': 'rtpB',
             "paging": "false",
             'buttons': ['copy', 'csv']}
-        datatable.datatable.set_links_to_column("url", "name")
+
+        datatable.datatable.set_links_to_column("url", "Sample name")
         js = datatable.create_javascript_function()
         html_tab = datatable.create_datatable(float_format='%.3g')
         html = "{} {}".format(html_tab, js)
@@ -224,7 +260,31 @@ class MultiSummary(SequanaBaseModule):
     }
 }</script>"""
 
-        self.intro = introhtml + "<hr><b>Summary</b>" + html
+        caption = """<p>The table below gives a brief summary of the analysis. The
+first column contains clickable sample name that redirects to complete summary
+page. The table contains the following columns:</p>
+
+   <b>Table caption</b>
+    <table>
+        <tr><td>N_raw</td><td>Number of reads in the data</td></tr>
+        <tr><td>GC_raw_(%)</td><td>GC content in percentage in the raw data 
+across all reads</td></tr>
+        <tr><td>Mean_quality_raw</td><td>Mean quality across all reads all bases
+in the raw data</td></tr>
+        <tr><td>Phix_content_(%)</td><td>Percentage of reads found with Phix174</td></tr>
+        <tr><td>Adapters_content_(%)</td><td>Percentage of reads with adapters (after phix
+removal if applied)  </td></tr>
+        <tr><td>Trimmed_reads_(%)</td><td>Percentage of reads trimmed (after
+phix and adapter removal)</td></tr>
+        <tr><td>N_final</td><td>Final number of reads (after phix and adapter
+removal and trimming)</td></tr>
+    </table>
+"""
+        infohtml = self.create_hide_section('information', 
+            '(Show information)', caption, True)
+        infohtml = "\n".join(infohtml)
+
+        self.intro = introhtml + """ <hr><b>Summary</b>: """ + infohtml +html
 
         self.sections.append({
             'name': None,
@@ -246,11 +306,16 @@ class MultiSummary(SequanaBaseModule):
             "url": self.get_urls()})
         return df
 
+    def populate_output_total_reads(self):
+        df = self._get_df("get_output_total_reads")
+        self.df['N_final'] = df.copy()
+        self.df['N_final'].columns = ['name', 'url', 'N_final']
+
     def populate_adapters(self):
         title = "Adapters content"
         df = self._get_df("get_adapters_percent")
-        self.df['adapters (%)'] = df.copy()
-        self.df['adapters (%)'].columns = ['name', 'url', 'adapters (%)']
+        self.df['Adapters'] = df.copy()
+        self.df['Adapters'].columns = ['name', 'url', 'Adapters_content_(%)']
         cb = CanvasBar(df, "Adapters content", "adapters", xlabel="Percentage")
         self.jinja['canvas'] += cb.to_html()
         self.jinja['sections'].append(self._get_div("adapters", title))
@@ -258,27 +323,27 @@ class MultiSummary(SequanaBaseModule):
     def populate_nreads_raw(self):
         title = "Number of reads"
         df = self._get_df("get_nreads_raw")
-        self.df['nreads_raw'] = df.copy()
-        self.df['nreads_raw'].columns = ['name', 'url', 'nreads_raw']
+        self.df['N_raw'] = df.copy()
+        self.df['N_raw'].columns = ['name', 'url', 'N_raw']
         cb = CanvasBar(df, "Number of reads (raw data)", "nreads_raw",
                     xlabel="Number of reads")
         self.jinja['canvas'] += cb.to_html()
         self.jinja['sections'].append(self._get_div("nreads_raw",title))
 
     def populate_mean_quality(self):
-        title = "Mean quality"
+        title = "Mean quality (raw data)"
         df = self._get_df("get_mean_quality_samples")
-        self.df['mean_quality'] = df.copy()
-        self.df['mean_quality'].columns = ['name', 'url', 'mean_quality']
+        self.df['Mean_quality_raw'] = df.copy()
+        self.df['Mean_quality_raw'].columns = ['name', 'url', 'Mean_quality_raw']
         cb = CanvasBar(df, title, "mean_quality", xlabel="mean quality")
         self.jinja['canvas'] += cb.to_html(options={'maxrange':40})
         self.jinja['sections'].append(self._get_div("mean_quality", title))
 
     def populate_gc_samples(self):
-        title = "GC content"
+        title = "GC content (raw)"
         df = self._get_df("get_gc_content_samples")
-        self.df['GC %'] = df.copy()
-        self.df['GC %'].columns = ['name', 'url', 'GC %']
+        self.df['GC_raw'] = df.copy()
+        self.df['GC_raw'].columns = ['name', 'url', 'GC_raw_(%)']
         cb = CanvasBar(df, title, "populate_gc_samples", xlabel="Percentage")
         self.jinja['canvas'] += cb.to_html(options={"maxrange":100})
         self.jinja['sections'].append(self._get_div("populate_gc_samples",title))
@@ -286,17 +351,17 @@ class MultiSummary(SequanaBaseModule):
     def populate_phix(self):
         title = "Phix content"
         df = self._get_df("get_phix_percent")
-        self.df['phix (%)'] = df.copy()
-        self.df['phix (%)'].columns = ['name', 'url', 'phix (%)']
+        self.df['Phix'] = df.copy()
+        self.df['Phix'].columns = ['name', 'url', 'Phix_content_(%)']
         cb = CanvasBar(df, title, "phix", xlabel="Percentage")
         self.jinja['canvas'] += cb.to_html()
         self.jinja['sections'].append(self._get_div("phix", title))
 
     def populate_trimming(self):
-        title = "Trimming"
+        title = "Trimming (raw data)"
         df = self._get_df("get_trimming_percent")
-        self.df['trimming (%)'] = df.copy()
-        self.df['trimming (%)'].columns = ['name', 'url', 'trimming (%)']
+        self.df['Trimmed'] = df.copy()
+        self.df['Trimmed'].columns = ['name', 'url', 'Trimmed_reads_(%)']
         cb = CanvasBar(df, title, "trimming", xlabel="Percentage")
         self.jinja['canvas'] += cb.to_html()
         self.jinja['sections'].append(self._get_div("trimming", title))
@@ -337,6 +402,9 @@ class MultiSummary(SequanaBaseModule):
 
     def get_mean_quality_samples(self):
         return [x.get_mean_quality_samples() for x in self.summaries]
+
+    def get_output_total_reads(self):
+        return [x.get_output_total_reads() for x in self.summaries]
 
     def parse(self):
         pass
