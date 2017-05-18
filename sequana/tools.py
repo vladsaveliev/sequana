@@ -134,6 +134,12 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
     .. note:: the contamination reported is basde on R1 only.
 
     .. todo:: comments are missing since there are not stored in the BAM file.
+
+
+    .. note:: the mapped reads may not be synchronized because we include also
+        the chimeric alignment (cf samtools documentation). However, 
+        total reads = unmappeds reads + R1 mapped + R2 mapped - supplemntary
+        reads (those with flag 2048).
     """
     bam = BAM(filename)
     # figure out if this is paired or unpaired
