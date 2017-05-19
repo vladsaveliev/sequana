@@ -754,7 +754,7 @@ def sequana_init(options):
         if options.reference:
             cfg.config.bwa_mem_ref.reference = os.path.abspath(options.reference)
 
-    if options.pipeline == "rnaseq":
+    if options.pipeline == "rnaseq" or options.pipeline == "smallrnaseq":
         if options.design:
             shutil.copy(options.design, options.target_dir + os.sep )
             cfg.config.adapter_removal.design_file = os.path.basename(options.design)
