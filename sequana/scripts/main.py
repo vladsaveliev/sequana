@@ -39,7 +39,7 @@ from sequana import logger, Module, sequana_debug_level
 
 sequana_debug_level('INFO')
 
-adapters_choice = ["Nextera", "Rubicon", "PCRFree", "TruSeq"]
+adapters_choice = ["Nextera", "Rubicon", "PCRFree", "TruSeq", "SMARTer", "Small"]
 
 help_input = """Missing input data.
 
