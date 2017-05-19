@@ -7,8 +7,6 @@ rule kraken_to_krona:
         shell("ktImportText %s -o %s" % (input, output))
 
 
-
-
 rule kraken_translate:
     input: __kraken__output
     output:
@@ -70,7 +68,7 @@ rule kraken:
         if len(input) == 1:
             shell("kraken -db {params.database} {input[0]} "
                 " --threads {threads}"
-                " --out {output.kraken}; "
+                " --out {output.kraken} "
                 " --unclassified-out %s " % outname
                 )
         elif len(input) == 2:
