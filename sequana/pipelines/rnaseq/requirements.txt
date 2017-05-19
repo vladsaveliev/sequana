@@ -6,4 +6,3 @@
 - STAR
 - fastq_screen
 - featureCounts [subread]
-- rna-seqc
