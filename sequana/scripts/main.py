@@ -758,7 +758,9 @@ def sequana_init(options):
         if options.design:
             shutil.copy(options.design, options.target_dir + os.sep )
             cfg.config.adapter_removal.design_file = os.path.basename(options.design)
-
+        cfg.config.adapter_removal.fwd = options.adapter_fwd
+        cfg.config.adapter_removal.rev = options.adapter_rev
+        cfg.config.adapter_removal.adapter_type = options.adapters
 
 
     cfg.copy_requirements(target=options.target_dir)
