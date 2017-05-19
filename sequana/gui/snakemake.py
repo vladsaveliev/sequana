@@ -65,6 +65,7 @@ class SnakemakeDialog(QW.QDialog):
         for name, widget in zip(names, widgets):
             # This option is valid for snakemake above 3.10
             if name == "restart-times" and snakemake_version < StrictVersion("3.10"):
+                print("You should use Snakemake 3.10 or above")
                 continue
             options.append(SOptions(name, widget))
         return options

@@ -33,7 +33,6 @@ from sequana.bamtools import  SAMFlags
 from sequana import BAM
 
 from sequana.lazy import pylab
-from sequana.lazy import reports
 
 from sequana.utils.datatables_js import DataTable
 

@@ -29,8 +29,9 @@ In this section, we first show how to run one of our Sequana pipeline (quality
 control pipeline). Second, we show how to run **Generic pipelines** that are not
 part of Sequana. For these two examples, the computation is done locally.
 However, one strength of Snakemake pipelines is that they can be executed on
-various cluster without changing the pipeline itself. The
-third section shows how to run the analysis on a cluster (SLURM and SGE frameworks).
+various cluster without changing the pipeline itself. This is also possible via
+**Sequanix** as explained in the :ref:`sequanix_cluster` section (SLURM and 
+SGE frameworks).
 
 
 Snakemake pipelines are made of 2 parts: a pipeline and an optional
@@ -82,15 +83,20 @@ In general we have many samples, so you need to select the **Input directory**
 tab. If you have only one or two files, you may use the other tab 
 (**Input sample(s)**).
 
-Here, we consider the first case only (directory). First click on the 
+Here, we consider the first case only (directory). First click on the
 red Browse button (figure below)
-to select the directory where is the data. By default, we assume that there is a
-special tag in the filenames (_R1_ or _R2_)
+to select the directory where is stored the data. 
+
+By default, we assume that there is a special tag in the filenames (_R1_ or _R2_)
 but one can change it to another pattern. Note also that we expect by default
 the input files to end up in fastq.gz
 
 So by default if you select a directory, all files ending in *fastq.gz* will be
 selected.
+
+.. note:: if FastQ files are stored in various directories, use the **Optional
+   pattern**. For instance if samples are stored in sub directories, use
+   `*/*fastq.gz`
 
 .. figure:: _static/sequanix/sequanix_input_data.png
     :width: 80%
@@ -126,11 +132,11 @@ One major interest of **Sequanix** is that the Snakemake configuration file is
 loaded and can then be changed dynamically. In other word, you do not need to
 use an esoteric text editor, which may be the only option on a cluster.
 
-Morevoer, the loaded configuration file has other advantages:
+Moreover, the loaded configuration file has other advantages:
 
 - file can be selecting thanks to a file browser. If no file is selected, the button is red (green otherwise)
 - Some buttons have dedicated widgets (e.g. in the figure above, the number of threads has its own dropbox limited typing errors)
-- Boolean have their own checked button
+- Boolean fields have their own checked buttons
 - etc
 
 .. note:: For developers: please see the :ref:`config_coding_convention` section to see
@@ -148,7 +154,7 @@ you want to overwrite the existing files.
 
 You can then check the pipeline by clicking the **Show Pipeline** button or use
 **Ctrl+D** shortcut. For simple pipeline, this may not be very useful but for
-complex dynamix pipelines where parts may be switched off, this may be
+complex dynamic pipelines where parts may be switched off, this may be
 convenient.
 
 .. figure:: _static/sequanix/sequanix_dag_qc.png
@@ -161,7 +167,7 @@ Finally, once saved, the **Run** button should be clickable. Click on
 it or use **Ctrl+R** shortcut. The output of Snakemake will be shown and
 the progress bar will move showing the stage of the analysis.
 
-.. warning:: with long analysis, the progress bar may be stalled for while. It
+.. warning:: with long analysis, the progress bar may be stalled for a while. It
    may even stay at 0% for a long time. Just be patient.
 
 Stopping a running analysis:
@@ -181,7 +187,7 @@ Start Sequanix with pre-defined values
 
 If you use **Sequanix** regularly, it may be convenient to start the standalone
 with with pre-filled values. For instance, to pre-fill the input directory, the
-working directory and the pipeline itself as follows::
+working directory and the pipeline itself start **Sequanix** as follows::
 
    sequanix -i . -p quality_control -w analysis
 
@@ -204,8 +210,8 @@ here is the Snakefile.
     :emphasize-lines: 5
 
 .. note::
-   - the directory where to find the data is hardcoded so you must change it
-     (see highlighted line in the code below).
+   - In this example, the directory where to find the data is hardcoded so
+     you must change it (see highlighted line in the code below).
    - This example does not depend on any external configuration file. We
      will see later on to combine this Snakefile with a configuration file
      where the directory can be set.
@@ -246,8 +252,8 @@ The analysis
 Similarly to the Sequana pipeline case, you need to select the pipeline as
 follows:
 
-#. select the *Generic pipelines* tab (arrow 1)
-#. select the *pipeline section* tab (arrow 2)
+#. Select the *Generic pipelines* tab (arrow 1)
+#. Select the *pipeline section* tab (arrow 2)
 #. Click on the browse button to select the pipeline file (minimalist.rules)
 
 There is no configuration file so we can now save and run the project:
@@ -301,27 +307,32 @@ You can see here that the configuration file (a single parameter *data_directory
 
 The rest of the analysis works as above.
 
-Dialogs and running local or on a cluster
--------------------------------------------------
+Dialogs and running analysis locally or on a cluster
+-----------------------------------------------------------
 
 So far we have used **Sequanix** with the default parameters.
-
-
 
 
 The Sequanix browser and the preferences dialog
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+**sequana_fox**, the sequanix home-made browser
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Once an analysis is finished, **Sequana** pipeline generally creates an HTML
-report. This is the reason why we added a **Open Report** button in the bottom.
+report. This is the reason why we added an **Open Report** button in the bottom.
 This opens a file browser where users can select an HTML file. The browser used
-by default is a home-made browser.
+by default is a home-made browser so that it can run on a cluster where no
+standard browser are installed. 
 
-The home-made browser is simple but very convenient if you run **Sequanix** on a
-unix system where there is no standard browser installed for you. However, this
-home-made browser is simple. There is a forward/backward capability, support for
-Javascript, ability to change the URL but that is pretty much all. 
+The home-made browser, which can be used as a standalone (**sequana_fox**) is 
+simple but should be enough for most HTML pages.
+There is a forward/backward capability, support for
+Javascript, ability to change the URL but that is pretty much all. This is
+mainly used to check that HTML files have been created.
 
+Preferences dialog
+^^^^^^^^^^^^^^^^^^^^^^^
 
 In order to open the preferences dialog, type **Ctrl+P** or go to
 the *Option* menu at the top and select *Preferences*. The Preferences dialog
@@ -342,12 +353,12 @@ Brief description of the options:
     can select firefox, safari, chrome instead. 
 :logging verbosity: there are 5 level of verbosity. By default, we use INFO. It
     may be useful to set the option to DEBUG if there are errors and you wish to
-    provide a complete bug report to sequana developers.
+    provide a complete bug report to Sequana developers.
 :HTML page to open as a report: If you set a filename here, then when pressing
     **Open report**, instead of opening a file browser, sequanix open the file
     provided.
 :Form browser keywords: In the config parameters, if you wish to associate a
-    parameter name with a breowser widget, add the names here (separated by comma)
+    parameter name with a browser widget, add the names here (separated by comma)
 
 
 
@@ -374,7 +385,7 @@ The Snakemake dialog contains 3 sub tab: the local, cluster and general tabs.
 Running analysis locally
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 If you run the analaysis locally, you do not need to change much. The only
-option to tune is the number of cires to be used locally. This happens in the 
+option to tune is the number of cores to be used locally. This happens in the 
 **Local** tab. By default the cores parameter is set to the number of cores
 found on the computer. You may reduce this number if you wish.
 
@@ -386,15 +397,18 @@ found on the computer. You may reduce this number if you wish.
     to be used. By default it is the number of available cores on the machine
     used.
 
+
+.. _sequanix_cluster:
+
 Running analysis on a cluster
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you run the analysis on a cluster, this is a bit more complicated.
 
-First, similarly to the local run, you may proivide the number of cores to be
-used. This happens in the **Cluster** tab. Here, you can set the paramters
+First, similarly to the local run, you may provide the number of cores to be
+used. This happens in the **Cluster** tab. Here, you can set the parameters
 **jobs** to the required number of CPUS. If you know that at a given time, you
-may have N jobs running, set this paramter to N. For instance, of you have 48
+may have N jobs running, set this parameter to N. For instance, if you have 48
 samples, and you perform 48 independent analysis, set *jobs* to 48.
 
 Second, you must set the *cluster* commands. We will not provide an exhaustive 
@@ -450,7 +464,7 @@ Here is a brief description:
 :nohooks: Do not invoke onstart, onsuccess or onerror hooks after execution.
 :restart-times:  Number of times to restart failing jobs (defaults to 0).
 :verbose: Print debugging output
-:summary: Print a summary of all files created by the workflow. The has the following columns: filename, modification time, rule version, status, plan. Thereby rule version contains the versionthe file was created with (see the version keyword of rules), and status denotes whether the file is missing, its input files are newer or if version or implementation of the rule changed since file creation. Finally the last column denotes whether the file will be updated or created during the next workflow execution.
+:summary: Print a summary of all files created by the workflow. The has the following columns: filename, modification time, rule version, status, plan. Thereby rule version contains the version the file was created with (see the version keyword of rules), and status denotes whether the file is missing, its input files are newer or if version or implementation of the rule changed since file creation. Finally the last column denotes whether the file will be updated or created during the next workflow execution.
 :any other options:
 
 .. _sequanix_faqs:
@@ -464,21 +478,24 @@ You have to connect with ssh and the -X option::
 
     ssh -X your.cluster.address
 
-Once connect, on slurm system::
+Once connected, on a slurm system type::
 
     srun  --x11 sequanix
 
-What to do if the RUN fails
+What to do if a RUN fails
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An analysis may fail for various reasons. The errors have several origins:
+An analysis may fail for various reasons. The errors have several origins. Most
+commons ones are:
 
-- configuration file not filled properly
-- bug in the pipeline
-- bug in Sequanix
-- cluster issue: a job is killed because not enough memory was allocated
+- configuration file not filled properly (e.g. missing input file)
+- Input data not found (e.g., bad pattern)
+- bug in the pipeline (Fill an issue on http://github.com/sequana/sequana/issues)
+- bug in Sequanix (fill an issue)
+- cluster issue: a job is killed because not enough memory was allocated (adapt
+  the cluster option by increasing relevant resources such as memory requirements)
 
-By experience, the first type of errors is the most common.
+By experience, the first 2 type of errors are the most common.
 
 
 

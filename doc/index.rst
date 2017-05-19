@@ -56,27 +56,60 @@ parameters and run the pipelines easily.
 To join the project, please let us know on `github <https://github.com/sequana/sequana/issues/306>`_.
 
 
-.. Here we are building the carrousel
+.. Here we are building the carrousel? Note that html and pdf version look for
+   images in different folders...
 
-.. |bam| image::
-      _images/sphx_glr_plot_bam_001.png
-   :target: auto_examples/plot_bam.html
+.. only:: html
 
-.. |coverage| image::
-      _images/sphx_glr_plot_coverage_001.png
-   :target: auto_examples/plot_coverage.html
+    .. |bam| image::
+        _images/sphx_glr_plot_bam_001.png
+        :target: auto_examples/plot_bam.html
 
-.. |fastqc| image::
-      _images/sphx_glr_plot_fastqc_hist_001.png
-   :target: auto_examples/plot_fastqc_hist.html
+    .. |coverage| image::
+        _images/sphx_glr_plot_coverage_001.png
+        :target: auto_examples/plot_coverage.html
 
-.. |kraken| image::
-      _images/sphx_glr_plot_kraken_001.png
-   :target: auto_examples/plot_kraken.html
+    .. |fastqc| image::
+        _images/sphx_glr_plot_fastqc_hist_001.png
+        :target: auto_examples/plot_fastqc_hist.html
 
-.. |sequanix| image::
-      _static/sequanix.png
-   :target: applications.html#sequanix
+    .. |kraken| image::
+        _images/sphx_glr_plot_kraken_001.png
+        :target: auto_examples/plot_kraken.html
+
+    .. |sequanix| image::
+        _static/sequanix.png
+        :target: applications.html#sequanix
+
+    .. |pacbio| image::
+        _images/sphx_glr_plot_qc_pacbio_002.png
+        :target: auto_examples/plot_qc_pacbio.html
+
+.. only:: latex
+
+    .. |bam| image::
+        sphx_glr_plot_bam_001.png
+        :target: auto_examples/plot_bam.html
+
+    .. |coverage| image::
+        sphx_glr_plot_coverage_001.png
+        :target: auto_examples/plot_coverage.html
+
+    .. |fastqc| image::
+        sphx_glr_plot_fastqc_hist_001.png
+        :target: auto_examples/plot_fastqc_hist.html
+
+    .. |kraken| image::
+        sphx_glr_plot_kraken_001.png
+        :target: auto_examples/plot_kraken.html
+
+    .. |sequanix| image::
+        sequanix.png
+        :target: applications.html#sequanix
+
+    .. |pacbio| image::
+        sphx_glr_plot_qc_pacbio_002.png
+        :target: auto_examples/plot_qc_pacbio.html
 
 
 .. raw:: html
@@ -103,6 +136,7 @@ To join the project, please let us know on `github <https://github.com/sequana/s
 * |kraken|
 * |bam|
 * |sequanix|
+* |pacbio|
 
 .. raw:: html
 

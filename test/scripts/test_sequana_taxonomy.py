@@ -12,7 +12,7 @@ def krakendb():
     try:
         taxonomy.main([prog, '--download', 'toydb'])
     except TypeError: # Fails on travis so we download manually (appdirs returns
-                      # none instead of the expected user config path 
+                      # none instead of the expected user config path
         HOME = os.getenv('HOME')
         from sequana.misc import wget
         baseurl = "https://github.com/sequana/data/raw/master/kraken_toydb/"

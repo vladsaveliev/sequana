@@ -133,6 +133,10 @@ Besides, the filename convention is as follows::
 that is **_R1_** and **_R2_** indicates the paired or single-ended files and
 the PREFIX is used to create directories or reports; it must be present.
 
+.. versionadded:: 0.2
+    more flexible tags are now possible in sequana pipelines and sequanix using
+    e.g. _R[12] in the **input_readtag** in the configuration file of the
+    pipelines.
 
 
 Sequanix related
@@ -140,6 +144,32 @@ Sequanix related
 
 For question related to Sequanix, we have a dedicated section in
 :ref:`sequanix_faqs`.
+
+
+QXcbConnection issue
+----------------------
+If you get this error::
+
+    QXcbConnection: Could not connect to display localhost:10.0
+
+this is an issue with your Qt backend. You need to change it to Agg.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

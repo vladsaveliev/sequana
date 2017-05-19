@@ -44,12 +44,24 @@ Experimental design
     :members:
     :undoc-members:
 
-
 FASTQ module
 ---------------
 .. automodule:: sequana.fastq
     :members:
     :undoc-members:
+
+FASTA module
+---------------
+.. automodule:: sequana.fasta
+    :members:
+    :undoc-members:
+
+Sequence module
+---------------
+.. automodule:: sequana.sequence
+    :members:
+    :undoc-members:
+
 
 Kmer module
 ---------------
@@ -94,7 +106,6 @@ Running median
 .. automodule:: sequana.running_median
     :members:
     :undoc-members:
-
 
 Snakemake module
 -----------------

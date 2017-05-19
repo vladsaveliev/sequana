@@ -75,13 +75,13 @@ def get_bam_stats(filename):
     return df
 
 def main(args=None):
-
+    from sequana import logger
     if args is None:
         args = sys.argv[:]
 
     user_options = Options(prog="sequana")
 
-    print("the usage of the summary tool may change significantly in the future")
+    logger.warning("the usage of the summary tool may change significantly in the future")
 
     # If --help or no options provided, show the help
     if len(args) == 1:
@@ -112,9 +112,9 @@ def main(args=None):
     assert len(set(ff.extensions)) == 1, "Input files must have the same extensions"
     extension = ff.all_extensions[0]
 
-    print("Found %s files:" % len(ff.realpaths))
+    logger.info("Found %s files:" % len(ff.realpaths))
     for this in ff.realpaths:
-        print(" - " + this)
+        logger.info(" - " + this)
 
     mc = MultiProcessing(options.thread, progress=True)
     if extension in ["fastq", "fastq.gz"]:

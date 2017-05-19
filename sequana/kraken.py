@@ -650,7 +650,6 @@ class KrakenHierarchical(object):
     The input may be a single FastQ file or paired, gzipped or not. FastA are
     also accepted.
 
-    
 
     """
     def __init__(self, filename_fastq, fof_databases, threads=1,
@@ -703,7 +702,7 @@ class KrakenHierarchical(object):
                 logger.error('Output directory %s already exists' % output_directory)
                 raise Exception
             elif force is True:
-                logger.warning("Output directory %s already exists. You may"
+                logger.warning("Output directory %s already exists. You may "
                     "overwrite existing results" % output_directory)
 
         # list of input fastq files
@@ -751,15 +750,16 @@ class KrakenHierarchical(object):
 
         if self.keep_temp_files:
             result = KrakenResults(file_kraken_class)
-            result.to_js("%skrona_%d.html" %(prefix_output_results, iteration))
+            result.to_js("%skrona_%d.html" %(self.output_directory, iteration))
 
-    def run(self):
+    def run(self, dbname="multiple", output_prefix="kraken_final"):
         """Run the hierachical analysis
 
         This method does not return anything but creates a set of files:
 
         - kraken_final.out
         - krona_final.html
+        - kraken.png  (pie plot of the classified/unclassified reads)
 
         .. note:: the databases are run in the order provided in the constructor.
         """
@@ -772,7 +772,7 @@ class KrakenHierarchical(object):
             self._run_one_analysis(iteration)
 
         # concatenate all kraken output files
-        file_output_final = self.output_directory + "kraken_final.out"
+        file_output_final = self.output_directory + os.sep + "%s.out" % output_prefix
         with open(file_output_final, 'w') as outfile:
             for fname in self._list_kraken_output:
                 with open(fname) as infile:
@@ -782,7 +782,13 @@ class KrakenHierarchical(object):
         # create html report
         logger.info("Analysing results")
         result = KrakenResults(file_output_final)
-        result.to_js("%skrona_final.html" % self.output_directory)
+        # TODO: this looks similar to the code in KrakenPipeline. could be factorised
+        result.to_js("%s%s%s.html" % (self.output_directory, os.sep, output_prefix))
+        result.plot(kind="pie")
+        pylab.savefig(self.output_directory + os.sep + "kraken.png")
+        prefix = self.output_directory + os.sep
+        result.kraken_to_json(prefix + "kraken.json", dbname)
+        result.kraken_to_csv(prefix + "kraken.csv", dbname)
 
         # remove kraken intermediate files (including unclassified files)
         if not self.keep_temp_files:

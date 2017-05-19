@@ -73,7 +73,9 @@ Store the rule in a Sequana module
 
 We now store this Snakefile in the proper place. 
 All modules are placed either in *./sequana/pipelines* or in
-*./sequana/rules* directory. The tree structure looks like::
+*./sequana/rules* directory. The tree structure looks like:
+
+.. only:: html
 
     .
     ├── rules
@@ -84,6 +86,19 @@ All modules are placed either in *./sequana/pipelines* or in
     │   ├── count_pipeline
     │   │   ├── count_pipeline.rules
     │   │   ├── README.rst
+
+
+.. only:: latex
+
+    --- rules
+    |   --- count
+    |   |   --- count.rules
+    |   |   --- README.rst
+    --- pipelines
+    |   --- count_pipeline
+    |   |   --- count_pipeline.rules
+    |   |   --- README.rst
+
 
 
 We have created a *count* directory in *./rules* and put the Snakefile in it
@@ -349,6 +364,10 @@ In order to run the test locally, you will need to use::
 
     pip install pytest pytest-cov pytest-qt pytest-xdist pytest-mock pytest-timeout
 
+The first is the main package, the second is required for coverage. The third
+provides fixtures for Qt testing and the fourth is used to use several CPU
+during testing. The fifth is for mocking and the sixth to constraint long tests.
+
 
 Then, you can type for instance::
 
@@ -477,4 +496,11 @@ Here is the full working example:
 
 When using this module, one creates an HTML page called **mytest.html**. An
 instance of the page is available here:  `report_example.html <_static/report_example.html>`_
+
+Documentation
+-----------------------
+
+::
+
+    conda install sphinx sphinx_rtd_theme
 

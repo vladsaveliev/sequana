@@ -1,0 +1,128 @@
+import glob
+import os
+import json
+
+from sequana import pacbio
+import pylab
+from sequana import snaketools as sm
+
+
+configfile: "config.yaml"
+
+manager = sm.PipelineManager("pacbio_qc", config, "*.bam")
+
+
+# Input parameter to be changed
+directory = config['input_directory']
+filenames = glob.glob(directory + "/*.bam")
+
+samples = [os.path.split(this)[1].replace(".bam", "") 
+            for this in filenames]
+
+sm.message("Number of samples: %d" % len(samples))
+
+rule all:
+    input:
+        expand("report_{sample}.html", sample=samples),
+        expand("{sample}/kraken/kraken.html", sample=samples)
+
+rule html_report:
+    input:  "summary_{sample}.json", "{sample}/kraken/kraken.html"
+    output: "report_{sample}.html"
+    params: dir="{sample}/kraken"
+    run:
+        from sequana.modules_report.pacbio_input_bam import PacbioInputBAMModule as Module
+        m = Module(input[0])
+
+        from sequana.modules_report.kraken import KrakenModule
+        kr = KrakenModule(params.dir)
+        html = kr._get_summary_section()
+        toreplace = "./kraken/kraken.html"
+        target = params.dir + "/kraken.html"
+        html = html.replace(toreplace, target)
+        m.sections.append({
+          "name": "Taxonomic content",
+          "anchor": "kraken",
+          "content": html
+        })
+        m.create_html(output[0])
+
+rule tofasta:
+    input: directory + "/{sample}.bam"
+    output: "{sample}.fasta"
+    threads: 4
+    run:
+        from sequana import pacbio
+        p = pacbio.BAMPacbio(input[0])
+        p.to_fasta(output[0], threads=threads)
+
+rule kraken:
+    input: "{sample}.fasta"
+    output: "{sample}/kraken/kraken.html"
+    params:
+        database=config['kraken']['database_directory']
+    shell:
+        """
+        sequana_taxonomy --file1 {input} --database {params.database} --output-directory {wildcards.sample}
+        """
+
+rule read_len:
+    input: directory + "/{sample}.bam"
+    output:
+        read_len   = "hist_read_len_{sample}.png",
+        GC_content = "GC_content_{sample}.png",
+        ZMW        = "ZMW_passes_{sample}.png",
+        SNR        = "SNR_{sample}.png",
+        GC_vs_len  = "GC_vs_len_{sample}.png",
+        summary    = "summary_{sample}.json"
+
+    run:
+        ########## labels for plots
+        short_name = input[0].replace(".bam","").split("/")[-1]
+        bam_pacbio = pacbio.BAMPacbio(input[0])
+
+        ########## Read length
+        # individual histograms
+        bam_pacbio.hist_len(label=short_name)
+        pylab.title("Read length")
+        pylab.legend()
+        pylab.savefig(output.read_len)
+
+        ########## GC content
+        # individual histograms
+        bam_pacbio.hist_GC(label=short_name)
+        pylab.title("GC content")
+        pylab.legend()
+        pylab.savefig(output.GC_content)
+
+        ########## ZMW passes
+        # individual histograms
+        bam_pacbio.hist_ZMW_subreads(label=short_name)
+        pylab.title("ZMW passes")
+        pylab.legend()
+        pylab.savefig(output.ZMW)
+
+        ########## SNR
+        # individual histograms
+        bam_pacbio.hist_snr()
+        pylab.title("SNR %s" %short_name)
+        pylab.savefig(output.SNR)
+
+        # plot GC versus read length
+        bam_pacbio.plot_GC_read_len()
+        pylab.savefig(output.GC_vs_len)
+
+        with open(output.summary, "w") as fh:
+            data = {"hist_read_length": output.read_len, 
+                    "hist_gc_content": output.GC_content,
+                    "hist_snr": output.SNR,
+                    "gc_vs_length": output.GC_vs_len,
+                    "hist_zmw": output.ZMW}
+            data['stats'] = bam_pacbio.stats
+            data['sample'] = "{sample}"
+            json.dump(data, fh, indent=True, sort_keys=True)
+        pylab.close()
+
+onsuccess:
+    #clean up
+    pass

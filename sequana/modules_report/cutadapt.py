@@ -128,7 +128,6 @@ class CutadaptModule(SequanaBaseModule):
 
     def _get_stat_section(self):
         df = self._get_stats()
-        #df.to_json(self.sample_name + "/cutadapt/cutadapt_stats1.json")
         datatable = DataTable(df, "cutadapt", index=True)
         datatable.datatable.datatable_options = {
             'scrollX': '300px',
@@ -142,7 +141,7 @@ class CutadaptModule(SequanaBaseModule):
         #csv_link = self.create_link('link', self.filename)
         #vcf_link = self.create_link('here', 'test.vcf')
         html = "Reads statistics after trimming and adapter removal. The " +\
-               "A, C, G, T, N rows report the percentage of each bases in " +\
+               "A, C, G, T, N columns report the percentage of each bases in " +\
                "the overall sequences"
         html += "<p>{} {}</p>".format(html_tab, js)
         return html
@@ -179,8 +178,6 @@ class CutadaptModule(SequanaBaseModule):
             'buttons': ['copy', 'csv']}
         js = datatable.create_javascript_function()
         html_tab = datatable.create_datatable(float_format='%.3g')
-        #h = reports.HTMLTable(df)
-        #html = h.to_html(index=True)
         self.jinja['adapters'] = "tralala"
         self.sections.append({
             "name": "Adapters",
@@ -218,6 +215,7 @@ class CutadaptModule(SequanaBaseModule):
         # get keys and count; Sort by number of adapters removed.
         # TODO: could have reused the df
         adapter_names = list(histograms.keys())
+
         count = [histograms[k]['count'].sum() for k in adapter_names]
         df2 = pd.DataFrame({'key':adapter_names, "count": count})
         df2.sort_values(by="count", ascending=False, inplace=True)
@@ -233,6 +231,7 @@ class CutadaptModule(SequanaBaseModule):
                 pylab.title(name + "(%s)" % count)
                 pylab.grid(True)
                 pylab.savefig(filename)
+                pylab.close()  # need to close the figure otherwise warnings 
             imagehtml = self.create_embedded_png(plotter, "filename",
                 style='width:45%', key=key)
             html += imagehtml
@@ -346,7 +345,6 @@ class CutadaptModule(SequanaBaseModule):
                     # we found the end of the histogram
                     # Could be a 5'/3' case ? if so another histogram is
                     # possible
-                    self.dd = current_hist
                     df = pd.read_csv(io.StringIO(current_hist), sep='\t')
                     #reinitiate the variables
                     if cutadapt_mode != "b":
@@ -359,18 +357,13 @@ class CutadaptModule(SequanaBaseModule):
                         # If we have already found an histogram, this is
                         # therefore the second here.
                         if name in dfs:
-                            dfs[name] = dfs[name].append(df.set_index("length"))
+                            if len(df):
+                                dfs[name] = dfs[name].append(df.set_index("length"))
                             scanning_histogram = False
-
-                            #Now that we have the two histograms, we can merge
-                            # them using a group by
-
                             dfs[name] = dfs[name].reset_index().groupby("length").aggregate(sum)
                         else:
                             dfs[name] = df.set_index("length")
                             scanning_histogram = True
-
-                            df.reset_index().groupby("length").aggregate(sum)
                 else:
                     pass
         return dfs

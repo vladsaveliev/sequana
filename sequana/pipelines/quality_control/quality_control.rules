@@ -377,17 +377,8 @@ onsuccess:
         shell("sequana_summary -m")
     except: pass
 
-    from sequana.snaketools import create_recursive_cleanup
-    create_recursive_cleanup("cleanup.py",
-        ["fastq_sampling", "logs", "common_logs", "images", "rulegraph"])
-
-    with open("Makefile","w") as fh:
-        fh.write("bundle:\n")
-        fh.write("\ttar cvfz results.tar.gz *\n")
-        fh.write("clean:\n")
-        fh.write('\tif [ -f cleanup.py ]; then python cleanup.py ; else echo "cleaned already"; fi;\n')
-
-
+    from sequana.snaketools import OnSuccess
+    sm.OnSuccess()() # create instance and execute to create Makefile and cleanup
 
 onerror:
     print("An error occurred. See message above.")

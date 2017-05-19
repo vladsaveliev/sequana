@@ -75,7 +75,7 @@ class DataTableFunction(object):
         - pageLength: 15
         - scrollX: "true"
         - paging: 15
-        - buttons: ['copy', 'csv]
+        - buttons: ['copy', 'csv']
 
         Note that buttons can also be excel, pdf, print, ...
 
@@ -119,7 +119,22 @@ class DataTableFunction(object):
 
     @datatable_options.setter
     def datatable_options(self, d):
+        try:
+            d['buttons'] = self._add_export_visible(d['buttons'])
+        except KeyError:
+            pass
         self._datatable_options.update(d)
+
+    def _add_export_visible(self, buttons):
+        """ Add option to disable the exporting of hidden columns
+        """
+        try:
+            for b in buttons:
+                b.update({'exportOptions': {'columns': ':visible'}})
+        except AttributeError:
+            buttons = [{'extend': b, 'exportOptions': {'columns': ':visible'}}
+                      for b in buttons]
+        return buttons
 
     @datatable_options.deleter
     def datatable_options(self):

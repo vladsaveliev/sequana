@@ -2,7 +2,7 @@
 from PyQt5 import QtCore, QtGui, Qt, QtWidgets
 try:
     # PyQt 5.6 and above (e.g. conda Mac PyQt5.6 does not work like PyQt5.6
-    # linux) 
+    # linux)
     from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
     from PyQt5 import QtWebEngine as QtWebKit
     from PyQt5.Qt import QWebEnginePage as QWebPage
@@ -32,18 +32,17 @@ class Browser(Qt.QMainWindow):
 
         # Progress bar
         # ------------------------------------------------------------
-        self.pbar = QProgressBar()
-        self.pbar.setMaximumWidth(120)
-
+        self.progress = 0
         # Main page QWebView
         # -------------------------------------------------------------
         self.wb = SequanaQWebView(
             parent=self,
-            loadProgress=self.pbar.setValue,
-            loadFinished=self.pbar.hide,
-            loadStarted=self.pbar.show,
             titleChanged=self.setWindowTitle)
         self.wb.urlChanged.connect(lambda u: self.url.setText(u.toString()))
+
+        self.wb.titleChanged.connect(self.adjustTitle)
+        self.wb.loadProgress.connect(self.setProgress)
+
 
         self.setCentralWidget(self.wb)
 
@@ -81,7 +80,7 @@ class Browser(Qt.QMainWindow):
             activated= lambda: (self.search.show() , self.search.setFocus()))
         self.hideSearch = Qt.QShortcut("Esc", self,
             activated= lambda: (self.search.hide(), self.wb.setFocus()))
-        self.quit = Qt.QShortcut("Ctrl+Q", self, activated= self.close)
+        self.quit = Qt.QShortcut("Ctrl+Q", self, activated=self.close)
         self.zoomIn = Qt.QShortcut("Ctrl++", self,
             activated= lambda: self.wb.setZoomFactor(self.wb.zoomFactor()+.2))
         self.zoomOut = Qt.QShortcut("Ctrl+-", self,
@@ -95,28 +94,23 @@ class Browser(Qt.QMainWindow):
         Qt.QShortcut(QtCore.Qt.AltModifier + QtCore.Qt.Key_Right, self,
             activated=lambda: self.wb.forward())
 
-        # Javascript and other settings
-        # ------------------------------------------------------------
-        try:
-            # pyqt 5.6 with WebKit version
-            self.wb.settings().setAttribute(QtWebKit.QWebSettings.PluginsEnabled,
-                                        True)
-        except:
-            # Qt with Webengine version
-            self.wb.settings().setAttribute(
-                QWebEngineSettings.JavascriptEnabled,  True)
-            self.wb.settings().setAttribute(
-                QWebEngineSettings.Accelerated2dCanvasEnabled, False)
-
         # Add components on the page
         self.sb.addPermanentWidget(self.search)
-        self.sb.addPermanentWidget(self.pbar)
 
         # Finally, load the URL
         self.wb.load(QtCore.QUrl(url))
 
-        # No caching
-        # self.wb.settings().setObjectCacheCapacities(0,0,0)
+        self.wb.settings().setObjectCacheCapacities(0,0,0)
+
+    def adjustTitle(self):
+        if 0 < self.progress < 100:
+            self.setWindowTitle("%s (%s%%)" % (self.wb.title(), self.progress))
+        else:
+            self.setWindowTitle(self.wb.title())
+
+    def setProgress(self, p):
+        self.progress = p
+        self.adjustTitle()
 
 
 class SequanaQWebView(QWebView):
@@ -129,11 +123,15 @@ class SequanaQWebView(QWebView):
         """Constructor for the class"""
         super(SequanaQWebView, self).__init__(parent)
         self.kwargs = kwargs
-        self.config = {}
-        self.config['allow_popups'] = True
+
+        # Javascript and other settings
+        # ------------------------------------------------------------
         self.settings().setAttribute(
             QtWebKit.QWebSettings.JavascriptCanOpenWindows, True)
-        self.settings().setAttribute(QtWebKit.QWebSettings.LocalStorageEnabled, True)
+        self.settings().setAttribute(
+            QtWebKit.QWebSettings.LocalStorageEnabled, True)
+        self.settings().setAttribute(
+            QtWebKit.QWebSettings.PluginsEnabled, True)
 
     def createWindow(self, type):
         """Handle requests for a new browser window.
@@ -142,11 +140,12 @@ class SequanaQWebView(QWebView):
         (e.g., <a target='_blank'> or window.open()).
         Overridden from QWebView to allow for popup windows, if enabled.
         """
-        if self.config.get("allow_popups"):
-            self.popup = SequanaQWebView(**self.kwargs)
-            self.popup.setObjectName("web_content")
-            self.popup.setWindowTitle("Sequana browser")
-            self.popup.page().windowCloseRequested.connect(self.popup.close)
-            self.popup.show()
-            return self.popup
+        #this = Browser(self.url())
+        #this.show()
 
+        self.popup = SequanaQWebView(**self.kwargs)
+        self.popup.setObjectName("web_content")
+        self.popup.setWindowTitle("Sequana browser")
+        self.popup.page().windowCloseRequested.connect(self.popup.close)
+        self.popup.show()
+        return self.popup

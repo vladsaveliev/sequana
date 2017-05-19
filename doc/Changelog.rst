@@ -6,29 +6,51 @@ Changelog
 2017
 ------
 
+* BUG FIXES:
 
-0.1.23 - March - April 2017
+    - sequanix:
+        - rulegraph issue on SLURM system. Avoid the os.chdir
+    - fastq_samples/ fastq module: fix histogram_gc_content maximum range
+    - rulegraph rule: fix issue #405 (spaces in path to snakefile)
+
+
+* CHANGES:
+
+    - sequanix:
+        - snakemake output is now cleared
+    - quality_control pipeline: default to atropos instead of cutadapt for
+          adapter trimming. Kraken: remove classified reads and keep
+          unclassified. Unclassified reads are now compressed.
+          unclassified reads that are also compressed now.
+
+* NEW:
+
+    - pacbio module: cleanup and add funcion to convert input BAM into Fasta
+    - sequence module: Repeats class added
+    - new pipeline called qc_pacbio to perform quick QC and taxonomy analysis
+          for pacbio
+    - add ORD, CDS, GC SKEW in sequence module
+
+0.2. - March - April 2017
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 * NEWS:
     - RNA-seq pipeline added (single-end only, paired-end upcoming)
       including all indexes for RNA-seq
-    - Hierarchical kraken 
+    - Hierarchical kraken available
     - add new standalone called **sequana_fox** to expose the pyqt5 browser.
+    - Sequanix first release
+    - final version of the variant calling, denovo, quality_control and rna-seq
+      pipelines.
 
 * CHANGES:
 
     - Sequanix/Sequana:
-     - config file can have the yml extension (in addition to yaml)
-     - dropdown widgets in the form based on the docstrings in the config file
-     - can import config to override default sequana config file
-     - subprocesses killed when the main pipeline is stopped
-   - Removed ./reporting modules being moved to new modules_report framework
-
-* BUGS:
-
-   - kraken fixes for special cases where all reads are unclassified
-   - Fix various regression bug + add missing __init__ in ./plots
+      - config file can have the yml extension (in addition to yaml)
+      - dropdown widgets in the form based on the docstrings in the config file
+      - can import config to override default sequana config file
+      - subprocesses killed when the main pipeline is stopped
 
 0.1.21 - Feb 2017
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -327,7 +349,7 @@ Changelog
 
 
 
-0.1.5 June 2016
+prior 0.1.5 June 2016
 ~~~~~~~~~~~~~~~~~~~~~~
 
 * NEWS
@@ -336,34 +358,13 @@ Changelog
   - sequana standalone available
   - quality_taxon pipeline available
   - module coverage for theoretical computations
+  - add gallery in the documentation
 
 * CHANGES:
 
   - module vcf_to_snpeff renamed as snpeff
-  - lots of doc added
-  - clean adapters module
 
 * BUG:
 
   - Fix bug in running median (shift)
-
-
-
-
-
-prior 0.1.4
-~~~~~~~~~~~~~~~~
-
-  - add gallery in the documentation
-  - remove old pipelines/ directory
-  - sequana standlone refactored (--init option added)
-  - Pipeline quality_taxon added
-  - Taxonomy rules included
-  - Fix the stats image creation
-  - rules in sequana/rules and pipelines in sequana/pipelines
-  - standalone tool called sequana to download a Snakefile and config file
-  - modules for post-analysis: bamtools, vcf_filter, fastq, ....
-  - Fully tested (90% coverage) and documented
-  - Set of reports
-
 

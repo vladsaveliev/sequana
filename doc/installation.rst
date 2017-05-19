@@ -9,22 +9,19 @@ Installation
 Installation using Conda
 ============================
 
-If you have already installed **Sequana** dependencies, this command
-should install the latest release posted on http://pypi.python.org/pypi/sequana website::
 
-    pip install sequana --upgrade
-
-If you have not install **Sequana**, be aware that it relies on many dependencies
+If you have not installed **Sequana**, be aware that it relies on many dependencies
 that needs to be compiled (i.e., it is time consumming and requires proper C compilator).
 For example, we use Matplotlib, Pandas that requires compilation.
 Besides, many pipelines rely on third-party software such as BWA or samtools that are not
-Python libraries. 
+Python libraries. Yet, using **conda**, this process is simplied.
 
 Install conda executable
 ----------------------------
 
-In practice, we do use `Anaconda <https://anaconda.org/>`_ . We recommend to
-install **conda** executable via the manual installer. You may have the choice
+In practice, we do use `Anaconda <https://conda.readthedocs.io/>`_ . We recommend to
+install **conda** executable via the manual installer (`download <https//continuum.io/downloads>`). 
+You may have the choice
 between Python 2 and 3. We recommend to choose a Python version 3.
 
 channels
@@ -77,7 +74,28 @@ install everything in one go)::
 
     conda install pysam snpeff biokit bioservices spades khmer pyVCF
     conda install bwa bcftools samtools bedtools picard freebayes fastqc
-    conda install kraken krona pigz atropos>=1.0.23
+    conda install kraken krona pigz
+    conda install ipython cutadapt jupyter pbr
+
+For atropos::
+
+    pip atropos==1.0.23
+
+or::
+
+    conda install atropos>1.1.2
+
+conda remove tqdm
+
+Install sequana
+---------------------
+
+If you have already installed **Sequana** dependencies, this command
+should install the latest release posted on http://pypi.python.org/pypi/sequana website::
+
+    pip install sequana --upgrade
+
+
 
 .. note:: atropos is an alternative to cutadapt with additional options but same
    type of functionalties and arguments. We use version 1.0.23 and above though. 
@@ -102,12 +120,7 @@ install everything in one go)::
 
 .. include:: ../docker/README.rst
 
-For developers
-=================
 
-For the documentation::
-
-    pip install sphinx sphinx_rtd_theme pytest pytest-qt pytest-mock
 
 
 

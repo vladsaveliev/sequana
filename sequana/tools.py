@@ -30,7 +30,6 @@ from sequana import BAM
 
 from pysam import FastxFile
 from easydev import precision
-from sequana.lazy import reports
 
 
 __all__ = ['StatsBAM2Mapped', 'bam_to_mapped_unmapped_fastq']
@@ -74,7 +73,7 @@ class StatsBAM2Mapped(DataContainer):
         elif bamfile.endswith(".json"):
             self.data = self.read_json(bamfile)
 
-    def to_html(self, with_stats=True):
+    def to_html(self):
         data = self.data
 
         html = "Reads with Phix: %s %%<br>" % precision(data['contamination'], 3)
@@ -88,10 +87,6 @@ class StatsBAM2Mapped(DataContainer):
             df = pd.DataFrame({
               'R1': [data['R1_mapped'], data['R1_unmapped']]})
         df.index = ['mapped', 'unmapped']
-
-        if with_stats:
-            h = reports.HTMLTable(df)
-            html += h.to_html(index=True)
 
         html += "Unpaired: %s <br>" % data['unpaired']
         html += "duplicated: %s <br>" % data['duplicated']
@@ -136,7 +131,15 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
         the supplementary. This flag is not used in this function. Note also that
         chimeric alignment have same QNAME and flag 4 and 8
 
+    .. note:: the contamination reported is basde on R1 only.
+
     .. todo:: comments are missing since there are not stored in the BAM file.
+
+
+    .. note:: the mapped reads may not be synchronized because we include also
+        the chimeric alignment (cf samtools documentation). However, 
+        total reads = unmappeds reads + R1 mapped + R2 mapped - supplemntary
+        reads (those with flag 2048).
     """
     bam = BAM(filename)
     # figure out if this is paired or unpaired
@@ -308,10 +311,10 @@ def bam_get_paired_distance(filename):
 def _base_content(filename, window_size, letters, circular=False):
     # DOC: see gc_content
     fasta = FastxFile(filename)
-    mid = int(window_size / 2)
     checker = set(letters)
     chrom_gc_content = dict()
     for chrom in fasta:
+        mid = int(window_size / 2)
         # Create gc_content array
         gc_content = np.empty(len(chrom.sequence))
         gc_content[:] = np.nan

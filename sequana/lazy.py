@@ -24,7 +24,6 @@ numpy = LazyImport('numpy')
 scipy = LazyImport('scipy')
 scipy_stats = LazyImport('scipy.stats')
 pandas = LazyImport('pandas')
-reports = LazyImport('reports')
 vcf = LazyImport("vcf")
 biokit = LazyImport("biokit")
 

@@ -754,6 +754,15 @@ def sequana_init(options):
         if options.reference:
             cfg.config.bwa_mem_ref.reference = os.path.abspath(options.reference)
 
+    if options.pipeline == "rnaseq":
+        if options.design:
+            shutil.copy(options.design, options.target_dir + os.sep )
+            cfg.config.adapter_removal.design_file = os.path.basename(options.design)
+        cfg.config.adapter_removal.fwd = options.adapter_fwd
+        cfg.config.adapter_removal.rev = options.adapter_rev
+        cfg.config.adapter_removal.adapter_choice = options.adapters
+
+
     cfg.copy_requirements(target=options.target_dir)
 
     # FIXME If invalid, no error raised
