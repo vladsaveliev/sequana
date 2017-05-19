@@ -140,8 +140,8 @@ if manager.config.adapter_removal.do:
         include: sm.modules["clean_ngs"]
 
         #expected_output.extend(expand(__clean_ngs__output, sample=manager.samples))
-    elif adapter_removal in ["cutadapt", "atropos"]:
-        adapter_removal = "cutadapt"
+    elif adapter_tool in ["cutadapt", "atropos"]:
+        adapter_tool = "cutadapt"
         __cutadapt__input_fastq = __data__input
         __cutadapt__wkdir = manager.getwkdir("cutadapt")
         __cutadapt__output = [manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")]
