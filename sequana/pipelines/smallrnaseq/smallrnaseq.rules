@@ -89,8 +89,8 @@ if manager.config.adapter_removal.do:
         filename = "file:"+ get_sequana_adapters(rev, "revcomp")
         manager.config.adapter_removal.rev = filename
 
-    if adapter_removal in ["cutadapt", "atropos"]:
-        adapter_removal = "cutadapt"
+    if adapter_tool in ["cutadapt", "atropos"]:
+        adapter_tool = "cutadapt"
         __cutadapt__input_fastq = __data__input
         __cutadapt__wkdir = manager.getwkdir("cutadapt")
         __cutadapt__output = [manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")]
@@ -107,10 +107,11 @@ if manager.config.adapter_removal.do:
         __cutadapt__mode = manager.config.adapter_removal.mode
         __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
         __cutadapt__sample = manager.sample
-        __clean_ngs__output = __cutadapt__output
+        __clean__output = __cutadapt__output
         include: sm.modules["cutadapt"]
     else:
         raise ValueError("Invalid choice of adapter_removal:tool in config file")
+
 
 
 if manager.config.fastq_screen.do:
