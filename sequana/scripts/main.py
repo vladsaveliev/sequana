@@ -760,7 +760,7 @@ def sequana_init(options):
             cfg.config.adapter_removal.design_file = os.path.basename(options.design)
         cfg.config.adapter_removal.fwd = options.adapter_fwd
         cfg.config.adapter_removal.rev = options.adapter_rev
-        cfg.config.adapter_removal.adapter_type = options.adapters
+        cfg.config.adapter_removal.adapter_choice = options.adapters
 
 
     cfg.copy_requirements(target=options.target_dir)
