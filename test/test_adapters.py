@@ -151,6 +151,7 @@ def test_nextera():
     design = sequana_data("test_expdesign_hiseq_doubleindex.csv")
     fa = FindAdaptersFromDesign(design, "Nextera")
 
+
 def test_pcrfree():
     design = sequana_data("test_index_mapper.csv")
 
@@ -227,7 +228,6 @@ def test_rubicon():
     fa.check()
 
 
-
 def test_get_sequana_adapters():
 
     assert "adapters_PCRFree_rev.fa" in adapters.get_sequana_adapters("PCRFree", "rev")
@@ -245,3 +245,13 @@ def test_get_sequana_adapters():
         assert False
     except ValueError:
         assert True
+
+
+# This also check the Small adapters
+def test_duplicated_design():
+
+    filename = sequana_data("test_expdesign_hiseq_duplicated_index.csv")
+    ss = FindAdaptersFromDesign(filename, "Small")
+    res = ss.get_adapters_from_sample("VB-22")
+    assert res['index1']['fwd'].identifier == "Small_Adapter_5|name:small5|seq:ACAGTG"
+    assert res['index1']['fwd'].sequence == "CAAGCAGAAGACGGCATACGAGATACAGTGGTGACTGGAGTTCCTTGGCACCCGAGAATTCCA"
