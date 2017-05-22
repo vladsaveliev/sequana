@@ -32,11 +32,11 @@ install:
   - conda install kraken cutadapt pysam snpEff krona bleach --yes
   - conda install shustring --yes
   # use pip to get latest version
-  - pip install easydev>=0.9.31 --upgrade
+  - pip install easydev>=0.9.34 --upgrade
   - pip install coveralls
   - pip install mistune
   - pip install tabulate
-  - pip install biokit>=0.3.4
+  - pip install biokit>=0.4.1
   - pip install bioservices --upgrade
   - pip install snakemake
   - pip install colorlog

@@ -38,6 +38,6 @@ rule multiqc:
         outdir = config['multiqc']['output-directory']
     shell:
         """
-        multiqc -d -dd -1 {params.inputdir} -o {params.outdir} {params.excluded} -f -c multiqc_config.yaml 2> {log}
+        multiqc {params.inputdir} -o {params.outdir} {params.excluded} -f -c multiqc_config.yaml 2> {log}
         """
 

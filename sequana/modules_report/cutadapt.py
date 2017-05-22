@@ -128,7 +128,6 @@ class CutadaptModule(SequanaBaseModule):
 
     def _get_stat_section(self):
         df = self._get_stats()
-        #df.to_json(self.sample_name + "/cutadapt/cutadapt_stats1.json")
         datatable = DataTable(df, "cutadapt", index=True)
         datatable.datatable.datatable_options = {
             'scrollX': '300px',
@@ -142,7 +141,7 @@ class CutadaptModule(SequanaBaseModule):
         #csv_link = self.create_link('link', self.filename)
         #vcf_link = self.create_link('here', 'test.vcf')
         html = "Reads statistics after trimming and adapter removal. The " +\
-               "A, C, G, T, N rows report the percentage of each bases in " +\
+               "A, C, G, T, N columns report the percentage of each bases in " +\
                "the overall sequences"
         html += "<p>{} {}</p>".format(html_tab, js)
         return html
@@ -232,6 +231,7 @@ class CutadaptModule(SequanaBaseModule):
                 pylab.title(name + "(%s)" % count)
                 pylab.grid(True)
                 pylab.savefig(filename)
+                pylab.close()  # need to close the figure otherwise warnings 
             imagehtml = self.create_embedded_png(plotter, "filename",
                 style='width:45%', key=key)
             html += imagehtml

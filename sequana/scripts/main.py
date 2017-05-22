@@ -39,7 +39,7 @@ from sequana import logger, Module, sequana_debug_level
 
 sequana_debug_level('INFO')
 
-adapters_choice = ["Nextera", "Rubicon", "PCRFree", "TruSeq"]
+adapters_choice = ["Nextera", "Rubicon", "PCRFree", "TruSeq", "SMARTer", "Small"]
 
 help_input = """Missing input data.
 
@@ -753,6 +753,15 @@ def sequana_init(options):
     if options.pipeline == "variant_calling":
         if options.reference:
             cfg.config.bwa_mem_ref.reference = os.path.abspath(options.reference)
+
+    if options.pipeline in ["rnaseq","smallrnaseq"]:
+        if options.design:
+            shutil.copy(options.design, options.target_dir + os.sep )
+            cfg.config.adapter_removal.design_file = os.path.basename(options.design)
+        cfg.config.adapter_removal.fwd = options.adapter_fwd
+        cfg.config.adapter_removal.rev = options.adapter_rev
+        cfg.config.adapter_removal.adapter_choice = options.adapters
+
 
     cfg.copy_requirements(target=options.target_dir)
 
