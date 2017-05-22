@@ -157,8 +157,20 @@ this is an issue with your Qt backend. You need to change it to Agg.
 
 
 
+Variant Calling pipeline
+----------------------------
 
+If snpeff fails with this type of errors::
 
+    java.lang.RuntimeException: Error reading file 'null'
+    java.lang.RuntimeException: Cannot find sequence for 'LN831026.gbk'
+
+this may be because your genbank does not contain the sequences.
+
+Another type of errors is that the sequence and genbank are not synchrone. We
+would recommend to use the code here to download the Fasta and genbank:
+
+http://sequana.readthedocs.io/en/master/tutorial.html#new-in-v0-10
 
 
 
