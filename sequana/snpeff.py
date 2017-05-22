@@ -52,7 +52,7 @@ class SnpEff(object):
             if os.path.isfile(log):
                 os.remove(log)
         self.reference = reference
-        self.ref_name = reference.split("/")[-1]
+        self.ref_name = os.path.basename(reference).split('.')[0]
         # Check if snpEff.config is present
         if not os.path.exists("snpEff.config"):
             self._get_snpeff_config()
@@ -90,14 +90,11 @@ class SnpEff(object):
     def _check_format(self):
         """ Check the format of your file.
         """
-        # set regex for gff and gtf files
-        self.regex = re.compile("^([^\s#]+)[ \t\v]")
+        # set regex for gff and gtf files 
         with open(self.reference, "r") as fp:
             first_line = fp.readline()
             if first_line.startswith('LOCUS'):
                 self.file_format = "genbank"
-                # set regex for genbank file
-                self.regex = re.compile("^LOCUS\s+([^\s]+)")
             elif re.search('gff-version', first_line):
                 self.file_format = "gff"
             elif first_line.startswith('#!'):
@@ -135,13 +132,13 @@ class SnpEff(object):
         except FileExistsError:
             pass
         shutil.copyfile(self.reference, genome_dir + "genes" + 
-                SnpEff.extension[self.file_format])
+                        SnpEff.extension[self.file_format])
 
         # add new annotation file in config file
         self._add_db_in_config()
        
         snpeff_build_line = ["snpEff", "build", "-" + self.file_format,
-                             self.ref_name]
+                             '-v', self.ref_name]
         if self.log_file:
             with open(self.log_file, "ab") as fl:
                 snp_build = sp.Popen(snpeff_build_line, stderr=fl, stdout=fl)
@@ -188,15 +185,27 @@ class SnpEff(object):
     def _get_seq_ids(self):
         # genbank case
         if self.file_format == "genbank":
+            regex = re.compile('^LOCUS\s+([\w\.]+)')
+            chrom_regex = re.compile('\\chromosome="([\w\.]+)"')
             with open(self.reference, "r") as fp:
-                seq = [self.regex.search(line).group(1) for line in fp 
-                        if self.regex.search(line)]
+                line = fp.readline()
+                seq = regex.findall(line)
+                for line in fp:
+                    if line.strip().startswith(('gene', 'CDS',)):
+                        break
+                    chrom = chrom_regex.search(line)
+                    if chrom:
+                         seq = [chrom.group(1)]
+                         regex = chrom_regex
+                seq += [regex.search(line).group(1) for line in fp 
+                       if regex.search(line)]
             return seq
         # gff/gtf case
         else:
+            regex = re.compile("^([^\s#]+)[ \t\v]")
             with open(self.reference, "r") as fp:
-                seq = [self.regex.seach(line).group(1) for line in fp 
-                        if self.regex.search(line)]
+                seq = [regex.seach(line).group(1) for line in fp 
+                        if regex.search(line)]
             return list(OrderedDict.fromkeys(seq))
 
     def add_locus_in_fasta(self, fasta, output_file):
