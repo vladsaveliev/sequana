@@ -413,8 +413,6 @@ class PBSim(object):
     def __init__(self, input_bam):
         self.bam = BAMPacbio(input_bam)
         self.Nreads = len(self.bam)
-        self.alpha = 1
-
 
     def target_distribution(self, xprime):
 
@@ -427,7 +425,7 @@ class PBSim(object):
         return np.interp(xprime, self.X[1:self.bins+1], self.Y)
         return function(x)
 
-    def run(self, bins=50, xmin=0, xmax=30000, step=1000):
+    def run(self, bins=50, xmin=0, xmax=30000, step=1000, burn=1000):
         # compute histogram of the input reads once for all to be used
         # in the target_distribution method
         self.bins = bins
@@ -458,7 +456,7 @@ class PBSim(object):
         pylab.plot(vec)
         pylab.subplot(212)
          
-        pylab.hist(vec, bins=bins,normed=1)
+        pylab.hist(vec[burn:], bins=bins,normed=1)
         pylab.plot(x,y,'r-')
         pylab.ylabel('Frequency')
         pylab.xlabel('x')
