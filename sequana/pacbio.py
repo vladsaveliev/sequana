@@ -395,3 +395,74 @@ class BAMPacbio(object):
         pylab.ylim([0, 100])
         if grid is True:
             pylab.grid(True)
+
+
+class PBSim(object):
+    """Filter an input BAM (simulated with pbsim) so as so keep 
+    reads that fit a target distribution.
+
+    This uses a MH algorithm behind the scene.
+
+    ::
+
+        ss = pacbio.PBSim("test10X.bam")
+        clf(); ss.run(bins=100, step=50)
+
+
+    """
+    def __init__(self, input_bam):
+        self.bam = BAMPacbio(input_bam)
+        self.Nreads = len(self.bam)
+        self.alpha = 1
+
+
+    def target_distribution(self, xprime):
+
+        """The target distribution
+
+        Compute histogram. Get X, Y.  Given xprime, interpolate to get yprime
+        use e.g. np.interp
+
+        """
+        return np.interp(xprime, self.X[1:self.bins+1], self.Y)
+        return function(x)
+
+    def run(self, bins=50, xmin=0, xmax=30000, step=1000):
+        # compute histogram of the input reads once for all to be used
+        # in the target_distribution method
+        self.bins = bins
+        self.Y, self.X = np.histogram(self.bam.df.read_length, bins=bins, normed=True)
+
+        lengths = self.bam.df.read_length.values
+        self.tokeep = []
+        vec = []
+        x = self.bam.df.read_length.mean()
+        for i in range(self.Nreads):
+            can = lengths[i]
+            aprob = min([1.,self.target_distribution(can)/self.target_distribution(x)])
+            #acceptance probability
+            u = pylab.uniform(0,1)
+            if u < aprob:
+                x = can
+                vec.append(x)
+                self.tokeep.append(True)
+            else:
+                self.tokeep.append(False)
+
+        #plotting the results:
+        #theoretical curve
+        x = pylab.arange(xmin, xmax, step)
+        y = self.target_distribution(x)
+        pylab.subplot(211)
+        pylab.title('Metropolis-Hastings')
+        pylab.plot(vec)
+        pylab.subplot(212)
+         
+        pylab.hist(vec, bins=bins,normed=1)
+        pylab.plot(x,y,'r-')
+        pylab.ylabel('Frequency')
+        pylab.xlabel('x')
+        pylab.legend(('PDF','Samples'))
+        pylab.show()
+
+
