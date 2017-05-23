@@ -333,7 +333,7 @@ or open a Python shell and type::
         str = "Name: %s\n" % self._name
         str += "Path: %s\n" % self.path
         str += "Config: %s\n" % self.config
-        str += "Config cluster: %s\n" % self.config_cluster
+        str += "Cluster config: %s\n" % self.cluster_config
         return str
 
     def __str__(self):
@@ -354,12 +354,10 @@ or open a Python shell and type::
     config = property(_get_config,
                       doc="full path to the config file of the module")
 
-    def _get_config_cluster(self):
+    def _get_cluster_config(self):
         # The default config file for that module
         return self._get_file("cluster_config.json")
-    config_cluster = property(_get_config_cluster,
-                      doc="full path to the config cluster file of the module")
-    cluster_config = property(_get_config_cluster,
+    cluster_config = property(_get_cluster_config,
                       doc="full path to the config cluster file of the module")
 
     def _get_readme(self):
