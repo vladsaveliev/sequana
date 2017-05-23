@@ -54,7 +54,6 @@ def test_module():
     m.name
     m
     m.cluster_config
-    m.config_cluster
 
 
 def _test_module_onweb():
