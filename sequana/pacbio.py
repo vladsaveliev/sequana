@@ -425,7 +425,7 @@ class PBSim(object):
         return np.interp(xprime, self.X[1:self.bins+1], self.Y)
         return function(x)
 
-    def run(self, bins=50, xmin=0, xmax=30000, step=1000, burn=1000):
+    def run(self, bins=50, xmin=0, xmax=30000, step=1000, burn=1000,alpha=1):
         # compute histogram of the input reads once for all to be used
         # in the target_distribution method
         self.bins = bins
@@ -437,7 +437,7 @@ class PBSim(object):
         x = self.bam.df.read_length.mean()
         for i in range(self.Nreads):
             can = lengths[i]
-            aprob = min([1.,self.target_distribution(can)/self.target_distribution(x)])
+            aprob = min([alpha,self.target_distribution(can)/self.target_distribution(x)])
             #acceptance probability
             u = pylab.uniform(0,1)
             if u < aprob:
