@@ -410,8 +410,6 @@ class SequanaGUI(QMainWindow, Tools):
             self.menuImportConfig(cfg)
 
         # We may have set some pipeline, snakefile, working directory
-
-        # We may have set some pipeline, snakefile, working directory
         self.create_base_form()
         self.fill_until_starting()
 
@@ -649,12 +647,12 @@ class SequanaGUI(QMainWindow, Tools):
         self.create_base_form()
         # Is there a cluster config file ?
         dialog = self.snakemake_dialog.ui
+
         if self.sequana_factory.clusterconfigfile:
             dialog.snakemake_options_cluster_cluster__config_value.set_filenames(
                 self.sequana_factory.clusterconfigfile)
         else:
-            dialog.snakemake_options_cluster_cluster__config_value.set_filenames(
-                self.sequana_factory.clusterconfigfile)
+            dialog.snakemake_options_cluster_cluster__config_value.set_filenames("")
         self.fill_until_starting()
         self.switch_off()
         # Reset imported config file in SequanaFactory
