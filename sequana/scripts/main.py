@@ -736,7 +736,7 @@ def sequana_init(options):
     if options.pipeline == "quality_control":
         if options.design:
             shutil.copy(options.design, options.target_dir + os.sep )
-            cfg.config.adapter_removal.design_file = os.path.basename(options.design)
+            cfg.config['cutadapt'].design_file = os.path.basename(options.design)
 
         if options.kraken:
             cfg.config.kraken.database_directory = os.path.abspath(options.kraken)
@@ -744,9 +744,9 @@ def sequana_init(options):
         else:
             cfg.config.kraken.do = False
 
-        cfg.config.adapter_removal.fwd = options.adapter_fwd
-        cfg.config.adapter_removal.rev = options.adapter_rev
-        cfg.config.adapter_removal.adapter_type = options.adapters
+        cfg.config['cutadapt'].fwd = options.adapter_fwd
+        cfg.config['cutadapt'].rev = options.adapter_rev
+        cfg.config['cutadapt'].adapter_type = options.adapters
         # Foir all pipeline using BWA
         if options.reference:
             cfg.config.bwa_mem.reference = os.path.abspath(options.reference)
@@ -757,10 +757,10 @@ def sequana_init(options):
     if options.pipeline in ["rnaseq","smallrnaseq"]:
         if options.design:
             shutil.copy(options.design, options.target_dir + os.sep )
-            cfg.config.adapter_removal.design_file = os.path.basename(options.design)
-        cfg.config.adapter_removal.fwd = options.adapter_fwd
-        cfg.config.adapter_removal.rev = options.adapter_rev
-        cfg.config.adapter_removal.adapter_choice = options.adapters
+            cfg.config['cutadapt'].design_file = os.path.basename(options.design)
+        cfg.config['cutadapt'].fwd = options.adapter_fwd
+        cfg.config['cutadapt'].rev = options.adapter_rev
+        cfg.config['cutadapt'].adapter_choice = options.adapters
 
 
     cfg.copy_requirements(target=options.target_dir)
@@ -802,7 +802,7 @@ def sequana_init(options):
 
         if options.cluster:
             # Do we want to include the cluster config option ?
-            cluster_config = Module(options.pipeline).config_cluster
+            cluster_config = Module(options.pipeline).cluster_config
             if options.ignore_cluster_config is True:
                 cluster_config = None
 

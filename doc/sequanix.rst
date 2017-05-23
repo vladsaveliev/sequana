@@ -72,6 +72,10 @@ In the following figure, you need to
 Once done, the configuration file of the pipeline will be loaded in the **Config
 parameters** tab (arrow 4).
 
+If a file named **config_cluster.josn** is defined by the developer in the
+pipeline module, then it is loaded automatically in the snakemake dialog and
+used if the pipeline is executed on a cluster.
+
 
 Select the input data (directory or files)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -126,7 +126,7 @@ bwa_phix:
 #   - tool: only cutadapt supported for now
 #   ref: http://cutadapt.readthedocs.io/
 #################################################################
-adapter_removal:
+cutadapt:
     do: yes
     tool: cutadapt
     fwd: "%(adapter_fwd)s"

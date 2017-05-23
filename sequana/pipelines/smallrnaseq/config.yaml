@@ -93,7 +93,7 @@ genome:
 #   ref: http://cutadapt.readthedocs.io/
 # adapter_choice__ = ["PCRFree", "Rubicon", "Nextera", "TruSeq", "Small", "SMARTer"]
 # tool_choice__ = ["cutadapt", "atropos"]
-adapter_removal:
+cutadapt:
     do: yes
     tool_choice: cutadapt
     adapter_choice:
