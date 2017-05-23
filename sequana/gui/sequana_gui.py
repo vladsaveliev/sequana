@@ -71,6 +71,7 @@ class BaseFactory(Tools):
 
     """
     def __init__(self, mode, run_button):
+        super(BaseFactory, self).__init__()
         self.mode = mode
         self._run_button = run_button
 
@@ -545,9 +546,6 @@ class SequanaGUI(QMainWindow, Tools):
             browser.browse_file()
             configfile = browser.paths
 
-
-        print(configfile)
-
         if configfile:
             self.sequana_factory._imported_config = configfile
         else:
@@ -652,10 +650,10 @@ class SequanaGUI(QMainWindow, Tools):
         # Is there a cluster config file ?
         dialog = self.snakemake_dialog.ui
         if self.sequana_factory.clusterconfigfile:
-            dialog.snakemake_options_cluster_config_value.setText(
+            dialog.snakemake_options_cluster_cluster__config_value.set_filenames(
                 self.sequana_factory.clusterconfigfile)
         else:
-            dialog.snakemake_options_cluster_config_value.setText(
+            dialog.snakemake_options_cluster_cluster__config_value.set_filenames(
                 self.sequana_factory.clusterconfigfile)
         self.fill_until_starting()
         self.switch_off()
@@ -883,10 +881,10 @@ class SequanaGUI(QMainWindow, Tools):
                 return None
             snakemake_line += dialog.get_snakemake_cluster_options()
 
-            cluster_config = dialog.ui.snakemake_options_cluster_config_value.text()
-            cluster_config = cluster_config.strip()
-            if len(cluster_config):
-                snakemake_line += ["--cluster-config", cluster_config]
+            #cluster_config = dialog.ui.snakemake_options_cluster_config_value.text()
+            #cluster_config = cluster_config.strip()
+            #if len(cluster_config):
+            #    snakemake_line += ["--cluster-config", cluster_config]
 
         snakemake_line += dialog.get_snakemake_general_options()
         snakemake_line += self.get_until_starting_option()
@@ -1275,6 +1273,33 @@ class SequanaGUI(QMainWindow, Tools):
         self.debug('Switching RUN and DAG button off')
         self.ui.run_btn.setEnabled(False)
         self.ui.dag_btn.setEnabled(False)
+
+    # -----------------------------------------------------------------------
+    # SAVE LOG in a files
+    # -----------------------------------------------------------------------
+
+    def report_issues(self, filename="issue_debug.txt"):
+        # save shell + shell_error in working directory as well as snakemake and
+        # config file. 
+        with open(filename, "w") as fh:
+            fh.write("\nsequanix logger  ----------------------------------\n")
+            try: 
+                file_logger = self.save_logger()
+                with open(file_logger, "r") as fin:
+                    fh.write(fin.read())
+            except: pass
+
+            fh.write("\nsequanix shell   ----------------------------------\n")
+            try:fh.writelines(self.shell)
+            except:fh.write("No shell info")
+
+            fh.write("\nsequanix shell error ------------------------------\n")
+            try:fh.writelines(self.shell_error)
+            except:fh.write("No shell error info")
+        url = "https://github.com/sequana/sequana/issues " 
+        print("Created a file called {} to be posted on {}.".format(
+            filename, url))
+        self.init_logger()
 
     # -----------------------------------------------------------------------
     # UNLOCK footer button
