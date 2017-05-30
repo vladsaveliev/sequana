@@ -666,7 +666,7 @@ class FindAdaptersFromDesign(object):
         return self.design.df.ix[sample_name]
 
     def get_adapters_from_sample(self, sample_name, include_universal=True,
-            include_transposase=True):
+            include_transposase=True, include_polyA=True):
         """Return a dictionary with adapters corresponding to the sample name
 
         :param str sample_name: a valid sample name as found in the design
@@ -679,7 +679,7 @@ class FindAdaptersFromDesign(object):
 
         """
         data = self.get_sample(sample_name)
-        res = {'index1': {}, 'index2': {}, 'universal': {}, 'transposase': {}}
+        res = {'index1': {}, 'index2': {}, 'universal': {}, 'transposase': {}, 'polyA': {}}
 
         # Index1_Seq must always be present. This is part of the API of the
         # ExpDesignAdapter class. However, Index2_ID may not always be present
@@ -738,6 +738,12 @@ class FindAdaptersFromDesign(object):
                 'Universal_Adapter')
             res['universal']['rev'] = self._adapters_revc.get_adapter_by_identifier(
                 'Universal_Adapter')
+
+        if include_polyA:
+            res['polyA']['fwd'] = self._adapters_fwd.get_adapter_by_identifier(
+                'PolyA')
+            res['polyA']['rev'] = self._adapters_revc.get_adapter_by_identifier(
+                'PolyA')
 
         if include_transposase and self.adapters == "Nextera":
             res['transposase']['fwd'] = str(self._adapters_fwd.get_adapter_by_identifier(
