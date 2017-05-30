@@ -739,12 +739,6 @@ class FindAdaptersFromDesign(object):
             res['universal']['rev'] = self._adapters_revc.get_adapter_by_identifier(
                 'Universal_Adapter')
 
-        if include_polyA:
-            res['polyA']['fwd'] = self._adapters_fwd.get_adapter_by_identifier(
-                'PolyA')
-            res['polyA']['rev'] = self._adapters_revc.get_adapter_by_identifier(
-                'PolyA')
-
         if include_transposase and self.adapters == "Nextera":
             res['transposase']['fwd'] = str(self._adapters_fwd.get_adapter_by_identifier(
                 'Nextera_transposase_seq_1'))
@@ -754,6 +748,13 @@ class FindAdaptersFromDesign(object):
                 'Nextera_transposase_seq_1'))
             res['transposase']['rev'] += "\n"+str(self._adapters_revc.get_adapter_by_identifier(
                 'Nextera_transposase_seq_1'))
+
+        if include_polyA:
+            res['polyA']['fwd'] = self._adapters_fwd.get_adapter_by_identifier(
+                'PolyA')
+            res['polyA']['rev'] = self._adapters_revc.get_adapter_by_identifier(
+                'PolyA')
+
 
         # FIXME changes the dictionary in the loop. May not be wise
         res = dict([(k,v) for k,v in res.items() if len(v)!=0])
