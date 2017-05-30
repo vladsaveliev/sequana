@@ -117,16 +117,19 @@ class PhixModule(SequanaBaseModule):
             else:
                 index += ".mapped"
             indices.append(index)
+
             try:
+                # Use a try since the subdf may be empty
                 subdf = pd.read_json(filename)
                 df.iloc[i] = subdf.iloc[0]
+                df.iloc[i]["A"] /= df.iloc[i]["n_reads"]
+                df.iloc[i]["C"] /= df.iloc[i]["n_reads"]
+                df.iloc[i]["G"] /= df.iloc[i]["n_reads"]
+                df.iloc[i]["T"] /= df.iloc[i]["n_reads"]
+                df.iloc[i]["N"] /= df.iloc[i]["n_reads"]
             except:
                 pass
-            df.iloc[i]["A"] /= df.iloc[i]["n_reads"]
-            df.iloc[i]["C"] /= df.iloc[i]["n_reads"]
-            df.iloc[i]["G"] /= df.iloc[i]["n_reads"]
-            df.iloc[i]["T"] /= df.iloc[i]["n_reads"]
-            df.iloc[i]["N"] /= df.iloc[i]["n_reads"]
+
         df.index = indices
         df = df.astype({"n_reads": np.int64, "total bases": np.int64})
         return df

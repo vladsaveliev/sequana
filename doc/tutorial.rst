@@ -97,10 +97,11 @@ Initialise the pipeline
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-
 Call **sequana** standalone as follows::
 
     sequana --pipeline variant_calling --input-directory . --output-directory TUTORIAL
+
+Or use Sequanix. 
 
 Go to the project directory
 ::
@@ -166,6 +167,14 @@ and bwa_ref section::
     bwa_mem_ref:
       reference: "measles.fa"
 
+.. warning:: In the configuration file, in the mark_duplicates section, some output files are huge and requires temporary directory on cluster. 
+
+
+.. warning:: in the configuration file -- coverage section -- note that for short genomes, 
+    you may need to decrease the window size.
+
+.. warning:: the mark_duplicates may be changed in the close future to use
+   another tool. 
 
 
 Run the pipeline

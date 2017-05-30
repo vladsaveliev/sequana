@@ -28,6 +28,7 @@ def test_basic_search(qtbot, tmpdir):
 def test_directory_dialog(qtbot, mock):
 
     widget = FileBrowser(paired=False, directory=False, file_filter=None)
+
     qtbot.addWidget(widget)
     widget.show()
     assert widget.isVisible()
@@ -42,11 +43,24 @@ def test_directory_dialog(qtbot, mock):
     qtbot.addWidget(widget)
     #qtbot.mouseClick(widget.btn, QtCore.Qt.LeftButton)
 
-    widget._set_paired_filenames(["test1.fastq.gz"])
+    widget.Nmax = 10
+    widget._set_paired_filenames([ "test1.fastq.gz"])
+    qtbot.addWidget(widget)
+
+    widget.Nmax = 30
     widget._set_paired_filenames(["test1.fastq.gz", "test2.fastq.gz"])
+    qtbot.addWidget(widget)
 
 
-
-def test_directory_dialog(qtbot, tmpdir):
+def test_directory_dialog_2(qtbot, tmpdir):
     widget = DirectoryDialog(None, "test", str(tmpdir), "*gz")
     qtbot.addWidget(widget)
+
+
+def test_directory_dialog_3(qtbot, tmpdir):
+    widget = FileBrowser(paired=True)
+    # widget.browse_paired_file() #pops up a window
+    qtbot.addWidget(widget)
+
+
+

@@ -68,7 +68,7 @@ sequencing:
 #
 genome:
   do: yes
-  dir_file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
+  genome_directory: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
   name: "hg19" #path to index name
   fasta_file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
   gff_file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.gff
@@ -218,7 +218,7 @@ fastq_screen:
 #   ref: http://cutadapt.readthedocs.io/
 # adapter_choice__ = ["", "PCRFree", "Rubicon", "Nextera", "TruSeq"]
 # tool_choice__ = ["atropos", "cutadapt", "clean_ngs"]
-adapter_removal:
+cutadapt:
     do: yes
     tool_choice: cutadapt
     adapter_choice:

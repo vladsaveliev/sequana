@@ -160,8 +160,12 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
         ff = FileFactory(filename)
         newname = output_directory + os.sep + ff.filenames[0]
 
-    R1_mapped = open(newname + "_R1_.mapped.fastq", "wb")
-    R1_unmapped = open(newname + "_R1_.unmapped.fastq", "wb")
+    rt1 = "_R1_"
+    rt2 = "_R2_"
+
+
+    R1_mapped = open(newname + "{}.mapped.fastq".format(rt1), "wb")
+    R1_unmapped = open(newname + "{}.unmapped.fastq".format(rt1), "wb")
     stats['duplicated'] = 0
     stats['unpaired'] = 0
 
@@ -172,8 +176,8 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
         stats['mode'] = "pe"
         stats['R2_unmapped'] = 0
         stats['R2_mapped'] = 0
-        R2_mapped = open(newname + "_R2_.mapped.fastq", "wb")
-        R2_unmapped = open(newname + "_R2_.unmapped.fastq", "wb")
+        R2_mapped = open(newname + "{}.mapped.fastq".format(rt2), "wb")
+        R2_unmapped = open(newname + "{}.unmapped.fastq".format(rt2), "wb")
     else:
         stats['mode'] = "se"
 

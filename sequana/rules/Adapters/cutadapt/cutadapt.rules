@@ -26,7 +26,7 @@ rule cutadapt:
     Required configuration:
         .. code-block:: yaml
 
-            adapter_removal:
+            cutadapt:
                 do: yes
                 tool_choice: cutadapt
                 design: "%(adapter_design)s"
@@ -48,20 +48,20 @@ rule cutadapt:
     params:
         fwd = __cutadapt__fwd,
         rev = __cutadapt__rev,
-        m = config['adapter_removal']['m'],   # cutoff
-        quality = config['adapter_removal']['quality'],
+        m = config['cutadapt']['m'],   # cutoff
+        quality = config['cutadapt']['quality'],
         kwargs = __cutadapt__options,
         mode = __cutadapt__mode,
         wkdir = __cutadapt__wkdir,
         design = __cutadapt__design,
         design_adapter = __cutadapt__design_adapter,
         sample = __cutadapt__sample,
-        thread = config['adapter_removal']['threads']
+        thread = config['cutadapt']['threads']
     log: __cutadapt__log
     run:
-        executable = config['adapter_removal']['tool_choice'] # could be cutadapt or atropos
+        executable = config['cutadapt']['tool_choice'] # could be cutadapt or atropos
 
-        if config['adapter_removal']['design_file']:
+        if config['cutadapt']['design_file']:
             from sequana import FindAdaptersFromDesign
             sample = params.sample.split("_")[0]
             fa = FindAdaptersFromDesign(params.design, params.design_adapter)

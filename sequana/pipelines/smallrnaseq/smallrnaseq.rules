@@ -71,34 +71,47 @@ expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samp
 
 
 
+
 if manager.config.adapter_removal.do:
     adapter_tool = manager.config.adapter_removal.tool_choice
-    if adapter_tool == "cutadapt":
+
+    from sequana.adapters import _get_registered_adapters as registered
+    from sequana.adapters import get_sequana_adapters
+
+    # Users may provide TruSeq, Nextera, PCRFree or other registered adapters
+    fwd = manager.config.adapter_removal.fwd
+    if isinstance(fwd, str) and fwd in registered():
+        filename = "file:"+ get_sequana_adapters(fwd, "fwd")
+        manager.config.adapter_removal.fwd = filename
+
+    rev = manager.config.adapter_removal.rev
+    if isinstance(rev, str) and rev in registered():
+        filename = "file:"+ get_sequana_adapters(rev, "revcomp")
+        manager.config.adapter_removal.rev = filename
+
+    if adapter_tool in ["cutadapt", "atropos"]:
+        adapter_tool = "cutadapt"
         __cutadapt__input_fastq = __data__input
         __cutadapt__wkdir = manager.getwkdir("cutadapt")
         __cutadapt__output = [manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")]
+        if manager.paired:
+            __cutadapt__output += [manager.getname("cutadapt", "_R2_.cutadapt.fastq.gz")]
 
-        if "adapter_fwd" in manager.config.adapter_removal.fwd :
-           __cutadapt__fwd = ""
-        else:
-           __cutadapt__fwd = manager.config.adapter_removal.fwd
-
-        if "adapter_rev" in manager.config.adapter_removal.rev:
-            __cutadapt__rev = ""
-        else:
-            __cutadapt__rev = manager.config.adapter_removal.rev
+        # Set the fwd and rev adapters
+        __cutadapt__fwd = manager.config.adapter_removal.fwd
+        __cutadapt__rev = manager.config.adapter_removal.rev
 
         __cutadapt__design = manager.config.adapter_removal.design_file
-        __cutadapt__design_adapter = manager.config.adapter_removal.adapter_choice
+        __cutadapt__design_adapter = manager.config['adapter_removal']['adapter_choice']
         __cutadapt__options = manager.config.adapter_removal.options
         __cutadapt__mode = manager.config.adapter_removal.mode
         __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
         __cutadapt__sample = manager.sample
         __clean__output = __cutadapt__output
         include: sm.modules["cutadapt"]
-
     else:
         raise ValueError("Invalid choice of adapter_removal:tool in config file")
+
 
 
 if manager.config.fastq_screen.do:

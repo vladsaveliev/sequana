@@ -663,7 +663,20 @@ class FindAdaptersFromDesign(object):
         if sample_name not in self.design.df.index:
             raise ValueError("%s not valid. Use one of %s" % (sample_name,
                                                               self.sample_names))
-        return self.design.df.ix[sample_name]
+
+        data = self.design.df.ix[sample_name]
+        if data.ndim == 1: # the expected pandas.Series
+            return data
+        else:
+            # Check that we have duplicates
+            # Indeed, for HiSeq design with Index1_Seq and Index2_Seq, it may happen
+            # that the sample names are duplicated (RNA-seq exp) on  different Lanes.
+            checkme = data.drop_duplicates(["SampleRef", "Index1_Seq", "Index2_Seq"])
+            if len(checkme) > 1:
+                raise ValueError("Found several instance of sample " +
+                        "name {} in the design file".format(sample_name))
+            # return only the first instance
+            return data.iloc[0]
 
     def get_adapters_from_sample(self, sample_name, include_universal=True,
             include_transposase=True, include_polyA=True):
@@ -680,6 +693,7 @@ class FindAdaptersFromDesign(object):
 
         """
         data = self.get_sample(sample_name)
+
         res = {'index1': {}, 'index2': {}, 'universal': {}, 'transposase': {}, 'polyA': {}}
 
         # Index1_Seq must always be present. This is part of the API of the
@@ -694,7 +708,6 @@ class FindAdaptersFromDesign(object):
             if column not in data.index:
                 continue
             key = column.split("_")[0].lower()
-
             index = data.ix[column]
             if index is None:
                 continue

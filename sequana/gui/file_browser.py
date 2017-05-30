@@ -33,7 +33,7 @@ class FileBrowser(QW.QWidget):
         self.empty_msg = "No file selected"
         self.btn = QW.QPushButton("Browse", self)
         self.btn.setFixedSize(100, 20)
-        self.Nmax = 25
+        self.Nmax = 30
 
         # Add default color
         self.btn.setStyleSheet("QPushButton {background-color: #AA0000; "

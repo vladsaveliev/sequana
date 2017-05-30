@@ -91,9 +91,9 @@ genome:
 # :Note: If design_file is provided, fwd and rev are ignored
 #
 #   ref: http://cutadapt.readthedocs.io/
-# adapter_choice__ = ["PCRFree", "Rubicon", "Nextera", "TruSeq"]
-# tool_choice_ = ["cutadapt"]
-adapter_removal:
+# adapter_choice__ = ["PCRFree", "Rubicon", "Nextera", "TruSeq", "Small", "SMARTer"]
+# tool_choice__ = ["cutadapt", "atropos"]
+cutadapt:
     do: yes
     tool_choice: cutadapt
     adapter_choice:
