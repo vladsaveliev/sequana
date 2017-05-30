@@ -262,10 +262,10 @@ Edit the config file **config.yaml** and fill the genome section::
 
     genome:
       do: yes
-      genome_directory: Saccer3
+      genome_directory: ../Saccer3
       name: Saccer3 #path to index name
-      fasta_file: Saccer3/Saccer3.fa
-      gff_file: Saccer3/Saccer3.gff
+      fasta_file: ../Saccer3/Saccer3.fa
+      gff_file: ../Saccer3/Saccer3.gff
       rRNA_file:
       rRNA_feature: "rRNA"
 
@@ -286,6 +286,6 @@ on SGE cluster::
     --cluster "qsub -l mem_total={cluster.ram} -pe thread {threads} -cwd -e logs -o logs -V -b y "
 
 on slurm cluster ::
-    sbatch -s rnaseq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json
+    sbatch snakemake -s rnaseq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json
     --cluster "sbatch --mem={cluster.ram} --cpus-per-task={threads} "
 
