@@ -773,7 +773,7 @@ class FindAdaptersFromDesign(object):
             raise ValueError("None of the sample match any of the adapters")
 
     def save_adapters_to_fasta(self, sample_name, include_universal=True,
-            include_transposase=True, output_dir='.'):
+            include_transposase=True, include_polyA=True, output_dir='.'):
         """Get index1, index2 and universal adapter"""
         adapters = self.get_adapters_from_sample(sample_name,
                        include_universal=include_universal)
