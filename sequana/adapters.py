@@ -674,6 +674,7 @@ class FindAdaptersFromDesign(object):
             attribute.
         :param bool include_transposase: include transposase if found
         :param bool include_universal: include universal adapter if found
+        :param bool include_polyA: include polyA tail if found
         :return: a dictionary with the adapters in forward, reverse, reverse
             complement for index1 and index2 (if relevant).
 
