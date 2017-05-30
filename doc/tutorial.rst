@@ -209,7 +209,7 @@ RNA-seq
 
 
 See more information in the :ref:`pipeline_rnaseq` section.
-The following example will show how to initialise and run the RNAseq pipeline on a couple of FastQ files.
+The following example will show how to initialise and run the RNAseq pipeline on a couple of FastQ files (in single end mode).
 The data comes from a sequencing (using HiSeq2500 technology) of a saccharomyces cerevisiae strain.
 For testing purposes, you can download :download:`Fastq1
 <../sequana/resources/data/WT_ATCACG_L001_R1_001.fastq.gz>` and
@@ -239,7 +239,7 @@ Get the fasta and GFF reference
 
 
 Assuming the reference is **Saccer3** (Saccharomyces cerevisiae), we first need to fetch
-the fasta and the GFF files from SGD to run the pipeline::
+the fasta and the GFF files from SGD before to run the pipeline::
 
     mkdir Saccer3
     cd Saccer3
