@@ -786,6 +786,9 @@ class FindAdaptersFromDesign(object):
             if include_universal:
                 fout.write(str(adapters['universal']['fwd'])+"\n")
 
+            if include_polyA:
+                fout.write(str(adapters['PolyA']['fwd'])+"\n")
+
             fout.write(str(adapters['index1']['fwd'])+"\n")
             if "index2" in adapters.keys():
                 fout.write(str(adapters['index2']['fwd'])+"\n")
@@ -796,6 +799,8 @@ class FindAdaptersFromDesign(object):
                 fout.write(str(adapters['transposase']['rev'])+"\n")
             if include_universal:
                 fout.write(str(adapters['universal']['rev'])+"\n")
+            if include_polyA:
+                fout.write(str(adapters['PolyA']['rev'])+"\n")
             fout.write(str(adapters['index1']['rev'])+"\n")
             if "index2" in adapters.keys():
                 fout.write(str(adapters['index2']['rev'])+"\n")
