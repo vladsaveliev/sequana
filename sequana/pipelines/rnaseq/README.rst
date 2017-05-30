@@ -9,7 +9,7 @@ Usage
 
 Example::
 
-    sequana --pipeline rnaseq --input-dir .  --output-directory analysis --adapters TruSeq
+    sequana --pipeline rnaseq --input-dir . --output-directory analysis --no-adapters
     cd analysis
     srun snakemake -s rnaseq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json --cluster "sbatch --mem={cluster.ram} --cpus-per-task={threads}"
 

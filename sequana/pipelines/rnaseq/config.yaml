@@ -100,7 +100,7 @@ bowtie1_mapping_rna:
 # - threads: number of threads to be used
 #
 star_mapping:
-    do: yes
+    do: no
     options: ""
     threads: 4
 
@@ -114,7 +114,7 @@ star_mapping:
 # - threads: number of threads to be used
 #
 bowtie1_mapping_ref:
-    do: no
+    do: yes
     options: "--chunkmbs 400 -m 1 "
     threads: 4
 
@@ -174,7 +174,7 @@ feature_counts:
 # - pf2_report: allows to plot a specific PF2 report
 #
 fastq_screen:
-    do: yes
+    do: no
     conf: "/pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/fastq_screen.conf"
     pf2_report: yes
 
@@ -258,7 +258,7 @@ multiqc:
 # - tmpdir: write tempory file on this directory (default TMP_DIR=/tmp/)
 #
 mark_duplicates:
-    do: yes
+    do: no
     remove: 'True' ## may be False
     tmpdir: 'TMP_DIR=/local/scratch/' ## on Slurm cluster at Pasteur
 
