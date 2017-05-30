@@ -626,7 +626,7 @@ class FindAdaptersFromDesign(object):
 
         :param str design_filename: a CSV file that is compatible
             with our :class:`sequana.expdesign.ExpDesignAdapter`
-        :param adapters: the type of adapters (PCRFree or Nextera, or Rubicon)
+        :param adapters: the type of adapters (PCRFree or Nextera, or Rubicon, or TruSeq, SMARTer, Small)
 
         The files of adapters are stored in Sequana and accessible with the
         sequana_data function. So, for instance if adapters is set to Nextera,
