@@ -1,7 +1,7 @@
 :Overview: small RNASeq (miRNA)
 :Input: FastQ raw data from Illumina Sequencer (single end only)
-:Output: 
-:Config file requirements:
+:Output: BAM, count and HTML files
+
 
 
 
@@ -26,7 +26,7 @@ Requirements
 Details
 ~~~~~~~~~
 
-
+This pipeline allows to map and count reads on mature and hairpin sequences (to download from miRBase) and perform some QC on data. All results are summarized by multiQC.
 
 
 Rules and configuration details

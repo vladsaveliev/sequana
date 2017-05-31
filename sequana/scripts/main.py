@@ -558,7 +558,7 @@ def main(args=None):
         ff = FastQFactory(data, read_tag=options.input_readtag,
                           verbose=options.verbose)
 
-    if options.pipeline == 'quality_control':
+    if options.pipeline == 'quality_control' or options.pipeline == 'rnaseq':
         # check combo
         flag = int("%s%s%s%s%s" % (
             int(bool(options.no_adapters)),
