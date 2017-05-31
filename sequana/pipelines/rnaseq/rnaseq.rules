@@ -382,7 +382,7 @@ onsuccess:
         shell('cp -r %s/cutadapt/ %s' % (proj, report_dir))
 
         os.mkdir("cluster_logs")
-        shell("cp slurm* cluster_logs/")
+        shell("mv slurm* cluster_logs/")
         # from sequana.reporting.report_summary import SequanaSummary
         # #summary = SequanaSummary(proj, directory=report_dir,
         #     output_filename="summary.html",
