@@ -373,7 +373,7 @@ onsuccess:
         except:pass
 
         shell("cp %s %s" % (__snakefile__, report_dir))
-        shell("cp rulegraph.svg %s/rulegraph.svg" % (report_dir))
+        #shell("cp rulegraph.svg %s/rulegraph.svg" % (report_dir))
         shell("cp config.yaml %s" % report_dir)
         shell("cp requirements.txt %s" % report_dir)
         shell("cp snakemake_stats.png %s" % report_dir)
@@ -381,6 +381,8 @@ onsuccess:
         shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
         shell('cp -r %s/cutadapt/ %s' % (proj, report_dir))
 
+        os.mkdir("cluster_logs")
+        shell("cp slurm* cluster_logs/")
         # from sequana.reporting.report_summary import SequanaSummary
         # #summary = SequanaSummary(proj, directory=report_dir,
         #     output_filename="summary.html",
