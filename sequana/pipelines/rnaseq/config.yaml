@@ -260,7 +260,7 @@ multiqc:
 mark_duplicates:
     do: no
     remove: 'True' ## may be False
-    tmpdir: 'TMP_DIR=/local/scratch/' ## on Slurm cluster at Pasteur
+    tmpdir: "TMP_DIR=/local/scratch/" ## on Slurm cluster at Pasteur
 
 #############################################################################
 # bamCoverage write file in bigwig format from BAM files.
