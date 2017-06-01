@@ -127,16 +127,12 @@ if manager.config.cutadapt.do:
 
     # Clean NGS
     if adapter_tool == "clean_ngs":
+        __clean_ngs__input = __data__input
+        __clean_ngs__output = [manager.getname("clean_ngs", "_R1_.clean_ngs.fastq.gz")]
         if manager.paired:
-            __clean_ngs__input = __data__input # must be -if1 R1.fastq -if2 R2.fastq
-            __clean_ngs__output = ["%s  -of2 %s" % (manager.sample, manager.sample)]
-            __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
-            __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
-        else:
-            __clean_ngs__input = __data__input
-            __clean_ngs__output = [manager.getname("clean_ngs", "_clean_ngs.fastq.gz")]
-            __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
-            __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
+            __clean_ngs__output += [manager.getname("clean_ngs", "_R2_.clean_ngs.fastq.gz")]
+        __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
+        __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
         include: sm.modules["clean_ngs"]
 
         #expected_output.extend(expand(__clean_ngs__output, sample=manager.samples))
