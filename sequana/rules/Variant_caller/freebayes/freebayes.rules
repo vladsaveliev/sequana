@@ -7,12 +7,11 @@ rule freebayes:
         __freebayes__reference: reference fasta file
 
     Required output:
+        __freebayes__bai: bam index files
         __freebayes__output: vcf file
 
     Required parameter:
         config["freebayes"]["ploidy"]: set the ploidy of the sample
-        config["freebayes"]["max-complex-gap"]: set the maximum distance 
-            between polymorphisms segregate on the same read.
         config["freebayes"]["options"]: others freebayes options
     """
     input:

@@ -38,6 +38,16 @@ __snakefile__ = srcdir(__snakefile__)
 __rawdata__input = manager.getrawdata()
 
 
+#
+# Preprocessing for variant calling
+# 
+# - Mapping: BWA
+# - Sort: sambamba
+# - MarkDuplicates: sambamba 
+# - Quality filter: samtools
+# 
+##############################################################################
+
 # Get the snpeff config and create database
 reference = config["bwa_mem_ref"]["reference"]
 if config["snpeff"]["do"]:
@@ -136,6 +146,12 @@ if config["bam_quality_filter"]["do"]:
     __samtools_depth__input = [__bam_quality_filter__output,
                                __bam_quality_filter__input]
 
+
+#
+# Coverage analysis
+# 
+##############################################################################
+
 # Sequana_coverage analysis
 if config["sequana_coverage"]["do"]:
     __samtools_depth__output = manager.getname("samtools_depth", ".bed")
@@ -151,6 +167,15 @@ if config["sequana_coverage"]["do"]:
     include: sm.modules["sequana_coverage"]
     expected_output.append(expand(__sequana_coverage__output,
                                   sample=manager.samples))
+
+
+#
+# Variant calling
+# - Calling: freebayes
+# - annotation: snpEff
+# - filter: sequana
+# 
+##############################################################################
 
 # Variant calling with Freebayes
 # bai file is setup in freebayes rule for pipeline summary
@@ -178,6 +203,43 @@ __freebayes_vcf_filter__output = manager.getname("freebayes_vcf_filter",
 __freebayes_vcf_filter__csv = manager.getname("freebayes_vcf_filter", ".csv")
 include: sm.modules["freebayes_vcf_filter"]
 
+
+#
+# Joint variant calling with freebayes
+# 
+##############################################################################
+
+# if there are more than one sample lets do a joint calling with all samples
+if len(manager.samples) > 1:
+    __joint_freebayes__input = expand(__freebayes__input,
+                                      sample=manager.samples)
+    __joint_freebayes__bai = expand(__freebayes__bai, sample=manager.samples)
+    __joint_freebayes__reference = __freebayes__reference
+    __joint_freebayes__output = 'joint_freebayes/joint_freebayes.raw.vcf'
+    __joint_freebayes__log = 'joint_freebayes/logs/joint_freebayes.log'
+    include: sm.modules['joint_freebayes']
+
+    if config['snpeff']['do']:
+        __snpeff_joint__input = __joint_freebayes__output
+        __snpeff_joint__log = 'joint_freebayes/logs/snpeff_joint.log'
+        __snpeff_joint__output = 'joint_freebayes/joint_freebayes.ann.vcf'
+        __snpeff_joint__html = 'joint_freebayes/joint_freebayes.html'
+        __snpeff_joint__config = __snpeff__config
+        __snpeff_joint__gbk = config['snpeff']['reference']
+        __snpeff_joint__options = config['snpeff']['options']
+        exec(open(sequana.modules["dynamic_snpeff"], "r").read())
+        include: dynamic_snpeff('joint', manager)
+    else:
+        
+    
+
+
+#
+# Utils
+# 
+##############################################################################
+
+
 # Create requirements.txt(dependencies)
 include: sm.modules["conda"] 
 
@@ -188,6 +250,8 @@ __rulegraph__mapper = {"sequana_coverage":"../sequana_coverage.html",
                        "freebayes_vcf_filter":"../variant_calling.html"}
 include: sm.modules["rulegraph"]
 expected_output.extend(["requirements.txt", __rulegraph__output])
+
+#
 
 # create a json file that summarise information of your pipeline
 # they must be complete in the onsuccess block

@@ -36,8 +36,10 @@ class CoverageModule(SequanaBaseModule):
     :class:`GenomeCov` instances or a csv file where analysis are stored.
     """
     def __init__(self, data):
-        """
-        :param input: 
+        """.. rubric:: constructor
+
+        :param data: it can be a csv filename created by sequana_coverage or a
+        :class:`bedtools.GenomeCov` object.
         """
         super().__init__()
         try:
