@@ -649,15 +649,19 @@ class FindAdaptersFromDesign(object):
 
         self.adapters = adapters
 
-        if adapters in ["Nextera", "PCRFree", "Rubicon", "TruSeq"]:
+        if adapters in ["PCRFree", "Rubicon"]:
             self.include_transposase = False
+            self.include_universal = True
+            self.include_polyA = False
+        elif adapters in ["Nextera"]:
+            self.include_transposase = True
             self.include_universal = True
             self.include_polyA = False
         elif adapters in ["Small"]:
             self.include_polyA = False
             self.include_transposase = False
             self.include_universal = True
-        elif adapters in ["SMARTer"]:
+        elif adapters in ["SMARTer", "TruSeq"]:
             self.include_polyA = True
             self.include_transposase = False
             self.include_universal = True
