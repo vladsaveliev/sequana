@@ -1,0 +1,25 @@
+{#  base.html
+
+    Main template for the jinja. It includes all parts of a html and fill
+    variable with jinja.
+#}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'head.html' %}
+</head>
+<body>
+<div class="document" id="unset">
+<header>
+    {% include 'header.html' %}
+</header>
+
+{% include 'content.html' %}
+
+<div><hr></div>
+    <div class="footer">
+        {% include 'footer.html' %}
+    </div>
+</div>
+</body>
+</html>

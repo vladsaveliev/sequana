@@ -1,0 +1,37 @@
+rule freebayes_vcf_filter:
+    """ It filters VCF file from freebayes with score, coverage depth and strand
+    ratio.
+
+    Required input:
+        __freebayes_vcf_filter__input: VCF file from freebayes
+
+    Required output:
+        __freebayes_vcf_filter__output: filtered VCF file
+        __freebayes_vcf_filter__csv: CSV file
+
+    Required parameters:
+        config["freebayes_vcf_filter"]["freebayes_score"]: minimal freebayes
+            score
+        config["freebayes_vcf_filter"]["frequency"]: minimal alternative allele
+            frequency
+        config["freebayes_vcf_filter"]["depth"]: minimal coverage depth
+        config["freebayes_vcf_filter"]["forward_depth"]: minimal coverage depth
+            of forward strand
+        config["freebayes_vcf_filter"]["reverse_depth"]: minimal coverage depth
+            of reverse strand
+        config["freebayes_vcf_filter"]["strand_ratio"]: minimal strand ratio [0:0.5]
+    """
+    input:
+        vcf = __freebayes_vcf_filter__input
+    output:
+        vcf = __freebayes_vcf_filter__output,
+        csv = __freebayes_vcf_filter__csv
+    params:
+        filter_dict = config["freebayes_vcf_filter"]
+    run:
+        from sequana.freebayes_vcf_filter import VCF_freebayes
+        
+        v = VCF_freebayes(input["vcf"])
+        filter_v = v.filter_vcf(params["filter_dict"])
+        filter_v.to_vcf(output["vcf"])
+        filter_v.to_csv(output["csv"])
