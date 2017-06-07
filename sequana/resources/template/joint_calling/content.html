@@ -1,0 +1,45 @@
+{#  content.html
+
+    Template for the report content. It uses modules object to fill
+    automatically the HTML page.
+#}
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        var table = $('#joint_calling').DataTable();
+        console.log("javascript");
+        $('input.toggle-vis').on( 'click', function (e) {
+            console.log("CLICK");
+            e.preventDefault();
+            var column = table.column( $(this).attr('data-column') );
+            column.visible( ! column.visible() );
+        } );
+    } );
+</script>
+
+{# create buttons to hide some samples #}
+<div class="btn-group" data-toggle="buttons">
+    {% for sample in module.vcf.vcf.samples %}
+        <label class="btn btn-primary active">
+            <input class="toggle-vis" type="checkbox" checked autocomplete="off">{{ sample }}</input>
+        </label> 
+    {% endfor %}
+</div>
+<table id="joint_calling" class="table table-striped" width="100%">
+    <thead>
+        <tr>
+            {% for col in module.vcf.columns %}
+                <th> {{ col }} </th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for variant in module.vcf.variants %}
+        <tr>
+            {% for col in module.vcf.columns %}
+                <td> {{ variant.resume[col] }}  </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

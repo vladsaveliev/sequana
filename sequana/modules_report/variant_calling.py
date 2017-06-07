@@ -88,18 +88,20 @@ class VariantCallingModule(SequanaBaseModule):
                 "<li>strand_ratio: alternate allele forward / (alternate "
                 "allele forward + alternate allele reverse)</li>"
                 "</ul>".format(**self.filter_dict)
-            })
+        })
 
     def variant_calling(self):
         """ Variants detected section.
         """
         datatable = DataTable(self.df, 'vc')
         # set options
-        datatable.datatable.datatable_options = {'scrollX': 'true',
-                                                 'pageLength': 15,
-                                                 'scrollCollapse': 'true',
-                                                 'dom': 'Bfrtip',
-                                                 'buttons': ['copy', 'csv']}
+        datatable.datatable.datatable_options = {
+            'scrollX': 'true',
+            'pageLength': 15,
+            'scrollCollapse': 'true',
+            'dom': 'Bfrtip',
+            'buttons': ['copy', 'csv']
+        }
         js = datatable.create_javascript_function()
         html_tab = datatable.create_datatable(float_format='%.3g')
         self.sections.append({

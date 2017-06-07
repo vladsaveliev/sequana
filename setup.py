@@ -111,16 +111,17 @@ setup(
            'sequana_mapping=sequana.scripts.mapping:main',
            'sequana_compressor=sequana.scripts.compressor:main',
            'sequana_report=sequana.scripts.reports:main',
-           'sequana_fox=sequana.scripts.browser:main'
+           'sequana_fox=sequana.scripts.browser:main',
         ],
         'sequana.module':[
             'sequana_coverage=sequana.modules_report.coverage:CoverageModule',
             'sequana_variant_calling=sequana.modules_report.variant_calling:VariantCallingModule',
             'sequana_summary=sequana.modules_report.summary:SummaryModule',
-            'quast=sequana.modules_report.quast:QuastModule'
+            'quast=sequana.modules_report.quast:QuastModule',
         ],
         'sequana.report_template': [
-            'standard=sequana.resources.template.standard'
+            'standard=sequana.resources.template.standard',
+            'joint_calling=sequana.resources.template.joint_calling',
         ]
 },
 

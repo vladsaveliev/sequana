@@ -33,13 +33,14 @@ class SequanaBaseModule(object):
     """ Generic Module to write HTML reports.
     """
     required_dir = ("css", "js", "images")
-    def __init__(self):
+    def __init__(self, template='standard'):
         self.output_dir = config.output_dir
         self.path = "./"
         # Initiate jinja template
-        template = config.template_dict[config.template].load()
+        template = config.template_dict[template].load()
         env = jinja2.Environment(
-                loader=jinja2.FileSystemLoader(template.template_dir))
+            loader=jinja2.FileSystemLoader(template.template_dir)
+        )
         self.j_template = env.get_template(template.base_fn)
         self._init_report()
 

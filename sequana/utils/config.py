@@ -36,7 +36,6 @@ script_path = os.path.dirname(os.path.realpath(__file__))
 
 # Default options
 output_dir = os.path.realpath(os.getcwd())
-template = "standard"
 
 def get_entry_name(entry_point):
     return str(entry_point).split('=')[0].strip()
