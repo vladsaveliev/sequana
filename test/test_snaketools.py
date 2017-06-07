@@ -209,7 +209,7 @@ def test_file_name_factory():
 
     directory = os.path.dirname(sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz"))
 
-    ff = snaketools.FastQFactory(directory + "/*fastq.gz", verbose=True)
+    ff = snaketools.FastQFactory(directory + "/Hm2*fastq.gz", verbose=True)
     assert ff.tags == ['Hm2_GTGAAA_L005']
 
     ff.get_file1(ff.tags[0])

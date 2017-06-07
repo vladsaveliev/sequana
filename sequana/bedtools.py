@@ -1080,7 +1080,10 @@ class ChromosomeCov(object):
             'STD': self.df['cov'].std(),
             'Median': self.df['cov'].median(),
             'BOC': 100 * sum(self.df['cov'] > 0) / float(len(self.df))}
-        stats['CV'] = stats['STD'] / stats['DOC']
+        try:
+            stats['CV'] = stats['STD'] / stats['DOC']
+        except:
+            stats['CV'] = np.nan
         stats['MAD'] = np.median(abs(data['cov'].median() -
                                  data['cov']).dropna())
 

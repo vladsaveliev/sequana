@@ -112,7 +112,7 @@ def test_without_cluster_config(tmpdir):
     file1 = sequana_data('Hm2_GTGAAA_L005_R1_001.fastq.gz', 'data')
     main.main([prog, "--pipeline", "rnaseq", "--file1", file1, "--snakemake-cluster", 
         '"sbatch --mem={cluster.ram}"', "--ignore-cluster-config", "--force",
-        "--working-directory", name])
+        "--working-directory", name, "--no-adapters"])
     with open("%s/runme.sh" %  name) as fh: 
         assert "cluster_config" not in fh.read()
 
