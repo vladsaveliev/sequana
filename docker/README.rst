@@ -1,10 +1,16 @@
 Docker containers for **Sequana**
 ====================================
 
+.. warning:: Although we provide a Docker recipes, this method will not be
+    maintained after release 0.3.0 of Sequana. However, we keep the version 0.3
+    and the following recipes here below for book-keeping and those willing to build
+    their own docker of Sequana
+
+
 `Docker <http://www.docker.com>`_ containers wrap a piece of software in a complete filesystem that contains everything needed to run the software.
 
 In order to allow anyone to use **Sequana** without needs for complex installation, we provide
-`Docker images <https://hub.docker.com/u/sequana>`, which are synchronized on the *master*
+`Docker images <https://hub.docker.com/u/sequana>`_, which are synchronized on the *master*
 branch of the source code.
 
 We assume that:
@@ -36,12 +42,8 @@ The primary goal of the docker is to make it possible to quickly test the
 standalones. For now, we expose only one docker. Please see specific 
 documentation following the links here below:
 
-- sequana_coverage_
-- sequana_taxonomy_
-
-
-.. _sequana_coverage: (https://github.com/sequana/sequana/tree/master/docker/sequana_coverage)
-.. _sequana_taxonomy: (https://github.com/sequana/sequana/tree/master/docker/sequana_taxonomy)
+- sequana_coverage: (https://github.com/sequana/sequana/tree/master/docker/sequana_coverage)
+- sequana_taxonomy: (https://github.com/sequana/sequana/tree/master/docker/sequana_taxonomy)
 
 
 More advanced Usage
@@ -66,12 +68,11 @@ This opens an interactive shell with latest sequana library pre-installed. For i
 start an IPython shell::
 
     ipython
-    
+ 
 and import the library::
 
     import sequana
 
-See sequana.readthedocs.org for examples.
 
 Or within the unix shell, you can use standalones. For instance there is a test
 BED file that can be analysed as follows to get a coverage report::

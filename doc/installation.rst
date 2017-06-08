@@ -9,22 +9,22 @@ Installation
 Installation using Conda
 ============================
 
-
 If you have not installed **Sequana**, be aware that it relies on many dependencies
 that needs to be compiled (i.e., it is time consumming and requires proper C compilator).
 For example, we use Matplotlib, Pandas that requires compilation.
 Besides, many pipelines rely on third-party software such as BWA or samtools that are not
-Python libraries. Yet, using **conda**, this process is simplied.
+Python libraries. Yet, using **conda**, this process is simplified.
 
 Install conda executable
 ----------------------------
 
-In practice, we do use `Anaconda <https://anaconda.org/>`_ . We recommend to
-install **conda** executable via the manual installer. You may have the choice
+In practice, we do use `Anaconda <https://conda.readthedocs.io/>`_ . We recommend to
+install **conda** executable via the manual installer (`download <https//continuum.io/downloads>_`). 
+You may have the choice
 between Python 2 and 3. We recommend to choose a Python version 3.
 
-channels
------------
+Add conda channels
+---------------------
 
 When you want to install a new package, you have to use this type of syntax::
 
@@ -40,9 +40,10 @@ these commands (once for all)::
     conda config --add channels r
     conda config --add channels bioconda
 
+.. warning:: **it is important to add them in this order**, as mentionned on bioconda webpage
+    (https://bioconda.github.io/).
 
-.. warning:: it is important to add them in this order**, as mentionned on bioconda webpage
-(https://bioconda.github.io/).
+
 
 Create an environment
 -------------------------
@@ -54,14 +55,25 @@ later be removed without affecting your system or conda installation. A
 **conda** environment is nothing else than a directory and can be created as
 follows::
 
-    conda create --name sequana python=3.5
+    conda create --name sequana_env python=3.5
 
 Then, since you may have several environments, you must activate the **sequana**
 environment itself::
 
-    source activate sequana
+    source activate sequana_env
 
-Here are compulsary packages that must be installed::
+
+Install sequana via conda (bioconda)
+-------------------------------------
+
+Finally, just type::
+
+    conda install sequana
+
+This should install most of the required dependencies. However, you may need to
+install more packages depending on the pipeline used. 
+
+Here are some compulsary packages::
 
     conda install numpy matplotlib pandas snakemake graphviz pygraphviz scipy
 
@@ -76,24 +88,9 @@ install everything in one go)::
     conda install kraken krona pigz
     conda install ipython cutadapt jupyter pbr
 
-For atropos::
+For atropos, which is not yet on bioconda, use the **pip** command::
 
     pip atropos==1.0.23
-
-or::
-
-    conda install atropos>1.1.2
-
-conda remove tqdm
-
-Install sequana
----------------------
-
-If you have already installed **Sequana** dependencies, this command
-should install the latest release posted on http://pypi.python.org/pypi/sequana website::
-
-    pip install sequana --upgrade
-
 
 
 .. note:: atropos is an alternative to cutadapt with additional options but same
@@ -108,7 +105,6 @@ should install the latest release posted on http://pypi.python.org/pypi/sequana 
 .. note:: **Sequana** is not fully compatible with Python 2.7 since a dependency
     (Snakemake) is only available for Python 3.5. However, many core
     functionalities would work under Python 2.7
-
 
 .. note:: For GATK (variant caller), please go to
    https://software.broadinstitute.org/gatk/download/auth?package=GATK and

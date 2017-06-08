@@ -24,6 +24,7 @@ from distutils.version import StrictVersion
 import snakemake
 
 from sequana.gui.ui_snakemake import Ui_Snakemake
+from sequana.gui.file_browser import FileBrowser
 from PyQt5 import QtWidgets as QW
 from PyQt5 import QtCore
 
@@ -38,6 +39,13 @@ class SnakemakeDialog(QW.QDialog):
 
         self.ui = Ui_Snakemake()
         self.ui.setupUi(self)
+
+        # This is for the --cluster-config case
+        # Note the double underscore that is used later to be replaced by a dash
+        self.ui.snakemake_options_cluster_cluster__config_value = FileBrowser()
+        self.ui.horizontalLayout_4.addWidget(
+            self.ui.snakemake_options_cluster_cluster__config_value)
+
         self._application = "sequana_gui"
         self._section = "snakemake_dialog"
         self.read_settings()
@@ -65,6 +73,7 @@ class SnakemakeDialog(QW.QDialog):
         for name, widget in zip(names, widgets):
             # This option is valid for snakemake above 3.10
             if name == "restart-times" and snakemake_version < StrictVersion("3.10"):
+                print("You should use Snakemake 3.10 or above")
                 continue
             options.append(SOptions(name, widget))
         return options
@@ -115,6 +124,8 @@ class SnakemakeDialog(QW.QDialog):
                     this.setChecked(False)
                 else:
                     this.setChecked(True)
+            elif isinstance(this, FileBrowser):
+                this.set_filenames(value)
             else:
                 print('could not handle : %s' % this)
         # The last tab position
@@ -146,6 +157,8 @@ class SnakemakeDialog(QW.QDialog):
                 value = widget.isChecked()
             elif isinstance(widget, QW.QSpinBox):
                 value = widget.value()
+            elif isinstance(widget, FileBrowser):
+                value = widget.get_filenames()
             else:
                 raise NotImplementedError("for developers")
             items[name] = value
@@ -154,7 +167,15 @@ class SnakemakeDialog(QW.QDialog):
 
 
 class SOptions(object):
-    """
+    """Get Text of a bunch of widgets.
+
+    Currently those widgets are recognised:
+
+        - SpinBox
+        - QLabel
+        - FileBrowser (a sequana widget)
+        - any other widget that uses the text() method to get the text.
+
     """
     def __init__(self, name, widget):
         self.name = name
@@ -166,6 +187,11 @@ class SOptions(object):
             value = self.widget.text()
         elif isinstance(self.widget, QW.QLabel):
             value = self.widget.text()
+        elif isinstance(self.widget, FileBrowser):
+            if self.widget.path_is_setup()  is False:
+                value = ""
+            else:
+                value = self.widget.get_filenames()
         else:
             try:
                 value = self.widget.text()

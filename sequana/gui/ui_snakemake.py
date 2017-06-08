@@ -84,9 +84,6 @@ class Ui_Snakemake(object):
         self.snakemake_options_cluster_config_label = QtWidgets.QLabel(self.tab_cluster)
         self.snakemake_options_cluster_config_label.setObjectName("snakemake_options_cluster_config_label")
         self.horizontalLayout_4.addWidget(self.snakemake_options_cluster_config_label)
-        self.snakemake_options_cluster_config_value = QtWidgets.QLineEdit(self.tab_cluster)
-        self.snakemake_options_cluster_config_value.setObjectName("snakemake_options_cluster_config_value")
-        self.horizontalLayout_4.addWidget(self.snakemake_options_cluster_config_value)
         self.gridLayout_2.addLayout(self.horizontalLayout_4, 2, 0, 1, 1)
         spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.gridLayout_2.addItem(spacerItem1, 4, 0, 1, 1)
@@ -142,7 +139,7 @@ class Ui_Snakemake(object):
         self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
 
         self.retranslateUi(Snakemake)
-        self.tabs.setCurrentIndex(2)
+        self.tabs.setCurrentIndex(1)
         self.buttonBox.accepted.connect(Snakemake.accept)
         self.buttonBox.rejected.connect(Snakemake.reject)
         QtCore.QMetaObject.connectSlotsByName(Snakemake)

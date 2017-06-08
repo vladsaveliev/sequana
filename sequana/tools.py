@@ -131,7 +131,15 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
         the supplementary. This flag is not used in this function. Note also that
         chimeric alignment have same QNAME and flag 4 and 8
 
+    .. note:: the contamination reported is basde on R1 only.
+
     .. todo:: comments are missing since there are not stored in the BAM file.
+
+
+    .. note:: the mapped reads may not be synchronized because we include also
+        the chimeric alignment (cf samtools documentation). However, 
+        total reads = unmappeds reads + R1 mapped + R2 mapped - supplemntary
+        reads (those with flag 2048).
     """
     bam = BAM(filename)
     # figure out if this is paired or unpaired
@@ -152,8 +160,12 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
         ff = FileFactory(filename)
         newname = output_directory + os.sep + ff.filenames[0]
 
-    R1_mapped = open(newname + "_R1_.mapped.fastq", "wb")
-    R1_unmapped = open(newname + "_R1_.unmapped.fastq", "wb")
+    rt1 = "_R1_"
+    rt2 = "_R2_"
+
+
+    R1_mapped = open(newname + "{}.mapped.fastq".format(rt1), "wb")
+    R1_unmapped = open(newname + "{}.unmapped.fastq".format(rt1), "wb")
     stats['duplicated'] = 0
     stats['unpaired'] = 0
 
@@ -164,8 +176,8 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
         stats['mode'] = "pe"
         stats['R2_unmapped'] = 0
         stats['R2_mapped'] = 0
-        R2_mapped = open(newname + "_R2_.mapped.fastq", "wb")
-        R2_unmapped = open(newname + "_R2_.unmapped.fastq", "wb")
+        R2_mapped = open(newname + "{}.mapped.fastq".format(rt2), "wb")
+        R2_unmapped = open(newname + "{}.unmapped.fastq".format(rt2), "wb")
     else:
         stats['mode'] = "se"
 
@@ -303,10 +315,10 @@ def bam_get_paired_distance(filename):
 def _base_content(filename, window_size, letters, circular=False):
     # DOC: see gc_content
     fasta = FastxFile(filename)
-    mid = int(window_size / 2)
     checker = set(letters)
     chrom_gc_content = dict()
     for chrom in fasta:
+        mid = int(window_size / 2)
         # Create gc_content array
         gc_content = np.empty(len(chrom.sequence))
         gc_content[:] = np.nan

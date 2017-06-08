@@ -39,7 +39,7 @@ from sequana import logger, Module, sequana_debug_level
 
 sequana_debug_level('INFO')
 
-adapters_choice = ["Nextera", "Rubicon", "PCRFree", "TruSeq"]
+adapters_choice = ["Nextera", "Rubicon", "PCRFree", "TruSeq", "SMARTer", "Small"]
 
 help_input = """Missing input data.
 
@@ -558,7 +558,7 @@ def main(args=None):
         ff = FastQFactory(data, read_tag=options.input_readtag,
                           verbose=options.verbose)
 
-    if options.pipeline == 'quality_control':
+    if options.pipeline == 'quality_control' or options.pipeline == 'rnaseq':
         # check combo
         flag = int("%s%s%s%s%s" % (
             int(bool(options.no_adapters)),
@@ -569,7 +569,7 @@ def main(args=None):
             ), 2)
 
         if flag not in [16,12, 6, 4, 2, 3]:
-            sa.error("You must use a design experimental file using --design"
+            logger.critical("You must use a design experimental file using --design"
                      " and --adapters to indicate the type of adapters (PCRFree"
                      " or Nextera), or provide the adapters directly as a "
                      " string (or a file) using --adapter_fwd (AND --adapter_"
@@ -578,6 +578,7 @@ def main(args=None):
                     " all adapters will be used (slower). Finally, you may use "
                     " --no-adapters for testing purpose or if you know there "
                     " is no adapters")
+            sys.exit(1)
 
         # flag 12 (design + adapters when wrong args provided)
         if options.design and options.adapters not in adapters_choice:
@@ -736,7 +737,7 @@ def sequana_init(options):
     if options.pipeline == "quality_control":
         if options.design:
             shutil.copy(options.design, options.target_dir + os.sep )
-            cfg.config.adapter_removal.design_file = os.path.basename(options.design)
+            cfg.config['cutadapt'].design_file = os.path.basename(options.design)
 
         if options.kraken:
             cfg.config.kraken.database_directory = os.path.abspath(options.kraken)
@@ -744,15 +745,24 @@ def sequana_init(options):
         else:
             cfg.config.kraken.do = False
 
-        cfg.config.adapter_removal.fwd = options.adapter_fwd
-        cfg.config.adapter_removal.rev = options.adapter_rev
-        cfg.config.adapter_removal.adapter_type = options.adapters
+        cfg.config['cutadapt'].fwd = options.adapter_fwd
+        cfg.config['cutadapt'].rev = options.adapter_rev
+        cfg.config['cutadapt'].adapter_type = options.adapters
         # Foir all pipeline using BWA
         if options.reference:
             cfg.config.bwa_mem.reference = os.path.abspath(options.reference)
     if options.pipeline == "variant_calling":
         if options.reference:
             cfg.config.bwa_mem_ref.reference = os.path.abspath(options.reference)
+
+    if options.pipeline in ["rnaseq","smallrnaseq"]:
+        if options.design:
+            shutil.copy(options.design, options.target_dir + os.sep )
+            cfg.config['cutadapt'].design_file = os.path.basename(options.design)
+        cfg.config['cutadapt'].fwd = options.adapter_fwd
+        cfg.config['cutadapt'].rev = options.adapter_rev
+        cfg.config['cutadapt'].adapter_choice = options.adapters
+
 
     cfg.copy_requirements(target=options.target_dir)
 
@@ -793,7 +803,7 @@ def sequana_init(options):
 
         if options.cluster:
             # Do we want to include the cluster config option ?
-            cluster_config = Module(options.pipeline).config_cluster
+            cluster_config = Module(options.pipeline).cluster_config
             if options.ignore_cluster_config is True:
                 cluster_config = None
 

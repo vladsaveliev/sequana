@@ -320,8 +320,8 @@ class GenomeCov(object):
         re_window_size = re.compile("\swindow_size:(\d+)")
         re_circular = re.compile("circular:(\w+)")
         re_gc_window_size = re.compile("gc_window_size:(\d+)")
-        re_genbank = re.compile("genbank:([\{0}\w\.]+)".format(os.sep))
-        re_chrom = re.compile("^# ([\w-]+):")
+        re_genbank = re.compile("genbank:([\{0}\w\.\-]+)".format(os.sep))
+        re_chrom = re.compile("^# ([\w\-\.]+):")
         re_gaussian = re.compile("(\[\{.+\}\])")
         with open(input_filename, "r") as fp:
             line = fp.readline()
@@ -1080,7 +1080,10 @@ class ChromosomeCov(object):
             'STD': self.df['cov'].std(),
             'Median': self.df['cov'].median(),
             'BOC': 100 * sum(self.df['cov'] > 0) / float(len(self.df))}
-        stats['CV'] = stats['STD'] / stats['DOC']
+        try:
+            stats['CV'] = stats['STD'] / stats['DOC']
+        except:
+            stats['CV'] = np.nan
         stats['MAD'] = np.median(abs(data['cov'].median() -
                                  data['cov']).dropna())
 

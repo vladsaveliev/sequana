@@ -26,23 +26,61 @@ __all__ = ['Logger', 'Tools', 'QPlainTextEditLogger']
 
 
 class Logger(object):
+    """Aliases to colorlog different methods (e.g. info, debug)
+
+    Set a stream handler to the filename set in the constructor, which 
+    can be changed using the attribute :attr:`_logger_output`
+
+    """
+    def __init__(self, filename="sequana_logger_debug.txt"):
+        self._logger_output = filename
+        self.init_logger()
+
+    def init_logger(self):
+        self._mylogger = colorlog.getLogger("sequanix")
+        self._fh = open(self._logger_output, "w")
+        self._handler = colorlog.StreamHandler(self._fh)
+        formatter = colorlog.ColoredFormatter(
+            "%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(message)s",
+            datefmt=None,
+            reset=True,
+            log_colors={
+                'DEBUG':    'cyan',
+                'INFO':     'green',
+                'WARNING':  'yellow',
+                'ERROR':    'red',
+                'CRITICAL': 'red',
+            }
+        )
+        self._handler.setFormatter(formatter)
+        self._mylogger.addHandler(self._handler)
+
+    def save_logger(self):
+        self._handler.close()
+        self._fh.close()
+        return self._logger_output
+        #self.init_logger()
+
     def info(self, text):
-        colorlog.info(text)
+        self._mylogger.info(text)
 
     def error(self, text):
-        colorlog.error(text)
+        self._mylogger.error(text)
 
     def debug(self, text):
-        colorlog.debug(text)
+        self._mylogger.debug(text)
 
     def critical(self, text):
-        colorlog.critical(text)
+        self._mylogger.critical(text)
 
     def warning(self, text):
-        colorlog.warning(text)
+        self._mylogger.warning(text)
 
 
 class Tools(Logger):
+    def __init__(self):
+        super(Tools, self).__init__()
+
     def copy(self, source, target):
         try:
             shutil.copy(source, target)

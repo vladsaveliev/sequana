@@ -24,3 +24,18 @@ def test_snpeff():
         os.remove("snpEff_summary.html")
     except:
         pass
+
+
+
+def test_snpeff_download():
+    with TempFile() as fh:
+        snpeff.download_fasta_and_genbank("K01711", fh.name)
+
+    with TempFile() as fh:
+        try:
+            snpeff.download_fasta_and_genbank("dummyK01711", fh.name)
+            assert False
+        except ValueError:
+            assert True
+        except:
+            assert False

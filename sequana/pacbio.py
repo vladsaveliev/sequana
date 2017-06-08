@@ -1,10 +1,29 @@
+# -*- coding: utf-8 -*-
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016-2017 - Sequana Development Team
+#
+#  File author(s):
+#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
+#      Mélissa Cardonl <melissa.cardon@pasteur.fr>, 
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  website: https://github.com/sequana/sequana
+#  documentation: http://sequana.readthedocs.io
+#
+##############################################################################
+"""Pacbio QC and stats"""
+import collections
 
 from sequana.lazy import pylab
 from sequana.lazy import numpy as np
 from sequana.lazy import pandas as pd
-import collections #lazy ?
+from sequana.lazy import biokit
+
 import pysam
-from biokit.viz import hist2d
 
 
 class BAMPacbio(object):
@@ -60,7 +79,8 @@ class BAMPacbio(object):
                 res.append(read.query_length)
                 # res[1] = GC content
                 c = collections.Counter(read.query_sequence)
-                res.append( (c['g'] + c['G'] + c['c'] + c['C'])/float(sum(c.values())) )
+                res.append( 100 * (c['g'] + c['G'] + c['c'] + c['C']) /
+                            float(sum(c.values())) )
                 # res[2] = snr A
                 # res[3] = snr C
                 # res[4] = snr G
@@ -78,11 +98,13 @@ class BAMPacbio(object):
             self._N = N
             self.reset()
         return self._df
-
     df = property(_get_df)
 
+    def _get_stats(self):
+        return self.df.read_length.describe().to_dict()
+    stats = property(_get_stats, doc="return basic stats about the read length")
+
     def _get_ZMW_passes(self):
-        print()
         if self._nb_pass is None:
             if self._df is None:
                 self._get_df()
@@ -91,7 +113,7 @@ class BAMPacbio(object):
             distrib_nb_passes = [zmw_passes[z] for z in zmw_passes.keys()]
             self._nb_pass = collections.Counter(distrib_nb_passes)
         return self._nb_pass
-    nb_pass = property(_get_ZMW_passes)
+    nb_pass = property(_get_ZMW_passes, doc="number of passes (ZMW)")
 
     def reset(self):
         self.data.close()
@@ -105,6 +127,8 @@ class BAMPacbio(object):
         :param int shift: number of reads to ignore at the begining of input file
         :param bool random: if True, at each step the read to output is randomly selected
         """
+        assert output_filename != self.filename, \
+            "output filename should be different from the input filename"
         self.reset()
         with pysam.AlignmentFile(output_filename,"wb", template=self.data) as fh:
             if random:
@@ -116,23 +140,56 @@ class BAMPacbio(object):
                     if random:
                         shift = np.random.randint(stride)
 
-    def filter_length(self, output_filename, threshold_min=0, threshold_max=np.inf):
-        """Write reads within the length range to BAM output
+    def _to_fastX(self, mode, output_filename, threads=2):
+        # for now, we use samtools
+        # can use bamtools as well but as long and output 10% larger (sequences
+        # are split on 80-characters length)
+        from snakemake import shell
+        cmd = "samtools %s  -@ %s %s > %s" % (mode, threads, 
+            self.filename, output_filename)
+        print("Please be patient")
+        print("This may be long depending on your input data file: ")
+        print("typically, a minute per  500,000 reads")
+        shell(cmd)
+        print("done")
 
-        :param str output_filename: name of output file
-        :param int threshold_min: minimum length
-        :param int threshold_max: maximum length
+    def to_fasta(self, output_filename, threads=2):
+        """Export BAM reads into a Fasta file
+
+        :param output_filename: name of the output file (use .fasta extension)
+        :param int threads: number of threads to use
+
+        .. note:: this executes a shell command based on samtools
+
+        .. warning:: this takes a few minutes for 500,000 reads
 
         """
+        self._to_fastX("fasta", output_filename, threads=threads)
+
+    def to_fastq(self, output_filename, threads=2):
+        """Export BAM reads into FastQ file"""
+        self._to_fastX("fastq", output_filename, threads=threads)
+
+    def filter_length(self, output_filename, threshold_min=0,
+        threshold_max=np.inf):
+        """Select and Write reads within a given range
+
+        :param str output_filename: name of output file
+        :param int threshold_min: minimum length of the reads to keep
+        :param int threshold_max: maximum length of the reads to keep
+
+        """
+        assert threshold_min < threshold_max
+        assert output_filename != self.filename, \
+            "output filename should be different from the input filename"
         self.reset()
         with pysam.AlignmentFile(output_filename,  "wb", template=self.data) as fh:
             for read in self.data:
                 if ((read.query_length > threshold_min) & (read.query_length < threshold_max)):
                     fh.write(read)
 
-
     def hist_snr(self, bins=50, alpha=0.5, hold=False, fontsize=12,
-                grid=True,xlabel="SNR",ylabel="#"):
+                grid=True, xlabel="SNR", ylabel="#",title=""):
         """Plot histogram of the ACGT SNRs for all reads
 
         :param int bins: binning for the histogram
@@ -142,6 +199,7 @@ class BAMPacbio(object):
         :param bool grid:
         :param str xlabel:
         :param str ylabel:
+        :param str title:
 
         .. plot::
             :include-source:
@@ -164,11 +222,13 @@ class BAMPacbio(object):
         pylab.legend()
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
+        pylab.title(title,fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
 
     def hist_ZMW_subreads(self, alpha=0.5, hold=False, fontsize=12,
-                            grid=True,xlabel="Number of ZMW passes",ylabel="#", label=""):
+                          grid=True, xlabel="Number of ZMW passes",
+                          ylabel="#", label="", title="Number of ZMW passes"):
         """Plot histogram of number of reads per ZMW (number of passes)
 
         :param float alpha: transparency of the histograms
@@ -177,7 +237,8 @@ class BAMPacbio(object):
         :param bool grid:
         :param str xlabel:
         :param str ylabel:
-        :param str label:
+        :param str label: label of the histogram (for the legend)
+        :param str title:
 
         .. plot::
             :include-source:
@@ -191,22 +252,26 @@ class BAMPacbio(object):
             self._get_ZMW_passes()
 
         max_nb_pass = max(self._nb_pass.keys())
-        k = range(1,max_nb_pass+1)
+        k = range(1, max_nb_pass+1)
         val = [self._nb_pass[i] for i in k]
 
         # histogram nb passes
         if hold is False:
             pylab.clf()
-        pylab.hist(k, weights=val, bins=max_nb_pass, alpha=alpha, label=label)
+        pylab.bar(k, val, alpha=alpha, label=label)
+        if len(k) < 5:
+            pylab.xticks(range(6), range(6))
+
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
         pylab.yscale('log')
-        pylab.title("Number of ZMW passes",fontsize=fontsize)
+        pylab.title(title,fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
 
     def hist_len(self, bins=50, alpha=0.5, hold=False, fontsize=12,
-                grid=True,xlabel="Read Length",ylabel="#", label=""):
+                grid=True,xlabel="Read Length",ylabel="#", label="",
+                title=None):
         """Plot histogram Read length
 
         :param int bins: binning for the histogram
@@ -216,7 +281,8 @@ class BAMPacbio(object):
         :param bool grid:
         :param str xlabel:
         :param str ylabel:
-        :param str label:
+        :param str label: label of the histogram (for the legend)
+        :param str title:
 
         .. plot::
             :include-source:
@@ -227,33 +293,38 @@ class BAMPacbio(object):
             b.hist_len()
 
         """
-
         if self._df is None:
             self._get_df()
         mean_len =  np.mean(self._df.loc[:,'read_length'])
 
+        # set title if not provided
+        if title is None:
+            title = "Read length  \n Mean length : %.2f" %(mean_len)
+
         # histogram GC percent
         if hold is False:
             pylab.clf()
-        pylab.hist(self._df.loc[:,'read_length'], bins=bins, alpha=alpha, label=label + ", mean : " + str(abs(mean_len)) + ", N : " + str(self._N) )
+        pylab.hist(self._df.loc[:,'read_length'], bins=bins, alpha=alpha,
+            label=  "%s, mean : %.0f, N : %d" % (label, mean_len, self._N) )
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
-        pylab.title("Read length  \n Mean length : %.2f" %(mean_len), fontsize=fontsize)
+        pylab.title(title, fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
 
     def hist_GC(self, bins=50, alpha=0.5, hold=False, fontsize=12,
-                grid=True,xlabel="GC %",ylabel="#",label=""):
+                grid=True, xlabel="GC %", ylabel="#", label="",title=None):
         """Plot histogram GC content
 
         :param int bins: binning for the histogram
         :param float alpha: transparency of the histograms
         :param bool hold:
-        :param int fontsize:
-        :param bool grid:
-        :param str xlabel:
+        :param int fontsize: fontsize of the x and y labels and title.
+        :param bool grid: add grid or not
+        :param str xlabel: 
         :param str ylabel:
-        :param str label:
+        :param str label: label of the histogram (for the legend)
+        :param str title:
 
         .. plot::
             :include-source:
@@ -269,23 +340,31 @@ class BAMPacbio(object):
             self._get_df()
         mean_GC =  np.mean(self._df.loc[:,'GC_content'])
 
+        # set title if needed
+        if title is None:
+            title = "GC %%  \n Mean GC : %.2f" %(mean_GC)
+
         # histogram GC percent
         if hold is False:
             pylab.clf()
-        pylab.hist(self._df.loc[:,'GC_content'], bins=bins, alpha=alpha, label=label + ", mean : " + str(round(mean_GC,2)) + ", N : " + str(self._N))
+        pylab.hist(self._df.loc[:,'GC_content'], bins=bins,
+            alpha=alpha, label=label + ", mean : " + str(round(mean_GC,2))
+            + ", N : " + str(self._N))
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
-        pylab.title("GC %%  \n Mean GC : %.2f" %(mean_GC), fontsize=fontsize)
+        pylab.title(title, fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
+        pylab.xlim([0, 100])
 
-    def plot_GC_read_len(self, alpha=0.07, hold=False, fontsize=12,
-                grid=True,xlabel="GC %",ylabel="#"):
+    def plot_GC_read_len(self, hold=False, fontsize=12, bins=[40,40],
+                grid=True, xlabel="GC %", ylabel="#"):
         """Plot GC content versus read length
 
-        :param float alpha: transparency of the 2D histogram
         :param bool hold:
-        :param int fontsize:
+        :param int fontsize: for x and y labels and title
+        :param bins: a integer or tuple of 2 integers to specify
+            the binning of the x and y 2D histogram.
         :param bool grid:
         :param str xlabel:
         :param str ylabel:
@@ -296,10 +375,9 @@ class BAMPacbio(object):
             from sequana.pacbio import BAMPacbio
             from sequana import sequana_data
             b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
-            b.plot_GC_read_len()
+            b.plot_GC_read_len(bins=[10, 10])
 
         """
-
         if self._df is None:
             self._get_df()
         mean_len =  np.mean(self._df.loc[:,'read_length'])
@@ -308,9 +386,337 @@ class BAMPacbio(object):
         if hold is False:
             pylab.clf()
         data = self._df.loc[:,['read_length','GC_content']]
-        h = hist2d.Hist2D(data)
-        res = h.plot(bins=[40,40], contour=False, nnorm='log', Nlevels=6)
-        #pylab.plot(self._df.loc[:,'read_length'] , self._df.loc[:,'GC_content'], 'bo', alpha=alpha)
-        pylab.xlabel("Read length", fontsize=12)
-        pylab.ylabel("GC %", fontsize=12)
-        pylab.title("GC %% vs length \n Mean length : %.2f , Mean GC : %.2f" %(mean_len, mean_GC))
+        h = biokit.viz.hist2d.Hist2D(data)
+        res = h.plot(bins=bins, contour=False, nnorm='log', Nlevels=6)
+        pylab.xlabel("Read length", fontsize=fontsize)
+        pylab.ylabel("GC %", fontsize=fontsize)
+        pylab.title("GC %% vs length \n Mean length : %.2f , Mean GC : %.2f" % 
+            (mean_len, mean_GC), fontsize=fontsize)
+        pylab.ylim([0, 100])
+        if grid is True:
+            pylab.grid(True)
+
+
+class BAMsimul(object):
+    """BAM reader for Pacbio simulated reads (PBsim)
+
+    XXX TODO : refactoring using BAMPacbiobase class (TODO)
+
+    A summary of the data is stored in the attribute :attr:`df`. It contains
+    information such as the length of the reads, the ACGT content, the GC content.
+
+    """
+    def __init__(self, filename):
+        """.. rubric:: Constructor
+
+        :param str filename: filename of the input pacbio BAM file. The content
+            of the BAM file is not the ouput of a mapper. Instead, it is the
+            output of a Pacbio (Sequel) sequencing (e.g., subreads).
+        """
+        self.filename = filename
+        self.data = pysam.AlignmentFile(filename, check_sq=False)
+        self._N = None
+        self._df = None
+
+    def __len__(self):
+        if self._N is None:
+            df = self._get_df()
+        return self._N
+
+    def reset(self):
+        self.data.close()
+        self.data = pysam.AlignmentFile(self.filename, check_sq=False)
+
+    def _get_df(self):
+        if self._df is None:
+            self.reset()
+            N = 0
+
+            all_results = []
+            for read in self.data:
+                res = []
+                # count reads
+                N += 1
+                if (N % 10000) == 0:
+                    print("Read %d sequences" %N)
+                #res[0] = read length
+                res.append(read.query_length)
+                # res[1] = GC content
+                c = collections.Counter(read.query_sequence)
+                res.append( 100 * (c['g'] + c['G'] + c['c'] + c['C']) /
+                            float(sum(c.values())) )
+
+                # aggregate results
+                all_results.append(res)
+
+            self._df = pd.DataFrame(all_results,
+                columns=['read_length','GC_content'])
+            self._N = N
+            self.reset()
+        return self._df
+    df = property(_get_df)
+
+    def hist_len(self, bins=50, alpha=0.5, hold=False, fontsize=12,
+                grid=True,xlabel="Read Length",ylabel="#", label="",
+                title=None):
+        """Plot histogram Read length
+
+        :param int bins: binning for the histogram
+        :param float alpha: transparency of the histograms
+        :param bool hold:
+        :param int fontsize:
+        :param bool grid:
+        :param str xlabel:
+        :param str ylabel:
+        :param str label: label of the histogram (for the legend)
+        :param str title:
+
+        .. plot::
+            :include-source:
+
+            from sequana.pacbio import BAMPacbio
+            from sequana import sequana_data
+            b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
+            b.hist_len()
+
+        """
+        if self._df is None:
+            self._get_df()
+        mean_len =  np.mean(self._df.loc[:,'read_length'])
+
+        # set title if not provided
+        if title is None:
+            title = "Read length  \n Mean length : %.2f" %(mean_len)
+
+        # histogram GC percent
+        if hold is False:
+            pylab.clf()
+        pylab.hist(self._df.loc[:,'read_length'], bins=bins, alpha=alpha,
+            label=  "%s, mean : %.0f, N : %d" % (label, mean_len, self._N) )
+        pylab.xlabel(xlabel, fontsize=fontsize)
+        pylab.ylabel(ylabel, fontsize=fontsize)
+        pylab.title(title, fontsize=fontsize)
+        if grid is True:
+            pylab.grid(True)
+
+    def hist_GC(self, bins=50, alpha=0.5, hold=False, fontsize=12,
+                grid=True, xlabel="GC %", ylabel="#", label="",title=None):
+        """Plot histogram GC content
+
+        :param int bins: binning for the histogram
+        :param float alpha: transparency of the histograms
+        :param bool hold:
+        :param int fontsize: fontsize of the x and y labels and title.
+        :param bool grid: add grid or not
+        :param str xlabel: 
+        :param str ylabel:
+        :param str label: label of the histogram (for the legend)
+        :param str title:
+
+        .. plot::
+            :include-source:
+
+            from sequana.pacbio import BAMPacbio
+            from sequana import sequana_data
+            b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
+            b.hist_GC()
+
+        """
+
+        if self._df is None:
+            self._get_df()
+        mean_GC =  np.mean(self._df.loc[:,'GC_content'])
+
+        # set title if needed
+        if title is None:
+            title = "GC %%  \n Mean GC : %.2f" %(mean_GC)
+
+        # histogram GC percent
+        if hold is False:
+            pylab.clf()
+        pylab.hist(self._df.loc[:,'GC_content'], bins=bins,
+            alpha=alpha, label=label + ", mean : " + str(round(mean_GC,2))
+            + ", N : " + str(self._N))
+        pylab.xlabel(xlabel, fontsize=fontsize)
+        pylab.ylabel(ylabel, fontsize=fontsize)
+        pylab.title(title, fontsize=fontsize)
+        if grid is True:
+            pylab.grid(True)
+        pylab.xlim([0, 100])
+
+    def plot_GC_read_len(self, hold=False, fontsize=12, bins=[40,40],
+                grid=True, xlabel="GC %", ylabel="#"):
+        """Plot GC content versus read length
+
+        :param bool hold:
+        :param int fontsize: for x and y labels and title
+        :param bins: a integer or tuple of 2 integers to specify
+            the binning of the x and y 2D histogram.
+        :param bool grid:
+        :param str xlabel:
+        :param str ylabel:
+
+        .. plot::
+            :include-source:
+
+            from sequana.pacbio import BAMPacbio
+            from sequana import sequana_data
+            b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
+            b.plot_GC_read_len(bins=[10, 10])
+
+        """
+        if self._df is None:
+            self._get_df()
+        mean_len =  np.mean(self._df.loc[:,'read_length'])
+        mean_GC =  np.mean(self._df.loc[:,'GC_content'])
+
+        if hold is False:
+            pylab.clf()
+        data = self._df.loc[:,['read_length','GC_content']]
+        h = biokit.viz.hist2d.Hist2D(data)
+        res = h.plot(bins=bins, contour=False, nnorm='log', Nlevels=6)
+        pylab.xlabel("Read length", fontsize=fontsize)
+        pylab.ylabel("GC %", fontsize=fontsize)
+        pylab.title("GC %% vs length \n Mean length : %.2f , Mean GC : %.2f" % 
+            (mean_len, mean_GC), fontsize=fontsize)
+        pylab.ylim([0, 100])
+        if grid is True:
+            pylab.grid(True)
+
+    def _to_fastX(self, mode, output_filename, threads=2):
+        # for now, we use samtools
+        # can use bamtools as well but as long and output 10% larger (sequences
+        # are split on 80-characters length)
+        from snakemake import shell
+        cmd = "samtools %s  -@ %s %s > %s" % (mode, threads, 
+            self.filename, output_filename)
+        print("Please be patient")
+        print("This may be long depending on your input data file: ")
+        print("typically, a minute per  500,000 reads")
+        shell(cmd)
+        print("done")
+
+    def to_fasta(self, output_filename, threads=2):
+        """Export BAM reads into a Fasta file
+
+        :param output_filename: name of the output file (use .fasta extension)
+        :param int threads: number of threads to use
+
+        .. note:: this executes a shell command based on samtools
+
+        .. warning:: this takes a few minutes for 500,000 reads
+
+        """
+        self._to_fastX("fasta", output_filename, threads=threads)
+
+    def to_fastq(self, output_filename, threads=2):
+        """Export BAM reads into FastQ file"""
+        self._to_fastX("fastq", output_filename, threads=threads)
+
+    def filter_length(self, output_filename, threshold_min=0,
+        threshold_max=np.inf):
+        """Select and Write reads within a given range
+
+        :param str output_filename: name of output file
+        :param int threshold_min: minimum length of the reads to keep
+        :param int threshold_max: maximum length of the reads to keep
+
+        """
+        assert threshold_min < threshold_max
+        assert output_filename != self.filename, \
+            "output filename should be different from the input filename"
+        self.reset()
+        with pysam.AlignmentFile(output_filename,  "wb", template=self.data) as fh:
+            for read in self.data:
+                if ((read.query_length > threshold_min) & (read.query_length < threshold_max)):
+                    fh.write(read)
+
+    def filter_bool(self, output_filename, list_bool):
+        """Select and Write reads within a given range
+
+        :param str output_filename: name of output file
+        :param list list_bool: True to write read to output, False to ignore it
+
+        """
+        assert output_filename != self.filename, \
+            "output filename should be different from the input filename"
+        assert len(list_bool) == self._N, \
+            "list of bool must be the same size as BAM file"
+        self.reset()
+        with pysam.AlignmentFile(output_filename,  "wb", template=self.data) as fh:
+            for read,keep in zip(self.data,list_bool):
+                if keep:
+                    fh.write(read)
+
+
+class PBSim(object):
+    """Filter an input BAM (simulated with pbsim) so as so keep 
+    reads that fit a target distribution.
+
+    This uses a MH algorithm behind the scene.
+
+    ::
+
+        ss = pacbio.PBSim("test10X.bam")
+        clf(); ss.run(bins=100, step=50)
+
+
+    """
+    def __init__(self, input_bam, simul_bam):
+        self.bam = BAMPacbio(input_bam)
+        self.Nreads = len(self.bam)
+        self.bam_simul = BAMsimul(simul_bam)
+
+    def target_distribution(self, xprime):
+
+        """The target distribution
+
+        Compute histogram. Get X, Y.  Given xprime, interpolate to get yprime
+        use e.g. np.interp
+
+        """
+        return np.interp(xprime, self.X[1:self.bins+1], self.Y)
+        return function(x)
+
+    def run(self, bins=50, xmin=0, xmax=30000, step=1000, burn=1000,alpha=1,output_filename=None):
+        # compute histogram of the input reads once for all to be used
+        # in the target_distribution method
+        self.bins = bins
+        self.Y, self.X = np.histogram(self.bam.df.read_length, bins=bins, normed=True)
+
+        lengths = self.bam_simul.df.read_length.values
+        self.tokeep = []
+        vec = []
+        x = self.bam.df.read_length.mean()
+        for i in range(self.bam_simul.df.shape[0]):
+            can = lengths[i]
+            aprob = min([alpha,self.target_distribution(can)/self.target_distribution(x)])
+            #acceptance probability
+            u = pylab.uniform(0,1)
+            if u < aprob:
+                x = can
+                vec.append(x)
+                self.tokeep.append(True)
+            else:
+                self.tokeep.append(False)
+
+        #plotting the results:
+        #theoretical curve
+        x = pylab.arange(xmin, xmax, step)
+        y = self.target_distribution(x)
+        pylab.subplot(211)
+        pylab.title('Metropolis-Hastings')
+        pylab.plot(vec)
+        pylab.subplot(212)
+         
+        pylab.hist(vec[burn:], bins=bins,normed=1)
+        pylab.plot(x,y,'r-')
+        pylab.ylabel('Frequency')
+        pylab.xlabel('x')
+        pylab.legend(('PDF','Samples'))
+        pylab.show()
+
+        if output_filename is not None:
+            self.bam_simul.filter_bool(output_filename, self.tokeep)
+
+

@@ -1,8 +1,5 @@
 - cutadapt
 - picard-tools
 - bowtie
-- bowtie2
 - multiqc
-- STAR
 - fastq_screen
-- featureCounts [subread]

@@ -56,3 +56,15 @@ N710         CGAGGCTG
 N711         AAGAGGCA
 N712         GTAGAGGA
 ============ ========= ============ =======================
+
+TruSeq
+-------
+from TruSeq LT Kits and TruSeq v1/v2 Kits
+
+Small
+-------
+from Illumina TruSeq small RNA Kits
+
+SMARTer
+-------
+from SMARTer Stranded RNA-Seq Kit

@@ -40,6 +40,8 @@ Here is a snapshot.
 .. image:: _static/sequanix.png
 
 
+.. _sequana_app:
+
 sequana
 ---------
 
@@ -103,13 +105,21 @@ sequana_mapping
 :Description: a simple application to map reads onto a genome given one or two
     FastQ files (gzipped) and a refenrece.
 
+.. _standalone_sequana_taxonomy:
 
 sequana_taxonomy
 --------------------
 
 :Description: Creates a HTML document with Krona and pie chart of taxonomic
-    content of a st of FastQ files. Uses Kraken and a dedicated Sequana
+    content of a FastQ file (paired or not). Uses Kraken, Krona and a dedicated Sequana
     database.
+:Help: ``sequana_taxonomy --help``
+:Sequana: see :mod:`sequana.kraken`
+:Gallery: see :ref:`sphx_glr_auto_examples_plot_kraken.py`
+
+
+A database of 8Gb is available. See
+https://github.com/sequana/data/tree/master/sequana_db1 for instructions.
 
 fastq related: fastq_count
 -----------------------------

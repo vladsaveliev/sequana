@@ -68,7 +68,7 @@ sequencing:
 #
 genome:
   do: yes
-  dir_file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
+  genome_directory: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
   name: "hg19" #path to index name
   fasta_file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
   gff_file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.gff
@@ -100,7 +100,7 @@ bowtie1_mapping_rna:
 # - threads: number of threads to be used
 #
 star_mapping:
-    do: yes
+    do: no
     options: ""
     threads: 4
 
@@ -114,7 +114,7 @@ star_mapping:
 # - threads: number of threads to be used
 #
 bowtie1_mapping_ref:
-    do: no
+    do: yes
     options: "--chunkmbs 400 -m 1 "
     threads: 4
 
@@ -174,7 +174,7 @@ feature_counts:
 # - pf2_report: allows to plot a specific PF2 report
 #
 fastq_screen:
-    do: yes
+    do: no
     conf: "/pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/fastq_screen.conf"
     pf2_report: yes
 
@@ -216,19 +216,19 @@ fastq_screen:
 # :Note: If design_file is provided, fwd and rev are ignored
 #
 #   ref: http://cutadapt.readthedocs.io/
-# adapter_choice__ = ["PCRFree", "Rubicon", "Nextera", "TruSeq"]
-# tool_choice__ = ["cutadapt", "clean_ngs"]
-adapter_removal:
+# adapter_choice__ = ["", "PCRFree", "Rubicon", "Nextera", "TruSeq"]
+# tool_choice__ = ["atropos", "cutadapt", "clean_ngs"]
+cutadapt:
     do: yes
     tool_choice: cutadapt
     adapter_choice:
     design_file:
     fwd:
     rev:
-    m: 20
-    mode: "a"
-    quality: "30"
+    m: 20                       # {"strict_min": 0}
+    mode: "b"                   # {"values": ["b","g","a"]}
     options: "-O 6 --trim-n"
+    quality: 30                 # {"range": [0,40]}
     threads: 4
 
 
@@ -258,9 +258,9 @@ multiqc:
 # - tmpdir: write tempory file on this directory (default TMP_DIR=/tmp/)
 #
 mark_duplicates:
-    do: yes
+    do: no
     remove: 'True' ## may be False
-    tmpdir: 'TMP_DIR=/local/scratch/' ## on Slurm cluster at Pasteur
+    tmpdir: "TMP_DIR=/local/scratch/" ## on Slurm cluster at Pasteur
 
 #############################################################################
 # bamCoverage write file in bigwig format from BAM files.

@@ -4,21 +4,13 @@
 Pipelines
 ##############
 
-In **Sequana** parlance, a pipeline is an application based on Snakemake that consists of a Snakefile and a configuration file. Each pipeline and its configuration file can be automatically downloaded using::
-
-    sequana --pipeline <name> 
-
-By default the previous command creates a directory named *analysis* where the
-pipeline and config file are stored. The pipeline must not be changed but the
-configuration file can be edited to change the options. 
-
-Although the configuration is documented and should be self content, additional
-help for users and developers can be found for each pipeline in the following
-links.
+In **Sequana** parlance, a pipeline is an application based on Snakemake that consists of a Snakefile and a configuration file.
 
 
-.. todo:: the following sections are in progress but should already give useful
-   information about the pipelines that are available.
+Pipelines can be initialised and run via a command line interface called
+:ref:`sequana_app` but we would recommend to use :ref:`sequanix` instead.
+
+The following sections are dedicated to each pipeline.
 
 .. toctree::
     :maxdepth: 1
@@ -29,5 +21,6 @@ links.
     pipeline_smallrnaseq.rst
     pipeline_variant_calling.rst
     pipeline_compressor.rst
+    pipeline_pacbio_qc.rst
 
 

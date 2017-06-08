@@ -1,7 +1,6 @@
 :Overview: RNASeq
 :Input: FastQ raw data from Illumina Sequencer (either paired or not)
-:Output: 
-:Config file requirements:
+:Output: BAM, count and HTML files
 
 
 
@@ -10,7 +9,7 @@ Usage
 
 Example::
 
-    sequana --pipeline rnaseq --input-dir .  --output-directory analysis --adapters TruSeq
+    sequana --pipeline rnaseq --input-dir . --output-directory analysis --no-adapters
     cd analysis
     srun snakemake -s rnaseq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json --cluster "sbatch --mem={cluster.ram} --cpus-per-task={threads}"
 
@@ -25,7 +24,9 @@ Requirements
 Details
 ~~~~~~~~~
 
-
+Snakemake RNA-seq pipeline based on workflow use at Biomics Pole in Institut Pasteur. The pipeline runs some QC, such as FastQC, fastq_screen (you need your own base).
+Reads could be trimmed by several tools (cutadapt, atropos, clean_ngs) and mapped against reference genome (with bowtie or STAR) and ribosomal RNA (with bowtie1).
+After, reads are counted with feature-counts (HTSeq-count soon available) against a GFF file. All results are summarized by multiQC.
 
 
 Rules and configuration details

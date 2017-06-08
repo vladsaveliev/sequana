@@ -26,6 +26,7 @@ from sequana.utils import config
 
 from sequana.lazy import pandas as pd
 from sequana.lazy import pylab
+from sequana.lazy import numpy as np
 from sequana import logger
 
 from sequana.utils.datatables_js import DataTable
@@ -93,17 +94,16 @@ class PhixModule(SequanaBaseModule):
     def _get_html_summary_section(self):
         from easydev import precision
         data = self._get_summary()
-        html = "Reads with Phix: %s %%<br>" % precision(data['contamination'], 3)
-        html += "Unpaired: %s <br>" % data['unpaired']
-        html += "duplicated: %s <br>" % data['duplicated']
+        html = "Percentage of reads found with Phix: %s %%<br>" % precision(data['contamination'], 3)
+        #html += "Unpaired: %s <br>" % data['unpaired']
+        #html += "duplicated: %s <br>" % data['duplicated']
         return html
 
     def _get_stats(self):
         filenames, mode = self._get_files("*.json")
-        cols = ["A", "C", "G", "T", "GC content", "N", "average read length", 
-                "mean quality", "n_reads", "total bases"]
+        cols = ["A", "C", "G", "T", "N", "n_reads",
+            "mean quality" , "GC content", "average read length", "total bases"]
         N = len(filenames)
-        import numpy as np
         df = pd.DataFrame(np.zeros((N, 10)), columns=cols)
 
         indices = []
@@ -113,16 +113,25 @@ class PhixModule(SequanaBaseModule):
             else:
                 index = "R2"
             if "unmapped" in filename:
-                index+=".unmapped"
+                index += ".unmapped"
             else:
-                index+=".mapped"
+                index += ".mapped"
             indices.append(index)
+
             try:
+                # Use a try since the subdf may be empty
                 subdf = pd.read_json(filename)
-                df.ix[i] = subdf.ix[0]
+                df.iloc[i] = subdf.iloc[0]
+                df.iloc[i]["A"] /= df.iloc[i]["n_reads"]
+                df.iloc[i]["C"] /= df.iloc[i]["n_reads"]
+                df.iloc[i]["G"] /= df.iloc[i]["n_reads"]
+                df.iloc[i]["T"] /= df.iloc[i]["n_reads"]
+                df.iloc[i]["N"] /= df.iloc[i]["n_reads"]
             except:
                 pass
+
         df.index = indices
+        df = df.astype({"n_reads": np.int64, "total bases": np.int64})
         return df
 
     def _get_html_stats_section(self):
@@ -136,11 +145,19 @@ class PhixModule(SequanaBaseModule):
             "paging": "false",
             'buttons': ['copy', 'csv']}
         js = datatable.create_javascript_function()
+        # Important that the columns of type integer are indeed in integer type
+        # otherwise the %.3g herebelow would round integers. For instance 123456
+        # would appear as 123000. The dtypes must be taken care in _get_stats()
+        # method
         html_tab = datatable.create_datatable(float_format='%.3g')
-        html = """<p>We mapped the raw reads on a reference (see config file). The reads mapped are removed and the unmapped reads are kept. Here below are some statistics about the mapped and unmapped reads.
+        html = """<p>We mapped the raw reads on a reference (see config file).
+The reads mapped are removed and the unmapped reads are kept for further
+cleaning (adapter removal). Here below are some statistics about the mapped and unmapped reads.
 </p><p>
-The A, C, G, T, N rows report the percentage of each bases in the overall
-sequences</p>""" 
+The A, C, G, T, N columns report the percentage of each bases in the overall
+sequences. The GC content column is in percentage. Finally, note that for paired
+data, the number of reads in the mapped files (R1 and R2) may differ due to . However,
+the unmapped reads must agree. </p>""" 
         html += "{} {}".format(html_tab, js)
         return html
 

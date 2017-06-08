@@ -37,7 +37,7 @@
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Snakemake parameters (those used by the snakemake command)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab_local">
         <attribute name="title">
@@ -201,9 +201,6 @@
                 <string>cluster-config</string>
                </property>
               </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="snakemake_options_cluster_config_value"/>
              </item>
             </layout>
            </item>

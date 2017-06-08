@@ -72,6 +72,10 @@ In the following figure, you need to
 Once done, the configuration file of the pipeline will be loaded in the **Config
 parameters** tab (arrow 4).
 
+If a file named **config_cluster.josn** is defined by the developer in the
+pipeline module, then it is loaded automatically in the snakemake dialog and
+used if the pipeline is executed on a cluster.
+
 
 Select the input data (directory or files)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -493,7 +497,7 @@ commons ones are:
 - bug in the pipeline (Fill an issue on http://github.com/sequana/sequana/issues)
 - bug in Sequanix (fill an issue)
 - cluster issue: a job is killed because not enough memory was allocated (adapt
-the cluster option by increasing relevant resources such as memory requirements)
+  the cluster option by increasing relevant resources such as memory requirements)
 
 By experience, the first 2 type of errors are the most common.
 

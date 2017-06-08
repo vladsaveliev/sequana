@@ -73,7 +73,9 @@ Store the rule in a Sequana module
 
 We now store this Snakefile in the proper place. 
 All modules are placed either in *./sequana/pipelines* or in
-*./sequana/rules* directory. The tree structure looks like::
+*./sequana/rules* directory. The tree structure looks like:
+
+.. only:: html
 
     .
     ├── rules
@@ -84,6 +86,19 @@ All modules are placed either in *./sequana/pipelines* or in
     │   ├── count_pipeline
     │   │   ├── count_pipeline.rules
     │   │   ├── README.rst
+
+
+.. only:: latex
+
+    --- rules
+    |   --- count
+    |   |   --- count.rules
+    |   |   --- README.rst
+    --- pipelines
+    |   --- count_pipeline
+    |   |   --- count_pipeline.rules
+    |   |   --- README.rst
+
 
 
 We have created a *count* directory in *./rules* and put the Snakefile in it

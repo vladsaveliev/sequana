@@ -6,8 +6,35 @@ Changelog
 2017
 ------
 
+* BUG FIXES:
+
+    - sequanix:
+        - rulegraph issue on SLURM system. Avoid the os.chdir
+    - fastq_samples/ fastq module: fix histogram_gc_content maximum range
+    - rulegraph rule: fix issue #405 (spaces in path to snakefile)
+    - genome coverage was buggy for multi chromosome and circular option on. Fixed
+    - adapters/expdesing modules: fixe the case of design files with same sample
+      name and same index but different lanes.
+    - sequana_coverage. Fix Issue #416 (float division by zero)
 
 
+* CHANGES:
+
+    - sequanix:
+        - snakemake output is now cleared
+    - quality_control pipeline: default to atropos instead of cutadapt for
+          adapter trimming. Kraken: remove classified reads and keep
+          unclassified. Unclassified reads are now compressed.
+          unclassified reads that are also compressed now.
+
+* NEW:
+
+    - pacbio module: cleanup and add funcion to convert input BAM into Fasta
+    - sequence module: Repeats class added
+    - new pipeline called qc_pacbio to perform quick QC and taxonomy analysis
+          for pacbio
+    - add ORD, CDS, GC SKEW in sequence module
+    
 
 0.2. - March - April 2017
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

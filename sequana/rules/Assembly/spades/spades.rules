@@ -1,0 +1,56 @@
+rule spades:
+    """ Spade is a de novo assembler designed for small genomes like bacteria
+    or fungi. This rule works only with paired-end files.
+
+    Required input:
+        - __spades__input: list of paired fastq files
+
+    Required output:
+        - __spades__contigs: fasta file
+        - __spades__scaffolds: fasta file
+
+    Required parameters:
+        - __spades__outdir: output directory
+        - config["spades"]["k"]: comma-separated list of k-mer sizes.
+        - config["spades"]["careful"]: tries to reduce number of mismatches and
+            short indels.
+        - config["spades"]["only_assembler"]: runs only assembling.
+        - config["spades"]["memory"]: RAM limit for SPAdes in Gb.
+        - config["spades"]["threads"]: number of threads to be used.
+        - config["spades"]["options"]: any options recognised by spades.py.
+
+    Logs:
+        - __spades__log
+    """
+    input:
+        fastq = __spades__input
+    output:
+        contigs = __spades__contigs,
+        scaffolds = __spades__scaffolds
+    log:
+        l = __spades__log
+    threads:
+        config["spades"]["threads"]
+    params:
+        k = config["spades"]["k"],
+        careful = config["spades"]["careful"],
+        only_assembler = config["spades"]["only_assembler"],
+        m = config["spades"]["memory"],
+        options = config["spades"]["options"],
+        outdir = __spades__outdir
+    run:
+        cmd = "spades.py -k %s -m %i -t %i %s" % (params["k"], params["m"],
+                                                  threads, params["options"])
+        if params.careful:
+            cmd += " --careful"
+        if params.only_assembler:
+            cmd += " --only-assembler"
+        cmd += " -1 %s -2 %s -o %s > %s 2>&1" % (
+            input["fastq"][0], input["fastq"][1], params["outdir"], log["l"])
+        shell(cmd)
+ 
+        import shutil
+        shutil.copy("%s/scaffolds.fasta" % params["outdir"],
+                    output["scaffolds"])
+        shutil.copy("%s/contigs.fasta" % params["outdir"],
+                    output["contigs"]) 

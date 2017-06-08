@@ -95,8 +95,11 @@ class FastQStatsModule(SequanaBaseModule):
         else:
             df = pd.read_json(filenames[0])
             df.index = ['R1']
-        df = df[["A", "C", "G", "T", "N", "total bases", "GC content",
-                "mean quality", "n_reads", "average read length"]]
+        df = df[["A", "C", "G", "T", "N", "n_reads", "mean quality", "GC content",
+                "average read length", "total bases"]]
+        for this in "ACGTN":
+            df[this] /= df["total bases"] 
+            df[this] *= 100
         return df
 
     def _get_stats_section(self, tablename="stats"):
@@ -115,7 +118,7 @@ class FastQStatsModule(SequanaBaseModule):
         html_tab = datatable.create_datatable(float_format='%.3g')
 
         html = """<p>The following table gives some basic statistics about the data before any filtering.
-   The A, C, G, T, N rows report the percentage of each bases in the overall sequences.
+   The A, C, G, T, N columns report the percentage of each bases in the overall sequences.
    The GC content is provided in percentage as well. </p>
    <div>{} {}</div>
    <div>""".format(html_tab, js)

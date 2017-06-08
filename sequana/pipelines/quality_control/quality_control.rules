@@ -128,22 +128,22 @@ else:
 
 
 # Perform the adapter removal and trimming
-if manager.config['adapter_removal']['do']:
-    adapter_removal = manager.config['adapter_removal']['tool_choice']
+if manager.config['cutadapt']['do']:
+    adapter_removal = manager.config['cutadapt']['tool_choice']
 
     from sequana.adapters import _get_registered_adapters as registered
     from sequana.adapters import get_sequana_adapters
 
     # Users may provide Nextera, PCRFree, Rubicon or other registered adapters
-    fwd = manager.config.adapter_removal.fwd
+    fwd = manager.config.cutadapt.fwd
     if isinstance(fwd, str) and fwd in registered():
         filename = "file:"+ get_sequana_adapters(fwd, "fwd")
-        manager.config.adapter_removal.fwd = filename
+        manager.config.cutadapt.fwd = filename
 
-    rev = manager.config.adapter_removal.rev
+    rev = manager.config.cutadapt.rev
     if isinstance(rev, str) and rev in registered():
         filename = "file:"+ get_sequana_adapters(rev, "revcomp")
-        manager.config.adapter_removal.rev = filename
+        manager.config.cutadapt.rev = filename
 
     if adapter_removal in ["cutadapt", "atropos"]:
         adapter_removal = "cutadapt"
@@ -158,19 +158,16 @@ if manager.config['adapter_removal']['do']:
                               for x in __cutadapt__input_fastq]
 
         # Set the fwd and rev adapters
-        __cutadapt__fwd = manager.config.adapter_removal.fwd
-        __cutadapt__rev = manager.config.adapter_removal.rev
+        __cutadapt__fwd = manager.config.cutadapt.fwd
+        __cutadapt__rev = manager.config.cutadapt.rev
 
-        __cutadapt__design = manager.config.adapter_removal.design_file
-        __cutadapt__design_adapter = manager.config['adapter_removal']['adapter_choice']
-        __cutadapt__options = manager.config.adapter_removal.options
-        __cutadapt__mode = manager.config.adapter_removal.mode
+        __cutadapt__design = manager.config.cutadapt.design_file
+        __cutadapt__design_adapter = manager.config['cutadapt']['adapter_choice']
+        __cutadapt__options = manager.config.cutadapt.options
+        __cutadapt__mode = manager.config.cutadapt.mode
         __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
         __cutadapt__sample = manager.sample
         include: sm.modules["cutadapt"]
-    elif adapter_removal == "skewer":
-        raise NotImplementedError
-        include: sm.modules["skewer"]
     else:
         raise ValueError("trimming must be either cutadapt or atropos or skewer")
 
@@ -193,7 +190,7 @@ if manager.config.kraken.database_directory is False:
     manager.config.kraken.do = False
 
 if manager.config.kraken.do:
-    if manager.config.adapter_removal.do:
+    if manager.config['cutadapt'].do:
         # todo: handle all adapter removal cases
         __kraken__input = __cutadapt__output
     elif manager.config.bwa_mem_phix.do:
@@ -236,7 +233,7 @@ expected_output.extend([__conda__output])
 
 # create a json file that summarise information of your pipeline
 __summary_pipeline__inputs = __rawdata__input
-if manager.config.adapter_removal.do:
+if manager.config['cutadapt'].do:
     # todo: handle all adapter removal cases
     __summary_pipeline__outputs = [ __cutadapt__output ]
 elif manager.config.bwa_mem_phix.do:
@@ -344,7 +341,7 @@ onsuccess:
             shell('cp -r %s/kraken/ %s' % (proj, report_dir))
 
         # The cutadapt report (independent)
-        if manager.config.adapter_removal.do:
+        if manager.config['cutadapt'].do:
             from sequana.modules_report.cutadapt import CutadaptModule
             filename = proj + "/logs/cutadapt/cutadapt.txt"
             CutadaptModule(filename, proj, "cutadapt.html")

@@ -107,8 +107,8 @@ bwa_mem_phix:
 # :Note: If design_file is provided, fwd and rev fields are ignored
 #
 # adapter_choice__ = ["", "PCRFree", "Rubicon", "Nextera", "TruSeq"]
-# tool_choice__ = ["cutadapt", "atropos"]
-adapter_removal:
+# tool_choice__ = ["atropos", "cutadapt"]
+cutadapt:
     do: yes
     tool_choice: cutadapt
     adapter_choice: 
