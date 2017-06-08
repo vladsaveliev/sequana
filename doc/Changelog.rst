@@ -15,6 +15,7 @@ Changelog
     - genome coverage was buggy for multi chromosome and circular option on. Fixed
     - adapters/expdesing modules: fixe the case of design files with same sample
       name and same index but different lanes.
+    - sequana_coverage. Fix Issue #416 (float division by zero)
 
 
 * CHANGES:
