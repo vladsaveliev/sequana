@@ -217,6 +217,7 @@ if len(manager.samples) > 1:
     __joint_freebayes__reference = __freebayes__reference
     __joint_freebayes__output = 'joint_calling/joint_calling.raw.vcf'
     __joint_freebayes__log = 'joint_calling/logs/joint_freebayes.log'
+    __joint_freebayes__ploidy = config['freebayes']['ploidy']
     include: sm.modules['joint_freebayes']
 
     if config['snpeff']['do']:
