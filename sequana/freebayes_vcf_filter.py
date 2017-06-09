@@ -33,7 +33,7 @@ class Variant(object):
         :param dict resume: most important informations of variant
         """
         self._record = record
-        self._samples = record.samples
+        self._samples = {s.sample: s for s in record.samples}
         self._resume = self._vcf_line_to_dict(record)
 
     def __str__(self):
@@ -68,11 +68,11 @@ class Variant(object):
             'strand_balance': "; ".join('{0:.2f}'.format(x) for x in
                                         strand_bal),
         }
-        if len(self.samples) == 1:
+        if len(vcf_line.samples) == 1:
             line_dict['frequency'] = "; ".join('{0:.2f}'.format(x)
                                                for x in alt_freq)
         else:
-            for s in self.samples:
+            for s in vcf_line.samples:
                 if not s.called:
                     freq = 0
                 else:
@@ -173,7 +173,7 @@ class VCF_freebayes(vcf.Reader):
         ::
 
             v = VCF_freebayes("input.bcf")
-            v.filter_params = {"freebayes_score": 200,
+            v.filters_params = {"freebayes_score": 200,
                                "frequency": 0.8,
                                "min_depth": 10,
                                "forward_depth":3,
@@ -319,11 +319,15 @@ class Filtered_freebayes(object):
         else:
             columns.append('frequency')
         columns += ['strand_balance', 'freebayes_score']
-        if 'effect_type' in self.variants[0].resume.keys():
-            columns += [ 
-                'effect_type', 'mutation_type', 'effect_impact', 'gene_name',
-                'CDS_position', 'codon_change', 'prot_effect', 'prot_size'
-            ]
+        try:
+            if 'effect_type' in self.variants[0].resume.keys():
+                columns += [ 
+                    'effect_type', 'mutation_type', 'effect_impact',
+                    'gene_name', 'CDS_position', 'codon_change', 'prot_effect',
+                    'prot_size'
+                ]
+        except IndexError:
+            pass
         return columns
 
     def _vcf_to_df(self):
@@ -332,7 +336,10 @@ class Filtered_freebayes(object):
         """
         dict_list = [v.resume for v in self.variants]
         df = pd.DataFrame.from_records(dict_list)
-        return df[self.columns]
+        try:
+            return df[self.columns]
+        except KeyError:
+            return df
 
     def to_csv(self, output_filename):
         """ Write DataFrame in CSV format.
@@ -343,7 +350,7 @@ class Filtered_freebayes(object):
             print("# sequana_variant_calling;{0}".format(
                 self.vcf.filters_params), file=fp)
             if self.df.empty:
-                print(",".join(Filtered_freebayes.columns), file=fp)
+                print(",".join(self.columns), file=fp)
             else:
                 self.df.to_csv(fp, index=False)
 

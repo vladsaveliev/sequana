@@ -6,7 +6,7 @@ pipeline.
 def snpeff_dynamic(name, project):
     metadata = {'name': name,}
     snpeff_code = '''
-rule snpeff_%(name):
+rule snpeff_%(name)s:
     """ SnpEff adds annotation of variants detected in a VCF file.
     """
     input:
@@ -23,7 +23,7 @@ rule snpeff_%(name):
     run:
         from sequana import SnpEff
 
-        mydata = SnpEff(reference=input.ann, log=log.log)
+        mydata = SnpEff(reference=input.gbk, log=log.log)
         mydata.launch_snpeff(input.vcf, output.ann, html_output=output.html,
                              options=params.options)
     '''

@@ -215,30 +215,35 @@ if len(manager.samples) > 1:
                                       sample=manager.samples)
     __joint_freebayes__bai = expand(__freebayes__bai, sample=manager.samples)
     __joint_freebayes__reference = __freebayes__reference
-    __joint_freebayes__output = 'joint_freebayes/joint_freebayes.raw.vcf'
-    __joint_freebayes__log = 'joint_freebayes/logs/joint_freebayes.log'
+    __joint_freebayes__output = 'joint_calling/joint_calling.raw.vcf'
+    __joint_freebayes__log = 'joint_calling/logs/joint_freebayes.log'
     include: sm.modules['joint_freebayes']
 
     if config['snpeff']['do']:
         __snpeff_joint__input = __joint_freebayes__output
-        __snpeff_joint__log = 'joint_freebayes/logs/snpeff_joint.log'
-        __snpeff_joint__output = 'joint_freebayes/joint_freebayes.ann.vcf'
-        __snpeff_joint__html = 'joint_freebayes/joint_freebayes.html'
+        __snpeff_joint__log = 'joint_calling/logs/snpeff_joint.log'
+        __snpeff_joint__output = 'joint_calling/joint_calling.ann.vcf'
+        __snpeff_joint__html = 'joint_calling/joint_freebayes.html'
         __snpeff_joint__config = __snpeff__config
         __snpeff_joint__gbk = config['snpeff']['reference']
         __snpeff_joint__options = config['snpeff']['options']
-        exec(open(sequana.modules["dynamic_snpeff"], "r").read())
-        include: dynamic_snpeff('joint', manager)
+        exec(open(sequana.modules["snpeff_dynamic"], "r").read())
+        include: snpeff_dynamic('joint', manager)
+        __joint_freebayes_vcf_filter__input = __snpeff_joint__output
     else:
-        
+        __joint_freebayes_vcf_filter__input = __joint_freebayes__input
     
+    __joint_freebayes_vcf_filter__html = 'joint_calling/joint_calling.html'
+    __joint_freebayes_vcf_filter__output = 'joint_calling/joint_calling.filter.vcf'
+    __joint_freebayes_vcf_filter__output_dir = 'joint_calling'
+    include: sm.modules['joint_freebayes_vcf_filter']
+    expected_output.append(__joint_freebayes_vcf_filter__html)
 
 
 #
 # Utils
 # 
 ##############################################################################
-
 
 # Create requirements.txt(dependencies)
 include: sm.modules["conda"] 
