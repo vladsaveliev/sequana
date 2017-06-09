@@ -12,7 +12,7 @@ rule joint_freebayes:
         __joint_freebayes__output: vcf file
 
     Required parameter:
-        config["joint_freebayes"]["ploidy"]: set the ploidy of the sample
+        __joint_freebayes__ploidy: set the ploidy of the sample
         config["joint_freebayes"]["options"]: others freebayes options
     """
     input:
@@ -24,7 +24,7 @@ rule joint_freebayes:
     log:
         __joint_freebayes__log
     params:
-        ploidy = config["joint_freebayes"]["ploidy"],
+        ploidy = __joint_freebayes__ploidy,
         options = config["joint_freebayes"]["options"]
     shell:
         """

@@ -82,6 +82,18 @@ freebayes:
     options:
 
 ##############################################################################
+# Joint Freebayes - Variant caller
+#
+# :Parameters:
+#
+# - options: any options recognised by freebayes.
+#
+joint_freebayes:
+    options:
+
+
+
+##############################################################################
 # GATK - INDEL realigner
 #
 # :Parameters:
