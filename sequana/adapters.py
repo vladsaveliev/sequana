@@ -626,7 +626,8 @@ class FindAdaptersFromDesign(object):
 
         :param str design_filename: a CSV file that is compatible
             with our :class:`sequana.expdesign.ExpDesignAdapter`
-        :param adapters: the type of adapters (PCRFree or Nextera, or Rubicon, or TruSeq, SMARTer, Small)
+        :param adapters: the type of adapters (PCRFree, Nextera, 
+            Rubicon, TruSeq, SMARTer, Small)
 
         The files of adapters are stored in Sequana and accessible with the
         sequana_data function. So, for instance if adapters is set to Nextera,
@@ -647,6 +648,27 @@ class FindAdaptersFromDesign(object):
             raise ValueError("Incorrect design file. Missing Sample_ID field")
 
         self.adapters = adapters
+
+        if adapters in ["PCRFree", "Rubicon"]:
+            self.include_transposase = False
+            self.include_universal = True
+            self.include_polyA = False
+        elif adapters in ["Nextera"]:
+            self.include_transposase = True
+            self.include_universal = True
+            self.include_polyA = False
+        elif adapters in ["Small"]:
+            self.include_polyA = False
+            self.include_transposase = False
+            self.include_universal = True
+        elif adapters in ["SMARTer", "TruSeq"]:
+            self.include_polyA = True
+            self.include_transposase = False
+            self.include_universal = True
+        else:
+            raise ValueError("adapters is incorrect. Check documentation " +
+                "of FindAdaptersFromDesign")
+
         file1 = sequana_data("adapters_%s_fwd.fa" % adapters)
         file2 = sequana_data("adapters_%s_revcomp.fa" % adapters)
 
@@ -678,16 +700,12 @@ class FindAdaptersFromDesign(object):
             # return only the first instance
             return data.iloc[0]
 
-    def get_adapters_from_sample(self, sample_name, include_universal=True,
-            include_transposase=True, include_polyA=True):
+    def get_adapters_from_sample(self, sample_name):
         """Return a dictionary with adapters corresponding to the sample name
 
         :param str sample_name: a valid sample name as found in the design
             file. One can check the content of the :attr:`sample_names`
             attribute.
-        :param bool include_transposase: include transposase if found
-        :param bool include_universal: include universal adapter if found
-        :param bool include_polyA: include polyA tail if found
         :return: a dictionary with the adapters in forward, reverse, reverse
             complement for index1 and index2 (if relevant).
 
@@ -747,13 +765,13 @@ class FindAdaptersFromDesign(object):
                 res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index_name(index2)
                 res['index2']['rev'] = self._adapters_revc.get_adapter_by_index_name(index2)
 
-        if include_universal:
+        if self.include_universal:
             res['universal']['fwd'] = self._adapters_fwd.get_adapter_by_identifier(
                 'Universal_Adapter')
             res['universal']['rev'] = self._adapters_revc.get_adapter_by_identifier(
                 'Universal_Adapter')
 
-        if include_transposase and self.adapters == "Nextera":
+        if self.include_transposase and self.adapters == "Nextera":
             res['transposase']['fwd'] = str(self._adapters_fwd.get_adapter_by_identifier(
                 'Nextera_transposase_seq_1'))
             res['transposase']['fwd'] += "\n" + str(self._adapters_fwd.get_adapter_by_identifier(
@@ -763,12 +781,11 @@ class FindAdaptersFromDesign(object):
             res['transposase']['rev'] += "\n"+str(self._adapters_revc.get_adapter_by_identifier(
                 'Nextera_transposase_seq_1'))
 
-        if include_polyA:
+        if self.include_polyA:
             res['polyA']['fwd'] = self._adapters_fwd.get_adapter_by_identifier(
                 'PolyA')
             res['polyA']['rev'] = self._adapters_revc.get_adapter_by_identifier(
                 'PolyA')
-
 
         # FIXME changes the dictionary in the loop. May not be wise
         res = dict([(k,v) for k,v in res.items() if len(v)!=0])
@@ -785,22 +802,21 @@ class FindAdaptersFromDesign(object):
         if found == 0:
             raise ValueError("None of the sample match any of the adapters")
 
-    def save_adapters_to_fasta(self, sample_name, include_universal=True,
-            include_transposase=True, include_polyA=True, output_dir='.'):
+    def save_adapters_to_fasta(self, sample_name, output_dir='.'):
         """Get index1, index2 and universal adapter"""
-        adapters = self.get_adapters_from_sample(sample_name,
-                       include_universal=include_universal)
+        adapters = self.get_adapters_from_sample(sample_name)
 
         file_fwd = output_dir + os.sep + "%s_adapters_fwd.fa"% sample_name
         with open(file_fwd, "w") as fout:
-            if include_transposase and self.adapters == "Nextera":
+            try:
                 fout.write(str(adapters['transposase']['fwd'])+"\n")
-
-            if include_universal:
+            except:pass
+            try:
                 fout.write(str(adapters['universal']['fwd'])+"\n")
-
-            if include_polyA:
+            except:pass
+            try:
                 fout.write(str(adapters['polyA']['fwd'])+"\n")
+            except:pass
 
             fout.write(str(adapters['index1']['fwd'])+"\n")
             if "index2" in adapters.keys():
@@ -808,12 +824,15 @@ class FindAdaptersFromDesign(object):
 
         file_rev = output_dir + os.sep + "%s_adapters_revcomp.fa" % sample_name
         with open(file_rev, "w") as fout:
-            if include_transposase and self.adapters == "Nextera":
+            try:
                 fout.write(str(adapters['transposase']['rev'])+"\n")
-            if include_universal:
+            except:pass
+            try:
                 fout.write(str(adapters['universal']['rev'])+"\n")
-            if include_polyA:
+            except:pass
+            try:
                 fout.write(str(adapters['polyA']['rev'])+"\n")
+            except:pass
             fout.write(str(adapters['index1']['rev'])+"\n")
             if "index2" in adapters.keys():
                 fout.write(str(adapters['index2']['rev'])+"\n")

@@ -26,7 +26,7 @@ Sequana documentation
     flexible genomic pipelines for processing and reporting NGS analysis [v1; no peer reviewed].
     `F1000Research 2016, 5:1767 <http://f1000research.com/posters/5-1767>`_ (poster) (doi:
     10.7490/f1000research.1112656.1)
-    
+
     For the coverage tool (sequana_coverage):  Dimitri Desvillechabrol, Christiane Bouchier, 
     Sean Kennedy, Thomas Cokelaer http://biorxiv.org/content/early/2016/12/08/092478
 
@@ -42,16 +42,19 @@ What is Sequana ?
 #. :ref:`Standalone applications<applications>`:
     #. :ref:`sequana_coverage<standalone_sequana_coverage>` ease the 
        extraction of genomic regions of interest and genome coverage information
+    #. :ref:`sequana_taxonomy<standalone_sequana_taxonomy>` performs a quick
+       taxonomy of your FastQ. This requires dedicated databases to be downloaded.
     #. :ref:`Sequanix`, a GUI for Snakemake workflows (hence Sequana pipelines as well)
 
 Currently, the available pipelines cover quality control (e.g. adapters removal,
 phix removal, trimming of bad quality bases), variant calling, characterisation
-of the genome coverage, taxonomic classification, de-novo assembly. See the :ref:`pipelines`
+of the genome coverage, taxonomic classification, de-novo assembly, RNA-seq. See the :ref:`pipelines`
 section for more information.
 
 **Sequana** can be used by developers to create new pipelines and by users in the
-form of applications ready for production. A GUI will help users to change
-parameters and run the pipelines easily.
+form of applications ready for production. Moreover, **Sequanix** can be used to
+set the parameters of pipelines and execute them easily with a graphical user
+interface.
 
 To join the project, please let us know on `github <https://github.com/sequana/sequana/issues/306>`_.
 
@@ -59,57 +62,30 @@ To join the project, please let us know on `github <https://github.com/sequana/s
 .. Here we are building the carrousel? Note that html and pdf version look for
    images in different folders...
 
-.. only:: html
+.. |bam| image::
+    ./auto_examples/images/sphx_glr_plot_bam_001.png
+    :target: auto_examples/plot_bam.html
 
-    .. |bam| image::
-        _images/sphx_glr_plot_bam_001.png
-        :target: auto_examples/plot_bam.html
+.. |coverage| image::
+    ./auto_examples/images/sphx_glr_plot_coverage_001.png
+    :target: auto_examples/plot_coverage.html
 
-    .. |coverage| image::
-        _images/sphx_glr_plot_coverage_001.png
-        :target: auto_examples/plot_coverage.html
+.. |fastqc| image::
+    ./auto_examples/images/sphx_glr_plot_fastqc_hist_001.png
+    :target: auto_examples/plot_fastqc_hist.html
 
-    .. |fastqc| image::
-        _images/sphx_glr_plot_fastqc_hist_001.png
-        :target: auto_examples/plot_fastqc_hist.html
+.. |kraken| image::
+    ./auto_examples/images/sphx_glr_plot_kraken_001.png
+    :target: auto_examples/plot_kraken.html
 
-    .. |kraken| image::
-        _images/sphx_glr_plot_kraken_001.png
-        :target: auto_examples/plot_kraken.html
+.. |sequanix| image::
+    _static/sequanix.png
+    :target: applications.html#sequanix
 
-    .. |sequanix| image::
-        _static/sequanix.png
-        :target: applications.html#sequanix
+.. |pacbio| image::
+    ./auto_examples/images/sphx_glr_plot_qc_pacbio_002.png
+    :target: auto_examples/plot_qc_pacbio.html
 
-    .. |pacbio| image::
-        _images/sphx_glr_plot_qc_pacbio_002.png
-        :target: auto_examples/plot_qc_pacbio.html
-
-.. only:: latex
-
-    .. |bam| image::
-        sphx_glr_plot_bam_001.png
-        :target: auto_examples/plot_bam.html
-
-    .. |coverage| image::
-        sphx_glr_plot_coverage_001.png
-        :target: auto_examples/plot_coverage.html
-
-    .. |fastqc| image::
-        sphx_glr_plot_fastqc_hist_001.png
-        :target: auto_examples/plot_fastqc_hist.html
-
-    .. |kraken| image::
-        sphx_glr_plot_kraken_001.png
-        :target: auto_examples/plot_kraken.html
-
-    .. |sequanix| image::
-        sequanix.png
-        :target: applications.html#sequanix
-
-    .. |pacbio| image::
-        sphx_glr_plot_qc_pacbio_002.png
-        :target: auto_examples/plot_qc_pacbio.html
 
 
 .. raw:: html

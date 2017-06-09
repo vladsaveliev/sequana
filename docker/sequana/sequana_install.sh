@@ -1,7 +1,8 @@
 cd /home/sequana
 
 # Finally, Sequana release itself
-pip install sequana==0.1.16
+pip install sequana==0.3.0
+pip install line_profiler
 
 
 # Some dummy data to play with

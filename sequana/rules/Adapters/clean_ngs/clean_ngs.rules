@@ -10,14 +10,31 @@ rule clean_ngs:
         adapters = config['adapter_removal']['fwd'],
         min_len = config['adapter_removal']['m'],
         quality = config['adapter_removal']['quality']
-    shell:
-        """
-        clean_ngs -if1 {input} \
-           -of1 {output.fastq} \
-           -rf1 {output.rej_files} \
-           -adf {params.adapters} \
-           -l   {params.min_len}\
-           -L   {params.max_len} \
-           -q3  {params.quality} \
-           -q5  {params.quality} > {log}
-        """
+        options =  config['adapter_removal']['options']
+    run:
+
+        unzip_file = [filename[:-3] for filename in input.fastq]
+        cmd = "clean_ngs -adf {params.adapters} -l {params.min_len} -q5 {params.quality} {params.options}"
+        # paired end or single end unzip
+        #input
+        if len(input.fastq) == 2:
+            fastq_input = "-if1 " + unzip_file[0] + " -if2 " + unzip_file[1]
+        else:
+            fastq_input = "-if1 " + unzip_file[0]
+        cmd = cmd + " " + fastq_input
+        #output
+        if len(input.fastq) == 2:
+            fastq_output = "-of1 " + output.fastq[0] + " -of2 " + output.fastq[1]
+        else:
+            fastq_output = "-of1 " + output.fastq[0]
+        cmd = cmd + " " + fastq_output
+        #rejected files
+        if len(input.fastq) == 2:
+            fastq_rejected = "-rf1 " + output.rej_files[0] + " -rf2 " + output.rej_files[1]
+        else:
+            fastq_rejected = "-rf1 " + output.rej_files[0]
+        cmd = cmd + " " + fastq_rejected
+
+
+        shell("unpigz -fk {input.fastq} -p {threads} && " + cmd )
+

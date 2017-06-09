@@ -569,7 +569,7 @@ def main(args=None):
             ), 2)
 
         if flag not in [16,12, 6, 4, 2, 3]:
-            sa.error("You must use a design experimental file using --design"
+            logger.critical("You must use a design experimental file using --design"
                      " and --adapters to indicate the type of adapters (PCRFree"
                      " or Nextera), or provide the adapters directly as a "
                      " string (or a file) using --adapter_fwd (AND --adapter_"
@@ -578,6 +578,7 @@ def main(args=None):
                     " all adapters will be used (slower). Finally, you may use "
                     " --no-adapters for testing purpose or if you know there "
                     " is no adapters")
+            sys.exit(1)
 
         # flag 12 (design + adapters when wrong args provided)
         if options.design and options.adapters not in adapters_choice:

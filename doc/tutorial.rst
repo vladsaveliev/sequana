@@ -168,7 +168,7 @@ and bwa_ref section::
       reference: "measles.fa"
 
 .. warning:: In the configuration file, in the mark_duplicates section,
-some output files are huge and requires temporary directory on cluster.
+    some output files are huge and requires temporary directory on cluster.
 
 
 .. warning:: in the configuration file -- coverage section -- note that for short genomes, 
@@ -209,7 +209,7 @@ RNA-seq
 
 
 See more information in the :ref:`pipeline_rnaseq` section.
-The following example will show how to initialise and run the RNAseq pipeline on a couple of FastQ files.
+The following example will show how to initialise and run the RNAseq pipeline on a couple of FastQ files (in single end mode).
 The data comes from a sequencing (using HiSeq2500 technology) of a saccharomyces cerevisiae strain.
 For testing purposes, you can download :download:`Fastq1
 <../sequana/resources/data/WT_ATCACG_L001_R1_001.fastq.gz>` and
@@ -224,7 +224,7 @@ Initialise the pipeline
 Call **sequana** standalone as follows::
 
     sequana --pipeline rnaseq --input-directory . --working-directory EXAMPLE
-    --adapter-fwd GATCGGAAGAGCACACGTCTGAACTCCAGTCA --adapter-rev GTGACTGGAGTTCAGACGTGTGCTCTTCCGATC
+        --adapter-fwd GATCGGAAGAGCACACGTCTGAACTCCAGTCA --adapter-rev GTGACTGGAGTTCAGACGTGTGCTCTTCCGATC
 
 Or use Sequanix.
 
@@ -239,7 +239,7 @@ Get the fasta and GFF reference
 
 
 Assuming the reference is **Saccer3** (Saccharomyces cerevisiae), we first need to fetch
-the fasta and the GFF files from SGD to run the pipeline::
+the fasta and the GFF files from SGD before to run the pipeline::
 
     mkdir Saccer3
     cd Saccer3
@@ -251,7 +251,7 @@ the fasta and the GFF files from SGD to run the pipeline::
     cd ..
 
 .. warning:: All files (fasta, GFF, GTF...) used in RNA-seq pipeline must have the same prefix (Saccer3 in the example)
-and must be placed in a new directory, named as the prefix or not
+    and must be placed in a new directory, named as the prefix or not
 
 .. warning:: For the counting step, the RNA-seq pipeline take only GFF files. GTF and SAF files must be integrated soon.
 
@@ -262,30 +262,33 @@ Edit the config file **config.yaml** and fill the genome section::
 
     genome:
       do: yes
-      genome_directory: Saccer3
+      genome_directory: ../Saccer3
       name: Saccer3 #path to index name
-      fasta_file: Saccer3/Saccer3.fa
-      gff_file: Saccer3/Saccer3.gff
+      fasta_file: ../Saccer3/Saccer3.fa
+      gff_file: ../Saccer3/Saccer3.gff
       rRNA_file:
       rRNA_feature: "rRNA"
 
 
 .. warning:: Note fastq_screen if off by default. It's because sequana not embed a database for this tool.
-If you want to run fastq_screen, please see the manual (https://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/)
-and add the config file in the tool section.
+    If you want to run fastq_screen, please see the manual (https://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/)
+    and add the config file in the tool section.
 
 
 Run the pipeline
 ~~~~~~~~~~~~~~~~~~~~
 
-on local::
+On local::
+
     snakemake -s rnaseq.rules --stats stats.txt -p -j 12 --nolock
 
 on SGE cluster::
+
     snakemake -s rnaseq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json
     --cluster "qsub -l mem_total={cluster.ram} -pe thread {threads} -cwd -e logs -o logs -V -b y "
 
 on slurm cluster ::
-    sbatch -s rnaseq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json
+
+    sbatch snakemake -s rnaseq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json
     --cluster "sbatch --mem={cluster.ram} --cpus-per-task={threads} "
 
