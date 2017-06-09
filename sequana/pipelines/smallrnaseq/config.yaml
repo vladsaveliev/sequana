@@ -149,6 +149,7 @@ bowtie1_mapping_hairpin:
 fastq_screen:
     do: yes
     conf: "/pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/fastq_screen.conf"
+    options: "--subset 200000  --aligner bowtie2"
     pf2_report: yes
 
 
