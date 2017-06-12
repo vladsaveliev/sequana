@@ -1,0 +1,37 @@
+rule sambamba_markdup:
+    """ 
+    Marks (by default) or removes duplicate reads. For determining whether a
+    read is a duplicate or not, the same criteria as in Picard are used.
+
+    Required input:
+        __sambamba_markdup__input: bam file
+
+    Required output:
+        __sambamba_markdup__output: bam file
+
+    Required configuration:
+        .. code-block:: yaml
+
+            sambamba_markdup:
+                remove:  # yes/no
+                tmpdir:  # temporary directory
+    """
+    input:
+        __sambamba_markdup__input
+    output:
+        bam = __sambamba_markdup__output
+    log:
+        out = __sambamba_markdup__log_std,
+        err = __sambamba_markdup__log_err
+    params:
+        remove = config["sambamba_markdup"]["remove"],
+        tmp = config["sambamba_markdup"]["tmp_directory"]
+    run:
+        cmd = "sambamba markdup %s %s --tmpdir=%s" % (
+            input[0], output['bam'], params['tmp']
+        )
+
+        if params['remove']:
+            cmd += " --remove-duplicates"
+        
+        shell('%s > %s 2> %s' % (cmd, log['out'], log['err']))
