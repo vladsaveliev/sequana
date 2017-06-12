@@ -73,20 +73,19 @@ else:
 if config['input_extension'].endswith('bam') or \
     config['input_pattern'].endswith('bam'):
     __bwa_mem_ref__fai = __bwa_mem_ref__reference + ".fai"
-    __bwa_mem_ref__sort_output = __rawdata__input
+    __bwa_mem_ref__output = __rawdata__input
 else:
     # Mapping with BWA MEM
     exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
     __bwa_mem_ref__input = __rawdata__input
     __bwa_mem_ref__fai = __bwa_mem_ref__reference + ".fai"
-    __bwa_mem_ref__mem_output = manager.getname("bwa_mem_ref", ".bam")
-    __bwa_mem_ref__sort_output = manager.getname("bwa_mem_ref", ".sorted.bam")
+    __bwa_mem_ref__output = manager.getname("bwa_mem_ref", ".sorted.bam")
     __bwa_mem_ref__log = manager.getlogdir("bwa_mem_ref")
     __bwa_index_ref__log = "common_logs/bwa_index.log"
     include: bwa_mem_dynamic("ref", manager)
 
-# Add read groups of sample for GATK
-__add_read_group__input = __bwa_mem_ref__sort_output
+# Add read groups of sample
+__add_read_group__input = __bwa_mem_ref__output
 __add_read_group__output = manager.getname("add_read_group/", ".rg.sorted.bam")
 __add_read_group__log_err = manager.getlogdir("add_read_group.err")
 __add_read_group__log_std = manager.getlogdir("add_read_group.std")
@@ -97,44 +96,21 @@ include: sm.modules["add_read_group"]
 
 # Init all input of next rules. These rules are optional and can be inactivate
 # in the config file with the "do" option.
-__indel_realigner__input = __add_read_group__output
-__mark_duplicates__input = __add_read_group__output
+__sambamba_markdup__input = __add_read_group__output
 __bam_quality_filter__input = __add_read_group__output
 __samtools_depth__input = __add_read_group__output
 __freebayes__input = __add_read_group__output
 
-# Indel realigner with GATK
-if config["indel_realigner"]["do"]:
-    __create_sequence_dictionary__reference = __bwa_mem_ref__reference
-    __create_sequence_dictionary__output = __bwa_mem_ref__reference.split(
-        ".fa")[0] + ".dict"
-    __create_sequence_dictionary__log = "common_logs/create_sequence_dictionary.log"
-    include: sm.modules["create_sequence_dictionary"]
-
-    __indel_realigner__reference = __bwa_mem_ref__reference
-    __indel_realigner__ref_dict = __create_sequence_dictionary__output
-    __indel_realigner__output = manager.getname("indel_realigner",
-                                                ".indel_realign.sorted.bam")
-    __indel_realigner__intervals = manager.getname("indel_realigner",
-                                                   ".intervals")
-    __indel_realigner__log = manager.getlogdir("indel_realigner")
-    include: sm.modules["indel_realigner"]
-    __mark_duplicates__input = __indel_realigner__output
-    __bam_quality_filter__input = __indel_realigner__output
-    __freebayes__input = __indel_realigner__output
-    __samtools_depth__input = __indel_realigner__output
-
 # Mark duplicates with picard tools
-if config["mark_duplicates"]["do"]:
-    __mark_duplicates__output = manager.getname("mark_duplicates",
+if config["sambamba_markdup"]["do"]:
+    __sambamba_markdup__output = manager.getname("sambamba_markdup",
                                                 ".rmdup.sorted.bam")
-    __mark_duplicates__metrics = manager.getname("mark_duplicates", ".metrics")
-    __mark_duplicates__log_err = manager.getlogdir("mark_duplicates.err")
-    __mark_duplicates__log_std = manager.getlogdir("mark_duplicates.std")
-    include: sm.modules["mark_duplicates"]
-    __bam_quality_filter__input = __mark_duplicates__output
-    __freebayes__input = __mark_duplicates__output
-    __samtools_depth__input = __mark_duplicates__output
+    __sambamba_markdup__log_err = manager.getlogdir("sambamba_markdup.err")
+    __sambamba_markdup__log_std = manager.getlogdir("sambamba_markdup.std")
+    include: sm.modules["sambamba_markdup"]
+    __bam_quality_filter__input = __sambamba_markdup__output
+    __freebayes__input = __sambamba_markdup__output
+    __samtools_depth__input = __sambamba_markdup__output
 
 # bam quality filter with samtools
 if config["bam_quality_filter"]["do"]:
@@ -145,7 +121,6 @@ if config["bam_quality_filter"]["do"]:
     __freebayes__input = __bam_quality_filter__output
     __samtools_depth__input = [__bam_quality_filter__output,
                                __bam_quality_filter__input]
-
 
 #
 # Coverage analysis
@@ -224,7 +199,7 @@ if len(manager.samples) > 1:
         __snpeff_joint__input = __joint_freebayes__output
         __snpeff_joint__log = 'joint_calling/logs/snpeff_joint.log'
         __snpeff_joint__output = 'joint_calling/joint_calling.ann.vcf'
-        __snpeff_joint__html = 'joint_calling/joint_freebayes.html'
+        __snpeff_joint__html = 'joint_calling/snpeff_joint.html'
         __snpeff_joint__config = __snpeff__config
         __snpeff_joint__gbk = config['snpeff']['reference']
         __snpeff_joint__options = config['snpeff']['options']

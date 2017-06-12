@@ -46,6 +46,7 @@ bwa_mem_ref:
     reference: "%(reference)s"
     index_algorithm: 'is'
     options: '-T 30'
+    tmp_directory: './tmp/'
     threads: 2
 
 ##############################################################################
@@ -91,36 +92,19 @@ freebayes:
 joint_freebayes:
     options:
 
-
-
 ##############################################################################
-# GATK - INDEL realigner
-#
-# :Parameters:
-#
-# - do: if unchecked, this rule is ignored.
-# - target_creator_options: any options recognised by GATK
-#       RealignerTargetCreator.
-# - options: any options recognised by GATK IndelRealigner.
-#
-indel_realigner:
-    do: yes
-    target_creator_options:
-    options:
-
-##############################################################################
-# Picard-tools - MarkDuplicates
+# Sambamba - Marks or removes duplicates
 #
 # :Parameters:
 #
 # - do: if unchecked, this rule is ignored.
 # - remove: boolean if you want remove or not duplicated reads.
-# - tmpdir: set the temporary directory.
+# - tmp_directory: set the temporary directory.
 #
-mark_duplicates:
+sambamba_markdup:
     do: yes
     remove: no
-    tmpdir: ""
+    tmp_directory: "./tmp/"
 
 ##############################################################################
 # Filter reads with a mapping score lower than an integer 
