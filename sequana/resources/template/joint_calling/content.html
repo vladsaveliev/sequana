@@ -35,39 +35,39 @@
 {# create buttons to hide some samples #}
 <p>Select samples to show or hide:</p>
 <div class="btn-group" data-toggle="buttons">
-    {% for sample in module.vcf.vcf.samples %}
+    {%- for sample in module.vcf.vcf.samples %}
         <label class="myCheckbox btn btn-primary active">
             <input type="checkbox" checked autocomplete="off">{{ sample }}</input>
         </label> 
-    {% endfor %}
+    {%- endfor %}
 </div>
 <table id="joint_calling" class="table table-striped display" width="100%">
     <thead>
         <tr>
-            {% for col in module.vcf.columns %}
+            {%- for col in module.vcf.columns %}
                 <th style="text-align:center"> {{ col }} </th>
-            {% endfor %}
+            {%- endfor %}
         </tr>
     </thead>
     <tbody align="center">
-        {% for variant in module.vcf.variants %}
+        {%- for variant in module.vcf.variants %}
         <tr>
-            {% for col in module.vcf.columns %}
-                {% if col in module.vcf.vcf.samples %}
+            {%- for col in module.vcf.columns %}
+                {%- if col in module.vcf.vcf.samples %}
                     <td data-toggle="tooltip"
                         data-placement="bottom"
                         title="Depth: {{ variant.samples[col].data.DP }}&#10;GT: {{ variant.samples[col].data.GT }}&#10;GL: {{ variant.samples[col].data.GL }}"
-                        {% if variant.resume[col]|float > module.vcf.vcf.filters_params['frequency'] %}
+                        {%- if variant.resume[col]|float > module.vcf.vcf.filters_params['frequency'] %}
                             class="bg-success"
-                        {% else %}
+                        {%- else %}
                             class="bg-danger"
-                        {% endif %}
+                        {%- endif %}
                         > {{ variant.resume[col] }} </td>
-                {% else %}
+                {%- else %}
                     <td> {{ variant.resume[col] }} </td>
-                {% endif %}
-            {% endfor %}
+                {%- endif %}
+            {%- endfor %}
         </tr>
-        {% endfor %}
+        {%- endfor %}
     </tbody>
 </table>
