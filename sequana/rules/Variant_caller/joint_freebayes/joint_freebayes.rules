@@ -17,7 +17,6 @@ rule joint_freebayes:
     """
     input:
         bam = __joint_freebayes__input,
-        bai = __joint_freebayes__bai,
         ref = __joint_freebayes__reference
     output:
         vcf = __joint_freebayes__output,

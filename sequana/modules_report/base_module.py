@@ -18,9 +18,10 @@
 """Generic module is the parent module of all other module"""
 import os
 import shutil
-import jinja2
 import io
 import base64
+
+from jinja2 import Environment, PackageLoader
 
 from reports import HTMLTable
 from sequana.utils import config
@@ -33,15 +34,14 @@ class SequanaBaseModule(object):
     """ Generic Module to write HTML reports.
     """
     required_dir = ("css", "js", "images")
-    def __init__(self, template='standard'):
+    def __init__(self, template_fn='standard.html'):
         self.output_dir = config.output_dir
         self.path = "./"
         # Initiate jinja template
-        template = config.template_dict[template].load()
-        env = jinja2.Environment(
-            loader=jinja2.FileSystemLoader(template.template_dir)
+        env = Environment(
+            loader=PackageLoader('sequana', 'resources/templates/')
         )
-        self.j_template = env.get_template(template.base_fn)
+        self.template = env.get_template(template_fn)
         self._init_report()
 
     def _init_report(self):
@@ -73,10 +73,8 @@ class SequanaBaseModule(object):
         """
         if output_filename is None:
             return
-        report_output = self.j_template.render(config=config,
-                                               module=self)
-        with open(os.sep.join([config.output_dir,output_filename]),
-                  "w") as fp:
+        report_output = self.template.render(config=config, module=self)
+        with open(os.sep.join([config.output_dir,output_filename]), "w") as fp:
             print(report_output, file=fp)
 
     def create_link(self, name, target, newtab=True, download=False):

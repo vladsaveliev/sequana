@@ -22,7 +22,7 @@ rule joint_freebayes_vcf_filter:
         html = __joint_freebayes_vcf_filter__html
     params:
         filter_dict = config["joint_freebayes_vcf_filter"],
-        output_dir = __joint_freebayes_vcf_filter__output_dir
+        report_dir = __joint_freebayes_vcf_filter__report_dir
     run:
         from sequana.freebayes_vcf_filter import VCF_freebayes
         from sequana.modules_report.joint_calling import JointCallingModule
@@ -31,5 +31,5 @@ rule joint_freebayes_vcf_filter:
         v = VCF_freebayes(input['vcf'])
         filter_v = v.filter_vcf(params['filter_dict'])
         filter_v.to_vcf(output['vcf'])
-        config.output_dir = params['output_dir']
+        config.output_dir = params['report_dir']
         JointCallingModule(filter_v)

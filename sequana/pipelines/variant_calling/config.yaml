@@ -114,7 +114,7 @@ sambamba_markdup:
 # - do: if unchecked, this rule is ignored.
 # - threshold: mapping score threshold (between 0 and 60).
 #
-bam_quality_filter:
+sambamba_filter:
     do: yes
     threshold: 30
 

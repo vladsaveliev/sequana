@@ -6,8 +6,8 @@
 <html lang="en" >
 <head>
   <title>{% block title %}{% endblock %} - Sequana</title>
-  <meta charset="UTF-8">
-  <meta content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Javascript static files  -->
   <script type="text/javascript" src="{{ module.path }}js/jquery-3.2.1.min.js"></script>
@@ -28,21 +28,22 @@
 </head>
 
 <body>
-  <header>
-    <h1 class="title">{{ module.title }}</h1>
-    <h2 class="subtitle">
-      Report created with <a href="http://sequana.readthedocs.org">Sequana</a>
-      ({{ config.version }})
-    </h2>
-  </header>
-
-{% block content %}{% endblock %}
-
-<div class="footer">
-  <div class="logo"></div>
-  <div class="copyright">
-    Generated with Sequana ({{ time_now }})
+  <div class="container-fluid">
+    <header>
+      <h1 class="title">{{ module.title }}</h1>
+      <h2 class="subtitle">
+        Report created with <a href="http://sequana.readthedocs.org">Sequana</a>
+        ({{ config.version }})
+      </h2>
+    </header>
+    {% block content %}{% endblock %}
   </div>
-</div>
+  <footer class="footer">
+    <div class="container">
+      <div class="copyright">
+        Generated with Sequana ({{ config.time_now }})
+      </div>
+    </div>
+  </footer>
 </body>
 </html>

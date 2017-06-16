@@ -26,9 +26,11 @@ import glob
 
 import easydev
 
-
 # Set logger
 from sequana import logger
+
+from datetime import datetime
+time_now = datetime.now().strftime("%m-%d-%Y %H:%M:%S")
 
 # Get sequana informations
 version = pkg_resources.get_distribution('sequana').version
@@ -40,18 +42,9 @@ output_dir = os.path.realpath(os.getcwd())
 def get_entry_name(entry_point):
     return str(entry_point).split('=')[0].strip()
 
-# Templates available
-template_dict = {get_entry_name(entry_point): entry_point for entry_point
-                 in pkg_resources.iter_entry_points('sequana.report_template')}
-
 # Modules available
 module_dict = {get_entry_name(entry_point): entry_point for entry_point
-                 in pkg_resources.iter_entry_points('sequana.module')}
-
-# Check if templates are found
-if len(template_dict) == 0:
-    print("Error - Sequana report templates are not found", file=sys.stderr)
-    sys.exit(1)
+               in pkg_resources.iter_entry_points('sequana.module')}
 
 # Find css/js file necessary for the report
 sequana_path = easydev.get_package_location('sequana')

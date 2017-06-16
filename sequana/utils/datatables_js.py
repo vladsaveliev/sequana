@@ -257,6 +257,31 @@ class DataTableFunction(object):
                            .format(target_col))
             pass
 
+    def set_tooltips_to_column(self, tooltips_col, target_col):
+        """Hide a column with tooltips and connect it with a column.
+
+        :param str tooltips_col: column with your tooltips.
+        :param str target_col: column to connect.
+        """
+        # hide tooltips
+        try:
+            self.datatable_columns[tooltips_col]['visible'] = 'false'
+        except KeyError:
+            logger.warning("KeyError: Column name '{0}' does not exist."
+                           .format(target_col))
+            pass
+        # function to add tooltips
+        fct = """function(data, type, row, meta){{
+            return '<a href="#" data-toggle="tooltip" title="'+row.{0}+'">'+data+'</a>';
+        }}
+        """.format(tooltips_col)
+        try:
+            self.datatable_columns[target_col]['render'] = fct
+        except KeyError:
+            logger.warning("KeyError: Column name '{0}' does not exist."
+                           .format(target_col))
+            pass
+
 
 class DataTable(object):
     """ Class that contains html table which used a javascript function. 
@@ -353,8 +378,10 @@ class DataTable(object):
         # set table id
         if style:
             style = 'style="{0}"'.format(style)
-        html_table = '<table id="table_{0}" class="display datatable" {1}>'\
+        html_table = (
+            '<table id="table_{0}" class="display table text-center" {1}>'
             .format(self.html_id, style)
+        )
         # create table's header
         th = '<th>{0}</th>'
         if self.index is True:

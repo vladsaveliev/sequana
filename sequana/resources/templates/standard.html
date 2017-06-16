@@ -1,24 +1,24 @@
-{#  standard.html
+{#-  standard.html
 
     Template for the report content. It uses modules object to fill
     automatically the HTML page.
 #}
-{% extends 'base.html' %}
+{%- extends 'base.html' %}
 
-{% block title %}
+{%- block title %}
   {{ module.title }}
-{% endblock %}
+{%- endblock %}
 
-{% block content %}
+{%- block content %}
   {{ module.intro if module.intro }}
-  {% for section in module.sections %}
+  {%- for section in module.sections %}
   <div id="{{ section["anchor"] }}">
-    {% if section["name"] %}
+    {%- if section["name"] %}
       <h2 id="{{ section["anchor"] }}">{{ section["name"] }}
         <div style="float:right">{{ section["title_links"] }}</div>
       </h2>
-    {% endif %}
+    {%- endif %}
     {{ section["content"] }}
   </div>
-  {% endfor %}
-{% endblock %}
+  {%- endfor %}
+{%- endblock %}

@@ -5,7 +5,6 @@
 #  Copyright (c) 2016 - Sequana Development Team
 #
 #  File author(s):
-#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
 #      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
@@ -72,17 +71,23 @@ class Variant(object):
             line_dict['frequency'] = "; ".join('{0:.2f}'.format(x)
                                                for x in alt_freq)
         else:
-            for s in vcf_line.samples:
+            for i, s in enumerate(vcf_line.samples):
                 if not s.called:
                     freq = 0
+                    info = '.:None:None'
                 else:
+                    info = '{0}:{1}:{2}'.format(
+                        s.data.GT,
+                        s.data.DP,
+                        ','.join('{0:.3f}'.format(v) for v in s.data.GL)
+                    )
                     try:
                         freq = "; ".join('{0:.2f}'.format(alt / s.data.DP)
                                          for alt in s.data.AO)
                     except TypeError:
                         freq = '{0:.2f}'.format(s.data.AO / s.data.DP)
                 line_dict[s.sample] = freq
-
+                line_dict['info_{0}'.format(i)] = info
         try:
             # If vcf is annotated by snpEff
             annotation = vcf_line.INFO['EFF'][0].split('|')
@@ -172,7 +177,7 @@ class VCF_freebayes(vcf.Reader):
 
         ::
 
-            v = VCF_freebayes("input.bcf")
+            v = VCF_freebayes("input.vcf")
             v.filters_params = {"freebayes_score": 200,
                                "frequency": 0.8,
                                "min_depth": 10,
@@ -328,6 +333,10 @@ class Filtered_freebayes(object):
                 ]
         except IndexError:
             pass
+        if self.vcf.is_joint:
+            columns += [
+                'info_{0}'.format(i) for i in range(len(self.vcf.samples))
+            ]
         return columns
 
     def _vcf_to_df(self):
@@ -341,7 +350,7 @@ class Filtered_freebayes(object):
         except KeyError:
             return df
 
-    def to_csv(self, output_filename):
+    def to_csv(self, output_filename, info_field=False):
         """ Write DataFrame in CSV format.
 
         :params str output_filename: output CSV filename.
@@ -352,10 +361,17 @@ class Filtered_freebayes(object):
             if self.df.empty:
                 print(",".join(self.columns), file=fp)
             else:
-                self.df.to_csv(fp, index=False)
+                if info_field:
+                    self.df.to_csv(fp, index=False)
+                else:
+                    self.df.to_csv(
+                        fp,
+                        index=False,       
+                        columns=self.columns[:-len(self.vcf.samples)]
+                    )
 
     def to_vcf(self, output_filename):
-        """ Write BCF file in VCF format.
+        """ Write VCF file in VCF format.
 
         :params str output_filename: output VCF filename.
         """

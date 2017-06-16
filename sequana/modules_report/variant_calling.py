@@ -48,8 +48,6 @@ class VariantCallingModule(SequanaBaseModule):
                     except SyntaxError:
                         self.filter_dict = None
                     self.df = pd.read_csv(fp)
-            self.create_report_content()
-            self.create_html("variant_calling.html")
         except FileNotFoundError:
             msg = ("The csv file is not present. Please, check if your"
                    " file is present.")
@@ -57,6 +55,8 @@ class VariantCallingModule(SequanaBaseModule):
         except TypeError:
             self.df = data.df
             self.filter_dict = data.vcf.filters_params
+        self.create_report_content()
+        self.create_html("variant_calling.html")
 
     def create_report_content(self):
         self.sections = list()
@@ -103,9 +103,9 @@ class VariantCallingModule(SequanaBaseModule):
             'buttons': ['copy', 'csv']
         }
         js = datatable.create_javascript_function()
-        html_tab = datatable.create_datatable(float_format='%.3g')
+        html_tab = datatable.create_datatable(float_format='%.3f')
         self.sections.append({
-            'name': "Variants detected",
+            'name': "Variants Detected",
             'anchor': 'basic_stats',
             'content':
                 "<p>This table present variant detected by freebayes after "
