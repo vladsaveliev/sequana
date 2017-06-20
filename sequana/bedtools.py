@@ -199,7 +199,7 @@ class GenomeCov(object):
         self._window_size = None
         # the user choice have the priorities over csv file
         if genbank_file:
-            self._genbank_filename = genbank_file
+            self.genbank_filename = genbank_file
         # check is the input is a csv of a previous analysis
         try:
             self.chr_list = self._read_csv(input_filename)

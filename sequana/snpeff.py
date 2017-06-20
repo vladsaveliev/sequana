@@ -185,8 +185,8 @@ class SnpEff(object):
     def _get_seq_ids(self):
         # genbank case
         if self.file_format == "genbank":
-            regex = re.compile('^LOCUS\s+([\w\.]+)')
-            chrom_regex = re.compile('\\chromosome="([\w\.]+)"')
+            regex = re.compile('^LOCUS\s+([\w\.\-]+)')
+            chrom_regex = re.compile('\\chromosome="([\w\.\-]+)"')
             with open(self.reference, "r") as fp:
                 line = fp.readline()
                 seq = regex.findall(line)
