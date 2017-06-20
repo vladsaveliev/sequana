@@ -24,17 +24,19 @@ rule fastq_screen_report:
         import csv
         from numpy import array, arange
 
-        species=[]
-        ohol=[]
-        mhol=[]
-        ohml=[]
-        mhml=[]
+        species = []
+        ohol = []
+        mhol = []
+        ohml = []
+        mhml = []
+        nohit = ""
         file = ""
         for fp in os.listdir(input[0]):
             if fp.endswith("_screen.txt"):
                 file = fp
 
-        for line in csv.reader(open(os.path.join(input[0], file), "r"), dialect="excel-tab") :
+        #for line in csv.reader(open(os.path.join(input[0], file), "r"), dialect="excel-tab") :
+        for line in csv.reader(open(file, "r"), dialect="excel-tab"):
             if(len(line) == 0) :
                 continue
             if(line[0].startswith("#")) :
