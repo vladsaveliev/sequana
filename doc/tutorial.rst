@@ -29,8 +29,7 @@ files that contain only 1500 reads. Copy them in a local directory.
 First, run the sequana standalone application to initialise the pipeline
 **quality_control**::
 
-    sequana --pipeline quality_control --working-directory TEST --adapters
-    PCRFree
+    sequana --pipeline quality_control --working-directory TEST --adapters PCRFree
 
 This command downloads the required configuration file(s) in particular
 the config file and the pipeline itself. This example should work out of
