@@ -18,9 +18,9 @@ dependencies:
 - pillow
 - sphinx
 - reports
-- bioservices>=1.4.16
-- pip
 - easydev>=0.9.34
+- bioservices
+- pip
 - shustring
 - pip:
   - biokit>=0.3.2
