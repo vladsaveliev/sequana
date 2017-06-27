@@ -119,10 +119,6 @@ setup(
             'sequana_summary=sequana.modules_report.summary:SummaryModule',
             'quast=sequana.modules_report.quast:QuastModule',
         ],
-        'sequana.report_template': [
-            'standard=sequana.resources.template.standard',
-            'joint_calling=sequana.resources.template.joint_calling',
-        ]
 },
 
 )

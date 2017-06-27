@@ -102,7 +102,7 @@ __sambamba_filter__input = __add_read_group__output
 __samtools_depth__input = __add_read_group__output
 __freebayes__input = __add_read_group__output
 
-# Mark duplicates with picard tools
+# Mark duplicates with sambamba markdup
 if config["sambamba_markdup"]["do"]:
     __sambamba_markdup__output = manager.getname("sambamba_markdup",
                                                 ".rmdup.sorted.bam")
@@ -113,7 +113,7 @@ if config["sambamba_markdup"]["do"]:
     __freebayes__input = __sambamba_markdup__output
     __samtools_depth__input = __sambamba_markdup__output
 
-# bam quality filter with samtools
+# bam quality filter with sambamba
 if config["sambamba_filter"]["do"]:
     __sambamba_filter__output = manager.getname("sambamba_filter",
                                                 ".filter.sorted.bam")
