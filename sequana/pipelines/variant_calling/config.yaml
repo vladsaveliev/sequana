@@ -46,8 +46,8 @@ bwa_mem_ref:
     reference: "%(reference)s"
     index_algorithm: 'is'
     options: '-T 30'
-    tmp_directory: './tmp/'
     threads: 2
+    tmp_directory: './tmp/'
 
 ##############################################################################
 # SnpEff - Annotate variants detected

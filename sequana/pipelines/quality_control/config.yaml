@@ -69,6 +69,7 @@ bwa_mem_phix:
     index_algorithm: "is"
     options: '-T 30'
     threads: 4
+    tmp_directory: './tmp'
 
 
 #######################################################################
