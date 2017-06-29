@@ -120,18 +120,17 @@ include: sm.modules["format_contigs"]
 # assess de novo quality with coverage analysis and variant calling
 __bwa_mem_assembly__reference = __format_contigs__output
 __bwa_mem_assembly__fai = __bwa_mem_assembly__reference + ".fai"
-__bwa_mem_assembly__mem_output = manager.getname("bwa_mem_assembly", ".bam")
-__bwa_mem_assembly__sort_output = manager.getname("bwa_mem_assembly",
+__bwa_mem_assembly__output = manager.getname("bwa_mem_assembly",
                                                   ".sorted.bam")
 __bwa_mem_assembly__log = manager.getlogdir("bwa_mem_assembly")
 __bwa_index_assembly__log = "common_logs/bwa_index.log"
 include: bwa_mem_dynamic("assembly", manager)
 
 # initiate variables
-__sambamba_markdup__input = __bwa_mem_assembly__sort_output
-__sambamba_filter__input = __bwa_mem_assembly__sort_output
-__samtools_depth__input = __bwa_mem_assembly__mem_output
-__freebayes__input = __bwa_mem_assembly__mem_output
+__sambamba_markdup__input = __bwa_mem_assembly__output
+__sambamba_filter__input = __bwa_mem_assembly__output
+__samtools_depth__input = __bwa_mem_assembly__output
+__freebayes__input = __bwa_mem_assembly__output
 
 # Mark duplicates with sambamba markdup
 if config["sambamba_markdup"]["do"]:
@@ -163,6 +162,7 @@ if config["sequana_coverage"]["do"]:
     __sequana_coverage__fasta = __bwa_mem_assembly__reference
     __sequana_coverage__gbk = []
     __sequana_coverage__output = manager.getname("sequana_coverage", ".csv")
+    __sequana_coverage__report_dir = __report_dir__
     __sequana_coverage__html = os.sep.join([
         __report_dir__, 'sequana_coverage.html'
     ])
@@ -184,6 +184,7 @@ if config["freebayes"]["do"]:
                                                      ".filter.vcf")
     __freebayes_vcf_filter__csv = manager.getname("freebayes_vcf_filter",
                                                   ".csv")
+    __freebayes_vcf_filter__report_dir = __report_dir__
     __freebayes_vcf_filter__html = os.sep.join([
         __report_dir__, 'variant_calling.html'
     ])
@@ -251,7 +252,7 @@ onsuccess:
 
         # Quast section
         quast_dir = os.sep.join([proj, "quast"])
-        dst = os.sep.joint([conf.output_dir, 'quast'])
+        dst = os.sep.join([conf.output_dir, 'quast'])
         if os.path.isdir(dst):
             shutil.rmtree(dst)
         elif os.path.isfile(dst):

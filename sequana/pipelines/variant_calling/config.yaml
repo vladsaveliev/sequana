@@ -36,11 +36,11 @@ sequencing:
 #
 # :Parameters:
 #
-# - do: if unchecked, this rule is ignored.
 # - reference_file: the name of the reference file.
 # - index_algorithm: the BWA index algorithm (is or bwtsw).
 # - options: any options recognised by BWA MEM tool.
 # - threads: number of threads to be used.
+# - tmp_directory: temporary directory
 #
 bwa_mem_ref:
     reference: "%(reference)s"
