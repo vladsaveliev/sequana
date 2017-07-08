@@ -10,9 +10,9 @@ Input BAM files must have the extension **.bam**.
 
 Then, start sequanix as follows::
 
-    sequana --pipeline pacbio_qc --input-directory . --working-directory analysis
+    sequanix -w analysis -i .
 
-In the configuration panel, set the Kraken database. 
+In the sequana/input file panel, set the extension to `*.bam`
 
 Save the project and press Run. Once done, open the HTML report for the bam of
 interest
@@ -32,4 +32,4 @@ Details
 This pipeline takes as inputs a set of BAM files from Pacbio sequencers. It
 computes a set of basic statistics related to read length. It also shows some 
 histogram related to the GC content, SNR of the diodes and the so-called ZMW
-values.
+values. Finally, a quick taxonomy can be performed.
