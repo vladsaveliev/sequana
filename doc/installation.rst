@@ -6,6 +6,13 @@ Installation
 
 .. _installation_conda:
 
+
+In short, using bioconda (conda channel)::
+
+    conda install sequana
+
+See hereafter for details.
+
 Installation using Conda
 ============================
 

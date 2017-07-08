@@ -6,6 +6,9 @@ Changelog
 2017
 ------
 
+0.3 April-June 2017
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~é
+
 * BUG FIXES:
 
     - sequanix:
@@ -13,10 +16,9 @@ Changelog
     - fastq_samples/ fastq module: fix histogram_gc_content maximum range
     - rulegraph rule: fix issue #405 (spaces in path to snakefile)
     - genome coverage was buggy for multi chromosome and circular option on. Fixed
-    - adapters/expdesing modules: fixe the case of design files with same sample
+    - adapters/expdesign modules: fixe the case of design files with same sample
       name and same index but different lanes.
     - sequana_coverage. Fix Issue #416 (float division by zero)
-
 
 * CHANGES:
 
@@ -31,10 +33,10 @@ Changelog
 
     - pacbio module: cleanup and add funcion to convert input BAM into Fasta
     - sequence module: Repeats class added
-    - new pipeline called qc_pacbio to perform quick QC and taxonomy analysis
+    - new Snakemake pipeline called qc_pacbio to perform quick QC and taxonomy analysis
           for pacbio
-    - add ORD, CDS, GC SKEW in sequence module
-    
+    - add ORD, CDS, GC SKEW in sequence module.
+
 
 0.2. - March - April 2017
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
