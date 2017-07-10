@@ -94,6 +94,7 @@ Pacbio module
 .. automodule:: sequana.pacbio
     :members:
     :undoc-members:
+    :inherited-members:
 
 Phred quality
 ------------------

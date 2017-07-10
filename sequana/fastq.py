@@ -231,7 +231,7 @@ class FastQ(object):
         self.__enter__()
         self._count_reads = nreads
 
-    def count_reads_gz(self, CHUNKSIZE=65536):
+    def _count_lines_gz(self, CHUNKSIZE=65536):
         # this is fast. On a 63M reads, takes 21 seconds as
         # compared to 46 s (real) and 1.13 (user) with zcat | wc
         # wc seems slow (same effects with uncompressde file).
@@ -257,7 +257,7 @@ class FastQ(object):
         3-4 times faster on zipped file (using gunzip -c file | wc -l)
         """
         if self.filename.endswith("gz"):
-            count = self.count_reads_gz()
+            count = self._count_lines_gz()
         else:
             count = self._count_reads_buf()
         return count

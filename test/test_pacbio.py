@@ -1,6 +1,7 @@
-from sequana.pacbio import BAMPacbio
+from sequana.pacbio import BAMPacbio, BAMSimul, PBSim
 from sequana import sequana_data
 from easydev import TempFile
+
 
 def test_pacbio():
     b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
@@ -55,4 +56,16 @@ def test_pacbio_stride():
         b.stride(fh.name, stride=2, random=True)
 
 
+def test_bamsim():
+    filename = sequana_data("test_pacbio_subreads.bam")
+    b = BAMSimul(filename)
+    b.df
+    b.hist_len()
+    b.hist_GC()
+    b.plot_GC_read_len()
 
+
+def test_pbsim():
+    filename = sequana_data("test_pacbio_subreads.bam")
+    ss = PBSim(filename, filename)
+    ss.run(bins=100, step=50)

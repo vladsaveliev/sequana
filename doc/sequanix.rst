@@ -8,6 +8,15 @@ Sequanix Tutorial
 .. contents::
    :local:
 
+Quick Installation
+--------------------------
+
+**Sequanix** is shipped with **Sequana**. If you use **conda**, just type::
+
+    conda install sequana
+
+Please see :ref:`Installation` for details. The standalone name is **sequanix**.
+
 Introduction
 ---------------
 **Sequanix** is a graphical user interface (GUI) that can be used to run Snakemake workflows.

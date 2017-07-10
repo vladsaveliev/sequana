@@ -1212,10 +1212,11 @@ class SequanaGUI(QMainWindow, Tools):
                 form_dict["input_samples"] = (filename)
         elif self.mode == "generic":
             # Here we save the undefined section in the form.
-            for key, value in form_dict[self._undefined_section].items():
-                form_dict[key] = value
-            del form_dict[self._undefined_section]
-            self.info("Generic case")
+            if self._undefined_section in form_dict.keys():
+                for key, value in form_dict[self._undefined_section].items():
+                    form_dict[key] = value
+                del form_dict[self._undefined_section]
+                self.info("Generic case")
 
         # Let us update the attribute with the content of the form
         # This uses the user's information
