@@ -69,3 +69,5 @@ def test_pbsim():
     filename = sequana_data("test_pacbio_subreads.bam")
     ss = PBSim(filename, filename)
     ss.run(bins=100, step=50)
+    from pylab import close
+    close()
