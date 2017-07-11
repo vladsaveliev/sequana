@@ -410,7 +410,7 @@ class BAMPacbio(PacbioBAMBase):
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
         pylab.yscale('log')
-        pylab.title(title,fontsize=fontsize)
+        pylab.title(title, fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
 
@@ -460,8 +460,6 @@ class BAMSimul(PacbioBAMBase):
             self.reset()
         return self._df
     df = property(_get_df)
-
-
 
     def filter_length(self, output_filename, threshold_min=0,
         threshold_max=np.inf):
@@ -567,5 +565,3 @@ class PBSim(object):
 
         if output_filename is not None:
             self.bam_simul.filter_bool(output_filename, self.tokeep)
-
-
