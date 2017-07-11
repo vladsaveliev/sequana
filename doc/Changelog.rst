@@ -6,8 +6,14 @@ Changelog
 2017
 ------
 
+0.4 July 2017
+~~~~~~~~~~~~~~~~~~~~~
+
+* Master release for sequanix
+
+
 0.3 April-June 2017
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~é
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * BUG FIXES:
 
@@ -23,7 +29,7 @@ Changelog
 * CHANGES:
 
     - sequanix:
-        - snakemake output is now cleared
+        - snakemake output is now cleared when pressing RUN
     - quality_control pipeline: default to atropos instead of cutadapt for
           adapter trimming. Kraken: remove classified reads and keep
           unclassified. Unclassified reads are now compressed.
