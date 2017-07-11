@@ -508,7 +508,8 @@ class PBSim(object):
     ::
 
         ss = pacbio.PBSim("test10X.bam")
-        clf(); ss.run(bins=100, step=50)
+        clf(); 
+        ss.run(bins=100, step=50)
 
 
     """
@@ -526,7 +527,6 @@ class PBSim(object):
 
         """
         return np.interp(xprime, self.X[1:self.bins+1], self.Y)
-        return function(x)
 
     def run(self, bins=50, xmin=0, xmax=30000, step=1000, burn=1000,alpha=1,output_filename=None):
         # compute histogram of the input reads once for all to be used
@@ -558,13 +558,12 @@ class PBSim(object):
         pylab.title('Metropolis-Hastings')
         pylab.plot(vec)
         pylab.subplot(212)
-         
+
         pylab.hist(vec[burn:], bins=bins,normed=1)
         pylab.plot(x,y,'r-')
         pylab.ylabel('Frequency')
         pylab.xlabel('x')
         pylab.legend(('PDF','Samples'))
-        pylab.show()
 
         if output_filename is not None:
             self.bam_simul.filter_bool(output_filename, self.tokeep)
