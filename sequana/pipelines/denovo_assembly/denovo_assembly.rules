@@ -49,7 +49,7 @@ __summary_pipeline__outputs = []
 
 if config["digital_normalisation"]["do"]:
     __digital_normalisation__input = __rawdata__input
-    __digital_normalisation__prefix = manager.getwkdir("digital_normalisation")
+    __digital_normalisation__prefix = manager.getname("digital_normalisation")
     __digital_normalisation__output = [
         manager.getname("digital_normalisation", "_R%i_.dn.fastq") % i
         for i in (1, 2)]
