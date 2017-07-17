@@ -328,14 +328,17 @@ provide the different items inside the documentation as follows::
     ################################################
     #  documentation here
     #
-    # adapter_choice__: ["PCRFree", "TruSeq", None]
+    # adapter_choice__= ["PCRFree", "TruSeq", None]
     count:
         adapter_choice: PCRFree
 
-Note the double underscore after *_choice*. With this syntax, **Sequanix** will
-interpret the list and include the items in a dropdown button with 3 choices (PCRFree,
-TruSeq and None). This minimizes typo errors. You may need to add *None* if no selection 
-is a valid choice.
+
+.. warning:: Note the double underscore after *_choice*. With this syntax, **Sequanix** will
+    interpret the list and include the items in a dropdown button with 3 choices (PCRFree,
+    TruSeq and None). This minimizes typo errors. You may need to add *None* if no selection 
+    is a valid choice.
+
+.. warning:: note the = sign between _choice__ and the list of valide values
 
 
 Further coding conventions

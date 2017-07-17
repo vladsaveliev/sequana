@@ -24,18 +24,19 @@ rule fastq_screen_report:
         import csv
         from numpy import array, arange
 
-        species=[]
-        ohol=[]
-        mhol=[]
-        ohml=[]
-        mhml=[]
+        species = []
+        ohol = []
+        mhol = []
+        ohml = []
+        mhml = []
+        nohit = ""
         file = ""
         for fp in os.listdir(input[0]):
             if fp.endswith("_screen.txt"):
                 file = fp
 
-        for line in csv.reader(open(file, "r"), dialect="excel-tab") :
-        #for line in csv.reader(open(os.path.join(input[0], file), "r"), dialect="excel-tab") :
+        for line in csv.reader(open(os.path.join(input[0], file), "r"), dialect="excel-tab") :
+        #for line in csv.reader(open(file, "r"), dialect="excel-tab"):
             if(len(line) == 0) :
                 continue
             if(line[0].startswith("#")) :
@@ -61,10 +62,10 @@ rule fastq_screen_report:
 
         fig = pl.figure(figsize=(24,10))
         ind = arange(len(species))
-        pl.bar(ind, tuple(ohol),width=1, color="#0000FF", label="unique")
-        pl.bar(ind, tuple(mhol),width=1, color="#6699FF", bottom=tuple(ohol), label="multimap")
-        pl.bar(ind, tuple(ohml),width=1, color="#FF0000", bottom=tuple(ohol+mhol), label="conserved")
-        pl.bar(ind, tuple(mhml),width=1, color="#FF6347", bottom=tuple(ohol+mhol+ohml), label="repeat")
+        pl.bar(ind, tuple(ohol),width=0.8, color="#0000FF", label="unique")
+        pl.bar(ind, tuple(mhol),width=0.8, color="#6699FF", bottom=tuple(ohol), label="multimap")
+        pl.bar(ind, tuple(ohml),width=0.8, color="#FF0000", bottom=tuple(ohol+mhol), label="conserved")
+        pl.bar(ind, tuple(mhml),width=0.8, color="#FF6347", bottom=tuple(ohol+mhol+ohml), label="repeat")
         p5 = pl.bar(32, nohit, color="#6699FF")
         species.append("no hit")
         ind = arange(len(species))
