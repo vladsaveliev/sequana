@@ -90,6 +90,7 @@ freebayes:
 # - options: any options recognised by freebayes.
 #
 joint_freebayes:
+    do: yes
     options:
 
 ##############################################################################

@@ -195,7 +195,9 @@ include: sm.modules["freebayes_vcf_filter"]
 ##############################################################################
 
 # if there are more than one sample lets do a joint calling with all samples
-if len(manager.samples) > 1:
+if len(manager.samples) == 1:
+    config['joint_freebayes']['do'] = False
+if config['joint_freebayes']['do']:
     __joint_freebayes__input = expand(__freebayes__input,
                                       sample=manager.samples)
     __joint_freebayes__reference = __freebayes__reference
@@ -254,7 +256,7 @@ __summary_pipeline__outputs = [
     __freebayes_vcf_filter__input,
     __freebayes_vcf_filter__output,
 ]
-if len(manager.samples) > 1:
+if config['joint_freebayes']['do']:
     __summary_pipeline__outputs += [
         __joint_freebayes_vcf_filter__output,
         __joint_freebayes_vcf_filter__input,
@@ -310,5 +312,5 @@ onsuccess:
         SummaryModule(json.loads(open(filename).read()))
         try:
             shutil.copy(__joint_freebayes_vcf_filter__html, report_dir)
-        except FileNotFoundError:
+        except (FileNotFoundError, NameError):
             pass
