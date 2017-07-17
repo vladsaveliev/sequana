@@ -240,7 +240,7 @@ onsuccess:
     sm.add_stats_summary_json(json_list, snake_parser)
 
     # create summary pipeline for each samples
-    report_dir_format = 'report_vc_{0}'
+    report_dir_format = 'report_da_{0}'
     for proj in manager.samples.keys():
         report_dir = report_dir_format.format(proj)
         conf.output_dir = report_dir

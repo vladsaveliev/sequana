@@ -840,19 +840,13 @@ class PipelineManager(object):
             raise ValueError("Could not find fastq.gz files with valid format "
                              "(NAME_R1_<SUFFIX>.fastq.gz where <SUFFIX> is "
                              "optional")
-        elif len(ff.tags) == 1:
-            self.mode = "nowc"  # no wildcard
-            self.sample = ff.tags[0]
-            self.basename = self.sample + "/%s/" + self.sample
         else:
-            self.mode = "wc"
             self.sample = "{sample}"
             self.basename = "{sample}/%s/{sample}"
 
     def _get_bam_files(self, pattern):
         ff = FileFactory(pattern)
         self.samples = {tag: fl for tag, fl in zip(ff.filenames, ff.realpaths)}
-        self.mode = "wc"
         self.sample = "{sample}"
         self.basename = "{sample}/%s/{sample}"
 
@@ -888,10 +882,7 @@ class PipelineManager(object):
         otherwise, a function compatible with snakemake is returned. This function
         contains a wildcard to each of the samples found by the manager.
         """
-        if self.mode == "nowc":
-            return self.ff.realpaths
-        else:
-            return lambda wildcards: self.samples[wildcards.sample]
+        return lambda wildcards: self.samples[wildcards.sample]
 
     def _get_filenames(self, cfg):
         filenames = []
