@@ -8,6 +8,7 @@
 # use it, otherwise use input_samples.
 # If input_extension provided, use it otherwise assume fastq.gz
 # ============================================================================
+#
 input_directory: "%(input_directory)s"
 input_readtag: "%(input_readtag)s"
 input_extension: "%(input_extension)s"
@@ -27,7 +28,7 @@ input_samples:
 #
 sequencing:
     platform: "Illumina"
-    instrument: "Hiseq2500"
+    instrument: "Unknown"
     flowcell: "Unknown"
 
 ##############################################################################
@@ -106,30 +107,31 @@ format_contigs:
 #
 # :Parameters:
 #
-# - do: if unchecked, this rule is ignored.
 # - reference_file: the name of the reference file.
 # - index_algorithm: the BWA index algorithm (is or bwtsw).
 # - options: any options recognised by BWA MEM tool.
 # - threads: number of threads to be used.
+# - tmp_directory: temporary directory
 #
 bwa_mem_assembly:
     index_algorithm: 'is'
     options: '-T 30'
     threads: 2
+    tmp_directory: './tmp/'
 
 ##############################################################################
-# Picard-tools - MarkDuplicates
+# Sambamba - Marks or removes duplicates
 #
 # :Parameters:
 #
 # - do: if unchecked, this rule is ignored.
 # - remove: boolean if you want remove or not duplicated reads.
-# - tmpdir: set the temporary directory.
+# - tmp_directory: set the temporary directory.
 #
-mark_duplicates:
+sambamba_markdup:
     do: yes
     remove: no
-    tmpdir: ""
+    tmp_directory: "./tmp/"
 
 ##############################################################################
 # Filter reads with a mapping score lower than an integer 
@@ -137,9 +139,9 @@ mark_duplicates:
 # :Parameters:
 #
 # - do: if unchecked, this rule is ignored.
-# - threshold: mapping score threshold (between 0 and 60 with BWA).
+# - threshold: mapping score threshold (between 0 and 60).
 #
-bam_quality_filter:
+sambamba_filter:
     do: yes
     threshold: 30
 
@@ -192,7 +194,7 @@ freebayes:
 # - strand_ratio: threshold for minimum strand ratio between 0 and 0.5.
 #
 freebayes_vcf_filter:
-    freebayes_score: 200
+    freebayes_score: 20
     frequency: 0.8
     min_depth: 10
     forward_depth: 3

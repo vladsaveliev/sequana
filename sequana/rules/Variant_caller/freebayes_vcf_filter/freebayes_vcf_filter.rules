@@ -1,6 +1,6 @@
 rule freebayes_vcf_filter:
-    """ It filters VCF file from freebayes with score, coverage depth and strand
-    ratio.
+    """ It filters VCF file from freebayes with score, coverage depth and
+    strand ratio.
 
     Required input:
         __freebayes_vcf_filter__input: VCF file from freebayes
@@ -19,19 +19,26 @@ rule freebayes_vcf_filter:
             of forward strand
         config["freebayes_vcf_filter"]["reverse_depth"]: minimal coverage depth
             of reverse strand
-        config["freebayes_vcf_filter"]["strand_ratio"]: minimal strand ratio [0:0.5]
+        config["freebayes_vcf_filter"]["strand_ratio"]: minimal strand ratio
+            [0:0.5]
     """
     input:
         vcf = __freebayes_vcf_filter__input
     output:
         vcf = __freebayes_vcf_filter__output,
-        csv = __freebayes_vcf_filter__csv
+        csv = __freebayes_vcf_filter__csv,
+        html = __freebayes_vcf_filter__html
     params:
-        filter_dict = config["freebayes_vcf_filter"]
+        filter_dict = config["freebayes_vcf_filter"],
+        report_dir = __freebayes_vcf_filter__report_dir
     run:
         from sequana.freebayes_vcf_filter import VCF_freebayes
+        from sequana.modules_report.variant_calling import VariantCallingModule
+        from sequana.utils import config
         
         v = VCF_freebayes(input["vcf"])
         filter_v = v.filter_vcf(params["filter_dict"])
         filter_v.to_vcf(output["vcf"])
         filter_v.to_csv(output["csv"])
+        config.output_dir = params['report_dir']
+        VariantCallingModule(filter_v)

@@ -35,17 +35,21 @@ configfile: "config.yaml"
 manager = sm.PipelineManager("denovo_assembly", config)
 config = manager.config
 __snakefile__ = srcdir(__snakefile__)
-report_dir = manager.getreportdir("da")
+__report_dir__ = 'report_da_{0}'.format(manager.sample)
 
 __rawdata__input = manager.getrawdata()
 
 # Initiate variable that are modified during the pipeline
 __summary_pipeline__outputs = []
 
-# digital normalisation with khmer if coverage is too high
+#
+# Normalisation of the coverage - Khmer (digital normalisation)
+# 
+##############################################################################
+
 if config["digital_normalisation"]["do"]:
     __digital_normalisation__input = __rawdata__input
-    __digital_normalisation__prefix = manager.getwkdir("digital_normalisation")
+    __digital_normalisation__prefix = manager.getname("digital_normalisation")
     __digital_normalisation__output = [
         manager.getname("digital_normalisation", "_R%i_.dn.fastq") % i
         for i in (1, 2)]
@@ -55,7 +59,11 @@ if config["digital_normalisation"]["do"]:
 else:
     __spades__input = __rawdata__input
 
-# de novo assembly with Spades
+# 
+# De Novo Assembly - Spades
+# 
+##############################################################################
+
 __spades__outdir = manager.getwkdir("spades")
 __spades__contigs = manager.getname("spades", ".contigs.fasta")
 __spades__scaffolds = manager.getname("spades", ".scaffolds.fasta")
@@ -77,7 +85,11 @@ else:
 
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
-# evaluate assembly with Quast
+#
+# Assembly assessment - Quast
+#
+##############################################################################
+
 __quast__genes = []
 if config["quast"]["reference"]:
     __quast__reference = config["quast"]["reference"]
@@ -97,42 +109,49 @@ __format_contigs__input = __spades__scaffolds
 __format_contigs__output = manager.getname("format_contigs", ".fasta")
 include: sm.modules["format_contigs"]
 
+#
+# Remapping of reads on assembly:
+#  
+#  Variant calling - Freebayes
+#  Coverage analysis - Sequana Coverage
+#
+##############################################################################
+
 # assess de novo quality with coverage analysis and variant calling
 __bwa_mem_assembly__reference = __format_contigs__output
 __bwa_mem_assembly__fai = __bwa_mem_assembly__reference + ".fai"
-__bwa_mem_assembly__mem_output = manager.getname("bwa_mem_assembly", ".bam")
-__bwa_mem_assembly__sort_output = manager.getname("bwa_mem_assembly",
+__bwa_mem_assembly__output = manager.getname("bwa_mem_assembly",
                                                   ".sorted.bam")
 __bwa_mem_assembly__log = manager.getlogdir("bwa_mem_assembly")
 __bwa_index_assembly__log = "common_logs/bwa_index.log"
 include: bwa_mem_dynamic("assembly", manager)
 
 # initiate variables
-__mark_duplicates__input = __bwa_mem_assembly__sort_output
-__bam_quality_filter__input = __bwa_mem_assembly__sort_output
-__samtools_depth__input = __bwa_mem_assembly__mem_output
+__sambamba_markdup__input = __bwa_mem_assembly__output
+__sambamba_filter__input = __bwa_mem_assembly__output
+__samtools_depth__input = __bwa_mem_assembly__output
+__freebayes__input = __bwa_mem_assembly__output
 
-# Mark duplicates with picard tools
-if config["mark_duplicates"]["do"]:
-    __mark_duplicates__output = manager.getname("mark_duplicates",
+# Mark duplicates with sambamba markdup
+if config["sambamba_markdup"]["do"]:
+    __sambamba_markdup__output = manager.getname("sambamba_markdup",
                                                 ".rmdup.sorted.bam")
-    __mark_duplicates__metrics = manager.getname("mark_duplicates", ".metrics")
-    __mark_duplicates__log_err = manager.getlogdir("mark_duplicates.err")
-    __mark_duplicates__log_std = manager.getlogdir("mark_duplicates.std")
-    include: sm.modules["mark_duplicates"]
-    __bam_quality_filter__input = __mark_duplicates__output
-    __freebayes__input = __mark_duplicates__output
-    __samtools_depth__input = __mark_duplicates__output
+    __sambamba_markdup__log_err = manager.getlogdir("sambamba_markdup.err")
+    __sambamba_markdup__log_std = manager.getlogdir("sambamba_markdup.std")
+    include: sm.modules["sambamba_markdup"]
+    __sambamba_filter__input = __sambamba_markdup__output
+    __freebayes__input = __sambamba_markdup__output
+    __samtools_depth__input = __sambamba_markdup__output
 
-# Bam quality filter with samtools
-if config["bam_quality_filter"]["do"]:
-    __bam_quality_filter__output = manager.getname("bam_quality_filter",
+# Bam quality filter with sambamba
+if config["sambamba_filter"]["do"]:
+    __sambamba_filter__output = manager.getname("sambamba_filter",
                                                    ".filter.sorted.bam")
-    __bam_quality_filter__log = manager.getlogdir("bam_quality_filter")
-    include: sm.modules["bam_quality_filter"]
-    __freebayes__input = __bam_quality_filter__output
-    __samtools_depth__input = [__bam_quality_filter__output,
-                               __bam_quality_filter__input]
+    __sambamba_filter__log = manager.getlogdir("sambamba_filter")
+    include: sm.modules["sambamba_filter"]
+    __freebayes__input = __sambamba_filter__output
+    __samtools_depth__input = [__sambamba_filter__output,
+                               __sambamba_filter__input]
 
 # Sequana_coverage analysis
 if config["sequana_coverage"]["do"]:
@@ -143,6 +162,10 @@ if config["sequana_coverage"]["do"]:
     __sequana_coverage__fasta = __bwa_mem_assembly__reference
     __sequana_coverage__gbk = []
     __sequana_coverage__output = manager.getname("sequana_coverage", ".csv")
+    __sequana_coverage__report_dir = __report_dir__
+    __sequana_coverage__html = os.sep.join([
+        __report_dir__, 'sequana_coverage.html'
+    ])
     include: sm.modules["sequana_coverage"]
     expected_output.append(expand(__sequana_coverage__output,
                                   sample=manager.samples))
@@ -161,6 +184,10 @@ if config["freebayes"]["do"]:
                                                      ".filter.vcf")
     __freebayes_vcf_filter__csv = manager.getname("freebayes_vcf_filter",
                                                   ".csv")
+    __freebayes_vcf_filter__report_dir = __report_dir__
+    __freebayes_vcf_filter__html = os.sep.join([
+        __report_dir__, 'variant_calling.html'
+    ])
     include: sm.modules["freebayes_vcf_filter"]
     expected_output.append(expand(__freebayes_vcf_filter__csv,
                                   sample=manager.samples))
@@ -200,7 +227,36 @@ rule pipeline_variant:
         expected_output
 
 onsuccess:
+    import os
+    import shutil
+    import json
+    
+    from sequana.modules_report.summary import SummaryModule
+    from sequana.utils import config as conf
+
     # add file name for snakemake stats in json
     snake_parser = snakemake.get_argument_parser().parse_args()
     json_list = expand(__summary_pipeline__json_output, sample=manager.samples)
     sm.add_stats_summary_json(json_list, snake_parser)
+
+    # create summary pipeline for each samples
+    report_dir_format = 'report_da_{0}'
+    for proj in manager.samples.keys():
+        report_dir = report_dir_format.format(proj)
+        conf.output_dir = report_dir
+        filename = os.sep.join([
+            proj,
+            'summary_pipeline',
+            '{0}.json'.format(proj),
+        ])
+
+        # Quast section
+        quast_dir = os.sep.join([proj, "quast"])
+        dst = os.sep.join([conf.output_dir, 'quast'])
+        if os.path.isdir(dst):
+            shutil.rmtree(dst)
+        elif os.path.isfile(dst):
+            os.remove(dst)
+        shutil.copytree(quast_dir, dst)
+
+        SummaryModule(json.loads(open(filename).read()))
