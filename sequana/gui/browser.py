@@ -4,10 +4,15 @@ try:
     # PyQt 5.6 and above (e.g. conda Mac PyQt5.6 does not work like PyQt5.6
     # linux)
     from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
-    from PyQt5 import QtWebEngine as QtWebKit
-    from PyQt5.Qt import QWebEnginePage as QWebPage
-    from PyQt5.QtWebEngineWidgets import QWebEngineSettings
-    from PyQt5.Qt import QTabWidget
+    try:
+        from PyQt5 import QtWebEngine as QtWebKit
+        from PyQt5.Qt import QWebEnginePage as QWebPage
+        from PyQt5.QtWebEngineWidgets import QWebEngineSettings
+        from PyQt5.Qt import QTabWidget
+    except:
+        print("""The sequana browser will not be available on your system. This is
+a know issue (https://github.com/sequana/sequana/issues/420) that will be
+fixed.""")
 except:
     # PyQt 5.6 and below
     from PyQt5.QtWebKitWidgets import QWebView
