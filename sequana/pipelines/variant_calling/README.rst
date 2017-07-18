@@ -10,11 +10,19 @@
 Details
 ~~~~~~~~
 
-Snakemake variant calling pipeline based on pipelines of Varun Khanna 
-(https://github.com/khannavarun) and Adrien Villain (https://github.com/avillain).
-Reads (paired or single) are mapped using bwa mem. Aligned reads are processed with
-picard tools markduplicates and GATK indel realigner. Freebayes is used to detect
-SNPs and short INDELs. An annotation file can be set to annotate detected variants.
+Snakemake variant calling pipeline based on
+`tutorial <https://github.com/ekg/alignment-and-variant-calling-tutorial>`_
+written by Erik Garrison. Reads (paired or single) are mapped using
+`bwa <http://bio-bwa.sourceforge.net/>`_ and sorted with
+`sambamba-sort <http://lomereiter.github.io/sambamba/docs/sambamba-sort.html>`_.
+PCR duplicates are marked with
+`sambamba-markdup <http://lomereiter.github.io/sambamba/docs/sambamba-sort.html>`_. 
+`Freebayes <https://github.com/ekg/freebayes>`_ is used to detect SNPs and short
+INDELs. Good practice proposed by the Broad institute is not necessary using
+Freebayes as variant caller. Thus, the use of Genome Analysis Toolkit (GATK) is
+avoided. For more information, please refer to a post by Brad Chapman
+
+An annotation file can be set to annotate detected variants.
 Variants are reported in a HTML report.
 
 The pipeline provides a coverage analysis of the mapping coverage after bam processing.
