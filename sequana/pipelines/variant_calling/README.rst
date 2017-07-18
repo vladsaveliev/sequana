@@ -23,13 +23,12 @@ with Freebayes. For more information, please refer to a post by Brad Chapman on
 `minimal BAM preprocessing methods
 <https://bcbio.wordpress.com/2013/10/21/updated-comparison-of-variant-detection-methods-ensemble-freebayes-and-minimal-bam-preparation-pipelines/>`_.
 
-An annotation file can be set to annotate detected variants.
-Variants are reported in a HTML report.
+The pipeline provides an analysis of the mapping coverage using
+`sequana coverage <http://www.biorxiv.org/content/early/2016/12/08/092478>`_.
+It detects and characterises automatically low and high genome coverage regions.
 
-The pipeline provides a coverage analysis of the mapping coverage after bam processing.
-Coverage for each base position is computed with bedtools genomecov. Sequana provides
-a HTML report with dynamics plots of sequencing coverage and shows interesting regions 
-which have unusual coverage depth.
+Detected variants are annoted `SnpEff <http://snpeff.sourceforge.net/>`_ if a
+GenBank file is provided. The pipeline did the database building automatically.
 
 Usage
 ~~~~~~~~~

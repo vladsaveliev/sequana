@@ -117,8 +117,6 @@ setup(
             'sequana_coverage=sequana.modules_report.coverage:CoverageModule',
             'sequana_variant_calling=sequana.modules_report.variant_calling:VariantCallingModule',
             'sequana_summary=sequana.modules_report.summary:SummaryModule',
-            'quast=sequana.modules_report.quast:QuastModule',
         ],
-},
-
+    },
 )
