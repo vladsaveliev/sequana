@@ -18,9 +18,10 @@ written by Erik Garrison. Reads (paired or single) are mapped using
 PCR duplicates are marked with
 `sambamba-markdup <http://lomereiter.github.io/sambamba/docs/sambamba-sort.html>`_. 
 `Freebayes <https://github.com/ekg/freebayes>`_ is used to detect SNPs and short
-INDELs. Good practice proposed by the Broad institute is not necessary using
-Freebayes as variant caller. Thus, the use of Genome Analysis Toolkit (GATK) is
-avoided. For more information, please refer to a post by Brad Chapman
+INDELs. The INDEL realignment and base quality recalibration are not necessary
+with Freebayes. For more information, please refer to a post by Brad Chapman on
+`minimal BAM preprocessing methods
+<https://bcbio.wordpress.com/2013/10/21/updated-comparison-of-variant-detection-methods-ensemble-freebayes-and-minimal-bam-preparation-pipelines/>`_.
 
 An annotation file can be set to annotate detected variants.
 Variants are reported in a HTML report.
