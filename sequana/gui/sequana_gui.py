@@ -1347,8 +1347,8 @@ class SequanaGUI(QMainWindow, Tools):
             # we add a try/except
             easydev.cmd_exists('dot')
             if easydev.cmd_exists('dot2') is False:
-                msg = "dot command does not exists, use 'conda install graphviz'"
-                msg += "You may continue (e.g. pressing Run button) but won't see the workflow."
+                msg = "**dot** command not found. Use 'conda install " 
+                cmd += "graphviz' to install it."
                 self.warning(msg)
                 msg = WarningMessage((msg))
                 msg.exec_()
