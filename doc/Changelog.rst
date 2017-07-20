@@ -6,6 +6,16 @@ Changelog
 2017
 ------
 
+0.4.1 July 2017
+~~~~~~~~~~~~~~~~~~
+
+* Update of Variant calling and denovo pipelines with HTML report creation
+* Fix #421 (check for dot command in sequanix)
+* Fix #420 (sequanix browser on Mac)
+* sequana_coverage #417 division by 0 fixed
+* snpeff bugs for special genbank cases fixed
+
+
 0.4 July 2017
 ~~~~~~~~~~~~~~~~~~~~~
 
