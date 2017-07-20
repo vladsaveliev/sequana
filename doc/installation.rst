@@ -92,7 +92,7 @@ install everything in one go)::
 
     conda install pysam snpeff biokit bioservices spades khmer pyVCF
     conda install bwa bcftools samtools bedtools picard freebayes fastqc
-    conda install kraken krona pigz
+    conda install kraken krona pigz sambamba
     conda install ipython cutadapt jupyter pbr colorlog ruamel.yaml
 
 For atropos, which is not yet on bioconda, use the **pip** command::
