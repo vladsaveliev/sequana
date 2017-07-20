@@ -1342,6 +1342,21 @@ class SequanaGUI(QMainWindow, Tools):
     # -----------------------------------------------------------------------
 
     def show_dag(self):
+        try:    
+            # This command should work on various platform, just in case
+            # we add a try/except
+            easydev.cmd_exists('dot')
+            if easydev.cmd_exists('dot2') is False:
+                msg = "dot command does not exists, use 'conda install graphviz'"
+                msg += "You may continue (e.g. pressing Run button) but won't see the workflow."
+                self.warning(msg)
+                msg = WarningMessage((msg))
+                msg.exec_()
+                return
+        except:
+            pass
+
+
         self.info("Creating DAG image.")
         if self.snakefile is None:
             self.warning("No snakefile")
