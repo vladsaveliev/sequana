@@ -153,6 +153,8 @@ class SequanaFactory(BaseFactory):
         # Some widgets to be used: a file browser for paired files
         fastq_filter = "Fastq file (*.fastq *.fastq.gz *.fq *.fq.gz)"
         self._sequana_paired_tab = FileBrowser(paired=True, file_filter=fastq_filter)
+        self._sequana_readtag_label2 = QW.QLabel("Read tag (e.g. _[12].fastq)")
+        self._sequana_readtag_lineedit2 = QW.QLineEdit("_R[12]_")
 
         # Set the file browser input_directory tab
         self._sequana_directory_tab = FileBrowser(directory=True)
@@ -618,9 +620,15 @@ class SequanaGUI(QMainWindow, Tools):
         # a local alias
         saf = self.sequana_factory
 
-        # add widgets for the working dir and input sample
+        # add widgets for the working dir
         self.ui.layout_sequana_wkdir.addWidget(saf._directory_browser)
+        
+        # add widget for the input sample
         self.ui.layout_sequana_input_files.addWidget(saf._sequana_paired_tab)
+        hlayout = QW.QHBoxLayout()
+        hlayout.addWidget(saf._sequana_readtag_label2)
+        hlayout.addWidget(saf._sequana_readtag_lineedit2)
+        self.ui.layout_sequana_input_files.addLayout(hlayout)
 
         # add widget for the input directory
         self.ui.layout_sequana_input_dir.addWidget(saf._sequana_directory_tab)
@@ -1210,6 +1218,12 @@ class SequanaGUI(QMainWindow, Tools):
             elif self.ui.tabWidget.currentIndex() == 1:
                 filename = self.sequana_factory._sequana_paired_tab.get_filenames()
                 form_dict["input_samples"] = (filename)
+
+                readtag = self.sequana_factory._sequana_readtag_lineedit.text()
+                if len(readtag.strip()):
+                    form_dict["input_readtag"] = readtag
+                else:
+                    form_dict["input_readtag"] = "_R[12]_"
         elif self.mode == "generic":
             # Here we save the undefined section in the form.
             if self._undefined_section in form_dict.keys():
