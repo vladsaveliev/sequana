@@ -29,6 +29,7 @@ It detects and characterises automatically low and high genome coverage regions.
 
 Detected variants are annoted `SnpEff <http://snpeff.sourceforge.net/>`_ if a
 GenBank file is provided. The pipeline did the database building automatically.
+Particular codon table need to be add by hand.
 
 Usage
 ~~~~~~~~~
