@@ -14,7 +14,7 @@ When submitting a pull request, we ask you check the following:
    some further changes.
 
 2. The contributed code will be **licensed under Sequana's license**,
-   https://github.com/sequana/sequana/blob/master/LICENSE.txt
+   https://github.com/sequana/sequana/blob/master/LICENSE
    If you did not write the code yourself, you ensure the existing
    license is compatible and include the license information in the
    contributed files, or obtain a permission from the original
