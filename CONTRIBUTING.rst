@@ -2,7 +2,7 @@
 Sequana pull request guidelines
 ================================
 
-Pull requests are always welcome, and the Scipy community appreciates
+Pull requests are always welcome, and the Sequana community appreciates
 any help you give.
 
 When submitting a pull request, we ask you check the following:
