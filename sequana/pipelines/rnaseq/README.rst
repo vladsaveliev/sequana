@@ -24,10 +24,13 @@ Requirements
 Details
 ~~~~~~~~~
 
-Snakemake RNA-seq pipeline based on workflow use at Biomics Pole in Institut Pasteur. The pipeline runs some QC, such as FastQC, fastq_screen (you need your own base).
-Reads could be trimmed by several tools (cutadapt, atropos, clean_ngs) and mapped against reference genome (with bowtie or STAR) and ribosomal RNA (with bowtie1).
-After, reads are counted with feature-counts (HTSeq-count soon available) against a GFF file. All results are summarized by multiQC.
+Snakemake RNA-seq pipeline based on workflow use at Biomics Pole in Institut Pasteur. The pipeline runs some QC, such as
+ FastQC, fastq_screen (you need your own base).Reads could be trimmed by several tools (cutadapt, atropos, clean_ngs)
+ and mapped against reference genome (with bowtie or STAR, bowtie2 is used by fastq_screen) and ribosomal RNA (with bowtie1). After, reads are
+ counted with feature-counts (HTSeq-count soon available) against a GFF file. All results are summarized by multiQC.
 
+.. warning:: The statistical analysis is not included in our pipeline because it is a step that is difficult to automate
+before to explore the data. You can continue with SARTools (https://github.com/PF2-pasteur-fr/SARTools) if you want to perform the statistical step.
 
 Rules and configuration details
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
