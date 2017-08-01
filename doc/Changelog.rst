@@ -6,6 +6,25 @@ Changelog
 2017
 ------
 
+0.4.1 July 2017
+~~~~~~~~~~~~~~~~~~
+
+* Update of Variant calling and denovo pipelines with HTML report creation
+* Fix #421 (check for dot command in sequanix)
+* Fix #420 (sequanix browser on Mac)
+* sequana_coverage #417 division by 0 fixed
+* snpeff bugs for special genbank cases fixed
+
+
+0.4 July 2017
+~~~~~~~~~~~~~~~~~~~~~
+
+* Master release for sequanix
+
+
+0.3 April-June 2017
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 * BUG FIXES:
 
     - sequanix:
@@ -13,15 +32,14 @@ Changelog
     - fastq_samples/ fastq module: fix histogram_gc_content maximum range
     - rulegraph rule: fix issue #405 (spaces in path to snakefile)
     - genome coverage was buggy for multi chromosome and circular option on. Fixed
-    - adapters/expdesing modules: fixe the case of design files with same sample
+    - adapters/expdesign modules: fixe the case of design files with same sample
       name and same index but different lanes.
     - sequana_coverage. Fix Issue #416 (float division by zero)
-
 
 * CHANGES:
 
     - sequanix:
-        - snakemake output is now cleared
+        - snakemake output is now cleared when pressing RUN
     - quality_control pipeline: default to atropos instead of cutadapt for
           adapter trimming. Kraken: remove classified reads and keep
           unclassified. Unclassified reads are now compressed.
@@ -31,10 +49,10 @@ Changelog
 
     - pacbio module: cleanup and add funcion to convert input BAM into Fasta
     - sequence module: Repeats class added
-    - new pipeline called qc_pacbio to perform quick QC and taxonomy analysis
+    - new Snakemake pipeline called qc_pacbio to perform quick QC and taxonomy analysis
           for pacbio
-    - add ORD, CDS, GC SKEW in sequence module
-    
+    - add ORD, CDS, GC SKEW in sequence module.
+
 
 0.2. - March - April 2017
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

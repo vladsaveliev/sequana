@@ -160,7 +160,9 @@ class SummaryModule(SequanaBaseModule):
                                        outputdir=None)
         l, c = self.create_hide_section('Stats', 'collapse/expand', png, True)
         self.sections.append({
-            'name': "Running Stats {0}".format(self.add_float_right(l)),
+            'name': "Running Stats {0}".format(
+                self.add_float_right('<small>{0}</small>'.format(l))
+            ),
             'anchor': 'stats',
             'content': c
         })
@@ -180,7 +182,9 @@ class SummaryModule(SequanaBaseModule):
         l, c = self.create_hide_section('Dep', 'collapse/expand', content,
                                         hide=True)
         self.sections.append({
-            'name': "Dependencies {0}".format(self.add_float_right(l)),
+            'name': "Dependencies {0}".format(
+                self.add_float_right('<small>{0}</small>'.format(l))
+            ),
             'anchor': 'dependencies',
             'content': c
         })

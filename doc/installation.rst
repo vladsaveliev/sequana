@@ -6,6 +6,13 @@ Installation
 
 .. _installation_conda:
 
+
+In short, using bioconda (conda channel)::
+
+    conda install sequana
+
+See hereafter for details.
+
 Installation using Conda
 ============================
 
@@ -35,9 +42,9 @@ where **ipython** is the package you wish to install. Note that by default,
 many channels available. We will use the **bioconda** channel. To use it, type
 these commands (once for all)::
 
-    conda config --add channels conda-forge
-    conda config --add channels defaults
     conda config --add channels r
+    conda config --add channels defaults
+    conda config --add channels conda-forge
     conda config --add channels bioconda
 
 .. warning:: **it is important to add them in this order**, as mentionned on bioconda webpage
@@ -85,8 +92,8 @@ install everything in one go)::
 
     conda install pysam snpeff biokit bioservices spades khmer pyVCF
     conda install bwa bcftools samtools bedtools picard freebayes fastqc
-    conda install kraken krona pigz
-    conda install ipython cutadapt jupyter pbr
+    conda install kraken krona pigz sambamba
+    conda install ipython cutadapt jupyter pbr colorlog ruamel.yaml
 
 For atropos, which is not yet on bioconda, use the **pip** command::
 

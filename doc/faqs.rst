@@ -105,6 +105,16 @@ This may be solved by removing conda installation and using pip instead::
      conda remove pysam
      pip install pysam
 
+Another error know for pysam version 0.11.2.2 raises this error::
+
+    ImportError: libbz2.so.1.0: cannot open shared object file: No such file or
+    directory
+
+Downgrading to version 0.11.2.1 and upgrading to working version solves the problem::
+
+    conda install pysam=0.11.2.1
+
+
 
 qt
 ~~~~~~~~~~~~~~~~~~

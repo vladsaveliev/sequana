@@ -46,7 +46,6 @@ rule digital_normalisation:
         # Files name without .gz extension
         fastq="{input.fastq}"
         fastq=${{fastq//.gz/}}
-        echo $fastq
 
         # Uncompress fastq file
         unpigz -fk {input.fastq} -p {threads}

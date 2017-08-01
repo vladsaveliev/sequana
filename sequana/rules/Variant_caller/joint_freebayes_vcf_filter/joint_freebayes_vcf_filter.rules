@@ -1,0 +1,35 @@
+rule joint_freebayes_vcf_filter:
+    """ It filters VCF file from freebayes with score and coverage depth.
+
+    Required input:
+        __joint_freebayes_vcf_filter__input: VCF file from freebayes
+
+    Required output:
+        __joint_freebayes_vcf_filter__output: An html file
+        __joint_freebayes_vcf_filter__csv: CSV file
+
+    Required parameters:
+        config["joint_freebayes_vcf_filter"]["freebayes_score"]: minimal
+            freebayes score
+        config["joint_freebayes_vcf_filter"]["frequency"]: minimal alternative
+            allele frequency
+        config["joint_freebayes_vcf_filter"]["depth"]: minimal coverage depth
+    """
+    input:
+        vcf = __joint_freebayes_vcf_filter__input
+    output:
+        vcf = __joint_freebayes_vcf_filter__output,
+        html = __joint_freebayes_vcf_filter__html
+    params:
+        filter_dict = config["joint_freebayes_vcf_filter"],
+        report_dir = __joint_freebayes_vcf_filter__report_dir
+    run:
+        from sequana.freebayes_vcf_filter import VCF_freebayes
+        from sequana.modules_report.joint_calling import JointCallingModule
+        from sequana.utils import config
+        
+        v = VCF_freebayes(input['vcf'])
+        filter_v = v.filter_vcf(params['filter_dict'])
+        filter_v.to_vcf(output['vcf'])
+        config.output_dir = params['report_dir']
+        JointCallingModule(filter_v)

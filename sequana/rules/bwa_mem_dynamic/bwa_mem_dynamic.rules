@@ -51,24 +51,22 @@ rule bwa_mem_%(name)s:
         fastq = __bwa_mem_%(name)s__input,
         reference = __bwa_mem_%(name)s__reference
     output:
-        mem = __bwa_mem_%(name)s__mem_output,
-        sort = __bwa_mem_%(name)s__sort_output
+        sort = __bwa_mem_%(name)s__output
     log:
         __bwa_mem_%(name)s__log
     params:
         mem = config["bwa_mem_%(name)s"]["options"],
-        bwa_exe = "%(executable)s"
+        bwa_exe = "%(executable)s",
+        tmp = config["bwa_mem_%(name)s"]["tmp_directory"]
     threads:
         int(config["bwa_mem_%(name)s"]["threads"])
     shell:
         """
-        # Mapping
         ({params.bwa_exe} mem -t {threads} {params.mem} \
         {input.reference} {input.fastq} | \
-        samtools view -Sbh -> {output.mem}) 2> {log}
- 
-        # Sorting
-        samtools sort -o {output.sort} {output.mem} 2>> {log}
+        samtools view -Sbu - | \
+        sambamba sort /dev/stdin -o {output.sort} -t {threads} \
+        --tmpdir={params.tmp}) 2> {log}
         """
     '''
     from sequana.snaketools import build_dynamic_rule

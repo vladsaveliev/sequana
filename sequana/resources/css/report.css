@@ -1,66 +1,38 @@
-@import url("reset.css");
-
-/*
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │                                                                     Body │
- * └──────────────────────────────────────────────────────────────────────────┘
- */
-body {
-    color: #333333;
-    font-family: "optima", "lucida grande", "lucida sans unicode",
-                 verdana, arial, helvetica, sans-serif;
-    font-size: 1.1em;
-    line-height: 1.5em;
-    margin-top: 0em;
-}
-
-
-header {background: black;color:white;}
 
 /*
  * ┌──────────────────────────────────────────────────────────────────────────┐
  * │                                                                 Document │
  * └──────────────────────────────────────────────────────────────────────────┘
  */
-div.document {
-    margin-top:     20px;
-    margin-bottom:   3em;
-    margin-left:   2%;
-/*    margin-right:    5em;*/
-    margin-right:    2%;
+
+body {
+    margin-bottom: 3em; 
 }
 
-h1, h2, h3, h4, h5, h6 {
-    font-family: "futura", "lucida grande", "lucida sans unicode",
-                 verdana, arial, helvetica, sans-serif;
-    font-weight: normal;
-    clear: both;
+footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 2em;
+    background-color: #eee;
+    border-top: 3px solid #aaaaaa;
 }
 
-h1 {
-    font-size:     2em;
-    margin-top:    1em;
-    padding-top:   1em;
-    margin-bottom: 1em;
+header {
+    background: black;
+    color:white;
 }
 
 h2 {
-    font-size:  1.25em;
-    margin-top:    1em;
-    margin-bottom: 1em;
     color: #326598;
     padding-left:  1em;
     margin-left:  -1em;
     margin-right: 25%;
     padding-bottom: .5em;
-    padding-top:   1em;
     border-bottom: 2px solid #326598;
 }
 
 h3 {
-    font-size:     1em;
-    margin-top:    1em;
-    margin-bottom: 1em;
     border-bottom: 1px solid #efefef;
     color: #326598;
 }
@@ -82,10 +54,6 @@ h2.subtitle {
     margin-right: 0;
     padding-top: 0.2em;
     text-align: center;
-}
-
-p {
-    margin-bottom: 1em;
 }
 
 strong {
@@ -115,6 +83,23 @@ hr {
     box-shadow: inset 0 12px 12px -12px rgba(0,0,0,0.5);
 }
 
+/*
+ * ┌──────────────────────────────────────────────────────────────────────────┐
+ * │                                                                    Table │
+ * └──────────────────────────────────────────────────────────────────────────┘
+ */
+
+table.table.dataTable th {
+    padding: 8px 9px;
+}
+
+table.table.dataTable td {
+    padding: 5px 5px;
+}
+
+th {
+    text-align: center;
+}
 
 /*
  * ┌──────────────────────────────────────────────────────────────────────────┐
@@ -166,98 +151,6 @@ border: 1px solid;
 padding: 5px;
 left-margin:5px;
 }    
-
-/*
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │                                                                    Table │
- * └──────────────────────────────────────────────────────────────────────────┘
- */
-
-/*
- * Style of Jquery Datatables
- */
-
-table.datatable { 
-    font-size: 12pt;
-    overflow: auto
-}
-
-table.datatable th{
-    background-color: #1b85b8;
-    text-align: center;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    padding: 6px 14px
-}
-
-table.datatable tr{
-    line-height:.8em;
-    text-align:center
-}
-
-table.datatable td{
-    text-overflow:ellipsis;
-    overflow:hidden;
-    white-space: nowrap;
-    padding: 6px 8px
-}
-
-table.dataframe
-{
-    margin-bottom: 2em;
-    border: 4px solid black;
-    line-height:0.9em ; /* reduces spaces between lines*/
-    font-size: 12pt;
-    overflow: auto;
-}
-
-table.dataframe th
-{
-    border: 1px solid black;
-    text-align: center;
-}
-
-table.dataframe td
-{
-    border: 1px solid black;
-    max-width:1024px;  /*large values because we want to see the entire adapter sequence*/
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis
-}
-
-th.head
-{
-    font-weight: bold;
-    border-bottom: 1px solid black;
-    padding-right: .5em;
-}
-
-table.dataframe thead th{
-    background-color: #da5a5a;
-    text-align: center;
-}
-
-table.dataframe p{
-    margin-top: 0em;
-    margin-bottom:0em;
-    padding:0.5em;
-    text-align: center;
-}
-
-
-th.field-name
-{
-    font-weight: bold;
-    text-align: left;
-    padding-right: 1em;
-}
-
-.table_outer {
-    max-height: 25em;
-    width: auto;
-    overflow: scroll; }
 
 /*
  * ┌──────────────────────────────────────────────────────────────────────────┐
@@ -325,147 +218,3 @@ dl.class > dt, dl.function > dt, dl.method > dt, dl.attribute > dt {
 .descname {
     font-weight: bold;
 }
-
-
-
-/*
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │                                                         Table Of Content │
- * └──────────────────────────────────────────────────────────────────────────┘
- */
-
-/* Global */
-.toctree-wrapper {
-    padding-bottom: 1em;
-}
-.toctree-wrapper ul {
-  list-style-type:none;
-  padding-bottom: 0;
-}
-/*
-.toctree-l1 {
-    margin-bottom: 1em;
-}
-*/
-.toctree-l2 {
-    padding-left: 2em;
-}
-
-/* Local */
-li > ul > li {
-    padding-left: 2em;
-}
-
-div.document .contents {
-    margin-bottom: 2em;
-}
-div.document .topic-title {
-    margin-top: 2em;
-    font-weight: bold;
-}
-.contents ul {
-  list-style-type:none;
-  padding-bottom: 0;
-}
-
-
-
-/* -------------------------------------------------------------------------
-   Header
-   ------------------------------------------------------------------------- */
-div.header {
-    padding-top: 25px;
-    padding-left:15px;
-}
-
-/* -------------------------------------------------------------------------
-   Footer
-   ------------------------------------------------------------------------- */
-div.footer {
-    font-family: "futura", "lucida grande", "lucida sans unicode",
-                 verdana, arial, helvetica, sans-serif;
-    font-size: .8em;
-    line-height: 2.0em;
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    background-color: #EEE;
-    width: 100%;
-    border-top: 3px solid #aaaaaa;
-    max-height:20%;
-}
-
-
-div.footer img{
-    margin:3px;
-    width:180px;
-    height:60px;
-    max-height:20%;
-    max-width:35%;
-}
-
-
-div.logo{
-    margin:0px;
-    float: right;
-    max-width:55%;
-}
-
-
-div.copyright{
-    margin:0px;
-    font-size:75%;
-    float: left;
-    padding-left:3px;
-    max-width:40%;
-}
-
-
-/*
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │                                                             Collapse div │
- * └──────────────────────────────────────────────────────────────────────────┘
- */
-div#tabs p{display:none;}
-div#tabs p.tab1:target {display:block;}
-div#tabs p.tab2:target {display:block;}
-div#tabs p.tab3:target {display:block;}
-
-
-/* multi columns */
-
-.multicolumns
-{ 
-    -moz-column-width: 11.5em; /* Firefox */
-    -webkit-column-width: 11.5em; /* webkit, Safari, Chrome */
-    column-width: 11.5em;
-}
-/*remove standard list and bullet formatting from ul*/
-.multicolumns ul
-{
-    margin: 0;
-    padding: 0;
-    list-style-type: none;
-}
-/* correct webkit/chrome uneven margin on the first column*/
-.multicolumns ul li:first-child
-{
-    margin-top:0px;
-}
-
-
-.multicolumns ul li
-{
-    overflow:hidden;
-}
-
-
-
-
-
-
-
-
-
-
-
