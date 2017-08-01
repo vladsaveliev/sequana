@@ -30,7 +30,7 @@ Snakemake RNA-seq pipeline based on workflow use at Biomics Pole in Institut Pas
  counted with feature-counts (HTSeq-count soon available) against a GFF file. All results are summarized by multiQC.
 
 .. warning:: The statistical analysis is not included in our pipeline because it is a step that is difficult to automate
-before to explore the data. You can continue with SARTools (https://github.com/PF2-pasteur-fr/SARTools) if you want to perform the statistical step.
+ before to explore the data. You can continue with SARTools (https://github.com/PF2-pasteur-fr/SARTools) if you want to perform the statistical step.
 
 Rules and configuration details
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
