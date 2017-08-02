@@ -14,6 +14,9 @@ SEQUANA
     :target: http://sequana.readthedocs.org/en/latest/?badge=master
     :alt: Documentation Status
 
+.. image:: https://badges.gitter.im/sequana/sequana.svg
+    :target: https://gitter.im/sequana/sequana?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
+
 :Python version: 3.5 (and 2.7 without snakemake)
 :Online documentation: `On readthedocs <http://sequana.readthedocs.org/>`_
 :Issues and bug reports: `On github <https://github.com/sequana/sequana/issues>`_
