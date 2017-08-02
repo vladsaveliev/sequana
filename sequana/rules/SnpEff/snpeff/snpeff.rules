@@ -1,11 +1,14 @@
 rule snpeff:
-    """ snpeff adds annotation of variants detected in a VCF file.
+    """
+    SnpEff adds annotation of variants detected in a VCF file. It annotates
+    using the old 'EFF' field instead of 'ANN' field. The latter does not
+    provide the codon change information.
 
     Required input:
-        - __snpeff__input: vcf file
+        - __snpeff__vcf: VCF file of detected variants.
 
     Required output:
-        - __snpeff__output: vcf file
+        - __snpeff__ann_vcf: Annotated VCF file.
 
     Required configuration:
         .. code-block:: yaml
@@ -13,14 +16,23 @@ rule snpeff:
             snpeff:
                 reference:  # the genbank file
                 options:    # result filters options 
+    
+    Results filter options:
+	    - :code:`-no-downstream`: Do not show DOWNSTREAM changes
+	    - :code:`-no-intergenic`: Do not show INTERGENIC changes
+	    - :code:`-no-intron`: Do not show INTRON changes
+	    - :code:`-no-upstream`: Do not show UPSTREAM changes
+	    - :code:`-no-utr`: Do not show 5_PRIME_UTR or 3_PRIME_UTR changes
 
+    Reference:
+        - http://snpeff.sourceforge.net/SnpEff_manual.html
     """
     input:
-        vcf = __snpeff__input, 
+        vcf = __snpeff__vcf, 
         ann = config["snpeff"]["reference"],
         config = __snpeff__config
     output:
-        ann = __snpeff__output,
+        ann = __snpeff__ann_vcf,
         html = __snpeff__html
     log:
         log = __snpeff__log

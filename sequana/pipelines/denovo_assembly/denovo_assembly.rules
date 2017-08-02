@@ -78,10 +78,10 @@ if config["spades"]["careful"]:
         manager.getname("spades_get_fastq", "R1.fastq.gz"),
         manager.getname("spades_get_fastq", "R1.fastq.gz")]
     include: sm.modules["spades_get_fastq"]
-    __bwa_mem_assembly__input = __spades_get_fastq__output
+    __bwa_mem_assembly__fastq = __spades_get_fastq__output
     __summary_pipeline__outputs.append(__spades_get_fastq__output)
 else:
-    __bwa_mem_assembly__input = __rawdata__input
+    __bwa_mem_assembly__fastq = __rawdata__input
 
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
@@ -120,17 +120,17 @@ include: sm.modules["format_contigs"]
 # assess de novo quality with coverage analysis and variant calling
 __bwa_mem_assembly__reference = __format_contigs__output
 __bwa_mem_assembly__fai = __bwa_mem_assembly__reference + ".fai"
-__bwa_mem_assembly__output = manager.getname("bwa_mem_assembly",
+__bwa_mem_assembly__bam = manager.getname("bwa_mem_assembly",
                                                   ".sorted.bam")
 __bwa_mem_assembly__log = manager.getlogdir("bwa_mem_assembly")
 __bwa_index_assembly__log = "common_logs/bwa_index.log"
 include: bwa_mem_dynamic("assembly", manager)
 
 # initiate variables
-__sambamba_markdup__input = __bwa_mem_assembly__output
-__sambamba_filter__input = __bwa_mem_assembly__output
-__samtools_depth__input = __bwa_mem_assembly__output
-__freebayes__input = __bwa_mem_assembly__output
+__sambamba_markdup__input = __bwa_mem_assembly__bam
+__sambamba_filter__input = __bwa_mem_assembly__bam
+__samtools_depth__input = __bwa_mem_assembly__bam
+__freebayes__bam = __bwa_mem_assembly__bam
 
 # Mark duplicates with sambamba markdup
 if config["sambamba_markdup"]["do"]:
@@ -140,7 +140,7 @@ if config["sambamba_markdup"]["do"]:
     __sambamba_markdup__log_std = manager.getlogdir("sambamba_markdup.std")
     include: sm.modules["sambamba_markdup"]
     __sambamba_filter__input = __sambamba_markdup__output
-    __freebayes__input = __sambamba_markdup__output
+    __freebayes__bam = __sambamba_markdup__output
     __samtools_depth__input = __sambamba_markdup__output
 
 # Bam quality filter with sambamba
@@ -149,7 +149,7 @@ if config["sambamba_filter"]["do"]:
                                                    ".filter.sorted.bam")
     __sambamba_filter__log = manager.getlogdir("sambamba_filter")
     include: sm.modules["sambamba_filter"]
-    __freebayes__input = __sambamba_filter__output
+    __freebayes__bam = __sambamba_filter__output
     __samtools_depth__input = [__sambamba_filter__output,
                                __sambamba_filter__input]
 
@@ -158,28 +158,28 @@ if config["sequana_coverage"]["do"]:
     __samtools_depth__output = manager.getname("samtools_depth", ".bed")
     __samtools_depth__log = manager.getlogdir("samtools_depth")
     include: sm.modules["samtools_depth"]
-    __sequana_coverage__input = __samtools_depth__output
+    __sequana_coverage__bed = __samtools_depth__output
     __sequana_coverage__fasta = __bwa_mem_assembly__reference
     __sequana_coverage__gbk = []
-    __sequana_coverage__output = manager.getname("sequana_coverage", ".csv")
+    __sequana_coverage__csv = manager.getname("sequana_coverage", ".csv")
     __sequana_coverage__report_dir = __report_dir__
     __sequana_coverage__html = os.sep.join([
         __report_dir__, 'sequana_coverage.html'
     ])
     include: sm.modules["sequana_coverage"]
-    expected_output.append(expand(__sequana_coverage__output,
+    expected_output.append(expand(__sequana_coverage__csv,
                                   sample=manager.samples))
  
 # Variant calling with Freebayes
 if config["freebayes"]["do"]:
-    __freebayes__bai = __freebayes__input + ".bai"
+    __freebayes__bai = __freebayes__bam + ".bai"
     __freebayes__reference = __bwa_mem_assembly__reference
-    __freebayes__output = manager.getname("freebayes", ".raw.vcf")
+    __freebayes__vcf = manager.getname("freebayes", ".raw.vcf")
     __freebayes__log = manager.getlogdir("freebayes")
     include: sm.modules["freebayes"]
 
     # Freebayes filter
-    __freebayes_vcf_filter__input = __freebayes__output
+    __freebayes_vcf_filter__input = __freebayes__vcf
     __freebayes_vcf_filter__output = manager.getname("freebayes_vcf_filter",
                                                      ".filter.vcf")
     __freebayes_vcf_filter__csv = manager.getname("freebayes_vcf_filter",

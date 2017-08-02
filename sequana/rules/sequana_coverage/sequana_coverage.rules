@@ -1,47 +1,55 @@
 rule sequana_coverage:
     """
-    Create a CSV file with all metrics computed to analyse the coverage of the
-    mapping. This CSV is used to create the sequana_coverage report.
+    Sequana coverage detects and characterises automatically low and high 
+    genome coverage regions.
+    It provides a useful HTML report with dynamic plot and table.
+    Moreover, a CSV file with all metrics computed is created.
+    This CSV can be used to regenerate the sequana_coverage report.
 
     Required input:
-        __sequana_coverage__input: bed file from samtools depth or bedtools
-            genomecov.
+        - __sequana_coverage__bed: BED file with coverage by base position.
 
     Optional input:
-        __sequana_coverage__fasta: fasta file to compute GC content.
-        __sequana_coverage__gbk: genbank file to annotate regions of interest.
+        - __sequana_coverage__fasta: FASTA file of the reference to compute GC content.
+        - __sequana_coverage__gbk: Genbank file to annotate regions of interest.
+
+    **NOTE**: If you do not need an optional input. Initiate it as an empty list.
 
     Required output:
-        __sequana_coverage__output: csv file
+        - __sequana_coverage__csv: CSV file with computed metrics.
+        - __sequana_coverage__html: HTML report of results.
 
     Required parameter:
-        config["sequana_coverage"]["k"]: number of gaussians predicted in the
-            gaussian pool.
-        config["sequana_coverage"]["window_size"]: window size for running
-            median. This integer must be an odd number.
-        config["sequana_coverage"]["high_threshold"]: high zscore threshold.
-        config["sequana_coverage"]["low_threshold"]: low zscore threshold.
-        config["sequana_coverage"]["circular"]: boolean if the genome is
-            circular.
-        config["sequana_coverage"]["gc_window_size"]: window size to compute
-            GC content.
+        - __sequana_coverage__report_dir: Report directory to copy JS/CSS.
 
-    NOTE: If you do not need an optional input. Initiate it as an empty list.
+    Required configuration:
+        .. code-block:: yaml
+    
+            sequana_coverage:
+                k: 2 # number of gaussian predicted.
+                circular: yes # if your genome is circular.
+                window_size: 30001 # window size to compute the running median.
+                low_threshold: -4 # threshold to detect low coverage regions.
+                high_threshold: 4 # threshold to detect high coverage regions.
+                gc_window_size: 201 # window size to compute GC content.
+
+    Reference:
+        - https://doi.org/10.1101/092478
     """
     input: 
-        input_file = __sequana_coverage__input,
-        fasta      = __sequana_coverage__fasta,
-        gbk        = __sequana_coverage__gbk
+        bed = __sequana_coverage__bed,
+        fasta = __sequana_coverage__fasta,
+        gbk = __sequana_coverage__gbk
     output:
-        csv = __sequana_coverage__output,
+        csv = __sequana_coverage__csv,
         html = __sequana_coverage__html
     params:
-        k        = config["sequana_coverage"]["k"],
-        size     = config["sequana_coverage"]["window_size"],
-        high     = config["sequana_coverage"]["high_threshold"],
-        low      = config["sequana_coverage"]["low_threshold"],
+        k = config["sequana_coverage"]["k"],
+        size = config["sequana_coverage"]["window_size"],
+        high = config["sequana_coverage"]["high_threshold"],
+        low = config["sequana_coverage"]["low_threshold"],
         circular = config["sequana_coverage"]["circular"],
-        gc_size  = config["sequana_coverage"]["gc_window_size"],
+        gc_size = config["sequana_coverage"]["gc_window_size"],
         report_dir = __sequana_coverage__report_dir
     run:
         from sequana.bedtools import GenomeCov

@@ -74,19 +74,19 @@ else:
 if config['input_extension'].endswith('bam') or \
     config['input_pattern'].endswith('bam'):
     __bwa_mem_ref__fai = __bwa_mem_ref__reference + ".fai"
-    __bwa_mem_ref__output = __rawdata__input
+    __bwa_mem_ref__bam = __rawdata__input
 else:
     # Mapping with BWA MEM
     exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
-    __bwa_mem_ref__input = __rawdata__input
+    __bwa_mem_ref__fastq = __rawdata__input
     __bwa_mem_ref__fai = __bwa_mem_ref__reference + ".fai"
-    __bwa_mem_ref__output = manager.getname("bwa_mem_ref", ".sorted.bam")
+    __bwa_mem_ref__bam = manager.getname("bwa_mem_ref", ".sorted.bam")
     __bwa_mem_ref__log = manager.getlogdir("bwa_mem_ref")
     __bwa_index_ref__log = "common_logs/bwa_index.log"
     include: bwa_mem_dynamic("ref", manager)
 
 # Add read groups of sample
-__add_read_group__input = __bwa_mem_ref__output
+__add_read_group__input = __bwa_mem_ref__bam
 __add_read_group__output = manager.getname("add_read_group/", ".rg.sorted.bam")
 __add_read_group__log_err = manager.getlogdir("add_read_group.err")
 __add_read_group__log_std = manager.getlogdir("add_read_group.std")
@@ -100,7 +100,7 @@ include: sm.modules["add_read_group"]
 __sambamba_markdup__input = __add_read_group__output
 __sambamba_filter__input = __add_read_group__output
 __samtools_depth__input = __add_read_group__output
-__freebayes__input = __add_read_group__output
+__freebayes__bam = __add_read_group__output
 
 # Mark duplicates with sambamba markdup
 if config["sambamba_markdup"]["do"]:
@@ -110,7 +110,7 @@ if config["sambamba_markdup"]["do"]:
     __sambamba_markdup__log_std = manager.getlogdir("sambamba_markdup.std")
     include: sm.modules["sambamba_markdup"]
     __sambamba_filter__input = __sambamba_markdup__output
-    __freebayes__input = __sambamba_markdup__output
+    __freebayes__bam = __sambamba_markdup__output
     __samtools_depth__input = __sambamba_markdup__output
 
 # bam quality filter with sambamba
@@ -119,7 +119,7 @@ if config["sambamba_filter"]["do"]:
                                                 ".filter.sorted.bam")
     __sambamba_filter__log = manager.getlogdir("sambamba_filter")
     include: sm.modules["sambamba_filter"]
-    __freebayes__input = __sambamba_filter__output
+    __freebayes__bam = __sambamba_filter__output
     __samtools_depth__input = [
         __sambamba_filter__output, 
         __sambamba_filter__input,
@@ -135,19 +135,19 @@ if config["sequana_coverage"]["do"]:
     __samtools_depth__output = manager.getname("samtools_depth", ".bed")
     __samtools_depth__log = manager.getlogdir("samtools_depth")
     include: sm.modules["samtools_depth"]
-    __sequana_coverage__input = __samtools_depth__output
+    __sequana_coverage__bed = __samtools_depth__output
     __sequana_coverage__fasta = __bwa_mem_ref__reference
     if config['snpeff']['do']:
         __sequana_coverage__gbk = config['snpeff']['reference']
     else:
         __sequana_coverage__gbk = []
-    __sequana_coverage__output = manager.getname("sequana_coverage", ".csv")
+    __sequana_coverage__csv = manager.getname("sequana_coverage", ".csv")
     __sequana_coverage__report_dir = __report_dir__
     __sequana_coverage__html = os.sep.join([
         __report_dir__, 'sequana_coverage.html'
     ])
     include: sm.modules["sequana_coverage"]
-    expected_output.append(expand(__sequana_coverage__output,
+    expected_output.append(expand(__sequana_coverage__csv,
                                   sample=manager.samples))
 
 
@@ -162,21 +162,21 @@ if config["sequana_coverage"]["do"]:
 # Variant calling with Freebayes
 # bai file is setup in freebayes rule for pipeline summary
 __freebayes__reference = __bwa_mem_ref__reference
-__freebayes__output = manager.getname("freebayes", ".raw.vcf")
+__freebayes__vcf = manager.getname("freebayes", ".raw.vcf")
 __freebayes__log = manager.getlogdir("freebayes")
 include: sm.modules["freebayes"]
 
 # Annotate detected variants with snpEff
 if config["snpeff"]["do"]:
-    __snpeff__input = __freebayes__output
+    __snpeff__vcf = __freebayes__vcf
     __snpeff__config = __snpeff_download_database__output
-    __snpeff__output = manager.getname("snpeff", ".ann.vcf")
+    __snpeff__ann_vcf = manager.getname("snpeff", ".ann.vcf")
     __snpeff__html = manager.getname("snpeff", ".snpeff.html")
     __snpeff__log = manager.getlogdir("snpeff")
     include: sm.modules["snpeff"]
-    __freebayes_vcf_filter__input = __snpeff__output
+    __freebayes_vcf_filter__input = __snpeff__ann_vcf
 else:
-    __freebayes_vcf_filter__input = __freebayes__output
+    __freebayes_vcf_filter__input = __freebayes__vcf
 
 # Freebayes filter
 __freebayes_vcf_filter__output = manager.getname("freebayes_vcf_filter",
@@ -198,7 +198,7 @@ include: sm.modules["freebayes_vcf_filter"]
 if len(manager.samples) == 1:
     config['joint_freebayes']['do'] = False
 if config['joint_freebayes']['do']:
-    __joint_freebayes__input = expand(__freebayes__input,
+    __joint_freebayes__input = expand(__freebayes__bam,
                                       sample=manager.samples)
     __joint_freebayes__reference = __freebayes__reference
     __joint_freebayes__output = 'joint_calling/joint_calling.raw.vcf'
@@ -251,8 +251,8 @@ expected_output.extend(["requirements.txt", __rulegraph__output])
 __summary_pipeline__inputs = __rawdata__input
 __summary_pipeline__outputs = [
     __bwa_mem_ref__reference,
-    __freebayes__input,
-    __freebayes__output,
+    __freebayes__bam,
+    __freebayes__vcf,
     __freebayes_vcf_filter__input,
     __freebayes_vcf_filter__output,
 ]

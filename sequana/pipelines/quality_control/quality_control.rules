@@ -75,15 +75,15 @@ if manager.config.bwa_mem_phix.do:
         __bwa_mem_phix__reference = reference
     # Mapping input / output
     __bwa_index_phix__log = "common_logs/bwa_index.log"
-    __bwa_mem_phix__input = __data__input
-    __bwa_mem_phix__output = manager.getname("bwa_mem_phix", ".sorted.bam")
+    __bwa_mem_phix__fastq = __data__input
+    __bwa_mem_phix__bam = manager.getname("bwa_mem_phix", ".sorted.bam")
     __bwa_mem_phix__fai = __bwa_mem_phix__reference + ".fai"
     __bwa_mem_phix__log = manager.getlogdir("bwa_mem_phix")
 
     include: bwa_mem_dynamic("phix", manager)
 
     # BWA_BAM_TO_FASTQ
-    __bwa_bam_to_fastq__input = __bwa_mem_phix__output
+    __bwa_bam_to_fastq__input = __bwa_mem_phix__bam
 
     if manager.paired is True:
         def _mapper(ff):
