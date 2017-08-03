@@ -5,11 +5,11 @@ rule freebayes:
     Moreover, it provides a quality score calculated by a bayesian model.
 
     Required input:
-        - __freebayes__bam: Sorted BAM file.
+        - __freebayes__input: Sorted BAM file.
         - __freebayes__reference: FASTA file of the reference genome.
 
     Required output:
-        - __freebayes__vcf: VCF file of detected variants.
+        - __freebayes__output: VCF file of detected variants.
 
     Required log:
         - __freebayes__log: Log file.
@@ -30,10 +30,10 @@ rule freebayes:
         - https://github.com/ekg/freebayes
     """
     input:
-        bam = __freebayes__bam,
+        bam = __freebayes__input,
         ref = __freebayes__reference        
     output:
-        vcf = __freebayes__vcf
+        vcf = __freebayes__output
     log:
         __freebayes__log
     params:

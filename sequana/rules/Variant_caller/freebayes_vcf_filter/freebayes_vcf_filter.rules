@@ -5,10 +5,10 @@ rule freebayes_vcf_filter:
     strand ratio.
 
     Required input:
-        - __freebayes_vcf_filter__vcf: VCF file from freebayes.
+        - __freebayes_vcf_filter__input: VCF file from freebayes.
 
     Required output:
-        - __freebayes_vcf_filter__filter_vcf: Filtered VCF file.
+        - __freebayes_vcf_filter__output: Filtered VCF file.
         - __freebayes_vcf_filter__csv: CSV file of filtered variants.
         - __freebayes_vcf_filter__html: HTML report.
 
@@ -27,9 +27,9 @@ rule freebayes_vcf_filter:
                 strand_ratio: 0.2 # threshold for minimum strand ratio between 0 and 0.5.
     """
     input:
-        vcf = __freebayes_vcf_filter__vcf
+        vcf = __freebayes_vcf_filter__input
     output:
-        vcf = __freebayes_vcf_filter__filter_vcf,
+        vcf = __freebayes_vcf_filter__output,
         csv = __freebayes_vcf_filter__csv,
         html = __freebayes_vcf_filter__html
     params:

@@ -5,17 +5,18 @@ rule snpeff:
     provide the codon change information.
 
     Required input:
-        - __snpeff__vcf: VCF file of detected variants.
+        - __snpeff__input: VCF file of detected variants.
 
     Required output:
-        - __snpeff__ann_vcf: Annotated VCF file.
+        - __snpeff__output: Annotated VCF file.
+        - __snpeff__html: HTML report generate by snpEff.
 
     Required configuration:
         .. code-block:: yaml
 
             snpeff:
                 reference:  # the genbank file
-                options:    # result filters options 
+                options:    # result filters options
     
     Results filter options:
 	    - :code:`-no-downstream`: Do not show DOWNSTREAM changes
@@ -28,11 +29,10 @@ rule snpeff:
         - http://snpeff.sourceforge.net/SnpEff_manual.html
     """
     input:
-        vcf = __snpeff__vcf, 
-        ann = config["snpeff"]["reference"],
-        config = __snpeff__config
+        vcf = __snpeff__input, 
+        ann = config["snpeff"]["reference"]
     output:
-        ann = __snpeff__ann_vcf,
+        ann = __snpeff__output,
         html = __snpeff__html
     log:
         log = __snpeff__log
@@ -41,6 +41,7 @@ rule snpeff:
     run:
         from sequana import SnpEff
 
-        mydata = SnpEff(reference=input.ann, log=log.log)
-        mydata.launch_snpeff(input.vcf, output.ann, html_output=output.html,
-                             options=params.options)
+        mydata = SnpEff(reference=input['ann'], log=log['log'])
+        mydata.launch_snpeff(input['vcf'], output['ann'],
+                             html_output=output['html'],
+                             options=params['options'])

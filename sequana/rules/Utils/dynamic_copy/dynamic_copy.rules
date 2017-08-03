@@ -7,12 +7,12 @@ def dynamic_copy(name, project):
     dynamic_copy = '''
 rule copy_%(name)s:
     input:
-        flin = __copy_%(name)s__input
+        src = __copy_%(name)s__input
     output:
-        flout = __copy_%(name)s__output
+        dst = __copy_%(name)s__output
     shell:
         """
-        cp {input.flin} {output.flout}
+        cp {input.src} {output.dst}
         """
 '''
     from sequana.snaketools import build_dynamic_rule

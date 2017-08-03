@@ -1,27 +1,31 @@
 rule snpeff_add_locus_in_fasta:
     """
-    SnpEff needs that locus names in the annotation file and header in the 
-    fasta file are identical. This rule adds locus names of annotation file in 
-    the fasta header. Thus, sequences in annotation file and reference have the 
-    same name. 
+    SnpEff needs that locus names in the annotation file and contigs name in
+    the FASTA file be identical. So, locus names of the genbank file must be
+    added in the FASTA file before the mapping.
 
     Required input:
-        __snpeff_add_locus_in_fasta__fasta_input: reference fasta file
+        - __snpeff_add_locus_in_fasta__input: FASTA file of the reference.
 
     Required output:
-        __snpeff_add_locus_in_fasta__output: fasta file
+        - __snpeff_add_locus_in_fasta__output: FASTA file with locus names.
 
-    Required parameters:
-        config["snpeff"]["reference"]
+    Required configuration:
+        .. code-block:: yaml
+
+            snpeff:
+                reference:  # the genbank file
+                options:    # result filters options
     """
     input:
-        fasta = __snpeff_add_locus_in_fasta__fasta_input,
-        config = __snpeff_add_locus_in_fasta__config,
+        fasta = __snpeff_add_locus_in_fasta__input,
         ann = config["snpeff"]["reference"]
     output:
         fasta = __snpeff_add_locus_in_fasta__output
+    log:
+        log = __snpeff_add_locus_in_fasta__log
     run:
         from sequana import SnpEff
         
-        snpeff = SnpEff(reference=input.ann)
-        snpeff.add_locus_in_fasta(input.fasta, output.fasta)
+        snpeff = SnpEff(reference=input['ann'], log=log['log'])
+        snpeff.add_locus_in_fasta(input['fasta'], output['fasta'])

@@ -69,7 +69,7 @@ rule bwa_mem_%(name)s:
 
     References:
         - http://bio-bwa.sourceforge.net/
-        - http://lomereiter.github.io/sambamba/
+        - http://lomereiter.github.io/sambamba/docs/sambamba-sort.html
     """
     input:
         fai = __bwa_mem_%(name)s__fai,
