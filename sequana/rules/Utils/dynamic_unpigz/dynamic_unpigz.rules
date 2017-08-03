@@ -1,0 +1,25 @@
+# coding: utf-8
+""" Dynamic rule to unpigz a zipped file.
+"""
+
+def dynamic_unpigz(name, project):
+    metadata = {'name': name}
+    dynamic_unpigz = '''
+rule unpigz_%(name)s:
+    input:
+        input = __unpigz_%(name)s__input
+    output:
+        output = temp(__unpigz_%(name)s__output)
+    threads: 4
+    shell:
+        """
+        unpigz -fk {input} -p {threads} --stdout > {output}
+        """
+
+
+'''
+    from easydev import TempFile
+    tt = TempFile()
+    with open(tt.name, "w") as fh:
+        fh.write(dynamic_unpigz % metadata)
+    return fh.name

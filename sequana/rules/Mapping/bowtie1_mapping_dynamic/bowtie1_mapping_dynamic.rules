@@ -40,13 +40,13 @@ rule bowtie1_mapping_%(name)s:
     threads:
         int(config["bowtie1_mapping_%(name)s"]["threads"])
     run:
-        unzip_file = [filename[:-3] for filename in input.fastq]
+
         cmd = "bowtie -S {params.options} -p {threads} {params.prefix_index}"
         # paired end or single end unzip
         if len(input.fastq) == 2:
-            bowtie_input = "-1 " + unzip_file[0] + " -2 " + unzip_file[1]
+            bowtie_input = "-1 " + input.fastq[0] + " -2 " + input.fastq[1]
         else:
-            bowtie_input = unzip_file[0]
+            bowtie_input = input.fastq[0]
         cmd = cmd + " " + bowtie_input
         # sam to bam
         cmd = "%%s | samtools view -Sbh -> {output.bam}" %% cmd
@@ -59,7 +59,7 @@ rule bowtie1_mapping_%(name)s:
         cmd = "%%s && samtools index {output.sort}" %% cmd
 
 
-        shell("unpigz -fk {input.fastq} -p {threads} && " + cmd )
+        shell(cmd )
     '''
 
     from easydev import TempFile
