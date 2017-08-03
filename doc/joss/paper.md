@@ -16,7 +16,7 @@ authors:
    orcid: 0000-0002-4947-7876
    affiliation: 2
  - name: Rachel Legendre
-   orcid: 
+   orcid: 0000-0002-5196-9431
    affiliation: 1,2
  - name: Mélissa Cardon
    orcid: 0000-0001-9906-3236
