@@ -56,16 +56,33 @@ Here is a documented configuration file
 pipeline. Each rule used in the pipeline may have a section in the
 configuration file. Here are the rules and their developer and user documentation.
 
+Mapping
+#########
+
 BWA
-#####
+^^^^
 .. snakemakerule:: bwa_mem_dynamic
 
+Sambamba markdup
+^^^^^^^^^^^^^^^^^^
+
+Sambamba filter
+^^^^^^^^^^^^^^^^^^
+
+Variants Calling
+###################
+
 Freebayes
-##########
+^^^^^^^^^^
 .. snakemakerule:: freebayes
 
-SnpEff
-########
+Freebayes filter
+^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: freebayes_vcf_filter
+
+Annotation
+####################
+
 .. snakemakerule:: snpeff
 
 Sequana coverage

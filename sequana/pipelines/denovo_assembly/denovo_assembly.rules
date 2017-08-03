@@ -179,8 +179,8 @@ if config["freebayes"]["do"]:
     include: sm.modules["freebayes"]
 
     # Freebayes filter
-    __freebayes_vcf_filter__input = __freebayes__vcf
-    __freebayes_vcf_filter__output = manager.getname("freebayes_vcf_filter",
+    __freebayes_vcf_filter__vcf = __freebayes__vcf
+    __freebayes_vcf_filter__filter_vcf = manager.getname("freebayes_vcf_filter",
                                                      ".filter.vcf")
     __freebayes_vcf_filter__csv = manager.getname("freebayes_vcf_filter",
                                                   ".csv")

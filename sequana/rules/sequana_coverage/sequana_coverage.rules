@@ -56,13 +56,17 @@ rule sequana_coverage:
         from sequana.modules_report.coverage import CoverageModule
         from sequana.utils import config
 
-
-        bed = GenomeCov(input.input_file, input.gbk, params.low, params.high)
-        bed.compute_gc_content(input.fasta, params.gc_size, params.circular)
+        # Run sequana coverage
+        bed = GenomeCov(input['bed'], input['gbk'], params['low'],
+                        params['high'])
+        bed.compute_gc_content(input['fasta'], params['gc_size'],
+                               params['circular'])
         for chrom in bed:
-            chrom.running_median(params.size, params.circular)
-            chrom.compute_zscore(params.k)
-        bed.to_csv(output.csv, float_format='%.3g')
+            chrom.running_median(params['size'], params['circular'])
+            chrom.compute_zscore(params['k'])
+        bed.to_csv(output['csv'], float_format='%.3g')
+
+        # Create HTML reports
         config.output_dir = params['report_dir']
         config.sample_name = params['report_dir'].split('_')[-1]
         CoverageModule(bed)

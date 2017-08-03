@@ -52,11 +52,10 @@ __report_dir__ = 'report_vc_{0}'.format(manager.sample)
 # Get the snpeff config and create database
 reference = config["bwa_mem_ref"]["reference"]
 if config["snpeff"]["do"]:
-    __snpeff_download_database__output = "snpEff.config"
-    __snpeff_download_database__log = "common_logs/snpeff_download_database.log"
+    __snpeff_create_database__log = "common_logs/snpeff_download_database.log"
     include: sm.modules["snpeff_download_database"]
     from sequana.snpeff import SnpEff
-    __snpeff_add_locus_in_fasta__config = __snpeff_download_database__output
+    __snpeff_add_locus_in_fasta__config = 'snpEff.config'
     __snpeff_add_locus_in_fasta__fasta_input = reference
     __snpeff_add_locus_in_fasta__output = "reference/{0}".format(
         os.path.basename(reference))
@@ -169,17 +168,17 @@ include: sm.modules["freebayes"]
 # Annotate detected variants with snpEff
 if config["snpeff"]["do"]:
     __snpeff__vcf = __freebayes__vcf
-    __snpeff__config = __snpeff_download_database__output
+    __snpeff__config = 'snpEff.config'
     __snpeff__ann_vcf = manager.getname("snpeff", ".ann.vcf")
     __snpeff__html = manager.getname("snpeff", ".snpeff.html")
     __snpeff__log = manager.getlogdir("snpeff")
     include: sm.modules["snpeff"]
-    __freebayes_vcf_filter__input = __snpeff__ann_vcf
+    __freebayes_vcf_filter__vcf = __snpeff__ann_vcf
 else:
-    __freebayes_vcf_filter__input = __freebayes__vcf
+    __freebayes_vcf_filter__vcf = __freebayes__vcf
 
 # Freebayes filter
-__freebayes_vcf_filter__output = manager.getname("freebayes_vcf_filter",
+__freebayes_vcf_filter__filter_vcf = manager.getname("freebayes_vcf_filter",
                                                  ".filter.vcf")
 __freebayes_vcf_filter__csv = manager.getname("freebayes_vcf_filter", ".csv")
 __freebayes_vcf_filter__report_dir = __report_dir__
@@ -253,8 +252,8 @@ __summary_pipeline__outputs = [
     __bwa_mem_ref__reference,
     __freebayes__bam,
     __freebayes__vcf,
-    __freebayes_vcf_filter__input,
-    __freebayes_vcf_filter__output,
+    __freebayes_vcf_filter__vcf,
+    __freebayes_vcf_filter__filter_vcf,
 ]
 if config['joint_freebayes']['do']:
     __summary_pipeline__outputs += [
@@ -280,7 +279,7 @@ expected_output.append(expand(__summary_pipeline__json_output,
 
 # these rules don't need to be submit on a node.
 # snpeff_download_database needs an internet connection
-localrules: snpeff_download_database, conda, rulegraph
+localrules: conda, rulegraph
 
 rule pipeline_variant:
     input:
