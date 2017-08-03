@@ -52,8 +52,8 @@ __report_dir__ = 'report_vc_{0}'.format(manager.sample)
 # Get the snpeff config and create database
 reference = config["bwa_mem_ref"]["reference"]
 if config["snpeff"]["do"]:
-    __snpeff_create_database__log = "common_logs/snpeff_download_database.log"
-    include: sm.modules["snpeff_download_database"]
+    __snpeff_create_database__log = "common_logs/snpeff_create_database.log"
+    include: sm.modules["snpeff_create_database"]
     from sequana.snpeff import SnpEff
     __snpeff_add_locus_in_fasta__config = 'snpEff.config'
     __snpeff_add_locus_in_fasta__fasta_input = reference
