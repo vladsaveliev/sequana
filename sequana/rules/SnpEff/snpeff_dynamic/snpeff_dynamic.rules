@@ -11,8 +11,7 @@ rule snpeff_%(name)s:
     """
     input:
         vcf = __snpeff_%(name)s__input, 
-        gbk = __snpeff_%(name)s__gbk,
-        config = __snpeff_%(name)s__config
+        gbk = __snpeff_%(name)s__gbk
     output:
         ann = __snpeff_%(name)s__output,
         html = __snpeff_%(name)s__html
