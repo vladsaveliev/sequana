@@ -187,9 +187,24 @@ __fastqc_filtered__wkdir       = manager.getwkdir("fastqc_filtered")
 include: fastqc_dynamic("filtered", manager)
 expected_output.extend(expand(__fastqc_filtered__output_done, sample=manager.samples))
 
+
+
+# Decompress fastq.gz file before to run bowtie1
+__unpigz_R1__input = manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")
+__unpigz_R1__output = manager.getname("cutadapt", "_R1_.cutadapt.fastq")
+include: dynamic_unpigz("R1", manager.sample)
+__unpigz__output = [__unpigz_R1__output]
+if manager.paired:
+    __unpigz_R2__input = manager.getname("cutadapt", "_R2_.cutadapt.fastq.gz")
+    __unpigz_R2__output = manager.getname("cutadapt", "_R2_.cutadapt.fastq")
+    include: dynamic_unpigz("R2", manager.sample)
+    __unpigz__output += [__unpigz_R2__output]
+
+
+
 if manager.config.bowtie1_mapping_rna.do:
     # rRNA
-    __bowtie1_mapping_rna__input = __clean_ngs__output
+    __bowtie1_mapping_rna__input = __unpigz__output
     __bowtie1_mapping_rna__index_done = __bowtie1_index_rna__output_done
     __bowtie1_mapping_rna__bam = manager.getname("bowtie1_mapping_rna", ".bam")
     __bowtie1_mapping_rna__sort = manager.getname("bowtie1_mapping_rna", ".sorted.bam")
@@ -202,7 +217,7 @@ if manager.config.bowtie1_mapping_rna.do:
 
 if manager.config.bowtie1_mapping_ref.do:
     # Mapper bowtie 1
-    __bowtie1_mapping_ref__input = __clean_ngs__output
+    __bowtie1_mapping_ref__input = __unpigz__output
     __bowtie1_mapping_ref__index_done = __bowtie1_index_ref__output_done
     __bowtie1_mapping_ref__bam = manager.getname("bowtie1_mapping_ref", ".bam")
     __bowtie1_mapping_ref__sort = manager.getname("bowtie1_mapping_ref", ".sorted.bam")
