@@ -497,6 +497,13 @@ or open a Python shell and type::
             easydev.onweb("http://github.com/sequana/sequana/tree/"
                   "master/sequana/pipelines/%s" % self.name)
 
+    def md5(self):
+        """return md5 of snakefile and its default configuration file"""
+        data = {}
+        data["snakefile"] = easydev.md5(self.snakefile)
+        data["config"] = easydev.md5(self.config)
+        return data
+
 
 def _get_modules_snakefiles():
     modules = {}
