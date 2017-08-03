@@ -18,5 +18,8 @@ rule unpigz_%(name)s:
 
 
 '''
-    from sequana.snaketools import build_dynamic_rule
-    return build_dynamic_rule(dynamic_unpigz % metadata, project.pipeline_dir)
+    from easydev import TempFile
+    tt = TempFile()
+    with open(tt.name, "w") as fh:
+        fh.write(dynamic_unpigz % metadata)
+    return fh.name
