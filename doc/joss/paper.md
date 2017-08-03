@@ -45,7 +45,7 @@ Finally, for end-users, we also developed a Graphical interface called **Sequani
 Website: http://sequana.readthedocs.io
 Repository: https://github.com/sequana/sequana
 
--![](image.png)
+-![](sequana.png)
 
 # Future works
 
