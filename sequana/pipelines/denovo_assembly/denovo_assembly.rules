@@ -130,7 +130,7 @@ include: bwa_mem_dynamic("assembly", manager)
 __sambamba_markdup__input = __bwa_mem_assembly__bam
 __sambamba_filter__input = __bwa_mem_assembly__bam
 __samtools_depth__input = __bwa_mem_assembly__bam
-__freebayes__bam = __bwa_mem_assembly__bam
+__freebayes__input = __bwa_mem_assembly__bam
 
 # Mark duplicates with sambamba markdup
 if config["sambamba_markdup"]["do"]:
@@ -140,7 +140,7 @@ if config["sambamba_markdup"]["do"]:
     __sambamba_markdup__log_std = manager.getlogdir("sambamba_markdup.std")
     include: sm.modules["sambamba_markdup"]
     __sambamba_filter__input = __sambamba_markdup__output
-    __freebayes__bam = __sambamba_markdup__output
+    __freebayes__input = __sambamba_markdup__output
     __samtools_depth__input = __sambamba_markdup__output
 
 # Bam quality filter with sambamba
@@ -149,7 +149,7 @@ if config["sambamba_filter"]["do"]:
                                                    ".filter.sorted.bam")
     __sambamba_filter__log = manager.getlogdir("sambamba_filter")
     include: sm.modules["sambamba_filter"]
-    __freebayes__bam = __sambamba_filter__output
+    __freebayes__input = __sambamba_filter__output
     __samtools_depth__input = [__sambamba_filter__output,
                                __sambamba_filter__input]
 
@@ -172,15 +172,15 @@ if config["sequana_coverage"]["do"]:
  
 # Variant calling with Freebayes
 if config["freebayes"]["do"]:
-    __freebayes__bai = __freebayes__bam + ".bai"
+    __freebayes__bai = __freebayes__input + ".bai"
     __freebayes__reference = __bwa_mem_assembly__reference
-    __freebayes__vcf = manager.getname("freebayes", ".raw.vcf")
+    __freebayes__output = manager.getname("freebayes", ".raw.vcf")
     __freebayes__log = manager.getlogdir("freebayes")
     include: sm.modules["freebayes"]
 
     # Freebayes filter
-    __freebayes_vcf_filter__vcf = __freebayes__vcf
-    __freebayes_vcf_filter__filter_vcf = manager.getname("freebayes_vcf_filter",
+    __freebayes_vcf_filter__input = __freebayes__output
+    __freebayes_vcf_filter__output = manager.getname("freebayes_vcf_filter",
                                                      ".filter.vcf")
     __freebayes_vcf_filter__csv = manager.getname("freebayes_vcf_filter",
                                                   ".csv")

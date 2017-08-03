@@ -59,15 +59,21 @@ configuration file. Here are the rules and their developer and user documentatio
 Mapping
 #########
 
+Add locus in fasta
+^^^^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: snpeff_add_locus_in_fasta
+
 BWA
 ^^^^
 .. snakemakerule:: bwa_mem_dynamic
 
 Sambamba markdup
 ^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: sambamba_markdup
 
 Sambamba filter
 ^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: sambamba_filter
 
 Variants Calling
 ###################
