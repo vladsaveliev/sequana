@@ -17,6 +17,7 @@
 """Sequana GUI. Can also be used for any snakemake pipeline"""
 import sys
 import os
+import shutil
 import re
 import time
 import psutil
@@ -994,7 +995,10 @@ class SequanaGUI(QMainWindow, Tools):
         self.info("Creating form based on config file")
         self.clear_form()
         rules_list = list(self.config._yaml_code.keys())
-        rules_list.sort()
+
+        # We do not sort the list of rules anymore so that it is like in the
+        # config file
+        #rules_list.sort()
         self.necessary_dict = {}
 
         # For each section, we create a widget (RuleForm). For isntance, first,
@@ -1241,6 +1245,7 @@ class SequanaGUI(QMainWindow, Tools):
         self.cfg = cfg
 
         if self.working_dir:
+            # Save the configuration file
             if self.mode == "sequana":
                 yaml_path = self.working_dir + os.sep + "config.yaml"
                 self.warning("copy requirements (if any)")
@@ -1266,6 +1271,17 @@ class SequanaGUI(QMainWindow, Tools):
             else:
                 self.warning("Saving config file (does not exist)")
                 cfg.save(yaml_path, cleanup=False)
+
+            # Save the configuration file for the cluster 
+            if self.mode == "sequana" and self.sequana_factory.clusterconfigfile:
+                target = self.working_dir + os.sep + "cluster_config.json"
+                shutil.copy(self.sequana_factory.clusterconfigfile, target)
+                # replace the name of the original file with the target one so 
+                # that the target can be edited. The target will also be used in
+                # place of the original version when launnching snakemake!
+                #self.snakemake_dialog.set()
+                self.snakemake_dialog.ui.snakemake_options_cluster_cluster__config_value.set_filenames(target)
+
         else:
             self.critical("Config file not saved (no wkdir)")
             msg = WarningMessage("You must set a working directory", self)
