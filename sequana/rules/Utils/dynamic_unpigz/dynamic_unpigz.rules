@@ -7,9 +7,9 @@ def dynamic_unpigz(name, project):
     dynamic_unpigz = '''
 rule unpigz_%(name):
     input:
-        input = __unpigz__input
+        input = __unpigz_%(name)s__input
     output:
-        output = temp(__unpigz__output)
+        output = temp(__unpigz_%(name)s__output)
     threads: 4
     shell:
         """
