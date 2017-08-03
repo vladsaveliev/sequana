@@ -19,4 +19,4 @@ rule unpigz_%(name):
 
 '''
     from sequana.snaketools import build_dynamic_rule
-    return build_dynamic_rule(dynamic_copy % metadata, project.pipeline_dir)
+    return build_dynamic_rule(dynamic_unpigz % metadata, project.pipeline_dir)
