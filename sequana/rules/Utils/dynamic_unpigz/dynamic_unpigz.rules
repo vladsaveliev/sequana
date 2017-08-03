@@ -5,7 +5,7 @@
 def dynamic_unpigz(name, project):
     metadata = {'name': name}
     dynamic_unpigz = '''
-rule unpigz_%(name):
+rule unpigz_%(name)s:
     input:
         input = __unpigz_%(name)s__input
     output:
