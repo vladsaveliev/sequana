@@ -706,12 +706,14 @@ class KrakenHierarchical(object):
                     "overwrite existing results" % output_directory)
 
         # list of input fastq files
-        if isinstance(filename_fastq, list) and len(filename_fastq) == 2:
+        if isinstance(filename_fastq, list) and len(filename_fastq) in [1, 2]:
             self.inputs = filename_fastq[:]
         elif isinstance(filename_fastq, str):
             self.inputs = [filename_fastq]
         else:
-            raise TypeError("input file must be a string or list of 2 filenames")
+            msg = "input file must be a string or list of 2 filenames"
+            msg += "\nYou provided {}".format(filename_fastq)
+            raise TypeError(msg)
 
     def _run_one_analysis(self, iteration):
         """ Run one analysis """
