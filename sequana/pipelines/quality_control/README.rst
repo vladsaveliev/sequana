@@ -77,7 +77,7 @@ configuration file. In the *quality_control* pipeline, we use the *bwa_mem*,
 
 FastQC
 ^^^^^^^^^^^
-.. snakemakerule:: fastqc
+.. snakemakerule:: fastqc_dynamic
 
 Cutadapt
 ^^^^^^^^^
@@ -87,13 +87,11 @@ Kraken
 ^^^^^^^
 .. snakemakerule:: kraken
 
-
-.. .. snakemakerule:: fastq_sampling
+BWA-mem 
+^^^^^^^^
 .. snakemakerule:: bwa_mem_dynamic
 
-
-
-
-
-
+FastQ stats
+^^^^^^^^^^^^
+.. snakemakerule:: fastq_stats_dynamic
 

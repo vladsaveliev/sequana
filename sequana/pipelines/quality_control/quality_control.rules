@@ -17,8 +17,8 @@ __snakefile__ = srcdir(__snakefile__)
 
 # Generic include of some dynamic modules
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
-exec(open(sequana.modules["fastqc"], "r").read())
-exec(open(sequana.modules["fastq_stats"], "r").read())
+exec(open(sequana.modules["fastqc_dynamic"], "r").read())
+exec(open(sequana.modules["fastq_stats_dynamic"], "r").read())
 
 # A convenient manager
 manager = sm.PipelineManager("quality_control", config)
