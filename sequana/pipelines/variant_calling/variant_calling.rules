@@ -67,7 +67,7 @@ elif not os.path.isfile(reference + ".fai"):
     __copy_ref__input = reference
     __copy_ref__output = "reference/" + os.path.basename(reference)
     include: dynamic_copy("ref", manager)
-    __bwa_mem_ref__reference = __copy_ref__destination
+    __bwa_mem_ref__reference = __copy_ref__output
 else:
     __bwa_mem_ref__reference = reference
 
