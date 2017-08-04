@@ -80,14 +80,12 @@ spades:
 # - reference: Reference genome file (optional).
 # - genes_file: Gene positions in the reference genome.
 # - map_reads: Map reads on reference file.
-# - gene_finding: Use GeneMarks for gene finding.
 # - threads: number of threads to be used.
 # - options: any options recognised by quast.py.
 # 
 quast:
     reference: ""
     genes_file: ""
-    gene_finding: yes
     threads: 4
     options: ""
 
@@ -195,7 +193,7 @@ freebayes:
 #
 freebayes_vcf_filter:
     freebayes_score: 20
-    frequency: 0.8
+    frequency: 0.7
     min_depth: 10
     forward_depth: 3
     reverse_depth: 3

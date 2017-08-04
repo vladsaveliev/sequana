@@ -11,7 +11,7 @@ rule sequana_coverage:
 
     Optional input:
         - __sequana_coverage__fasta: FASTA file of the reference to compute GC content.
-        - __sequana_coverage__gbk: Genbank file to annotate regions of interest.
+        - __sequana_coverage__gbk: Genbank file to annotate regions of interest. (Optional)
 
     **NOTE**: If you do not need an optional input. Initiate it as an empty list.
 
