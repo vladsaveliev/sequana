@@ -10,8 +10,11 @@ rule samtools_depth:
     Required output:
         - __samtools_depth__output: BED file with coverage for each base.
 
-    Config file:
-        No section required
+    Required log:
+        - __samtools_depth__log: Log file with stderr of samtools.
+
+    Reference:
+        - http://www.htslib.org/doc/samtools.html
     """
     input:
         __samtools_depth__input

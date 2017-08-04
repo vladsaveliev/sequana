@@ -13,7 +13,7 @@ rule freebayes_vcf_filter:
         - __freebayes_vcf_filter__html: HTML report.
 
     Required parameters:
-        - __freebayes_vcf_filter__report_dir: Report directory to copy JS/CSS. 
+        - __freebayes_vcf_filter__report_dir: Report directory to copy JS/CSS.
 
     Required configuration:
         .. code-block:: yaml
