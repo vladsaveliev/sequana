@@ -283,9 +283,6 @@ def test_init():
 
 
 
-
-
-
-
-
+def test_get_pipeline_statistics():
+    df = snaketools.get_pipeline_statistics()
 

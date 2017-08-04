@@ -57,7 +57,7 @@ from sequana import logger
 
 __all__ = ["DOTParser", "FastQFactory", "FileFactory",
            "Module", "PipelineManager", "SnakeMakeStats",
-           "SequanaConfig", "modules"]
+           "SequanaConfig", "modules", "pipeline_names"]
 
 try:
     # This is for python2.7
@@ -255,8 +255,7 @@ class Module(object):
         - A **README.rst** file in restructured text format
         - An optional config file in YAML format named config.yaml.
           Although json format is possible, we use YAML throughout
-          **sequana** for consistency. If not found, the config.yaml is
-          taken from the parent directory. Rules do not have any but pipelines
+          **sequana** for consistency. Rules do not have any but pipelines
           do. So if a pipeline does not provide a config.yaml, the one found
           in ./sequana/sequana/pipelines will be used.
         - a **requirements.txt**
@@ -498,7 +497,17 @@ or open a Python shell and type::
                   "master/sequana/pipelines/%s" % self.name)
 
     def md5(self):
-        """return md5 of snakefile and its default configuration file"""
+        """return md5 of snakefile and its default configuration file
+
+        ::
+
+            >>> from sequana import snaketools as sm
+            >>> m = sm.Module("variant_calling")
+            >>> m.md5()
+            {'config': 'e23b26a2ff45fa9ddb36c40670a8a00e',
+             'snakefile': '7d3917743a6b123d9861ddbbb5f3baef'}
+
+        """
         data = {}
         data["snakefile"] = easydev.md5(self.snakefile)
         data["config"] = easydev.md5(self.config)
@@ -514,7 +523,7 @@ def _get_modules_snakefiles():
             modules[name] = filename
     return modules
 
-#: dictionary with module names as keys and fullpath to the Snakefile as values
+# dictionary with module names as keys and fullpath to the Snakefile as values
 modules = _get_modules_snakefiles()
 
 #: list of pipeline names found in the list of modules
@@ -737,13 +746,13 @@ class PipelineManager(object):
     When the mode is set, two attributes are also set: :attr:`sample` and
     :attr:`basename`.
 
-    If the mode os **nowc**, the *sample* and *basename* are hardcoded to
+    If the mode is **nowc**, the *sample* and *basename* are hardcoded to
     the sample name and  sample/rule/sample respectively. Whereas in the
-    **wc** mode, the sample and basename are wilccard set to "{sample}"
-    and "{sample}/rulename/{sample}". See the following methods :meth:``
+    **wc** mode, the sample and basename are wildcard set to "{sample}"
+    and "{sample}/rulename/{sample}". See the following methods :meth:`getname`.
 
 
-    For developers: the config attribute should use for getter only
+    For developers: the config attribute should be used as getter only.
 
     """
     def __init__(self, name, config, pattern="*.fastq.gz"):
@@ -1384,3 +1393,38 @@ for this in {1}:
 shellcmd("rm -f {0}")
 print("done")
     """.format(self.cleanup_filename, additional_dir))
+
+
+def get_pipeline_statistics():
+    """Get basic statistics about the pipelines
+
+    Count rule used per pipeline and returns a dataframe with rules as index 
+    and pipeline names as columns
+
+    ::
+
+        from sequana.snaketools import get_pipeline_statistics
+        df = get_pipeline_statistics()
+        df.sum(axis=1).sort_values(ascending=False)
+        df.sum(axis=0).plot(kind="barh")
+
+    """
+    pipelines = [m for m in modules if Module(m).is_pipeline()]
+    rules = [rule for rule in modules if  Module(rule).is_pipeline() is False]
+
+    import pandas as pd
+    import numpy as np
+
+    L, C = len(rules), len(pipelines)
+    df = pd.DataFrame(np.zeros((L,C)), dtype=int, index=rules, columns=pipelines)
+
+    for pipeline in pipelines:
+        filename = Module(pipeline).path + "/%s.rules" % pipeline
+        with open(filename) as fh:
+            data =  fh.readlines()
+            data = [x for x in data if x.strip().startswith("include:")]
+            for line in data:
+                for rule in rules:
+                    if '"'+rule+'"' in line or "'"+rule+"'" in line or rule+"(" in line:
+                        df.loc[rule, pipeline] += 1
+    return df
