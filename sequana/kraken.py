@@ -885,7 +885,10 @@ class KrakenDownload(object):
         # unzipping. requires tar and gzip
 
     def _download_from_synapse(self, synid, target_dir):
-        from synapseclient import Synapse
+        try:
+            from synapseclient import Synapse
+        except ImportError:
+            raise ImportError("Please install synapseclient using 'pip install synapseclient'")
         try:
             self._synapse.get(synid, downloadLocation=target_dir)
         except:
