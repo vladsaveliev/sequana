@@ -71,33 +71,37 @@ You can check that the file *count.txt* exists.
 Store the rule in a Sequana module
 -------------------------------------
 
-We now store this Snakefile in the proper place. 
+We now store this Snakefile in the proper place.
 All modules are placed either in *./sequana/pipelines* or in
 *./sequana/rules* directory. The tree structure looks like:
 
 .. only:: html
 
-    .
-    ├── rules
-    │   ├── count
-    │   │   ├── count.rules
-    │   │   ├── README.rst
-    ├── pipelines
-    │   ├── count_pipeline
-    │   │   ├── count_pipeline.rules
-    │   │   ├── README.rst
+    ::
+
+        .
+        ├── rules
+        │   ├── count
+        │   │   ├── count.rules
+        │   │   ├── README.rst
+        ├── pipelines
+        │   ├── count_pipeline
+        │   │   ├── count_pipeline.rules
+        │   │   ├── README.rst
 
 
 .. only:: latex
 
-    --- rules
-    |   --- count
-    |   |   --- count.rules
-    |   |   --- README.rst
-    --- pipelines
-    |   --- count_pipeline
-    |   |   --- count_pipeline.rules
-    |   |   --- README.rst
+    ::
+
+        --- rules
+        |   --- count
+        |   |   --- count.rules
+        |   |   --- README.rst
+        --- pipelines
+        |   --- count_pipeline
+        |   |   --- count_pipeline.rules
+        |   |   --- README.rst
 
 
 
@@ -267,7 +271,8 @@ written as follows:
 The pipeline README file
 ----------------------------
 
-This is a WIP in progress but here is an example for the previous pipeline::
+Here is a template to be used to create the documentation (replace NAME by the
+pipeline name)::
 
     :Overview: Counts the reads in a fastq file
     :Input: FastQ raw data file
@@ -281,6 +286,27 @@ This is a WIP in progress but here is an example for the previous pipeline::
 
         sequana init pipeline_count 
         snakemake -s pipeline_count.rules -f 
+
+    Requirements
+    ~~~~~~~~~~~~~~
+
+    .. include:: ../sequana/pipelines/pipeline_count/requirements.txt
+
+    .. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/pipeline_count/dag.png
+
+    Details
+    ~~~~~~~~~~~~~
+
+    Rules and configuration details
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    FastQC
+    ^^^^^^^^^^^
+    .. snakemakerule:: pipeline_count
+
+
+
+
 
 .. note:: the README uses Restructured syntax (not markdown)
 

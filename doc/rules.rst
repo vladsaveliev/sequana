@@ -1,5 +1,7 @@
+.. _rules:
+
 Rules
-=========
+##########
 
 As of August 2017, **Sequana** has about 80 different rules. 
 The list is available from the `source code <https://github.com/sequana/sequana/tree/master/sequana/rules>`_. We design our rules following some strict conventions as explained in the :ref:`developers` section.
