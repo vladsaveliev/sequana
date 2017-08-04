@@ -1,7 +1,7 @@
 rule sambamba_markdup:
     """ 
-    Marks or removes PCR duplicate reads. For determining whether a read is a
-    duplicate or not, the same criteria as in Picard are used.
+    This rule marks or removes PCR duplicate reads. For determining whether a
+    read is a duplicate or not, the same criteria as in Picard are used.
 
     Required input:
         - __sambamba_markdup__input: Sorted BAM file.

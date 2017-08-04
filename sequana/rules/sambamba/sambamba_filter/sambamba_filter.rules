@@ -1,7 +1,7 @@
 rule sambamba_filter:
     """ 
     This rule uses sambamba view to filter reads with a mapping quality lower
-    than a threshold. It removes reads with multiple occurrence.
+    than a threshold. It also removes reads with multiple occurrence.
 
     Required input:
         - __sambamba_filter__input: bam file

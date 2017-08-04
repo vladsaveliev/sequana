@@ -86,9 +86,12 @@ Freebayes filter
 ^^^^^^^^^^^^^^^^^^
 .. snakemakerule:: freebayes_vcf_filter
 
+Joint Freebayes
+^^^^^^^^^^^^^^^^^
+.. snakemakerule:: joint_freebayes
+
 Annotation
 ####################
-
 .. snakemakerule:: snpeff
 
 Sequana coverage

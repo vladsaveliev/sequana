@@ -1,8 +1,8 @@
 rule snpeff_add_locus_in_fasta:
     """
     SnpEff needs that locus names in the annotation file and contigs name in
-    the FASTA file be identical. So, locus names of the genbank file must be
-    added in the FASTA file before the mapping.
+    the FASTA file are identical. So, this rule add locus names of the genbank
+    file in the FASTA file before the mapping.
 
     Required input:
         - __snpeff_add_locus_in_fasta__input: FASTA file of the reference.
