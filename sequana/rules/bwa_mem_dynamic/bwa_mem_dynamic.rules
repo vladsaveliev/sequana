@@ -61,8 +61,8 @@ rule bwa_mem_%(name)s:
 
             bwa_mem_%(name)s:
                 index_algorithm: 'is' # BWA index algorithm (is or bwtsw)
-                threads: 4 # Number of threads used by BWA mem.
-                options: # Any options recognised by BWA mem tool.
+                threads: 4         # Number of threads used by BWA mem.
+                options:           # Any options recognised by BWA mem tool.
                 tmp_directory: '/tmp' # Temporary directory.
 
     Note:
