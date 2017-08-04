@@ -69,6 +69,7 @@ rule kraken:
                 cmd += " %s " % value
         shell(cmd)
 
+
 rule read_len:
     input: directory + "/{sample}.bam"
     output:
