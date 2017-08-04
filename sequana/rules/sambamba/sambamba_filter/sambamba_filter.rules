@@ -1,12 +1,13 @@
 rule sambamba_filter:
-    """ Use sambamba to filter reads with a mapping quality lower than a
-    threshold. It removes reads with multiple occurrence.
+    """ 
+    This rule uses sambamba view to filter reads with a mapping quality lower
+    than a threshold. It also removes reads with multiple occurrence.
 
     Required input:
-        __sambamba_filter__input: bam file
+        - __sambamba_filter__input: bam file
 
     Required output:
-        __sambamba_filter__output: bam file
+        - __sambamba_filter__output: bam file
 
     Required parameters:
         config['sambamba_filter']['threshold']: integer

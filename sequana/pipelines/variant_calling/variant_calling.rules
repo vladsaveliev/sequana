@@ -27,17 +27,19 @@ import os
 import sequana
 from sequana import snaketools as sm
 from sequana.snaketools import SequanaConfig
+
+
 sm.init("variant_calling.rules", globals())
 
 # This must be defined before the include
 configfile: "config.yaml"
 manager = sm.PipelineManager("variant_calling", config)
+
 # Clean template and replace None with empty string
 config = manager.config
 __snakefile__ = srcdir(__snakefile__)
 __rawdata__input = manager.getrawdata()
 __report_dir__ = 'report_vc_{0}'.format(manager.sample)
-
 
 #
 # Preprocessing for variant calling
@@ -49,44 +51,43 @@ __report_dir__ = 'report_vc_{0}'.format(manager.sample)
 #
 ##############################################################################
 
-# Get the snpeff config and create database
 reference = config["bwa_mem_ref"]["reference"]
+# Add locus in FASTA file for snpEff
 if config["snpeff"]["do"]:
-    __snpeff_download_database__output = "snpEff.config"
-    __snpeff_download_database__log = "common_logs/snpeff_download_database.log"
-    include: sm.modules["snpeff_download_database"]
     from sequana.snpeff import SnpEff
-    __snpeff_add_locus_in_fasta__config = __snpeff_download_database__output
-    __snpeff_add_locus_in_fasta__fasta_input = reference
+    __snpeff_add_locus_in_fasta__log = "common_logs/snpeff_add_locus_in_fasta.log"
+    __snpeff_add_locus_in_fasta__input = reference
     __snpeff_add_locus_in_fasta__output = "reference/{0}".format(
         os.path.basename(reference))
     include: sm.modules["snpeff_add_locus_in_fasta"]
     __bwa_mem_ref__reference = __snpeff_add_locus_in_fasta__output
+# Copy the reference index if it exists
 elif not os.path.isfile(reference + ".fai"):
     exec(open(sequana.modules["dynamic_copy"], "r").read())
     __copy_ref__input = reference
     __copy_ref__output = "reference/" + os.path.basename(reference)
     include: dynamic_copy("ref", manager)
-    __bwa_mem_ref__reference = __copy_ref__output
+    __bwa_mem_ref__reference = __copy_ref__destination
 else:
     __bwa_mem_ref__reference = reference
 
+# The pipeline can be started with sorted BAM files
 if config['input_extension'].endswith('bam') or \
     config['input_pattern'].endswith('bam'):
     __bwa_mem_ref__fai = __bwa_mem_ref__reference + ".fai"
-    __bwa_mem_ref__output = __rawdata__input
+    __bwa_mem_ref__bam = __rawdata__input
 else:
     # Mapping with BWA MEM
     exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
-    __bwa_mem_ref__input = __rawdata__input
+    __bwa_mem_ref__fastq = __rawdata__input
     __bwa_mem_ref__fai = __bwa_mem_ref__reference + ".fai"
-    __bwa_mem_ref__output = manager.getname("bwa_mem_ref", ".sorted.bam")
+    __bwa_mem_ref__bam = manager.getname("bwa_mem_ref", ".sorted.bam")
     __bwa_mem_ref__log = manager.getlogdir("bwa_mem_ref")
     __bwa_index_ref__log = "common_logs/bwa_index.log"
     include: bwa_mem_dynamic("ref", manager)
 
 # Add read groups of sample
-__add_read_group__input = __bwa_mem_ref__output
+__add_read_group__input = __bwa_mem_ref__bam
 __add_read_group__output = manager.getname("add_read_group/", ".rg.sorted.bam")
 __add_read_group__log_err = manager.getlogdir("add_read_group.err")
 __add_read_group__log_std = manager.getlogdir("add_read_group.std")
@@ -135,19 +136,19 @@ if config["sequana_coverage"]["do"]:
     __samtools_depth__output = manager.getname("samtools_depth", ".bed")
     __samtools_depth__log = manager.getlogdir("samtools_depth")
     include: sm.modules["samtools_depth"]
-    __sequana_coverage__input = __samtools_depth__output
+    __sequana_coverage__bed = __samtools_depth__output
     __sequana_coverage__fasta = __bwa_mem_ref__reference
     if config['snpeff']['do']:
         __sequana_coverage__gbk = config['snpeff']['reference']
     else:
         __sequana_coverage__gbk = []
-    __sequana_coverage__output = manager.getname("sequana_coverage", ".csv")
+    __sequana_coverage__csv = manager.getname("sequana_coverage", ".csv")
     __sequana_coverage__report_dir = __report_dir__
     __sequana_coverage__html = os.sep.join([
         __report_dir__, 'sequana_coverage.html'
     ])
     include: sm.modules["sequana_coverage"]
-    expected_output.append(expand(__sequana_coverage__output,
+    expected_output.append(expand(__sequana_coverage__csv,
                                   sample=manager.samples))
 
 
@@ -169,7 +170,6 @@ include: sm.modules["freebayes"]
 # Annotate detected variants with snpEff
 if config["snpeff"]["do"]:
     __snpeff__input = __freebayes__output
-    __snpeff__config = __snpeff_download_database__output
     __snpeff__output = manager.getname("snpeff", ".ann.vcf")
     __snpeff__html = manager.getname("snpeff", ".snpeff.html")
     __snpeff__log = manager.getlogdir("snpeff")
@@ -211,7 +211,6 @@ if config['joint_freebayes']['do']:
         __snpeff_joint__log = 'joint_calling/logs/snpeff_joint.log'
         __snpeff_joint__output = 'joint_calling/joint_calling.ann.vcf'
         __snpeff_joint__html = 'joint_calling/snpeff_joint.html'
-        __snpeff_joint__config = __snpeff__config
         __snpeff_joint__gbk = config['snpeff']['reference']
         __snpeff_joint__options = config['snpeff']['options']
         exec(open(sequana.modules["snpeff_dynamic"], "r").read())
@@ -280,7 +279,7 @@ expected_output.append(expand(__summary_pipeline__json_output,
 
 # these rules don't need to be submit on a node.
 # snpeff_download_database needs an internet connection
-localrules: snpeff_download_database, conda, rulegraph
+localrules: conda, rulegraph
 
 rule pipeline_variant:
     input:

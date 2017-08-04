@@ -32,6 +32,8 @@ def get_rule_doc(name):
     # Try to identify the rule and therefore possible docstring
     # It may be a standard rule or a dynamic rule !
     # standard one
+    if name.endswith('_dynamic'):
+        name = name[:-8]
     rulename_tag = "rule %s" % name
     if rulename_tag in data:
         data = data.split(rulename_tag, 1)[1]

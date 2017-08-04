@@ -1,0 +1,27 @@
+rule snpeff_create_database:
+    """
+    This rules create a custom database with a genbank file. 
+    It copies the snpEff configuration file from sequana and add automatically
+    the custom database.
+
+    Required log:
+        - __snpeff_download_database__log: log file
+
+    Required configuration:
+        .. code-block:: yaml
+
+            snpeff:
+                reference:  # the genbank file
+    Reference:
+        - http://snpeff.sourceforge.net/SnpEff_manual.html  
+    """
+    input:
+        ann = config["snpeff"]["reference"]
+    output:
+        'snpEff.config'
+    log:
+        l = __snpeff_create_database__log
+    run:
+        from sequana import SnpEff
+
+        snpeff = SnpEff(reference=input["ann"], log=log["l"])
