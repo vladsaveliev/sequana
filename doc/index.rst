@@ -27,8 +27,15 @@ Sequana documentation
     `F1000Research 2016, 5:1767 <http://f1000research.com/posters/5-1767>`_ (poster) (doi:
     10.7490/f1000research.1112656.1)
 
-    For the coverage tool (sequana_coverage):  Dimitri Desvillechabrol, Christiane Bouchier, 
-    Sean Kennedy, Thomas Cokelaer http://biorxiv.org/content/early/2016/12/08/092478
+    For the **genome coverage** tool (sequana_coverage):  Dimitri Desvillechabrol, 
+    Christiane Bouchier, Sean Kennedy, Thomas Cokelaer 
+    http://biorxiv.org/content/early/2016/12/08/092478
+
+    For **Sequanix**: Dimitri Desvillechabrol, Rachel Legendre, Claire Rioualen,
+    Christiane Bouchier, Jacques van Helden, Sean Kennedy, Thomas Cokelaer 
+    http://www.biorxiv.org/content/early/2017/07/12/162701
+    DOI: https://doi.org/10.1101/162701 
+
 
 What is Sequana ?
 =====================

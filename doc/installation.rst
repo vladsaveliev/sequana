@@ -97,7 +97,7 @@ install everything in one go)::
 
 For atropos, which is not yet on bioconda, use the **pip** command::
 
-    pip atropos==1.0.23
+    pip install atropos==1.0.23
 
 
 .. note:: atropos is an alternative to cutadapt with additional options but same
@@ -105,7 +105,7 @@ For atropos, which is not yet on bioconda, use the **pip** command::
 
 .. note:: the denovo_assembly pipelines uses Quast tool, which we ported to
     python 3.5 and was pulled on Quast official github page. This is not
-    yet in bioconda but one can it from the quast github (sept 2016). This is
+    yet in bioconda but one can get it from the quast github (sept 2016). This is
     required for the de-novo pipeline. The denove pipeline also requires GATK, 
     to be installed manually by users (due to licensing restrictions)
 

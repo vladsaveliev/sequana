@@ -6,6 +6,11 @@ Changelog
 2017
 ------
 
+
+Sequanix can now load cluster_config, save in the working directory and use it
+on a cluster.
+
+
 0.4.1 July 2017
 ~~~~~~~~~~~~~~~~~~
 
