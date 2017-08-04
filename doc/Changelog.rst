@@ -6,9 +6,12 @@ Changelog
 2017
 ------
 
+0.4.2 August 2017
+~~~~~~~~~~~~~~~~~~~~~~
 
-Sequanix can now load cluster_config, save in the working directory and use it
-on a cluster.
+* Sequanix can now load cluster_config, save in the working directory and use it
+  on a cluster.
+* new feature: get_pipeline_stats and a new gallery example
 
 
 0.4.1 July 2017

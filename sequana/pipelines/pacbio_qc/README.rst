@@ -12,7 +12,10 @@ Then, start sequanix as follows::
 
     sequanix -w analysis -i . -p pacbio_qc
 
-In the sequana/input file panel, set the extension to `*.bam`
+In the sequana/input file panel, just set the input directory where BAM files
+are stored. Note that currently all BAM files are taken into account
+irrespective of the pattern provided in Sequanix because the pipeline has
+hard-coded pattern to select all BAM files 
 
 In the configuration tab, in the kraken section add as many databases 
 as you wish.
@@ -31,9 +34,10 @@ Details
 ~~~~~~~~~
 
 This pipeline takes as inputs a set of BAM files from Pacbio sequencers. It
-computes a set of basic statistics related to read length. It also shows some 
-histogram related to the GC content, SNR of the diodes and the so-called ZMW
-values. Finally, a quick taxonomy can be performed.
+computes a set of basic statistics related to the read lengths. It also shows some
+histograms related to the GC content, SNR of the diodes and the so-called ZMW
+values. Finally, a quick taxonomy can be performed using Kraken. HTML reports
+are created for each sample.
 
 
 Rules and configuration details
