@@ -5,7 +5,7 @@ Sequana pull request guidelines
 Pull requests are always welcome, and the Sequana community appreciates
 any help you give.
 
-When submitting a pull request, we ask you check the following:
+When submitting a pull request, we ask you to check the following:
 
 1. **Unit tests**, **documentation**, and **code style** are in order. 
    
