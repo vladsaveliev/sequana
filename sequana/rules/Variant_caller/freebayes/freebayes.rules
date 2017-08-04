@@ -12,7 +12,7 @@ rule freebayes:
         - __freebayes__output: VCF file of detected variants.
 
     Required log:
-        - __freebayes__log: Log file.
+        - __freebayes__log: Log file with stdout and stderr of Freebayes.
 
     Required configuration:
         .. code-block:: yaml

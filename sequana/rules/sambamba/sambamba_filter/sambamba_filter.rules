@@ -9,8 +9,17 @@ rule sambamba_filter:
     Required output:
         - __sambamba_filter__output: bam file
 
-    Required parameters:
-        config['sambamba_filter']['threshold']: integer
+    Required log:
+        - __sambamba_filter__log: Log file with stdout and stderr of sambamba.
+
+    Required configuration:
+        .. code-block:: yaml
+
+            sambamba_filter:
+                threshold: 30 # Mapping quality score threshold
+
+    Reference:
+        - http://lomereiter.github.io/sambamba/docs/sambamba-view.html
     """
     input:
         __sambamba_filter__input

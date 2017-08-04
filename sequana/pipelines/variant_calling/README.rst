@@ -86,14 +86,28 @@ Freebayes filter
 ^^^^^^^^^^^^^^^^^^
 .. snakemakerule:: freebayes_vcf_filter
 
+Joint variants calling
+#########################
+
 Joint Freebayes
 ^^^^^^^^^^^^^^^^^
 .. snakemakerule:: joint_freebayes
+
+Joint Freebayes filter
+^^^^^^^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: joint_freebayes_vcf_filter
 
 Annotation
 ####################
 .. snakemakerule:: snpeff
 
-Sequana coverage
+Coverage analysis
 ###################
+
+Samtools depth
+^^^^^^^^^^^^^^^^
+.. snakemakerule:: samtools_depth
+
+Sequana coverage
+^^^^^^^^^^^^^^^^^^^
 .. snakemakerule:: sequana_coverage
