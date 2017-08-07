@@ -5,6 +5,7 @@ Affiliation: Institut Pasteur @ 2016
 
 This pipeline is part of Sequana software (sequana.readthedocs.io)
 """
+import json
 import os
 import sequana
 from sequana import snaketools as sm
@@ -293,7 +294,7 @@ onsuccess:
         indir = proj + "/fastq_stats_samples"
 
         fqmod =FastQStatsModule(indir, "fastqc_samples")
-        sample_summary["fastq_stats_samples_json"] = fqmod.get_stats().to_json()
+        sample_summary["fastq_stats_samples_json"] = json.loads(fqmod.get_stats().to_json())
 
         conf.summary_sections.append({
             "name": "Stats (input data)",
@@ -304,7 +305,7 @@ onsuccess:
 
         # the phix section ---------------------------------
         phixmod = PhixModule(proj)
-        sample_summary["phix_section_json"] = phixmod._get_stats().to_json()
+        sample_summary["phix_section_json"] = json.loads(phixmod._get_stats().to_json())
         sample_summary["phix_section"] = phixmod._get_summary()
         conf.summary_sections.append({
             "name": "Phix ",
@@ -315,7 +316,7 @@ onsuccess:
 
         # the cutadapt section ----------------------------
         cutadapt_mod = CutadaptModule(proj + "/logs/cutadapt/cutadapt.txt", proj)
-        sample_summary["cutadapt_json"] = cutadapt_mod._get_stats().to_json()
+        sample_summary["cutadapt_json"] = json.loads(cutadapt_mod._get_stats().to_json())
         html = cutadapt_mod._get_stat_section()
         html += FastQStatsModule(proj + "/fastq_stats_cutadapt", "fastqc_cutadapt")._get_stats_section(
             tablename="cutadapt2")
@@ -330,7 +331,7 @@ onsuccess:
         # The Kraken section
         if manager.config.kraken.do:
             krakenmod = KrakenModule(proj + "/kraken")
-            sample_summary['kraken_json'] = krakenmod._get_stats().to_json()
+            sample_summary['kraken_json'] = json.loads(krakenmod._get_stats().to_json())
             conf.summary_sections.append({
                 "name": "Kraken ",
                 "anchor'": "kraken",
