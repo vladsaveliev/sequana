@@ -116,17 +116,21 @@ rule read_len:
         bam_pacbio.plot_GC_read_len()
         pylab.savefig(output.GC_vs_len)
 
+        summary = bam_pacbio.summary()
         with open(output.summary, "w") as fh:
-            data = {"hist_read_length": output.read_len, 
+            summary.update(
+                {"images": 
+                    {"hist_read_length": output.read_len,
                     "hist_gc_content": output.GC_content,
                     "hist_snr": output.SNR,
                     "gc_vs_length": output.GC_vs_len,
                     "hist_zmw": output.ZMW}
-            data['stats'] = bam_pacbio.stats
-            data['sample'] = "{sample}"
-            json.dump(data, fh, indent=True, sort_keys=True)
+                })
+            sample_name = output.summary[8:].rstrip(".json") 
+            summary.update({'sample': sample_name})
+            json.dump(summary, fh, indent=True, sort_keys=True)
         pylab.close()
 
 onsuccess:
-    #clean up
-    pass
+    shell("multiqc . -m sequana_pacbio_qc  -f")
+    
