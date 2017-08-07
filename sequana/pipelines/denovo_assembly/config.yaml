@@ -74,7 +74,7 @@ spades:
 
 ##############################################################################
 # Quast - Compute metrics to assess assembly
-# 
+#
 # :Parameters:
 # 
 # - reference: Reference genome file (optional).
@@ -86,6 +86,24 @@ spades:
 quast:
     reference: ""
     genes_file: ""
+    threads: 4
+    options: ""
+
+##############################################################################
+# Prokka - Annotate the genome assembly
+#
+# :Parameters:
+#
+# - kingdom: Annotation mode (Archaea|Bacteria|Mitochondria|Viruses)
+# - genus: Genus name of the assembly.
+# - species: Species name of the assembly.
+# - threads: Number of threads used by Prokka.
+# - options: Any options recognised by Prokka.
+#
+prokka:
+    kingdom: Bacteria
+    genus: ""
+    species: ""
     threads: 4
     options: ""
 

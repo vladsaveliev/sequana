@@ -27,6 +27,8 @@ import os
 import sequana
 from sequana import snaketools as sm
 from sequana.snaketools import SequanaConfig
+
+
 sm.init("denovo_assembly.rules", globals())
 
 
@@ -39,7 +41,7 @@ __report_dir__ = 'report_da_{0}'.format(manager.sample)
 
 __rawdata__input = manager.getrawdata()
 
-# Initiate variable that are modified during the pipeline
+# Initiate variable that will be modified during the pipeline
 __summary_pipeline__outputs = []
 
 #
@@ -55,9 +57,9 @@ if config["digital_normalisation"]["do"]:
         for i in (1, 2)]
     __digital_normalisation__log = manager.getlogdir("digital_normalisation")
     include: sm.modules["digital_normalisation"]
-    __spades__input = __digital_normalisation__output
+    __spades__fastq = __digital_normalisation__output
 else:
-    __spades__input = __rawdata__input
+    __spades__fastq = __rawdata__input
 
 # 
 # De Novo Assembly - Spades
@@ -70,13 +72,13 @@ __spades__scaffolds = manager.getname("spades", ".scaffolds.fasta")
 __spades__log = manager.getlogdir("spades")
 include: sm.modules["spades"]
 
-# get corrected reads if careful option is used
-if config["spades"]["careful"]:
+# get corrected reads
+if not config["spades"]["only_assembler"]:
     __spades_get_fastq__input = __spades__scaffolds
     __spades_get_fastq__yaml = __spades__outdir + "corrected/corrected.yaml"
     __spades_get_fastq__output = [
         manager.getname("spades_get_fastq", "R1.fastq.gz"),
-        manager.getname("spades_get_fastq", "R1.fastq.gz")]
+        manager.getname("spades_get_fastq", "R2.fastq.gz")]
     include: sm.modules["spades_get_fastq"]
     __bwa_mem_assembly__fastq = __spades_get_fastq__output
     __summary_pipeline__outputs.append(__spades_get_fastq__output)
@@ -86,7 +88,10 @@ else:
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 
 #
-# Assembly assessment - Quast
+# Assembly assessment
+#
+# - Quast
+# - BUSCO
 #
 ##############################################################################
 
@@ -98,11 +103,11 @@ if config["quast"]["reference"]:
 else:
     __quast__reference = []
 __quast__input = [__spades__contigs, __spades__scaffolds]
-__quast__outdir = manager.getwkdir("quast")
-__quast__json = manager.getname("quast", ".json")
-__quast__log = manager.getlogdir("quast")
+__quast__outdir = manager.getwkdir('quast')
+__quast__done = manager.getname('quast', '.done')
+__quast__log = manager.getlogdir('quast')
 include: sm.modules["quast"]
-expected_output.append(expand(__quast__json, sample=manager.samples))
+expected_output.append(expand(__quast__done, sample=manager.samples))
 
 # reduce names of contigs
 __format_contigs__input = __spades__scaffolds
@@ -110,18 +115,31 @@ __format_contigs__output = manager.getname("format_contigs", ".fasta")
 include: sm.modules["format_contigs"]
 
 #
+# Annotation - Prokka
+#
+##############################################################################
+
+if config['prokka']['do']:
+    __prokka__input = __format_contigs__output
+    __prokka__gbk = manager.getname('prokka', '.gbf')
+    __prokka__prefix = manager.getname('prokka')
+    __prokka__outdir = manager.getwkdir('prokka')
+    __prokka__log = manager.getlogdir('prokka')
+    include: sm.modules["prokka"]
+    expected_output.append(expand(__prokka__gbk, sample=manager.samples))
+
+#
 # Remapping of reads on assembly:
 #  
-#  Variant calling - Freebayes
-#  Coverage analysis - Sequana Coverage
+#  - Variant calling: Freebayes
+#  - Coverage analysis: Sequana Coverage
 #
 ##############################################################################
 
 # assess de novo quality with coverage analysis and variant calling
 __bwa_mem_assembly__reference = __format_contigs__output
 __bwa_mem_assembly__fai = __bwa_mem_assembly__reference + ".fai"
-__bwa_mem_assembly__bam = manager.getname("bwa_mem_assembly",
-                                                  ".sorted.bam")
+__bwa_mem_assembly__bam = manager.getname("bwa_mem_assembly", ".sorted.bam")
 __bwa_mem_assembly__log = manager.getlogdir("bwa_mem_assembly")
 __bwa_index_assembly__log = "common_logs/bwa_index.log"
 include: bwa_mem_dynamic("assembly", manager)

@@ -58,41 +58,77 @@ provides quantitative measures for the assessment of genome assembly based on
 expectations of gene content from near-universal single-copy orthologs selected
 from `OrthoDB <http://www.orthodb.org/>`_.
 
-.. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/denovo_assembly/denovo_dag.png
-
 Rules and configuration details
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Here is a documenteted configuration file :download:`../sequana/pipelines/denovo_assembly/config.yaml` to be used with the pipeline. Each rule used in the pipeline may have a section in the configuration file. Here are the rules and their developer and user documentation.
 
-samtools_depth
-^^^^^^^^^^^^^^
-.. snakemakerule:: samtools_depth
+*De-novo* assembly
+######################
 
-bwa
+Digital normalisation
+^^^^^^^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: digital_normalisation
+
+SPAdes
+^^^^^^^^^^
+.. snakemakerule:: spades
+
+Format contigs
+^^^^^^^^^^^^^^^^
+.. snakemakerule:: format_contigs
+
+Quality assessment metrics
+##############################
+
+QUAST
+^^^^^^^^^
+.. snakemakerule:: quast
+
+BUSCO
+^^^^^^
+TODO
+
+Genome annotation
+###################
+
+Prokka
+^^^^^^^^
+.. snakemakerule:: prokka
+
+Re-mapping
+############
+
+BWA
 ^^^^
 .. snakemakerule:: bwa_mem_dynamic
 
-digital_normalisation
-^^^^^^^^^^^^^^^^^^^^^
-.. snakemakerule:: digital_normalisation
+Sambamba markdup
+^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: sambamba_markdup
 
-format_contigs
-^^^^^^^^^^^^^^^^^^^^^
-.. snakemakerule:: format_contigs
+Sambamba filter
+^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: sambamba_filter
 
-freebayes
+Mismatch detection
+###################
+
+Freebayes
 ^^^^^^^^^^
 .. snakemakerule:: freebayes
 
-quast
-^^^^^^^^^^^^^^^^^^^^^
-.. snakemakerule:: quast
+Freebayes filter
+^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: freebayes_vcf_filter
 
-snpeff
-^^^^^^^^^^^^^^^^^^^^^
-.. snakemakerule:: snpeff
+Coverage analysis
+###################
 
-spades
-^^^^^^^^^^^^^^^^^^^^^
-.. snakemakerule:: spades
+Samtools depth
+^^^^^^^^^^^^^^^^
+.. snakemakerule:: samtools_depth
+
+Sequana coverage
+^^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: sequana_coverage

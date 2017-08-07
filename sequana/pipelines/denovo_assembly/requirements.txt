@@ -1,4 +1,10 @@
+- busco
+- bwa
 - khmer
+- freebayes
+- picard (picard-tools)
+- prokka
 - quast
 - spades
-- [variant_calling]
+- sambamba
+- samtools

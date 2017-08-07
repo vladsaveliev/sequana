@@ -15,8 +15,8 @@ rule snpeff:
         .. code-block:: yaml
 
             snpeff:
-                reference:  # the genbank file
-                options:    # result filters options
+                reference: 'genes.gb' # The genbank file with annotation of the reference.
+                options: '-no-downstream' # Any options
     
     Results filter options:
 	    - :code:`-no-downstream`: Do not show DOWNSTREAM changes
