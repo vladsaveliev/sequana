@@ -15,9 +15,9 @@ def test_pacbio():
     # whatever name except it the MultiqcModule expects a specific name
 
     report.files = {"sequana/pacbio_qc":
-        [{'filesize': 5913, 'fn': sequana_data('summary_test1.json'), 'root': '.'},
-         {'filesize': 5731, 'fn': sequana_data('summary_test2.json'), 'root': '.'},
-         {'filesize': 5820, 'fn': sequana_data('summary_test3.json'), 'root': '.'}]
+        [{'filesize': 5913, 'fn': sequana_data('summary_pacbio_qc1.json'), 'root': '.'},
+         {'filesize': 5731, 'fn': sequana_data('summary_pacbio_qc2.json'), 'root': '.'},
+         {'filesize': 5820, 'fn': sequana_data('summary_pacbio_qc3.json'), 'root': '.'}]
     }
     pacbio_qc.MultiqcModule()
 
