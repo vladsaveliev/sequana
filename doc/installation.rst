@@ -6,10 +6,19 @@ Installation
 
 .. _installation_conda:
 
-
-In short, using bioconda (conda channel)::
+Using conda (bioconda channel)::
 
     conda install sequana
+
+Using Python Package Index (pip tool)::
+
+    pip install sequana
+
+From source::
+
+    git clone git@github.com:sequana/sequana.git
+    cd sequana
+    python setup.py install
 
 See hereafter for details.
 
