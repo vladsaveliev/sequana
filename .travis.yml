@@ -31,7 +31,7 @@ install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION cython pillow pyVCF sphinx qtconsole
   - conda install bwa kraken cutadapt pysam snpEff krona bleach --yes
   - conda install shustring --yes
-  - conda install multiqc>=1.0
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION "multiqc>=1.0"
   # use pip to get latest version
   - pip install easydev>=0.9.34 --upgrade
   - pip install coveralls
