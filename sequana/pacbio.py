@@ -286,9 +286,10 @@ class BAMPacbio(PacbioBAMBase):
     df = property(_get_df)
 
     def _get_stats(self):
+        # cast to allows json dump
         data =  self.df.read_length.describe().to_dict()
-        data['nb_bases'] = self.df.read_length.sum()
-        data['mean_GC'] = self.df.GC_content.mean()
+        data['nb_bases'] = int(self.df.read_length.sum())
+        data['mean_GC'] = float(self.df.GC_content.mean())
         return data
     stats = property(_get_stats, doc="return basic stats about the read length")
 
@@ -344,7 +345,7 @@ class BAMPacbio(PacbioBAMBase):
     def summary(self):
         summary = {"name": "sequana_summary_pacbio_qc"}
         summary["read_stats"] = self.stats.copy()
-        summary["mean_gc"] = np.mean(self._df.loc[:,'GC_content'])
+        summary["mean_gc"] = float(np.mean(self._df.loc[:,'GC_content']))
         a, b = np.histogram(self._df.loc[:,'GC_content'], bins=100)
         summary['hist_gc'] = {"Y": a.tolist(), "X": b.tolist()}
         a, b =  np.histogram(self._df['read_length'],100)
