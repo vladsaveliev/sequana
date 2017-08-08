@@ -1,6 +1,6 @@
 :Overview: Quality control, trimming (adapter removal) and taxonomic overview
-:Input: A set of FastQ (paired or single-end)
-:Output: fastqc, cleanup FastQ files
+:Input: A set of FastQ files (paired or single-end)
+:Output: fastqc, cleaned FastQ files, Krona plot
 
 Usage
 ~~~~~~~
@@ -10,7 +10,7 @@ Usage
     sequana --pipeline quality_control --input-directory . --working-directory analysis --no-adapters
 
 
-Or use **Sequanix** interface.
+Or use :ref:`sequanix_tutorial` interface.
 
 Requirements
 ~~~~~~~~~~~~~~~~~~
@@ -23,9 +23,9 @@ Requirements
 Details
 ~~~~~~~~~
 
-This pipeline is used to check the quality of the input FastQ files. It can also 
-be used to remove the Phix that may be present in the data or low quality reads
-using a dedicated tool such as **cutadapt** or **atropos**. If one specifies 
+This pipeline is used to check the quality of the input FastQ files. It id used
+to remove the Phix (coliphage) that may be present in the data. Low quality reads
+are trimmed using a dedicated tool such as **cutadapt** or **atropos**. If one specifies 
 the quality trimming option in the config file, then we trim
 low-quality ends from reads BEFORE adapter removal.
 
@@ -65,14 +65,14 @@ For the second database, you will need **synapseclient**::
 
     pip install synapseclient
 
-and an account on synapse website.
+and an account on synapse website (https://www.synapse.org/).
 
 Rules and configuration details
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Here is a documented configuration file :download:`../sequana/pipelines/quality_control/config.yaml` to be used with the pipeline. Each rule used in the pipeline may have a section in the
 configuration file. In the *quality_control* pipeline, we use the *bwa_mem*,
-*fastqc*, *cutadapt* and *kraken* rules described here below.
+*fastqc*, *cutadapt*, *fastq_stats* and *kraken* rules described here below.
 
 
 FastQC
