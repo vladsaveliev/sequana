@@ -1,6 +1,6 @@
-def bowtie1_mapping_dynamic(name, log_dir):
+def bowtie1_mapping_dynamic(name, , manager):
 
-    metadata = {"name": name, "log_dir": log_dir}
+    metadata = {'name':name, "project":manager.sample}
 
     bowtie1_mapping_code = '''
 rule bowtie1_mapping_%(name)s:
@@ -62,8 +62,5 @@ rule bowtie1_mapping_%(name)s:
         shell(cmd )
     '''
 
-    from easydev import TempFile
-    tt = TempFile()
-    with open(tt.name, "w") as fh:
-        fh.write(bowtie1_mapping_code % metadata)
-    return fh.name
+    from sequana.snaketools import build_dynamic_rule
+    return build_dynamic_rule(bowtie1_mapping_code % metadata, manager.pipeline_dir)
