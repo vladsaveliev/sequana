@@ -1,4 +1,4 @@
-def bowtie1_index_dynamic(name, manager):
+def bowtie1_index_dynamic(name):
 
     metadata = {'name':name}
 
@@ -24,4 +24,4 @@ rule bowtie1_index_%(name)s:
     '''
 
     from sequana.snaketools import build_dynamic_rule
-    return build_dynamic_rule(bowtie1_index_code, manager.pipeline_dir)
+    return build_dynamic_rule(bowtie1_index_code)
