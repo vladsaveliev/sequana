@@ -1,5 +1,5 @@
 :Overview: Variant calling from FASTQ files
-:Input: FASTQ file from Illumina Sequencing instrument
+:Input: FASTQ files from Illumina Sequencing instrument
 :Output: VCF and HTML files
 
 Usage
@@ -79,7 +79,7 @@ Sambamba filter
 ^^^^^^^^^^^^^^^^^^
 .. snakemakerule:: sambamba_filter
 
-Variants Calling
+Variant Calling
 ###################
 
 Freebayes
