@@ -45,4 +45,11 @@ Rules and configuration details
 
 Here is a documented configuration file :download:`../sequana/pipelines/pacbio_qc/config.yaml` to be used with the pipeline.
 
+bam_to_fasta
+^^^^^^^^^^^^
+
 .. snakemakerule:: bam_to_fasta
+
+pacbio_quality
+^^^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: pacbio_quality
