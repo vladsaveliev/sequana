@@ -4,7 +4,8 @@ def bowtie1_mapping_dynamic(name, manager):
 
     bowtie1_mapping_code = '''
 rule bowtie1_mapping_%(name)s:
-    """
+    """bowtie1_mapping_dynamic
+
     Read mapping for either single end and paired end data using Bowtie1.
 
     Required input:

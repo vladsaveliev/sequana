@@ -606,3 +606,13 @@ class PBSim(object):
 
         if output_filename is not None:
             self.bam_simul.filter_bool(output_filename, self.tokeep)
+
+
+
+
+
+
+
+
+
+

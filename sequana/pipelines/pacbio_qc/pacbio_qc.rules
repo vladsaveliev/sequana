@@ -23,9 +23,18 @@ sm.message("Number of samples: %d" % len(samples))
 
 
 # define IO for bam_to_fasta
-__bam_to_fasta__input_bam = directory + "/{sample}.bam"
+input_data = directory + "/{sample}.bam"
+
+# Convert the BAM into a FastA file
+__bam_to_fasta__input_bam = input_data
 __bam_to_fasta__output_fasta = "{sample}.fasta"
 include: sm.modules["bam_to_fasta"]
+
+
+# Analysis the input BAM , create pictures and summary file
+__pacbio_quality__input = input_data
+__pacbio_quality__output_summary = "summary_{sample}.json"
+include: sm.modules["pacbio_quality"]
 
 
 rule all:
@@ -70,67 +79,12 @@ rule kraken:
         shell(cmd)
 
 
-rule read_len:
-    input: directory + "/{sample}.bam"
-    output:
-        read_len   = "hist_read_len_{sample}.png",
-        GC_content = "GC_content_{sample}.png",
-        ZMW        = "ZMW_passes_{sample}.png",
-        SNR        = "SNR_{sample}.png",
-        GC_vs_len  = "GC_vs_len_{sample}.png",
-        summary    = "summary_{sample}.json"
-
-    run:
-        ########## labels for plots
-        short_name = input[0].replace(".bam","").split("/")[-1]
-        bam_pacbio = pacbio.BAMPacbio(input[0])
-
-        ########## Read length
-        # individual histograms
-        bam_pacbio.hist_len(label=short_name)
-        pylab.title("Read length")
-        pylab.legend()
-        pylab.savefig(output.read_len)
-
-        ########## GC content
-        # individual histograms
-        bam_pacbio.hist_GC(label=short_name)
-        pylab.title("GC content")
-        pylab.legend()
-        pylab.savefig(output.GC_content)
-
-        ########## ZMW passes
-        # individual histograms
-        bam_pacbio.hist_ZMW_subreads(label=short_name)
-        pylab.title("ZMW passes")
-        pylab.legend()
-        pylab.savefig(output.ZMW)
-
-        ########## SNR
-        # individual histograms
-        bam_pacbio.hist_snr()
-        pylab.title("SNR %s" %short_name)
-        pylab.savefig(output.SNR)
-
-        # plot GC versus read length
-        bam_pacbio.plot_GC_read_len()
-        pylab.savefig(output.GC_vs_len)
-
-        summary = bam_pacbio.summary()
-        with open(output.summary, "w") as fh:
-            summary.update(
-                {"images": 
-                    {"hist_read_length": output.read_len,
-                    "hist_gc_content": output.GC_content,
-                    "hist_snr": output.SNR,
-                    "gc_vs_length": output.GC_vs_len,
-                    "hist_zmw": output.ZMW}
-                })
-            sample_name = output.summary[8:].rstrip(".json") 
-            summary.update({'sample': sample_name})
-            json.dump(summary, fh, indent=True, sort_keys=True)
-        pylab.close()
+"""__multiqc__input = "summary_{sample}.json"
+__multiqc__logs = "logs/multiqc.log"
+__multiqc__output = "multiqc_data"
+config['multiqc'] = {"excluded": "", "output-directory"}
+"""
 
 onsuccess:
     shell("multiqc . -m sequana_pacbio_qc  -f")
-    
+

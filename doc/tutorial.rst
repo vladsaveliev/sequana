@@ -62,6 +62,10 @@ See :ref:`quick_start`
 Taxonomy
 -------------------------------
 
+To perform a quick taxonomy of your reads, you can use :ref:`standalone_sequana_taxonomy`
+
+**sequana_taxonomy**
+
 Download a toy kraken database designed for this problem (contains only 100
 FASTA files mixing measles viruses and others viruses)::
 

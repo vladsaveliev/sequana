@@ -2,8 +2,14 @@ def miRNA_count_dynamic(name, project):
 
     metadata = {"name": name}
 
+
+
+    miRNA_count_code = '''
+rule miRNA_count_%(name)s:
     """
-    miRNA_count ....
+    miRNA_count_dynamic
+
+    miRNA_count rule count
 
     Required input:
         __miRNA_count__input: bam file
@@ -12,8 +18,7 @@ def miRNA_count_dynamic(name, project):
         __miRNA_count__output: tabulated file
     """
 
-    miRNA_count_code = '''
-rule miRNA_count_%(name)s:
+
     input:
         __miRNA_count_%(name)s__input
     output:
