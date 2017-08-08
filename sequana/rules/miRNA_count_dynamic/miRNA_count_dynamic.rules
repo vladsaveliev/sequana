@@ -2,14 +2,13 @@ def miRNA_count_dynamic(name, project):
 
     metadata = {"name": name}
 
-
-
     miRNA_count_code = '''
 rule miRNA_count_%(name)s:
     """
     miRNA_count_dynamic
 
-    miRNA_count rule count
+    miRNA_count rule count how many reads are mapped on each feature in a BAM file.
+    This vould be done for mapping on miRNA (hairpin and mature from miRBase), but also on transcriptome (cDNA file)
 
     Required input:
         __miRNA_count__input: bam file

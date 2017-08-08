@@ -1,4 +1,20 @@
 rule star_index:
+    """
+    Genome indexation for RNA-STAR mapper
+
+    Required input:
+        __star_index__fasta: the reference genome to indexed in FASTA format
+
+    Required output:
+        __star_index__output_done: done file for STAR mapping rule
+
+    params:
+
+        __star_index__output_dir: the directory where write the index
+
+    """
+
+
     input:
        fasta =  __star_index__fasta
     output:

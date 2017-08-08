@@ -15,8 +15,8 @@ rule feature_counts:
         .. code-block:: yaml
 
             feature_counts:
-                gff: " " #path to the GFF/GTF annotation file
-                options:  " " #options for featureCounts you want use
+                gff: " "       #path to the GFF/GTF annotation file
+                options:  " "  #options for featureCounts you want use
     """
 
 
