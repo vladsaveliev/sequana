@@ -2,7 +2,7 @@
 """ Dynamic rule to unpigz a zipped file.
 """
 
-def dynamic_unpigz(name, , manager):
+def dynamic_unpigz(name, manager):
 
     metadata = {'name':name, "project":manager.sample}
     dynamic_unpigz_code = '''
