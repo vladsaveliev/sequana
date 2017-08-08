@@ -1,4 +1,4 @@
-:Overview: RNASeq
+:Overview: RNASeq: Differential expressed genes analysis
 :Input: FastQ raw data from Illumina Sequencer (either paired or not)
 :Output: BAM, count and HTML files
 
@@ -38,22 +38,37 @@ configuration file. Here are the rules and their developer and user documentatio
 
 FastQC
 ^^^^^^^^^^^
+
+FastQC is used to check quality of sequenced reads.
+
 .. snakemakerule:: fastqc_dynamic
+
 
 Fastq_screen
 ^^^^^^^^^^^^^^^
+
+Fastq_screen is used to search any contamination in data. A interne database (with bowtie2 indexes) is mandatory.
+
 .. snakemakerule:: fastq_screen
 
 Cutadapt
 ^^^^^^^^^
+
+Cutadapt is used to trim and filter sequences.
+
 .. snakemakerule:: cutadapt
 
 Mapping on rRNA
 ^^^^^^^^^^^^^^^^^^^^^
+
+In order to estimate rRNA rate, a bowtie alignment on ribosomal sequences is performed
+
 .. snakemakerule:: bowtie1_mapping_dynamic
 
 Mapping on reference genome
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+According to your genome, you can choose to align sequences with bowtie1 or STAR, or both.
 
 Bowtie1
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -65,8 +80,14 @@ STAR
 
 Counting
 ^^^^^^^^^^^^
+
+FeatureCounts is used for counting
+
 .. snakemakerule:: feature_counts
 
 Reporting
 ^^^^^^^^^^^^
+
+MultiQC allows to report all bioinformatics tools in a same html file. 
+
 .. snakemakerule:: multiqc

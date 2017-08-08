@@ -18,7 +18,6 @@ __snakefile__ = srcdir(__snakefile__)
 # Generic include of some dynamic modules
 exec(open(sequana.modules["bowtie1_mapping_dynamic"], "r").read())
 exec(open(sequana.modules["fastqc_dynamic"], "r").read())
-exec(open(sequana.modules["bowtie1_index_dynamic"], "r").read())
 exec(open(sequana.modules["dynamic_unpigz"], "r").read())
 
 manager = sm.PipelineManager("rnaseq", config)
@@ -193,12 +192,12 @@ expected_output.extend(expand(__fastqc_filtered__output_done, sample=manager.sam
 # Decompress fastq.gz file before to run bowtie1
 __unpigz_R1__input = manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")
 __unpigz_R1__output = manager.getname("cutadapt", "_R1_.cutadapt.fastq")
-include: dynamic_unpigz("R1", manager.sample)
+include: dynamic_unpigz("R1", manager)
 __unpigz__output = [__unpigz_R1__output]
 if manager.paired:
     __unpigz_R2__input = manager.getname("cutadapt", "_R2_.cutadapt.fastq.gz")
     __unpigz_R2__output = manager.getname("cutadapt", "_R2_.cutadapt.fastq")
-    include: dynamic_unpigz("R2", manager.sample)
+    include: dynamic_unpigz("R2", manager)
     __unpigz__output += [__unpigz_R2__output]
 
 
@@ -213,7 +212,7 @@ if manager.config.bowtie1_mapping_rna.do:
     __bowtie1_mapping_rna__stdout = manager.getname("bowtie1_mapping_rna", "_rRNA.out")
     __bowtie1_mapping_rna__stderr = manager.getname("bowtie1_mapping_rna", "_rRNA.err")
 
-    include: bowtie1_mapping_dynamic("rna", manager.sample)
+    include: bowtie1_mapping_dynamic("rna", manager)
     expected_output.extend(expand(__bowtie1_mapping_rna__sort, sample=manager.samples))
 
 if manager.config.bowtie1_mapping_ref.do:
@@ -225,7 +224,7 @@ if manager.config.bowtie1_mapping_ref.do:
     __bowtie1_mapping_ref__prefix_index = __bowtie1_index__
     __bowtie1_mapping_ref__stdout = manager.getname("bowtie1_mapping_ref", ".out")
     __bowtie1_mapping_ref__stderr = manager.getname("bowtie1_mapping_ref", ".err")
-    include: bowtie1_mapping_dynamic("ref", manager.sample)
+    include: bowtie1_mapping_dynamic("ref", manager)
     expected_output.extend(expand(__bowtie1_mapping_ref__sort, sample=manager.samples))
     __mapping_output = __bowtie1_mapping_ref__sort
 if manager.config.star_mapping.do:

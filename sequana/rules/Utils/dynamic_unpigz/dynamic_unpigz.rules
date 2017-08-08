@@ -2,9 +2,10 @@
 """ Dynamic rule to unpigz a zipped file.
 """
 
-def dynamic_unpigz(name, project):
-    metadata = {'name': name}
-    dynamic_unpigz = '''
+def dynamic_unpigz(name, manager):
+
+    metadata = {'name':name}
+    dynamic_unpigz_code = '''
 rule unpigz_%(name)s:
     input:
         input = __unpigz_%(name)s__input
@@ -18,8 +19,5 @@ rule unpigz_%(name)s:
 
 
 '''
-    from easydev import TempFile
-    tt = TempFile()
-    with open(tt.name, "w") as fh:
-        fh.write(dynamic_unpigz % metadata)
-    return fh.name
+    from sequana.snaketools import build_dynamic_rule
+    return build_dynamic_rule(dynamic_unpigz_code % metadata, manager.pipeline_dir)
