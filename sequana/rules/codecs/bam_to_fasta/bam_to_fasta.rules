@@ -7,6 +7,9 @@ rule bam_to_fasta:
     Required output:
         - __bam_to_fasta__output_fasta
 
+     References:
+         `sequana.pacbio <http://sequana.readthedocs.io/en/master/references.html#sequana.pacbio.BAMPa    cbio>`_
+
     """
     input: __bam_to_fasta__input_bam
     output: __bam_to_fasta__output_fasta
