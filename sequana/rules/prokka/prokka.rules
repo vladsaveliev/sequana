@@ -46,7 +46,7 @@ rule prokka:
     threads:
         config['prokka']['threads']
     run:
-        cmd = "prokka --cpus %i --prefix %s --outdir %s %s" % (
+        cmd = "prokka --force --cpus %i --prefix %s --outdir %s %s" % (
             threads, params['prefix'], params['outdir'], params['options']
         )
         if params['kingdom']:

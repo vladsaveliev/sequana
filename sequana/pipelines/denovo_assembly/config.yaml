@@ -80,8 +80,8 @@ spades:
 # - reference: Reference genome file (optional).
 # - genes_file: Gene positions in the reference genome.
 # - map_reads: Map reads on reference file.
-# - threads: number of threads to be used.
-# - options: any options recognised by quast.py.
+# - threads: Number of threads to be used.
+# - options: Any options recognised by quast.py.
 # 
 quast:
     reference: ""
@@ -94,6 +94,7 @@ quast:
 #
 # :Parameters:
 #
+# - do: If unchecked, this rule is ignored.
 # - kingdom: Annotation mode (Archaea|Bacteria|Mitochondria|Viruses)
 # - genus: Genus name of the assembly.
 # - species: Species name of the assembly.
@@ -101,6 +102,7 @@ quast:
 # - options: Any options recognised by Prokka.
 #
 prokka:
+    do: yes
     kingdom: Bacteria
     genus: ""
     species: ""
