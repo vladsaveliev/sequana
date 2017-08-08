@@ -14,6 +14,7 @@ rule bwa_bam_to_fastq:
 
     Notes: FastQ are gzipped
 
+    :References: Sequana function StatsBAM2Mapped
     """
     message: """
     -- Extracting the fastq from the BAM/SAM files
