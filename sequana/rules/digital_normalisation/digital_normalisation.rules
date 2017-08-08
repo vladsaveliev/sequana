@@ -56,7 +56,7 @@ rule digital_normalisation:
         if [[ $fastq == *.gz ]]
         then
             compressed="yes"
-            fastq=$(${{fastq%*.gz}} | sed -e "s/.gz\s/ /g")
+            fastq=$(echo ${{fastq%*.gz}} | sed -e "s/.gz\s/ /g")
             # Uncompress fastq file
             unpigz -fk {input.fastq} -p {threads}
         fi
