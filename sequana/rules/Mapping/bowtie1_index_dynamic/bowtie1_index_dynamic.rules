@@ -1,9 +1,6 @@
-def bowtie1_index_dynamic(name):
-    """
-    blabla
-    """
+def bowtie1_index_dynamic(name, manager):
 
-    metadata = {"name": name}
+    metadata = {'name':name}
 
     bowtie1_index_code = '''
 rule bowtie1_index_%(name)s:
@@ -26,8 +23,5 @@ rule bowtie1_index_%(name)s:
         """
     '''
 
-    from easydev import TempFile
-    tt = TempFile()
-    with open(tt.name, "w") as fh:
-        fh.write(bowtie1_index_code % metadata)
-    return fh.name
+    from sequana.snaketools import build_dynamic_rule
+    return build_dynamic_rule(bowtie1_index_code, manager.pipeline_dir)

@@ -1,6 +1,6 @@
 def bowtie1_mapping_dynamic(name, manager):
 
-    metadata = {'name':name, "project":manager.sample}
+    metadata = {'name':name}
 
     bowtie1_mapping_code = '''
 rule bowtie1_mapping_%(name)s:

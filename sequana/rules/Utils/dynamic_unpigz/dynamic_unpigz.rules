@@ -4,7 +4,7 @@
 
 def dynamic_unpigz(name, manager):
 
-    metadata = {'name':name, "project":manager.sample}
+    metadata = {'name':name}
     dynamic_unpigz_code = '''
 rule unpigz_%(name)s:
     input:

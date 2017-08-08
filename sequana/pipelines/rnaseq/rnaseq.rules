@@ -18,7 +18,6 @@ __snakefile__ = srcdir(__snakefile__)
 # Generic include of some dynamic modules
 exec(open(sequana.modules["bowtie1_mapping_dynamic"], "r").read())
 exec(open(sequana.modules["fastqc_dynamic"], "r").read())
-exec(open(sequana.modules["bowtie1_index_dynamic"], "r").read())
 exec(open(sequana.modules["dynamic_unpigz"], "r").read())
 
 manager = sm.PipelineManager("rnaseq", config)
