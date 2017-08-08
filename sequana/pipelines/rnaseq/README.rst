@@ -38,7 +38,7 @@ configuration file. Here are the rules and their developer and user documentatio
 
 FastQC
 ^^^^^^^^^^^
-.. snakemakerule:: fastqc
+.. snakemakerule:: fastqc_dynamic
 
 Fastq_screen
 ^^^^^^^^^^^^^^^
