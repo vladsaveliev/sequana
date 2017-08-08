@@ -25,30 +25,6 @@ requirements:
     - phiX174.fa
 
 
-#################################################################
-# Select a sub-sample of the original FastQ files
-#
-# :Parameters:
-#
-# - do: if unchecked, this rule is ignored
-# - N:  number of reads to use
-#
-fastq_sampling: # test
-    do: no
-    N: 2500
-
-
-#################################################################
-# FastQC section
-#
-# :Parameters:
-#
-# - options: string with any valid FastQC options
-#
-fastqc:
-    options: "--nogroup"
-
-
 #############################################################################
 # BWA used to remove a contaminant
 #
@@ -70,6 +46,8 @@ bwa_mem_phix:
     options: '-T 30'
     threads: 4
     tmp_directory: './tmp'
+
+
 
 
 #######################################################################
@@ -121,6 +99,31 @@ cutadapt:
     options: "-O 6 --trim-n"
     quality: 30                 # {"range": [0,40]}
     threads: 4
+
+
+#################################################################
+# Select a sub-sample of the original FastQ files
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - N:  number of reads to use
+#
+fastq_sampling: # test
+    do: no
+    N: 2500
+
+
+#################################################################
+# FastQC section
+#
+# :Parameters:
+#
+# - options: string with any valid FastQC options
+#
+fastqc:
+    options: "--nogroup"
+
 
 #################################################################
 # For taxonomy. Used in quality_control pipeline

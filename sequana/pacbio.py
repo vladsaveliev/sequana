@@ -17,14 +17,16 @@
 ##############################################################################
 """Pacbio QC and stats"""
 import collections
+import json
+import random
 
 from sequana.lazy import pylab
 from sequana.lazy import numpy as np
 from sequana.lazy import pandas as pd
 from sequana.lazy import biokit
-
 import pysam
 
+from sequana import logger
 
 __all__ = ["BAMPacbio", "PBSim", "BAMSimul"]
 
@@ -54,6 +56,24 @@ class PacbioBAMBase(object):
     def reset(self):
         self.data.close()
         self.data = pysam.AlignmentFile(self.filename, check_sq=False)
+
+    def _to_fastX(self, mode, output_filename, threads=2):
+        """
+
+        :param mode: fastq or fasta
+
+        """
+        # for now, we use samtools
+        # can use bamtools as well but as long and output 10% larger (sequences
+        # are split on 80-characters length)
+        from snakemake import shell
+        cmd = "samtools %s  -@ %s %s > %s" % (mode, threads, 
+            self.filename, output_filename)
+        logger.info("Please be patient")
+        logger.info("This may be long depending on your input data file: ")
+        logger.info("typically, a minute per  500,000 reads")
+        shell(cmd)
+        logger.info("done")
 
     def to_fastq(self, output_filename, threads=2):
         """Export BAM reads into FastQ file"""
@@ -95,7 +115,6 @@ class PacbioBAMBase(object):
             b.hist_GC()
 
         """
-
         if self._df is None:
             self._get_df()
         mean_GC =  np.mean(self._df.loc[:,'GC_content'])
@@ -225,8 +244,11 @@ class BAMPacbio(PacbioBAMBase):
         """
         super(BAMPacbio, self).__init__(filename)
 
-
     def _get_df(self):
+        # When scanning the BAM, we can extract the length, SNR of ACGT (still 
+        # need to know how to use it). The GC content (note there is no
+        # ambiguity so no S character). The ZMW. Also, from the tags we could 
+        # get more
         if self._df is None:
             self.reset()
             N = 0
@@ -240,10 +262,10 @@ class BAMPacbio(PacbioBAMBase):
                     print("Read %d sequences" %N)
                 #res[0] = read length
                 res.append(read.query_length)
-                # res[1] = GC content
-                c = collections.Counter(read.query_sequence)
-                res.append( 100 * (c['g'] + c['G'] + c['c'] + c['C']) /
-                            float(sum(c.values())) )
+                # collections.counter is slow, let us do it ourself
+                res.append( 100. / read.qlen * sum(
+                    [read.query_sequence.count(letter) for letter in "CGcgSs"])) 
+
                 # res[2] = snr A
                 # res[3] = snr C
                 # res[4] = snr G
@@ -264,8 +286,10 @@ class BAMPacbio(PacbioBAMBase):
     df = property(_get_df)
 
     def _get_stats(self):
+        # cast to allows json dump
         data =  self.df.read_length.describe().to_dict()
-        data['nb_bases'] = self.df.read_length.sum()
+        data['nb_bases'] = int(self.df.read_length.sum())
+        data['mean_GC'] = float(self.df.GC_content.mean())
         return data
     stats = property(_get_stats, doc="return basic stats about the read length")
 
@@ -279,7 +303,6 @@ class BAMPacbio(PacbioBAMBase):
             self._nb_pass = collections.Counter(distrib_nb_passes)
         return self._nb_pass
     nb_pass = property(_get_ZMW_passes, doc="number of passes (ZMW)")
-
 
     def stride(self, output_filename, stride=10, shift=0, random=False):
         """Write a subset of reads to BAM output
@@ -302,18 +325,37 @@ class BAMPacbio(PacbioBAMBase):
                     if random:
                         shift = np.random.randint(stride)
 
-    def _to_fastX(self, mode, output_filename, threads=2):
-        # for now, we use samtools
-        # can use bamtools as well but as long and output 10% larger (sequences
-        # are split on 80-characters length)
-        from snakemake import shell
-        cmd = "samtools %s  -@ %s %s > %s" % (mode, threads, 
-            self.filename, output_filename)
-        print("Please be patient")
-        print("This may be long depending on your input data file: ")
-        print("typically, a minute per  500,000 reads")
-        shell(cmd)
-        print("done")
+    def random_selection(self, output_filename, nreads):
+        """Select random reads
+
+        :param nreads: number of reads to select randomly. Must be less than
+            number of available reads in the orignal file.
+        """
+        assert output_filename != self.filename, \
+            "output filename should be different from the input filename"
+        self.reset()
+        assert nreads < len(self), "nreads parameter larger than actual Number of reads"
+        selector = random.sample(range(len(self)), nreads)
+
+        with pysam.AlignmentFile(output_filename,"wb", template=self.data) as fh:
+            for i, read in enumerate(self.data):
+                if i in selector:
+                    fh.write(read)
+
+    def summary(self):
+        summary = {"name": "sequana_summary_pacbio_qc"}
+        summary["read_stats"] = self.stats.copy()
+        summary["mean_gc"] = float(np.mean(self._df.loc[:,'GC_content']))
+        a, b = np.histogram(self._df.loc[:,'GC_content'], bins=100)
+        summary['hist_gc'] = {"Y": a.tolist(), "X": b.tolist()}
+        a, b =  np.histogram(self._df['read_length'],100)
+        summary['hist_read_length'] = {"Y": a.tolist(), "X": b.tolist()}
+        return summary
+
+    def save_summary(self, filename):
+        summary = self.summary()
+        with open(filename, "w") as fh:
+            json.dump(summary, fh, indent=4, sort_keys=True)
 
     def filter_length(self, output_filename, threshold_min=0,
         threshold_max=np.inf):
@@ -415,7 +457,6 @@ class BAMPacbio(PacbioBAMBase):
             pylab.grid(True)
 
 
-
 class BAMSimul(PacbioBAMBase):
     """BAM reader for Pacbio simulated reads (PBsim)
 
@@ -479,8 +520,8 @@ class BAMSimul(PacbioBAMBase):
                 if ((read.query_length > threshold_min) & (read.query_length < threshold_max)):
                     fh.write(read)
 
-    def filter_bool(self, output_filename, list_bool):
-        """Select and Write reads within a given range
+    def filter_bool(self, output_filename, mask):
+        """Select and Write reads using a mask
 
         :param str output_filename: name of output file
         :param list list_bool: True to write read to output, False to ignore it
@@ -488,11 +529,11 @@ class BAMSimul(PacbioBAMBase):
         """
         assert output_filename != self.filename, \
             "output filename should be different from the input filename"
-        assert len(list_bool) == self._N, \
+        assert len(mask) == self._N, \
             "list of bool must be the same size as BAM file"
         self.reset()
         with pysam.AlignmentFile(output_filename,  "wb", template=self.data) as fh:
-            for read,keep in zip(self.data,list_bool):
+            for read, keep in zip(self.data, mask):
                 if keep:
                     fh.write(read)
 

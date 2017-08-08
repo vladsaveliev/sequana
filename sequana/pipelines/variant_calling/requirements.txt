@@ -1,4 +1,3 @@
-- bedtools
 - bwa
 - freebayes
 - picard (picard-tools)

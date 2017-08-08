@@ -1,17 +1,20 @@
 rule samtools_depth:
-    """Samtools depth
-
-    Creates a bed file with the coverage depth for each base position. 
-    It can compute multiple bam files and concatenate results.
+    """
+    Samtools Depth creates a BED file with the coverage depth for each base
+    position. It can also compute multiple BAM files and concatenate results in
+    one BED file.
 
     Required input:
-        __samtools_depth__input: sorted bam file or list of bam file
+        - __samtools_depth__input: Sorted BAM file or list of bam file.
 
     Required output:
-        __samtools_depth__output: bed file
+        - __samtools_depth__output: BED file with coverage for each base.
 
-    Config file:
-        No section required
+    Required log:
+        - __samtools_depth__log: Log file with stderr of samtools.
+
+    Reference:
+        - http://www.htslib.org/doc/samtools.html
     """
     input:
         __samtools_depth__input

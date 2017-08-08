@@ -72,7 +72,7 @@ class PacbioInputBAMModule(SequanaBaseModule):
             self.add_png(this)
 
     def add_stats(self):
-        df = pd.Series(self.summary['stats']).to_frame().T
+        df = pd.Series(self.summary['read_stats']).to_frame().T
         df.index = ['read length stats']
         table = DataTable(df, "table", index=True)
         table.datatable.datatable_options = {
@@ -105,7 +105,7 @@ class PacbioInputBAMModule(SequanaBaseModule):
         elif key == "hist_snr":
             title = "Histogram SNR"
 
-        html = self.png_to_embedded_png( self.summary[key])
+        html = self.png_to_embedded_png( self.summary["images"][key])
         html = """<figure style="float:center; width:89%; padding:0px; margin:0px;">
         {}
     <figcaption style="font-style:italic"></figcaption>

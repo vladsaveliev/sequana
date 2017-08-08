@@ -11,6 +11,10 @@ def test_dot_parser():
     try:os.remove("test_dag.ann.dot")
     except:pass
 
+def test_md5():
+    from sequana import Module
+    m = Module("quality_control")
+    data = m.md5()
 
 def test_modules():
     assert "dag" in snaketools.modules.keys()
@@ -279,9 +283,6 @@ def test_init():
 
 
 
-
-
-
-
-
+def test_get_pipeline_statistics():
+    df = snaketools.get_pipeline_statistics()
 

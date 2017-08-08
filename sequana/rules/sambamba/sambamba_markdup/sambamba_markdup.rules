@@ -1,23 +1,30 @@
 rule sambamba_markdup:
     """ 
-    Marks (by default) or removes duplicate reads. For determining whether a
+    This rule marks or removes PCR duplicate reads. For determining whether a
     read is a duplicate or not, the same criteria as in Picard are used.
 
     Required input:
-        __sambamba_markdup__input: bam file
+        - __sambamba_markdup__input: Sorted BAM file.
 
     Required output:
-        __sambamba_markdup__output: bam file
+        - __sambamba_markdup__output: BAM file with duplicates marked or removed.
+
+    Required log:
+        - __sambamba_markdup__log_std: Log file with stdout.
+        - __sambamba_markdup__log_err: Log file with stderr.
 
     Required configuration:
         .. code-block:: yaml
 
             sambamba_markdup:
-                remove:  # yes/no
-                tmpdir:  # temporary directory
+                remove: no # Remove or just mark duplicate reads.
+                tmp_directory: /tmp # Temporary directory.
+
+    Reference:
+        - http://lomereiter.github.io/sambamba/docs/sambamba-markdup.html
     """
     input:
-        __sambamba_markdup__input
+        bam = __sambamba_markdup__input
     output:
         bam = __sambamba_markdup__output
     log:
@@ -28,7 +35,7 @@ rule sambamba_markdup:
         tmp = config["sambamba_markdup"]["tmp_directory"]
     run:
         cmd = "sambamba markdup %s %s --tmpdir=%s" % (
-            input[0], output['bam'], params['tmp']
+            input['bam'], output['bam'], params['tmp']
         )
 
         if params['remove']:

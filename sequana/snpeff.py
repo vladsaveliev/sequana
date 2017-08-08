@@ -22,15 +22,20 @@ import sys
 import os
 import shutil
 import subprocess as sp
-from collections import OrderedDict
 
 from sequana.resources import snpeff
 from sequana import FastA
+from sequana import logger
 
 
 class SnpEff(object):
-    """ Python wrapper to set and launch snpEff from a genbank file. It is not
-    easy to use a custom genbank file with snpEff.
+    """ SnpEff is a tool dedicated to annotate detected variants in a VCF file.
+    This wrapper eases the annotation with a genbank file. It create
+    automatically the custom database. Then, run snpEff with a subprocess.
+    Caution, the locus name (or chromosome name) in genbank file
+    and the sequence name in VCF file must be the same. Otherwise, snpEff is
+    not able to bind informations.
+
 
     Example:
     
@@ -39,70 +44,38 @@ class SnpEff(object):
         snpeff = SnpEff('file.gbk')
         snpeff.launch_snpeff('variants.vcf', 'variant.ann.vcf')
     """
-    extension = {"genbank": ".gbk", "gff": ".gff", "gtf": ".gtf"}
-    def __init__(self, reference, file_format="", log=None):
+    def __init__(self, reference, log=None):
         """.. rubric:: Constructor
 
         :param reference: annotation reference.
         :param file_format: format of your file. ('only genbank actually')
         :param log: log file
         """
+        # Check if the input file exist
+        if os.path.isfile(reference):
+            self.reference = reference
+            self.ref_name = os.path.basename(reference).split('.')[0]
+        else:
+            logger.error("FileNotFoundError: The file " + reference + 
+                         " does not exist")
+            sys.exit(1)
+
+        # Set the log file
         self.log_file = log
         if log is not None:
             if os.path.isfile(log):
                 os.remove(log)
-        self.reference = reference
-        self.ref_name = os.path.basename(reference).split('.')[0]
+
         # Check if snpEff.config is present
         if not os.path.exists("snpEff.config"):
             self._get_snpeff_config()
-        if not file_format:
-            try:
-                self._check_format()
-            except FileNotFoundError:
-                pass
-        else:
-            self.file_format = file_format
-        # Check if reference is a file
-        if os.path.exists(reference):
-            if not os.path.exists("data" + os.sep + self.ref_name + os.sep +
-                        "snpEffectPredictor.bin"):
-                # Build snpEff predictor
-                self._add_custom_db()
-            else:
-                # Add db in config if it was removed
-                self._add_db_in_config()
-        # Check if reference is present in snpEff database
-        elif self._check_database(self.ref_name):
-            if not os.path.exists("data" + os.sep + self.ref_name):
-                # Download file
-                snpeff_dl = sp.Popen(["snpEff", "download", self.ref_name])
-                snpeff_dl.wait()
-        # If reference is nowhere
-        else:
-            print("The file " + self.ref_name + " is not present in the "
-                  "directory.\n")
-            print("And your reference is not present in the database of "
-                  "sequana. If you are sure that the reference is present in "
-                  "the last update of the snpEff database. Please, import your "
-                  "snpEff.config.\n")
-
-    def _check_format(self):
-        """ Check the format of your file.
-        """
-        # set regex for gff and gtf files 
-        with open(self.reference, "r") as fp:
-            first_line = fp.readline()
-            if first_line.startswith('LOCUS'):
-                self.file_format = "genbank"
-            elif re.search('gff-version', first_line):
-                self.file_format = "gff"
-            elif first_line.startswith('#!'):
-                self.file_format = "gtf"
-            else:
-                print("The format can not be determined, please relaunch " 
-                      "the script with the file_format argument")
-                sys.exit(1)
+        
+        # Create custom database
+        if not os.path.exists("data" + os.sep + self.ref_name + os.sep +
+                              "snpEffectPredictor.bin"):
+            self._add_custom_db()
+        elif not self._check_database(self.ref_name):
+            self._add_db_in_config()
 
     def _check_database(self, reference):
         """ Check if your genbank is already added.
@@ -117,10 +90,8 @@ class SnpEff(object):
         """ Copy and unzip the snpEff.config file.
         """
         from sequana import sequana_data
-        CONFIG = sequana_data("snpEff.config.gz", "snpeff")
-        shutil.copyfile(CONFIG, "./snpEff.config.gz")
-        gunzip_proc = sp.Popen(["gunzip", "snpEff.config.gz"])
-        gunzip_proc.wait()
+        CONFIG = sequana_data("snpEff.config", "snpeff")
+        shutil.copyfile(CONFIG, "./snpEff.config")
 
     def _add_custom_db(self):
         """ Add your custom file in the local snpEff database.
@@ -131,14 +102,13 @@ class SnpEff(object):
             os.makedirs(genome_dir)
         except FileExistsError:
             pass
-        shutil.copyfile(self.reference, genome_dir + "genes" + 
-                        SnpEff.extension[self.file_format])
+        shutil.copyfile(self.reference, genome_dir + "genes.gbk")
 
         # add new annotation file in config file
         self._add_db_in_config()
        
-        snpeff_build_line = ["snpEff", "build", "-" + self.file_format,
-                             '-v', self.ref_name]
+        snpeff_build_line = ["snpEff", "build", "-genbank", '-v',
+                             self.ref_name]
         if self.log_file:
             with open(self.log_file, "ab") as fl:
                 snp_build = sp.Popen(snpeff_build_line, stderr=fl, stdout=fl)
@@ -155,7 +125,7 @@ class SnpEff(object):
         """
         if not self._check_database(self.ref_name):
             with open("snpEff.config", "a") as fp:
-                fp.write(self.ref_name + ".genome : " + self.ref_name)
+                print(self.ref_name + ".genome : " + self.ref_name, file=fp)
 
     def launch_snpeff(self, vcf_filename, output, html_output=None,
                       options=""):
@@ -183,33 +153,25 @@ class SnpEff(object):
                 proc_ann.wait()
 
     def _get_seq_ids(self):
-        # genbank case
-        if self.file_format == "genbank":
-            regex = re.compile('^LOCUS\s+([\w\.\-]+)')
-            chrom_regex = re.compile('\\chromosome="([\w\.\-]+)"')
-            with open(self.reference, "r") as fp:
-                line = fp.readline()
-                seq = regex.findall(line)
-                for line in fp:
-                    if line.strip().startswith(('gene', 'CDS',)):
-                        break
-                    chrom = chrom_regex.search(line)
-                    if chrom:
-                         seq = [chrom.group(1)]
-                         regex = chrom_regex
-                seq += [regex.search(line).group(1) for line in fp 
-                       if regex.search(line)]
-            return seq
-        # gff/gtf case
-        else:
-            regex = re.compile("^([^\s#]+)[ \t\v]")
-            with open(self.reference, "r") as fp:
-                seq = [regex.seach(line).group(1) for line in fp 
-                        if regex.search(line)]
-            return list(OrderedDict.fromkeys(seq))
+        regex = re.compile('^LOCUS\s+([\w\.\-]+)')
+        chrom_regex = re.compile('\\chromosome="([\w\.\-]+)"')
+        with open(self.reference, "r") as fp:
+            line = fp.readline()
+            seq = regex.findall(line)
+            for line in fp:
+                if line.strip().startswith(('gene', 'CDS',)):
+                    break
+                chrom = chrom_regex.search(line)
+                if chrom:
+                     seq = [chrom.group(1)]
+                     regex = chrom_regex
+            seq += [regex.search(line).group(1) for line in fp 
+                   if regex.search(line)]
+        return seq
 
     def add_locus_in_fasta(self, fasta, output_file):
-        """ Add locus of annotation file in description line of fasta file.
+        """ Add locus of annotation file in description line of fasta file. If
+        fasta file and genbank file do not have the same names.
 
         :param str fasta: input fasta file where you want to add locus.
         :param str output_file: output file.
