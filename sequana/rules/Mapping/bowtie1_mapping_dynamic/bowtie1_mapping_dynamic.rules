@@ -1,4 +1,4 @@
-def bowtie1_mapping_dynamic(name, , manager):
+def bowtie1_mapping_dynamic(name, manager):
 
     metadata = {'name':name, "project":manager.sample}
 
