@@ -1,19 +1,23 @@
-:Overview: Variant calling
-:Input: FASTQ file from Illumina Sequencing instrument
+:Overview: Variant calling from FASTQ files
+:Input: FASTQ files from Illumina Sequencing instrument
 :Output: VCF and HTML files
-:Config file requirements:
-    - samples: file1
-    - samples: file2
-    - project
-    - reference: reference.fasta
+
 Usage
 ~~~~~~~~~
 
-::
+Command line interface
+#########################
 
-    sequana --pipeline variant_calling --file1 R1.fastq.gz --file2 R2.fastq.gz --project variant --reference reference.fasta
-    cd variant
-    snakemake -s variant_calling.rules -p --stats stats.txt -j 4
+Example::
+
+    sequana --pipeline variant_calling \
+            --input-directory data/ \
+            --input-readtag _[12].fastq \
+            --extention fastq.gz \
+            --reference reference.fasta \
+            --working-dir analysis
+    cd analysis
+    snakemake -s variant_calling.rules --stats stats.txt
 
 Requirements
 ~~~~~~~~~~~~~~~~
@@ -75,7 +79,7 @@ Sambamba filter
 ^^^^^^^^^^^^^^^^^^
 .. snakemakerule:: sambamba_filter
 
-Variants Calling
+Variant Calling
 ###################
 
 Freebayes
