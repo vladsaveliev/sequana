@@ -2,8 +2,8 @@ language: python
 cache:
   directories:
     - $HOME/.cache/pip
-    - $HOME/miniconda3
-    #- $HOME/.config/sequana
+    #- $HOME/miniconda3
+    - $HOME/.config/sequana
 
 matrix:
   include:
