@@ -20,7 +20,7 @@ rule multiqc:
         .. code-block:: yaml
 
             multiqc:
-                excluded: "-x *.zip " Ignore analysis files (glob expression)
+                options: "-c multiqc_config.yaml -f -x *.zip -e htseq" #any options recognised by multiqc
                 output-directory:  " " #name of the output directory where to write results
 
     :note: if the directory exists, it is overwritten
@@ -34,10 +34,10 @@ rule multiqc:
         __multiqc__output
     params:
         inputdir = __multiqc__input_dir,
-        excluded = config['multiqc']['excluded'],
+        options = config['multiqc']['options'],
         outdir = config['multiqc']['output-directory']
     shell:
         """
-        multiqc {params.inputdir} -o {params.outdir} {params.excluded} -f -c multiqc_config.yaml 2> {log}
+        multiqc {params.inputdir} -o {params.outdir} {params.options}  2> {log}
         """
 
