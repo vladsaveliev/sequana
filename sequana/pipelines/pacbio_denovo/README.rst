@@ -1,24 +1,18 @@
 :Overview: denovo with canu dedicated to pacbio raw data set followed by quality assessment
 :Input: ***.fasta** files  to be found in a directory
 :Output: assembly
+:Status: in progress
 
 Usage
 ~~~~~~~
 
-::
-
-    TODO
-    sequana --pipeline pacbio_denovo --input-directory . --working-directory analysis 
-    cd analysis
-    snakemake -s pacbio_denovo
-
-
-Or use :ref:`sequanix_tutorial` interface.
+For now, please use :ref:`sequanix_tutorial` interface. 
 
 Requirements
 ~~~~~~~~~~~~~~~~~~
 
-.. include:: ../sequana/pipelines/quality_control/requirements.txt
+- canu
+- busco
 
 .. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/pacbio_denovo/dag.png
 
@@ -29,11 +23,17 @@ Details
 - Canu step:
 - Busco step:
 
+you would need to download the datasets required by BUSCO. The data is stored in
+your HOME in the .config/sequana/busco directory. To download and uncompress the
+data automatically, you can use::
+
+    from sequana import busco
+    busco.BuscoDownload().download()
 
 Rules and configuration details
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Here is a documented configuration file :download:`../sequana/pipelines/quality_control/config.yaml` to be used with the pipeline. Each rule used in the pipeline may have a section in the
+Here is a documented configuration file :download:`../sequana/pipelines/pacbio_denovo/config.yaml` to be used with the pipeline. Each rule used in the pipeline may have a section in the
 configuration file. In the *quality_control* pipeline, we use the *canu*, *busco* rules described here below.
 
 

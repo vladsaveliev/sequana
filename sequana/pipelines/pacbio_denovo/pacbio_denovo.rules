@@ -1,3 +1,4 @@
+import pandas as pd
 from sequana import snaketools as sm
 
 sm.init("pacbio_denovo.rules", globals())
@@ -46,6 +47,18 @@ __busco_analysis__output_scatter = manager.getname("busco_analysis") + "_busco_s
 include: sm.modules["busco_analysis"]
 expected_output.append(expand(__busco_analysis__output_pie, sample=manager.samples))
 expected_output.append(expand(__busco_analysis__output_scatter, sample=manager.samples))
+
+
+__busco_scores__output = "report/busco_scores.csv"
+rule busco_scores:
+    input: expand(__busco_analysis__input, sample=manager.samples)
+    output: __busco_scores__output
+    run:
+        from sequana.assembly import BUSCO
+        scores = [BUSCO(x).score for x in input]
+        df = pd.DataFrame([[x.split(os.sep)[-1] for x in input], scores], columns=['file', 'score'])
+        df.to_csv(output[0])
+expected_output.append(__busco_scores__output)
 
 
 __rulegraph__input = __snakefile__

@@ -4,13 +4,21 @@
 rule canu:
     """CANU assembly
 
-    technology:
-        -pacbio-raw
-        -pacbio-corrected
-        -nanopore-raw
-        -nanopore-corrected
+    Required input:
+        - __canu__input: input fasta files (1 per {sample})
 
-   Required configuration:
+    Required output:
+        - __canu__output: CANU creates lots of output. What we do is to
+          check for the presence of {sample}.contigs.fasta
+
+    Required parameters:
+        - __canu__workdir: where to save the results of the analysis
+        - __canu_prefix: prefix used for the names. typically the {sample}
+
+    Required log:
+        - __canu__log: where to save the stderr
+
+    Required configuration:
         .. code-block:: yaml
 
             # Note that genomeSize can be in Giga (g) Mega (m), Kilo (k), 
