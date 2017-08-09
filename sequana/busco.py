@@ -93,8 +93,11 @@ class BuscoDownload(object):
             "protists_ensembl",
             "alveolata_stramenophiles_ensembl"])
 
-    def download(self):
+    def download(self, uncompress=True):
+        """Download the datasets (tar.gz) and uncompress them
 
+        :param bool uncompress: if True, uncompress the tar.gz and delete it
+        """
         url = "http://busco.ezlab.org/v2/datasets"
         for filename in self.filenames:
             basename = filename + ".tar.gz"
@@ -102,7 +105,8 @@ class BuscoDownload(object):
             print(url + "/" + basename)
             wget(url + "/" + basename, target)
             # TODO untar datasets and cleanup the tar.gz 
-            execute("tar xvfz %s -C %s" % (target, self.base))
-            execute("rm -f %s" % ( target))
+            if uncompress:
+                execute("tar xvfz %s -C %s" % (target, self.base))
+                execute("rm -f %s" % ( target))
 
 
