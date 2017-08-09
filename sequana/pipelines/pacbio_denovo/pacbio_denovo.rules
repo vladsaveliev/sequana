@@ -66,4 +66,4 @@ rule pacbio_denovo:
 
 
 onsuccess:
-    shell("multiqc . -f")
+    shell("multiqc . -f -m busco")

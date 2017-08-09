@@ -11,11 +11,22 @@ Changelog
 0.4.2 August 2017
 ~~~~~~~~~~~~~~~~~~~~~~
 
-* Sequanix can now load cluster_config, save in the working directory and use it
-  on a cluster.
-* new feature: get_pipeline_stats and a new gallery example
-* pacbio module: speed up the df creation; add a random_selection method; add a summary method;
-* add multiqc modules for pacbio_qc and quality_control pipelines
+* Updates:
+
+  * pipeline: variant calling cleanup 
+  * pipeline: denovo cleanup
+  * pipeline: pacbio_qc finalised 
+  * module pacbio:  speed up initialisation; add a random_selection method; add a summary method;
+
+* NEWS:
+
+  * Sequanix: can now load cluster config, save working directory and use if on a cluster
+  * new rules: busco, busc_analysis, canu
+  * new pipeline: pacbio_denovo
+  * multiqc modules integrated in sequana. See online documentation for details.
+  * module snaketools: new function get_pipeline_stats
+  * new gallery example with statistics about the pipelines
+  
 
 
 0.4.1 July 2017
