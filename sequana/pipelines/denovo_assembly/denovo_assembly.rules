@@ -272,12 +272,31 @@ onsuccess:
         ])
 
         # Quast section
-        quast_dir = os.sep.join([proj, 'quast'])
-        dst = os.sep.join([conf.output_dir, 'quast'])
-        if os.path.isdir(dst):
-            shutil.rmtree(dst)
-        elif os.path.isfile(dst):
-            os.remove(dst)
-        shutil.copytree(quast_dir, dst)
+        quast_src = os.sep.join([proj, 'quast'])
+        quast_dst = os.sep.join([conf.output_dir, 'quast'])
+        if os.path.isdir(quast_dst):
+            shutil.rmtree(quast_dst)
+        elif os.path.isfile(quast_dst):
+            os.remove(quast_dst)
+        shutil.copytree(quast_src, quast_dst)
+
+        # Prokka section
+        if manager.config.prokka.do:
+            # copy prokka directory
+            prokka_src = os.sep.join([proj, 'prokka'])
+            prokka_dst = os.sep.join([conf.output_dir, 'prokka'])
+            if os.path.isdir(prokka_dst):
+                shutil.rmtree(prokka_dst)
+            elif os.path.isfile(prokka_dst):
+                os.remove(prokka_dst)
+            shutil.copytree(prokka_src, prokka_dst)
+            
+            ref = '<li><a href="prokka/%(f)s" download="%(f)s">%(f)s</a></li>'
+            html = '\n'.join(ref % {'f': f} for f in os.listdir(prokka_dst))
+            conf.summary_sections.append({
+                'name': 'Prokka',
+                'anchor': 'prokka',
+                'content': '<ul>%s</ul>' % html,
+            })
 
         SummaryModule(json.loads(open(filename).read()))
