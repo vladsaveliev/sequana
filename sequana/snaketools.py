@@ -796,6 +796,9 @@ class PipelineManager(object):
 
         logger.debug("Input data{}".format(glob_dir))
 
+        if not cfg.config.input_readtag:
+             cfg.config.input_readtag = "_R[12]_"
+
         try:
             self._get_fastq_files(glob_dir, cfg.config.input_readtag)
         except:
