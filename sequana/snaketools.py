@@ -714,7 +714,6 @@ class DummyManager(object):
 class PipelineManager(object):
     """Utility to manage easily the snakemake pipeline
 
-
     Inside a snakefile, use it as follows::
 
         from sequana import PipelineManager
@@ -795,19 +794,12 @@ class PipelineManager(object):
         else:
             self.error("No valid input provided in the config file")
 
-        if not cfg.config.input_readtag:
-            cfg.config.input_readtag = "_R[12]_"
+        logger.debug("Input data{}".format(glob_dir))
 
         try:
-            if glob_dir.endswith('bam'):
-                self._get_bam_files(glob_dir)
-            else:
-                self._get_fastq_files(glob_dir, cfg.config.input_readtag)
-        except AttributeError:
-            if glob_dir[0].endswith('bam'):
-                self._get_bam_files(glob_dir)
-            else:
-                self._get_fastq_files(glob_dir, cfg.config.input_readtag)
+            self._get_fastq_files(glob_dir, cfg.config.input_readtag)
+        except:
+            self._get_bam_files(glob_dir)
         # finally, keep track of the config file
         self.config = cfg.config
 
