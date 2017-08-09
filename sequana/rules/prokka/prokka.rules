@@ -2,13 +2,14 @@ rule prokka:
     """
     Prokka is a software tool to annotate bacterial, archaeal and viral genomes
     quickly and produce standards compliant output files (genbank, gff and so
-    on). 
+    on).
 
     Required input:
         - __prokka__input: FASTA file of the reference.
 
     Required output:
         - __prokka__gbk: Genbank file of the reference.
+                        (__prokka__outdir/__prokka__prefix.gbk)
 
     Required log:
         - __prokka__log: Log file with stderr and stdout of Prokka.
@@ -16,7 +17,7 @@ rule prokka:
     Required parameters:
         - __prokka__prefix: Prefix name for annotations files.
         - __prokka__outdir: Output directory that contains annotations files.
-    
+
     Required configuration:
         .. code-block:: yaml
 

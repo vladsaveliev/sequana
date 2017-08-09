@@ -114,6 +114,14 @@ __format_contigs__input = __spades__scaffolds
 __format_contigs__output = manager.getname('format_contigs', '.fasta')
 include: sm.modules['format_contigs']
 
+__busco__input = __format_contigs__output
+__busco__output = manager.getname(os.sep.join(['busco', 'full_table_']),
+                                  '.tsv')
+__busco__workdir = manager.getwkdir('busco')
+__busco__log = manager.getlogdir('busco')
+include: sm.modules['busco']
+expected_output.append(expand(__busco__output, sample=manager.samples))
+
 #
 # Annotation - Prokka
 #
