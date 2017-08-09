@@ -1,5 +1,10 @@
 # coding: utf-8
-""" Dynamic rule to unpigz a zipped file.
+
+
+"""
+
+Dynamic rule to unpigz a .gz file on stdout
+
 """
 
 def dynamic_unpigz(name, manager):

@@ -1,4 +1,4 @@
-:Overview: small RNASeq (miRNA)
+:Overview: Small RNASeq (miRNA) analysis
 :Input: FastQ raw data from Illumina Sequencer (single end only)
 :Output: BAM, count and HTML files
 
@@ -51,6 +51,9 @@ Cutadapt
 
 Bowtie1
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Mapping on hairpin and mature sequences. The corresponding fasta files must be in the config file.
+
 .. snakemakerule:: bowtie1_mapping_dynamic
 
 Counting

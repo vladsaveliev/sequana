@@ -327,9 +327,9 @@ RNAseQC:
 #
 # :Parameters:
 #
-# - excluded: Ignore analysis files (glob expression)
+# - options: any options recognised by multiqc
 # - output-directory: Create report in the specified output directory
 #
 multiqc:
-    excluded: "-x *_init_* -x *left_kept_reads* -x *report_rnaseq* -e htseq -e slamdunk"
+    options: "-c multiqc_config.yaml -f -x *_init_* -x *left_kept_reads* -x *report_rnaseq* -e htseq -e slamdunk"
     output-directory: "multiqc"
