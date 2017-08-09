@@ -1,0 +1,17 @@
+bwa
+fastqc
+snpeff
+spades
+khmer
+bwa
+bcftools
+samtools
+bedtools
+picard
+freebayes
+kraken
+krona
+pigz
+sambamba
+bleach
+pysam
