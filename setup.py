@@ -8,7 +8,7 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 4
-_MICRO               = 1
+_MICRO               = 2
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -28,6 +28,8 @@ metainfo = {
           'License :: OSI Approved :: BSD License',
           'Operating System :: OS Independent',
           'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: 3.6',
           'Topic :: Software Development :: Libraries :: Python Modules',
           'Topic :: Scientific/Engineering :: Bio-Informatics',
           'Topic :: Scientific/Engineering :: Information Analysis',
@@ -72,7 +74,7 @@ setup(
     install_requires = ["easydev>=0.9.34", "reports>=0.3.0", "matplotlib>=2.0.0",
         "pyVCF", "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14",
         "biokit>=0.4.1", "pysam", "docutils", "mock", "psutil", "qtconsole",
-        "ruamel.yaml>=0.13.2", "colorlog"] + extra_packages,
+        "ruamel.yaml>=0.13.2", "colorlog", "multiqc>=1.0"] + extra_packages,
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
@@ -111,12 +113,19 @@ setup(
            'sequana_mapping=sequana.scripts.mapping:main',
            'sequana_compressor=sequana.scripts.compressor:main',
            'sequana_report=sequana.scripts.reports:main',
-           'sequana_fox=sequana.scripts.browser:main',
+           'sequana_foxi=sequana.scripts.browser:main',
         ],
         'sequana.module':[
             'sequana_coverage=sequana.modules_report.coverage:CoverageModule',
             'sequana_variant_calling=sequana.modules_report.variant_calling:VariantCallingModule',
             'sequana_summary=sequana.modules_report.summary:SummaryModule',
         ],
+        "multiqc.modules.v1": [
+            "sequana_pacbio_qc=sequana.multiqc.pacbio_qc:MultiqcModule",
+            "sequana_quality_control=sequana.multiqc.quality_control:MultiqcModule",
+        ],
+        'multiqc.hooks.v1': [
+            'before_config = sequana.multiqc:multiqc_sequana_config',
+]
     },
 )

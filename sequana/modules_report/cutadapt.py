@@ -123,7 +123,7 @@ class CutadaptModule(SequanaBaseModule):
                    self.jinja['%sreads_kept' % prefix],
                    self.jinja['%sreads_kept_percent' % prefix]]
         if self.mode != "pe":
-            df.index = [this.replace("paired", "").replace("Pairs", "Reads") for this in df.index]
+            df.index = [this.replace('paired', '').replace('Pairs', 'Reads') for this in df.index]
         return df
 
     def _get_stat_section(self):

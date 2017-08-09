@@ -6,6 +6,29 @@ Changelog
 2017
 ------
 
+
+
+0.4.2 August 2017
+~~~~~~~~~~~~~~~~~~~~~~
+
+* Updates:
+
+  * pipeline: variant calling cleanup 
+  * pipeline: denovo cleanup
+  * pipeline: pacbio_qc finalised 
+  * module pacbio:  speed up initialisation; add a random_selection method; add a summary method;
+
+* NEWS:
+
+  * Sequanix: can now load cluster config, save working directory and use if on a cluster
+  * new rules: busco, busc_analysis, canu
+  * new pipeline: pacbio_denovo
+  * multiqc modules integrated in sequana. See online documentation for details.
+  * module snaketools: new function get_pipeline_stats
+  * new gallery example with statistics about the pipelines
+  
+
+
 0.4.1 July 2017
 ~~~~~~~~~~~~~~~~~~
 

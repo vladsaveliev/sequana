@@ -1,0 +1,133 @@
+{
+    "cutadapt_json": {
+        "Number of reads": {
+            "Pairs kept": "2,420",
+            "Pairs too short": "80",
+            "Read1 with adapters": "0",
+            "Read2 with adapters": "0",
+            "Total paired reads": "2,500"
+        },
+        "percent": {
+            "Pairs kept": "(96.8%)",
+            "Pairs too short": "(3.2%)",
+            "Read1 with adapters": "(0.0%)",
+            "Read2 with adapters": "(0.0%)",
+            "Total paired reads": "(100%)"
+        }
+    },
+    "fastq_stats_samples_json": {
+        "A": {
+            "R1": 27.342970297,
+            "R2": 27.1394059406
+        },
+        "C": {
+            "R1": 24.1714851485,
+            "R2": 23.619009901
+        },
+        "G": {
+            "R1": 23.0978217822,
+            "R2": 23.9766336634
+        },
+        "GC content": {
+            "R1": 47.2693069307,
+            "R2": 47.5956435644
+        },
+        "N": {
+            "R1": 0.0015841584,
+            "R2": 0.0138613861
+        },
+        "T": {
+            "R1": 25.3861386139,
+            "R2": 25.2510891089
+        },
+        "average read length": {
+            "R1": 101,
+            "R2": 101
+        },
+        "mean quality": {
+            "R1": 35.5619841584,
+            "R2": 34.9240158416
+        },
+        "n_reads": {
+            "R1": 2500,
+            "R2": 2500
+        },
+        "total bases": {
+            "R1": 252500,
+            "R2": 252500
+        }
+    },
+    "phix_section": {
+        "R1_mapped": 0,
+        "R1_unmapped": 2500,
+        "R2_mapped": 0,
+        "R2_unmapped": 2500,
+        "contamination": 0.0,
+        "duplicated": 0,
+        "mode": "pe",
+        "unpaired": 0
+    },
+    "phix_section_json": {
+        "A": {
+            "R1.mapped": 0.0,
+            "R1.unmapped": 27.6164,
+            "R2.mapped": 0.0,
+            "R2.unmapped": 27.4108
+        },
+        "C": {
+            "R1.mapped": 0.0,
+            "R1.unmapped": 24.4132,
+            "R2.mapped": 0.0,
+            "R2.unmapped": 23.8552
+        },
+        "G": {
+            "R1.mapped": 0.0,
+            "R1.unmapped": 23.3288,
+            "R2.mapped": 0.0,
+            "R2.unmapped": 24.2164
+        },
+        "GC content": {
+            "R1.mapped": 0.0,
+            "R1.unmapped": 47.2693069307,
+            "R2.mapped": 0.0,
+            "R2.unmapped": 47.5956435644
+        },
+        "N": {
+            "R1.mapped": 0.0,
+            "R1.unmapped": 0.0016,
+            "R2.mapped": 0.0,
+            "R2.unmapped": 0.014
+        },
+        "T": {
+            "R1.mapped": 0.0,
+            "R1.unmapped": 25.64,
+            "R2.mapped": 0.0,
+            "R2.unmapped": 25.5036
+        },
+        "average read length": {
+            "R1.mapped": 0.0,
+            "R1.unmapped": 101.0,
+            "R2.mapped": 0.0,
+            "R2.unmapped": 101.0
+        },
+        "mean quality": {
+            "R1.mapped": 0.0,
+            "R1.unmapped": 35.5619841584,
+            "R2.mapped": 0.0,
+            "R2.unmapped": 34.9240158416
+        },
+        "n_reads": {
+            "R1.mapped": 0,
+            "R1.unmapped": 2500,
+            "R2.mapped": 0,
+            "R2.unmapped": 2500
+        },
+        "total bases": {
+            "R1.mapped": 0,
+            "R1.unmapped": 252500,
+            "R2.mapped": 0,
+            "R2.unmapped": 252500
+        }
+    },
+    "project": "Hm2_GTGAAA_L005"
+}

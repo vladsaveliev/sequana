@@ -3,7 +3,6 @@ from sequana import sequana_data
 from sequana import snaketools
 
 
-
 def test_yamlreader():
     filename = sequana_data("test_gui_generic_config.yaml")
     r = YamlDocParser(filename)

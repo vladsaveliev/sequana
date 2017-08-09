@@ -20,7 +20,7 @@ sequana_config_path = configuration.user_config_dir
 # This must be import before all other modules (sequana_data function)
 from .datatools import sequana_data
 
-from .snaketools import *
+from .assembly import *
 from .adapters import AdapterReader, FindAdaptersFromDesign, Adapter
 from .bamtools import BAM, SAMFlags
 from .bedtools import GenomeCov
@@ -36,6 +36,7 @@ from .kraken import KrakenResults, KrakenPipeline, KrakenAnalysis, KrakenDownloa
 from .pacbio import BAMPacbio
 from .phred import Quality
 from .running_median import RunningMedian
+from .snaketools import *
 from .snpeff import SnpEff
 from .sequence import DNA, RNA, Sequence, Repeats
 

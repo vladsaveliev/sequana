@@ -1,14 +1,16 @@
 :Overview: Quality control, trimming (adapter removal) and taxonomic overview
-:Input: A set of FastQ (paired or single-end)
-:Output: fastqc, cleanup FastQ files
+:Input: A set of FastQ files (paired or single-end)
+:Output: fastqc, cleaned FastQ files, Krona plot
 
 Usage
 ~~~~~~~
 
 ::
 
-    sequana --pipeline quality_control --input-directory . --output-directory analysis
+    sequana --pipeline quality_control --input-directory . --working-directory analysis --no-adapters
 
+
+Or use :ref:`sequanix_tutorial` interface.
 
 Requirements
 ~~~~~~~~~~~~~~~~~~
@@ -21,12 +23,13 @@ Requirements
 Details
 ~~~~~~~~~
 
-
-The adapters are removed using cutadapt. If one specifies 
+This pipeline is used to check the quality of the input FastQ files. It id used
+to remove the Phix (coliphage) that may be present in the data. Low quality reads
+are trimmed using a dedicated tool such as **cutadapt** or **atropos**. If one specifies 
 the quality trimming option in the config file, then we trim
 low-quality ends from reads BEFORE adapter removal.
 
-The quality trimming algorithm is the same as in BWA. That is: substract the
+The quality trimming algorithm from cutadapt/atropos is the same as in BWA. That is: substract the
 cutoff (e.g. 30) from all qualities; compute partial sums from the end of the
 sequence; cut the sequence at the index at which the sum is minimal.
 
@@ -48,17 +51,33 @@ sequences are error tolerant (allowing errors such as
 mismatches, insertions and deletions). The level of error tolerance
 is 10% by default.
 
+
+Another optional step is the taxonomy analysis. This is performed with Kraken
+using a dedicated database. We provide a couple of database or tools to download
+them. See sequana_taxonomy tool to download databases. The minikraken database
+is provided by the author of Kraken while sequana_db1 is a 8Gb database as
+described here https://github.com/sequana/data/tree/master/sequana_db1 ::
+
+    sequana_taxonomy --download minikraken
+    sequana_taxonomy --download sequana_db1
+
+For the second database, you will need **synapseclient**::
+
+    pip install synapseclient
+
+and an account on synapse website (https://www.synapse.org/).
+
 Rules and configuration details
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Here is a documented configuration file :download:`../sequana/pipelines/quality_control/config.yaml` to be used with the pipeline. Each rule used in the pipeline may have a section in the
-configuration file. Here are the rules and their developer and user documentation.
-
+configuration file. In the *quality_control* pipeline, we use the *bwa_mem*,
+*fastqc*, *cutadapt*, *fastq_stats* and *kraken* rules described here below.
 
 
 FastQC
 ^^^^^^^^^^^
-.. snakemakerule:: fastqc
+.. snakemakerule:: fastqc_dynamic
 
 Cutadapt
 ^^^^^^^^^
@@ -68,13 +87,11 @@ Kraken
 ^^^^^^^
 .. snakemakerule:: kraken
 
+BWA-mem 
+^^^^^^^^
+.. snakemakerule:: bwa_mem_dynamic
 
-.. .. snakemakerule:: fastq_sampling
-.. .. snakemakerule:: bwa_mem_phix
-
-
-
-
-
-
+FastQ stats
+^^^^^^^^^^^^
+.. snakemakerule:: fastq_stats_dynamic
 

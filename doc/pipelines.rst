@@ -6,6 +6,8 @@ Pipelines
 
 In **Sequana** parlance, a pipeline is an application based on Snakemake that consists of a Snakefile and a configuration file.
 
+For snakemake tutorial, you can have a look at the Snakemake page or
+online-tutorials (e.g. http://slowkow.com/notes/snakemake-tutorial/)
 
 Pipelines can be initialised and run via a command line interface called
 :ref:`sequana_app` but we would recommend to use :ref:`sequanix` instead.

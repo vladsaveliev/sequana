@@ -15,7 +15,10 @@ def test_pacbio():
 
     print(b)   #  check length
 
-    b.stats
+    assert b.stats['mean_GC'] > 62.46
+    assert b.stats['mean_GC'] < 65.47
+
+    b.summary()
 
     # test nb_pass from scratch
     b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
@@ -46,6 +49,8 @@ def test_pacbio():
         b.to_fasta(fh.name, threads=1)
     with TempFile() as fh:
         b.to_fastq(fh.name, threads=1)
+    with TempFile() as fh:
+        b.save_summary(fh.name)
 
 
 def test_pacbio_stride():
@@ -55,6 +60,11 @@ def test_pacbio_stride():
     with TempFile() as fh:
         b.stride(fh.name, stride=2, random=True)
 
+def test_pacbio_random():
+    b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
+    with TempFile() as fh:
+        b.random_selection(fh.name, nreads=10)
+
 
 def test_bamsim():
     filename = sequana_data("test_pacbio_subreads.bam")
@@ -63,6 +73,11 @@ def test_bamsim():
     b.hist_len()
     b.hist_GC()
     b.plot_GC_read_len()
+    with TempFile() as fh:
+        b.filter_length(fh.name, threshold_min=500)
+    with TempFile() as fh:
+        mask = [True for this in range(len(b))]
+        b.filter_bool(fh.name, mask)
 
 
 def test_pbsim():

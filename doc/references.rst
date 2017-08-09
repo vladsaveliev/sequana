@@ -13,6 +13,13 @@ Adapters
     :members:
     :undoc-members:
 
+Assembly related
+-----------------------------
+
+.. automodule:: sequana.assembly
+    :members:
+    :undoc-members:
+
 BAMTOOLS related
 --------------------
 .. automodule:: sequana.bamtools

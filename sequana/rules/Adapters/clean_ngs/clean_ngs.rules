@@ -1,4 +1,36 @@
 rule clean_ngs:
+    """Clean_ngs (adapter removal)
+
+    Required input:
+        - __clean_ngs__input
+
+    Required output:
+        - __clean_ngs__output,
+        - __clean_ngs__rej_files
+
+    Other requirements:
+        -  __clean_ngs__logs
+
+    Required configuration:
+        .. code-block:: yaml
+
+            cutadapt:
+                do: yes
+                tool_choice: clean_ngs
+                design: "%(adapter_design)s"
+                adapter_choice: "%(adapter_type)s"
+                fwd: "%(adapter_fwd)s"
+                rev: "%(adapter_rev)s"
+                m: 20   # cutoff
+                mode: "g"   # g for 5' adapter, a for 3' and b for both 5'/3'
+                quality: "30"
+                options: "-O 6 --trim-n"
+
+    References:
+        https://github.com/PF2-pasteur-fr/clean_ngs
+    """
+
+
     input:
         __clean_ngs__input
     log:

@@ -7,14 +7,22 @@ Sequana documentation
 .. raw:: html
 
     <div style="width:80%"><p>    <a href="https://pypi.python.org/pypi/sequana"> <img src="https://badge.fury.io/py/sequana.svg"></a>
-    <a href="https://travis-ci.org/sequana/sequana"> <img src="https://travis-ci.org/sequana/sequana.svg?branch=master"></a>
-    <a href="https://coveralls.io/github/sequana/sequana?branch=master"> <img src="https://coveralls.io/repos/github/sequana/sequana/badge.svg?branch=master"></a>
-    <a href="http://sequana.readthedocs.org/en/master/?badge=master"> <img src="http://readthedocs.org/projects/sequana/badge/?version=master"></a>
+    <a href="https://travis-ci.org/sequana/sequana"> 
+    <img src="https://travis-ci.org/sequana/sequana.svg?branch=master"></a>
+
+    <a href="https://coveralls.io/github/sequana/sequana?branch=master"> 
+    <img src="https://coveralls.io/repos/github/sequana/sequana/badge.svg?branch=master"></a>
+
+    <a href="http://sequana.readthedocs.org/en/master/?badge=master"> 
+    <img src="http://readthedocs.org/projects/sequana/badge/?version=master"></a>
+
+   <a href="https://gitter.im/sequana/sequana?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge"> <img src="https://badges.gitter.im/sequana/sequana.svg">
+
+
     </p><p>
     <a href="https://microbadger.com/images/sequana/sequana" title="Get your own image badge on microbadger.com">
     <img src="https://images.microbadger.com/badges/image/sequana/sequana.svg"></a>
-    <a href="https://microbadger.com/images/sequana/sequana" title="Get your own version badge on microbadger.com"><img
-    src="https://images.microbadger.com/badges/version/sequana/sequana.svg"></a>
+
     </p>
     </div>
 
@@ -27,8 +35,15 @@ Sequana documentation
     `F1000Research 2016, 5:1767 <http://f1000research.com/posters/5-1767>`_ (poster) (doi:
     10.7490/f1000research.1112656.1)
 
-    For the coverage tool (sequana_coverage):  Dimitri Desvillechabrol, Christiane Bouchier, 
-    Sean Kennedy, Thomas Cokelaer http://biorxiv.org/content/early/2016/12/08/092478
+    For the **genome coverage** tool (sequana_coverage):  Dimitri Desvillechabrol, 
+    Christiane Bouchier, Sean Kennedy, Thomas Cokelaer 
+    http://biorxiv.org/content/early/2016/12/08/092478
+
+    For **Sequanix**: Dimitri Desvillechabrol, Rachel Legendre, Claire Rioualen,
+    Christiane Bouchier, Jacques van Helden, Sean Kennedy, Thomas Cokelaer 
+    http://www.biorxiv.org/content/early/2017/07/12/162701
+    DOI: https://doi.org/10.1101/162701 
+
 
 What is Sequana ?
 =====================
@@ -37,7 +52,8 @@ What is Sequana ?
 
 #. A Python library dedicated to NGS analysis (e.g., tools to visualise standard NGS formats).
 #. A set of :ref:`pipelines <Pipelines>` dedicated to NGS in the form of Snakefiles 
-   (Makefile-like with Python syntax based on snakemake framework).
+   (Makefile-like with Python syntax based on snakemake framework) with more
+   than 80 re-usable rules (see :ref:`rules`).
 #. Original tools to help in the creation of such pipelines including HTML reports.
 #. :ref:`Standalone applications<applications>`:
     #. :ref:`sequana_coverage<standalone_sequana_coverage>` ease the 
@@ -146,9 +162,10 @@ User guide and reference
     pipelines
     auto_examples/index
     case_examples
-    developers
     applications
     sequanix.rst
+    developers
+    rules
     references
     faqs
     Changelog

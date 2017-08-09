@@ -1,0 +1,25 @@
+
+
+
+
+rule busco_analysis:
+    input: __busco_analysis__input
+    output:
+        #scores = __busco_analysis__output_filename,
+        pie = __busco_analysis__output_pie,
+        scatter = __busco_analysis__output_scatter
+    run:
+        # the scores in one file
+        #print(__busco_scores__output_filename)
+        from sequana.assembly import BUSCO
+        #scores = [BUSCO(x).score for x in __busco_analysis__input] 
+        #import pandas as pd
+        #df = pd.Series(scores)
+        #df.name = "scores"
+        #df.to_csv(output.scores)
+
+        # The individual images
+        import pylab
+        b = BUSCO(input[0])
+        b.pie_plot(filename=output.pie)
+        b.scatter_plot(filename=output.scatter)

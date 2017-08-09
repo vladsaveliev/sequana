@@ -6,9 +6,24 @@ def fastq_stats_dynamic(name, manager):
 
     fastq_stats_code = '''
 rule fastq_stats_%(name)s:
-    """Analyse fastq to extract basic stats
+    """Analyse FastQ files to extract basic stats
 
     Creates boxplot quality image + GC content + basic stats in JSON file
+
+    Required input:
+       - __fastq_stats_%(name)s__input_fastq:
+
+    Required output:
+       - __fastq_stats_%(name)s__output_done
+
+    Required parameters
+       - __fastq_stats_%(name)s__wkdir: the working directory
+
+    This rule creates files that are not in the required output namely
+    a *_gc.png* *_boxplot.png_* and *.json* files with filename set to the
+    original FastQ filename.
+
+    Note: analyses only first 500,000 reads
 
     """
     input:

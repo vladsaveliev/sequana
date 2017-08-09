@@ -1,6 +1,5 @@
 # coding: utf-8
-"""Read mapping for either single end and paired end data using BWA and
-samtools.
+"""Read mapping for either single or paired-end data using BWA and samtools.
 
 input:
     fastq -> list with your fastq.gz (R1, R2)
@@ -35,10 +34,12 @@ rule bwa_index_%(name)s:
         """
 
 rule bwa_mem_%(name)s:
-    """
+    """Read mapping with BWA-mem
+
     BWA mem rule aligns single or paired end FASTQ files on a reference genome.
-    This rule is a **dynamic** rule (cf developers). Meaning that it can
-    be included multiple times with different names in the same pipeline. 
+    This rule is a **dynamic** rule (see `developers` section). This means
+    that it can  be included multiple times with different names in the same
+    pipeline.
     The reference file is indexed by BWA index and FASTQ files are mapped on it.
     The sorting is done with sambamba by reading the stdin. Moreover, Sambamba
     generates automatically the BAM index.
@@ -60,10 +61,10 @@ rule bwa_mem_%(name)s:
 
             bwa_mem_%(name)s:
                 index_algorithm: 'is' # BWA index algorithm (is or bwtsw)
-                threads: 4 # Number of threads used by BWA mem.
-                options: # Any options recognised by BWA mem tool.
+                threads: 4         # Number of threads used by BWA mem.
+                options:           # Any options recognised by BWA mem tool.
                 tmp_directory: '/tmp' # Temporary directory.
-    
+
     Note:
         When a dynamic rule is included, template variables must be replaced.
 
