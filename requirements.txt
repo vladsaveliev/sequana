@@ -4,6 +4,7 @@ matplotlib>=2.0.0
 pyVCF
 pandas
 cutadapt>=1.9.1
+atropos>=1.0.23
 bioservices>=1.4.14
 biokit>=0.4.1
 pysam
