@@ -404,24 +404,26 @@ Testing with pytest
 We moved from nosetests to pytest. This framwork is slightly more flexible but
 the main reason to move was to be able to test Qt application. 
 
-In order to run the test locally, you will need to use::
+In order to run the test locally, you will need to install some dependencies.
+You can use conda and the **requirements_dev.txt** file:
 
-    conda install pytest pytest-cov pytest-qt pytest-xdist pytest-mock pytest-timeout
+    conda install --list https://raw.githubusercontent.com/sequana/sequana/master/environment.yml
 
-The first is the main package, the second is required for coverage. The third
-provides fixtures for Qt testing and the fourth is used to use several CPU
-during testing. The fifth is for mocking and the sixth to constraint long tests.
+This command installs:
 
+- pytest: main utility
+- pytest-cov: coverage support
+- pytest-qt: fixture for Qt
+- pytest-xdist: allows multi threading
+- pytest-mock: mocking feature
+- pytest-timeout: report longest tests
 
-Then, you can type for instance::
+For instance, you can use in the root directory of Sequana::
 
-    pytest -v --durations=10  test/ --cov=sequana --cov-report term --timeout 300 -n 2
+    pytest -v --durations=10  test/ --cov=sequana --cov-report term-missing --timeout 300 -n 2
 
-Here, -n 2 requires two CPUs to run the test. The option durations=10 means
-*show the 10 longest tests*. 
-
-
-If you want to test a single file (e.g. test_pacbio)::
+Here, -n 2 requires two CPUs to run the tests. The option durations=10 means
+"show the 10 longest tests". If you want to test a single file (e.g. test_pacbio)::
 
     cd test
     pytest test_pacbio.py --cov sequana.pacbio --cov-report term-missing

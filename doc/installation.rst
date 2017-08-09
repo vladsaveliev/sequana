@@ -99,15 +99,11 @@ of dependencies that should be enough to run most of the current
 pipelines (commands are split on several lines but you can also
 install everything in one go)::
 
-    conda install pysam snpeff biokit bioservices spades khmer pyVCF
-    conda install bwa bcftools samtools bedtools picard freebayes fastqc
-    conda install kraken krona pigz sambamba
-    conda install ipython cutadapt jupyter pbr colorlog ruamel.yaml
+    conda install --file requirements_pipelines.txt
 
-For atropos, which is not yet on bioconda, use the **pip** command::
+We would also recommend those tools::
 
-    pip install atropos==1.0.23
-
+    conda install ipython jupyter 
 
 .. note:: atropos is an alternative to cutadapt with additional options but same
    type of functionalties and arguments. We use version 1.0.23 and above though. 

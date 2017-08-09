@@ -20,8 +20,8 @@ Changelog
 
 * NEWS:
 
-  * Sequanix: can now load cluster config, save working directory and use if on a cluster
-  * new rules: busco, busc_analysis, canu
+  * Sequanix: can now load cluster config
+  * new rules: busco, busco_analysis, canu
   * new pipeline: pacbio_denovo
   * multiqc modules integrated in sequana. See online documentation for details.
   * module snaketools: new function get_pipeline_stats

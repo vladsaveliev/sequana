@@ -6,7 +6,15 @@ Sequana documentation
 
 .. raw:: html
 
-    <div style="width:80%"><p>    <a href="https://pypi.python.org/pypi/sequana"> <img src="https://badge.fury.io/py/sequana.svg"></a>
+    <div style="width:80%"><p>    
+
+
+    <a href="http://bioconda.github.io/recipes/sequana/README.html">
+    <img src="https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square">
+
+    <a href="https://pypi.python.org/pypi/sequana"> 
+    <img src="https://badge.fury.io/py/sequana.svg"></a>
+
     <a href="https://travis-ci.org/sequana/sequana"> 
     <img src="https://travis-ci.org/sequana/sequana.svg?branch=master"></a>
 
