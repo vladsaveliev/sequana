@@ -29,7 +29,7 @@ class BUSCO(object):
         """
         self.df = pd.read_csv(filename, sep="\t", skiprows=4)
 
-    def pie_plot(self):
+    def pie_plot(self, filename=None, hold=False):
         """Plot PIE plot of the status (complete / fragment / missed)
 
         .. plot::
@@ -40,12 +40,16 @@ class BUSCO(object):
             b.pie_plot()
 
         """
+        if hold is False:
+            pylab.clf()
         self.df.groupby('Status').count()['# Busco id'].plot(kind="pie")
         pylab.ylabel("")
         #pylab.title("Distribution Complete/Fragmented/Missing")
         #pylab.legend()
+        if filename:
+            pylab.savefig(filename)
 
-    def scatter_plot(self):
+    def scatter_plot(self, filename=None, hold=False):
         """Scatter plot of the score versus length of each ortholog
 
         .. plot::
@@ -55,6 +59,8 @@ class BUSCO(object):
             b = BUSCO(sequana_data("test_busco_full_table.tsv"))
             b.scatter_plot()
         """
+        if hold is False:
+            pylab.clf()
         colors = ["green", "orange", "red", "blue"]
         markers = ['o', 's', 'x', 'o']
         for i, this in enumerate(["Complete", "Fragmented", "Missing",  "Duplicated"]):
@@ -66,6 +72,8 @@ class BUSCO(object):
 
         pylab.legend()
         pylab.grid()
+        if filename:
+            pylab.savefig(filename)
 
     def summary(self):
         """Return summary information of the missing, completed, fragemented
