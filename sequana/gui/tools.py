@@ -38,7 +38,7 @@ class Logger(object):
 
     def init_logger(self):
         self._mylogger = colorlog.getLogger("sequanix")
-        self._fh = open(self._logger_output, "w")
+        """self._fh = open(self._logger_output, "w")
         self._handler = colorlog.StreamHandler(self._fh)
         formatter = colorlog.ColoredFormatter(
             "%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(message)s",
@@ -54,7 +54,7 @@ class Logger(object):
         )
         self._handler.setFormatter(formatter)
         self._mylogger.addHandler(self._handler)
-
+        """
     def save_logger(self):
         self._handler.close()
         self._fh.close()
