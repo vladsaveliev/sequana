@@ -24,5 +24,6 @@ The following sections are dedicated to each pipeline.
     pipeline_variant_calling.rst
     pipeline_compressor.rst
     pipeline_pacbio_qc.rst
+    pipeline_pacbio_denovo.rst
 
 
