@@ -2,6 +2,8 @@ language: python
 cache:
   directories:
     - $HOME/.cache/pip
+    - $HOME/miniconda3
+    #- $HOME/.config/sequana
 
 matrix:
   include:
@@ -15,34 +17,26 @@ before_install:
     - hash -r
     - conda update --yes conda
     - conda config --add channels r
+    - conda config --add channels defaults
+    - conda config --add channels conda-forge
     - conda config --add channels bioconda
-    # are not specific to using mini
-    # - sudo rm -rf /dev/shm
-    # - sudo ln -s /run/shm /dev/shm
     # This help testing code with pylab
-    #
     - "export DISPLAY=:99.0"
     - "sh -e /etc/init.d/xvfb start"
 
 install:
   - echo $TRAVIS_PYTHON_VERSION
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pyqt numpy matplotlib pandas
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION nose coverage numexpr xlrd pyyaml
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION cython pillow pyVCF sphinx qtconsole
-  - conda install bwa kraken cutadapt pysam snpEff krona bleach --yes
-  - conda install shustring --yes
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION multiqc
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements.txt
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_dev.txt
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_pipelines.txt
+  #- conda install --yes python=$TRAVIS_PYTHON_VERSION numexpr 
+  #- conda install --yes python=$TRAVIS_PYTHON_VERSION cython pillow
   # use pip to get latest version
-  - pip install easydev>=0.9.34 --upgrade
-  - pip install coveralls
-  - pip install mistune
-  - pip install tabulate
-  - pip install biokit>=0.4.1
-  - pip install bioservices --upgrade
-  - pip install snakemake
-  - pip install colorlog
-  - pip install pytest pytest-cov pytest-qt pytest-xdist pytest-mock pytest-timeout
-  - pip install ruamel.yaml>=0.13.2
+  # - pip install coveralls
+  # - pip install mistune
+  # - pip install tabulate
+  # - pip install ruamel.yaml>=0.13.2
+  - pip install pytest-xdist # somehow needs to be installed with pip (not registered with conda)
   - pip install .
 
 # # command to run tests, e.g. python setup.py test

@@ -1,0 +1,30 @@
+name: sequana
+
+channels:
+- bioconda
+- defaults
+- r
+- conda-forge
+
+dependencies:
+- python=3.5.0
+- numpy
+- pandas
+- matplotlib
+- scipy
+- pysam
+- krona
+- kraken
+- pillow
+- sphinx
+- reports
+- easydev>=0.9.34
+- bioservices
+- pip
+- shustring
+- biokit>=0.4.1
+- pip:
+  - ipython
+  - jupyter
+  - docutils<0.13.1 # https://github.com/sphinx-doc/sphinx/issues/3212
+

@@ -42,13 +42,16 @@ packages = find_packages()
 packages = [this for this in packages if this.startswith('test.') is False]
 packages = [this for this in packages if this not in ['test']]
 
+# load a common list of requirements
+# - mock is for the test only
+# - qtconsole is required by Sequanix
+requirements = open("requirements.txt").read().split()
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
-    extra_packages = ["pillow", "numpydoc", "sphinx"]  # 
-else:
-    extra_packages = []
-
+    # pillow, sphinx, numpydoc are  for the doc only
+    extra_packages = ["pillow", "numpydoc", "sphinx"]
+    requirements += extra_packages
 
 setup(
     name             = "sequana",
@@ -71,10 +74,10 @@ setup(
 
     # pillow, sphinx-gallery and numpydoc are  for the doc only
     # mock is for the test only qtconsole is required by Sequanix
-    install_requires = ["easydev>=0.9.34", "reports>=0.3.0", "matplotlib>=2.0.0",
-        "pyVCF", "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14",
-        "biokit>=0.4.1", "pysam", "docutils", "mock", "psutil", "qtconsole",
-        "ruamel.yaml>=0.13.2", "colorlog", "multiqc>=1.0"] + extra_packages,
+    install_requires = requirements,
+
+    # specific packages for testing
+    tests_require = open('requirements_dev.txt').read().split(),
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
@@ -94,7 +97,7 @@ setup(
         'sequana.resources.busco' : ['*'],
         },
 
-    # thise files do not need to be added in MANIFEST.in since there are python
+    # these files do not need to be added in MANIFEST.in since there are python
     # packages that will be copied from sequana/ into sequana/
     # Note, however, that e.g. ./pipelines must be added
 
