@@ -64,6 +64,8 @@ and finally plot the coverage together with confidence interval (3 sigma)::
     chrom.compute_zscore()
     chrom.plot_coverage()
 
+.. seealso:: notebook available in the `github repository
+   <https://github.com/sequana/sequana/blob/master/notebooks/coverage.ipynb>`_
 
 Example2: read a fastq file
 ------------------------------
@@ -182,7 +184,7 @@ snapshot can be found in the :ref:`sequanix` section and a tutorial in
 =====================
 
 
-Pipelines and standalone make use of internal reporting. Since there are part of
+Pipelines and standalone make use of internal reporting. Since they are part of
 the **Sequana** library, they can also be used with your own code. For instance,
 if you have a BAM file, you can use the following code to create a basic
 report::
