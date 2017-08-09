@@ -91,6 +91,7 @@ setup(
         'sequana.resources.data.adapters' : ['*'],
         'sequana.resources.images' : ['*'],
         'sequana.resources.testing' : ['*'],
+        'sequana.resources.busco' : ['*'],
         },
 
     # thise files do not need to be added in MANIFEST.in since there are python

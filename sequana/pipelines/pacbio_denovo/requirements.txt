@@ -1,2 +1,2 @@
-- canu
-- busco
+canu
+busco
