@@ -21,6 +21,6 @@ samtools
 sambamba
 snpeff
 spades
-star
-subread
+#star
+#subread
 #multiqc
