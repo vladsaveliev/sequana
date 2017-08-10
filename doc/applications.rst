@@ -39,6 +39,8 @@ Here is a snapshot.
 
 .. image:: _static/sequanix.png
 
+.. seealso:: see :ref:`sequanix_tutorial` for details
+
 
 .. _sequana_app:
 

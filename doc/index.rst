@@ -118,7 +118,7 @@ To join the project, please let us know on `github <https://github.com/sequana/s
    <div id="index-grid" class="section group">
    <div class="col span_1_of_3">
         <h3><a href="installation.html">Installation</a></h3>
-        <p>Using conda or docker</p>
+        <p>conda install sequana</p>
         <h3><a href="auto_examples/index.html">Examples</a></h3>
         <p>Visit our example gallery to use the Python library</p>
         <h3><a href="pipelines.html">NGS pipelines</a></h3>

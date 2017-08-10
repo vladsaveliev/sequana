@@ -3,36 +3,57 @@
 Installation
 ##########################################
 
-There are three ways to install sequana and we recommend the first one for
-end-users:
+Quick installation
+=====================
+
+There are three ways to install sequana but we strongly recommend the **conda**
+way.
+
 
 .. _installation_conda:
 
-Using conda (bioconda channel) if you have an environment::
+From conda
+---------------
+
+Sequana is on bioconda. You can follow these `instructions <http://bioconda.github.io/recipes/sequana/README.html>`_ or type::
+
+    conda install sequana
+
+You would need these special channels::
 
     conda config --add channels r default conda-forges bioconda
-    conda install sequana
+
+And possibly install those dependencies required for the Sequana pipelines::
+
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
 
 
-Using Python Package Index (pip tool)::
+From Pypi website
+----------------------
+If you do not want to use **conda**, we provide releases on the Python Package Index website (pip tool)::
 
     pip install sequana
 
-From source::
+that should install the minimal dependencies. Note, however, that you may need
+to install dependencies yourself for all the pipelines to work.
+
+From Source
+-----------------
+
+Finally, if you are a developer, you can install **sequana** from source::
 
     git clone git@github.com:sequana/sequana.git
     cd sequana
     python setup.py install
 
-See hereafter for details.
+Again, only the minimal set of dependencies are installed. See hereafter for details.
 
 Installation using Conda
 ============================
 
 If you have not installed **Sequana**, be aware that it relies on many dependencies
 that needs to be compiled (i.e., it is time consumming and requires proper C compilator).
-For example, we use Matplotlib, Pandas that requires compilation.
+For example, we use Matplotlib that requires compilation.
 Besides, many pipelines rely on third-party software such as BWA or samtools that are not
 Python libraries. Yet, using **conda**, this process is simplified.
 
@@ -40,7 +61,7 @@ Install conda executable
 ----------------------------
 
 In practice, we do use `Anaconda <https://conda.readthedocs.io/>`_ . We recommend to
-install **conda** executable via the manual installer (`download <https//continuum.io/downloads>_`). 
+install **conda** executable via the manual installer (`download <https//continuum.io/downloads>`_). 
 You may have the choice
 between Python 2 and 3. We recommend to choose a Python version 3.
 
@@ -69,7 +90,7 @@ Create an environment
 
 Once **conda** is installed, open a new shell.
 Although this is not required strictly speaking, we would
-recomment to create an environment dedicated to Sequana. This environment can
+recommend to create an environment dedicated to Sequana. This environment can
 later be removed without affecting your system or conda installation. A
 **conda** environment is nothing else than a directory and can be created as
 follows::
@@ -96,11 +117,11 @@ packages, you may use this command::
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements.txt
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
 
-Developers, can also add::
+Developers, can also install pytest and sphinx::
 
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_dev.txt
 
-to install pytest and sphinx packages. We would also recommend those tools::
+We would also recommend those tools::
 
     conda install ipython jupyter 
 
@@ -110,7 +131,7 @@ to install pytest and sphinx packages. We would also recommend those tools::
 .. note:: the denovo_assembly pipelines uses Quast tool, which we ported to
     python 3.5 and was pulled on Quast official github page. This is not
     yet in bioconda but one can get it from the quast github (sept 2016). This is
-    required for the de-novo pipeline. The denove pipeline also requires GATK, 
+    required for the de-novo pipeline. The denovo pipeline also requires GATK, 
     to be installed manually by users (due to licensing restrictions)
 
 .. note:: For GATK (variant caller), please go to

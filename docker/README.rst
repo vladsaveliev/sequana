@@ -1,13 +1,13 @@
 Docker containers for **Sequana**
 ====================================
 
-.. warning:: we used to build our own docker containers but
+.. warning:: We used to build our own docker containers but
    thanks to development in bioconda, we will now use biocontainers.
 
 Example: sequana_coverage
 --------------------------
 
-To pull a Sequana container, use this type of commands::
+To pull a Sequana container (here version 0.4.1), use this type of command::
 
     docker pull quay.io/biocontainers/sequana:0.4.1--py35_0
 
@@ -34,8 +34,11 @@ Back on your local directory, you should now see a ./report directory with the
 results of the analysis.
 
 
-Docker containers (old - for book keeping)
--------------------------------------------
+Docker containers in details (obsolet) 
+=======================================
+
+.. warning:: this is mostly obsolet since we now use biocontainer but this
+   section may be useful for developers.
 
 `Docker <http://www.docker.com>`_ containers wrap a piece of software in a complete filesystem that contains everything needed to run the software.
 

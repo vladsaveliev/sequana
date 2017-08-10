@@ -402,12 +402,13 @@ Testing with pytest
 ===============================
 
 We moved from nosetests to pytest. This framwork is slightly more flexible but
-the main reason to move was to be able to test Qt application. 
+the main reason to move was to be able to test Qt application. It appeared that
+it also has nice plugins such as multithreaded testing.
 
 In order to run the test locally, you will need to install some dependencies.
 You can use conda and the **requirements_dev.txt** file::
 
-    conda install --list https://raw.githubusercontent.com/sequana/sequana/master/environment.yml
+    conda install --list https://raw.githubusercontent.com/sequana/sequana/master/requirements_dev.yml
 
 This command installs:
 
@@ -420,10 +421,16 @@ This command installs:
 
 For instance, you can use in the root directory of Sequana::
 
-    pytest -v --durations=10  test/ --cov=sequana --cov-report term-missing --timeout 300 -n 2
+    pytest -v --durations=10  test/ --cov=sequana --cov-report term-missing --timeout 300 -n 4
 
-Here, -n 2 requires two CPUs to run the tests. The option durations=10 means
-"show the 10 longest tests". If you want to test a single file (e.g. test_pacbio)::
+Here, -n 4 requires two CPUs to run the tests. The option durations=10 means
+"show the 10 longest tests". 
+
+We also adapt the setup.py and setup.cfg so that you can simply type::
+
+    python setup.py test
+
+If you want to test a single file (e.g. test_pacbio)::
 
     cd test
     pytest test_pacbio.py --cov sequana.pacbio --cov-report term-missing
