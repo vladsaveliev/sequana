@@ -3,12 +3,17 @@
 Installation
 ##########################################
 
+There are three ways to install sequana and we recommend the first one for
+end-users:
 
 .. _installation_conda:
 
-Using conda (bioconda channel)::
+Using conda (bioconda channel) if you have an environment::
 
+    conda config --add channels r default conda-forges bioconda
     conda install sequana
+    conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
+
 
 Using Python Package Index (pip tool)::
 
@@ -59,8 +64,6 @@ these commands (once for all)::
 .. warning:: **it is important to add them in this order**, as mentionned on bioconda webpage
     (https://bioconda.github.io/).
 
-
-
 Create an environment
 -------------------------
 
@@ -87,21 +90,17 @@ Finally, just type::
     conda install sequana
 
 This should install most of the required dependencies. However, you may need to
-install more packages depending on the pipeline used. 
+install more packages depending on the pipeline used. To install all required
+packages, you may use this command::
 
-Here are some compulsary packages::
+    conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements.txt
+    conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
 
-    conda install numpy matplotlib pandas snakemake graphviz pygraphviz scipy
+Developers, can also add::
 
-Then, depending on the pipelines or standalone applications you want to use,
-you will need to install other packages. Here is a list
-of dependencies that should be enough to run most of the current
-pipelines (commands are split on several lines but you can also
-install everything in one go)::
+    conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_dev.txt
 
-    conda install --file requirements_pipelines.txt
-
-We would also recommend those tools::
+to install pytest and sphinx packages. We would also recommend those tools::
 
     conda install ipython jupyter 
 
@@ -113,10 +112,6 @@ We would also recommend those tools::
     yet in bioconda but one can get it from the quast github (sept 2016). This is
     required for the de-novo pipeline. The denove pipeline also requires GATK, 
     to be installed manually by users (due to licensing restrictions)
-
-.. note:: **Sequana** is not fully compatible with Python 2.7 since a dependency
-    (Snakemake) is only available for Python 3.5. However, many core
-    functionalities would work under Python 2.7
 
 .. note:: For GATK (variant caller), please go to
    https://software.broadinstitute.org/gatk/download/auth?package=GATK and

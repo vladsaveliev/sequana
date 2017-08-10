@@ -405,7 +405,7 @@ We moved from nosetests to pytest. This framwork is slightly more flexible but
 the main reason to move was to be able to test Qt application. 
 
 In order to run the test locally, you will need to install some dependencies.
-You can use conda and the **requirements_dev.txt** file:
+You can use conda and the **requirements_dev.txt** file::
 
     conda install --list https://raw.githubusercontent.com/sequana/sequana/master/environment.yml
 

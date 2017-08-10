@@ -60,7 +60,7 @@ and finally plot the coverage together with confidence interval (3 sigma)::
     gc = GenomeCov(filename)
 
     chrom = gc[0]
-    chrom.running_median(n=4001, circular=True)
+    chrom.running_median(n=5001, circular=True)
     chrom.compute_zscore()
     chrom.plot_coverage()
 
