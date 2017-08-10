@@ -202,21 +202,6 @@ bowtie2_mapping:
     options: ""
     threads: 4
 
-#############################################################################
-# tophat_mapping used to align reads against genome file
-#
-# :Parameters:
-#
-# - do: if unchecked, this rule is ignored
-# - options: any options recognised by bowtie2 tool
-# - threads: number of threads to be used
-#
-tophat_mapping:
-    do: no
-    #options: "--dovetail --no-mixed --no-discordant " for paired-end data
-    options: "--no-coverage-search --library-type fr-firststrand "
-    threads: 4
-
 
 #############################################################################
 # feature_counts used to count reads against features
