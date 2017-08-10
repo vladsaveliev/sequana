@@ -4,4 +4,6 @@ pytest-qt
 pytest-xdist
 pytest-mock
 pytest-timeout
+pytest-runner
 sphinx
+sphinx_rtd_theme
