@@ -15,12 +15,12 @@ krona
 shustring
 fastqc
 picard
-#pigz
+pigz
 prokka
 samtools
 sambamba
 snpeff
 spades
-#star
-#subread
-#multiqc
+star
+subread
+multiqc

@@ -28,14 +28,8 @@ install:
   - echo $TRAVIS_PYTHON_VERSION
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements.txt
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_dev.txt
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_pipelines.txt
-  #- conda install --yes python=$TRAVIS_PYTHON_VERSION numexpr 
-  #- conda install --yes python=$TRAVIS_PYTHON_VERSION cython pillow
+  #- conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_pipelines.txt
   # use pip to get latest version
-  # - pip install coveralls
-  # - pip install mistune
-  # - pip install tabulate
-  # - pip install ruamel.yaml>=0.13.2
   - pip install pytest-xdist # somehow needs to be installed with pip (not registered with conda)
   - pip install .
 
