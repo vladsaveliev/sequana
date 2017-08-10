@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -38,7 +38,7 @@ class SnpEff(object):
 
 
     Example:
-    
+
     ::
 
         snpeff = SnpEff('file.gbk')
@@ -56,7 +56,7 @@ class SnpEff(object):
             self.reference = reference
             self.ref_name = os.path.basename(reference).split('.')[0]
         else:
-            logger.error("FileNotFoundError: The file " + reference + 
+            logger.error("FileNotFoundError: The file " + reference +
                          " does not exist")
             sys.exit(1)
 
@@ -69,7 +69,7 @@ class SnpEff(object):
         # Check if snpEff.config is present
         if not os.path.exists("snpEff.config"):
             self._get_snpeff_config()
-        
+
         # Create custom database
         if not os.path.exists("data" + os.sep + self.ref_name + os.sep +
                               "snpEffectPredictor.bin"):
@@ -85,7 +85,7 @@ class SnpEff(object):
         if reference.encode("utf-8") in snpeff_db:
             return True
         return False
-    
+
     def _get_snpeff_config(self):
         """ Copy and unzip the snpEff.config file.
         """
@@ -106,7 +106,7 @@ class SnpEff(object):
 
         # add new annotation file in config file
         self._add_db_in_config()
-       
+
         snpeff_build_line = ["snpEff", "build", "-genbank", '-v',
                              self.ref_name]
         if self.log_file:
@@ -130,7 +130,7 @@ class SnpEff(object):
     def launch_snpeff(self, vcf_filename, output, html_output=None,
                       options=""):
         """ Launch snpEff with the custom genbank file.
-        
+
         :param str vcf_filename: input VCF filename.
         :param str output: output VCF filename.
         :param str html_output: filename of the HTML creates by snpEff.
@@ -165,7 +165,7 @@ class SnpEff(object):
                 if chrom:
                      seq = [chrom.group(1)]
                      regex = chrom_regex
-            seq += [regex.search(line).group(1) for line in fp 
+            seq += [regex.search(line).group(1) for line in fp
                    if regex.search(line)]
         return seq
 
@@ -195,7 +195,7 @@ class SnpEff(object):
 
         if fasta_record.names[0] == ids_list[0]:
             print("Files have same sequence id.")
-            if os.path.isfile(output_file): 
+            if os.path.isfile(output_file):
                 os.remove(output_file)
             os.symlink(os.path.realpath(fasta), output_file)
             return
@@ -214,7 +214,7 @@ class SnpEff(object):
 def download_fasta_and_genbank(identifier, tag, genbank=True, fasta=True):
     """
 
-    :param identifier: valid identifier to retrieve from NCBI (genbank) and 
+    :param identifier: valid identifier to retrieve from NCBI (genbank) and
         ENA (fasta)
     :param tag: name of the filename for the genbank and fasta files.
     """
