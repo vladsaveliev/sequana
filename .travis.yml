@@ -28,6 +28,7 @@ install:
   - echo $TRAVIS_PYTHON_VERSION
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements.txt
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_dev.txt
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION kraken bwa snpeff shustring
   #- conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_pipelines.txt
   # use pip to get latest version
   - pip install pytest-xdist # somehow needs to be installed with pip (not registered with conda)
