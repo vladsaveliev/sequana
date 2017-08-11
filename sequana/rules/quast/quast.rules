@@ -1,54 +1,63 @@
 rule quast:
-    """ Quast calculates metrics to evaluate and to compare different de novo
-    assembly. It provides a HTML file.
+    """
+    Quast calculates metrics to evaluate and to compare different de novo
+    assembly. It provides a HTML report with useful metrics like N50, number of
+    mismatch and so on. Furthermore, it creates a viewer of contigs called
+    Icarus.
 
     Required input:
-        - __quast__input: list of fasta files
-        - __quast__reference: Reference genome file (optional)
-        - __quast__genes: Gene positions in the reference genome.
+        - __quast__input: One or a list of FASTA files.
+        - __quast__reference: Reference genome file. (Optional)
+        - __quast__genes: Gene positions in the reference genome. (Optional)
 
     Required output:
-        - __quast__json: json file to create quast link in sequana_report.
+        - __quast__done: Empty file to connect rule.
 
     Required parameters:
-        - __quast__outdir: output directory
+        - __quast__outdir: Output directory with report HTML created by QUAST.
 
-    Logs:
-        - __quast__log
+    Required log:
+        - __quast__log: Log file with stderr and stdout of QUAST.
+
+    Required configuration:
+        .. code-block:: yaml
+
+            quast:
+                reference: "" # FASTA reference genome file. (Optional)
+                genes_file: "" # GFF with gene position of the reference. (Optional)
+                threads: 4 # Number of threads used by QUAST.
+                options: "" # Any options recognised by quast.py.
+
+    Reference:
+        - http://quast.sourceforge.net/
     """
     input:
         assembly = __quast__input,
         reference = __quast__reference,
         genes = __quast__genes
     output:
-        json = __quast__json
+        __quast__done
     log:
         l = __quast__log
     params:
         directory = __quast__outdir,
-        gene_finding = config["quast"]["gene_finding"],
-        options = config["quast"]["options"]
+        ref = config['quast']['reference'],
+        gff = config['quast']['genes_file'],
+        options = config['quast']['options']
     threads:
-        config["quast"]["threads"]
+        config['quast']['threads']
     run:
-        import json
         import os
 
-        cmd = "quast.py -t %i -o %s %s" % (threads, params.directory,
-                                           params.options)
-        if input.reference:
-            cmd += " -R " + input.reference
-            if input.genes:
-                cmd += " -G " + input.genes
-        if params.gene_finding:
-            cmd += " -f"
-        if isinstance(input.assembly, list):
-            fasta = " ".join([f for f in input.assembly])
+        cmd = "quast.py -t %i -o %s %s" % (threads, params['directory'],
+                                           params['options'])
+        if params['ref'] and os.path.isfile(params['ref']):
+            cmd += " -R " + params['ref']
+            if params['gff'] and os.path.isfile(params['gff']):
+                cmd += " -G " + params['gff']
+        if isinstance(input['assembly'], list):
+            fasta = " ".join(f for f in input['assembly'])
         else:
-            fasta = input.a
-        shell("%s %s" % (cmd, fasta))
-        quast_json = {'tool': 'quast',
-                      'directory': os.path.realpath(params.directory)}
-        quast_json = json.dumps(quast_json)
-        with open(output.json, 'w') as fp:
-            print(quast_json, file=fp)
+            fasta = input['assembly']
+        shell("%s %s > %s 2>&1" % (cmd, fasta, log['l']))
+        shell("touch {output}")

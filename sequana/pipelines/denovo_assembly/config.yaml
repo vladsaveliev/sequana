@@ -74,20 +74,38 @@ spades:
 
 ##############################################################################
 # Quast - Compute metrics to assess assembly
-# 
+#
 # :Parameters:
 # 
 # - reference: Reference genome file (optional).
 # - genes_file: Gene positions in the reference genome.
 # - map_reads: Map reads on reference file.
-# - gene_finding: Use GeneMarks for gene finding.
-# - threads: number of threads to be used.
-# - options: any options recognised by quast.py.
+# - threads: Number of threads to be used.
+# - options: Any options recognised by quast.py.
 # 
 quast:
     reference: ""
     genes_file: ""
-    gene_finding: yes
+    threads: 4
+    options: ""
+
+##############################################################################
+# Prokka - Annotate the genome assembly
+#
+# :Parameters:
+#
+# - do: If unchecked, this rule is ignored.
+# - kingdom: Annotation mode (Archaea|Bacteria|Mitochondria|Viruses)
+# - genus: Genus name of the assembly.
+# - species: Species name of the assembly.
+# - threads: Number of threads used by Prokka.
+# - options: Any options recognised by Prokka.
+#
+prokka:
+    do: yes
+    kingdom: Bacteria
+    genus: ""
+    species: ""
     threads: 4
     options: ""
 
@@ -195,7 +213,7 @@ freebayes:
 #
 freebayes_vcf_filter:
     freebayes_score: 20
-    frequency: 0.8
+    frequency: 0.7
     min_depth: 10
     forward_depth: 3
     reverse_depth: 3

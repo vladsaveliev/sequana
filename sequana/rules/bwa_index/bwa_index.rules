@@ -1,4 +1,12 @@
+
+
 rule index_ref:
+    """DEPRECATED
+
+    bwa_mem_dynamic does the index step automatically
+
+
+    """
     input:
         config["ref"]
     output:

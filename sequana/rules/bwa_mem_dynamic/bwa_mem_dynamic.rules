@@ -1,6 +1,5 @@
 # coding: utf-8
-"""Read mapping for either single end and paired end data using BWA and
-samtools.
+"""Read mapping for either single or paired-end data using BWA and samtools.
 
 input:
     fastq -> list with your fastq.gz (R1, R2)
@@ -20,10 +19,6 @@ def bwa_mem_dynamic(name, project):
 
     bwa_mem_code = '''
 rule bwa_index_%(name)s:
-    """BWA INDEX
-
-    Index the reference with BWA INDEX and SAMTOOLS FAIDX.
-    """
     input:
         reference = __bwa_mem_%(name)s__reference
     output:
@@ -39,33 +34,64 @@ rule bwa_index_%(name)s:
         """
 
 rule bwa_mem_%(name)s:
-    """BWA MEM
+    """Read mapping with BWA-mem
 
-    By default uses *bwa* as the executable. If *pbwa* is available, 
-    (like on Institut Pasteur Cluster), then it is used in place of *bwa*.
-    It has the same behaviour but is a parallel version of *bwa*.
+    BWA mem rule aligns single or paired end FASTQ files on a reference genome.
+    This rule is a **dynamic** rule (see `developers` section). This means
+    that it can  be included multiple times with different names in the same
+    pipeline.
+    The reference file is indexed by BWA index and FASTQ files are mapped on it.
+    The sorting is done with sambamba by reading the stdin. Moreover, Sambamba
+    generates automatically the BAM index.
 
+    Required input:
+        - __bwa_mem_%(name)s__fastq: FASTQ files single or paired end.
+        - __bwa_mem_%(name)s__reference: FASTA file of the reference.
+        - __bwa_mem_%(name)s__fai: Index file of the reference.
+
+    Required output:
+        - __bwa_mem_%(name)s__bam: Sorted BAM file.
+
+    Log:
+        - __bwa_index_%(name)s__log: Log file of BWA index.
+        - __bwa_mem_%(name)s__log: Log file of BWA mem.
+
+    Required configuration:
+        .. code-block:: yaml
+
+            bwa_mem_%(name)s:
+                index_algorithm: 'is' # BWA index algorithm (is or bwtsw)
+                threads: 4         # Number of threads used by BWA mem.
+                options:           # Any options recognised by BWA mem tool.
+                tmp_directory: '/tmp' # Temporary directory.
+
+    Note:
+        When a dynamic rule is included, template variables must be replaced.
+
+    References:
+        - http://bio-bwa.sourceforge.net/
+        - http://lomereiter.github.io/sambamba/docs/sambamba-sort.html
     """
     input:
         fai = __bwa_mem_%(name)s__fai,
-        fastq = __bwa_mem_%(name)s__input,
+        fastq = __bwa_mem_%(name)s__fastq,
         reference = __bwa_mem_%(name)s__reference
     output:
-        sort = __bwa_mem_%(name)s__output
+        bam = __bwa_mem_%(name)s__bam
     log:
         __bwa_mem_%(name)s__log
     params:
-        mem = config["bwa_mem_%(name)s"]["options"],
-        bwa_exe = "%(executable)s",
-        tmp = config["bwa_mem_%(name)s"]["tmp_directory"]
+        options = config['bwa_mem_%(name)s']['options'],
+        bwa_exe = '%(executable)s',
+        tmp = config['bwa_mem_%(name)s']['tmp_directory']
     threads:
-        int(config["bwa_mem_%(name)s"]["threads"])
+        int(config['bwa_mem_%(name)s']['threads'])
     shell:
         """
-        ({params.bwa_exe} mem -t {threads} {params.mem} \
+        ({params.bwa_exe} mem -t {threads} {params.options} \
         {input.reference} {input.fastq} | \
         samtools view -Sbu - | \
-        sambamba sort /dev/stdin -o {output.sort} -t {threads} \
+        sambamba sort /dev/stdin -o {output.bam} -t {threads} \
         --tmpdir={params.tmp}) 2> {log}
         """
     '''

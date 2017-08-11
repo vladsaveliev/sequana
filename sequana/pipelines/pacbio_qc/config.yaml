@@ -11,9 +11,24 @@ input_directory: "%(input_directory)s"
 input_extension: "%(input_extension)s"
 input_pattern: "%(input_pattern)s"
 input_readtag: "%(input_readtag)"
-input_samples: 
+input_samples:
     file1: ""
     file2: ""
 
+
+######################################################
+# Taxonomic analysis
+#
+# Provide as many databases as you want. They will be 
+# used sequentially.
 kraken:
-    database_directory: toydb
+    db01_directory: toydb
+    db02_directory:
+    db03_directory:
+    db04_directory:
+    db05_directory:
+    db06_directory:
+    db07_directory:
+    db08_directory:
+    db09_directory:
+    db10_directory:

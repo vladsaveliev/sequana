@@ -62,6 +62,10 @@ See :ref:`quick_start`
 Taxonomy
 -------------------------------
 
+To perform a quick taxonomy of your reads, you can use :ref:`standalone_sequana_taxonomy`
+
+**sequana_taxonomy**
+
 Download a toy kraken database designed for this problem (contains only 100
 FASTA files mixing measles viruses and others viruses)::
 
@@ -86,6 +90,13 @@ in  `Krona example <_static/krona.html>`_
 
 Variant calling
 -------------------
+
+The following example will show how to initialise and run the variant calling
+pipeline on a pair of FastQ files.
+For testing purposes, you can download :download:`R1
+<../sequana/resources/data/Hm2_GTGAAA_L005_R1_001.fastq.gz>` and
+:download:`R2 <../sequana/resources/data/Hm2_GTGAAA_L005_R2_001.fastq.gz>`)
+files that contain only 1500 reads. Copy them in a local directory.
 
 Note that this does the variant calling + snpEff + coverage.
 See more information in the :ref:`pipeline_variant_calling` section.

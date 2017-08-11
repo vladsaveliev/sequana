@@ -39,6 +39,8 @@ Here is a snapshot.
 
 .. image:: _static/sequanix.png
 
+.. seealso:: see :ref:`sequanix_tutorial` for details
+
 
 .. _sequana_app:
 
@@ -70,6 +72,7 @@ sequana_coverage
 
 :Description: Show coverage and interval of confidence to identify under and
     over represented genomic regions.
+:Status: Production
 :Help: please use sequana_coverage ``--help``
 :Docker: ::
     
@@ -103,7 +106,7 @@ sequana_summary
 sequana_mapping
 ------------------
 :Description: a simple application to map reads onto a genome given one or two
-    FastQ files (gzipped) and a refenrece.
+    FastQ files (gzipped) and a reference.
 
 .. _standalone_sequana_taxonomy:
 
@@ -114,6 +117,7 @@ sequana_taxonomy
     content of a FastQ file (paired or not). Uses Kraken, Krona and a dedicated Sequana
     database.
 :Help: ``sequana_taxonomy --help``
+:Status: Production
 :Sequana: see :mod:`sequana.kraken`
 :Gallery: see :ref:`sphx_glr_auto_examples_plot_kraken.py`
 
@@ -146,5 +150,6 @@ sequana_compressor
 :Description: standalone on top of the compressor pipeline to
     compress/decompress FastQ files in different formats, recursively 
     and using multithreaded and multicore tools. 
+:Status: Production
 
 Please see :ref:`pipeline_compressor` for details.

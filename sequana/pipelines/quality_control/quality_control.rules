@@ -5,6 +5,7 @@ Affiliation: Institut Pasteur @ 2016
 
 This pipeline is part of Sequana software (sequana.readthedocs.io)
 """
+import json
 import os
 import sequana
 from sequana import snaketools as sm
@@ -17,8 +18,8 @@ __snakefile__ = srcdir(__snakefile__)
 
 # Generic include of some dynamic modules
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
-exec(open(sequana.modules["fastqc"], "r").read())
-exec(open(sequana.modules["fastq_stats"], "r").read())
+exec(open(sequana.modules["fastqc_dynamic"], "r").read())
+exec(open(sequana.modules["fastq_stats_dynamic"], "r").read())
 
 # A convenient manager
 manager = sm.PipelineManager("quality_control", config)
@@ -75,15 +76,15 @@ if manager.config.bwa_mem_phix.do:
         __bwa_mem_phix__reference = reference
     # Mapping input / output
     __bwa_index_phix__log = "common_logs/bwa_index.log"
-    __bwa_mem_phix__input = __data__input
-    __bwa_mem_phix__output = manager.getname("bwa_mem_phix", ".sorted.bam")
+    __bwa_mem_phix__fastq = __data__input
+    __bwa_mem_phix__bam = manager.getname("bwa_mem_phix", ".sorted.bam")
     __bwa_mem_phix__fai = __bwa_mem_phix__reference + ".fai"
     __bwa_mem_phix__log = manager.getlogdir("bwa_mem_phix")
 
     include: bwa_mem_dynamic("phix", manager)
 
     # BWA_BAM_TO_FASTQ
-    __bwa_bam_to_fastq__input = __bwa_mem_phix__output
+    __bwa_bam_to_fastq__input = __bwa_mem_phix__bam
 
     if manager.paired is True:
         def _mapper(ff):
@@ -293,7 +294,7 @@ onsuccess:
         indir = proj + "/fastq_stats_samples"
 
         fqmod =FastQStatsModule(indir, "fastqc_samples")
-        sample_summary["fastq_stats_samples_json"] = fqmod.get_stats().to_json()
+        sample_summary["fastq_stats_samples_json"] = json.loads(fqmod.get_stats().to_json())
 
         conf.summary_sections.append({
             "name": "Stats (input data)",
@@ -304,7 +305,7 @@ onsuccess:
 
         # the phix section ---------------------------------
         phixmod = PhixModule(proj)
-        sample_summary["phix_section_json"] = phixmod._get_stats().to_json()
+        sample_summary["phix_section_json"] = json.loads(phixmod._get_stats().to_json())
         sample_summary["phix_section"] = phixmod._get_summary()
         conf.summary_sections.append({
             "name": "Phix ",
@@ -315,7 +316,7 @@ onsuccess:
 
         # the cutadapt section ----------------------------
         cutadapt_mod = CutadaptModule(proj + "/logs/cutadapt/cutadapt.txt", proj)
-        sample_summary["cutadapt_json"] = cutadapt_mod._get_stats().to_json()
+        sample_summary["cutadapt_json"] = json.loads(cutadapt_mod._get_stats().to_json())
         html = cutadapt_mod._get_stat_section()
         html += FastQStatsModule(proj + "/fastq_stats_cutadapt", "fastqc_cutadapt")._get_stats_section(
             tablename="cutadapt2")
@@ -330,7 +331,7 @@ onsuccess:
         # The Kraken section
         if manager.config.kraken.do:
             krakenmod = KrakenModule(proj + "/kraken")
-            sample_summary['kraken_json'] = krakenmod._get_stats().to_json()
+            sample_summary['kraken_json'] = json.loads(krakenmod._get_stats().to_json())
             conf.summary_sections.append({
                 "name": "Kraken ",
                 "anchor'": "kraken",

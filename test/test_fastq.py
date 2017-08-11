@@ -43,8 +43,6 @@ def test_fastq_unzipped():
             f.select_random_reads(selection, fh.name)
 
 
-
-
 def test_split():
     # general tests
     f = fastq.FastQ(data)
@@ -75,6 +73,8 @@ def test_split():
     outputs = f.split_lines(500, gzip=True)
     remove_files(outputs)
 
+
+    f.split_lines(1000000) is None # too many
 
 def test_filter():
     f = fastq.FastQ(data)
@@ -119,6 +119,23 @@ def test_identifiers():
     print(identifier)
     identifier.__repr__()
 
+def test_others():
+    # kmer
+    f = fastq.FastQ(data)
+    f.to_kmer_content()
+
+    #krona
+    with TempFile() as fh:
+        f.to_krona(5, fh.name)
+
+    assert f == f
+
+    f1 = fastq.FastQ(data)
+    f2 = fastq.FastQ(sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz"))
+    assert f1 != f2
+    f1 = fastq.FastQ(data)
+    f2 = fastq.FastQ(data)
+    assert f1 == f2
 
 def test_fastqc():
     qc = fastq.FastQC(data, dotile=True)

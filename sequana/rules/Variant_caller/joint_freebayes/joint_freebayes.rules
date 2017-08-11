@@ -1,19 +1,33 @@
 rule joint_freebayes:
-    """ Freebayes is a variant caller designed to find SNPs and short INDELs.
-    It is capable of calling multiple variants segregate on the same read. This
-    rules does the variant calling jointly with all samples.
+    """
+    Freebayes is a variant caller designed to find SNPs and short INDELs from a
+    BAM file. It produces a very well-annotated VCF output. Moreover, it
+    provides a quality score calculated by a bayesian model. 
+    
+    This rules does the variant calling jointly with all samples. It increases
+    the power of the bayesian model.
 
     Required input:
-        __joint_freebayes__input: list of sorted bam file
-        __joint_freebayes__bai: list of bam index file
-        __joint_freebayes__reference: reference fasta file
+        - __joint_freebayes__input: List of sorted BAM files.
+        - __joint_freebayes__reference: FASTA file of the reference genome.
 
     Required output:
-        __joint_freebayes__output: vcf file
+        - __joint_freebayes__output: VCF file of detected variants.
+
+    Required log:
+        - __joint_freebayes__log: Log file with stdout and stderr of Freebayes.
 
     Required parameter:
-        __joint_freebayes__ploidy: set the ploidy of the sample
-        config["joint_freebayes"]["options"]: others freebayes options
+        - __joint_freebayes__ploidy: The ploidy of the samples.
+
+    Required configuration:
+        .. code-block:: yaml
+
+            freebayes:
+                options: # Any options recognised by freebayes.
+
+    Reference:
+        - https://github.com/ekg/freebayes
     """
     input:
         bam = __joint_freebayes__input,

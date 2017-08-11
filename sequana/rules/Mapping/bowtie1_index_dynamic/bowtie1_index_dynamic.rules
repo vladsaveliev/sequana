@@ -1,12 +1,26 @@
 def bowtie1_index_dynamic(name):
-    """
-    blabla
-    """
 
     metadata = {"name": name}
 
     bowtie1_index_code = '''
 rule bowtie1_index_%(name)s:
+    """
+    bowtie1_index_dynamic
+
+    Genome indexation for Bowtie1 mapper
+
+    Required input:
+        __bowtie1_index_%(name)s__fasta: the reference genome to indexed in FASTA format
+
+    Required output:
+        __bowtie1_index_%(name)s__output_done: done file for bowtie1 mapping rule
+
+    params:
+
+        __bowtie1_index_%(name)s__output_prefix: the directory where write the index
+
+    """
+
     input:
         fasta = __bowtie1_index_%(name)s__fasta
     output:

@@ -266,8 +266,10 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
 def bam_get_paired_distance(filename):
     """Return distance between 2 mated-reads
 
-    return position start and end of the paired-end reads that were mapped
-    (both).
+    :return: list of tuples where each tuple contains the position start,
+        position end of the paired-end reads that were mapped + the mode.
+        mode =1 means fragment is reversed. mode = 2 means mate is reversed.
+        mode = 3 means none are reversed.
 
     ::
 

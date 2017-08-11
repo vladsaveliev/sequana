@@ -16,17 +16,15 @@ __snakefile__ = srcdir(__snakefile__)
 
 # Generic include of some dynamic modules
 exec(open(sequana.modules["bowtie1_mapping_dynamic"], "r").read())
-exec(open(sequana.modules["fastqc"], "r").read())
+exec(open(sequana.modules["fastqc_dynamic"], "r").read())
 exec(open(sequana.modules["bowtie1_index_dynamic"], "r").read())
 exec(open(sequana.modules["miRNA_count_dynamic"], "r").read())
-
+exec(open(sequana.modules["dynamic_unpigz"], "r").read())
 
 manager = sm.PipelineManager("smallrnaseq", config)
 
 __data__input = manager.getrawdata()
 
-
-TODO = "todo"
 
 if manager.config.genome.do:
 
@@ -94,8 +92,6 @@ if manager.config.cutadapt.do:
         __cutadapt__input_fastq = __data__input
         __cutadapt__wkdir = manager.getwkdir("cutadapt")
         __cutadapt__output = [manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")]
-        if manager.paired:
-            __cutadapt__output += [manager.getname("cutadapt", "_R2_.cutadapt.fastq.gz")]
 
         # Set the fwd and rev adapters
         __cutadapt__fwd = manager.config.cutadapt.fwd
@@ -140,8 +136,15 @@ include: fastqc_dynamic("filtered", manager)
 expected_output.extend(expand(__fastqc_filtered__output_done, sample=manager.samples))
 
 
+# Decompress fastq.gz file before to run bowtie1
+__unpigz_R1__input = manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")
+__unpigz_R1__output = manager.getname("cutadapt", "_R1_.cutadapt.fastq")
+include: dynamic_unpigz("R1", manager)
+
+
+
 # mirRNA mature
-__bowtie1_mapping_mature__input = __clean__output
+__bowtie1_mapping_mature__input = __unpigz_R1__output
 __bowtie1_mapping_mature__index_done = __bowtie1_index_mature__output_done
 __bowtie1_mapping_mature__bam = manager.getname("bowtie1_mapping_miRNA", ".bam")
 __bowtie1_mapping_mature__sort = manager.getname("bowtie1_mapping_miRNA", ".sorted.bam")
@@ -159,7 +162,7 @@ include: miRNA_count_dynamic("mature", manager)
 expected_output.extend(expand(__miRNA_count_mature__output, sample=manager.samples))
 
 # hairpin mapping
-__bowtie1_mapping_hairpin__input = __clean__output
+__bowtie1_mapping_hairpin__input = __unpigz_R1__output
 __bowtie1_mapping_hairpin__index_done = __bowtie1_index_hairpin__output_done
 __bowtie1_mapping_hairpin__bam = manager.getname("bowtie1_mapping_hairpin", ".bam")
 __bowtie1_mapping_hairpin__sort = manager.getname("bowtie1_mapping_hairpin", ".sorted.bam")

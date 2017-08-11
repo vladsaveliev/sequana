@@ -1,0 +1,21 @@
+
+
+
+
+rule busco_analysis:
+    """Busco analysis
+
+    Interpret the busco results producing pie chart and scatter plots
+
+
+    """
+    input: __busco_analysis__input
+    output:
+        pie = __busco_analysis__output_pie,
+        scatter = __busco_analysis__output_scatter
+    run:
+        # The individual images
+        import pylab
+        b = BUSCO(input[0])
+        b.pie_plot(filename=output.pie)
+        b.scatter_plot(filename=output.scatter)

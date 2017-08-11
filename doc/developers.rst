@@ -3,14 +3,23 @@
 Developer guide
 ################
 
-In this section we first look at how to include a new module (snakemake rule) in
-**Sequana**. Then, we will create a new pipeline that uses that single rule.
+This section is a tutorial for developers who wish to include a Snakemake
+pipeline in Sequana.
+
+We will create a very simple pipeline that counts the number of reads in a bunch
+of FastQ files. First, we will need to create the rule that counts the reads and
+then the pipeline. Once the pipeline is created, we will create the
+documentation, test and HTML reports. Finally, when you have a pipeline that
+creates a reports and summary file, you may want to also include a multiqc
+summary. We will also show how to integrate this feature inside our framework.
+
+
 
 The rule simply counts the number of reads in a fastq file.
-The pipeline will only contains that unique rule. 
+The pipeline will only contains that unique rule.
 
 In the remaining sections, we will explain our choice concerning the continuous
-integration (section :ref:`pytest` ) and how to add check that new code do not
+integration (section :ref:`pytest` ) and how to add sanity check that the new code do not
 introduce bugs. In the :ref:`module_reports` section, we explain how to create
 new component in the HTML module reports.
 
@@ -27,7 +36,7 @@ Find a valid name
 -------------------
 
 All rules and pipelines must have a unique name in Sequana. 
-We can quickly check that a name is not used in Sequana using:
+We can quickly check that a name is not alredy used using:
 
 .. doctest::
 
@@ -71,43 +80,48 @@ You can check that the file *count.txt* exists.
 Store the rule in a Sequana module
 -------------------------------------
 
-We now store this Snakefile in the proper place. 
+We now store this Snakefile in the proper place.
 All modules are placed either in *./sequana/pipelines* or in
 *./sequana/rules* directory. The tree structure looks like:
 
 .. only:: html
 
-    .
-    ├── rules
-    │   ├── count
-    │   │   ├── count.rules
-    │   │   ├── README.rst
-    ├── pipelines
-    │   ├── count_pipeline
-    │   │   ├── count_pipeline.rules
-    │   │   ├── README.rst
+    ::
+
+        .
+        ├── rules
+        │   ├── count
+        │   │   ├── count.rules
+        │   │   ├── README.rst
+        ├── pipelines
+        │   ├── count_pipeline
+        │   │   ├── count_pipeline.rules
+        │   │   ├── README.rst
 
 
 .. only:: latex
 
-    --- rules
-    |   --- count
-    |   |   --- count.rules
-    |   |   --- README.rst
-    --- pipelines
-    |   --- count_pipeline
-    |   |   --- count_pipeline.rules
-    |   |   --- README.rst
+    ::
+
+        --- rules
+        |   --- count
+        |   |   --- count.rules
+        |   |   --- README.rst
+        --- pipelines
+        |   --- count_pipeline
+        |   |   --- count_pipeline.rules
+        |   |   --- README.rst
 
 
 
 We have created a *count* directory in *./rules* and put the Snakefile in it
 (named *count.rules*).
 
-A few comments: (1) there is a unique file named *config.yaml* at the root, (2)
-directory names must match the rule filename contain in it (3) 
-the Snakefiles all end in *.rules*, and (4) a *README.rst* must be present in all
-directories. 
+A few comments: 
+
+- directory names must match the rule filename contain in it
+- all Snakefiles  end in *.rules*
+- a *README.rst* must be present in all pipelines sub-directories
 
 The README file in the rules can be empty. However, the README in the
 pipelines's directory is used in the documentation and automatically
@@ -146,8 +160,8 @@ We tend to not hard-code any filename. So the input and output are actually
 variables. The variable names being the name of the rule with leading and
 trailing doubled underscores followed by the string *input* or *output*.
 
-.. note:: The is a big advantage of designing rules with variables only:
-    rules can be re-used in any pipelines without changing the rule itself; only 
+.. note:: The big advantage of designing rules with variables only:
+    rules can be re-used in any pipelines without changing the rule itself; only
     pipelines will be different.
 
 Use a config file
@@ -228,21 +242,28 @@ current convention::
 
 .. _dev_pipeline:
 
-How to write new pipelines
+How to write a new pipeline
 ================================
 
-There are many rules already available in **Sequana**. You can easily add rules
-as follows::
+
+
+
+
+The Snakefile/pipeline
+-------------------------
+
+The first thing to notice as compared to a standard Snakefile is that 
+we use rules from Sequana only (for the moment). There are already many rules and they can be 
+added as follows::
 
     from sequana import snaketools as sm
     include: sm.module['rulegraph']
 
+This will take care of finding the exact location of the module.
 
-Use sequana.snaketools
--------------------------
+Second, all configuration file are named *config.yaml*.
 
-Assuming there will be a config file named *config.yaml*, the pipeline should be
-written as follows:
+So, your pipeline should look like:
 
 .. code-block:: python
 
@@ -267,7 +288,9 @@ written as follows:
 The pipeline README file
 ----------------------------
 
-This is a WIP in progress but here is an example for the previous pipeline::
+In the same directory as your pipeline Snakefile, add a **README.rst** file.
+Here is a template to be used to create the documentation (replace NAME by the
+pipeline name)::
 
     :Overview: Counts the reads in a fastq file
     :Input: FastQ raw data file
@@ -282,7 +305,25 @@ This is a WIP in progress but here is an example for the previous pipeline::
         sequana init pipeline_count 
         snakemake -s pipeline_count.rules -f 
 
-.. note:: the README uses Restructured syntax (not markdown)
+    Requirements
+    ~~~~~~~~~~~~~~
+
+    .. include:: ../sequana/pipelines/pipeline_count/requirements.txt
+
+    .. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/pipeline_count/dag.png
+
+    Details
+    ~~~~~~~~~~~~~
+
+    Rules and configuration details
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    count rule
+    ^^^^^^^^^^^
+    .. snakemakerule:: pipeline_count
+
+
+.. note:: the README.rst uses Restructured syntax (not markdown)
 
 
 .. _config_coding_convention:
@@ -360,25 +401,40 @@ do not use the print() function but the logger::
 Testing with pytest
 ===============================
 
-We moved from nosetests to pytest. This framwork is slightly more flexible but
-the main reason to move was to be able to test Qt application. 
+As a developer, when you change your code, you want to quickly test
+whether the modification(s) did not introduce any regression bugs. To do so,
+just type::
 
-In order to run the test locally, you will need to use::
+    python setup.py test
 
-    pip install pytest pytest-cov pytest-qt pytest-xdist pytest-mock pytest-timeout
+.. note:: we moved from nosetests to pytest. This framwork is slightly more flexible but
+    the main reason to move was to be able to test Qt application. It appeared that
+    it also has nice plugins such as multithreaded testing.
 
-The first is the main package, the second is required for coverage. The third
-provides fixtures for Qt testing and the fourth is used to use several CPU
-during testing. The fifth is for mocking and the sixth to constraint long tests.
+You will need to install **pytest** and some plugins. You can use conda to do
+so thanks to the **requirements_dev.txt** file::
 
+    conda install --list https://raw.githubusercontent.com/sequana/sequana/master/requirements_dev.yml
 
-Then, you can type for instance::
+This command installs:
 
-    pytest -v --durations=10  test/ --cov=sequana --cov-report term --timeout 300 -n 2
+- pytest: main utility
+- pytest-cov: coverage support
+- pytest-qt: fixture for Qt
+- pytest-xdist: allows multi threading
+- pytest-mock: mocking feature
+- pytest-timeout: report longest tests
 
-Here, -n 2 requires two CPUs to run the test. The option durations=10 means
-*show the 10 longest tests*. 
+For instance, you can use in the root directory of Sequana::
 
+    pytest -v --durations=10  test/ --cov=sequana --cov-report term-missing --timeout 300 -n 4
+
+Here, -n 4 requires two CPUs to run the tests. The option durations=10 means
+"show the 10 longest tests". 
+
+We also adapt the setup.py and setup.cfg so that you can simply type::
+
+    python setup.py test
 
 If you want to test a single file (e.g. test_pacbio)::
 
@@ -501,9 +557,86 @@ When using this module, one creates an HTML page called **mytest.html**. An
 instance of the page is available here:  `report_example.html <_static/report_example.html>`_
 
 Documentation
------------------------
+=================
 
-::
+If you add new code in the sequana library, please add documenation everywhere:
+in classes, functions, modules following docstring and sphinx syntax. To check
+that the documentation is correct, or to build the documentation locally, first
+install sphinx::
 
     conda install sphinx sphinx_rtd_theme
+
+and from the root directory ot the source code::
+
+    cd doc
+    maje html
+
+MultiQC
+==========
+
+
+If you have several samples in a pipeline and the pipeline creates *N* HTML reports
+and / or summary.json files thanks to the module report (see above), there is a
+high probability that you also want to have a multi summary. 
+
+We decided to use multiqc (http://multiqc.info/) for that purpose. 
+
+
+We consider the example used here above with the pipeline named **pipeline_count**. 
+We suppose that the output is also made of a **summary_count_SAMPLE.json** file created for each sample. Let us assume you took care of creating a nice HTML page (optional).
+
+Now, you wish to create a multiQC report. This means you want to retrieve
+automatically the file summary_count_SAMPLE.json.
+
+In ./sequana/multiqc add a file called pipeline_count.py 
+
+- Take as example the already existing file such as pacbio_qc.py
+- update the __init__.py to add the search pattern for your input (here summary_count*.json)
+- In the setup.py, add the entry point following the example of pacbio_qc
+- In the ./test/multiqc add a test in test_multiqc.py
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

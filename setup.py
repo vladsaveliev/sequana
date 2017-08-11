@@ -8,7 +8,7 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 4
-_MICRO               = 1
+_MICRO               = 2
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -28,6 +28,8 @@ metainfo = {
           'License :: OSI Approved :: BSD License',
           'Operating System :: OS Independent',
           'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: 3.6',
           'Topic :: Software Development :: Libraries :: Python Modules',
           'Topic :: Scientific/Engineering :: Bio-Informatics',
           'Topic :: Scientific/Engineering :: Information Analysis',
@@ -40,13 +42,16 @@ packages = find_packages()
 packages = [this for this in packages if this.startswith('test.') is False]
 packages = [this for this in packages if this not in ['test']]
 
+# load a common list of requirements
+# - mock is for the test only
+# - qtconsole is required by Sequanix
+requirements = open("requirements.txt").read().split()
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
-    extra_packages = ["pillow", "numpydoc", "sphinx"]  # 
-else:
-    extra_packages = []
-
+    # pillow, sphinx, numpydoc are  for the doc only
+    extra_packages = ["pillow", "numpydoc", "sphinx"]
+    requirements += extra_packages
 
 setup(
     name             = "sequana",
@@ -69,10 +74,10 @@ setup(
 
     # pillow, sphinx-gallery and numpydoc are  for the doc only
     # mock is for the test only qtconsole is required by Sequanix
-    install_requires = ["easydev>=0.9.34", "reports>=0.3.0", "matplotlib>=2.0.0",
-        "pyVCF", "pandas", "cutadapt>=1.9.1", "bioservices>=1.4.14",
-        "biokit>=0.4.1", "pysam", "docutils", "mock", "psutil", "qtconsole",
-        "ruamel.yaml>=0.13.2", "colorlog"] + extra_packages,
+    install_requires = requirements,
+
+    # specific packages for testing
+    tests_require = open('requirements_dev.txt').read().split(),
 
     # here below '': pattern means include that pattern in all packages
     # so '' :['README.rst'] will include all README.rst recursively
@@ -89,9 +94,10 @@ setup(
         'sequana.resources.data.adapters' : ['*'],
         'sequana.resources.images' : ['*'],
         'sequana.resources.testing' : ['*'],
+        'sequana.resources.busco' : ['*'],
         },
 
-    # thise files do not need to be added in MANIFEST.in since there are python
+    # these files do not need to be added in MANIFEST.in since there are python
     # packages that will be copied from sequana/ into sequana/
     # Note, however, that e.g. ./pipelines must be added
 
@@ -111,14 +117,19 @@ setup(
            'sequana_mapping=sequana.scripts.mapping:main',
            'sequana_compressor=sequana.scripts.compressor:main',
            'sequana_report=sequana.scripts.reports:main',
-           'sequana_fox=sequana.scripts.browser:main',
+           'sequana_foxi=sequana.scripts.browser:main',
         ],
         'sequana.module':[
             'sequana_coverage=sequana.modules_report.coverage:CoverageModule',
             'sequana_variant_calling=sequana.modules_report.variant_calling:VariantCallingModule',
             'sequana_summary=sequana.modules_report.summary:SummaryModule',
-            'quast=sequana.modules_report.quast:QuastModule',
         ],
-},
-
+        "multiqc.modules.v1": [
+            "sequana_pacbio_qc=sequana.multiqc.pacbio_qc:MultiqcModule",
+            "sequana_quality_control=sequana.multiqc.quality_control:MultiqcModule",
+        ],
+        'multiqc.hooks.v1': [
+            'before_config = sequana.multiqc:multiqc_sequana_config',
+]
+    },
 )

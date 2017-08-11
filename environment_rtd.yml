@@ -22,8 +22,8 @@ dependencies:
 - bioservices
 - pip
 - shustring
+- biokit>=0.4.1
 - pip:
-  - biokit>=0.3.2
   - ipython
   - jupyter
   - docutils<0.13.1 # https://github.com/sphinx-doc/sphinx/issues/3212

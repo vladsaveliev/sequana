@@ -5,7 +5,7 @@ from sphinx.application import Sphinx
 
 def test_doc():
     res  = snakemakerule.get_rule_doc("dag")
-    res  = snakemakerule.get_rule_doc("fastqc")
+    res  = snakemakerule.get_rule_doc("fastqc_dynamic")
 
     try:
         res  = snakemakerule.get_rule_doc("dummy")
