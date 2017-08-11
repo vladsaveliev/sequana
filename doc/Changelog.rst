@@ -13,9 +13,10 @@ Changelog
 
 * Updates:
 
-  * pipeline: variant calling cleanup 
-  * pipeline: denovo cleanup
+  * pipeline: variant calling cleanup and finalised
+  * pipeline: denovo updated (busco) and cleanup and finalised
   * pipeline: pacbio_qc finalised 
+  * pipeline: rnaseq: finalised
   * module pacbio:  speed up initialisation; add a random_selection method; add a summary method;
 
 * NEWS:
@@ -23,7 +24,7 @@ Changelog
   * Sequanix: can now load cluster config
   * new rules: busco, busco_analysis, canu
   * new pipeline: pacbio_denovo
-  * multiqc modules integrated in sequana. See online documentation for details.
+  * multiqc modules integrated in sequana. See :ref:`developers` for details.
   * module snaketools: new function get_pipeline_stats
   * new gallery example with statistics about the pipelines
 
