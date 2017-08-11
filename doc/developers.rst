@@ -401,12 +401,18 @@ do not use the print() function but the logger::
 Testing with pytest
 ===============================
 
-We moved from nosetests to pytest. This framwork is slightly more flexible but
-the main reason to move was to be able to test Qt application. It appeared that
-it also has nice plugins such as multithreaded testing.
+As a developer, when you change your code, you want to quickly test
+whether the modification(s) did not introduce any regression bugs. To do so,
+just type::
 
-In order to run the test locally, you will need to install some dependencies.
-You can use conda and the **requirements_dev.txt** file::
+    python setup.py test
+
+.. note:: we moved from nosetests to pytest. This framwork is slightly more flexible but
+    the main reason to move was to be able to test Qt application. It appeared that
+    it also has nice plugins such as multithreaded testing.
+
+You will need to install **pytest** and some plugins. You can use conda to do
+so thanks to the **requirements_dev.txt** file::
 
     conda install --list https://raw.githubusercontent.com/sequana/sequana/master/requirements_dev.yml
 
