@@ -380,8 +380,9 @@ onsuccess:
         shell("cp config.yaml %s" % report_dir)
         shell("cp requirements.txt %s" % report_dir)
         shell("cp snakemake_stats.png %s" % report_dir)
+        try: os.mkdir("cluster_logs")
+        except:pass
 
-        os.mkdir("cluster_logs")
         shell("mv slurm* cluster_logs/")
 
         # Create a cleanup python file to clean a sub-directory
