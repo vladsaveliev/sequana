@@ -40,21 +40,21 @@ class ReadSummary(object):
         return self.data['phix_section']['contamination']
 
     def get_cutadapt_stats(self):
-        return json.loads(self.data["cutadapt_json"])
+        return self.data["cutadapt_json"]
 
     def get_fastq_stats_samples(self):
-        return json.loads(self.data["fastq_stats_samples_json"])
+        return self.data["fastq_stats_samples_json"]
 
     def get_mean_quality_samples(self):
-        this = json.loads(self.data["fastq_stats_samples_json"])
+        this = self.data["fastq_stats_samples_json"]
         return this["mean quality"]['R1']
 
     def get_nreads_raw(self):
-        this = json.loads(self.data["fastq_stats_samples_json"])
+        this = self.data["fastq_stats_samples_json"]
         return this["n_reads"]['R1']
 
     def get_average_read_length(self):
-        this = json.loads(self.data["fastq_stats_samples_json"])
+        this = self.data["fastq_stats_samples_json"]
         return this["average read length"]['R1']
 
     def get_trimming_percent(self):
