@@ -8,10 +8,9 @@ from easydev import DevTools, execute
 class BuscoConfig(object):
 
     def __init__(self, species, outpath=None, sample_name=None, conda_bin_path=None,
-            tmp_path=None, hmmsearch_bin_path="/usr/local/bin", Rscript_bin_path=None):
+            tmp_path=None, Rscript_bin_path=None):
 
         self.params = {}
-        self.params['hmmsearch_bin_path'] =  hmmsearch_bin_path
         self.params['conda_bin_path'] = conda_bin_path # "/home/cokelaer/miniconda3/env/py3/bin"
         self.params['Rscript'] = Rscript_bin_path # "/home/cokelaer/miniconda3/bin"
         self.params['sample'] = sample_name  # prefix used in output files
