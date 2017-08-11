@@ -40,7 +40,7 @@ We use the Snakemake [snakemake:2012] framework to design our pipelines, which e
 
 **Sequana** is an open source project (https://github.com/sequana/sequana). It is developed with the aim
 of simplifying the development of new tools (for developers) and the deployment of the pipelines (for users).
-The extended documentation (http://sequana.readthedocs.org) and test suite (on [Travis.org](http://travis.ci.org)) provide a high-quality
+The extended documentation (http://sequana.readthedocs.org) and test suite (on [Travis.org](http://travis-ci.org)) provide a high-quality
 software that is routinely tested. **Sequana** is now available on bioconda making the installation easier and faster by taking care of the dependencies (e.g., samtools, bwa, or Python libraries). 
 
 Finally, for end-users, we also developed a Graphical interface called **Sequanix** [sequanix:2017] developed with the PyQt framework (see left panel of the image here below). **Sequanix** standalone exposes all **Sequana** pipelines (Snakemake pipelines) within an easy-to-use interface. Within the graphical interface, the configuration file used by Snakemake are automatically loaded and can be edited by end-users with dedicated widgets. We made the interface generic enough that not only Sequana pipelines can be run interactively but also any Snakemake pipelines.
