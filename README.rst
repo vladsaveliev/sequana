@@ -18,6 +18,9 @@ SEQUANA
     :target: http://sequana.readthedocs.org/en/latest/?badge=master
     :alt: Documentation Status
 
+.. image:: https://badges.gitter.im/sequana/sequana.svg
+    :target: https://gitter.im/sequana/sequana?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
+
 :Python version: 3.5 (and 2.7 without snakemake)
 :Online documentation: `On readthedocs <http://sequana.readthedocs.org/>`_
 :Issues and bug reports: `On github <https://github.com/sequana/sequana/issues>`_
@@ -27,7 +30,7 @@ SEQUANA
     10.7490/f1000research.1112656.1)
 
 
-**Sequana** includes a set of pipelines related to NGS (new generation sequencing) including quality control, variant calling, coverage, taxonomy...
+**Sequana** includes a set of pipelines related to NGS (new generation sequencing) including quality control, variant calling, coverage, taxonomy, transcriptomics. We also ship **Sequanix**, a graphical user interface for Snakemake pipelines. 
 
 **Please see the** `documentation <http://sequana.readthedocs.org>`_ for an
 up-to-date status and documentation.
