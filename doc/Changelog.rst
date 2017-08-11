@@ -26,7 +26,11 @@ Changelog
   * multiqc modules integrated in sequana. See online documentation for details.
   * module snaketools: new function get_pipeline_stats
   * new gallery example with statistics about the pipelines
-  
+
+* CHANGES:
+
+  * remove random() function from FastQ (useless and will be put in new module
+    simulation)  
 
 
 0.4.1 July 2017
