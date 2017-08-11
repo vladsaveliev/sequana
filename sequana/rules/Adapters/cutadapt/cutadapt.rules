@@ -106,8 +106,6 @@ rule cutadapt:
                 cmd = "%s {input.fastq[0]}" % executable
             if fwd:
                 cmd += "    -{params.mode} %s " % fwd
-            elif rev:
-                cmd += "    -{params.mode} %s " % rev
             else:
                 cmd += "    -{params.mode} XXXX "
             cmd += " -m {params.m} -q {params.quality} "
