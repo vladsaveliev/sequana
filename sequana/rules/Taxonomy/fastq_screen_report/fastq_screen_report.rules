@@ -11,6 +11,7 @@ rule fastq_screen_report:
 
     input :
         __fastq_screen_report__input,
+        __fastq_screen_report__sample,
         __fastq_screen_report__input_done
     log :
         __fastq_screen_report__logs
@@ -32,7 +33,7 @@ rule fastq_screen_report:
         nohit = ""
         file = ""
         for fp in os.listdir(input[0]):
-            if fp.endswith("_screen.txt"):
+            if fp.endswith(input[1] + "_screen.txt"):
                 file = fp
 
         for line in csv.reader(open(os.path.join(input[0], file), "r"), dialect="excel-tab") :
