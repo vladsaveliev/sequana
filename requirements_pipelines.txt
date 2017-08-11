@@ -1,4 +1,4 @@
-atropos>=1.0.23
+atropos==1.0.23
 bcftools
 bedtools
 bleach
