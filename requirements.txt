@@ -4,6 +4,7 @@ colorlog
 docutils
 easydev>=0.9.34
 matplotlib>=2.0.0
+pyqt>=5.6
 mock
 multiqc>=1.0
 pandas
