@@ -1,11 +1,38 @@
+from sequana import sequana_data
 from sequana.modules_report import pacbio_input_bam
+from easydev import TempFile
 
 
+def test_pacbio_input_bam(tmpdir):
+    # we need a summary and a bunch of images
+    filename = sequana_data("summary_pacbio_qc1.json")
 
-def test_pacbio_input_bam():
-    try:
-        # we need a summary and a bunch of images
-        ff = pacbio_input_bam.PacbioInputBAMModule()
-    except:
-        pass
+    # mock the PNG files found in the summary
+    import json
+    summary = json.load(open(filename))
+    pngname = sequana_data("no_data.jpg")
+    summary["images"]["gc_vs_length"] = pngname
+    summary["images"]["hist_gc_content"] = pngname
+    summary["images"]["hist_read_length"] = pngname
+    summary["images"]["hist_snr"] = pngname
+    summary["images"]["hist_zmw"] = pngname
+
+    summary_file = TempFile()
+    with open(summary_file.name, "w") as ff:
+        json.dump(summary, ff)
+
+    # Now that we have this new summary file, let us use it
+    # we also need an output handler
+    ff = TempFile()
+
+    from sequana.utils import config
+    config.output_dir = "/tmp"
+    #here, ff.name is of the form /tmp/djhfjh4dz so we need to remove the /tmp
+    pacbio_input_bam.PacbioInputBAMModule(summary_file.name, ff.name.split("/")[1])
+
+    # cleanup
+    summary_file.delete()
+    ff.delete()
+
+
 

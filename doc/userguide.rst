@@ -60,10 +60,12 @@ and finally plot the coverage together with confidence interval (3 sigma)::
     gc = GenomeCov(filename)
 
     chrom = gc[0]
-    chrom.running_median(n=4001, circular=True)
+    chrom.running_median(n=5001, circular=True)
     chrom.compute_zscore()
     chrom.plot_coverage()
 
+.. seealso:: notebook available in the `github repository
+   <https://github.com/sequana/sequana/blob/master/notebooks/coverage.ipynb>`_
 
 Example2: read a fastq file
 ------------------------------
@@ -161,7 +163,15 @@ Using **sequana** standalone
 An easier way to initialise a pipeline, is to use **sequana** executable. For
 instance for the variant calling::
 
-    sequana --pipeline variant_calling
+    sequana --pipeline variant_calling \
+        --input-directory data/ \
+        --input-readtag _[12].fastq \
+        --extention fastq.gz \
+        --reference reference.fasta \
+        --working-dir analysis
+
+    cd analysis
+    snakemake -s variant_calling.rules --stats stats.txt
 
 This will automatically download the pipeline, config file and update the latter
 as much as possible.
@@ -182,15 +192,14 @@ snapshot can be found in the :ref:`sequanix` section and a tutorial in
 =====================
 
 
-Pipelines and standalone make use of internal reporting. Since there are part of
+Pipelines and standalone make use of internal reporting. Since they are part of
 the **Sequana** library, they can also be used with your own code. For instance,
 if you have a BAM file, you can use the following code to create a basic
 report::
 
     from sequana import BAM, sequana_data
     from sequana.modules_report.bamqc import BAMQCModule
-    filename sequana_data("test.bam", "testing")
-
+    filename = sequana_data("test.bam", "testing")
     r = BAMQCModule(filename, "bam.html")
 
 that results can be shown in `bam.html <_static/bam.html>`_

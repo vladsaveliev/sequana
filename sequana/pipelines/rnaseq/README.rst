@@ -9,9 +9,9 @@ Usage
 
 Example::
 
-    sequana --pipeline rnaseq --input-dir . --output-directory analysis --no-adapters
+    sequana --pipeline rnaseq -i data/ -o analysis --no-adapters
     cd analysis
-    srun snakemake -s rnaseq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json --cluster "sbatch --mem={cluster.ram} --cpus-per-task={threads}"
+    sbatch snakemake -s rnaseq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json --cluster "sbatch --mem={cluster.ram} --cpus-per-task={threads}"
 
 Or use :ref:`sequanix_tutorial` interface.
 

@@ -581,11 +581,8 @@ class FastQ(object):
         # split per chunks of size N
         cmd = "split --number %s %s -d"
 
-    def random(self, N=10000, output_filename="test.fastq",
+    """def random(self, N=10000, output_filename="test.fastq",
                bp=50, quality=40):
-        """
-        N here is the number of reads
-        """
         # a completely random fastq
         from .phred import quality
         with open(output_filename, "wb") as fh:
@@ -595,10 +592,10 @@ class FastQ(object):
             template += "+\n"
             template += "%s(quality)\n"
             fh.writelines(template % {
-                'sequence': "".join(["ACGT"[random.randint(0,3)] for this in xrange(bp)]),
+                'sequence': "".join(["ACGT"[random.randint(0,3)] for this in range(bp)]),
                 'quality': "".join()})
         # quality could be q function for a distribution
-
+    """
     def joining(self, pattern, output_filename):
         """not implemented
 
@@ -674,6 +671,8 @@ class FastQ(object):
         """
 
         """
+        raise NotImplementedError
+        """
         #twice as slow as a tool such as seqtk and final fasta number not correct...
         # this is to supress the header
         d = zlib.decompressobj(16 + zlib.MAX_WBITS)
@@ -699,7 +698,7 @@ class FastQ(object):
                     buf = fin.read(CHUNKSIZE)
 
         if tozip is True: self._gzip(output_filename)
-
+        """
     def filter(self, identifiers_list=[], min_bp=None, max_bp=None,
         progressbar=True, output_filename='filtered.fastq', remove=True):
         """Filter reads
@@ -753,7 +752,9 @@ class FastQ(object):
         """Return a Series with kmer count across all reads
 
         :param int k: (default to 7-mers)
+        :return: Pandas Series with index as kmer and values as count.
 
+        Takes about 30 seconds on a million reads.
         """
         # Counter is slow if we apply it on each read.
         # .count is slow as well
@@ -764,7 +765,7 @@ class FastQ(object):
         buffer_ = []
         for i, this in enumerate(self):
             buffer_.extend(list(get_kmer(this['sequence'], k)))
-            if len(buffer_)>100000:
+            if len(buffer_) > 100000:
                 counter += collections.Counter(buffer_)
                 buffer_ = []
             pb.animate(i)
@@ -784,6 +785,7 @@ class FastQ(object):
         using::
 
             ktImportText fastq.krona 
+            open text.krona.html
 
         """
         ts = self.to_kmer_content(k=k)
@@ -794,6 +796,8 @@ class FastQ(object):
                 fout.write("%s\t" % count + letters + "\n")
 
     def __eq__(self, other):
+        if id(other) == id(self):
+            return True
         self.rewind()
         other.rewind()
         for this in self:
@@ -1110,36 +1114,4 @@ class FastQC(object):
         pylab.grid(True)
         pylab.xlabel("position (bp)", fontsize=self.fontsize)
         pylab.ylabel("percent", fontsize=self.fontsize)
-
-
-class MultiFastQStats(object):
-    def __init__(self):
-       pass
-
-class FastQStats(object):
-    def __init__(self):
-        self.data = {}
-        self.data["GC content"]
-        self.data["n_reads"] = 0
-        for this in 'ACGTN': 
-            self.data[this] = 0
-        stats['total bases'] = 0
-        stats['mean quality'] = None
-        stats['average read length'] = None
-        stats['min read length'] = None
-        stats['max read length'] = None
-
-        """ts = pd.DataFrame([stats])
-        cols = ['n_reads', 'A', 'C', 'G', 'T', 'N','total bases' ]
-        ts[cols] = ts[cols].astype(int)
-        ts = ts[cols + ['GC content', 'average read length', 'mean quality']]
-        return ts"""
-
-
-
-
-
-
-
-
 

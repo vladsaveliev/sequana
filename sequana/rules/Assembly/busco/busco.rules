@@ -46,8 +46,13 @@ rule busco:
 
         sample_name = params.wkdir.split(os.sep)[0]
 
-        conda_bin_path = os.environ['CONDA_PREFIX'] + os.sep +"bin"
-        augustus_config_path = os.environ['CONDA_PREFIX'] + os.sep +"config"
+        try:
+            conda_bin_path = os.environ['CONDA_PREFIX'] + os.sep +"bin"
+            augustus_config_path = os.environ['CONDA_PREFIX'] + os.sep +"config"
+        except KeyError:
+            conda_bin_path = os.environ['CONDA_ENV_PATH'] + os.sep +"bin"
+            augustus_config_path = os.environ['CONDA_ENV_PATH'] + os.sep +"config"
+
 
         config = busco.BuscoConfig(
             params.species,

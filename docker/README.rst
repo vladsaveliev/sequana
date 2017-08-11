@@ -1,11 +1,44 @@
 Docker containers for **Sequana**
 ====================================
 
-.. warning:: Although we provide a Docker recipes, this method will not be
-    maintained after release 0.3.0 of Sequana. However, we keep the version 0.3
-    and the following recipes here below for book-keeping and those willing to build
-    their own docker of Sequana
+.. warning:: We used to build our own docker containers but
+   thanks to development in bioconda, we will now use biocontainers.
 
+Example: sequana_coverage
+--------------------------
+
+To pull a Sequana container (here version 0.4.1), use this type of command::
+
+    docker pull quay.io/biocontainers/sequana:0.4.1--py35_0
+
+Checkout the `quay.io <https://quay.io/repository/biocontainers/sequana>`_
+website. After pulling the image above, you can use it as follows::
+
+    docker run -v $PWD:/home/default -it quay.io/biocontainers/sequana:0.4.1--py35_0
+
+.. warning:: once in the docker shell, go to /home/default. Here, this directory
+    is linked to your real directory where you type "docker run..." so what you
+    modify here is directly reflected in your directory !
+
+
+Assuming you have a BED file JB409847 in your directory,  otherwise uncomment
+the commented line here below::
+
+    cd /home/default
+    export MPLBACKEND="agg"
+    # wget https://tinyurl.com/y9j69t3k -O JB409847.bed
+    sequana_coverage --input JB409847.bed
+    exit
+
+Back on your local directory, you should now see a ./report directory with the
+results of the analysis.
+
+
+Docker containers in details (obsolet) 
+=======================================
+
+.. warning:: this is mostly obsolet since we now use biocontainer but this
+   section may be useful for developers.
 
 `Docker <http://www.docker.com>`_ containers wrap a piece of software in a complete filesystem that contains everything needed to run the software.
 

@@ -34,7 +34,7 @@ Rules and configuration details
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Here is a documented configuration file :download:`../sequana/pipelines/pacbio_denovo/config.yaml` to be used with the pipeline. Each rule used in the pipeline may have a section in the
-configuration file. In the *quality_control* pipeline, we use the *canu*, *busco* rules described here below.
+configuration file. In the *pacbio_denovo* pipeline, we use the *canu*, *busco* rules described here below.
 
 
 Canu

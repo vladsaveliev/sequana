@@ -7,3 +7,4 @@ def test_ma():
 
 def test_evenness():
     assert evenness([1,1,1,1,4,4,4,4]) == 0.75
+    assert evenness([1,1,1,1]) == 1

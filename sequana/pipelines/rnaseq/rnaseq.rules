@@ -244,16 +244,6 @@ if manager.config.star_mapping.do:
     include: sm.modules["star_mapping"]
     expected_output.extend(expand(__star_mapping__sort, sample=manager.samples))
     __mapping_output = __star_mapping__sort
-if manager.config.tophat_mapping.do:
-     __tophat_mapping__input = __clean_ngs__output
-     __tophat_mapping__outdir = manager.getwkdir("tophat_mapping")
-     __tophat_mapping__bam =  manager.getname("tophat_mapping", "accepted_hits.bam")
-     __tophat_mapping__sort = manager.getname("tophat_mapping", "accepted_hits_sorted.bam")
-     __tophat_mapping__logs = manager.getname("tophat_mapping", ".logs")
-     __tophat_mapping__prefix_done = __bowtie1_index_ref__output_done
-     __tophat_mapping__prefix = __bowtie1_index__
-     include: sm.modules["tophat_mapping"]
-     expected_output.extend(expand(__tophat_mapping__sort, sample=manager.samples))
 
 
 # generating of bigwig files
@@ -320,7 +310,7 @@ if config["RNAseQC"]["do"]:
     include: sm.modules["RNAseQC"]
     expected_output.extend([__RNAseQC__figure])
 
-# !!!!!!!!!!!!!!!!!!! Reset expected_output variable after multiqc
+# !Reset expected_output variable after multiqc
 # Multiqc rule
 __multiqc__input = expected_output
 __multiqc__input_dir = "."
@@ -346,20 +336,20 @@ expected_output.extend([__conda__output])
 
 
 # create a json file that summarise information of your pipeline
-__summary_pipeline__inputs = __data__input
-if manager.config.cutadapt.do:
-    __summary_pipeline__outputs = [ __cutadapt__output ]
-
-__summary_pipeline__html = []
-__summary_pipeline__rulegraph = __rulegraph__output
-__summary_pipeline__requirements = "requirements.txt"
-__summary_pipeline__snakefile = __snakefile__
-__summary_pipeline__config = "config.yaml"
-__summary_pipeline__name = "RNA-seq"
-__summary_pipeline__json_output = manager.getname("summary_pipeline", ".json")
-include: sm.modules["summary_pipeline"]
-expected_output.append(expand(__summary_pipeline__json_output,
-                              sample=manager.samples))
+#__summary_pipeline__inputs = __data__input
+#if manager.config.cutadapt.do:
+#    __summary_pipeline__outputs = [ __cutadapt__output ]
+#
+#__summary_pipeline__html = []
+#__summary_pipeline__rulegraph = __rulegraph__output
+#__summary_pipeline__requirements = "requirements.txt"
+#__summary_pipeline__snakefile = __snakefile__
+#__summary_pipeline__config = "config.yaml"
+#__summary_pipeline__name = "RNA-seq"
+#__summary_pipeline__json_output = manager.getname("summary_pipeline", ".json")
+#include: sm.modules["summary_pipeline"]
+#expected_output.append(expand(__summary_pipeline__json_output,
+#                              sample=manager.samples))
 
 
 
@@ -390,17 +380,8 @@ onsuccess:
         shell("cp requirements.txt %s" % report_dir)
         shell("cp snakemake_stats.png %s" % report_dir)
 
-        shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
-        shell('cp -r %s/cutadapt/ %s' % (proj, report_dir))
-
         os.mkdir("cluster_logs")
         shell("mv slurm* cluster_logs/")
-        # from sequana.reporting.report_summary import SequanaSummary
-        # #summary = SequanaSummary(proj, directory=report_dir,
-        #     output_filename="summary.html",
-        #    snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
-        #    manager=manager)
-        # summary.create_report()
 
         # Create a cleanup python file to clean a sub-directory
         sm.create_cleanup(proj)

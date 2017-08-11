@@ -401,25 +401,40 @@ do not use the print() function but the logger::
 Testing with pytest
 ===============================
 
-We moved from nosetests to pytest. This framwork is slightly more flexible but
-the main reason to move was to be able to test Qt application. 
+As a developer, when you change your code, you want to quickly test
+whether the modification(s) did not introduce any regression bugs. To do so,
+just type::
 
-In order to run the test locally, you will need to use::
+    python setup.py test
 
-    conda install pytest pytest-cov pytest-qt pytest-xdist pytest-mock pytest-timeout
+.. note:: we moved from nosetests to pytest. This framwork is slightly more flexible but
+    the main reason to move was to be able to test Qt application. It appeared that
+    it also has nice plugins such as multithreaded testing.
 
-The first is the main package, the second is required for coverage. The third
-provides fixtures for Qt testing and the fourth is used to use several CPU
-during testing. The fifth is for mocking and the sixth to constraint long tests.
+You will need to install **pytest** and some plugins. You can use conda to do
+so thanks to the **requirements_dev.txt** file::
 
+    conda install --list https://raw.githubusercontent.com/sequana/sequana/master/requirements_dev.yml
 
-Then, you can type for instance::
+This command installs:
 
-    pytest -v --durations=10  test/ --cov=sequana --cov-report term --timeout 300 -n 2
+- pytest: main utility
+- pytest-cov: coverage support
+- pytest-qt: fixture for Qt
+- pytest-xdist: allows multi threading
+- pytest-mock: mocking feature
+- pytest-timeout: report longest tests
 
-Here, -n 2 requires two CPUs to run the test. The option durations=10 means
-*show the 10 longest tests*. 
+For instance, you can use in the root directory of Sequana::
 
+    pytest -v --durations=10  test/ --cov=sequana --cov-report term-missing --timeout 300 -n 4
+
+Here, -n 4 requires two CPUs to run the tests. The option durations=10 means
+"show the 10 longest tests". 
+
+We also adapt the setup.py and setup.cfg so that you can simply type::
+
+    python setup.py test
 
 If you want to test a single file (e.g. test_pacbio)::
 
