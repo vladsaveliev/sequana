@@ -67,14 +67,3 @@ rule busco:
         # -f to force overwritten existing files
         shell(cmd)
         shell("rm -rf ./tmp_{}".format(sample_name))
-
-
-
-
-
-
-
-
-
-
-
