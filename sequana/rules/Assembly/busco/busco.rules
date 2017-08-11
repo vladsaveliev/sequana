@@ -53,7 +53,6 @@ rule busco:
             conda_bin_path = os.environ['CONDA_ENV_PATH'] + os.sep +"bin"
             augustus_config_path = os.environ['CONDA_ENV_PATH'] + os.sep +"config"
 
-
         config = busco.BuscoConfig(
             params.species,
             sample_name=sample_name,
@@ -67,7 +66,7 @@ rule busco:
 
         cmd = "export BUSCO_CONFIG_FILE={};".format(config_filename)
         cmd += "export AUGUSTUS_CONFIG_PATH={} ;".format(augustus_config_path)
-        cmd += "run_BUSCO.py -i {input[0]} -m {params.mode} -c {threads} -f 2>>{log};"
+        cmd += "run_busco -i {input[0]} -m {params.mode} -c {threads} -f 2>>{log};"
 
         # -f to force overwritten existing files
         shell(cmd)

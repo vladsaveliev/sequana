@@ -4,7 +4,7 @@ bedtools
 bleach
 bowtie
 bowtie2
-busco
+busco==3.0.2
 bwa
 cutadapt>=1.9.1
 fastq-screen
