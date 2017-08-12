@@ -25,7 +25,7 @@ rule fastqc_%(name)s:
     Required parameters
         - __fastqc_%(name)s__wkdir: the working directory
 
-    Log: 
+    Log:
         - logs/fastqc_%(name)s/fastqc.log
 
     Required configuration:
