@@ -129,22 +129,25 @@ class FastQStatsModule(SequanaBaseModule):
    enveloppe gives the variation of the quality (1 standard deviation).</p>
    <p> Click on the image to jump to a full FastQC report.</p>"""
 
+        if len(filenames)==2: width="49"
+        else: width="65"
         filename = os.path.split(filenames[0])[1].replace("_boxplot.png", "_fastqc.html")
         href = self.path_to_fastqc + os.sep + filename
         html += """
-   <figure style="float:left; width:49%; padding:0px; margin:0px;">
+   <figure style="float:left; width:{}%; padding:0px; margin:0px;">
        <a href="{}">{}</a>
    <figcaption style="font-style:italic">Fig1: R1 reads</figcaption>
-   </figure>""".format(href, self.png_to_embedded_png(filenames[0]))
+   </figure>""".format(width, href, self.png_to_embedded_png(filenames[0]))
 
         if len(filenames) == 2:
             filename = os.path.split(filenames[1])[1].replace("_boxplot.png", "_fastqc.html")
             href = self.path_to_fastqc + os.sep + filename
             html += """
-   <figure style="float:right; width:49%; padding:0px; margin:0px;">
+   <figure style="float:right; width:{}%; padding:0px; margin:0px;">
        <a href="{}">{}</a>
    <figcaption style="font-style:italic">Fig2: R2 reads</figcaption>
-   </figure>""".format(href, self.png_to_embedded_png(filenames[1]))
+   </figure>""".format(width, href, self.png_to_embedded_png(filenames[1]))
+
 
         return html
 
