@@ -63,8 +63,10 @@ Taxonomy
 -------------------------------
 
 To perform a quick taxonomy of your reads, you can use :ref:`standalone_sequana_taxonomy`
+either from Python or as a standalone.
 
-**sequana_taxonomy**
+Here we show how to use the Python approach (see :ref:`standalones`) for the
+other approach.
 
 Download a toy kraken database designed for this problem (contains only 100
 FASTA files mixing measles viruses and others viruses)::

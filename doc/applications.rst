@@ -121,9 +121,17 @@ sequana_taxonomy
 :Sequana: see :mod:`sequana.kraken`
 :Gallery: see :ref:`sphx_glr_auto_examples_plot_kraken.py`
 
+You will need to download databases. We provide a toy example::
+
+    sequana_taxonomy --download toydb
+
+and the official kraken DB (4Gb)::
+
+    sequana_taxonomy --download minikraken
 
 A database of 8Gb is available. See
-https://github.com/sequana/data/tree/master/sequana_db1 for instructions.
+https://github.com/sequana/data/tree/master/sequana_db1 for instructions and
+details (bacteria, viruses, human, organelles, ...).
 
 fastq related: fastq_count
 -----------------------------
