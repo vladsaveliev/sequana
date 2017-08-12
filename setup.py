@@ -86,8 +86,8 @@ setup(
     # This is recursive include of data files
     exclude_package_data = {"": ["__pycache__"]},
     package_data = {
-        '': ['Snakefile*', '*html', 'README.rst', 'config*.yaml', '*.css', "*.js",
-                "snpEff.config*", "*.fa", "*.rules"],
+        '': ['Snakefile*', '*html', 'README.rst', "requirements*txt",
+             'config*.yaml', '*.css', "*.js", "snpEff.config*", "*.fa", "*.rules"],
         'sequana.rules' : ['*/*.rules', "*/*/*.rules"],
         'sequana.pipelines' : ['*/*.rules', "*/*/*.rules", "*/*yaml"],
         'sequana.resources.data' : ['*.*'],  # use *.* for files and not ./adapters
@@ -117,7 +117,6 @@ setup(
            'sequana_mapping=sequana.scripts.mapping:main',
            'sequana_compressor=sequana.scripts.compressor:main',
            'sequana_report=sequana.scripts.reports:main',
-           'sequana_foxi=sequana.scripts.browser:main',
         ],
         'sequana.module':[
             'sequana_coverage=sequana.modules_report.coverage:CoverageModule',
