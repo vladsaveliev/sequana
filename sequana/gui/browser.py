@@ -11,7 +11,7 @@ try:
         from PyQt5.Qt import QTabWidget
     except:
         print("""The sequana browser will not be available on your system. This is
-a know issue (https://github.com/sequana/sequana/issues/420) that will be
+a known issue (https://github.com/sequana/sequana/issues/420) that will be
 fixed.""")
 except:
     # PyQt 5.6 and below
@@ -105,7 +105,8 @@ class Browser(Qt.QMainWindow):
         # Finally, load the URL
         self.wb.load(QtCore.QUrl(url))
 
-        self.wb.settings().setObjectCacheCapacities(0,0,0)
+        try:self.wb.settings().setObjectCacheCapacities(0,0,0)
+        except:pass
 
     def adjustTitle(self):
         if 0 < self.progress < 100:
@@ -131,12 +132,15 @@ class SequanaQWebView(QWebView):
 
         # Javascript and other settings
         # ------------------------------------------------------------
-        self.settings().setAttribute(
-            QtWebKit.QWebSettings.JavascriptCanOpenWindows, True)
-        self.settings().setAttribute(
-            QtWebKit.QWebSettings.LocalStorageEnabled, True)
-        self.settings().setAttribute(
-            QtWebKit.QWebSettings.PluginsEnabled, True)
+        try:
+            self.settings().setAttribute(
+                QtWebKit.QWebSettings.JavascriptCanOpenWindows, True)
+            self.settings().setAttribute(
+                QtWebKit.QWebSettings.LocalStorageEnabled, True)
+            self.settings().setAttribute(
+                QtWebKit.QWebSettings.PluginsEnabled, True)
+        except:
+            print("QtWebKit.QWebSettings not available for you PyQt version")
 
     def createWindow(self, type):
         """Handle requests for a new browser window.
