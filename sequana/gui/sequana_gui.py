@@ -515,7 +515,7 @@ class SequanaGUI(QMainWindow, Tools):
 
         self.ui.tabWidget.currentChanged.connect(lambda: self.ui.run_btn.setEnabled(False))
 
-        # if we are on one of those clusters, switch to the cluster choice in 
+        # if we are on one of those clusters, switch to the cluster choice in
         # the pipeline control combo box
         if misc.on_cluster(['tars-']) is True:
              self.ui.comboBox_local.setCurrentText("cluster")
@@ -623,7 +623,7 @@ class SequanaGUI(QMainWindow, Tools):
 
         # add widgets for the working dir
         self.ui.layout_sequana_wkdir.addWidget(saf._directory_browser)
-        
+
         # add widget for the input sample
         self.ui.layout_sequana_input_files.addWidget(saf._sequana_paired_tab)
         hlayout = QW.QHBoxLayout()
@@ -859,7 +859,7 @@ class SequanaGUI(QMainWindow, Tools):
         return option
 
     def _get_snakemake_command(self, snakefile):
-        """If the cluster option is selected, then the cluster field in 
+        """If the cluster option is selected, then the cluster field in
         the snakemake menu must be set to a string different from empty string.
 
         If we are on TARS, we also must set the option to cluster (not local)
@@ -1092,7 +1092,7 @@ class SequanaGUI(QMainWindow, Tools):
             self.info("killing the main snakemake process. This may take a few seconds ")
             try:
                 self.info("process pid={} being killed".format(self.process.pid()))
-                pid_children = [this.pid for this in 
+                pid_children = [this.pid for this in
                                 psutil.Process(pid).children(recursive=True)]
                 # Kills the main process
                 os.kill(pid, signal.SIGINT)
@@ -1204,7 +1204,7 @@ class SequanaGUI(QMainWindow, Tools):
                 filename = self.sequana_factory._sequana_directory_tab.get_filenames()
                 form_dict["input_directory"] = (filename)
 
-                # If pattern provided, the input_directory is reset but used in 
+                # If pattern provided, the input_directory is reset but used in
                 # the pattern as the basename
                 pattern = self.sequana_factory._sequana_pattern_lineedit.text()
                 if len(pattern.strip()):
@@ -1271,11 +1271,11 @@ class SequanaGUI(QMainWindow, Tools):
                 self.warning("Saving config file (does not exist)")
                 cfg.save(yaml_path, cleanup=False)
 
-            # Save the configuration file for the cluster 
+            # Save the configuration file for the cluster
             if self.mode == "sequana" and self.sequana_factory.clusterconfigfile:
                 target = self.working_dir + os.sep + "cluster_config.json"
                 shutil.copy(self.sequana_factory.clusterconfigfile, target)
-                # replace the name of the original file with the target one so 
+                # replace the name of the original file with the target one so
                 # that the target can be edited. The target will also be used in
                 # place of the original version when launnching snakemake!
                 #self.snakemake_dialog.set()
@@ -1308,10 +1308,10 @@ class SequanaGUI(QMainWindow, Tools):
 
     def report_issues(self, filename="issue_debug.txt"):
         # save shell + shell_error in working directory as well as snakemake and
-        # config file. 
+        # config file.
         with open(filename, "w") as fh:
             fh.write("\nsequanix logger  ----------------------------------\n")
-            try: 
+            try:
                 file_logger = self.save_logger()
                 with open(file_logger, "r") as fin:
                     fh.write(fin.read())
@@ -1324,7 +1324,7 @@ class SequanaGUI(QMainWindow, Tools):
             fh.write("\nsequanix shell error ------------------------------\n")
             try:fh.writelines(self.shell_error)
             except:fh.write("No shell error info")
-        url = "https://github.com/sequana/sequana/issues " 
+        url = "https://github.com/sequana/sequana/issues "
         print("Created a file called {} to be posted on {}.".format(
             filename, url))
         self.init_logger()
@@ -1371,12 +1371,12 @@ class SequanaGUI(QMainWindow, Tools):
     # -----------------------------------------------------------------------
 
     def show_dag(self):
-        try:    
+        try:
             # This command should work on various platform, just in case
             # we add a try/except
             easydev.cmd_exists('dot')
             if easydev.cmd_exists('dot2') is False:
-                msg = "**dot** command not found. Use 'conda install " 
+                msg = "**dot** command not found. Use 'conda install "
                 cmd += "graphviz' to install it."
                 self.warning(msg)
                 msg = WarningMessage((msg))
@@ -1532,7 +1532,7 @@ class SequanaGUI(QMainWindow, Tools):
         else:
             self.critical("The config file that already exists is different. Nothing done")
             return False
-        return 
+        return
     """
 
     def eventFilter(self, source, event):

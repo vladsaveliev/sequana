@@ -7,9 +7,7 @@ from sequana import sequana_data
 from PyQt5 import QtCore
 
 import pytest
-#from pytestqt.qt_compat import qt_api
-
-#app = QW.QApplication(sys.argv)
+from PyQt5 import QtWidgets as QW
 
 
 # How to use that ? 
@@ -59,8 +57,26 @@ def test_directory_dialog_2(qtbot, tmpdir):
 
 def test_directory_dialog_3(qtbot, tmpdir):
     widget = FileBrowser(paired=True)
-    # widget.browse_paired_file() #pops up a window
     qtbot.addWidget(widget)
+    # requires an interaction
+    #widget.browse_paired_file()
 
 
+def test_setfilenames(qtbot, tmpdir):
+    #tmpdir.join('AA_R1_.fastq.gz').ensure()
+    widget = FileBrowser(paired=True)
+    qtbot.addWidget(widget)
+    widget.set_filenames("AA_R1_.fastq.gz")
+    widget.set_filenames("AA_R2_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.fastq.gz")
+    
 
+
+def test_others(qtbot):
+    widget = FileBrowser(paired=True)
+    qtbot.addWidget(widget)
+    widget.set_enable(True)
+    widget.set_enable(False)
+    widget.clicked_connect(widget.close)
+    #text changed error
+    #widget.changed_connect(widget.close)
+    
