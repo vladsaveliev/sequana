@@ -16,14 +16,12 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-
 from PyQt5 import QtWidgets as QW
 from sequana.gui.messages import WarningMessage
 
 
 class FileBrowser(QW.QWidget):
-    """ Class to create a file browser in PyQT5.
-    """
+    """ Class to create a file browser in PyQT5."""
     def __init__(self, paired=False, directory=False, file_filter=None):
         super().__init__()
         # Set filter for file dialog
@@ -97,8 +95,15 @@ class FileBrowser(QW.QWidget):
             self._set_paired_filenames(file_path)
 
     def browse_directory(self):
-        self.dialog = DirectoryDialog(self, "Select a directory", ".", 
-                                 self.filter)
+        # Set the default path to the previous choice
+        if self.paths:
+            default = self.paths
+        else:
+            default = "."
+        self.dialog = DirectoryDialog(self, "Select a directory",
+                            default,
+                            self.filter)
+
         directory_path = self.dialog.get_directory_path()
         if directory_path:
             self.set_filenames(directory_path)
@@ -107,8 +112,13 @@ class FileBrowser(QW.QWidget):
 
     def browse_file(self):
         try:
+            # Set the default path to the previous choice
+            if self.paths:
+                default = self.paths
+            else: 
+                default = "."
             file_path = QW.QFileDialog.getOpenFileNames(self, 
-                "Single File", ".",  self.filter)[0][0]
+                "Single File", default,  self.filter)[0][0]
             self.set_filenames(file_path)
         except IndexError:
             self.set_empty_path()

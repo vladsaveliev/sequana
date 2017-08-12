@@ -973,7 +973,6 @@ class SequanaGUI(QMainWindow, Tools):
     # -------------------------------------------------------------------
     # Create the base form
     # -------------------------------------------------------------------
-
     def create_base_form(self):
         """ Create form with all options necessary for a pipeline.
 
