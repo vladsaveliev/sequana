@@ -33,9 +33,9 @@ From Pypi website
 If you do not want to use **conda**, we provide releases on the Python Package Index website (pip tool)::
 
     pip install sequana
+    pip install PyQt5
 
-that should install the minimal dependencies. Note, however, that you may need
-to install dependencies yourself for all the pipelines to work.
+See below for dependencies.
 
 From Source
 -----------------
@@ -46,7 +46,16 @@ Finally, if you are a developer, you can install **sequana** from source::
     cd sequana
     python setup.py install
 
-Again, only the minimal set of dependencies are installed. See hereafter for details.
+See below for dependencies.
+
+Dependencies
+=================
+
+With the methods above, you should have a working libary of Sequana and its
+standalones (e.g. Sequanix). However, if you wish to use all the pipelines,
+additional tools and libraries are required. Some are available on PyPi (Python
+software) but others will be available only on BioConda.
+
 
 Installation using Conda
 ============================
@@ -101,7 +110,6 @@ Then, since you may have several environments, you must activate the **sequana**
 environment itself::
 
     source activate sequana_env
-
 
 Install sequana via conda (bioconda)
 -------------------------------------
