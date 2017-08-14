@@ -226,7 +226,7 @@ The data comes from a sequencing (using HiSeq2500 technology) of a saccharomyces
 For testing purposes, you can download :download:`Fastq1
 <../sequana/resources/data/WT_ATCACG_L001_R1_001.fastq.gz>` and
 :download:`Fastq2 <../sequana/resources/data/KO_ATCACG_L001_R1_001.fastq.gz>`)
-files that contain only 1500 reads. Copy them in a local directory.
+files that contain only 100,00 reads. Copy them in a local directory.
 
 
 Initialise the pipeline
@@ -267,24 +267,41 @@ the fasta and the GFF files from SGD before to run the pipeline::
 
 .. warning:: For the counting step, the RNA-seq pipeline take only GFF files. GTF and SAF files must be integrated soon.
 
-Edit the config file
+Edit the config file(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Edit the config file **config.yaml** and fill the genome section::
 
     genome:
       do: yes
-      genome_directory: ../Saccer3
+      genome_directory: Saccer3
       name: Saccer3 #path to index name
-      fasta_file: ../Saccer3/Saccer3.fa
-      gff_file: ../Saccer3/Saccer3.gff
+      fasta_file: Saccer3/Saccer3.fa
+      gff_file: Saccer3/Saccer3.gff
       rRNA_file:
       rRNA_feature: "rRNA"
 
 
-.. warning:: Note fastq_screen if off by default. It's because sequana not embed a database for this tool.
-    If you want to run fastq_screen, please see the manual (https://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/)
-    and add the config file in the tool section.
+.. warning:: Note that fastq_screen is off by default. Indeed, Sequana does not provide 
+   a fastq_screen database so far. Therefore, if you want to run fastq_screen, please 
+   see the manual (https://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/)
+   and add the config file in the tool section.
+
+
+Finally, also edit the **multi_config.yaml** file and replace::
+
+    custom_logo: "Institut_Pasteur.png"
+
+with yours or as follows::
+
+    custom_logo: ""
+
+.. note:: there are other places with hard-coded path but the corresponding
+   sections are not used by default. If you decide to use them (e.g.
+    fastq_screen), you will need to edit the configuration file accordingly.
+
+
+
 
 
 Run the pipeline

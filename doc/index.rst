@@ -27,10 +27,6 @@ Sequana documentation
    <a href="https://gitter.im/sequana/sequana?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge"> <img src="https://badges.gitter.im/sequana/sequana.svg">
 
 
-    </p><p>
-    <a href="https://microbadger.com/images/sequana/sequana" title="Get your own image badge on microbadger.com">
-    <img src="https://images.microbadger.com/badges/image/sequana/sequana.svg"></a>
-
     </p>
     </div>
 
