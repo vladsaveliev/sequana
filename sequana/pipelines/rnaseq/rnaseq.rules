@@ -361,8 +361,6 @@ rule rnaseq:
     input: expected_output
 
 
-
-
 onsuccess:
     import os
     # Create plots about stats
@@ -383,13 +381,14 @@ onsuccess:
         try: os.mkdir("cluster_logs")
         except:pass
 
-        shell("mv slurm* cluster_logs/")
+        try: shell("mv slurm* cluster_logs/")
+        except: pass
 
         # Create a cleanup python file to clean a sub-directory
         sm.create_cleanup(proj)
 
-    sm.create_recursive_cleanup()
-    sm.message("Done. To further cleanup the directory, type \n python .sequana_cleanup.py")
+    sm.OnSuccess()() # create instance to create main cleanup
+
 
 onerror:
     print("An error occurred. See message above.")
