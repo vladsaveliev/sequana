@@ -87,13 +87,7 @@ if manager.config.bwa_mem_phix.do:
     __bwa_bam_to_fastq__input = __bwa_mem_phix__bam
 
     if manager.paired is True:
-        def _mapper(ff):
-            f1 = [x.replace("fastq.gz", "mapped.fastq.gz") for x in ff]
-            f2 = [x.replace("fastq.gz", "unmapped.fastq.gz") for x in ff]
-            return f1 + f2
-
         _params = {"sample": manager.sample}
-
         __bwa_bam_to_fastq__fastq_output = [
             "%(sample)s/bwa_bam_to_fastq/%(sample)s_R1_.unmapped.fastq.gz" % _params,
             "%(sample)s/bwa_bam_to_fastq/%(sample)s_R1_.mapped.fastq.gz" % _params,
@@ -121,10 +115,6 @@ if manager.config.bwa_mem_phix.do:
     __fastq_stats_phix__wkdir = manager.getwkdir("fastq_stats_phix")
     include: fastq_stats_dynamic("phix", manager)
     expected_output.extend(expand(__fastq_stats_phix__output_done, sample=manager.samples))
-else:
-    _params = {"sample": manager.sample}
-    __cutadapt__input_fastq = [this % _params for this in __data__input]
-
 
 
 # Perform the adapter removal and trimming
@@ -148,14 +138,24 @@ if manager.config['cutadapt']['do']:
     if adapter_removal in ["cutadapt", "atropos"]:
         adapter_removal = "cutadapt"
         if manager.config.bwa_mem_phix.do:
-            __cutadapt__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output 
+            __cutadapt__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output
                                        if "unmapped" in x]
+            __cutadapt__output = [x.replace("bwa_bam_to_fastq",
+                                  "cutadapt").replace("unmapped","cutadapt")
+                                  for x in __cutadapt__input_fastq]
         else:
-            pass # do in the bwa_mem_phix else 
+            # If the fix is not yet performed, __data__input is a wildcard
+            # function so the output must be specified by hand
+            __cutadapt__input_fastq = __data__input
+            if manager.paired:
+                __cutadapt__output = [
+                    "{sample}/cutadapt/{sample}_R1_.cutadapt.fastq.gz",
+                    "{sample}/cutadapt/{sample}_R2_.cutadapt.fastq.gz"]
+            else:
+                __cutadapt__output = [
+                    "{sample}/cutadapt/{sample}_R1_.cutadapt.fastq.gz"]
+
         __cutadapt__wkdir = "%s/cutadapt" % manager.sample
-        __cutadapt__output = [x.replace("bwa_bam_to_fastq", 
-                              "cutadapt").replace("unmapped","cutadapt")
-                              for x in __cutadapt__input_fastq]
 
         # Set the fwd and rev adapters
         __cutadapt__fwd = manager.config.cutadapt.fwd
@@ -196,7 +196,7 @@ if manager.config.kraken.do:
     elif manager.config.bwa_mem_phix.do:
         __kraken__input = [x for x in __bwa_bam_to_fastq__fastq_output if "unmapped" in x]
     else:
-        __kraken__input = __data_input
+        __kraken__input = __data__input
 
     __kraken__output_wkdir = manager.getwkdir("kraken")
     __kraken__output_html = manager.sample + "/kraken/kraken.html"
@@ -219,7 +219,6 @@ __rulegraph__mapper = {
     "kraken": "../kraken/kraken.html",
     "kraken_translate": "../kraken/kraken.html",
     "kraken_to_krona": "../kraken/kraken.html",
-
 }
 include: sm.modules['rulegraph']
 expected_output.extend([__rulegraph__output])
@@ -238,6 +237,8 @@ if manager.config['cutadapt'].do:
     __summary_pipeline__outputs = [ __cutadapt__output ]
 elif manager.config.bwa_mem_phix.do:
     __summary_pipeline__outputs = [x for x in __bwa_bam_to_fastq__fastq_output if "unmapped" in x]
+else:
+    __summary_pipeline__outputs = []
 
 __summary_pipeline__html = []
 __summary_pipeline__rulegraph = __rulegraph__output
@@ -275,7 +276,6 @@ onsuccess:
     from sequana.utils import config as conf
     report_dir_format = "%(proj)s/report_qc_%(proj)s"
 
-
     for proj in manager.samples.keys():
         sample_summary = {}
 
@@ -293,7 +293,7 @@ onsuccess:
         # First the samples section ------------------------------
         indir = proj + "/fastq_stats_samples"
 
-        fqmod =FastQStatsModule(indir, "fastqc_samples")
+        fqmod = FastQStatsModule(indir, "fastqc_samples")
         sample_summary["fastq_stats_samples_json"] = json.loads(fqmod.get_stats().to_json())
 
         conf.summary_sections.append({
@@ -304,29 +304,31 @@ onsuccess:
         })
 
         # the phix section ---------------------------------
-        phixmod = PhixModule(proj)
-        sample_summary["phix_section_json"] = json.loads(phixmod._get_stats().to_json())
-        sample_summary["phix_section"] = phixmod._get_summary()
-        conf.summary_sections.append({
-            "name": "Phix ",
-            "title_links": '<a href="fastqc_phix.html">FastQC</a>',
-            "anchor'": "phix",
-            "content": phixmod._get_html()
-        })
+        if manager.config.bwa_mem_phix.do:
+            phixmod = PhixModule(proj)
+            sample_summary["phix_section_json"] = json.loads(phixmod._get_stats().to_json())
+            sample_summary["phix_section"] = phixmod._get_summary()
+            conf.summary_sections.append({
+                "name": "Phix ",
+                "title_links": '<a href="fastqc_phix.html">FastQC</a>',
+                "anchor'": "phix",
+                "content": phixmod._get_html()
+            })
 
         # the cutadapt section ----------------------------
-        cutadapt_mod = CutadaptModule(proj + "/logs/cutadapt/cutadapt.txt", proj)
-        sample_summary["cutadapt_json"] = json.loads(cutadapt_mod._get_stats().to_json())
-        html = cutadapt_mod._get_stat_section()
-        html += FastQStatsModule(proj + "/fastq_stats_cutadapt", "fastqc_cutadapt")._get_stats_section(
-            tablename="cutadapt2")
-        conf.summary_sections.append({
-            "name": "Adapter ",
-            "title_links": '<a href="fastqc_cutadapt.html">FastQC</a>|' +
-                '<a href="cutadapt.html">Cutadapt</a>|',
-            "anchor'": "phix",
-            "content": html
-        })
+        if manager.config.cutadapt.do:
+            cutadapt_mod = CutadaptModule(proj + "/logs/cutadapt/cutadapt.txt", proj)
+            sample_summary["cutadapt_json"] = json.loads(cutadapt_mod._get_stats().to_json())
+            html = cutadapt_mod._get_stat_section()
+            html += FastQStatsModule(proj + "/fastq_stats_cutadapt", "fastqc_cutadapt")._get_stats_section(
+                tablename="cutadapt2")
+            conf.summary_sections.append({
+                "name": "Adapter ",
+                "title_links": '<a href="fastqc_cutadapt.html">FastQC</a>|' +
+                    '<a href="cutadapt.html">Cutadapt</a>|',
+                "anchor'": "phix",
+                "content": html
+            })
 
         # The Kraken section
         if manager.config.kraken.do:

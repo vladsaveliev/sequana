@@ -2,5 +2,10 @@ include examples/*
 recursive-exclude * __pycache__
 recursive-exclude * *pyc
 recursive-include * *rules
-
-
+include requirements*txt
+include CONTRIBUTING.rst
+include LICENSE
+include README.rst
+exclude sequana/methylation/tools.py
+exclude sequana/methylation/__init__.py
+exclude sequana/rm2.py

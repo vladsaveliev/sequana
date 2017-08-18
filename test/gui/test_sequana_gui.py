@@ -14,7 +14,7 @@ from tempfile import TemporaryDirectory
 from argparse import Namespace
 
 from mock import patch
-
+from easydev import TempFile
 
 @pytest.fixture
 def module():
@@ -43,10 +43,6 @@ def _test_standalone_sequana(qtbot, tmpdir):
     assert widget.mode == "sequana"
     widget.force = True
     widget.save_project()
-
-    #widget.show_dag = mock.MagicMock(return_value=True)
-    widget.show_dag()
-    widget.diag.close()
 
     widget.click_run()
     count = 0
@@ -77,40 +73,10 @@ def test_standalone_generic_with_config(qtbot, tmpdir, module):
     qtbot.addWidget(widget)
     assert widget.mode == "generic"
     assert widget.generic_factory.is_runnable() == True
-
-
-def _test_standalone_generic_with_noconfig(qtbot):
-    """mimics:
-
-        sequanix -s path_to_snakefile -w dirname
-
-    followed --forcealll + run 
-    """
-    # From the command line argument
-    snakefile = sequana_data("test_gui_generic_snakefile_noconfig.rules")
-    wkdir = TemporaryDirectory()
-    args = Namespace(wkdir=wkdir.name,
-                snakefile=snakefile)
-    widget = sequana_gui.SequanaGUI(ipython=False, user_options=args)
-    qtbot.addWidget(widget)
-    assert widget.mode == "generic"
-    assert widget.generic_factory.is_runnable() is True
-
-    widget.force = True
     widget.save_project()
-
-    assert widget.ui.run_btn.isEnabled() == True
-    assert widget.ui.dag_btn.isEnabled() == True
-    assert widget.ui.stop_btn.isEnabled() == False
-
-    # check that it worked:
-    widget.snakemake_dialog.ui.snakemake_options_general_forceall_value.setChecked(True)
-    widget.click_run()
-
-    # in the GUI, we see when it stops. Here, we need to wait a few seconds
-    time.sleep(1)
-    data = open(wkdir.name + os.sep + "count.txt").read().split()
-    assert sum([int(x) for x in data]) == 2000000
+    widget.unlock_snakemake()
+    with TempFile() as fh:
+        widget.report_issues(fh.name)
 
 
 def test_standalone_generic_with_noconfig_2(qtbot):
@@ -137,10 +103,16 @@ def test_standalone_generic_with_noconfig_2(qtbot):
     # check that it worked:
     widget.snakemake_dialog.ui.snakemake_options_general_forceall_value.setChecked(True)
     widget.click_run()
+    time.sleep(2)
+    widget.click_stop()
+    time.sleep(4)
+    widget.show_dag()
+    time.sleep(4)
+    widget.diag.close()
 
     # in the GUI, we see when it stops. Here, we need to wait a few seconds
     time.sleep(5)
-    data = open(wkdir.name + os.sep + "count.txt").read().split()
+    #data = open(wkdir.name + os.sep + "count.txt").read().split()
 
 
 def test_open_report(qtbot, tmpdir, module):
@@ -262,7 +234,7 @@ def test_options():
     options = user_options.parse_args(["--pipeline", "quality_control"])
 
 
-def _test_only(qtbot):
+def test_only(qtbot):
     from easydev import execute
     execute("sequanix --no-splash --testing")
 

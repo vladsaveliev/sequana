@@ -189,27 +189,27 @@ class MultiSummary(SequanaBaseModule):
 
         try: self.populate_phix()
         except Exception as err:
-            print(err)
+            logger.debug("multi_summary: skip phix")
 
         try: self.populate_gc_samples()
         except Exception as err:
-            print(err)
+            logger.debug("multi_summary: skip gc samples")
 
         try: self.populate_trimming()
         except Exception as err:
-            print(err)
+            logger.debug("multi_summary: skip trimming")
 
         try: self.populate_mean_quality()
         except Exception as err:
-            print(err)
+            logger.debug("multi_summary: skip mean quality")
 
         try: self.populate_adapters()
         except Exception as err:
-            print(err)
+            logger.debug("multi_summary: skip adapters")
 
         try: self.populate_output_total_reads()
         except Exception as err:
-            print(err)
+            logger.debug("multi_summary: skip total reads")
 
 
         # Now we have all data in df as dictionaries. Let us merge them together
