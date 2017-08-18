@@ -170,7 +170,7 @@ bowtie1_mapping_rna:
 #
 star_mapping:
     do: no
-    options: ""
+    options: "--outFilterMismatchNoverLmax 0.05 --outSAMunmapped Within "
     threads: 4
 
 #############################################################################
