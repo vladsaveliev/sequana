@@ -282,7 +282,7 @@ coverage:
 #
 mark_duplicates:
     do: no
-    remove: 'True' ## may be False
+    remove: 'False' ## may be False
     tmpdir: "TMP_DIR=/local/scratch/" ## on Slurm cluster at Pasteur
 
 
