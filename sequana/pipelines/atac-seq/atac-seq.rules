@@ -34,36 +34,91 @@ expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samp
 
 
 
+__prefix_name__ = join(config["genome"]["genome_directory"], config["genome"]["name"])
 
-adapter_tool = manager.config.adapter_removal.tool
-# Clean NGS
-if adapter_tool == "cutadapt":
-    __cutadapt__input_fastq = __data__input
-    __cutadapt__wkdir = manager.getwkdir("cutadapt")
-    __cutadapt__output = [manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")]
-    if manager.paired:
-        __cutadapt__output += [manager.getname("cutadapt", "_R2_.cutadapt.fastq.gz")]
-    if "adapter_fwd" in manager.config.adapter_removal.fwd :
-       __cutadapt__fwd = ""
-    else:
-       __cutadapt__fwd = manager.config.adapter_removal.fwd
+if manager.config.genome.do:
+    # create sequence dict file
+    __create_sequence_dictionary__reference = config["genome"]["fasta_file"]
+    __create_sequence_dictionary__output = config["genome"]["fasta_file"] + ".dict"
+    __create_sequence_dictionary__log = "logs/indexing/create_sequence_dictionary.log"
+    include: sm.modules["create_sequence_dictionary"]
 
-    if "adapter_rev" in manager.config.adapter_removal.rev:
-        __cutadapt__rev = ""
-    else:
-        __cutadapt__rev = manager.config.adapter_removal.rev
+    # indexing for bowtie2
+    __bowtie2_index__fasta = config["genome"]["fasta_file"]
+    __bowtie2_index__output_done = __prefix_name__ + ".1.bt2"
+    __bowtie2_index__output_prefix = __prefix_name__
+    __bowtie2_index__log = "logs/indexing/bowtie2_genome.log"
+    include: sm.modules["bowtie2_index"]
 
-    __cutadapt__design = manager.config.adapter_removal.design
-    __cutadapt__design_adapter = manager.config.adapter_removal.adapter_type
-    __cutadapt__options = manager.config.adapter_removal.options
-    __cutadapt__mode = manager.config.adapter_removal.mode
-    __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
-    __cutadapt__sample = manager.sample
-    include: sm.modules["cutadapt"]
+
+    #output index
+    __bowtie2_index__ = __bowtie2_index__output_prefix
+    __sequence_dictionary__ = __create_sequence_dictionary__output
+    expected_output.extend([__create_sequence_dictionary__output,__bowtie2_index__output_done])
 
 else:
-    raise ValueError("Invalid choice of adapter_removal:tool in config file. Use either clean_ngs or cutadapt")
+    __bowtie2_index__ =__prefix_name__
+    __bowtie2_index__output_done = __prefix_name__ + ".1.bt2"
+    __sequence_dictionary__ = config["genome"]["fasta_file"] + ".dict"
 
+
+
+
+
+
+# Perform the adapter removal and trimming
+if manager.config['cutadapt']['do']:
+    adapter_removal = manager.config['cutadapt']['tool_choice']
+
+    from sequana.adapters import _get_registered_adapters as registered
+    from sequana.adapters import get_sequana_adapters
+
+    # Users may provide Nextera, PCRFree, Rubicon or other registered adapters
+    fwd = manager.config.cutadapt.fwd
+    if isinstance(fwd, str) and fwd in registered():
+        filename = "file:"+ get_sequana_adapters(fwd, "fwd")
+        manager.config.cutadapt.fwd = filename
+
+    rev = manager.config.cutadapt.rev
+    if isinstance(rev, str) and rev in registered():
+        filename = "file:"+ get_sequana_adapters(rev, "revcomp")
+        manager.config.cutadapt.rev = filename
+
+    if adapter_removal in ["cutadapt", "atropos"]:
+        adapter_removal = "cutadapt"
+        if manager.config.bwa_mem_phix.do:
+            __cutadapt__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output
+                                       if "unmapped" in x]
+            __cutadapt__output = [x.replace("bwa_bam_to_fastq",
+                                  "cutadapt").replace("unmapped","cutadapt")
+                                  for x in __cutadapt__input_fastq]
+        else:
+            # If the fix is not yet performed, __data__input is a wildcard
+            # function so the output must be specified by hand
+            __cutadapt__input_fastq = __data__input
+            if manager.paired:
+                __cutadapt__output = [
+                    "{sample}/cutadapt/{sample}_R1_.cutadapt.fastq.gz",
+                    "{sample}/cutadapt/{sample}_R2_.cutadapt.fastq.gz"]
+            else:
+                __cutadapt__output = [
+                    "{sample}/cutadapt/{sample}_R1_.cutadapt.fastq.gz"]
+
+        __cutadapt__wkdir = "%s/cutadapt" % manager.sample
+
+        # Set the fwd and rev adapters
+        __cutadapt__fwd = manager.config.cutadapt.fwd
+        __cutadapt__rev = manager.config.cutadapt.rev
+
+        __cutadapt__design = manager.config.cutadapt.design_file
+        __cutadapt__design_adapter = manager.config['cutadapt']['adapter_choice']
+        __cutadapt__options = manager.config.cutadapt.options
+        __cutadapt__mode = manager.config.cutadapt.mode
+        __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
+        __cutadapt__sample = manager.sample
+        include: sm.modules["cutadapt"]
+    else:
+        raise ValueError("trimming must be either cutadapt or atropos")
 
 # FASTQC on input data set
 __fastqc_filtered__input_fastq = __cutadapt__output
@@ -72,12 +127,14 @@ __fastqc_filtered__wkdir       = manager.getwkdir("fastqc_filtered")
 include: fastqc_dynamic("filtered", manager.sample)
 expected_output.extend(expand(__fastqc_filtered__output_done, sample=manager.samples))
 
-# TODO prendre en compte le paired-end
-if config["bowtie2_mapping"]["do"]:
-    __bowtie2_mapping__input = __cutadapt__output
-    __bowtie2_mapping__sort =
-    __bowtie2_mapping__logs_out = "%s/logs/bowtie2/stdout.logs" % manager.sample
-    __bowtie2_mapping__logs_err = "%s/logs/bowtie2/stderr.logs" % manager.sample
+# Mapping with bowtie2
+__bowtie2_mapping__input = __cutadapt__output
+__bowtie2_mapping__index_done = __bowtie2_index__output_done
+__bowtie2_mapping__sort = manager.getname("bowtie2_mapping", ".sorted.bam")
+__bowtie2_mapping__logs_err = "%s/logs/bowtie2/stderr.logs" % manager.sample
+__bowtie2_mapping__logs_out = "%s/logs/bowtie2/stdout.logs" % manager.sample
+__bowtie2_mapping__prefix index = __prefix_name__
+__bowtie2_mapping__sam = manager.getname("bowtie2_mapping", ".sam")
 
 
 # Add Read group on BAM files
@@ -87,8 +144,6 @@ __add_read_group__log_err = "%s/logs/AddOrReplaceReadGroups/stderr.logs" % manag
 __add_read_group__log_std ="%s/logs/AddOrReplaceReadGroups/stdout.logs" % manager.sample
 __add_read_group__rg = "ID=%s LB=%s PL=%s PU=%s SM=%s" % (manager.sample, manager.sample, manager.config.sequencing.platform, manager.config.sequencing.flowcell, manager.sample)
 include: sm.modules["add_read_group"]
-
-
 
 # Mark duplicates
 __mark_duplicates__input = __add_read_group__output
@@ -119,21 +174,30 @@ include: sm.modules["macs2"]
 expected_output.extend(expand(__macs2__output, sample=manager.samples))
 
 
-#Bam coverage
+# BamPEFragmentSize (part of Deeptools)
+__BamPEFragmentSize__input_bams = expand(__bowtie2_mapping__sort)
+__BamPEFragmentSize__binsize = 10000
+__BamPEFragmentSize__logs = "%s/logs/deeptools/BamPEFragmentSize.err" % manager.sample
+__BamPEFragmentSize__output =
+include: sm.modules["BamPEFragmentSize"]
+expected_output.extend(expand(__BamPEFragmentSize__output, sample=manager.samples))
+
+
+#Bam coverage (part of Deeptools)
 __bamCoverage__input = __mark_duplicates__output
 __bamCoverage__output = manager.getname("BamCoverage", "_norm.bw")
-__bamCoverage__log = "%s/logs/BamCoverage/stderr.logs" % manager.sample
+__bamCoverage__log = "%s/logs/deeptools/BamCoverage.err." % manager.sample
 include: sm.modules["bamCoverage"]
 expected_output.extend(expand(__bamCoverage__output, sample=manager.samples))
 
 
-# plot correlation
+# plot correlation (part of Deeptools)
 __multiBamSummary__input = expand(__mark_duplicates__output)
-__multiBamSummary__log = "%s/logs/Correlation/BamSummaryErr.logs" % manager.sample
+__multiBamSummary__log = "%s/logs/deeptools/BamSummary.err" % manager.sample
 __multiBamSummary__output = "BamSummary.npz"
 __plotCorrelation__input = __multiBamSummary__output
 __plotCorrelation__output = "scatterplot_correlation.svg"
-__plotCorrelation__log = "%s/logs/Correlation/plotCorrelationErr.logs" % manager.sample
+__plotCorrelation__log = "%s/logs/deeptools/plotCorrelation.err" % manager.sample
 
 
 

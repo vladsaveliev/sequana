@@ -26,7 +26,6 @@ manager = sm.PipelineManager("rnaseq", config)
 __data__input = manager.getrawdata()
 
 
-TODO = "todo"
 
 __prefix_name__ = join(config["genome"]["genome_directory"], config["genome"]["name"])
 

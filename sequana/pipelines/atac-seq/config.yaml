@@ -1,7 +1,7 @@
 # ============================================================================
 # Config file for ATAC-seq
 #
-# ==========================================[ Sections for the users ]========
+# ==================[ Sections for the users ]================================
 #
 # One of input_directory, input_pattern and input_samples must be provided
 # If input_directory provided, use it otherwise if input_pattern provided,
@@ -20,85 +20,183 @@ input_samples:
     file2: "%(file2)s"
 
 # if files are required for a pipeline and are within sequana or should
-# # be downloaded before the pipeline provide them in this section
-# # Note that sequana and url fields are followed by itemised files or links
-# using
-# # the front dashes
+# be downloaded before the pipeline provide them in this section
+# Note that sequana and url fields are followed by itemised files or links
+# using the front dashes
 requirements:
     - phiX174.fa
     - Institut_Pasteur.png
+    - design.tab
 
-# =========================================== Sections related to external tools
-fastqc:
-    options: "--nogroup"
+
 
 ##################################################################
-#       MAPPING SECTION
-#     Don't forgot to fill sequencing information
-##################################################################
+# sequencing information. These informations will be inserted as
+# read group in BAM files
+#
+# :Parameters:
+#
+# - platform: Name of the sequencing platform
+# - instrument: name ot the instrument type
+# - flowcell: flowcell ID
+
 sequencing:
     platform: "Illumina"
     instrument: "Hiseq2500"
     flowcell: "H35CTBCXY"
 
+#############################################################################
+# Indexing section: if checked, all index for bowtie (1&2), star, etc... will be produced in dir
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - dir: directory where all indexed are written
+# - name: name of prefix use in all mapping rules
+# - fasta: path to Reference Genome in fasta format
+# - gff: path to GFF annotation file. Be carefull: chromosome names must me concordant with Fasta file
+# - rRNA_fasta: path to fasta file for ribosomal RNA if provided
+# - rRNA_feature: if rRNA_fasta not provided, ribosomal RNA will be extract from GFF using this feature
+#
+genome:
+  do: yes
+  genome_directory: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
+  name: "hg19" #path to index name
+  fasta_file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
+
+
+#################################################################
+# FastQC section
+#
+# :Parameters:
+#
+# - options: string with any valid FastQC options
+#
+fastqc:
+    options: "--nogroup"
+
+#######################################################################
+# Quality trimming and adapter removal
+#
+# If a design_file is provided the forward and reverse complement adapters
+# are automatically extracted from this file (given the sample name contained
+# in the filenames). In such case, the fwd and rev fields are ignored.
+#
+# If there is no design_file, the fwd and rev fields are used. It can be a
+# string, or a filename. If a filename, it must be prefixed with "file:" to
+# specify that it is a file and not a string. If the tool is cutadapt, the empty
+# fwd and rev fields means that no adapters are to be used.
+#
+# :Parameters:
+#
+# - adapter_type: can only be one of PCRFree, Nextera, Rubicon, TruSeq.
+#   Only used if design_file is provided.
+# - design_file: a valid CSV file with mapping of index and sample name
+# - fwd: a string or file (prefixed with *file:*)
+# - m: 20 means discard trimmed reads that are shorter than 20.
+#         must be > 0
+# - quality: 0 means no trimming, 30 means keep base with quality
+#        above 30
+# - mode: must be set to one of
+#     - g for 5'
+#     - a for 3'
+#     - b for both 5'/3'
+# - rev: a string or file (prefixed with *file:*)
+# - tool: only cutadapt supported for now
+# - threads: number of threads to use (atropos only)
+# - options: See cutadapt documentation for details on
+#            cutadapt.readthedocs.io. We change the default value
+#            of -O to 6 (at least 6 bases are required to match before
+#            trimming of an adapter)
+#
+# :Note: If design_file is provided, fwd and rev are ignored
+#
+#   ref: http://cutadapt.readthedocs.io/
+# adapter_choice__ = ["", "PCRFree", "Rubicon", "Nextera", "TruSeq"]
+# tool_choice__ = ["atropos", "cutadapt"]
+cutadapt:
+    do: yes
+    tool_choice: cutadapt
+    adapter_choice:
+    design_file:
+    fwd:
+    rev:
+    m: 20                       # {"strict_min": 0}
+    mode: "b"                   # {"values": ["b","g","a"]}
+    options: "-O 6 --trim-n"
+    quality: 30                 # {"range": [0,40]}
+    threads: 4
+
+#############################################################################
+# bowtie2_mapping used to align reads against genome
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - options: any options recognised by bowtie2 tool (optimized for ATAC-seq data here)
+# - threads: number of threads to be used
+#
 
 bowtie2_mapping:
     do: yes
-    prefix_index: /pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/cryptNeo
-    #options: "--dovetail --no-mixed --no-discordant " ##for paired-end data
-    options: ""
+    options: "--dovetail --no-mixed --no-discordant " ##for paired-end data
     threads: 4
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Mark duplicates (picard-tools)
-
+#############################################################################
+# mark_duplicates (picard-tools) allows to mark PCR duplicate in BAM files
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored. Mandatory for RNA-SeQC tool.
+# - remove: If true do not write duplicates to the output file instead of writing them with
+#            appropriate flags set.  Default value: false. This option can be set to 'null' to clear
+#            the default value. Possible values: {true, false}
+# - tmpdir: write tempory file on this directory (default TMP_DIR=/tmp/)
+#
 mark_duplicates:
-    remove: 'True' ## may be False
-    tmpdir: 'TMP_DIR=/local/scratch/' ## on Slurm cluster at Pasteur
+    do: no
+    remove: 'False' ## may be False
+    tmpdir: "TMP_DIR=/local/scratch/" ## on Slurm cluster at Pasteur
 
-##################################################################
-#       PEAK CALLING SECTION
-#     Go to https://github.com/taoliu/MACS for more explanation
-##################################################################
+
+
+
+#############################################################################
+# MACS2 allows to perform the peak calling
+#
+# :Parameters:
+#
+# - genomeSize: It's the mappable genome size or effective genome size which is defined
+#                as the genome size which can be sequenced. Because of the repetitive
+#                 features on the chromsomes, the actual mappable genome size will be smaller
+#                 than the original size, about 90% or 70% of the genome size.
+#                 The default hs -- 2.7e9 is recommended for UCSC human hg18 assembly
+# - readLength: While '--nomodel' is set, MACS uses this parameter to extend reads in 5'->3'
+#                direction to fix-sized fragments. For example, if the size of binding region
+#                for your transcription factor is 200 bp, and you want to bypass the model building
+#                by MACS, this parameter can be set as 200. This option is only valid when --nomodel
+#                is set or when MACS fails to build model and --fix-bimodal is on.
+# - qval: The qvalue (minimum FDR) cutoff to call significant regions. Default is 0.05.
+#          For broad marks, you can try 0.05 as cutoff. Q-values are calculated from p-values using Benjamini-Hochberg procedure.
+# - options: any options recognised by MACS2 tool
+# Go to https://github.com/taoliu/MACS for more explanation
+#
+
 macs2:
     genomeSize: "mm"
     readLength: 100
-    qval: 0.1 ## cutoff on q-value
+    qval: 0.1
     options: ""
 
-#################################################################
-# Quality trimming and adapter removal
-#   - quality: 0 means no trimming, 30 means keep base with quality
-#       above 30
-#   - m: 20 means discard trimmed reads that are shorter than 20.
-#   - tool: only cutadapt supported for now
-#   ref: http://cutadapt.readthedocs.io/
-#################################################################
-cutadapt:
-    do: yes
-    tool: cutadapt
-    design: "%(adapter_design)s"
-    adapter_type: "%(adapter_type)s"
-    fwd: "%(adapter_fwd)s"
-    rev: "%(adapter_rev)s"
-    m: 20   # min length cutoff
-    M: 120  # max length cutoff
-    mode: "g"   # g for 5' adapter, a for 3' and b for both 5'/3'
-    quality: "30"
-    options: "-O 6 --trim-n"
 
-##################################################################
-#       REPORTING SECTION WITH MULTIQC
+
+#############################################################################
+# DEEPTOOLS allows to perform the peak calling
 #
-##################################################################
-
-multiqc:
-    excluded: "-x *_init_* -x *left_kept_reads* -x *report_atac-seq*"
-    output-directory: "multiqc"
-
-
-
-
+# :Parameters:
+#
+# - genomeSize:
 ##### DEEPTOOLS SECTION
 
 correlation:
@@ -110,4 +208,21 @@ coverage:
     binSize: 10
     genomeSize: 121400000
     fragmentLength: 120
+
+
+
+
+#############################################################################
+#   MultiQC aggregates results from bioinformatics analyses across many
+#   samples into a single report.
+#
+# :Parameters:
+#
+# - options: any options recognised by multiqc
+# - output-directory: Create report in the specified output directory
+#
+multiqc:
+    options: "-c multiqc_config.yaml -f -x *_init_* -x *left_kept_reads* -x *report_rnaseq* -e htseq -e slamdunk"
+    output-directory: "multiqc"
+
 
