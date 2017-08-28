@@ -284,6 +284,7 @@ mark_duplicates:
     do: no
     remove: 'False' ## may be False
     tmpdir: "TMP_DIR=/local/scratch/" ## on Slurm cluster at Pasteur
+    threads: 4
 
 
 #############################################################################
