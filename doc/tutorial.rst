@@ -292,9 +292,9 @@ Finally, also edit the **multi_config.yaml** file and replace::
 
     custom_logo: "Institut_Pasteur.png"
 
-with yours or as follows::
+with yours or as follows (empty, not an empty string like "" ) ::
 
-    custom_logo: ""
+    custom_logo:
 
 .. note:: there are other places with hard-coded path but the corresponding
    sections are not used by default. If you decide to use them (e.g.
