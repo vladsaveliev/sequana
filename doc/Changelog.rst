@@ -6,6 +6,11 @@ Changelog
 2017
 ------
 
+0.5.0 august 2017
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Tag a stable release
+
 
 
 0.4.2 August 2017
