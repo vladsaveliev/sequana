@@ -50,8 +50,6 @@ rule star_mapping:
              --readFilesIn {input.fastq}  \
              --runThreadN {threads} \
              --genomeLoad NoSharedMemory \
-             --outFilterMismatchNoverLmax 0.05 \
-             --outSAMunmapped Within  \
              --outSAMtype BAM SortedByCoordinate \
              --readFilesCommand zcat \
              --seedSearchStartLmax 20 \
@@ -76,8 +74,6 @@ rule star_mapping:
              --runThreadN {threads} \
              --genomeLoad NoSharedMemory \
              --sjdbFileChrStartEnd {params.splice_file} \
-             --outFilterMismatchNoverLmax 0.05 \
-             --outSAMunmapped Within  \
              --outSAMtype BAM SortedByCoordinate \
              --readFilesCommand zcat \
              --outFileNamePrefix {params.prefix2} \

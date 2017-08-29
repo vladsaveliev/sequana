@@ -170,7 +170,7 @@ bowtie1_mapping_rna:
 #
 star_mapping:
     do: no
-    options: ""
+    options: "--outFilterMismatchNoverLmax 0.05 --outSAMunmapped Within "
     threads: 4
 
 #############################################################################
@@ -282,8 +282,9 @@ coverage:
 #
 mark_duplicates:
     do: no
-    remove: 'True' ## may be False
-    tmpdir: "TMP_DIR=/local/scratch/" ## on Slurm cluster at Pasteur
+    remove: 'False' ## may be False
+    tmpdir: "TMP_DIR=/local/scratch/" # Path to the temporary directory on your cluster, may be "TMP_DIR=/tmp" also
+    threads: 4
 
 
 #############################################################################

@@ -63,6 +63,8 @@ rule cutadapt:
 
         if config['cutadapt']['design_file']:
             from sequana import FindAdaptersFromDesign
+            # FIXME how important is this that the sample name contains a _
+            # character ?
             sample = params.sample.split("_")[0]
             fa = FindAdaptersFromDesign(params.design, params.design_adapter)
             fwd, rev = fa.save_adapters_to_fasta(sample, output_dir=params.wkdir)
