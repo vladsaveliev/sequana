@@ -6,7 +6,8 @@ Issues
 ==========
 
 You have an issue ? You found a bug ? Please submit an issue with 
-- description of the problem
+
+- a description of the problem
 - the version of Sequana used
 - the error message if any
 
