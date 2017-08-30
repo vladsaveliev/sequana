@@ -29,7 +29,7 @@ SEQUANA
 :Online documentation: `On readthedocs <http://sequana.readthedocs.org/>`_
 :Issues and bug reports: `On github <https://github.com/sequana/sequana/issues>`_
 :How to cite: For Sequana in general including the pipelines, please use 
-    the JOSS DOI (10.21105/joss.00352)
+    the `JOSS DOI (10.21105/joss.00352) <http://www.doi2bib.org/#/doi/10.21105/joss.00352>`_
 
     For the **genome coverage** tool (sequana_coverage):  Dimitri Desvillechabrol,
     Christiane Bouchier, Sean Kennedy, Thomas Cokelaer
