@@ -71,7 +71,7 @@ rule kraken:
     params:
         databases=config['kraken']
     run:
-        cmd = "sequana_taxonomy --file1 {input} --output-directory {wildcards.sample}"
+        cmd = "sequana_taxonomy --file1 {input} --output-directory {wildcards.sample} --thread 4"
         cmd += " --databases "
         for dbname, value in params.databases.items():
             if value:
