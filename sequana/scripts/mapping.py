@@ -65,6 +65,8 @@ Issues: http://github.com/sequana/sequana
             help="""R2 fastq file (zipped) """)
         self.add_argument("--reference", dest="reference", type=str,
             help="""reference """)
+        self.add_argument("--threads", dest="thread", type=int, default=4,
+            help="""number of threads """)
 
 
 def main(args=None):
@@ -89,7 +91,6 @@ def main(args=None):
     elif options.file1 is None:
         raise ValueError("--file1 must be used")
 
-
     from sequana import FastQ
     from sequana import FastA
     S = 0
@@ -102,14 +103,14 @@ def main(args=None):
     coverage = float(S) / len(ref.sequences[0])
     print('Theoretical Depth of Coverage : %s' % coverage)
 
-    params = {"reference": reference, "fastq": fastq}
+    params = {"reference": reference, "fastq": fastq, "thread": options.threads}
 
     # indexing
     shellcmd("bwa index %(reference)s " % params)
     cmd = "samtools faidx %(reference)s " % params
 
     # mapping
-    cmd = r"bwa mem -t 4 -R @RG\\tID:1\\tSM:1\\tPL:illumina -T 30 %(reference)s %(fastq)s  "
+    cmd = r"bwa mem -t %(thread) -R @RG\\tID:1\\tSM:1\\tPL:illumina -T 30 %(reference)s %(fastq)s  "
     cmd += "| samtools view -Sbh -> %(reference)s.bam "
     shellcmd(cmd % params)
 
