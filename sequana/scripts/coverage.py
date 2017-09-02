@@ -73,14 +73,24 @@ class Options(argparse.ArgumentParser):
 
     An other interesting option is to provide a BED file with 4 columns. The
     fourth column being another coverage data created with a filter. One can
-    create such a file only from the BAM file using samtools as follows:
+    create such a file only from the BAM file using samtools as follows given
+    the original unfiltered BAM file named input.bam:
 
-        samtools view -q 35  -o data.filtered.bam input.fa.sorted.bam
-        samtools depth data.filtered.bam input.fa.sorted.bam  -aa > test.bed
-        sequana_coverage --input test.bed --show-html 
+        samtools view -q 35  -o data.filtered.bam input.bam
+        samtools depth input.bam data.filtered.bam  -aa > test.bed
+        sequana_coverage --input test.bed --show-html
 
     Note that the first file is the filtered one, and the second file is the
     unfiltered one.
+
+
+    Note for multi chromosome and genbank features: for now, you will need to call 
+    sequana_coverage for each chromosome individually since we accept only one
+    genbank as input parameter:
+
+        sequana_coverage --input file.bed --genbank chrom1.gbk -c 1
+
+    chromosome order in the BED and 
 
         """)
 
@@ -149,7 +159,6 @@ Issues: http://github.com/sequana/sequana
         group.add_argument(
             "-g", "--window-gc", dest="w_gc", type=int, default=201,
             help="""Length of the running window to compute the GC content""")
-            
         group.add_argument('-n', "--nlevels", dest="levels", type=int,
             default=3, help="""Number of levels in the contour""")
 
@@ -221,8 +230,6 @@ def main(args=None):
                                    genbank=True, fasta=False)
         return
 
-    # We put the import here to make the --help faster
-
     if options.genbank:
         assert os.path.exists(options.genbank), \
             "%s does not exists" % options.genbank
@@ -231,33 +238,39 @@ def main(args=None):
         logger.info("Reading %s. This may take time depending on " 
             "your input file" % options.input)
 
+    # Convert BAM to BED
     if options.input.endswith(".bam"):
         bedfile = options.input.replace(".bam", ".bed")
         if options.verbose:
-            print("Converting BAM into BED file")
+            logger.info("Converting BAM into BED file")
         shellcmd("bedtools genomecov -d -ibam %s > %s" % (options.input, bedfile))
     elif options.input.endswith(".bed"):
         bedfile = options.input
     else:
         raise ValueError("Input file must be a BAM or BED file")
 
+    # Set the thresholds
     if options.low_threshold is None:
         options.low_threshold = -options.threshold
 
     if options.high_threshold is None:
         options.high_threshold = options.threshold
 
+    # and output directory
     config.output_dir = options.output_directory
     config.sample_name = os.path.basename(options.input).split('.')[0]
 
+    # Now we can create the instance of GenomeCoverage
     gc = GenomeCov(bedfile, options.genbank, options.low_threshold,
                    options.high_threshold, 0.5, 0.5)
 
+    # if we have the reference, let us use it
     if options.reference:
         logger.info('Computing GC content')
         gc.compute_gc_content(options.reference, options.w_gc,
                               options.circular)
 
+    # Now we scan the chromosomes, 
     if len(gc.chr_list) == 1:
         if options.verbose:
             logger.warning("There is only one chromosome. Selected automatically.")
@@ -281,7 +294,7 @@ def main(args=None):
         for i, chrom in enumerate(chromosomes):
             if options.verbose:
                 print("==================== analysing chrom/contig %s/%s (%s)"
-                      % (i + 1 + options.chromosome, len(gc),
+                      % (i + options.chromosome, len(gc),
                       chrom.chrom_name))
             run_analysis(chrom, options)
 
@@ -311,6 +324,7 @@ def run_analysis(chrom, options):
     if options.verbose:
         logger.info('Computing running median (w=%s)' % options.w_median)
 
+    # compute running median
     chrom.running_median(n=options.w_median, circular=options.circular)
 
     stats = chrom.get_stats(output="dataframe")
@@ -325,10 +339,12 @@ def run_analysis(chrom, options):
     if options.verbose:
         print("Number of mixture model %s " % options.k)
         print('Computing zscore')
+
+    # Compute zscore
     chrom.compute_zscore(k=options.k, verbose=options.verbose)
 
     if options.verbose:
-        print("Computing centralness")
+        logger.info("Computing centralness")
 
     # Let us save the thresholds first and then change it to compute centralness
     thresholds = chrom.thresholds.copy()
