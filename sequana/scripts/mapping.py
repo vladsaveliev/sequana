@@ -110,7 +110,7 @@ def main(args=None):
     cmd = "samtools faidx %(reference)s " % params
 
     # mapping
-    cmd = r"bwa mem -t %(thread) -R @RG\\tID:1\\tSM:1\\tPL:illumina -T 30 %(reference)s %(fastq)s  "
+    cmd = r"bwa mem -t %(thread)s -R @RG\\tID:1\\tSM:1\\tPL:illumina -T 30 %(reference)s %(fastq)s  "
     cmd += "| samtools view -Sbh -> %(reference)s.bam "
     shellcmd(cmd % params)
 
