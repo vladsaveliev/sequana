@@ -163,7 +163,6 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
     rt1 = "_R1_"
     rt2 = "_R2_"
 
-
     R1_mapped = open(newname + "{}.mapped.fastq".format(rt1), "wb")
     R1_unmapped = open(newname + "{}.unmapped.fastq".format(rt1), "wb")
     stats['duplicated'] = 0
@@ -251,8 +250,10 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
     if bam.is_paired:
         R2_mapped.close()
         R2_unmapped.close()
+
     if verbose:
         print("\nNumber of entries in the BAM: %s" % str(i+1))
+
     R1_mapped.close()
     R1_unmapped.close()
 
@@ -380,13 +381,13 @@ def genbank_features_parser(input_filename):
                     name = line.split()[1]
                 elif line.startswith("FEATURE"):
                     feature_field = True
-
             else:
                 # if feature field is finished
                 if line.startswith("ORIGIN"):
                     feature_field = False
                     records[name] = feature_list
                     feature_list = []
+                    new_feature = []
                     continue
 
                 # if there are a word in qualifier indent (feature type)
