@@ -71,7 +71,11 @@ class FastA(object):
 
     def _get_comment(self):
         return [this.comment for this in self]
-    comment = property(_get_comment)
+    comments = property(_get_comment)
+
+    def _get_lengths(self):
+        return [len(this.sequence) for this in self]
+    lengths = property(_get_lengths)
 
     def format_contigs_denovo(self, output_file, len_min=500):
         """Replace NODE with the project name and remove contigs with a length 
@@ -81,7 +85,7 @@ class FastA(object):
         :param int len_min: minimal length of contigs.
 
         Example:
-        
+
             from sequana import FastA
 
             contigs = FastA("denovo_assembly.fasta")
