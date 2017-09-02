@@ -6,6 +6,23 @@ Changelog
 2017
 ------
 
+
+0.5.1 
+~~~~~~~~~~~~~~~
+
+* BUGS:
+
+   * pipeline pacbio_qc: hard-coded the number of threads to 4 otherwise may
+         fail on clusters. Does not change the pipeline or analysis itself
+
+* Updates:
+
+   * bamtools module: speed up initialisation. add is_sorted method.
+   * bedtools: limit number of points to 1,000,000 in plot_coverage and set 
+     ylimits manually to 6 mean coverage.
+   * Repeats can handle FastA properly (not limited to first sequence anymore)
+
+
 0.5.0 august 2017
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -97,8 +97,11 @@ add a file called **matplotlibrc** with the following content::
 Save, exit the shell, start a new shell.
 
 
-pysam
-~~~~~~~~~~~~~~~~~~
+pysam / samtools / bzip2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We have experienced few issues with pysam and samtools. Here are some solutions.
+
 
 ::
 
@@ -119,6 +122,11 @@ Another error know for pysam version 0.11.2.2 raises this error::
 Downgrading to version 0.11.2.1 and upgrading to working version solves the problem::
 
     conda install pysam=0.11.2.1
+
+but one reason was also related to the order of the channel in the .condarc
+file. You may get bzip2 from the default channel and not from
+conda-forge (reference: https://github.com/bioconda/bioconda-recipes/issues/5188)
+
 
 
 
