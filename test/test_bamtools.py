@@ -11,13 +11,19 @@ def test_bam(tmpdir):
 
     s = BAM(datatest)
     assert len(s) == 1000
+    assert s.is_sorted is False
 
     assert len(list(s.iter_unmapped_reads())) == 2
     s.reset()
     assert len(list(s.iter_mapped_reads())) == 998
     s.reset()
 
+    # call this here before other computations on purpose
+    with TempFile(suffix=".json") as fh:
+        s.bam_analysis_to_json(fh.name)
+
     assert s.get_read_names()
+    s.get_mapped_read_length()
 
     s.get_stats()
     s.get_full_stats_as_df()
@@ -38,9 +44,11 @@ def test_bam(tmpdir):
     s.get_gc_content()
     s.get_length_count()
     s.plot_gc_content()
-
-    with TempFile(suffix=".json") as fh:
-        s.bam_analysis_to_json(fh.name)
+    try:
+        s.plot_gc_content(bins=[1,2,10])
+        assert False
+    except:
+        assert True
 
 
 def test_alignment():
