@@ -39,7 +39,7 @@ from sequana.lazy import numpy as np
 from sequana.lazy import pylab
 
 import pysam
-from sequana import jsontool
+from sequana import jsontool, logger
 
 
 """
@@ -59,7 +59,7 @@ Interesting commands::
 
 __all__ = ['BAM','Alignment', 'SAMFlags']
 
-# simple decorator ro rewind the BAM file
+# simple decorator to rewind the BAM file
 from functools import wraps
 def seek(f):
     @wraps(f)
@@ -101,14 +101,13 @@ class BAM(pysam.AlignmentFile):
 
 
     """
-    def __init__(self, filename,  mode='rb', *args):
+    def __init__(self, filename,  mode='rb',  *args):
         # The mode rb means read-only (r) and that the format is BAM or SAM (b)
 
         # super()  works for py27 but not py35 probably a missing __init__  or __new__ in
         # AlignmentFile class. See e.g., stackoverflow/questions/
         # 26653401/typeerror-object-takes-no-parameters-but-only-in-python-3
 
-        #self._filename = filename
         pysam.AlignmentFile.__init__(filename, mode=mode, *args)
 
         self._filename = filename
@@ -129,22 +128,20 @@ class BAM(pysam.AlignmentFile):
         # some side effects.
 
         # Let us save the length (handy and use in other places).
-        # If is is a SAM file, the rewind does not work and calling it again wil
+        # If it is a SAM file, the rewind does not work and calling it again wil
         # return 0. This may give us a hint that it is a SAM file
-        self.reset()
-        self.N = sum(1 for _ in self)
-        self.reset()
+        self.N = None
 
         # Figure out if the data is paired-end or not
         # I believe that checking just one alignement is enough.
+        self.reset()
         self.is_paired = next(self).is_paired
         self.reset()
 
         # running a second time the len() should return the correct answer with
         # BAM files but the SAM will not work and return 0
-        if len(self) == 0:
-            raise ValueError("Convert your SAM file to a BAM file please")
-
+        # if len(self) == 0:
+        #     raise ValueError("Convert your SAM file to a BAM file please")
 
     @seek
     def get_read_names(self):
@@ -164,7 +161,20 @@ class BAM(pysam.AlignmentFile):
         mapped = (this.qname for this in self if this.is_unmapped is False)
         return mapped
 
+    @seek 
+    def _get_is_sorted(self):
+        pos = next(self).pos
+        for this in self:
+            if this.pos > pos:
+                return False
+        return True
+    is_sorted = property(_get_is_sorted, doc="return True is the BAM is sorted")
+
+    @seek
     def __len__(self):
+        if self.N is None:
+            logger.warning("Scanning the BAM. Please wait")
+            self.N = sum(1 for _ in self)
         return self.N
 
     @seek
@@ -366,7 +376,17 @@ class BAM(pysam.AlignmentFile):
 
     @seek
     def get_mapped_read_length(self):
-        """Return dataframe with read length for each read"""
+        """Return dataframe with read length for each read
+
+
+        .. plot::
+
+            from pylab import hist
+            from sequana import sequana_data, BAM
+            b = BAM(sequana_data("test.bam"))
+            hist(b.get_mapped_read_length())
+
+        """
         read_length = [read.reference_length for read in self
                        if read.is_unmapped is False]
         return read_length
@@ -452,18 +472,6 @@ class BAM(pysam.AlignmentFile):
         with open(filename, "w") as fp:
             json.dump(d, fp, indent=True, sort_keys=True)
 
-    def _list_to_json_barplot(l):
-        """Take a list and convert as json format for barplot with canvaJS.
-
-        :param: list l: list of int
-        :param: bool logy: for logscale plot
-        :return: string (json)
-        """
-        counter = Counter(l)
-        count = [{"x": int(key), "y": np.log10(value), "c": value}
-                 for key, value in counter.items()]
-        return json.dumps(count)
-
     @seek
     def get_gc_content(self):
         """Return GC content for all reads (mapped or not)
@@ -480,6 +488,7 @@ class BAM(pysam.AlignmentFile):
         import collections
         data = [this.rlen for this in self]
         return collections.Counter(data)
+
 
     def plot_gc_content(self, fontsize=16, ec="k", bins=100):
         """plot GC content histogram
