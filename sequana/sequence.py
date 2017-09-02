@@ -142,11 +142,11 @@ class DNA(Sequence):
         >>> d.reverse_complement
 
     """
-    def __init__(self, sequence, 
-        codons_stop=["TAA","TGA","TAG"], 
-        codons_stop_rev=["TTA","TCA","CTA"], 
-        codons_start=["ATG"], 
-        codons_start_rev=["CAT"]):
+    def __init__(self, sequence,
+        codons_stop = ["TAA","TGA","TAG"],
+        codons_stop_rev = ["TTA","TCA","CTA"],
+        codons_start = ["ATG"],
+        codons_start_rev = ["CAT"]):
 
         super(DNA, self).__init__(sequence, complement_in=b"ACGT",
             complement_out=b"TGCA", letters="ACGTN")
@@ -200,7 +200,6 @@ class DNA(Sequence):
 
     def _get_type_window(self):
         return self._type_window
-
     type_window = property(_get_type_window)
 
     def _init_sliding_window(self):
@@ -508,7 +507,6 @@ class DNA(Sequence):
         if self._ORF_pos is None:
             self._find_ORF_CDS()
         return self._ORF_pos
-
     ORF_pos = property(_get_ORF_pos)
 
     def _get_threshold(self):
@@ -528,7 +526,6 @@ class DNA(Sequence):
                 self._ORF_pos = self._ORF_pos[self._ORF_pos["len_ORF"] > self._threshold]
             elif self._type_filter == "CDS":
                 self._ORF_pos = self._ORF_pos[self._ORF_pos["len_CDS"] > self._threshold]
-
     threshold = property(_get_threshold, _set_threshold)
 
     def _get_type_filter(self):
@@ -547,7 +544,6 @@ class DNA(Sequence):
             else:
                 # need to filter the result by CDS length
                 self._ORF_pos = self._ORF_pos[self._ORF_pos["len_CDS"] > self._threshold]
-
     type_filter = property(_get_type_filter, _set_type_filter)
 
     def hist_ORF_CDS_linearscale(self, alpha=0.5, bins=40, xlabel="Length", ylabel="#"):
@@ -570,7 +566,7 @@ class DNA(Sequence):
         self.hist_ORF_CDS_linearscale(alpha, bins, xlabel, ylabel)
         pylab.yscale("log")
 
-    def barplot_count_ORF_CDS_by_frame(self, alpha=0.5, bins=40, 
+    def barplot_count_ORF_CDS_by_frame(self, alpha=0.5, bins=40,
         xlabel="Frame", ylabel="#", bar_width=0.35):
         if self._ORF_pos is None:
                 self._find_ORF_CDS()
@@ -588,7 +584,6 @@ class DNA(Sequence):
         pylab.ylabel(ylabel)
         pylab.legend(loc=1)
         pylab.title("Number of ORF and CDS by frame")
-
 
 
 class RNA(Sequence):
@@ -623,7 +618,7 @@ class Repeats(object):
     .. todo:: use a specific sequence (right now it is the first one)
 
     """
-    def __init__(self, filename_fasta, merge=False):
+    def __init__(self, filename_fasta, merge=False, name=None):
         """.. rubric:: Constructor
 
         Input must be a fasta file with valid DNA or RNA characters
@@ -631,7 +626,17 @@ class Repeats(object):
         :param str filename_fasta: a Fasta file, only the first
             sequence is used !
         :param int threshold: Minimal length of repeat to output
+        :param str name: if name is provided, scan the Fasta file
+            and select the corresponding sequence. if you want to
+            analyse all sequences, you need to use a loop by setting
+            _header for each sequence with the sequence name found in
+            sequence header.
+
         """
+        # used to check everything is fine with the header/name
+        self._fasta = FastA(filename_fasta)
+
+        # Define the attributes, and set the header if already provided
         self._threshold                       = None
         self._df_shustring                    = None
         self._header                          = None
@@ -645,19 +650,28 @@ class Repeats(object):
         if not isinstance(merge, bool):
             raise TypeError("do_merge must be boolean")
         self._do_merge                        = merge
+        if name is not None:
+            self.header = name
+        else:
+            self.header = self._fasta.names[0]
 
     def _get_header(self):
         """get first line of fasta (needed in input shustring)
         and replace spaces by underscores
         """
-        if self._header is None:
+        """if self._header is None:
             # -n is to specify the DNA nature of the sequence
-            first_line = subprocess.check_output(["head","-n","1",self._filename_fasta])
+            first_line = subprocess.check_output(["head", "-n", "1", self._filename_fasta])
             first_line = first_line.decode('utf8')
             first_line = first_line.replace("\n","").replace(" ","_")
-            self._header = first_line
+            self._header = first_line"""
         return self._header
-    header = property(_get_header)
+    def _set_header(self, name):
+        if name not in self._fasta.names:
+            raise ValueError("invalid name. Use one of %s" %  self._fasta.names)
+        self._header = name
+        self._df_shustring = None
+    header = property(_get_header, _set_header)
 
     def _get_shustrings_length(self):
         """Return dataframe with shortest unique substring length at each position
@@ -665,13 +679,15 @@ class Repeats(object):
         Uses shustring tool"""
         if self._df_shustring is None:
             # read fasta
-            task_read           = subprocess.Popen(["cat", self._filename_fasta],
+            task_read = subprocess.Popen(["cat", self._filename_fasta],
                 stdout=subprocess.PIPE)
+
             # replace spaces of fasta
             task_replace_spaces = subprocess.Popen(["sed","s/ /_/g"],
                 stdin=task_read.stdout, stdout=subprocess.PIPE)
+
             # shustring command
-            task_shus           = subprocess.Popen(['shustring','-r','-q','-l',self.header],
+            task_shus = subprocess.Popen(['shustring','-r','-q','-l', ">" + self.header],
                 stdin=task_replace_spaces.stdout, stdout=subprocess.PIPE)
 
             # read stdout line by line and append to list
