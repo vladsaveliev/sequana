@@ -301,9 +301,10 @@ def main(args=None):
     if options.verbose:
         logger.info("Creating report in %s" % config.output_dir)
 
-    datatable = CoverageModule.init_roi_datatable(gc[0]) 
 
     if options.chromosome:
+        cc = options.chromosome - 1
+        datatable = CoverageModule.init_roi_datatable(gc[cc])
         ChromosomeCoverageModule(chromosomes[0], datatable, None)
         page = "{0}{1}{2}.cov.html".format(config.output_dir, os.sep,
                                            chrom.chrom_name)
