@@ -175,6 +175,7 @@ class BAM(pysam.AlignmentFile):
         if self.N is None:
             logger.warning("Scanning the BAM. Please wait")
             self.N = sum(1 for _ in self)
+            self.reset()
         return self.N
 
     @seek
