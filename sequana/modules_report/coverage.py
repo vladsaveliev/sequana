@@ -27,8 +27,8 @@ from sequana.utils.datatables_js import DataTable, DataTableFunction
 from sequana.plots.canvasjs_linegraph import CanvasJSLineGraph
 from sequana import logger
 
-__all__ = ["CoverageModule", "ChromosomeCoverageModule"]
 
+__all__ = ["CoverageModule", "ChromosomeCoverageModule"]
 
 
 class CoverageModule(SequanaBaseModule):
@@ -448,14 +448,14 @@ class SubCoverageModule(SequanaBaseModule):
                          'labelFontColor': '#FFC425'})
         # set datas
         cjs.set_data(index=0, data_dict={'type': 'line',
-                                         'name': "Filtered coverage",
+                                         'name': "Unfiltered coverage",
                                          'showInLegend': 'true',
                                          'color': '#5BC0DE',
                                          'lineColor': '#5BC0DE'})
         try:
             i = y_col.index('mapq0')
             cjs.set_data(index=i, data_dict={'type': 'line',
-                                             'name': "Unfiltered coverage",
+                                             'name': "Filtered coverage",
                                              'showInLegend': 'true',
                                              'color': '#D9534F',
                                              'lineColor': '#D9534F'})
