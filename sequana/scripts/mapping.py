@@ -65,7 +65,7 @@ Issues: http://github.com/sequana/sequana
             help="""R2 fastq file (zipped) """)
         self.add_argument("--reference", dest="reference", type=str,
             help="""reference """)
-        self.add_argument("--threads", dest="thread", type=int, default=4,
+        self.add_argument("--thread", dest="thread", type=int, default=4,
             help="""number of threads """)
 
 
@@ -103,7 +103,7 @@ def main(args=None):
     coverage = float(S) / len(ref.sequences[0])
     print('Theoretical Depth of Coverage : %s' % coverage)
 
-    params = {"reference": reference, "fastq": fastq, "thread": options.threads}
+    params = {"reference": reference, "fastq": fastq, "thread": options.thread}
 
     # indexing
     shellcmd("bwa index %(reference)s " % params)
