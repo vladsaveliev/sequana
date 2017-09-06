@@ -31,7 +31,7 @@ from sequana.modules_report.coverage import ChromosomeCoverageModule
 from sequana.utils import config
 from sequana import logger
 from sequana import sequana_debug_level
-from sequana.bedtools import GenomeCov
+from sequana.bedtools import GenomeCov, FilteredGenomeCov
 
 from easydev import shellcmd, mkdirs
 from easydev.console import purple
@@ -190,7 +190,7 @@ Issues: http://github.com/sequana/sequana
             help="""set lower and higher thresholds of the confidence interval.""")
 
         group = self.add_argument_group("Download reference")
-        group.add_argument("--download-reference", dest="accession",
+        group.add_argument("--download-reference", dest="download_reference",
             default=None, type=str)
         group.add_argument("--download-genbank", dest="download_genbank",
             default=None, type=str)
@@ -215,15 +215,18 @@ def main(args=None):
 
     sequana_debug_level(options.logging_level)
 
-    if options.accession:
-        logger.info("Download accession %s from %s\n" %
-            (options.accession, options.database))
+    if options.download_reference:
+        logger.info("Downloading reference %s from %s\n" %
+            (options.download_reference, options.database))
 
         from bioservices.apps import download_fasta as df
-        df.download_fasta(options.accession, method=options.database)
-        return
+        df.download_fasta(options.download_reference, method=options.database)
+        if options.download_genbank is None:
+            return
 
     if options.download_genbank:
+        logger.info("Downloading genbank %s from %s\n" %
+            (options.download_reference, options.database))
         from sequana.snpeff import download_fasta_and_genbank
         download_fasta_and_genbank(options.download_genbank,
                                    options.download_genbank, 
@@ -276,7 +279,7 @@ def main(args=None):
             logger.warning("There is only one chromosome. Selected automatically.")
         chrom = gc.chr_list[0]
         chromosomes = [chrom]
-        run_analysis(chrom, options)
+        run_analysis(chrom, options, gc.feature_dict)
     elif options.chromosome <=-1 or options.chromosome > len(gc.chr_list):
         raise ValueError("invalid chromosome index ; must be in [1-{}]".format(len(gc.chr_list)+1))
     else: # chromosome index is zero 
@@ -296,11 +299,10 @@ def main(args=None):
                 print("==================== analysing chrom/contig %s/%s (%s)"
                       % (i + options.chromosome, len(gc),
                       chrom.chrom_name))
-            run_analysis(chrom, options)
+            run_analysis(chrom, options, gc.feature_dict)
 
     if options.verbose:
-        logger.info("Creating report in %s" % config.output_dir)
-
+        logger.info("Creating report in %s. Please wait" % config.output_dir)
 
     if options.chromosome:
         cc = options.chromosome - 1
@@ -317,7 +319,7 @@ def main(args=None):
         onweb(page)
 
 
-def run_analysis(chrom, options):
+def run_analysis(chrom, options, feature_dict):
 
     if options.verbose:
         print(chrom)
@@ -343,6 +345,22 @@ def run_analysis(chrom, options):
 
     # Compute zscore
     chrom.compute_zscore(k=options.k, verbose=options.verbose)
+
+    # Save the CSV file of the ROIs
+    high = chrom.thresholds.high2
+    low = chrom.thresholds.low2
+    query = "zscore > @high or zscore < @low"
+    if feature_dict and chrom.chrom_name in feature_dict:
+        f = FilteredGenomeCov(chrom.df.query(query),
+                        chrom.thresholds,
+                        feature_list=feature_dict[chrom.chrom_name])
+    else:
+        f = FilteredGenomeCov(chrom.df.query(query), chrom.thresholds)
+    directory = options.output_directory 
+    directory += os.sep + "coverage_reports" 
+    directory += os.sep + chrom.chrom_name
+    mkdirs(directory)
+    f.df.to_csv("{}/rois.csv".format(directory))
 
     if options.verbose:
         logger.info("Computing centralness")
