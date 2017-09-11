@@ -219,6 +219,23 @@ class GenomeCov(object):
     def __len__(self):
         return len(self.chr_list)
 
+    def __eq__(self, other):
+        if len(self.chr_list) != len(other.chr_list):
+            return False
+        for a,b in zip(self.chr_list, other.chr_list):
+            if all(a.df['cov'] == b.df['cov']) is False:
+                return False
+        return True
+
+    def compute_coverage(self, window, circular=False, reference=None):
+        """Compute GC content (if reference provided), running_median/zscore for each chromosome.
+        """
+        if reference:
+            self.compute_gc_content(reference)
+        for c in self.chr_list:
+            c.running_median(window, circular)
+            c.compute_zscore()
+
     @property
     def circular(self):
         """ Get the circularity of chromosome(s). It must be a boolean.
@@ -413,10 +430,10 @@ class GenomeCov(object):
             stats[chrom.chrom_name] = chrom.get_stats(output=output)
         return stats
 
-    def hist(self, logx=True, logy=True, fignum=1, N=20, lw=2):
+    def hist(self, logx=True, logy=True, fignum=1, N=20, lw=2, **kwargs):
         for chrom in self.chr_list:
             chrom.plot_hist_coverage(logx=logx, logy=logy, fignum=fignum, N=N,
-                histtype='step', hold=True, lw=lw)
+                histtype='step', hold=True, lw=lw, **kwargs)
             pylab.legend()
 
     def to_csv(self, output_filename, **kwargs):
@@ -814,7 +831,7 @@ class ChromosomeCov(object):
     def plot_coverage(self, filename=None, fontsize=16,
             rm_lw=1, rm_color="#0099cc", rm_label="Running median",
             th_lw=1, th_color="r", th_ls="--", main_color="k", main_lw=1,
-            main_kwargs={}, set_ylimits=True):
+            main_kwargs={}, sample=True, set_ylimits=True):
         """ Plot coverage as a function of base position.
 
         :param filename:
@@ -825,12 +842,16 @@ class ChromosomeCov(object):
         :param th_color: line color of the thresholds
         :param main_color: line color of the coverage
         :param main_lw: line width of the coverage
+        :param sample: if there are more than 1 000 000 points, we 
+            use an integer step to skip data points. We can still plot
+            all points at your own risk by setting this option to False
 
         :param set_ylimits: we want to focus on the "normal" coverage ignoring
             unsual excess. To do so, we set the yaxis range between 0 and a
             maximum value. This maximum value is set to the minimum between the
             6 times the mean coverage and 1.5 the maximum of the high coverage
-            threshold curve.
+            threshold curve. If you want to let the ylimits free, set this
+            argument to False
 
         .. note:: if there are more than 1,000,000 points, we show only
             1,000,000 by points. For instance for 5,000,000 points,
@@ -855,7 +876,7 @@ class ChromosomeCov(object):
 
         # 1,000,000 points is a lot for matplotlib. Let us restrict ourself to 1
         # million points for now.
-        if len(self.df) > 1000000:
+        if len(self.df) > 1000000 and sample is True:
             NN = int(len(self.df)/1000000)
         else:
             NN = 1
