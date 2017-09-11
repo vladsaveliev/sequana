@@ -7,20 +7,26 @@ Changelog
 ------
 
 
-0.5.1 
+0.5.1
 ~~~~~~~~~~~~~~~
 
 * BUGS:
 
    * pipeline pacbio_qc: hard-coded the number of threads to 4 otherwise may
          fail on clusters. Does not change the pipeline or analysis itself
+   * sequana_coverage: fix chromosome option.
+   * Fix genbank_parser when the genbank contains several concatenated genbank
+     entries. This fixes the coverage reports CSV file that had missing
+     annotations.
 
 * Updates:
 
    * bamtools module: speed up initialisation. add is_sorted method.
-   * bedtools: limit number of points to 1,000,000 in plot_coverage and set 
-     ylimits manually to 6 mean coverage.
+   * bedtools: limit number of points to 1,000,000 in plot_coverage and set
+     ylimits manually to 6 mean coverage. add __eq__ function. See #464 issue
    * Repeats can handle FastA properly (not limited to first sequence anymore)
+   * sequana_mapping: add thread in samtools call
+
 
 
 0.5.0 august 2017
