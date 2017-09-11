@@ -6,7 +6,7 @@ bowtie
 bowtie2
 busco==3.0.2
 bwa
-cutadapt>=1.9.1
+cutadapt
 fastq-screen
 freebayes
 khmer
