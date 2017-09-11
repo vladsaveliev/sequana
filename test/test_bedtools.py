@@ -57,6 +57,9 @@ def test_genomecov():
 
     # !now let us read the good data sets
     bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
+    bed.compute_coverage()
+
+    bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
     bed2 = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
     assert bed == bed
 
