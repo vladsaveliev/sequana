@@ -115,7 +115,7 @@ def main(args=None):
     shellcmd(cmd % params)
 
     # sorting BAM
-    shellcmd("samtools sort -o %(reference)s.sorted.bam  %(reference)s.bam" % params)
+    shellcmd("samtools sort -@ %(thread)s -o %(reference)s.sorted.bam  %(reference)s.bam" % params)
 
 
 """reference = "JB409847"
