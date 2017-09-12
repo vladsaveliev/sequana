@@ -28,11 +28,13 @@ __all__ = ["FastA"]
 
 # cannot inherit from FastxFile (no object in the API ?)
 class FastA(object):
-    """Class to handle FastA files
+    """Class to handle FastA files. Cannot be compressed
 
 
     """
     def __init__(self, filename, verbose=False):
+        if filename.endswith(".gz"):
+            raise ValueError("Must be decompressed.")
         self._fasta = FastxFile(filename)
         self._N = len([x for x in FastxFile(filename)])
 
