@@ -12,7 +12,7 @@ from functools import wraps
 from sequana.lazy import numpy as np
 from sequana.lazy import pandas as pd
 from sequana.lazy import pylab
-
+from sequana.tools import GZLineCounter
 from easydev import Progress
 
 import pysam
@@ -232,30 +232,11 @@ class FastQ(object):
         self._count_reads = nreads
 
     def _count_lines_gz(self, CHUNKSIZE=65536):
-        # this is fast. On a 63M reads, takes 21 seconds as
-        # compared to 46 s (real) and 1.13 (user) with zcat | wc
-        # wc seems slow (same effects with uncompressde file).
-        # Using gzip.open and reading lines is slower by a factor 10
-        # hints from http://wiki.glitchdata.com/index.php?title=Python:_File_Compression_and_Decompression
-
-        # cannot be re-used so must be written here and wherever decompression is
-        # required
-        d = zlib.decompressobj(16 + zlib.MAX_WBITS)
-        with open(self.filename, 'rb') as f:
-            buf = f.read(CHUNKSIZE)
-            count = 0
-            while buf:
-                outstr = d.decompress(buf)
-                count += outstr.count(b"\n")
-                buf = f.read(CHUNKSIZE)
-        return count
+        ff = GZLineCounter(self.filename)
+        return len(ff)
 
     def count_lines(self):
-        """Return number of lines
-
-        This is 10-20 times faster than *wc* on uncompressed file and
-        3-4 times faster on zipped file (using gunzip -c file | wc -l)
-        """
+        """Return number of lines"""
         if self.filename.endswith("gz"):
             count = self._count_lines_gz()
         else:
