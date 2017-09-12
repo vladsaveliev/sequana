@@ -9,21 +9,14 @@ from sequana import snaketools as sm
 
 configfile: "config.yaml"
 
-manager = sm.PipelineManager("pacbio_qc", config, "*.bam")
+manager = sm.PipelineManager("pacbio_qc", config, "*.bam", fastq=False)
 
 
-# Input parameter to be changed
-directory = config['input_directory']
-filenames = glob.glob(directory + "/*.bam")
+sm.message("Number of samples: %d" % len(manager.samples))
 
-samples = [os.path.split(this)[1].replace(".bam", "")
-            for this in filenames]
+samples = manager.samples
+input_data = manager.getrawdata()
 
-sm.message("Number of samples: %d" % len(samples))
-
-
-# define IO for bam_to_fasta
-input_data = directory + "/{sample}.bam"
 
 # Convert the BAM into a FastA file
 __bam_to_fasta__input_bam = input_data
