@@ -22,6 +22,8 @@ import string
 import glob
 import json
 import re
+import gzip
+import io
 from collections import Counter
 
 from sequana.lazy import pandas as pd
@@ -30,9 +32,11 @@ from sequana import BAM
 
 from pysam import FastxFile
 from easydev import precision
+from easydev.misc import cmd_exists
+import subprocess
 
 
-__all__ = ['StatsBAM2Mapped', 'bam_to_mapped_unmapped_fastq']
+__all__ = ['StatsBAM2Mapped', 'bam_to_mapped_unmapped_fastq', "GZLineCounter"]
 
 
 class DataContainer(dict):
@@ -426,3 +430,54 @@ def genbank_features_parser(input_filename):
                         else:
                             new_feature[key] += " " + quali_line
     return records
+
+
+
+
+class GZLineCounter(object):
+    """Fast GZipped line counter
+
+    Uses zcat if possible, otherwise gzip library (twice as slow).
+
+    .. doctest::
+
+        >>> from sequana import sequana_data
+        >>> from sequana.misc import GZLineCounter
+        >>> gz = GZLineCounter(sequana_data("test.fastq.gz"))
+        >>> len(gz)
+        100
+
+    """
+    def __init__(self, filename):
+        self.filename = filename
+        if cmd_exists("zcat"):
+            self.use_zcat = True
+        else:
+            self.use_zcat = False
+
+    def __len__(self):
+        if self.use_zcat:
+            return self._use_zcat()
+        else:
+            return self._use_gzip()
+
+    def _use_zcat(self):
+        i = 0
+        p = subprocess.Popen(["zcat", self.filename], stdout=subprocess.PIPE)
+        for line in p.stdout:
+            i +=1
+        return i
+
+    """twice as fast as the other method below but large memory print
+    def _use_gzip(self):
+        with gzip.open(self.filename) as gz_file:
+            data = gz_file.read()
+        return len(data.splitlines())
+    """
+    def _use_gzip(self):
+        i = 0
+        with gzip.open(self.filename) as gz_file:
+            with io.BufferedReader(gz_file) as f:
+                for line in f:
+                    i += 1
+        return i
