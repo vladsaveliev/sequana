@@ -163,6 +163,24 @@ We would also recommend those tools::
     gatk-register GenomeAnalysisTK-3.7.tar.bz2
 
 
+singularity
+================
+
+Install singularity (http://singularity.lbl.gov/). Download our image::
+
+    singularity run shub://sequana/sequana:master
+
+and use it. For instance, to use sequana_coverage executable::
+
+    singularity exec sequana-sequana-master.img sequana_coverage --help
+
+or sequanix::
+
+    singularity exec sequana-sequana-master.img sequanix
+
+
+
+
 .. include:: ../docker/README.rst
 
 
