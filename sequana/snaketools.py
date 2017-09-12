@@ -754,7 +754,7 @@ class PipelineManager(object):
     For developers: the config attribute should be used as getter only.
 
     """
-    def __init__(self, name, config, pattern="*.fastq.gz"):
+    def __init__(self, name, config, pattern="*.fastq.gz", fastq=True):
         """.. rubric:: Constructor
 
         :param name: name of the pipeline
@@ -799,9 +799,9 @@ class PipelineManager(object):
         if not cfg.config.input_readtag:
              cfg.config.input_readtag = "_R[12]_"
 
-        try:
+        if fastq:
             self._get_fastq_files(glob_dir, cfg.config.input_readtag)
-        except:
+        else:
             self._get_bam_files(glob_dir)
         # finally, keep track of the config file
         self.config = cfg.config
@@ -1232,7 +1232,7 @@ class FastQFactory(FileFactory):
             msg = "Found no valid matches. "
             msg += "Files must have the tag %s" % read_tag
             logger.critical(msg)
-            raise Exception(msg)
+            raise Exception
         else:
             logger.critical('Found too many candidates: %s ' % candidates)
             msg = 'Found too many candidates or identical names: %s '\
