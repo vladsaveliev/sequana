@@ -88,11 +88,13 @@ rule bwa_mem_%(name)s:
         int(config['bwa_mem_%(name)s']['threads'])
     shell:
         """
+        # -N is important to sort like in samtools
+        # required for the quality control pipeline
         ({params.bwa_exe} mem -t {threads} {params.options} \
         {input.reference} {input.fastq} | \
         samtools view -Sbu - | \
         sambamba sort /dev/stdin -o {output.bam} -t {threads} \
-        --tmpdir={params.tmp}) 2> {log}
+        --tmpdir={params.tmp} -N )  2> {log}
         """
     '''
     from sequana.snaketools import build_dynamic_rule
