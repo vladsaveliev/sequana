@@ -18,9 +18,15 @@ Changelog
    * Fix genbank_parser when the genbank contains several concatenated genbank
      entries. This fixes the coverage reports CSV file that had missing
      annotations.
+   * Fix regression bug introduced in rule bwa_mem_dynamic that messed 
+     up R1 and R2 order as compared to samtools by using sambamba. Fixed by
+     using -N parameter.
+   
 
 * Updates:
 
+   * pacbio_qc: fix pattern to filter input BAM files
+   * Speed up fastq_count (https://github.com/sequana/sequana/issues/465)
    * bamtools module: speed up initialisation. add is_sorted method.
    * bedtools: limit number of points to 1,000,000 in plot_coverage and set
      ylimits manually to 6 mean coverage. add __eq__ function. See #464 issue
