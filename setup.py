@@ -53,6 +53,11 @@ if on_rtd:
     extra_packages = ["pillow", "numpydoc", "sphinx"]
     requirements += extra_packages
 
+
+if sys.version_info.major == 2:
+    requirements = [x for x in requirements 
+                    if x.startswith("snakemake") is False]
+
 setup(
     name             = "sequana",
     version          = version,
