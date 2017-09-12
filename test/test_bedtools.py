@@ -57,7 +57,7 @@ def test_genomecov():
 
     # !now let us read the good data sets
     bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
-    bed.compute_coverage()
+    bed.compute_coverage(4001)
 
     bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
     bed2 = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
@@ -143,7 +143,6 @@ def test_gc_content():
     with TempFile(suffix=".png") as fh:
         ch.plot_gc_vs_coverage(filename=fh.name)
 
-    from easydev import TempFile
     with TempFile() as fh:
         ch.to_csv(fh.name)
 
