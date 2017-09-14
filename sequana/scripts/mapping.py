@@ -67,6 +67,9 @@ Issues: http://github.com/sequana/sequana
             help="""reference """)
         self.add_argument("--thread", dest="thread", type=int, default=4,
             help="""number of threads """)
+        self.add_argument("--pacbio", dest="pacbio", action="store_true",
+            default=False,
+            help="""specific pacbio parameters recommended by bwa mem are used """)
 
 
 def main(args=None):
@@ -110,7 +113,10 @@ def main(args=None):
     cmd = "samtools faidx %(reference)s " % params
 
     # mapping
-    cmd = r"bwa mem -t %(thread)s -R @RG\\tID:1\\tSM:1\\tPL:illumina -T 30 %(reference)s %(fastq)s  "
+    cmd = "bwa mem "
+    if options.pacbio:
+        cmd += "-x pacbio "
+    cmd += r" -t %(thread)s -R @RG\\tID:1\\tSM:1\\tPL:illumina -T 30 %(reference)s %(fastq)s  "
     cmd += "| samtools view -Sbh -> %(reference)s.bam "
     shellcmd(cmd % params)
 
