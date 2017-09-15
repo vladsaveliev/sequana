@@ -9,7 +9,7 @@ from sequana import snaketools as sm
 
 configfile: "config.yaml"
 
-manager = sm.PipelineManager("pacbio_qc", config, "*.bam", fastq=False)
+manager = sm.PipelineManager("pacbio_qc", config,  fastq=False)
 
 
 sm.message("Number of samples: %d" % len(manager.samples))
