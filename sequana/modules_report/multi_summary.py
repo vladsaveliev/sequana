@@ -170,11 +170,11 @@ class MultiSummary(SequanaBaseModule):
         links = [{'href': filename.replace(".json", ".html"),'caption': project}
                                for filename, project in zip(self.filenames,self.projects)]
         introhtml = "<div><b>Number of samples:</b>{}</div>".format(len(self.summaries))
-        introhtml += '<div class="multicolumns"><ul>'
-        for link in links:
-            introhtml += ' <li><a href="{}">{}</a></li> '.format(
-                                        link["href"], link["caption"])
-        introhtml += '\n</ul>\n</div>'
+        #introhtml += '<div class="multicolumns"><ul>'
+        #for link in links:
+        #    introhtml += ' <li><a href="{}">{}</a></li> '.format(
+        #                                link["href"], link["caption"])
+        #introhtml += '\n</ul>\n</div>'
 
 
         self.jinja['sections'] = []
