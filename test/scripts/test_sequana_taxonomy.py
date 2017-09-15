@@ -24,7 +24,7 @@ def krakendb():
         for filename in filenames:
             from easydev import mkdirs
             mkdirs(HOME + os.sep + "database/taxonomy")
-            wget(baseurl + os.sep + filename, 
+            wget(baseurl + os.sep + filename,
                 os.sep.join([HOME, "database", filename]))
     except SystemExit:
         pass
@@ -48,7 +48,8 @@ def test_analysis(krakendb):
     # that must have been downloaded
     try:
         df = taxonomy.main([prog, '--file1', file1, "--database", "toydb",
-            "--file2", file2, "--level", "INFO", "--output-directory", directory.name])
+            "--file2", file2, "--level", "INFO", "--output-directory",
+            directory.name, "--thread", 1])
     except:
         HOME = os.getenv('HOME')
         database = os.sep.join([HOME, 'database'])
