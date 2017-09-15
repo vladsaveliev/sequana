@@ -25,6 +25,7 @@ Changelog
 
 * Updates:
 
+   * add pacbio option in the mapping code
    * pacbio_qc: fix pattern to filter input BAM files
    * Speed up fastq_count (https://github.com/sequana/sequana/issues/465)
    * bamtools module: speed up initialisation. add is_sorted method.
