@@ -11,6 +11,7 @@ OSVersion: xenial
 
     apt-get install -y wget
     apt-get install -y bzip2
+    apt-get install -y vim
     apt-get install -y libgl1-mesa-glx  # will be required by pyqt
     apt-get install -y fontconfig # for sequanix/qt fonts otherwise no text in menus
 
@@ -55,6 +56,11 @@ OSVersion: xenial
     conda clean --all -y # next requires lots of space
     rm -rf /usr/local/anaconda/pkgs
 
+
+    if [ ! -d /data ]; then mkdir /data; fi
+    if [ ! -d /scripts ]; then mkdir /scripts; fi
+    if [ ! -d /scratch ]; then mkdir /scratch; fi
+    if [ ! -d /mounting ]; then mkdir /mounting; fi
 
 %environment
     export PATH=$PATH:/usr/local/anaconda/bin
