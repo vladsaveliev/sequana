@@ -6,6 +6,7 @@ bowtie
 bowtie2
 busco==3.0.2
 bwa
+canu
 cutadapt
 fastq-screen
 freebayes
@@ -24,3 +25,4 @@ spades
 star
 subread
 multiqc
+# prokka
