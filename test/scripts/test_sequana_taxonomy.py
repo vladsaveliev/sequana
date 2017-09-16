@@ -49,12 +49,13 @@ def test_analysis(krakendb):
     try:
         df = taxonomy.main([prog, '--file1', file1, "--database", "toydb",
             "--file2", file2, "--level", "INFO", "--output-directory",
-            directory.name, "--thread", 1])
+            directory.name, "--thread", "1"])
     except:
         HOME = os.getenv('HOME')
         database = os.sep.join([HOME, 'database'])
         df = taxonomy.main([prog, '--file1', file1, "--database", database,
-            "--file2", file2,  "--output-directory", directory.name])
+            "--file2", file2,  "--output-directory",
+            directory.name, "--thread", "1"])
     from sequana import logger
     logger.info(directory.name)
 
