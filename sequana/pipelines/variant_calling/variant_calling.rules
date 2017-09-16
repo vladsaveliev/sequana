@@ -88,7 +88,7 @@ else:
 
 # Add read groups of sample
 __add_read_group__input = __bwa_mem_ref__bam
-__add_read_group__output = manager.getname("add_read_group/", ".rg.sorted.bam")
+__add_read_group__output = manager.getname("add_read_group", ".rg.sorted.bam")
 __add_read_group__log_err = manager.getlogdir("add_read_group.err")
 __add_read_group__log_std = manager.getlogdir("add_read_group.std")
 __add_read_group__rg = "ID=%s LB=%s PL=%s PU=%s SM=%s" % (
