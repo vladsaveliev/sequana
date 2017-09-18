@@ -37,7 +37,7 @@ rule bwa_bam_to_fastq:
         # zip the fastq files
         import glob
         for filename in glob.glob("%s/*.fastq" % params.wkdir):
-            shell("pigz -f %s -p {threads}" % filename)
+            shell("pigz -p {threads} -f %s " % filename)
 
 
 
