@@ -1259,12 +1259,16 @@ def init(filename, namespace):
         * expected_output as an empty list
         * toclean as an empty  list
 
+    Use e.g. in quality_control pipeline for bwa_mem_dynamic option
     """
     # Create global name for later
     if "__snakefile__" in namespace.keys():
         pass
     else:
+        # This contains the full path of the snakefile
         namespace['__snakefile__'] = filename
+        namespace['__pipeline_name__'] = \
+            os.path.split(filename)[1].replace(".rules", "")
         namespace['expected_output'] = []
         namespace['toclean'] = []
 
