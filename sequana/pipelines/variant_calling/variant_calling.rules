@@ -217,8 +217,8 @@ if config['joint_freebayes']['do']:
         include: snpeff_dynamic('joint', manager)
         __joint_freebayes_vcf_filter__input = __snpeff_joint__output
     else:
-        __joint_freebayes_vcf_filter__input = __joint_freebayes__input
-    
+        __joint_freebayes_vcf_filter__input = __joint_freebayes__output
+
     __joint_freebayes_vcf_filter__html = 'joint_calling/joint_calling.html'
     __joint_freebayes_vcf_filter__output = 'joint_calling/joint_calling.filter.vcf'
     __joint_freebayes_vcf_filter__report_dir = 'joint_calling'
