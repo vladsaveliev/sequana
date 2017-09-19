@@ -12,6 +12,15 @@ Changelog
 
 * BUGS:
 
+   * Set -t thread options correctly in the different rules (e.g. cutadapt)
+   * pipeline variant_calling: fix the VCF inputs when snpeff is off .
+     See https://github.com/sequana/sequana/issues/471
+   * pipeline quality_control. Fix regression bug introduced by the use 
+     of sambamba in the bwa_mem_dynamic rule (see 
+     ihttps://github.com/sequana/sequana/issues/472)
+   * Fix wrong total bases values in summary report of the quality_control
+     pipeline computed in FastQC class (see 
+     https://github.com/sequana/sequana/issues/470)
    * pipeline pacbio_qc: hard-coded the number of threads to 4 otherwise may
          fail on clusters. Does not change the pipeline or analysis itself
    * sequana_coverage: fix chromosome option.
@@ -21,7 +30,8 @@ Changelog
    * Fix regression bug introduced in rule bwa_mem_dynamic that messed 
      up R1 and R2 order as compared to samtools by using sambamba. Fixed by
      using -N parameter.
-   
+   * Fix the -p option to be before the input whenever pigz is used in a rules. 
+     Indeed -p may be ignored otherwise e.g. on clusters.
 
 * Updates:
 
