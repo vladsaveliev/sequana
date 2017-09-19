@@ -56,7 +56,8 @@ rule cutadapt:
         design = __cutadapt__design,
         design_adapter = __cutadapt__design_adapter,
         sample = __cutadapt__sample,
-        thread = config['cutadapt']['threads']
+    threads:
+        config['cutadapt']['threads']
     log: __cutadapt__log
     run:
         executable = config['cutadapt']['tool_choice'] # could be cutadapt or atropos
@@ -81,7 +82,7 @@ rule cutadapt:
         if len(input.fastq) == 2:
             if executable == "atropos":
                 cmd = "%s trim -p {output.fastq[1]}" % executable
-                cmd += " -pe1 {input.fastq[0]} -pe2 {input.fastq[1]} --progress bar -T {params.thread}"
+                cmd += " -pe1 {input.fastq[0]} -pe2 {input.fastq[1]} --progress bar -T {threads}"
             else:
                 cmd = "%s -p {output.fastq[1]}" % executable
                 cmd += " {input.fastq[0]} {input.fastq[1]} "
