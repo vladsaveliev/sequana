@@ -497,6 +497,8 @@ class PairedFastQ(object):
         for a, b in zip(FastQ(self.fq1), FastQ(self.fq2)):
             a = a['identifier'].decode()
             b = b['identifier'].decode()
+            a = a.split()[0]
+            b = b.split()[0]
 
             if a.endswith("/1"):
                 id1 = a.rsplit("/1")[0]
@@ -515,6 +517,7 @@ class PairedFastQ(object):
                 print("%s differs from %s" % (id1, id2))
                 print(a)
                 print(b)
+                
                 return False
             N += 1
         print(N)
