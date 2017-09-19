@@ -30,7 +30,7 @@ rule bz2_to_gz:
         shell(cmd)
 
         # conversion
-        cmd = "pbunzip2 -p {threads} {input}  --stdout | pigz -p {threads}  > {output}"
+        cmd = "pbunzip2 -p{threads} {input}  --stdout | pigz -p {threads}  > {output}"
         shell(cmd)
 
         # integrity output
