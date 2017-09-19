@@ -70,6 +70,9 @@ Issues: http://github.com/sequana/sequana
         self.add_argument("--pacbio", dest="pacbio", action="store_true",
             default=False,
             help="""specific pacbio parameters recommended by bwa mem are used """)
+        self.add_argument("--use-sambamba", dest="sambamba", action="store_true",
+            default=False,
+            help="""use sambamba instead of samtools for the sorting """)
 
 
 def main(args=None):
@@ -113,15 +116,25 @@ def main(args=None):
     cmd = "samtools faidx %(reference)s " % params
 
     # mapping
-    cmd = "bwa mem "
+    cmd = "bwa mem -M "  # mark shorter split read as secondary; -M is not compulsary but recommended
     if options.pacbio:
         cmd += "-x pacbio "
     cmd += r" -t %(thread)s -R @RG\\tID:1\\tSM:1\\tPL:illumina -T 30 %(reference)s %(fastq)s  "
-    cmd += "| samtools view -Sbh -> %(reference)s.bam "
-    shellcmd(cmd % params)
 
-    # sorting BAM
-    shellcmd("samtools sort -@ %(thread)s -o %(reference)s.sorted.bam  %(reference)s.bam" % params)
+    # Samtools options:
+    #   S:ignore input format
+    #   h:include header
+    #   b:bam output
+    if options.sambamba is False:
+        cmd += "| samtools view -Sbh | "
+        # sorting BAM
+        cmd += "samtools sort -@ %(thread)s -o %(reference)s.sorted.bam -"
+        shellcmd(cmd % params)
+    else:
+        # FIXME use sambamba for the view as well
+        cmd += "| samtools view -Sbu - | sambamba sort /dev/stdin -o %(reference)s.sorted.bam -t %(thread)s  --tmpdir=./tmp  " % params
+        shellcmd(cmd % params)
+
 
 
 """reference = "JB409847"
