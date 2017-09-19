@@ -13,7 +13,7 @@ from sequana.lazy import numpy as np
 from sequana.lazy import pandas as pd
 from sequana.lazy import pylab
 from sequana.tools import GZLineCounter
-from easydev import Progress
+from easydev import Progress, do_profile
 
 import pysam
 try:
@@ -832,7 +832,7 @@ class FastQC(object):
         """.. rubric:: constructor
 
         :param filename:
-        :param int max_sample: Large files will npt fit in memory. We therefore
+        :param int max_sample: Large files will not fit in memory. We therefore
             restrict the numbers of reads to be used for some of the statistics
             to 500,000.  This also reduces the amount of time required to get a
             good feeling of the data quality. The entire input file is
@@ -864,16 +864,18 @@ class FastQC(object):
         Will be called on request"""
         qualities = []
         mean_qualities = []
+        mean_length = 0
         sequences = []
         minimum = 1e6
         maximum = 0
         self.lengths = np.empty(self.N)
         self.gc_list = []
-        self.N_list = []
 
         self.identifiers = []
         if self.verbose:
             pb = Progress(self.N)
+
+        stats = {"A":0, "C":0, "G":0, "T":0, "N":0}
 
         # could use multiprocessing
         fastq = pysam.FastxFile(self.filename)
@@ -895,12 +897,21 @@ class FastQC(object):
 
             GC = record.sequence.count('G') + record.sequence.count('C')
             self.gc_list.append(GC/float(self.lengths[i])*100)
-            self.N_list.append(record.sequence.count('N'))
+
+            # not using a counter, or loop speed up the code
+            stats["A"] += record.sequence.count("A")
+            stats["C"] += record.sequence.count("C")
+            stats["G"] += record.sequence.count("G")
+            stats["T"] += record.sequence.count("T")
+            stats["N"] += record.sequence.count("N")
+
+            mean_length += len(record.sequence)
 
             if self.verbose:
                 pb.animate(i+1)
 
         # other data
+        self.mean_length = mean_length / float(self.N)
         self.qualities = qualities
         self.mean_qualities = mean_qualities
         self.minimum = int(self.lengths.min())
@@ -908,6 +919,7 @@ class FastQC(object):
         self.sequences = sequences
         self.nucleotides = self.lengths.sum()
         self.gc_content = np.mean(self.gc_list)
+        self.stats_letters = stats
 
         try:
             if self.dotile:
@@ -1039,16 +1051,21 @@ class FastQC(object):
 
     @run_info
     def get_stats(self):
+        # FIXME the information should all be computed in _get_info
+
+        # !!! sequences is limited to 500,000 if max_sample set to 500,000
+        # full stats must be computed in run_info() method
+        # so do not use .sequences here
         stats = {"GC content": self.gc_content,
             "n_reads": self.N}
         for letter in 'ACGTN':
-            stats[letter] = sum((x.count(letter) for x in self.sequences))
+            stats[letter] = self.stats_letters[letter]
 
-        stats['total bases'] = sum([len(this) for this in self.sequences])
+        stats['total bases'] = self.nucleotides
         stats['mean quality'] = np.mean(self.mean_qualities)
-        stats['average read length'] = np.mean([len(this) for this in self.sequences])
-        stats['min read length'] = np.min([len(this) for this in self.sequences])
-        stats['max read length'] = np.max([len(this) for this in self.sequences])
+        stats['average read length'] = self.mean_length
+        stats['min read length'] = self.minimum
+        stats['max read length'] = self.maximum
 
         # use DataFrame instead of Series to mix types (int/float)
         ts = pd.DataFrame([stats])
