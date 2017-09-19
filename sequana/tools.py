@@ -35,7 +35,6 @@ from easydev import precision
 from easydev.misc import cmd_exists
 import subprocess
 
-
 __all__ = ['StatsBAM2Mapped', 'bam_to_mapped_unmapped_fastq', "GZLineCounter"]
 
 
@@ -116,7 +115,9 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
     In the paired-end case, 4 files are created.
 
     Note that this function is efficient in that it does not create intermediate
-    files limiting IO in the process.
+    files limiting IO in the process. As compared to standard tools such as 
+    bedtools bamtofastq, it is 1.5 to 2X slower but it does create the mapped
+    AND unmapped reads.
 
     :Details: Secondary alignment (flag 256) are dropped so as to remove any
         ambiguous alignments. The output dictionary stores "secondary" key to
@@ -142,7 +143,7 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
 
     .. note:: the mapped reads may not be synchronized because we include also
         the chimeric alignment (cf samtools documentation). However, 
-        total reads = unmappeds reads + R1 mapped + R2 mapped - supplemntary
+        total reads = unmappeds reads + R1 mapped + R2 mapped - supplementary
         reads (those with flag 2048).
     """
     bam = BAM(filename)
@@ -481,3 +482,40 @@ class GZLineCounter(object):
                 for line in f:
                     i += 1
         return i
+
+
+
+class PairedFastQ(object):
+
+    def __init__(self, fq1, fq2):
+        self.fq1 = fq1
+        self.fq2 = fq2
+
+    def is_synchronised(self):
+        from sequana import FastQ
+        N = 0
+        for a, b in zip(FastQ(self.fq1), FastQ(self.fq2)):
+            a = a['identifier'].decode()
+            b = b['identifier'].decode()
+
+            if a.endswith("/1"):
+                id1 = a.rsplit("/1")[0]
+            elif a.endswith("/2"):
+                id1 = a.rsplit("/2")[0]
+            else:
+                id1 = a
+            if b.endswith("/1"):
+                id2 = b.rsplit("/1")[0]
+            elif b.endswith("/2"):
+                id2 = b.rsplit("/2")[0]
+            else:
+                id2 = b
+
+            if id1 != id2:
+                print("%s differs from %s" % (id1, id2))
+                print(a)
+                print(b)
+                return False
+            N += 1
+        print(N)
+        return True
