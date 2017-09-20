@@ -213,7 +213,30 @@ http://sequana.readthedocs.io/en/master/tutorial.html#new-in-v0-10
 
 
 
+Singularity
+-----------------
 
+If you use the singularity container and get this kind of error::
+
+    singularity shell sequana-sequana-master.img
+    ERROR  : Base home directory does not exist within the container: /pasteur
+    ABORT  : Retval = 255
+
+it means the container does not know about the Base home directory.
+
+If you have sudo access, add the missing path as follows::
+
+    sudo singularity shell --writable sequana-sequana-master.img
+    mkdir /pasteur
+    exit
+
+If you do not have sudo permissions, copy the image on a computer where you have
+such permission, use the same code as above and copy back the new image on the
+computer where you had the issue. 
+
+Finally, try to use the container again using this code::
+
+    singularity shell sequana-sequana-master.img
 
 
 
