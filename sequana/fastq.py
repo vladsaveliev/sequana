@@ -910,6 +910,10 @@ class FastQC(object):
             if self.verbose:
                 pb.animate(i+1)
 
+        if i + 1 != self.N:
+            raise ValueError(
+                "Issue in sequana.fastqc when parsing the zipped fastq file")
+
         # other data
         self.mean_length = mean_length / float(self.N)
         self.qualities = qualities
