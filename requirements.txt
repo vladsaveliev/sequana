@@ -1,3 +1,4 @@
+atropos
 bioservices>=1.4.14
 biokit>=0.4.1
 colorlog
