@@ -8,6 +8,8 @@ from itertools import islice
 import gzip
 import subprocess
 from functools import wraps
+from collections import Counter, defaultdict
+
 
 from sequana.lazy import numpy as np
 from sequana.lazy import pandas as pd
@@ -15,7 +17,11 @@ from sequana.lazy import pylab
 from sequana.tools import GZLineCounter
 from easydev import Progress, do_profile
 
+from atropos.io.seqio import FastqReader
+
 import pysam
+from pysam import qualitystring_to_array
+
 try:
     from itertools import izip_longest
 except:
@@ -838,7 +844,6 @@ class FastQC(object):
             good feeling of the data quality. The entire input file is
             parsed tough. This is required for instance to get the number of
             nucleotides.
-        :param bool dotile: compute more
         """
         self.verbose = verbose
         self.filename = filename
@@ -853,7 +858,6 @@ class FastQC(object):
         # Use only max_sample in some of the computation
         self.max_sample = min(max_sample, self.N)
 
-        self.dotile = dotile
 
         self.summary = {}
         self.fontsize = 16
@@ -862,84 +866,78 @@ class FastQC(object):
         """Populates the data structures for plotting.
 
         Will be called on request"""
-        qualities = []
-        mean_qualities = []
-        mean_length = 0
-        sequences = []
+
+        stats = {"A":0, "C":0, "G":0, "T":0, "N":0}
+        stats["qualities"] = []
+        stats["mean_qualities"] = []
+        stats["mean_length"] = 0
+        stats["sequences"] = []
+
         minimum = 1e6
         maximum = 0
+        # FIXME this self.N takes time in the cosntructor
+        # do we need it ?
         self.lengths = np.empty(self.N)
         self.gc_list = []
-
-        self.identifiers = []
+        total_length = 0
+        C = defaultdict(int)
         if self.verbose:
             pb = Progress(self.N)
 
-        stats = {"A":0, "C":0, "G":0, "T":0, "N":0}
-
+        sequences = []
+        mean_qualities = []
+        qualities = []
         # could use multiprocessing
-        fastq = pysam.FastxFile(self.filename)
-        for i, record in enumerate(fastq):
-            try:
-                self.lengths[i] = len(record.sequence)
-            except:
-                print(record)
+        # FastxFile has shown some errors while handling gzip files
+        # created with zlib (e.g. from atropos). This is now replaced
+        # by the Atropos FastqReader for now.
+        #fastq = pysam.FastxFile(self.filename)
 
-            if i < self.max_sample:
-                quality = record.get_quality_array()
-                mean_qualities.append(sum(quality)/self.lengths[i])
-                qualities.append(quality)
-                sequences.append(record.sequence)
+        with FastqReader(self.filename) as f:
+            for i, record in enumerate(f):
+                N = len(record.sequence)
+                self.lengths[i] = N
 
-            if self.dotile:
-                identifier = Identifier(record.name)
-                self.identifiers.append(identifier.info)
+                # we can store all qualities and sequences reads, so
+                # just max_sample are stored:
+                if i < self.max_sample:
+                    quality = [ord(x) -33 for x in record.qualities]
+                    mean_qualities.append(sum(quality) / N)
+                    qualities.append(quality)
+                    sequences.append(record.sequence)
 
-            GC = record.sequence.count('G') + record.sequence.count('C')
-            self.gc_list.append(GC/float(self.lengths[i])*100)
+                # store count of all qualities
+                for k in record.qualities:
+                    C[k] += 1
 
-            # not using a counter, or loop speed up the code
-            stats["A"] += record.sequence.count("A")
-            stats["C"] += record.sequence.count("C")
-            stats["G"] += record.sequence.count("G")
-            stats["T"] += record.sequence.count("T")
-            stats["N"] += record.sequence.count("N")
+                GG = record.sequence.count('G') 
+                CC = record.sequence.count('C')
+                self.gc_list.append((GG+CC)/float(N)*100)
 
-            mean_length += len(record.sequence)
+                # not using a counter, or loop speed up the code
+                stats["A"] += record.sequence.count("A")
+                stats["C"] += CC
+                stats["G"] += GG
+                stats["T"] += record.sequence.count("T")
+                stats["N"] += record.sequence.count("N")
 
-            if self.verbose:
-                pb.animate(i+1)
+                total_length += len(record.sequence)
 
-        if i + 1 != self.N:
-            raise ValueError(
-                "Issue in sequana.fastqc when parsing the zipped fastq file")
+                if self.verbose:
+                    pb.animate(i+1)
 
         # other data
-        self.mean_length = mean_length / float(self.N)
         self.qualities = qualities
         self.mean_qualities = mean_qualities
         self.minimum = int(self.lengths.min())
         self.maximum = int(self.lengths.max())
         self.sequences = sequences
-        self.nucleotides = self.lengths.sum()
         self.gc_content = np.mean(self.gc_list)
-        self.stats_letters = stats
+        stats['mean_length'] = total_length / float(self.N)
+        stats['total_bp'] = stats['A'] + stats['C'] + stats['G'] + stats["T"] + stats['N']
+        stats['mean_quality'] = sum([(ord(k) -33)*v for k,v in C.items()]) / stats['total_bp']
 
-        try:
-            if self.dotile:
-                print('\nCreating tiles data')
-                self.tiles = {}
-                self.tiles['x'] = [float(this['x_coordinate']) for this in self.identifiers]
-                self.tiles['y'] = [float(this['y_coordinate']) for this in self.identifiers]
-                self.tiles['tiles'] = [this['tile_number'] for this in self.identifiers]
-                import collections
-                d = collections.defaultdict(list)
-                for tile, seq in zip(self.tiles['tiles'], self.qualities):
-                    d[tile].append(seq)
-                self.data_imqual = [pd.DataFrame(d[key]).mean().values for key in sorted(d.keys())]
-        except:
-            print("Some data could not be extracted from identifiers. "
-            "Not all figure will be available. Illumina identifiers required")
+        self.stats = stats
 
     @run_info
     def imshow_qualities(self):
@@ -955,6 +953,12 @@ class FastQC(object):
             from pylab import tight_layout; tight_layout()
 
         """
+        tiles = self._get_tile_info()
+        d = defaultdict(list)
+        for tile, seq in zip(tiles['tiles'], self.qualities):
+            d[tile].append(seq)
+        self.data_imqual = [pd.DataFrame(d[key]).mean().values for key in sorted(d.keys())]
+
         from biokit.viz import Imshow
         im = Imshow(self.data_imqual)
         im.plot(xticks_on=False, yticks_on=False, origin='lower')
@@ -962,7 +966,19 @@ class FastQC(object):
         pylab.xlabel("Position in read (bp)")
         pylab.ylabel("tile number")
 
-    @run_info
+    def _get_qualities(self):
+        from sequana import logger
+        logger.info("Extracting qualities")
+        qualities = []
+        with FastqReader(self.filename) as f:
+            for i, record in enumerate(f):
+                if i < self.max_sample:
+                    quality = [ord(x) -33 for x in record.qualities]
+                    qualities.append(quality)
+                else:
+                    break
+        return qualities
+
     def boxplot_quality(self, hold=False, ax=None):
         """Boxplot quality
 
@@ -971,9 +987,9 @@ class FastQC(object):
 
         Background separate zone of good, average and bad quality (arbitrary).
 
-
         """
-        df = pd.DataFrame(self.qualities)
+        qualities = self._get_qualities()
+        df = pd.DataFrame(qualities)
         from biokit.viz.boxplot import Boxplot
         bx = Boxplot(df)
         try:
@@ -982,7 +998,19 @@ class FastQC(object):
         except:
             bx.plot()
 
-    @run_info
+    def _get_tile_info(self):
+        identifiers = []
+        tiles = {}
+        with FastqReader(self.filename) as f:
+            for i, record in enumerate(f):
+                if i < self.max_sample:
+                    identifier = Identifier(record.name)
+                    identifiers.append(identifier.info)
+        tiles['x'] = [float(this['x_coordinate']) for this in identifiers]
+        tiles['y'] = [float(this['y_coordinate']) for this in identifiers]
+        tiles['tiles'] = [this['tile_number'] for this in identifiers]
+        return tiles
+
     def histogram_sequence_coordinates(self):
         """Histogram of the sequence coordinates on the plate
 
@@ -997,10 +1025,11 @@ class FastQC(object):
         .. note:: in this data set all points have the same coordinates.
 
         """
+        tiles = self._get_tile_info()
         # Distribution of the reads in x-y plane
         # less reads on the borders ?
         from biokit.viz.hist2d import Hist2D
-        Hist2D(self.tiles['x'], self.tiles['y']).plot()
+        Hist2D(tiles['x'], tiles['y']).plot()
 
     @run_info
     def histogram_sequence_lengths(self, logy=True):
@@ -1060,14 +1089,13 @@ class FastQC(object):
         # !!! sequences is limited to 500,000 if max_sample set to 500,000
         # full stats must be computed in run_info() method
         # so do not use .sequences here
-        stats = {"GC content": self.gc_content,
-            "n_reads": self.N}
-        for letter in 'ACGTN':
-            stats[letter] = self.stats_letters[letter]
+        stats = self.stats.copy()
+        stats['GC content'] = self.gc_content
+        stats["n_reads"] = self.N
 
-        stats['total bases'] = self.nucleotides
+        stats['total bases'] = self.stats['total_bp']
         stats['mean quality'] = np.mean(self.mean_qualities)
-        stats['average read length'] = self.mean_length
+        stats['average read length'] = self.stats['mean_length']
         stats['min read length'] = self.minimum
         stats['max read length'] = self.maximum
 
@@ -1080,26 +1108,34 @@ class FastQC(object):
 
     @run_info
     def get_actg_content(self):
+        # what is the longest string ?
+        lengths = [len(x) for x in self.sequences]
+        max_length = max(lengths)
 
-        # Assuming length of the reads are all equal !
-        N = len(self.sequences[0])
-        Total = float(len(self.sequences))
-
+        # count ACGTN in each columns for all sequences
         Nseq = len(self.sequences)
         from collections import Counter
         data = []
-        for pos in range(N):
-            data.append(Counter([self.sequences[i][pos] for i in range(Nseq)]))
+        for pos in range(max_length):
+            # we add empty strings to have all sequences with same lengths
+            data.append(Counter([
+                (self.sequences[i] + " " * (max_length - len(self.sequences[i])) )[pos] 
+                for i in range(Nseq)]))
 
+        # remove the empty strings to normalise the data
         df = pd.DataFrame.from_records(data)
-        df /= Total
+        if " " in df.columns:
+            df.drop(" ", axis=1, inplace=True)
+        df.fillna(0, inplace=True)
+        df = df.divide(df.sum(axis=1), axis=0)
+
         if "N" in df.columns:
             df = df[["A", "C", "G", "T", "N"]]
         else:
             df = df[["A", "C", "G", "T"]]
         return df
 
-    def plot_acgt_content(self):
+    def plot_acgt_content(self, stacked=False):
         """Plot histogram of GC content
 
         .. plot::
@@ -1112,8 +1148,12 @@ class FastQC(object):
             qc.plot_acgt_content()
         """
         df = self.get_actg_content()
-        df.plot()
-        pylab.grid(True)
+        if stacked is True:
+            df.plot.bar(stacked=True)
+        else:
+            df.plot()
+            pylab.grid(True)
         pylab.xlabel("position (bp)", fontsize=self.fontsize)
         pylab.ylabel("percent", fontsize=self.fontsize)
+
 
