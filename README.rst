@@ -3,7 +3,7 @@ SEQUANA
 
 
 .. image:: https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)
-   http://bioconda.github.io/recipes/sequana/README.html
+   :target: http://bioconda.github.io/recipes/sequana/README.html
 
 .. image:: https://badge.fury.io/py/sequana.svg
     :target: https://pypi.python.org/pypi/sequana
