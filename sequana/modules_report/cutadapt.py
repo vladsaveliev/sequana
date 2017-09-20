@@ -261,7 +261,7 @@ class CutadaptModule(SequanaBaseModule):
             elif len(found) == 1:
                 text = found[0].split(":", 1)[1].strip()
                 try:
-                    this, percent = text.split(" ")
+                    this, percent = text.split()
                     self.jinja[key] = this
                     self.jinja[key+'_percent'] = percent
                 except:
