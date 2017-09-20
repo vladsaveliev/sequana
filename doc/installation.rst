@@ -3,20 +3,25 @@
 Installation
 ##########################################
 
+In order to use Sequana, you can either install from source (or conda), or use one of the 
+available container (Docker or Singularity).
+
+
 Quick installation
 =====================
 
-There are three ways to install sequana but we strongly recommend the **conda**
-way.
+* Sequana is available on conda/bioconda as pre-compiled package (**conda install sequana**).
+* If you prefer to install everything yourself, the source code is available on
+  github (http://github.com/sequana/sequana) and releases of the source code are posted on Pypi (**pip install sequana**). 
 
 
 .. _installation_conda:
 
 
-From bioconda
----------------
+From bioconda (Recommended !! )
+-------------------------------------
 
-Sequana is on bioconda. You can follow these `instructions <http://bioconda.github.io/recipes/sequana/README.html>`_ or type::
+Sequana is on `bioconda <https://bioconda.github.io/>`_. You can follow these `instructions <http://bioconda.github.io/recipes/sequana/README.html>`_ or type::
 
     conda install sequana
 
@@ -27,23 +32,33 @@ You would need these special channels::
     conda config --add channels conda-forge
     conda config --add channels bioconda
 
-And possibly install those dependencies required for the Sequana pipelines::
+
+If you have already set the channels, please check that the order is correct.
+With the following command::
+
+    conda config --get channels
+
+You should se::
+
+    --add channels 'r'   # lowest priority
+    --add channels 'defaults'
+    --add channels 'conda-forge'
+    --add channels 'bioconda'   # highest priority
+
+
+
+This does not provide all dependencies needed by the different pipelines. So,
+you may need to install extra packages as listed in this requirement file that
+can be used with conda::
 
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
 
 
-The previous method install Sequana from bioconda version 0.4.1 
-For version 0.5.0, please use::
-
-   conda install anaconda-client
-   conda env create cokelaer/sequanaenv
-
-This fetches the environement and installs the dependencies and sequana version
-0.5.0 Note that you still need to add the bioconda channels (see command above).
 
 
-From Pypi website
-----------------------
+
+From Pypi website (released source code)
+------------------------------------------
 If you do not want to use **conda**, we provide releases on the Python Package Index website (pip tool)::
 
     pip install sequana
@@ -51,8 +66,8 @@ If you do not want to use **conda**, we provide releases on the Python Package I
 
 See below for dependencies.
 
-From Source
------------------
+From GitHub Source code
+------------------------------
 
 Finally, if you are a developer, you can install **sequana** from source::
 

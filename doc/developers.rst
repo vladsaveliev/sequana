@@ -188,6 +188,8 @@ allows users to use any parameters.
 .. seealso:: Sequana contains many pipelines that can be used as examples.
     See `github repo <https://github.com/sequana/sequana/tree/master/sequana/pipelines>`_
 
+.. note:: Boolean are very permissive. One can use:
+   true|True|TRUE|false|False|FALSE yes|Yes|YES|no|No|NO on|On|ON|off|Off|OFF
 
 Add documentation in the rule
 ----------------------------------
