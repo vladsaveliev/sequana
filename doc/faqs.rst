@@ -126,6 +126,7 @@ Downgrading to version 0.11.2.1 and upgrading to working version solves the prob
 but one reason was also related to the order of the channel in the .condarc
 file. You may get bzip2 from the default channel and not from
 conda-forge (reference: https://github.com/bioconda/bioconda-recipes/issues/5188)
+::
 
     conda install --override-channels -c conda-forge bzip2
 
