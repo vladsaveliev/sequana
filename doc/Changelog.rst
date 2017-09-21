@@ -6,6 +6,24 @@ Changelog
 2017
 ------
 
+0.5.2
+~~~~~~~~~~~~~~~
+
+* BUGS:
+
+    * cutadapt rule: remove the '--progress bar' because of a bug in atropos
+      (reported) that fails in the progress bar code when mutli-threaded. Could
+      an issue in a dependencies of atropos.
+
+Update:
+
+    * pipeline quality_control: add sanity check (thread must be >1 for atropos)
+    * pin atropos version to 1.1.10 and added to requirements.txt
+    * Fix parsing of atropos report
+    * Update FastQC significantly to use atropos FastqReader instead of pysam.FastxFile
+    * documentation for the installation (remove docker, add singularity)
+
+
 
 0.5.1
 ~~~~~~~~~~~~~~~
