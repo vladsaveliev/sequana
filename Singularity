@@ -47,11 +47,11 @@ OSVersion: xenial
 
 
     conda clean --packages -y # next requires lots of space
-    #conda install -y prokka  # takes a lot!!! 
+    #conda install -y prokka  # takes a lot!!!
 
-    #conda install -y busco==3.0.2 
-    conda install -y picard shustring 
-    conda install -y atropos==1.0.23
+    #conda install -y busco==3.0.2
+    conda install -y picard shustring
+    conda install -y atropos<=1.1.5
     pip install sequana
     conda clean --all -y # next requires lots of space
     rm -rf /usr/local/anaconda/pkgs
