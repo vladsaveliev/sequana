@@ -7,91 +7,35 @@ In order to use Sequana, you can either install from source (or conda), or use o
 available container (Docker or Singularity).
 
 
-Quick installation
-=====================
+Overview of installation methods
+====================================
 
-* Sequana is available on conda/bioconda as pre-compiled package (**conda install sequana**).
-* If you prefer to install everything yourself, the source code is available on
-  github (http://github.com/sequana/sequana) and releases of the source code are posted on Pypi (**pip install sequana**). 
+We support 3 types of installations:
 
+#. Singularity. Strictly speaking, there is no installation. This method is for testing and production. It download an image / container that is ready-to-use::
+
+    singularity pull shub://sequana/sequana:master
+    singularity shell sequana-sequana-master.img
+
+#. Bioconda. **Sequana** is available on conda/bioconda as a pre-compiled package::
+
+        conda install sequana
+
+#. From source. If you prefer to install everything yourself, the source code is available on
+   github (http://github.com/sequana/sequana) and releases are posted on Pypi::
+
+        pip install sequana
+
+This three methods are detailled hereafter.
 
 .. _installation_conda:
 
 
-From bioconda (Recommended !! )
--------------------------------------
-
-Sequana is on `bioconda <https://bioconda.github.io/>`_. You can follow these `instructions <http://bioconda.github.io/recipes/sequana/README.html>`_ or type::
-
-    conda install sequana
-
-You would need these special channels::
-
-    conda config --add channels r
-    conda config --add channels default
-    conda config --add channels conda-forge
-    conda config --add channels bioconda
-
-
-If you have already set the channels, please check that the order is correct.
-With the following command::
-
-    conda config --get channels
-
-You should se::
-
-    --add channels 'r'   # lowest priority
-    --add channels 'defaults'
-    --add channels 'conda-forge'
-    --add channels 'bioconda'   # highest priority
-
-
-
-This does not provide all dependencies needed by the different pipelines. So,
-you may need to install extra packages as listed in this requirement file that
-can be used with conda::
-
-    conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
-
-
-
-
-
-From Pypi website (released source code)
-------------------------------------------
-If you do not want to use **conda**, we provide releases on the Python Package Index website (pip tool)::
-
-    pip install sequana
-    pip install PyQt5
-
-See below for dependencies.
-
-From GitHub Source code
-------------------------------
-
-Finally, if you are a developer, you can install **sequana** from source::
-
-    git clone git@github.com:sequana/sequana.git
-    cd sequana
-    python setup.py install
-
-See below for dependencies.
-
-Dependencies
-=================
-
-With the methods above, you should have a working libary of Sequana and its
-standalones (e.g. Sequanix). However, if you wish to use all the pipelines,
-additional tools and libraries are required. Some are available on PyPi (Python
-software) but others will be available only on BioConda.
-
-
-Installation using Conda
-============================
+From bioconda (Recommended )
+===================================
 
 If you have not installed **Sequana**, be aware that it relies on many dependencies
 that needs to be compiled (i.e., it is time consumming and requires proper C compilator).
-For example, we use Matplotlib that requires compilation.
 Besides, many pipelines rely on third-party software such as BWA or samtools that are not
 Python libraries. Yet, using **conda**, this process is simplified.
 
@@ -100,11 +44,10 @@ Install conda executable
 
 In practice, we do use `Anaconda <https://conda.readthedocs.io/>`_ . We recommend to
 install **conda** executable via the manual installer (`download <https//continuum.io/downloads>`_). 
-You may have the choice
-between Python 2 and 3. We recommend to choose a Python version 3.
+You may have the choice between Python 2 and 3. We recommend to choose a Python version 3.
 
-Add conda channels
----------------------
+Add bioconda channels
+------------------------
 
 When you want to install a new package, you have to use this type of syntax::
 
@@ -123,10 +66,22 @@ these commands (once for all)::
 .. warning:: **it is important to add them in this order**, as mentionned on bioconda webpage
     (https://bioconda.github.io/).
 
-Create an environment
+If you have already set the channels, please check that the order is correct.
+With the following command::
+
+    conda config --get channels
+
+You should see::
+
+    --add channels 'r'   # lowest priority
+    --add channels 'defaults'
+    --add channels 'conda-forge'
+    --add channels 'bioconda'   # highest priority
+
+Create an environement
 -------------------------
 
-Once **conda** is installed, open a new shell.
+Once **conda** is installed and the channels set, open a new shell.
 Although this is not required strictly speaking, we would
 recommend to create an environment dedicated to Sequana. This environment can
 later be removed without affecting your system or conda installation. A
@@ -136,49 +91,57 @@ follows::
     conda create --name sequana_env python=3.5
 
 Then, since you may have several environments, you must activate the **sequana**
-environment itself::
+environment itself (each time you open a new shell)::
 
     source activate sequana_env
 
-Install sequana via conda (bioconda)
--------------------------------------
 
-Finally, just type::
+Installation
+-------------------
+
+Sequana is on `bioconda <https://bioconda.github.io/>`_. You can follow these `instructions <http://bioconda.github.io/recipes/sequana/README.html>`_ or type::
 
     conda install sequana
 
-This should install most of the required dependencies. However, you may need to
-install more packages depending on the pipeline used. To install all required
-packages, you may use this command::
 
-    conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements.txt
+This does not provide all dependencies needed by the different pipelines. So,
+you may need to install extra packages as listed in this requirement file that
+can be used with conda::
+
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
 
-Developers, can also install pytest and sphinx::
-
-    conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_dev.txt
-
-We would also recommend those tools::
-
-    conda install ipython jupyter 
-
-.. note:: atropos is an alternative to cutadapt with additional options but same
-   type of functionalties and arguments. We use version 1.0.23 and above though. 
-
-.. note:: the denovo_assembly pipelines uses Quast tool, which we ported to
-    python 3.5 and was pulled on Quast official github page. This is not
-    yet in bioconda but one can get it from the quast github (sept 2016). This is
-    required for the de-novo pipeline. The denovo pipeline also requires GATK, 
-    to be installed manually by users (due to licensing restrictions)
-
-.. note:: For GATK (variant caller), please go to
-   https://software.broadinstitute.org/gatk/download/auth?package=GATK and
-   download the file GenomeAnalysisTK-3.7.tar.bz2 ; then type::
-
-    gatk-register GenomeAnalysisTK-3.7.tar.bz2
 
 
-singularity
+
+
+
+From Pypi website (released source code)
+==========================================
+If you do not want to use **conda**, we provide releases on the Python Package Index website (pip tool)::
+
+    pip install sequana
+    pip install PyQt5
+
+
+.. warning:: we do not support this methods but it should work. The main
+    issues being that you will need to install the dependencies yourself. See
+    hereafter for some of the tool used by the pipelines
+
+
+From GitHub Source code
+===========================
+
+Finally, if you are a developer and wish to use the latest code, you 
+can install **sequana** from source::
+
+    git clone git@github.com:sequana/sequana.git
+    cd sequana
+    python setup.py install
+
+This should install most of the required dependencies. However, you may need to
+install more packages depending on the pipeline used. See hereafter.
+
+Singularity
 ================
 
 Install singularity (http://singularity.lbl.gov/). Download our image::
@@ -192,6 +155,44 @@ and use it. For instance, to use sequana_coverage executable::
 or sequanix::
 
     singularity exec sequana-sequana-master.img sequanix
+
+Notes about dependencies
+===========================
+
+When installing **Sequana** with conda and from the source, it should install
+all the Python dependencies and you should be ready to go to use the Sequana
+Python library.
+
+However, note that most of the pipelines rely on extra dependencies that are not
+necesseraly Python-based. For instance **bwa** is in C, others may be in R or
+perl. 
+
+The list of requirements is available in the source code::
+
+    https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
+
+and conda may be used to install those dependencies automatically::
+
+    conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
+
+Otherwise you need to proceed to the installation of those dependencies by
+yourself.
+
+.. note:: atropos is an alternative to cutadapt with additional options but same
+   type of functionalties and arguments. We use version 1.0.23 and above though.
+
+
+.. note:: the denovo_assembly pipelines uses Quast tool, which we ported to
+    python 3.5 and was pulled on Quast official github page. This is not
+    yet in bioconda but one can get it from the quast github (sept 2016). This is
+
+    to be installed manually by users (due to licensing restrictions)
+
+.. note:: For GATK (variant caller), please go to
+   https://software.broadinstitute.org/gatk/download/auth?package=GATK and
+   download the file GenomeAnalysisTK-3.7.tar.bz2 ; then type::
+
+    gatk-register GenomeAnalysisTK-3.7.tar.bz2
 
 
 
