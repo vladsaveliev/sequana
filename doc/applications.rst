@@ -74,11 +74,6 @@ sequana_coverage
     over represented genomic regions.
 :Status: Production
 :Help: please use sequana_coverage ``--help``
-:Docker: ::
-    
-        git pull sequana/sequana_coverage 
-
-    See `github sequana_coverage docker page <https://github.com/sequana/sequana/tree/master/docker/sequana_coverage>`_ for details
 :Sequana: See :class:`~sequana.bedtools.GenomeCov` to use the coverage in your own script.
 :Gallery: See examples in the `gallery <http://sequana.readthedocs.io/en/master/auto_examples/index.html>`_
 
