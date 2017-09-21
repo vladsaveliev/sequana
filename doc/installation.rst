@@ -146,7 +146,7 @@ Singularity
 
 Install singularity (http://singularity.lbl.gov/). Download our image::
 
-    singularity run shub://sequana/sequana:master
+    singularity pull shub://sequana/sequana:master
 
 and use it. For instance, to use sequana_coverage executable::
 

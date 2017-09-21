@@ -605,7 +605,7 @@ We provide a Singularity file. It is in the main directory and must be kept
 there to be found by singularity-hub. Each push to the master will then trigger
 this website to build a singularity image. This image can be downloaded::
 
-    singularity run shub://sequana/sequana:master
+    singularity pull shub://sequana/sequana:master
 
 and then used as::
 
