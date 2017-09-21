@@ -70,7 +70,7 @@ class MultiqcModule(BaseMultiqcModule):
             data[name] = {'mean': self.sequana_data[name]["mean_length"]}
 
         pconfig = {
-            "title": "Number of reads per sample",
+            "title": "Mean read length",
             "percentages": False,
             "min": 100,
             "logswitch": True,
