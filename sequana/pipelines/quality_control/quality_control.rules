@@ -16,6 +16,9 @@ sm.init("quality_control.rules", globals())
 configfile: "config.yaml"
 __snakefile__ = srcdir(__snakefile__)
 
+
+
+
 # Generic include of some dynamic modules
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 exec(open(sequana.modules["fastqc_dynamic"], "r").read())
@@ -24,6 +27,19 @@ exec(open(sequana.modules["fastq_stats_dynamic"], "r").read())
 # A convenient manager
 manager = sm.PipelineManager("quality_control", config)
 
+
+# Sanity checks ============================================================
+if manager.config.cutadapt.tool_choice == "atropos":
+    if manager.config.cutadapt.threads <2:
+        print("ERROR: when selecting atropos as the tool choice in "
+              "the cutadapt section, you must set the number of thread "
+                "to a value greater than one")
+        raise Exception
+
+if manager.config.kraken.do is True:
+    if manager.config.kraken.database_directory == "":
+        print("ERROR: no kraken database provided. Check http://sequana.readthedocs.io/en/master/applications.html#sequana-taxonomy")
+        raise Exception
 
 # Starting of the pipeline
 __rawdata__input = manager.getrawdata()
