@@ -43,7 +43,7 @@ OSVersion: xenial
     conda install -y bwa fastqc kraken krona cutadapt
     conda install -y bowtie bowtie2 star subread
     conda install -y bcftools bedtools khmer samtools pigz bleach
-    conda install -y snpeff freebayes spades multiqc sambamba
+    conda install -y snpeff freebayes spades sambamba
 
 
     conda clean --packages -y # next requires lots of space
@@ -51,7 +51,7 @@ OSVersion: xenial
 
     #conda install -y busco==3.0.2
     conda install -y picard shustring
-    conda install -y atropos<=1.1.5
+    conda install -y atropos<=1.1.10
     pip install sequana
     conda clean --all -y # next requires lots of space
     rm -rf /usr/local/anaconda/pkgs
@@ -61,6 +61,7 @@ OSVersion: xenial
     if [ ! -d /scripts ]; then mkdir /scripts; fi
     if [ ! -d /scratch ]; then mkdir /scratch; fi
     if [ ! -d /mounting ]; then mkdir /mounting; fi
+    if [ ! -d /pasteur ]; then mkdir /pasteur; fi
 
 %environment
     export PATH=$PATH:/usr/local/anaconda/bin
