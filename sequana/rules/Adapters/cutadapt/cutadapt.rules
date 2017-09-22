@@ -82,7 +82,8 @@ rule cutadapt:
         if len(input.fastq) == 2:
             if executable == "atropos":
                 cmd = "%s trim -p {output.fastq[1]}" % executable
-                cmd += " -pe1 {input.fastq[0]} -pe2 {input.fastq[1]} -T {threads}"
+                cmd += " -pe1 {input.fastq[0]} -pe2 {input.fastq[1]} -T {threads} "
+                cmd += " --process-timeout 600 "
             else:
                 cmd = "%s -p {output.fastq[1]}" % executable
                 cmd += " {input.fastq[0]} {input.fastq[1]} "
@@ -105,6 +106,7 @@ rule cutadapt:
         else:
             if executable == "atropos":
                 cmd = "%s trim -se {input.fastq[0]} -T {threads} " % executable
+                cmd += " --process-timeout 600 "
             else:
                 cmd = "%s {input.fastq[0]}" % executable
             if fwd:
