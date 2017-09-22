@@ -26,9 +26,6 @@ import glob
 
 import easydev
 
-# Set logger
-from sequana import logger
-
 from datetime import datetime
 time_now = datetime.now().strftime("%m-%d-%Y %H:%M:%S")
 

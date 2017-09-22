@@ -25,7 +25,7 @@ from jinja2 import Environment, PackageLoader
 
 from reports import HTMLTable
 from sequana.utils import config
-
+from sequana import logger
 
 __all__ = ["SequanaBaseModule"]
 
@@ -140,7 +140,7 @@ class SequanaBaseModule(object):
                 pass
             else:
                 msg = "{0} exist and it is not a directory".format(directory)
-                config.logger.error(msg)
+                logger.error(msg)
                 raise FileExistsError
         try:
             shutil.copy(filename, directory)
