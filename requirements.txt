@@ -1,4 +1,4 @@
-atropos<=1.1.5
+atropos<=1.1.10
 bioservices>=1.4.14
 biokit>=0.4.1
 colorlog
@@ -6,7 +6,7 @@ docutils
 easydev>=0.9.34
 matplotlib>=2.0.0
 mock
-multiqc>=1.0
+multiqc==1.0
 pandas
 pygraphviz
 psutil
