@@ -1389,6 +1389,7 @@ for this in {1}:
     except:
         print("%s not found (not deleted)" % this)
 
+shellcmd("rm -rf tmp/")
 shellcmd("rm -f {0}")
 print("done")
     """.format(self.cleanup_filename, additional_dir))
