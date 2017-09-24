@@ -10,7 +10,7 @@ def test_running():
 
     with tempfile.TemporaryDirectory() as output_directory:
         cmd = "sequana --pipeline quality_control --input-directory %s " + \
-            "--output-directory %s --no-adapters --force" 
+            "--output-directory %s --no-adapters --force"
         execute(cmd % (input_directory, output_directory))
 
         cwd = os.getcwd()

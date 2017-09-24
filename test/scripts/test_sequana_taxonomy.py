@@ -51,6 +51,7 @@ def test_analysis(krakendb):
             "--file2", file2, "--level", "INFO", "--output-directory",
             directory.name, "--thread", "1"])
     except:
+        # For travis test
         HOME = os.getenv('HOME')
         database = os.sep.join([HOME, 'database'])
         df = taxonomy.main([prog, '--file1', file1, "--database", database,
