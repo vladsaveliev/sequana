@@ -67,6 +67,7 @@ else:
 __fastqc_samples__input_fastq = __data__input
 __fastqc_samples__output_done = manager.getname("fastqc_samples", ".done")
 __fastqc_samples__wkdir       = manager.getwkdir("fastqc_samples")
+__fastqc_samples__log = "%s/fastqc_samples/fastqc.log" % manager.sample
 include: fastqc_dynamic("samples", manager)
 expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samples))
 
@@ -123,6 +124,7 @@ if manager.config.bwa_mem_phix.do:
     __fastqc_phix__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output if "unmapped" in x]
     __fastqc_phix__output_done = manager.getname("fastqc_phix", ".fastqc.done")
     __fastqc_phix__wkdir = manager.getwkdir("fastqc_phix")
+    __fastqc_phix__log = "%s/fastqc_phix/fastqc.log" % manager.sample
     include: fastqc_dynamic("phix", manager)
     expected_output.extend(expand(__fastqc_phix__output_done, sample=manager.samples))
 
@@ -191,6 +193,7 @@ if manager.config['cutadapt']['do']:
     __fastqc_cutadapt__input_fastq = __cutadapt__output
     __fastqc_cutadapt__output_done = manager.getname("fastqc_cutadapt", ".done")
     __fastqc_cutadapt__wkdir = manager.getwkdir("fastqc_cutadapt")
+    __fastqc_cutadapt__log = "%s/fastqc_cutadapt/fastqc.log" % manager.sample
     include: fastqc_dynamic(adapter_removal, manager)
     expected_output += expand(__fastqc_cutadapt__output_done, sample=manager.samples)
 

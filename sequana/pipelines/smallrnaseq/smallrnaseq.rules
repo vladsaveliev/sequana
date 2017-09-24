@@ -64,6 +64,7 @@ else:
 __fastqc_samples__input_fastq = __data__input
 __fastqc_samples__output_done = manager.getname("fastqc_samples", ".done")
 __fastqc_samples__wkdir       = manager.getwkdir("fastqc_samples")
+__fastqc_samples__log         = "%s/fastqc_samples/fastqc.log" % manager.sample
 include: fastqc_dynamic("samples", manager)
 expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samples))
 
@@ -132,6 +133,7 @@ if manager.config.fastq_screen.do:
 __fastqc_filtered__input_fastq = __clean__output
 __fastqc_filtered__output_done = manager.getname("fastqc_filtered", ".done")
 __fastqc_filtered__wkdir       = manager.getwkdir("fastqc_filtered")
+__fastqc_filtered__log         = "%s/fastqc_filtered/fastqc.log" % manager.sample
 include: fastqc_dynamic("filtered", manager)
 expected_output.extend(expand(__fastqc_filtered__output_done, sample=manager.samples))
 
