@@ -112,7 +112,15 @@ class BaseFactory(Tools):
             self.info("No working directory selected yet (copy snakefile)")
             return
 
+        # source and target filenames
         target = self.directory + os.sep + os.path.basename(self.snakefile)
+
+        if os.path.exists(target) and easydev.md5(target) == easydev.md5(self.snakefile):
+            self.info("Target and source (pipeline) are identical. Skipping copy.")
+            # if target and source are identical, nothing to do
+            return
+
+        # if filename are identical but different, do we want to overwrite it ?
         if os.path.basename(self.snakefile) == target:
             self.warning("%s exists already in %s" % (self.snakefile,
                 self.directory))
@@ -128,6 +136,14 @@ class BaseFactory(Tools):
 
         if self._directory_browser.path_is_setup() is False:
             self.info("No working directory selected yet (copy config)")
+            return
+
+        # FIXME
+        # THis does not check the formatting so when saved, it is different
+        # from original even though parameters are the same...
+        target = self.directory + os.sep + os.path.basename(self.configfile)
+        if os.path.exists(target) and easydev.md5(target) == easydev.md5(self.configfile):
+            self.info("Target and source (pipeline) are identical. Skipping copy.")
             return
 
         self.info("Copying config in %s " % self.directory)
