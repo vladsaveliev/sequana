@@ -79,11 +79,18 @@ rule cutadapt:
             fwd = params.fwd
             rev = params.rev
 
+
+        # For atropos, output must be txt AND json for the module to work.
         if len(input.fastq) == 2:
             if executable == "atropos":
                 cmd = "%s trim -p {output.fastq[1]}" % executable
-                cmd += " -pe1 {input.fastq[0]} -pe2 {input.fastq[1]} -T {threads} "
+                cmd += " -pe1 {input.fastq[0]} -pe2 {input.fastq[1]} "
+                # atropos requires at least 2 threads
+                if int(threads) > 1:
+                    cmd += " -T {threads} "
                 cmd += " --process-timeout 600 "
+                logpath = log[0].replace(".txt", "")
+                cmd += " --report-formats json txt --report-file %s" % logpath
             else:
                 cmd = "%s -p {output.fastq[1]}" % executable
                 cmd += " {input.fastq[0]} {input.fastq[1]} "
@@ -105,8 +112,14 @@ rule cutadapt:
             shell(cmd)
         else:
             if executable == "atropos":
-                cmd = "%s trim -se {input.fastq[0]} -T {threads} " % executable
+                cmd = "%s trim -se {input.fastq[0]}  " % executable
+                # atropos requires at least 2 threads
+
+                if int(threads) > 1:
+                    cmd += " -T {threads} "
                 cmd += " --process-timeout 600 "
+                logpath = log[0].replace(".txt", "")
+                cmd += " --report-formats json txt --report-file %s" % logpath
             else:
                 cmd = "%s {input.fastq[0]}" % executable
             if fwd:
