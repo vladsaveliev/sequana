@@ -11,18 +11,23 @@ Changelog
 
 * BUGS:
 
-    * cutadapt rule: remove the '--progress bar' because of a bug in atropos
-      (reported) that fails in the progress bar code when mutli-threaded. Could
-      an issue in a dependencies of atropos.
+    * cutadapt rule: remove the '--progress bar' for now because of a bug in atropos
+      (reported) that fails in the progress bar code
 
 Update:
 
+    * pipeline pacbio_qc: finalise tree structure.
     * pipeline quality_control: add sanity check (thread must be >1 for atropos)
     * pin atropos version to 1.1.10 and added to requirements.txt
     * Fix parsing of atropos report
     * Update FastQC significantly to use atropos FastqReader instead of pysam.FastxFile
     * documentation for the installation (remove docker, add singularity)
-
+    * rule/module atropos: implement ability to parse json report from atropos
+      https://github.com/sequana/sequana/issues/448
+    * rule fastqc: the log is now a variable. all pipelines using this rule
+      have been updated to save the log in {sample}/logs/ intead of ./logs
+    * rule cutadapt: (1) check whether thread is set to > 1. if not set to 2
+      (2) add --report-format to save reports in JSON and TXT
 
 
 0.5.1
