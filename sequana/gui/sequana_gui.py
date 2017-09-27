@@ -344,18 +344,8 @@ class SequanaGUI(QMainWindow, Tools):
         self.initUI()
         self.read_settings()
 
-        self.setStyleSheet("""QToolTip {
-                           background-color: #aabbcc;
-                           color: black;
-                           border-style: double;
-                           border-width: 3px;
-                           border-color: green;
-                           border-radius: 5px;
-                           margin:5px;
-                           opacity: 255;
-                           } ;
-
-                            """)
+        # this should be after initUI and read_settings
+        self.set_style_sheet()
 
         # User option.
         def isset(options, key):
@@ -499,6 +489,8 @@ class SequanaGUI(QMainWindow, Tools):
         self.ui.actionSnakemake.triggered.connect(self.snakemake_dialog.exec_)
         self.ui.actionPreferences.triggered.connect(self.preferences_dialog.exec_)
 
+        self.preferences_dialog.ui.preferences_options_general_tooltip_value.clicked.connect(self.set_style_sheet)
+
         # connectors related to the pipeline tabs (pipeline/generic)
         self.set_sequana_pipeline()
         self.set_generic_pipeline()
@@ -539,6 +531,30 @@ class SequanaGUI(QMainWindow, Tools):
         # connect show advanced button with the until/starting frame
         self.ui.show_advanced_control.clicked.connect(self.click_advanced)
         self.ui.frame_control.hide()
+
+    def _get_opacity(self):
+        dialog = self.preferences_dialog
+        box = dialog.ui.preferences_options_general_tooltip_value
+        if box.isChecked():
+            return 255
+        else:
+            return 0
+    tooltip_opacity = property(_get_opacity)
+
+    def set_style_sheet(self):
+        self.setStyleSheet("""QToolTip {
+                           background-color: #aabbcc;
+                           color: black;
+                           border-style: double;
+                           border-width: 3px;
+                           border-color: green;
+                           border-radius: 5px;
+                           margin:5px;
+                           opacity: %s;
+                           } ;
+
+                            """ % self.tooltip_opacity)
+
 
     #|-----------------------------------------------------|
     #|                       MENU related                  |
