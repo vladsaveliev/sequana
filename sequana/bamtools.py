@@ -41,15 +41,10 @@ from sequana.lazy import pylab
 import pysam
 from sequana import jsontool, logger
 
-
 """
 #http://www.acgt.me/blog/2014/12/16/understanding-mapq-scores-in-sam-files-does-37-42#
 #http://biofinysics.blogspot.fr/2014/05/how-does-bowtie2-assign-mapq-scores.html
 #https://gitlab.univ-nantes.fr/a-slide/ContaVect/blob/9a411abfa720064c205c5f6c811afdfea206ed12/pyDNA/pySamTools/Bam.py
-# pysamtools
-# pysam uses htlib behing the scene and is very fast
-# pysam works great for BAM file but with SAM, it needs to read the file after
-# each compete iteration, which is not very useful
 
 Interesting commands::
 
@@ -72,15 +67,11 @@ def seek(f):
 
 
 class BAM(pysam.AlignmentFile):
-    """BAM data structure
+    """BAM data structure, statistics and plotting
 
-    This is built on top of pysam package and provides functions to retrieve
-    useful information or plot various statistical analysis.
-
-    The interest of this BAM class is that it will rewind the file each time you
-    want to access to the data. Note also that Python2.7 and 3.5 behave differently
-    and we would recommend the Python 3.5 version. For instance,
-    :meth:`to_fastq` would work only with Python 3.5.
+    .. note:: Python2.7 and 3.5 behave differently
+        and we would recommend the Python 3.5 version. For instance,
+        :meth:`to_fastq` would work only with Python 3.5.
 
     We provide a test file in Sequana:
 
@@ -91,17 +82,21 @@ class BAM(pysam.AlignmentFile):
         >>> len(b)
         1000
 
-
     .. note:: Once you loop over this data structure,  you must call
-        :meth:`reset` to force the next iterator to start at position 0.
+        :meth:`reset` to force the next iterator to start at position 0 again.
         The methods implemented in this data structure take care of that
         for you thanks to a decorator called seek.
         If you want to use the :meth:`next` function, call :meth:`reset` to make sure you
         start at the beginning.
 
 
+
+
     """
     def __init__(self, filename,  mode='rb',  *args):
+        """.. rubic:: Constructor
+
+        """
         # The mode rb means read-only (r) and that the format is BAM or SAM (b)
 
         # super()  works for py27 but not py35 probably a missing __init__  or __new__ in
@@ -114,7 +109,7 @@ class BAM(pysam.AlignmentFile):
         self.metrics_count = None
         # the BAM format can be rewinded but not SAM. This is a pain since one
         # need to reload the instance after each operation. With the BAM, we can
-        # do that automatically. We therefore enfore the BAM format.
+        # do that automatically. We therefore enforce the BAM format.
 
         # Another issue is that in PY3, there is an attribute **format** that
         # tells us if the input is BAM or SAM but this does not work in PY2
@@ -139,7 +134,8 @@ class BAM(pysam.AlignmentFile):
         self.reset()
 
         # running a second time the len() should return the correct answer with
-        # BAM files but the SAM will not work and return 0
+        # BAM files but the SAM will not work and return 0. This takes time 
+        # so let us not do it anymore in the constructor
         # if len(self) == 0:
         #     raise ValueError("Convert your SAM file to a BAM file please")
 
@@ -394,21 +390,22 @@ class BAM(pysam.AlignmentFile):
 
     @seek
     def get_metrics_count(self):
-        """ Count flags/mapq/read length in one pass.
-        It is the faster and less costly method to have these interesting
-        metrics.
-        """
+        """ Count flags/mapq/read length in one pass."""
         mapq_dict = {}
         read_length_dict = {}
         flag_dict = {}
+        mean_qualities = []
         for read in self:
             self._count_item(mapq_dict, read.mapq)
             self._count_item(flag_dict, read.flag)
             if read.is_unmapped is False:
                 self._count_item(read_length_dict, read.reference_length)
+            mean_qualities.append(pylab.mean(read.query_qualities))
         self.metrics_count = {"mapq": mapq_dict,
                               "read_length": read_length_dict,
-                              "flags": flag_dict}
+                              "flags": flag_dict,
+                                "mean_quality": pylab.mean(mean_qualities)}
+        return self.metrics_count
 
     def get_samflags_count(self):
         """ Count how many reads have each flag of sam format after count
@@ -430,6 +427,32 @@ class BAM(pysam.AlignmentFile):
             d[item] += n
         else:
             d[item] = n
+
+    def _get_read_length(self):
+        if self.metrics_count is None:
+            self.get_metrics_count()
+
+        X = sorted(self.metrics_count['read_length'].keys())
+        Y = [self.metrics_count['read_length'][k] for k in X]
+        return X, Y
+
+    def plot_read_length(self):
+        """Plot occurences of aligned read lengths
+
+        .. plot::
+            :include-source:
+
+            from sequana import sequana_data, BAM
+            b = BAM(sequana_data("test.bam"))
+            b.plot_read_length()
+
+        """
+        X, Y = self._get_read_length()
+        pylab.plot(X, Y,
+            label="min length:{}; max length:{}".format(min(X), max(X)))
+        pylab.grid()
+        pylab.xlabel("Read length", fontsize=16)
+        pylab.legend()
 
     def plot_bar_mapq(self, fontsize=16, filename=None):
         """Plots bar plots of the MAPQ (quality) of alignments
@@ -459,7 +482,7 @@ class BAM(pysam.AlignmentFile):
         """ Create a json file with information related to the bam file.
 
         This includes some metrics (see :meth:`get_stats`; eg MAPQ),
-        combination of flags, SAM flags, counters abour the read length.
+        combination of flags, SAM flags, counters about the read length.
         """
         if self.metrics_count is None:
             self.get_metrics_count()
@@ -489,7 +512,6 @@ class BAM(pysam.AlignmentFile):
         import collections
         data = [this.rlen for this in self]
         return collections.Counter(data)
-
 
     def plot_gc_content(self, fontsize=16, ec="k", bins=100):
         """plot GC content histogram
@@ -521,6 +543,195 @@ class BAM(pysam.AlignmentFile):
         pylab.plot(X, pylab.normpdf(X, mu, sigma), lw=2, color="r", ls="--")
         pylab.xlabel("GC content", fontsize=16)
 
+    def _get_qualities(self, max_sample=500000):
+        qualities = []
+        for i, record in enumerate(self):
+            if i < max_sample:
+                #quality = [ord(x) -33 for x in record.qual]
+                quality = record.query_qualities
+                qualities.append(quality)
+            else:
+                break
+        return qualities
+
+    @seek
+    def boxplot_qualities(self, max_sample=500000):
+        """Same as in :class:`sequana.fastq.FastQC`
+
+        """
+        qualities = self._get_qualities(max_sample)
+        df = pd.DataFrame(qualities)
+        from biokit.viz.boxplot import Boxplot
+        bx = Boxplot(df)
+        try:
+            # new version of biokit
+            bx.plot(ax=ax)
+        except:
+            bx.plot()
+
+    @seek
+    def get_actg_content(self, max_sample=500000):
+        try: self.alignments
+        except: self._set_alignments()
+        # what is the longest string ?
+        max_length = max((len(a.seq) for a in self.alignments))
+        import re
+        df = pd.DataFrame(np.zeros((max_length,5)), columns=['A', 'C', 'G', 'T', 'N'])
+        A = np.zeros(max_length)
+        C = np.zeros(max_length)
+        G = np.zeros(max_length)
+        T = np.zeros(max_length)
+        N = np.zeros(max_length)
+
+        for a in self.alignments:
+            pos = [m.start() for m in re.finditer("A", a.seq)]
+            A[pos] += 1
+            C[[m.start() for m in re.finditer("C", a.seq)]] += 1
+            G[[m.start() for m in re.finditer("G", a.seq)]] += 1
+            T[[m.start() for m in re.finditer("T", a.seq)]] += 1
+            N[[m.start() for m in re.finditer("N", a.seq)]] += 1
+
+        df["A"] = A
+        df["C"] = C
+        df["T"] = T
+        df["G"] = G
+        df["N"] = N
+
+        df = df.divide(df.sum(axis=1), axis=0)
+
+        return df
+
+    def plot_acgt_content(self, stacked=False, fontsize=16, include_N=True):
+        """Plot ACGT content
+
+        .. plot::
+            :include-source:
+
+            from sequana import sequana_data, BAM
+            b = BAM(sequana_data("measles.fa.sorted.bam"))
+            b.plot_acgt_content()
+        """
+        df = self.get_actg_content()
+        if include_N is False and "N" in df.columns:
+            df.drop("N", axis=1, inplace=True)
+        if stacked is True:
+            df.plot.bar(stacked=True)
+        else:
+            df.plot()
+        pylab.grid(True)
+        pylab.xlabel("position (bp)", fontsize=fontsize)
+        pylab.ylabel("percent", fontsize=fontsize)
+
+    def _set_alignments(self):
+        # this scans the alignments once for all
+        self.alignments = [this for this in self]
+
+    @seek
+    def set_fast_stats(self):
+        try: self.alignments
+        except: self._set_alignments()
+
+        reference_start = [this.reference_start for this in self.alignments]
+        reference_end = [this.reference_end for this in self.alignments]
+        N = max([this for this in reference_end if this])
+
+        self.coverage = np.zeros(N)
+        for x, y in zip(reference_start, reference_end):
+            if y and x>=0 and y>=0: self.coverage[x:y] += 1
+            else: pass
+
+        self.insertions = []
+        self.deletions = []
+        for this in self.alignments:
+            if this.cigarstring:
+                if "I" in this.cigarstring:
+                    self.insertions.extend([x[1] for x in this.cigartuples if x[0] == 1])
+                if "D" in this.cigarstring:
+                    self.deletions.extend([x[1] for x in this.cigartuples if x[0] == 2])
+
+    def plot_coverage(self):
+        """Please use :class:`GenomeCov` for more sophisticated
+        tools to plot the genome coverage
+
+        .. plot::
+            :include-source:
+
+            from sequana import sequana_data, BAM
+            b = BAM(sequana_data("measles.fa.sorted.bam"))
+            b.plot_coverage()
+
+        """
+        try: self.coverage
+        except: self.set_fast_stats()
+        pylab.plot(self.coverage)
+        pylab.xlabel("Coverage")
+
+    def hist_coverage(self, bins=100):
+        """
+
+        .. plot::
+            :include-source:
+
+            from sequana import sequana_data, BAM
+            b = BAM(sequana_data("measles.fa.sorted.bam"))
+            b.hist_coverage()
+        """
+        try: self.coverage
+        except: self.set_fast_stats()
+        pylab.hist(self.coverage, bins=bins)
+        pylab.xlabel("Coverage")
+        pylab.ylabel("Number of mapped bases")
+        pylab.grid()
+
+
+    @seek
+    def plot_indel_dist(self, fontsize=16):
+        """Plot indel count (+ ratio)
+
+        :Return: list of insertions, deletions and ratio insertion/deletion for
+            different length starting at 1  
+
+        .. plot::
+            :include-source:
+
+            from sequana import sequana_data, BAM
+            b = BAM(sequana_data("measles.fa.sorted.bam"))
+            b.plot_indel_dist()
+
+        What you see on this figure is the presence of 10 insertions of length
+        1, 1 insertion of length 2 and 3 deletions of length 1
+
+
+        # Note that in samtools, several insertions or deletions in a single
+        alignment are ignored and only the first one seems to be reported. For
+        instance 10M1I10M1I stored only 1 insertion in its report; Same comment
+        for deletions.
+        """
+        try:
+            self.insertions
+        except:
+            self.set_fast_stats()
+        if len(self.insertions) ==0 or len(self.deletions) == 0:
+            raise ValueError("No deletions or insertions found")
+
+        N = max(max(Counter(self.deletions)), max(Counter(self.insertions))) + 1
+        D = [self.deletions.count(i) for i in range(N)]
+        I = [self.insertions.count(i) for i in range(N)]
+        R = [i/d if d!=0 else 0 for i,d in zip(I, D)]
+        fig, ax = pylab.subplots()
+        ax.plot(range(N), I, marker="x", label="Insertions")
+        ax.plot(range(N), D, marker="x", label="Deletions")
+        ax.plot(range(N), R, "--r", label="Ratio insertions/deletions")
+        ax.set_yscale("symlog")
+        pylab.ylim([1, pylab.ylim()[1]])
+        pylab.legend()
+        pylab.grid()
+        from matplotlib.ticker import MaxNLocator
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+        pylab.xlabel("Indel length", fontsize=fontsize)
+        pylab.ylabel("Indel count", fontsize=fontsize)
+        return I, D, R
+
 
 class Alignment(object):
     """Helper class to retrieve info about Alignment
@@ -539,8 +750,6 @@ class Alignment(object):
         >>> align.FLAG
         353
 
-
-
     The original data is stored in hidden attribute :attr:`_data` and the
     following values are available as attributes or dictionary:
 
@@ -552,7 +761,7 @@ class Alignment(object):
     * RNAME: reference sequence
     * POS
     * MAPQ: mapping quality if segment is mapped. equals -10 log10 Pr
-    * CIGAR:
+    * CIGAR: See :class:`sequana.cigar.Cigar`
     * RNEXT: reference sequence name of the primary alignment of the NEXT read
       in the template
     * PNEXT: position of primary alignment
