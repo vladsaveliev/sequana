@@ -851,13 +851,12 @@ class FastQC(object):
         # Later we will use pysam to scan the fastq because
         # it iterate quickly while providing the quality already converted
         # However, the FastQ implementation in this module is faster at
-        # computing the lentgth by a factor 3
+        # computing the length by a factor 3
         self.fastq = FastQ(filename)
         self.N = len(self.fastq)
 
         # Use only max_sample in some of the computation
         self.max_sample = min(max_sample, self.N)
-
 
         self.summary = {}
         self.fontsize = 16
