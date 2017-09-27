@@ -22,3 +22,8 @@ Others
 - adapters_netflex_pcr_free_1_rev.fa
 - adapters_netflex_pcr_free_1_fwd.fa
 - test_10000.fastq.gz
+
+
+BAM
+=========
+- measles.fa.sorted.bam created with sequana_mapping of Hm*gz with reference measles.fa
