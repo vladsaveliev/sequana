@@ -14,7 +14,7 @@ Changelog
     * cutadapt rule: remove the '--progress bar' for now because of a bug in atropos
       (reported) that fails in the progress bar code
 
-Update:
+* Update:
 
     * pipeline pacbio_qc: finalise tree structure.
     * pipeline quality_control: add sanity check (thread must be >1 for atropos)
@@ -29,6 +29,11 @@ Update:
     * rule cutadapt: (1) check whether thread is set to > 1. if not set to 2
       (2) add --report-format to save reports in JSON and TXT
 
+* News:
+
+    * BAM class (bamtools module): add plotting methods (coverage, letters,
+      indels)
+    * Add Cigar class (cigar module).
 
 0.5.1
 ~~~~~~~~~~~~~~~
