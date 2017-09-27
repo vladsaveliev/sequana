@@ -24,6 +24,7 @@ from .assembly import *
 from .adapters import AdapterReader, FindAdaptersFromDesign, Adapter
 from .bamtools import BAM, SAMFlags
 from .bedtools import GenomeCov
+from .cigar import Cigar
 from .coverage import Coverage
 from .expdesign import ExpDesignAdapter
 from .fastq import FastQ, FastQC, Identifier

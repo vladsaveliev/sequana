@@ -51,6 +51,20 @@ def test_bam(tmpdir):
         assert True
 
 
+def test_bam_others():
+    b = BAM(sequana_data("measles.fa.sorted.bam"))
+    assert len(b) == 2998
+
+    # plot_reaqd_length and data
+    X, Y = b._get_read_length()
+    assert sum(Y) == 2623
+    b.plot_read_length()
+    b.plot_acgt_content()
+    b.hist_coverage()
+    b.plot_coverage()
+    b.boxplot_qualities()
+    b.plot_indel_dist()    
+
 def test_alignment():
     s = BAM(datatest)
     # no need to call reset but does not harm and reminds us that it shoudl be
