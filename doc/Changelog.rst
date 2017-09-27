@@ -28,8 +28,10 @@ Changelog
       have been updated to save the log in {sample}/logs/ intead of ./logs
     * rule cutadapt: (1) check whether thread is set to > 1. if not set to 2
       (2) add --report-format to save reports in JSON and TXT
+    * Sequanix: add option to switch on/off the tooltips
 
 * News:
+
 
     * BAM class (bamtools module): add plotting methods (coverage, letters,
       indels)
