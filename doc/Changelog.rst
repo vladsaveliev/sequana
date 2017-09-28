@@ -14,10 +14,11 @@ Changelog
     * cutadapt rule: remove the '--progress bar' for now because of a bug in atropos
       (reported) that fails in the progress bar code
 
-* Update:
+* Updates:
 
-    * pipeline pacbio_qc: finalise tree structure.
-    * pipeline quality_control: add sanity check (thread must be >1 for atropos)
+    * pipeline pacbio_qc: finalise output tree structure.
+    * pipeline quality_control: add sanity check (thread must be >1 for
+      atropos) and run fastqc on unmapped data (rather than mapped).  
     * pin atropos version to 1.1.10 and added to requirements.txt
     * Fix parsing of atropos report
     * Update FastQC significantly to use atropos FastqReader instead of pysam.FastxFile
@@ -26,9 +27,7 @@ Changelog
       https://github.com/sequana/sequana/issues/448
     * rule fastqc: the log is now a variable. all pipelines using this rule
       have been updated to save the log in {sample}/logs/ intead of ./logs
-    * rule cutadapt: (1) check whether thread is set to > 1. if not set to 2
-      (2) add --report-format to save reports in JSON and TXT
-    * Sequanix: add option to switch on/off the tooltips
+    * add polyT in TruSeq adapters
 
 * News:
 
@@ -36,6 +35,9 @@ Changelog
     * BAM class (bamtools module): add plotting methods (coverage, letters,
       indels)
     * Add Cigar class (cigar module).
+    * Sequanix: add option to switch on/off the tooltips
+    * rule cutadapt: (1) check whether thread is set to > 1. if not set to 2
+      (2) add --report-format to save reports in JSON and TXT
 
 0.5.1
 ~~~~~~~~~~~~~~~
