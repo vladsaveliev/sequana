@@ -111,10 +111,6 @@ can be used with conda::
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
 
 
-
-
-
-
 From Pypi website (released source code)
 ==========================================
 If you do not want to use **conda**, we provide releases on the Python Package Index website (pip tool)::
@@ -144,6 +140,15 @@ install more packages depending on the pipeline used. See hereafter.
 Singularity
 ================
 
+We provide a Singularity image that contain Sequana standalone and pipelines
+as well as Sequanix. Note, however, that Sequanix relies on PyQt (graphical
+environment) and would work for Linux users only for the time being. The main
+reason being that under Mac and windows a virtualbox is used by Singularity
+preventing a X connection. This should be solved in the near future.
+
+
+.. warning:: Singularity is multiplatform, however, 
+
 Install singularity (http://singularity.lbl.gov/). Download our image::
 
     singularity pull shub://sequana/sequana:master
@@ -155,6 +160,9 @@ and use it. For instance, to use sequana_coverage executable::
 or sequanix::
 
     singularity exec sequana-sequana-master.img sequanix
+
+
+.. note:: method tested with success on Fedora 23, Mac Darwin, Centos 6.
 
 Notes about dependencies
 ===========================
