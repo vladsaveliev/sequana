@@ -18,7 +18,6 @@ __snakefile__ = srcdir(__snakefile__)
 
 
 
-
 # Generic include of some dynamic modules
 exec(open(sequana.modules["bwa_mem_dynamic"], "r").read())
 exec(open(sequana.modules["fastqc_dynamic"], "r").read())
@@ -30,7 +29,7 @@ manager = sm.PipelineManager("quality_control", config)
 
 # Sanity checks ============================================================
 if manager.config.cutadapt.tool_choice == "atropos":
-    if manager.config.cutadapt.threads <2:
+    if manager.config.cutadapt.threads < 2:
         print("ERROR: when selecting atropos as the tool choice in "
               "the cutadapt section, you must set the number of thread "
                 "to a value greater than one")
@@ -120,8 +119,8 @@ if manager.config.bwa_mem_phix.do:
 
     include: sm.modules['bwa_bam_to_fastq']
 
-    # Run a FASTQC and FASTQ_STATS on the data without phix
-    __fastqc_phix__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output if "unmapped" in x]
+    # Run a FASTQC on the data without phix
+    __fastqc_phix__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output if "mapped" in x]
     __fastqc_phix__output_done = manager.getname("fastqc_phix", ".fastqc.done")
     __fastqc_phix__wkdir = manager.getwkdir("fastqc_phix")
     __fastqc_phix__log = "%s/fastqc_phix/fastqc.log" % manager.sample
