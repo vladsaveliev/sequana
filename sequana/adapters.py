@@ -49,6 +49,10 @@ a sample. Currently, the following set of adapters/design are available:
     - Nextera single and double indexing
     - Rubicon single indexing
     - PCRFree single indexing
+    - TruSeq
+
+Note that TruSeq index 17, 24, and 26 are missing. This is normal. Those are
+"reserved" Illumina index. 
 
 For instance given a design file that gives the mapping between samples and a
 set of Nextera adapters, one would use:
