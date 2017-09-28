@@ -43,7 +43,7 @@ OSVersion: xenial
     conda install -y bwa fastqc kraken krona cutadapt
     conda install -y bowtie bowtie2 star subread
     conda install -y bcftools bedtools khmer samtools pigz bleach
-    conda install -y snpeff freebayes spades sambamba
+    conda install -y snpeff freebayes spades multiqc sambamba
 
 
     conda clean --packages -y # next requires lots of space
@@ -56,6 +56,8 @@ OSVersion: xenial
     conda clean --all -y # next requires lots of space
     rm -rf /usr/local/anaconda/pkgs
 
+    conda install --override-channels -c conda-forge bzip2
+    conda install --override-channels -c bioconda -c conda-forge htslib==1.5.0
 
     if [ ! -d /data ]; then mkdir /data; fi
     if [ ! -d /scripts ]; then mkdir /scripts; fi
@@ -65,4 +67,7 @@ OSVersion: xenial
 
 %environment
     export PATH=$PATH:/usr/local/anaconda/bin
+    export LANG=C   # prevents perl for raising warnings
+    export PERL5LIB=/usr/local/anaconda/lib/perl5/5.22.2/
+    echo "backend:agg" > matplotlibrc
 
