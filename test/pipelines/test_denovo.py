@@ -33,7 +33,7 @@ class DenovoPipeline(Pipeline):
 
 
 def test_denovo():
-    QC = DenovoPipeline("test")
+    QC = DenovoPipeline()
     try:
         QC.run()
         QC.check()
