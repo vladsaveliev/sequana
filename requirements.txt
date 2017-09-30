@@ -14,5 +14,5 @@ pyVCF
 pysam
 qtconsole
 reports>=0.3.0
-ruamel.yaml>=0.13.2
+ruamel.yaml<=0.15
 snakemake==4.0.0
