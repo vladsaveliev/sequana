@@ -20,6 +20,9 @@ OSVersion: xenial
     apt-get install -y libxtst6
     apt-get install -y libxi6
 
+    # for sequanix (Qt plugin) otherwise libxcb missing
+    apt-get install -y libSM*
+
 
     # install anaconda
     if [ ! -d /usr/local/anaconda ]; then
@@ -41,25 +44,29 @@ OSVersion: xenial
     conda config --add channels conda-forge
     conda config --add channels bioconda
 
-    #if [ ! -d /usr/local/anaconda/envs/sequana ]; then
-    #    conda create --name sequana python=3.5
-    #fi
-
+    # The main packages for sequana:
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements.txt
+
+    # external tools 
     conda install -y bwa fastqc kraken krona cutadapt
     conda install -y bowtie bowtie2 star subread
     conda install -y bcftools bedtools khmer samtools pigz bleach
+
+    # Let us save some space
+    conda clean --packages -y 
+
+    #conda install -y busco==3.0.2 prokka # takes lots of place
+    conda install -y picard shustring
+    conda install -y atropos<=1.1.10
     conda install -y snpeff freebayes spades multiqc sambamba
 
 
-    conda clean --packages -y # next requires lots of space
-    #conda install -y prokka  # takes a lot!!!
+    # Let us save some space
+    conda clean --packages -y 
 
-    #conda install -y busco==3.0.2
-    conda install -y picard shustring
-    conda install -y atropos<=1.1.10
-   
+    # Sequana source code  
     pip install sequana
+
     conda clean --all -y # next requires lots of space
     rm -rf /usr/local/anaconda/pkgs
 
