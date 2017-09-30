@@ -72,9 +72,9 @@ rule html_report:
             from sequana.modules_report.kraken import KrakenModule
             kr = KrakenModule(params.dir_kraken, output_filename=None)
             html = kr._get_summary_section()
-            toreplace = "./kraken/kraken.html"
-            target = params.dir_kraken + "/kraken.html"
-            html = html.replace(toreplace, target)
+            #toreplace = "./kraken/kraken.html"
+            #target = params.dir_kraken + "kraken.html"
+            #html = html.replace(toreplace, target)
             m.sections.append({
               "name": "Taxonomic content",
               "anchor": "kraken",
