@@ -15,6 +15,12 @@ OSVersion: xenial
     apt-get install -y libgl1-mesa-glx  # will be required by pyqt
     apt-get install -y fontconfig # for sequanix/qt fonts otherwise no text in menus
 
+    # for fastqc
+    apt-get install -y libxrender1
+    apt-get install -y libxtst6
+    apt-get install -y libxi6
+
+
     # install anaconda
     if [ ! -d /usr/local/anaconda ]; then
         #wget https://repo.continuum.io/miniconda/Miniconda3-4.3.14-Linux-x86_64.sh\
@@ -52,6 +58,7 @@ OSVersion: xenial
     #conda install -y busco==3.0.2
     conda install -y picard shustring
     conda install -y atropos<=1.1.10
+   
     pip install sequana
     conda clean --all -y # next requires lots of space
     rm -rf /usr/local/anaconda/pkgs
