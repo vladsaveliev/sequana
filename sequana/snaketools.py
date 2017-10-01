@@ -1016,6 +1016,8 @@ class DOTParser(object):
                 if line.strip() == "}":
                     if title:
                         fout.write('overlap=false\nlabel="%s"\nfontsize=10;\n}\n' % title)
+                    else:
+                        fout.write(line)
                     continue
 
 
