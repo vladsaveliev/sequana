@@ -11,7 +11,7 @@ pandas
 pygraphviz
 psutil
 pyVCF
-pysam==0.12
+pysam==0.12.0.1
 qtconsole
 ruamel.yaml<=0.15.0
 snakemake==4.0.0
