@@ -38,6 +38,8 @@ OSVersion: xenial
 
     # set anaconda path
     export PATH=$PATH:/usr/local/anaconda/bin
+    conda update conda
+
 
     conda config --add channels r
     conda config --add channels defaults
@@ -68,8 +70,10 @@ OSVersion: xenial
     conda clean --all -y # next requires lots of space
     rm -rf /usr/local/anaconda/pkgs
 
+    # pysam/bzip/hstlib is tricky. We pin versions as follows
     conda install --override-channels -c conda-forge bzip2
-    conda install --override-channels -c bioconda -c conda-forge htslib==1.5.0
+    conda install --override-channels -c bioconda -c conda-forge htslib==1.5.0 
+    conda install -y pysam==0.12
 
     if [ ! -d /data ]; then mkdir /data; fi
     if [ ! -d /scripts ]; then mkdir /scripts; fi
@@ -80,6 +84,6 @@ OSVersion: xenial
 %environment
     export PATH=$PATH:/usr/local/anaconda/bin
     export LANG=C   # prevents perl for raising warnings
-    export PERL5LIB=/usr/local/anaconda/lib/perl5/5.22.2/
+    export PERL5LIB=/usr/local/anaconda/lib/perl5/5.22.0
     echo "backend:agg" > matplotlibrc
 
