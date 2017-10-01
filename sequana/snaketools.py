@@ -960,7 +960,7 @@ class DOTParser(object):
 
     _name_to_drops = {'dag', 'conda', 'rulegraph', 'copy_multiple_files'}
 
-    def __init__(self, filename):
+    def __init__(self, filename, mode="v2"):
         """.. rubric:: constructor
 
          :param str filename: a DAG in dot format created by snakemake
@@ -970,8 +970,9 @@ class DOTParser(object):
         self.re_index = re.compile('(\d+)\[')
         self.re_name = re.compile('label = "(\w+)"')
         self.re_arrow = re.compile('(\d+) -> (\d+)')
+        self.mode = mode
 
-    def add_urls(self, output_filename=None, mapper={}):
+    def add_urls(self, output_filename=None, mapper={}, title=None):
         """Change the dot file adding URL on some nodes
 
         :param str output_filename: the DAG file in dot format (graphviz)
@@ -979,6 +980,18 @@ class DOTParser(object):
             names for which an HTML will be available (provided here as keys)
 
         """
+        if self.mode == "v2":
+            self._add_urls_mode2(output_filename, mapper, title)
+        else:
+            self._add_urls_mode1(output_filename, mapper, title)
+
+    def _drop_arrow(self, index, indices_to_drop, title=None):
+        for i in index:
+            if i in indices_to_drop:
+                return True
+        return False
+
+    def _add_urls_mode2(self, output_filename=None, mapper={}, title=None):
         # Open the original file
         with open(self.filename, "r") as fh:
             data = fh.read()
@@ -987,11 +1000,61 @@ class DOTParser(object):
             import os
             output_filename = os.path.basename(self.filename)
 
-        def drop_arrow(index, indices_to_drop):
-            for i in index:
-                if i in indices_to_drop:
-                    return True
-            return False
+        # The DOT parsing
+        with open(output_filename.replace(".dot", ".ann.dot"), "w") as fout:
+            indices_to_drop = set()
+            for line in data.split("\n"):
+                if line.strip().startswith("node["):
+                    fout.write(' node[style="filled"; shape=box, ' +
+                        ' color="black", fillcolor="#FCF3CF", ' +
+                        ' fontname=sans, fontsize=10, penwidth=2];\n')
+                    continue
+                if line.strip().startswith("edge["):
+                    fout.write(' edge[penwidth=2, color=black]; \n')
+                    continue
+
+                if line.strip() == "}":
+                    if title:
+                        fout.write('overlap=false\nlabel="%s"\nfontsize=10;\n}\n' % title)
+                    continue
+
+
+                name = self.re_name.search(line)
+                if name:
+                    name = name.group(1)
+                    if name in self._name_to_drops:
+                        index = self.re_index.search(line).group(1)
+                        indices_to_drop.add(index)
+                    elif name in mapper.keys():
+                        url = mapper[name]
+                        newline = line.split(name)[0] + name +'"' 
+                        newline += (' URL="%s", target="_parent", fillcolor="#5499C7"'
+                                   '];\n') % url
+                        #newline = line.replace('];', newline)
+                        newline = newline.replace("dashed", "")
+                        fout.write(newline)
+                    else:
+                        newline = line.split(name)[0] + name +'"];\n'
+                        fout.write(newline)
+                else:
+                    arrow = self.re_arrow.findall(line)
+                    if arrow:
+                        index = arrow[0]
+                        if not self._drop_arrow(index, indices_to_drop):
+                            fout.write(line + "\n")
+                    else:
+                        line = line.replace("dashed", "")
+                        fout.write(line + "\n")
+
+    def _add_urls_mode1(self, output_filename=None, mapper={}, title=None):
+
+        # Open the original file
+        with open(self.filename, "r") as fh:
+            data = fh.read()
+
+        if output_filename is None:
+            import os
+            output_filename = os.path.basename(self.filename)
 
         # The DOT parsing
         with open(output_filename.replace(".dot", ".ann.dot"), "w") as fout:
@@ -1018,7 +1081,7 @@ class DOTParser(object):
                     arrow = self.re_arrow.findall(line)
                     if arrow:
                         index = arrow[0]
-                        if not drop_arrow(index, indices_to_drop):
+                        if not self.drop_arrow(index, indices_to_drop):
                             fout.write(line + "\n")
                     else:
                         line = line.replace("dashed", "")
