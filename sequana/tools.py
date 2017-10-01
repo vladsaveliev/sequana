@@ -517,7 +517,6 @@ class PairedFastQ(object):
                 print("%s differs from %s" % (id1, id2))
                 print(a)
                 print(b)
-                
                 return False
             N += 1
         print(N)

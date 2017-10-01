@@ -23,7 +23,7 @@ import base64
 
 from jinja2 import Environment, PackageLoader
 
-from reports import HTMLTable
+#from reports import HTMLTable
 from sequana.utils import config
 from sequana import logger
 
@@ -166,7 +166,8 @@ class SequanaBaseModule(object):
                 '</code></pre></div>')
         return html.format(language, content)
 
-    def dataframe_to_html_table(self, dataframe, **kwargs):
+    # will be removed in v > 0.5.2
+    def __dataframe_to_html_table(self, dataframe, **kwargs):
         """ Convert dataframe in html.
         """
         html = HTMLTable(dataframe)
