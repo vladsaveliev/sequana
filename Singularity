@@ -22,7 +22,7 @@ OSVersion: xenial
 
     # for sequanix (Qt plugin) otherwise libxcb missing
     apt-get install -y libSM*
-
+    apt-get install -y libxcomposite-dev
 
     # install anaconda
     if [ ! -d /usr/local/anaconda ]; then
@@ -47,24 +47,22 @@ OSVersion: xenial
     # The main packages for sequana:
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements.txt
 
-    # external tools 
+    # external tools
     conda install -y bwa fastqc kraken krona cutadapt
     conda install -y bowtie bowtie2 star subread
     conda install -y bcftools bedtools khmer samtools pigz bleach
-
-    # Let us save some space
-    conda clean --packages -y 
-
-    #conda install -y busco==3.0.2 prokka # takes lots of place
     conda install -y picard shustring
-    conda install -y atropos<=1.1.10
-    conda install -y snpeff freebayes spades multiqc sambamba
-
+    conda install -y snpeff freebayes spades sambamba
 
     # Let us save some space
-    conda clean --packages -y 
+    conda clean --packages -y
 
-    # Sequana source code  
+    #conda install -y canu busco==3.0.2 prokka # takes lots of place
+
+    # Let us save some space
+    conda clean --packages -y
+
+    # Sequana source code
     pip install sequana
 
     conda clean --all -y # next requires lots of space
