@@ -1,4 +1,5 @@
 import os
+import json
 import tempfile
 from sequana import sequana_data
 import subprocess
@@ -23,14 +24,14 @@ class QualityPipeline(Pipeline):
     def check(self):
         if os.path.exists(self.output):
             data = json.load(open(self.output))
-        assert data['project'] == "project" 
+        assert data['project'] == "Hm2_GTGAAA_L005" 
         #assert data == truth
 
-        assert data["Number of reads"] == {'Pairs kept': '1,316',
+        assert data["cutadapt_json"] == {"Number of reads": {'Pairs kept': '1,316',
           'Pairs too short': '175',
           'Read1 with adapters': '104',
           'Read2 with adapters': '142',
-          'Total paired reads': '1,491',
+          'Total paired reads': '1,491'},
          'percent': {'Pairs kept': '(88.3%)',
           'Pairs too short': '(11.7%)',
           'Read1 with adapters': '(7.0%)',
@@ -57,6 +58,6 @@ def test_quality_control():
         QC.clean()
     except:
         QC.clean()
-
+        raise Exception
 
 

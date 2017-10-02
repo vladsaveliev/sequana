@@ -1,6 +1,7 @@
 import subprocess
 import tempfile
 import shutil
+import os
 
 class Pipeline(object):
     """Base class for all pipeline tests""" 
@@ -17,6 +18,5 @@ class Pipeline(object):
             raise Exception
 
     def clean(self):
-        try:shutil.rmtree(self.tempdir.name)
-        except:pass
+        self.tempdir.cleanup()
 

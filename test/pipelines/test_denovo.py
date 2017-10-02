@@ -41,6 +41,7 @@ def test_denovo():
     except:
         pass
         #QC.clean()
+        assert Exception
 
 
 

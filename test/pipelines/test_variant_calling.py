@@ -6,6 +6,7 @@ import os
 import tempfile
 from .common import Pipeline
 
+
 class VariantCallingPipeline(Pipeline):
 
     def __init__(self, wk=None):
@@ -53,4 +54,4 @@ def test_variant_calling():
         QC.clean()
     except:
         QC.clean()
-
+        raise Exception
