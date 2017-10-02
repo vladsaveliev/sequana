@@ -73,7 +73,7 @@ OSVersion: xenial
     # pysam/bzip/hstlib is tricky. We pin versions as follows
     conda install --override-channels -c conda-forge bzip2
     conda install --override-channels -c bioconda -c conda-forge htslib==1.5.0 
-    conda install -y pysam==0.12
+    conda install pysam==0.12.0.1
 
     if [ ! -d /data ]; then mkdir /data; fi
     if [ ! -d /scripts ]; then mkdir /scripts; fi
