@@ -7,11 +7,13 @@
 # use it, otherwise use input_samples.
 # If input_extension provided, use it otherwise assume fastq.gz
 # ============================================================================
-input_directory: ''
-input_extension: ''
-input_pattern: /home/cokelaer/Work/DATA/Pacbio/test_sequana/*bam
-input_readtag: _R[12]_
-input_samples: CommentedMap([('file1', ''), ('file2', '')])
+input_directory: "%(input_directory)s"
+input_readtag: "%(input_readtag)s"
+input_extension: "%(input_extension)s"
+input_pattern: "%(input_pattern)s"
+input_samples: 
+    file1: "%(file1)s"
+    file2: "%(file2)s"
 
 
 bam_to_fasta:
