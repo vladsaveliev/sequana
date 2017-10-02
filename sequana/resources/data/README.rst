@@ -27,3 +27,8 @@ Others
 BAM
 =========
 - measles.fa.sorted.bam created with sequana_mapping of Hm*gz with reference measles.fa
+
+RNAseq
+========
+
+- data/KO_ATCACG_R1_test.fastq.gz : a small sample of 500 reads for testing
