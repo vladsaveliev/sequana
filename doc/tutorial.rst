@@ -221,12 +221,12 @@ RNA-seq
 
 
 See more information in the :ref:`pipeline_rnaseq` section.
-The following example will show how to initialise and run the RNAseq pipeline on a couple of FastQ files (in single end mode).
+The following example will show you how to initialise and run the RNAseq pipeline on a couple of FastQ files (in single-end mode).
 The data comes from a sequencing (using HiSeq2500 technology) of a saccharomyces cerevisiae strain.
 For testing purposes, you can download :download:`Fastq1
 <../sequana/resources/data/WT_ATCACG_L001_R1_001.fastq.gz>` and
 :download:`Fastq2 <../sequana/resources/data/KO_ATCACG_L001_R1_001.fastq.gz>`)
-files that contain only 100,00 reads. Copy them in a local directory.
+files that contain only 100,000 reads. Copy them in a local directory.
 
 
 Initialise the pipeline
@@ -238,7 +238,12 @@ Call **sequana** standalone as follows::
     sequana --pipeline rnaseq --input-directory . --working-directory EXAMPLE
         --adapter-fwd GATCGGAAGAGCACACGTCTGAACTCCAGTCA --adapter-rev GTGACTGGAGTTCAGACGTGTGCTCTTCCGATC
 
-Or use Sequanix.
+This command download the pipeline and its configuration file. The configuration
+file is prefilled with adapter information and input data files found in the
+input directory provided. You can change the configuration afterwards.
+
+An alternative is to use :ref:`sequanix`.
+
 
 Go to the project directory
 ::
@@ -259,13 +264,14 @@ the fasta and the GFF files from SGD before to run the pipeline::
     tar -xvzf chromFa.tar.gz
     cat *.fa > Saccer3.fa
     wget http://downloads.yeastgenome.org/curation/chromosomal_feature/saccharomyces_cerevisiae.gff -O Saccer3.gff
-    rm chr*
+    rm -f chr*
     cd ..
 
-.. warning:: All files (fasta, GFF, GTF...) used in RNA-seq pipeline must have the same prefix (Saccer3 in the example)
-    and must be placed in a new directory, named as the prefix or not
+.. warning:: All files (fasta, GFF, GTF...) used in RNA-seq pipeline must have 
+    the same prefix (Saccer3 in the example) and must be placed in a new directory, 
+    named as the prefix or not.
 
-.. warning:: For the counting step, the RNA-seq pipeline take only GFF files. GTF and SAF files must be integrated soon.
+.. warning:: For the counting step, the RNA-seq pipeline take only GFF files. GTF and SAF files will be integrated soon.
 
 Edit the config file(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

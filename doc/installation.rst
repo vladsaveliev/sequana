@@ -140,16 +140,18 @@ install more packages depending on the pipeline used. See hereafter.
 Singularity
 ================
 
-We provide a Singularity image with Sequana standalones and pipelines
+We provide Singularity images on https://singularity-hub.org/collections/433/ .
+They contain Sequana standalones and some of the pipelines dependencies
 as well as Sequanix. Note, however, that Sequanix relies on PyQt (graphical
 environment) and would work for Linux users only for the time being. The main
 reason being that under Mac and windows a virtualbox is used by Singularity
 preventing a X connection. This should be solved in the near future.
 
 First, install singularity (http://singularity.lbl.gov/). 
-Second, download our image::
+Second, download a Sequana image. For instance, for the latest master version::
 
     singularity pull shub://sequana/sequana:master
+
 
 Do not interrupt the download (4-5Go). Once downloaded,
 you can use, for instance, the sequana_coverage executable::
@@ -160,8 +162,17 @@ or sequanix::
 
     singularity exec sequana-sequana-master.img sequanix
 
+Would you miss a dependency, just enter into the singularity container and install the missing dependencies. You will need writable permission::
+
+    sudo singularity shell -w sequana-sequana-master.img
+
+Then, inside the container, install or fix the problem and type exit to save the
+container.
 
 .. note:: method tested with success on Fedora 23, ubuntu and Centos 6.
+.. seealso:: Notes for developers about :ref:`dev_singularity` especially to get
+   specific vresions.
+
 
 Notes about dependencies
 ===========================

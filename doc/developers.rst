@@ -598,6 +598,9 @@ In ./sequana/multiqc add a file called pipeline_count.py
 - In the ./test/multiqc add a test in test_multiqc.py
 
 
+
+.. _dev_singularity:
+
 Singularity
 =============
 
@@ -610,4 +613,18 @@ this website to build a singularity image. This image can be downloaded::
 and then used as::
 
     singularity exec sequana-sequana-master.img sequana_coverage --help
+
+
+.. warning:: Each time you push the master or develop, it triggers this website:
+    https://singularity-hub.org/collections/433/ and build a new image. Images
+    may be numerous or broken and may be removed. If you wish to keep / tag a
+    version you need to tell the main developer
+
+Only master is guaranteed to be kept. 
+
+======= ========= ==================
+branch  version   sequana version
+======= ========= ==================
+master  3196      0.5.2
+======= ========= ==================
 
