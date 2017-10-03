@@ -22,7 +22,8 @@ class PacbioQCPipeline(Pipeline):
             "sequana", "--pipeline", self.pipeline,
             "--input-pattern", '%s' % self.input_pattern,
             "--extension", "bam",
-            "--working-directory", self.wk, "--force"
+            "--working-directory", self.wk, "--force",
+            "--jobs", "1"
             ])
 
         cfg = SequanaConfig(self.wk + "/config.yaml")
