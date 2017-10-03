@@ -110,6 +110,11 @@ can be used with conda::
 
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
 
+Additional tools may need to be installed. Thos large packages are stored in
+another requirements to keep the main distribution lighter::
+
+    conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines_extra.txt
+
 
 From Pypi website (released source code)
 ==========================================

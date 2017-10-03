@@ -38,6 +38,11 @@ dependencies with **conda**::
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements.txt
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
 
+Additional tools such as prokka, busco, canu and future heavy software will be
+maintained in this specific requirements for now::
+
+    conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines_extra.txt
+
 
 
 Installation issues

@@ -31,7 +31,7 @@ Changelog
 
 * News:
 
-
+    * add Singularity container
     * BAM class (bamtools module): add plotting methods (coverage, letters,
       indels)
     * Add Cigar class (cigar module).
