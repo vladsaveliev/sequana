@@ -23,6 +23,18 @@ class VariantCallingPipeline(Pipeline):
             "--input-pattern", '%s' % self.input_pattern,
             "--working-directory", self.wk, "--force"
             ])
+
+
+        cmd = ["sequana", "--pipeline", self.pipeline,
+             "--input-pattern", '%s'% self.input_pattern,
+             "--working-directory", self.wk, "--force"]
+
+        if "TRAVIS_PYTHON_VERSION" in os.environ:
+             cmd += ["--jobs", "1"]
+
+        subprocess.check_call(cmd)
+
+
         # Add reference in the config
         cfg = SequanaConfig(self.wk + "/config.yaml")
         # We added a TTTT in position 5881

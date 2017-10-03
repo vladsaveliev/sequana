@@ -15,11 +15,17 @@ class QualityPipeline(Pipeline):
         self.pipeline = "quality_control"
 
         self.output = self.wk + "/Hm2_GTGAAA_L005/report_qc_Hm2_GTGAAA_L005/summary.json"
-        subprocess.check_call([
+        cmd = [
             "sequana", "--pipeline", self.pipeline,
             "--input-pattern", '%s'% self.input_pattern,
             "--working-directory", self.wk,
-            "--adapters", "Nextera", "--force"])
+            "--adapters", "Nextera", "--force"]
+
+        if "TRAVIS_PYTHON_VERSION" in os.environ:
+            cmd += ["--jobs", "1"]
+
+        subprocess.check_call(cmd)
+
 
     def check(self):
         if os.path.exists(self.output):
