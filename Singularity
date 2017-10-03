@@ -21,7 +21,7 @@ OSVersion: xenial
     apt-get install -y libxi6
 
     # for sequanix (Qt plugin) otherwise libxcb missing
-    apt-get install -y libSM*
+    apt-get install -y libsm-dev
     apt-get install -y libxcomposite-dev
 
     # install anaconda
