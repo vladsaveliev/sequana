@@ -5,6 +5,7 @@ bowtie
 bowtie2
 bwa
 cutadapt
+dsrc
 fastq-screen
 fastqc==0.11.5
 freebayes
@@ -14,6 +15,7 @@ krona
 shustring
 picard
 pigz
+pbzip2==1.1.13
 prokka
 samtools
 sambamba
