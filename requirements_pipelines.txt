@@ -3,17 +3,15 @@ bedtools
 bleach
 bowtie
 bowtie2
-busco==3.0.2
 bwa
-canu
 cutadapt
 fastq-screen
+fastqc==0.11.5
 freebayes
 khmer
 kraken
 krona
 shustring
-fastqc
 picard
 pigz
 prokka
@@ -24,4 +22,3 @@ spades
 star
 subread
 multiqc
-# prokka
