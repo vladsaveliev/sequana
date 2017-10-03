@@ -30,7 +30,7 @@ class VariantCallingPipeline(Pipeline):
              "--working-directory", self.wk, "--force"]
 
         if "TRAVIS_PYTHON_VERSION" in os.environ:
-             cmd += ["--jobs", "1"]
+             cmd += ["--snakemake-jobs", "1"]
 
         subprocess.check_call(cmd)
 
