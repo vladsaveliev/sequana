@@ -70,7 +70,7 @@ OSVersion: xenial
     conda clean --packages -y
 
     # Sequana source code
-    pip install sequana
+    pip install sequana==0.5.2
 
     conda clean --all -y # next requires lots of space
     rm -rf /usr/local/anaconda/pkgs
