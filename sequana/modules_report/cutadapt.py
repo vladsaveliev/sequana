@@ -91,6 +91,7 @@ class CutadaptModule(SequanaBaseModule):
         if self.mode == 'se':
             tobefound.append(('total_reads', 'Total reads processed:'))
             tobefound.append(('reads_with_adapters', 'Reads with adapters:'))
+            tobefound.append(('reads_with_adapters', 'Reads with adapter:'))
             tobefound.append(('reads_too_short', 'Reads that were too short:'))
             tobefound.append(('reads_kept', 'Reads written (passing filters):'))
         else:
