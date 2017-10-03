@@ -24,6 +24,11 @@ OSVersion: xenial
     apt-get install -y libsm-dev
     apt-get install -y libxcomposite-dev
 
+    # This is a large data set again. When using the container a sroot, sequanix
+    # looks good but in normal mode, the menu is blank...and this seems to solve
+    # the issue
+    apt-get install libgnomeui-0
+
     # install anaconda
     if [ ! -d /usr/local/anaconda ]; then
         #wget https://repo.continuum.io/miniconda/Miniconda3-4.3.14-Linux-x86_64.sh\
