@@ -18,13 +18,14 @@ class PacbioQCPipeline(Pipeline):
         self.pipeline = "pacbio_qc"
 
         # Define the project and config file
-        subprocess.check_call([
-            "sequana", "--pipeline", self.pipeline,
+        cmd = ["sequana", "--pipeline", self.pipeline,
             "--input-pattern", '%s' % self.input_pattern,
             "--extension", "bam",
-            "--working-directory", self.wk, "--force",
-            "--jobs", "1"
-            ])
+            "--working-directory", self.wk, "--force"]
+
+        if "TRAVIS_PYTHON_VERSION" in os.environ:
+            cmd += ["--jobs", "1"]
+        subprocess.check_call(cmd)
 
         cfg = SequanaConfig(self.wk + "/config.yaml")
         cfg._yaml_code["input_directory"] = ''
