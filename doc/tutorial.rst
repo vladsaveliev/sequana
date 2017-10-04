@@ -327,3 +327,47 @@ on slurm cluster ::
     sbatch snakemake -s rnaseq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json
     --cluster "sbatch --mem={cluster.ram} --cpus-per-task={threads} "
 
+
+
+Singularity and Sequanix
+----------------------------
+
+.. warning:: FOR LINUX USERS ONLY IF YOU WANT TO USE SEQUANIX. YOU CAN STILL USE
+   THE SEQUANA STANDALONE
+
+
+Here we will use singularity to use Sequanix and the quality pipeline to analyse
+local data sets stored in your /home/user/data directory.
+
+
+First, Install singularity (http://singularity.lbl.gov/). Check also the
+:ref:`Installation` for information.
+
+Second, download this specific container::
+
+    singularity pull shub://sequana/sequana:release_0_5_2
+
+This is about 5Go of data. Once downloaded, enter the container as follows::
+
+    singularity shell -B /home/user/data/:/data sequana-sequana-release_0_5_2.img
+
+
+replace "/home/user/data" by whatever local directory where you have Fastq.gz 
+
+Once in the container, you should see a prompt like::
+
+    Singularity: Invoking an interactive shell within container...
+    Singularity sequana-sequana-release_0_5_2.img:~/Work/github/sequana/singularity>
+
+Just chnage to the /data directory::
+
+    cd data
+
+You should see your input files. You can now analyse your data following the
+quality pipeline tutorial (top of the page), or use Sequanix::
+
+    sequanix -i . -w analysis -p quality_tutorial
+
+
+A Sequanix window should appear. You can now follow the Sequanix tutorial
+:ref:`sequanix`

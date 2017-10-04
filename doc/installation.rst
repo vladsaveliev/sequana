@@ -3,8 +3,16 @@
 Installation
 ##########################################
 
-In order to use Sequana, you can either install from source (or conda), or use one of the 
-available container (Docker or Singularity).
+If you are a developer, you would want to install **Sequana** from source.
+There are lots of dependencies that require compilation and may be time
+consuming. We therefore recommend the **Anaconda** solution. Sequana is indeed
+available on **bioconda**. Note, however, that
+releases of Sequana are also available on Pypi so you could also use **pip**. 
+
+If you just want to test **Sequana** or **Sequanix** or one of the Sequana
+standalone, we have started to provide **Singularity** containers since version
+0.5.2. This is a great solution for reproducibility as well. Containers are
+available on https://singularity-hub.org/collections/433/. 
 
 
 Overview of installation methods
@@ -12,7 +20,7 @@ Overview of installation methods
 
 We support 3 types of installations:
 
-#. Singularity. Strictly speaking, there is no installation. This method is for testing and production. It download an image / container that is ready-to-use::
+#. Singularity. Strictly speaking, there is no compilation. This method is for testing and production. It downloads an image / container that is ready-to-use::
 
     singularity pull shub://sequana/sequana:master
     singularity shell sequana-sequana-master.img
@@ -26,7 +34,7 @@ We support 3 types of installations:
 
         pip install sequana
 
-This three methods are detailled hereafter.
+These three methods are detailled hereafter.
 
 .. _installation_conda:
 
