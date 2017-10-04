@@ -52,11 +52,9 @@ if on_rtd:
     # pillow, sphinx, numpydoc are  for the doc only
     extra_packages = ["pillow", "numpydoc", "sphinx"]
     requirements += extra_packages
-    requirements.remove("snakemake") # no need for RTD
-    requirements.remove("atropos") # no need for RTD
 
 
-if sys.version_info.major == 2:
+if sys.version_info.major == 2 or on_rtd:
     requirements = [x for x in requirements 
                     if x.startswith("snakemake") is False]
 
