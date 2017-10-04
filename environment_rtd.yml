@@ -24,6 +24,8 @@ dependencies:
 - shustring
 - biokit>=0.4.1
 - ruamel.yaml<=0.15.0
+- pygraphviz
+- snakemake==4.0.0
 
 - pip:
   - ipython
