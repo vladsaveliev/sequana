@@ -23,6 +23,8 @@ dependencies:
 - pip
 - shustring
 - biokit>=0.4.1
+- ruamel.yaml<=0.15.0
+
 - pip:
   - ipython
   - jupyter
