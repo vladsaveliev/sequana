@@ -606,7 +606,8 @@ Singularity
 
 We provide a Singularity file. It is in the main directory and must be kept
 there to be found by singularity-hub. Each push to the master will then trigger
-this website to build a singularity image. This image can be downloaded::
+this website to build a singularity image. This image can be downloaded as
+follows::
 
     singularity pull shub://sequana/sequana:master
 
@@ -614,17 +615,18 @@ and then used as::
 
     singularity exec sequana-sequana-master.img sequana_coverage --help
 
+One issue here is that we should push on master only when we are sure that the
+repository is not bugged. Since people may use the container, we should no
+remove them... but the will be lots of containers. 
 
-.. warning:: Each time you push the master or develop, it triggers this website:
-    https://singularity-hub.org/collections/433/ and build a new image. Images
-    may be numerous or broken and may be removed. If you wish to keep / tag a
-    version you need to tell the main developer
+Instead, we could create a specific tag e.g. release_0_5_2 , activate the
+branches in the singularity hub page, push an empty commit and disable that
+branch. In doing so, we have a unique container for the release 0_5_2
 
-Only master is guaranteed to be kept. 
 
 ======= ========= ==================
 branch  version   sequana version
 ======= ========= ==================
-master  3196      0.5.2
+0_5_2   3253      0.5.2
 ======= ========= ==================
 
