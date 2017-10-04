@@ -52,6 +52,8 @@ if on_rtd:
     # pillow, sphinx, numpydoc are  for the doc only
     extra_packages = ["pillow", "numpydoc", "sphinx"]
     requirements += extra_packages
+    requirements.pop("snakemake") # no need for RTD
+    requirements.pop("atropos") # no need for RTD
 
 
 if sys.version_info.major == 2:
