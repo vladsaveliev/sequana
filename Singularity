@@ -27,7 +27,7 @@ OSVersion: xenial
     # This is a large data set again. When using the container a sroot, sequanix
     # looks good but in normal mode, the menu is blank...and this seems to solve
     # the issue
-    apt-get install libgnomeui-0
+    apt-get install -y libgnomeui-0
 
     # install anaconda
     if [ ! -d /usr/local/anaconda ]; then
