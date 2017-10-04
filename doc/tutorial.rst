@@ -354,12 +354,12 @@ This is about 5Go of data. Once downloaded, enter the container as follows::
 
 replace "/home/user/data" by whatever local directory where you have Fastq.gz 
 
-Once in the container, you should see a prompt like::
+Once in the container, you should see a prompt like this::
 
     Singularity: Invoking an interactive shell within container...
     Singularity sequana-sequana-release_0_5_2.img:~/Work/github/sequana/singularity>
 
-Just chnage to the /data directory::
+Just move to the /data directory::
 
     cd data
 
