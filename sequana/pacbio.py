@@ -67,7 +67,7 @@ class PacbioBAMBase(object):
         # can use bamtools as well but as long and output 10% larger (sequences
         # are split on 80-characters length)
         from snakemake import shell
-        cmd = "samtools %s  -@ %s %s > %s" % (mode, threads, 
+        cmd = "samtools %s  -@ %s %s > %s" % (mode, threads,
             self.filename, output_filename)
         logger.info("Please be patient")
         logger.info("This may be long depending on your input data file: ")
@@ -245,11 +245,12 @@ class BAMPacbio(PacbioBAMBase):
         super(BAMPacbio, self).__init__(filename)
 
     def _get_df(self):
-        # When scanning the BAM, we can extract the length, SNR of ACGT (still 
+        # When scanning the BAM, we can extract the length, SNR of ACGT (still
         # need to know how to use it). The GC content (note there is no
-        # ambiguity so no S character). The ZMW. Also, from the tags we could 
+        # ambiguity so no S character). The ZMW. Also, from the tags we could
         # get more
         if self._df is None:
+            logger.info("Scanning input file. Please wait")
             self.reset()
             N = 0
 
@@ -259,12 +260,12 @@ class BAMPacbio(PacbioBAMBase):
                 # count reads
                 N += 1
                 if (N % 10000) == 0:
-                    print("Read %d sequences" %N)
+                    logger.info("Read %d sequences" %N)
                 #res[0] = read length
                 res.append(read.query_length)
                 # collections.counter is slow, let us do it ourself
                 res.append( 100. / read.qlen * sum(
-                    [read.query_sequence.count(letter) for letter in "CGcgSs"])) 
+                    [read.query_sequence.count(letter) for letter in "CGcgSs"]))
 
                 # res[2] = snr A
                 # res[3] = snr C
@@ -325,17 +326,29 @@ class BAMPacbio(PacbioBAMBase):
                     if random:
                         shift = np.random.randint(stride)
 
-    def random_selection(self, output_filename, nreads):
+    def random_selection(self, output_filename, nreads=None,
+            expected_coverage=None, reference_length=None):
         """Select random reads
 
         :param nreads: number of reads to select randomly. Must be less than
             number of available reads in the orignal file.
+        :param expected_coverage:
+        :param reference_length:
+
+        of expected_coverage and reference_length provided, nreads is replaced
+        automatically.
         """
         assert output_filename != self.filename, \
             "output filename should be different from the input filename"
         self.reset()
+
+        if expected_coverage and reference_length:
+            mu = self.stats['mean']
+            nreads = int(expected_coverage * reference_length / mu)
+
         assert nreads < len(self), "nreads parameter larger than actual Number of reads"
         selector = random.sample(range(len(self)), nreads)
+        logger.info("Creating a pacbio BAM file with {} reads".format(nreads))
 
         with pysam.AlignmentFile(output_filename,"wb", template=self.data) as fh:
             for i, read in enumerate(self.data):
