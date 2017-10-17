@@ -30,5 +30,5 @@ dependencies:
 - pip:
   - ipython
   - jupyter
-  - docutils<0.13.1 # https://github.com/sphinx-doc/sphinx/issues/3212
+  #- docutils<0.13.1 # https://github.com/sphinx-doc/sphinx/issues/3212
 
