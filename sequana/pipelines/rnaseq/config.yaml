@@ -140,10 +140,10 @@ cutadapt:
 # - pf2_report: allows to plot a specific PF2 report
 #
 fastq_screen:
-    do: no
+    do: yes
     conf: "/pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/fastq_screen.conf"
     options: "--subset 200000  --aligner bowtie2"
-    pf2_report: yes
+    pf2_report: no
 
 #############################################################################
 # bowtie1_mapping_rna used to align reads against ribosomal RNA
@@ -215,7 +215,7 @@ bowtie2_mapping:
 feature_counts:
     do: yes
     #options: "-t exon -g gene_id"
-    options: "-t gene -g ID" ## if exon/CDS is used, put -O option
+    options: "-t gene -g ID -s 1" ## if exon/CDS is used, put -O option
     threads: 2
 
 
