@@ -26,6 +26,7 @@ dependencies:
 - ruamel.yaml<=0.15.0
 - pygraphviz
 - snakemake==4.0.0
+- urllib3==1.22 # to fix bug in RTD (oct2017)
 
 - pip:
   - ipython
