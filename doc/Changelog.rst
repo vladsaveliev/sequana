@@ -6,6 +6,16 @@ Changelog
 2017
 ------
 
+0.6.0
+~~~~~~~~~~~~~
+
+ * BUGS:
+
+   * add missing file for the RNAseq pipeline in the setup.py
+   * Fix RTD building
+   * Fix reag_tag filtering https://github.com/sequana/sequana/issues/480 
+   * Set singularity hub (v2.4)
+
 0.5.2
 ~~~~~~~~~~~~~~~
 
