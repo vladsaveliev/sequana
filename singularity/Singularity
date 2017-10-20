@@ -1,7 +1,9 @@
-BootStrap: debootstrap
-DistType "debian"
-MirrorURL: http://us.archive.ubuntu.com/ubuntu/
-OSVersion: xenial
+#BootStrap: debootstrap
+#DistType "debian"
+#MirrorURL: http://us.archive.ubuntu.com/ubuntu/
+#OSVersion: xenial
+BootStrap: docker
+From: ubuntu:16.04
 
 %labels
 
@@ -9,6 +11,7 @@ OSVersion: xenial
 
 %post
 
+    apt-get update
     apt-get install -y wget
     apt-get install -y bzip2
     apt-get install -y vim
@@ -77,7 +80,7 @@ OSVersion: xenial
 
     # pysam/bzip/hstlib is tricky. We pin versions as follows
     conda install --override-channels -c conda-forge bzip2
-    conda install --override-channels -c bioconda -c conda-forge htslib==1.5.0
+    conda install --override-channels -c bioconda -c conda-forge htslib==1.5.0 
     conda install pysam==0.12.0.1
 
     if [ ! -d /data ]; then mkdir /data; fi
