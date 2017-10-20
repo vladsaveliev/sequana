@@ -808,15 +808,17 @@ class PipelineManager(object):
 
     def _get_fastq_files(self, glob_dir, read_tag):
         """
+
         """
         self.ff = FastQFactory(glob_dir, read_tag=read_tag)
         if self.ff.filenames == 0:
-            self.error("No files were found.")
+            self.error("No files were found with pattern %s and read tag %s.".format(glob_dir, read_tag))
 
         # change [12] regex
         rt1 = read_tag.replace("[12]", "1")
         rt2 = read_tag.replace("[12]", "2")
 
+        # count number of occurences
         R1 = [1 for this in self.ff.filenames if rt1 in this]
         R2 = [1 for this in self.ff.filenames if rt2 in this]
 
@@ -1238,6 +1240,11 @@ class FastQFactory(FileFactory):
         :param bool verbose:
         """
         super(FastQFactory, self).__init__(pattern)
+
+        # Filter out reads that do not have the read_tag
+        # https://github.com/sequana/sequana/issues/480
+        self._glob = [filename for filename in self._glob 
+                      if re.search(read_tag, os.path.basename(filename))]
 
         if len(self.filenames) == 0:
             msg = "No files found with the requested pattern (%s)" % pattern
