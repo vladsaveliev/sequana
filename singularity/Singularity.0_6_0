@@ -5,6 +5,7 @@
 BootStrap: docker
 From: ubuntu:16.04
 
+
 %labels
 
     AUTHOR Thomas Cokelaer
@@ -57,17 +58,20 @@ From: ubuntu:16.04
     # The main packages for sequana:
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements.txt
 
-    # external tools
-    conda install -y bwa fastqc kraken krona cutadapt
-    conda install -y bowtie bowtie2 star subread
-    conda install -y bcftools bedtools khmer samtools pigz bleach
-    conda install -y picard shustring
-    conda install -y snpeff freebayes spades sambamba
+    # equivalent to requirements_pipelines.txt version 0.6.0
+    conda install -y bcftools bedtools bleach bowtie bowtie2 bwa
+    conda install -y cutadapt dsrc fastq-screen fastqc==0.11.5
+    conda install -y freebayes khmer
+    conda install -y kraken krona multiqc
+    conda install -y picard pigz samtools shustring star subread
+    conda install -y snpeff spades sambamba
 
     # Let us save some space
     conda clean --packages -y
 
-    #conda install -y canu busco==3.0.2 prokka # takes lots of place
+    conda install -y canu
+    # this one hangs for ever busco==3.0.2 
+    conda install -y prokka # takes lots of place
 
     # Let us save some space
     conda clean --packages -y
@@ -88,10 +92,16 @@ From: ubuntu:16.04
     if [ ! -d /scratch ]; then mkdir /scratch; fi
     if [ ! -d /mounting ]; then mkdir /mounting; fi
     if [ ! -d /pasteur ]; then mkdir /pasteur; fi
+    echo "backend:tkagg" > matplotlibrc
+
+    export PATH=$PATH:/usr/local/anaconda/bin
+    export LANG=C   # prevents perl for raising warnings
+    export PERL5LIB=/usr/local/anaconda/lib/perl5/5.22.0
+    python -c "import sequana" # creates config file and check installation
 
 %environment
     export PATH=$PATH:/usr/local/anaconda/bin
     export LANG=C   # prevents perl for raising warnings
     export PERL5LIB=/usr/local/anaconda/lib/perl5/5.22.0
-    echo "backend:agg" > matplotlibrc
+    #echo "backend:agg" > matplotlibrc
 
