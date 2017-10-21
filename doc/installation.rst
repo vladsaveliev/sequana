@@ -160,7 +160,17 @@ environment) and would work for Linux users only for the time being. The main
 reason being that under Mac and windows a virtualbox is used by Singularity
 preventing a X connection. This should be solved in the near future.
 
-First, install singularity (http://singularity.lbl.gov/). 
+First, install singularity (http://singularity.lbl.gov/). For example ,here is
+how to download version 2.4.0 and install::
+
+    VERSION=2.4
+    wget https://github.com/singularityware/singularity/releases/download/$VERSION/singularity-$VERSION.tar.gz
+    tar xvf singularity-$VERSION.tar.gz
+    cd singularity-$VERSION
+    ./configure --prefix=/usr/local
+    make
+    sudo make install
+
 Second, download a Sequana image. For instance, for the latest master version::
 
     singularity pull shub://sequana/sequana:master
@@ -184,8 +194,10 @@ container.
 
 .. note:: method tested with success on Fedora 23, ubuntu and Centos 6.
 .. seealso:: Notes for developers about :ref:`dev_singularity` especially to get
-   specific vresions.
+   specific versions.
 
+
+.. note:: you may need to install squashfs-tools (e.g. yum install squashfs-tools )
 
 Notes about dependencies
 ===========================
