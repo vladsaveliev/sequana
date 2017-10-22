@@ -12,7 +12,7 @@ releases of Sequana are also available on Pypi so you could also use **pip**.
 If you just want to test **Sequana** or **Sequanix** or one of the Sequana
 standalone, we have started to provide **Singularity** containers since version
 0.5.2. This is a great solution for reproducibility as well. Containers are
-available on https://singularity-hub.org/collections/433/. 
+available on https://singularity-hub.org/collections/114/. 
 
 
 Overview of installation methods
@@ -22,8 +22,8 @@ We support 3 types of installations:
 
 #. Singularity. Strictly speaking, there is no compilation. This method is for testing and production. It downloads an image / container that is ready-to-use::
 
-    singularity pull shub://sequana/sequana:master
-    singularity shell sequana-sequana-master.img
+    singularity pull --name sequana.img shub://sequana/sequana
+    singularity shell sequana.img
 
 #. Bioconda. **Sequana** is available on conda/bioconda as a pre-compiled package::
 
@@ -153,7 +153,7 @@ install more packages depending on the pipeline used. See hereafter.
 Singularity
 ================
 
-We provide Singularity images on https://singularity-hub.org/collections/433/ .
+We provide Singularity images on https://singularity-hub.org/collections/114/ .
 They contain Sequana standalones and some of the pipelines dependencies
 as well as Sequanix. Note, however, that Sequanix relies on PyQt (graphical
 environment) and would work for Linux users only for the time being. The main
@@ -173,21 +173,25 @@ how to download version 2.4.0 and install::
 
 Second, download a Sequana image. For instance, for the latest master version::
 
-    singularity pull shub://sequana/sequana:master
+    singularity pull --name sequana.img shub://sequana/sequana
+
+or for the release 0.6.0::
+
+    singularity pull --name sequana.img shub://sequana/sequana@release_0_6_0
 
 
 Do not interrupt the download (4-5Go). Once downloaded,
 you can use, for instance, the sequana_coverage executable::
 
-    singularity exec sequana-sequana-master.img sequana_coverage --help
+    singularity exec sequana.img sequana_coverage --help
 
 or sequanix::
 
-    singularity exec sequana-sequana-master.img sequanix
+    singularity exec sequana.img sequanix
 
 Would you miss a dependency, just enter into the singularity container and install the missing dependencies. You will need writable permission::
 
-    sudo singularity shell -w sequana-sequana-master.img
+    sudo singularity shell -w sequana.img
 
 Then, inside the container, install or fix the problem and type exit to save the
 container.

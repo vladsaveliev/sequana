@@ -1,9 +1,7 @@
 Docker containers for **Sequana**
 ====================================
 
-We do not provide Docker containers for each release but thanks to bioconda
-one can get some Docer containers. For example version 0.4.1 is available 
-as explained here below. For full list please checkout
+We do not provide Docker containers anymore. However, since sequana is posted on  bioconda, one can get some Dokcer containers. For example version 0.4.1 is available as explained here below. For full list please checkout
 https://quay.io/repository/biocontainers/sequana
 
 Example: sequana_coverage
