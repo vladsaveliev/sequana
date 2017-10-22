@@ -99,6 +99,7 @@ From: ubuntu:16.04
     export PERL5LIB=/usr/local/anaconda/lib/perl5/5.22.0
     python -c "import sequana" # creates config file and check installation
 
+
 %environment
     export PATH=$PATH:/usr/local/anaconda/bin
     export LANG=C   # prevents perl for raising warnings
