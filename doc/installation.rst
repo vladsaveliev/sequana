@@ -180,7 +180,7 @@ or for the release 0.6.0::
     singularity pull --name sequana.img shub://sequana/sequana@release_0_6_0
 
 
-Do not interrupt the download (4-5Go). Once downloaded,
+Do not interrupt the download (1.5Go). Once downloaded,
 you can use, for instance, the sequana_coverage executable::
 
     singularity exec sequana.img sequana_coverage --help
