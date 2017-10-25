@@ -6,6 +6,14 @@ Changelog
 2017
 ------
 
+
+0.6.1
+~~~~~~~~~~
+
+* BUGS:
+
+   * pipeline quality control: fix https://github.com/sequana/sequana/issues/477
+
 0.6.0
 ~~~~~~~~~~~~~
 
