@@ -94,7 +94,7 @@ class BAM(pysam.AlignmentFile):
 
     """
     def __init__(self, filename,  mode='rb',  *args):
-        """.. rubic:: Constructor
+        """.. rubric:: Constructor
 
         """
         # The mode rb means read-only (r) and that the format is BAM or SAM (b)
