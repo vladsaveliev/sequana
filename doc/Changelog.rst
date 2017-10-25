@@ -13,6 +13,7 @@ Changelog
 * BUGS:
 
    * pipeline quality control: fix https://github.com/sequana/sequana/issues/477
+   * Fix empty dependency list in HTML report if sequana installed with conda
 
 0.6.0
 ~~~~~~~~~~~~~
