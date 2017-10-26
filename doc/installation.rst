@@ -175,9 +175,9 @@ Second, download a Sequana image. For instance, for the latest master version::
 
     singularity pull --name sequana.img shub://sequana/sequana
 
-or for the release 0.6.0::
+or for the release 0.6.1::
 
-    singularity pull --name sequana.img shub://sequana/sequana@release_0_6_0
+    singularity pull --name sequana.img shub://sequana/sequana@release_0_6_1
 
 
 Do not interrupt the download (1.5Go). Once downloaded,
