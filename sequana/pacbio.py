@@ -30,6 +30,11 @@ from sequana import logger
 
 __all__ = ["BAMPacbio", "PBSim", "BAMSimul"]
 
+# from pbcore.io import openAlignmentFile
+# b = openAlignmentFile(filename)
+# len(b) is instantaneous IF a bai is created using
+# samtools index -b filename.bam filename.bai
+
 
 class PacbioBAMBase(object):
     """Base class for Pacbio BAM files"""
