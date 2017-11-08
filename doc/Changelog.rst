@@ -6,6 +6,13 @@ Changelog
 2017
 ------
 
+0.6.2
+~~~~~~~~~~~~
+
+* BUGS:
+
+    * Fix regression bug (https://github.com/sequana/sequana/issues/484)
+
 
 0.6.1
 ~~~~~~~~~~

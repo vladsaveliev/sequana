@@ -13,14 +13,14 @@ input_data = manager.getrawdata()
 to_clean = []
 
 
-#Convert the BAM to fasta
+# Convert the BAM to fasta
 __bam_to_fasta__input_bam = input_data
 __bam_to_fasta__output_fasta = "{sample}.fasta"
 include: sm.modules["bam_to_fasta"]
 to_clean = []
 
 
-# Analysis the input BAM , create pictures and summary file
+# Analysis the input Fasta , create pictures and summary file
 __pacbio_quality__input = input_data
 __pacbio_quality__output_summary = "{sample}/summary_{sample}.json"
 include: sm.modules["pacbio_quality"]
