@@ -491,6 +491,10 @@ class AdapterReader(object):
 
         if len(adapters) == 0:
             return None
+        elif len(adapters) == 1:
+            return adapters[0]
+        else:
+            raise ValueError("Found two adapters matching the identifier. This should never happen")
         return adapters
 
     def get_adapter_by_index_name(self, index_name):
@@ -721,12 +725,12 @@ class FindAdaptersFromDesign(object):
                 raise ValueError("Found no index for %s (sample %s)" % (index,sample_name))
 
             # drop potential duplicates
-            uniques = set([this.sequence for this in seq])
-            if len(uniques) > 1:
-                raise ValueError("Found 2 sequences with index %s " % (index, sample_name))
+            #uniques = set([this.sequence for this in seq])
+            #if len(uniques) > 1:
+            #    raise ValueError("Found 2 sequences with index %s " % (index, sample_name))
 
             # If there are duplicates, or not, just take first element
-            res[key]['fwd'] = seq[0]
+            res[key]['fwd'] = seq
 
             # Reverse version
             from sequana.tools import reverse_complement as revcomp
@@ -734,10 +738,10 @@ class FindAdaptersFromDesign(object):
             if seq is None: #Index2 is optional so no error raised
                 pass
             else:
-                uniques = set([this.sequence for this in seq])
-                if len(uniques) > 1:
-                    raise ValueError("Found 2 sequences with index %s " % (index, sample_name))
-                res[key]['rev'] = seq[0]
+                #uniques = set([this.sequence for this in seq])
+                #if len(uniques) > 1:
+                #    raise ValueError("Found 2 sequences with index %s " % (index, sample_name))
+                res[key]['rev'] = seq
 
         # If Index1_Seq not in the index, then we should use the IDs
         if "Index1_Seq" not in data.index:
@@ -783,7 +787,7 @@ class FindAdaptersFromDesign(object):
 
         file_fwd = output_dir + os.sep + "%s_adapters_fwd.fa"% sample_name
         with open(file_fwd, "w") as fout:
-            for this in ["transposase", "universal", "polyA", "polyT"]:
+            for this in ["universal", "transposase", "universal", "polyA", "polyT"]:
                 try:
                     fout.write(str(adapters[this]['fwd'])+"\n")
                 except:pass

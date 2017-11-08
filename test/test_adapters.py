@@ -138,7 +138,7 @@ def test_nextera():
     design = sequana_data("test_index_mapper.csv")
     ad = FindAdaptersFromDesign(design, "Nextera")
     results = ad.get_adapters_from_sample("C4405-M1-EC1")
-    assert results['index1']['fwd'][0].identifier  == 'Nextera_index_N703|name:N703|seq:AGGCAGAA'
+    assert results['index1']['fwd'].identifier  == 'Nextera_index_N703|name:N703|seq:AGGCAGAA'
 
     ad.check()  # all samples are used in get_adapters_from_sample
     ad.sample_names
@@ -292,7 +292,7 @@ def test_all_adapters():
     # Nextera
     fa = FindAdaptersFromDesign(design, "Nextera")
     res = fa.get_adapters_from_sample("C1152-S2-EC1")
-    assert res['index1']['fwd'][0].identifier == "Nextera_index_N701|name:N701|seq:TAAGGCGA"
+    assert res['index1']['fwd'].identifier == "Nextera_index_N701|name:N701|seq:TAAGGCGA"
     assert "transposase_seq_1" in res.keys()
     assert "transposase_seq_2" in res.keys()
     assert "universal" in res.keys()
@@ -305,6 +305,11 @@ def test_all_adapters():
     assert "universal" in res.keys()
     assert "fwd" in res['universal']
     assert "rev" in res['universal']
+    # let us be more precise for PCRFree only for a regression bug where 
+    # res['universal'] 
+    assert res["universal"]["fwd"].identifier == "Universal_Adapter|name:universal"
+    assert res["universal"]["fwd"].sequence == "AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT"
+
 
     # NEBNext
     fa = FindAdaptersFromDesign(design, "NEBNext")
