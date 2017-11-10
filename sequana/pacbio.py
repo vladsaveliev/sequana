@@ -295,6 +295,7 @@ class BAMPacbio(PacbioBAMBase):
         # cast to allows json dump
         data =  self.df.read_length.describe().to_dict()
         data['nb_bases'] = int(self.df.read_length.sum())
+        data['nb_reads'] = len(self.df)
         data['mean_GC'] = float(self.df.GC_content.mean())
         return data
     stats = property(_get_stats, doc="return basic stats about the read length")
@@ -432,7 +433,7 @@ class BAMPacbio(PacbioBAMBase):
             pylab.grid(True)
 
     def hist_ZMW_subreads(self, alpha=0.5, hold=False, fontsize=12,
-                          grid=True, xlabel="Number of ZMW passes",
+                          grid=True, xlabel="Number of ZMW passes", logy=True,
                           ylabel="#", label="", title="Number of ZMW passes"):
         """Plot histogram of number of reads per ZMW (number of passes)
 
@@ -442,6 +443,7 @@ class BAMPacbio(PacbioBAMBase):
         :param bool grid:
         :param str xlabel:
         :param str ylabel:
+        :param bool logy: use log scale on the y axis (default to True)
         :param str label: label of the histogram (for the legend)
         :param str title:
 
@@ -463,13 +465,12 @@ class BAMPacbio(PacbioBAMBase):
         # histogram nb passes
         if hold is False:
             pylab.clf()
-        pylab.bar(k, val, alpha=alpha, label=label)
+        pylab.bar(k, val, alpha=alpha, label=label, log=logy)
         if len(k) < 5:
             pylab.xticks(range(6), range(6))
 
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
-        pylab.yscale('log')
         pylab.title(title, fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
