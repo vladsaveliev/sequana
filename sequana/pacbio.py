@@ -142,7 +142,7 @@ class PacbioBAMBase(object):
         pylab.xlim([0, 100])
 
     def plot_GC_read_len(self, hold=False, fontsize=12, bins=[40,40],
-                grid=True, xlabel="GC %", ylabel="#"):
+                grid=True, xlabel="GC %", ylabel="#", cmap="hot"):
         """Plot GC content versus read length
 
         :param bool hold:
@@ -171,7 +171,7 @@ class PacbioBAMBase(object):
             pylab.clf()
         data = self._df.loc[:,['read_length','GC_content']]
         h = biokit.viz.hist2d.Hist2D(data)
-        res = h.plot(bins=bins, contour=False, nnorm='log', Nlevels=6)
+        res = h.plot(bins=bins, contour=False, nnorm='log', Nlevels=6, cmap=cmap)
         pylab.xlabel("Read length", fontsize=fontsize)
         pylab.ylabel("GC %", fontsize=fontsize)
         pylab.title("GC %% vs length \n Mean length : %.2f , Mean GC : %.2f" % 
@@ -254,6 +254,19 @@ class BAMPacbio(PacbioBAMBase):
         # need to know how to use it). The GC content (note there is no
         # ambiguity so no S character). The ZMW. Also, from the tags we could
         # get more
+
+        # In each alignement, there are lots of information to retrieve.
+        # One could for instance introspect the tags.
+        # - cx:
+        # - ip: vector of length qlen from 0 to 250
+        # - np: 1 ?
+        # - pw: vector of length qlen from 0 to 128? 
+        # - qe: position ? 
+        # - qs: position ?
+        # - zm: position of the ZMW 
+        # - sn: list of ACGT SNRs. 
+        # - rq: ? 
+        # - RG: ?
         if self._df is None:
             logger.info("Scanning input file. Please wait")
             self.reset()
@@ -393,6 +406,31 @@ class BAMPacbio(PacbioBAMBase):
             for read in self.data:
                 if ((read.query_length > threshold_min) & (read.query_length < threshold_max)):
                     fh.write(read)
+
+    def filter_mapq(self, output_filename, threshold_min=0,
+        threshold_max=255):
+        """Select and Write reads within a given range
+
+        :param str output_filename: name of output file
+        :param int threshold_min: minimum length of the reads to keep
+        :param int threshold_max: maximum length of the reads to keep
+
+        """
+        assert threshold_min < threshold_max
+        assert output_filename != self.filename, \
+            "output filename should be different from the input filename"
+        self.reset()
+        count = 0
+        with pysam.AlignmentFile(output_filename,  "wb", template=self.data) as fh:
+            for read in self.data:
+                if ((read.mapq < threshold_max) & (read.mapq > threshold_min)):
+                    fh.write(read)
+                    print(count, "Keep", read.mapq)
+                else:
+                    print(count, "skip", read.mapq)
+                count += 1
+                if count % 10000: 
+                    print("%s sequence processed" % count)
 
     def hist_snr(self, bins=50, alpha=0.5, hold=False, fontsize=12,
                 grid=True, xlabel="SNR", ylabel="#",title=""):
