@@ -257,15 +257,25 @@ class BAMPacbio(PacbioBAMBase):
 
         # In each alignement, there are lots of information to retrieve.
         # One could for instance introspect the tags.
-        # - cx:
-        # - ip: vector of length qlen from 0 to 250
-        # - np: 1 ?
-        # - pw: vector of length qlen from 0 to 128? 
-        # - qe: position ? 
-        # - qs: position ?
-        # - zm: position of the ZMW 
-        # - sn: list of ACGT SNRs. 
-        # - rq: ? 
+        # - cx: subread local context flags
+        # - ip: vector of length qlen from 0 to 250. This is the IPD (raw frames
+        # or codec V1)
+        # - np: number of passes (1 for subread, variable for CCS)
+        # - pw: vector of length qlen from 0 to 128? This is the PulseWidth (raw
+        # frames or codec V1)
+        # - qs: 0-based start of query in the ZMW read (absent in CCS)
+        # - qe: 0-based end of query in the ZMW read (absent in CCS)
+        # - zm: position/ID of the ZMW
+        # - sn: list of ACGT SNRs. A, C, G, T in that order
+        # - rq: float encoding exepted accuracy
+
+        # - dq: DeletionQV
+        # - dt: deletion Tag
+        # - iq: insertionQV
+        # - mq: mergeQV
+        # - sq: substituionQV
+        # - st: substituion tag
+
         # - RG: ?
         if self._df is None:
             logger.info("Scanning input file. Please wait")
@@ -512,6 +522,112 @@ class BAMPacbio(PacbioBAMBase):
         pylab.title(title, fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
+
+    def _set_rlen(self):
+        pass
+
+    def _set_concordance(self, method):
+        from sequana import Cigar
+        self._concordance = []
+        self.reset()
+        if method == "blasr":
+            for align in self.data:
+                if align.cigarstring:
+                    this = Cigar(align.cigarstring).stats()
+                    S, D, I, M = this[4] , this[2] , this[1], this[0]
+                    self._concordance.append((1- (D+I+S)/(D+I+M+S)))
+        elif method == "bwa":
+            for align in self.data:
+                if align.cigarstring:
+                    this = align.get_cigar_stats()[0]
+                    # Last item is total error though but cannot use Cigar class
+                    # that does not have that value
+                    error = this[-1]  # suppose to be I + D + X
+                    # can check with alignment.get_cigar_stats() on blasr data
+                    # for instance
+                    # 
+                    total = this[-1] + this[0]
+                    self._concordance.append((1- (error)/(total)))
+
+    def hist_concordance(self, method, bins=100, fontsize=16):
+        """
+
+            formula : 1 - (in + del + mismatch / (in + del + mismatch + match) )
+
+        For BWA and BLASR, the get_cigar_stats are different !!!
+        BWA for instance has no X stored
+
+Subread Accuracy: The post-mapping accuracy of the basecalls. 
+Formula: [1 - (errors/subread length)], where errors = number of deletions +
+insertions + substitutions.
+
+        """
+        try:
+            concordance = self._concordance
+        except:
+            self._set_concordance(method)
+            concordance = self._concordance
+
+        pylab.hist(concordance, bins=bins)
+        pylab.grid()
+        mu = np.mean(concordance)
+        median = np.median(concordance)
+        pylab.axvline(mu, color='r', alpha=0.5)
+        pylab.axvline(median, color='r', alpha=0.5, ls="--")
+        pylab.xlabel("concordance", fontsize=fontsize)
+
+    def _get_data(self, method="blasr"):
+        from sequana import Cigar
+        data = []
+        self.reset()
+        count = 0
+        for align in self.data:
+            mapq = align.mapq
+            length = align.rlen
+            if method == "blasr":
+                this = Cigar(align.cigarstring).stats()
+                S, D, I, M = this[4] , this[2] , this[1], this[0]
+                concordance = 1 - (D+I+S)/(D + I + M + S)
+            else:
+                this = align.get_cigar_stats()[0]
+                error = this[-1]  # suppose to be I + D + X
+                total = this[-1] + this[0]
+                if total:concordance = 1- (error)/(total)
+                else:concordance = 0
+            data.append([mapq, length, concordance])
+            if count % 10000 == 0: print("%s" % count)
+            count+=1
+        return data
+
+    def boxplot_mapq_concordance(self, method):
+        # method can only be bwa for now
+        assert method == "bwa"
+        data = self._get_data(method)
+        df = pd.DataFrame(data, columns=["mapq", "length", "concordance"])
+        pylab.clf()
+        pylab.boxplot([df[df.mapq == i]['concordance'] for i in range(1,61)])
+        pylab.xlabel("mapq")
+        pylab.ylabel("concordance")
+        pylab.grid()
+        tt = [10,20,30,40,50,60]
+        pylab.xticks(tt, tt)
+
+    def get_coverage(self, reference_length=None):
+        self.reset()
+        start = [this.reference_start for this in self.data]
+        self.reset()
+        end = [this.reference_end for this in self.data]
+        if reference_length: 
+            N  = reference_length
+        else:
+            N = max([x for x in end if x])
+
+        coverage = np.zeros(N)
+        for x, y in zip(start, end):
+            if y and x>=0 and y>=0: coverage[x:y] += 1
+            else: pass
+        return coverage
+
 
 
 class BAMSimul(PacbioBAMBase):
