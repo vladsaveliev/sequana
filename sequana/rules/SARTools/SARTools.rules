@@ -1,0 +1,148 @@
+rule SARTools:
+    """
+    SARTools is a R package dedicated to the differential analysis of RNA-seq data.
+    It provides tools to generate descriptive and diagnostic graphs, to run the differential analysis
+    with one of the well known DESeq2 or edgeR packages and to export the results into easily readable
+    tab-delimited files. It also facilitates the generation of a HTML report which displays all the
+    figures produced, explains the statistical methods and gives the results of the differential analysis.
+
+    Required input:
+        __SARTools__input: a list of count files
+
+    Required output:
+        __SARTools__output: SARTools html result file
+
+    Config:
+
+        .. code-block:: yaml
+
+            SARTools:
+                #Required parameters:
+                design: path/to/file            #path to design file
+                projectName: "RNAseq"           # name of the project
+                author: "NAME"                  # author of the statistical analysis/report
+                rawDir: "featureCounts/"        # path to the directory containing raw counts files
+                featuresToRemove: "NULL"        # NULL if no feature to remove
+
+                #Optional parameters:
+                varInt: "group"                        # factor of interest
+                condRef: "WT"                          # reference biological condition
+                batch: NULL                            # blocking factor: NULL (default) or "batch" for example
+                fitType: "parametric"                  # mean-variance relationship: "parametric" (default) or "local"
+                cooksCutoff: TRUE                      # TRUE/FALSE to perform the outliers detection (default is TRUE)
+                independentFiltering: TRUE             # TRUE/FALSE to perform independent filtering (default is TRUE)
+                alpha: 0.05                            # threshold of statistical significance
+                pAdjustMethod: "BH"                    # p-value adjustment method: "BH" (default) or "BY"
+                typeTrans: "VST"                       # transformation for PCA/clustering: "VST" or "rlog"
+                locfunc: "median"                      # "median" (default) or "shorth" to estimate the size factors
+                colors: c("dodgerblue","firebrick1",   # vector of colors of each biological condition on the plots
+                "MediumVioletRed","SpringGreen")
+
+
+    """
+
+
+    input:
+        __SARTools__input,
+        targetFile = __SARTools__targetFile
+    log:
+        __SARTools__logs
+    output:
+        output = __SARTools__output
+    threads: 1
+    params:
+        design = config['SARTools']['design'],
+        projectName = config['SARTools']['projectName'],
+        author = config['SARTools']['author'],
+        rawDir = config['SARTools']['rawDir'],
+        featuresToRemove = config['SARTools']['featuresToRemove'],
+        varInt = config['SARTools']['varInt'],
+        condRef = config['SARTools']['condRef'],
+        batch = config['SARTools']['batch'],
+        fitType = config['SARTools']['fitType'],
+        cooksCutoff = config['SARTools']['cooksCutoff'],
+        independentFiltering = config['SARTools']['independentFiltering'],
+        alpha = config['SARTools']['alpha'],
+        pAdjustMethod = config['SARTools']['pAdjustMethod'],
+        typeTrans = config['SARTools']['typeTrans'],
+        locfunc = config['SARTools']['locfunc'],
+        colors = config['SARTools']['colors'],
+
+    run:
+        R("""
+
+        rm(list=ls())
+
+        sink("{log}")
+
+        library(SARTools)
+
+        # NEED TO SET GOOD PATH IN THE
+        workDir <- # as input from a preSARTools rule ????
+        setwd(workDir)
+
+
+        # setting params
+        targetFile <- "{input.targetFile}"
+
+        projectName <- "{params.projectName}"
+        author <- "{params.author}"
+
+        rawDir <- "{params.rawDir}"
+        featuresToRemove <- "{params.featuresToRemove}"
+        varInt <- "{params.varInt}"
+        condRef <- "{params.condRef}"
+        batch <- {params.batch}
+        fitType <- "{params.fitType}"
+        cooksCutoff <- {params.cooksCutoff}
+        independentFiltering <- {params.independentFiltering}
+        typeTrans <- "{params.typeTrans}"
+        locfunc <- "{params.locfunc}"
+        alpha <- {params.alpha}
+        pAdjustMethod <- "{params.pAdjustMethod}"
+        colors <- "{params.colors}"
+
+
+        # checking parameters
+        checkParameters.DESeq2(projectName=projectName,author=author,targetFile=targetFile,
+                               rawDir=rawDir,featuresToRemove=featuresToRemove,varInt=varInt,
+                               condRef=condRef,batch=batch,fitType=fitType,cooksCutoff=cooksCutoff,
+                               independentFiltering=independentFiltering,alpha=alpha,pAdjustMethod=pAdjustMethod,
+                               typeTrans=typeTrans,locfunc=locfunc,colors=colors)
+
+        # loading target file
+        target <- loadTargetFile(targetFile=targetFile, varInt=varInt, condRef=condRef, batch=batch)
+
+        # loading counts
+        counts <- loadCountData(target=target, rawDir=rawDir, featuresToRemove=featuresToRemove)
+
+        # description plots
+        majSequences <- descriptionPlots(counts=counts, group=target[,varInt], col=colors)
+
+        # analysis with DESeq2
+        out.DESeq2 <- run.DESeq2(counts=counts, target=target, varInt=varInt, batch=batch,
+                                 locfunc=locfunc, fitType=fitType, pAdjustMethod=pAdjustMethod,
+                                 cooksCutoff=cooksCutoff, independentFiltering=independentFiltering, alpha=alpha)
+
+        # PCA + clustering
+        exploreCounts(object=out.DESeq2$dds, group=target[,varInt], typeTrans=typeTrans, col=colors)
+
+        # summary of the analysis (boxplots, dispersions, diag size factors, export table, nDiffTotal, histograms, MA plot)
+        summaryResults <- summarizeResults.DESeq2(out.DESeq2, group=target[,varInt], col=colors,
+                                                  independentFiltering=independentFiltering,
+                                                  cooksCutoff=cooksCutoff, alpha=alpha)
+
+        # save image of the R session
+        save.image(file=paste0(projectName, ".RData"))
+
+        # generating HTML report
+        writeReport.DESeq2(target=target, counts=counts, out.DESeq2=out.DESeq2, summaryResults=summaryResults,
+                           majSequences=majSequences, workDir=workDir, projectName=projectName, author=author,
+                           targetFile=targetFile, rawDir=rawDir, featuresToRemove=featuresToRemove, varInt=varInt,
+                           condRef=condRef, batch=batch, fitType=fitType, cooksCutoff=cooksCutoff,
+                           independentFiltering=independentFiltering, alpha=alpha, pAdjustMethod=pAdjustMethod,
+                           typeTrans=typeTrans, locfunc=locfunc, colors=colors)
+
+        sink()
+        """)
+
