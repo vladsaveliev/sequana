@@ -1,10 +1,49 @@
 Docker containers for **Sequana**
 ====================================
 
+.. warning:: We used to build our own docker containers but
+   thanks to development in bioconda, we will now use biocontainers.
+
+Example: sequana_coverage
+--------------------------
+
+To pull a Sequana container (here version 0.4.1), use this type of command::
+
+    docker pull quay.io/biocontainers/sequana:0.4.1--py35_0
+
+Checkout the `quay.io <https://quay.io/repository/biocontainers/sequana>`_
+website. After pulling the image above, you can use it as follows::
+
+    docker run -v $PWD:/home/default -it quay.io/biocontainers/sequana:0.4.1--py35_0
+
+.. warning:: once in the docker shell, go to /home/default. Here, this directory
+    is linked to your real directory where you type "docker run..." so what you
+    modify here is directly reflected in your directory !
+
+
+Assuming you have a BED file JB409847 in your directory,  otherwise uncomment
+the commented line here below::
+
+    cd /home/default
+    export MPLBACKEND="agg"
+    # wget https://tinyurl.com/y9j69t3k -O JB409847.bed
+    sequana_coverage --input JB409847.bed
+    exit
+
+Back on your local directory, you should now see a ./report directory with the
+results of the analysis.
+
+
+Docker containers in details (obsolet) 
+=======================================
+
+.. warning:: this is mostly obsolet since we now use biocontainer but this
+   section may be useful for developers.
+
 `Docker <http://www.docker.com>`_ containers wrap a piece of software in a complete filesystem that contains everything needed to run the software.
 
 In order to allow anyone to use **Sequana** without needs for complex installation, we provide
-`Docker images <https://hub.docker.com/u/sequana>`, which are synchronized on the *master*
+`Docker images <https://hub.docker.com/u/sequana>`_, which are synchronized on the *master*
 branch of the source code.
 
 We assume that:
@@ -36,12 +75,8 @@ The primary goal of the docker is to make it possible to quickly test the
 standalones. For now, we expose only one docker. Please see specific 
 documentation following the links here below:
 
-- sequana_coverage_
-- sequana_taxonomy_
-
-
-.. _sequana_coverage: (https://github.com/sequana/sequana/tree/master/docker/sequana_coverage)
-.. _sequana_taxonomy: (https://github.com/sequana/sequana/tree/master/docker/sequana_taxonomy)
+- sequana_coverage: (https://github.com/sequana/sequana/tree/master/docker/sequana_coverage)
+- sequana_taxonomy: (https://github.com/sequana/sequana/tree/master/docker/sequana_taxonomy)
 
 
 More advanced Usage
@@ -66,12 +101,11 @@ This opens an interactive shell with latest sequana library pre-installed. For i
 start an IPython shell::
 
     ipython
-    
+ 
 and import the library::
 
     import sequana
 
-See sequana.readthedocs.org for examples.
 
 Or within the unix shell, you can use standalones. For instance there is a test
 BED file that can be analysed as follows to get a coverage report::

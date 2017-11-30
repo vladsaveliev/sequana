@@ -1,4 +1,9 @@
 rule tophat_mapping:
+    """
+    DEPRECATED rule for tophat mapper
+    """
+
+
     input:
         fastq = __tophat_mapping__input,
         index = __tophat_mapping__prefix_done

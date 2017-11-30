@@ -17,6 +17,7 @@
 """Sequana GUI. Can also be used for any snakemake pipeline"""
 import sys
 import os
+import shutil
 import re
 import time
 import psutil
@@ -153,6 +154,8 @@ class SequanaFactory(BaseFactory):
         # Some widgets to be used: a file browser for paired files
         fastq_filter = "Fastq file (*.fastq *.fastq.gz *.fq *.fq.gz)"
         self._sequana_paired_tab = FileBrowser(paired=True, file_filter=fastq_filter)
+        self._sequana_readtag_label2 = QW.QLabel("Read tag (e.g. _[12].fastq)")
+        self._sequana_readtag_lineedit2 = QW.QLineEdit("_R[12]_")
 
         # Set the file browser input_directory tab
         self._sequana_directory_tab = FileBrowser(directory=True)
@@ -618,9 +621,15 @@ class SequanaGUI(QMainWindow, Tools):
         # a local alias
         saf = self.sequana_factory
 
-        # add widgets for the working dir and input sample
+        # add widgets for the working dir
         self.ui.layout_sequana_wkdir.addWidget(saf._directory_browser)
+        
+        # add widget for the input sample
         self.ui.layout_sequana_input_files.addWidget(saf._sequana_paired_tab)
+        hlayout = QW.QHBoxLayout()
+        hlayout.addWidget(saf._sequana_readtag_label2)
+        hlayout.addWidget(saf._sequana_readtag_lineedit2)
+        self.ui.layout_sequana_input_files.addLayout(hlayout)
 
         # add widget for the input directory
         self.ui.layout_sequana_input_dir.addWidget(saf._sequana_directory_tab)
@@ -986,7 +995,10 @@ class SequanaGUI(QMainWindow, Tools):
         self.info("Creating form based on config file")
         self.clear_form()
         rules_list = list(self.config._yaml_code.keys())
-        rules_list.sort()
+
+        # We do not sort the list of rules anymore so that it is like in the
+        # config file
+        #rules_list.sort()
         self.necessary_dict = {}
 
         # For each section, we create a widget (RuleForm). For isntance, first,
@@ -1210,12 +1222,19 @@ class SequanaGUI(QMainWindow, Tools):
             elif self.ui.tabWidget.currentIndex() == 1:
                 filename = self.sequana_factory._sequana_paired_tab.get_filenames()
                 form_dict["input_samples"] = (filename)
+
+                readtag = self.sequana_factory._sequana_readtag_lineedit.text()
+                if len(readtag.strip()):
+                    form_dict["input_readtag"] = readtag
+                else:
+                    form_dict["input_readtag"] = "_R[12]_"
         elif self.mode == "generic":
             # Here we save the undefined section in the form.
-            for key, value in form_dict[self._undefined_section].items():
-                form_dict[key] = value
-            del form_dict[self._undefined_section]
-            self.info("Generic case")
+            if self._undefined_section in form_dict.keys():
+                for key, value in form_dict[self._undefined_section].items():
+                    form_dict[key] = value
+                del form_dict[self._undefined_section]
+                self.info("Generic case")
 
         # Let us update the attribute with the content of the form
         # This uses the user's information
@@ -1226,6 +1245,7 @@ class SequanaGUI(QMainWindow, Tools):
         self.cfg = cfg
 
         if self.working_dir:
+            # Save the configuration file
             if self.mode == "sequana":
                 yaml_path = self.working_dir + os.sep + "config.yaml"
                 self.warning("copy requirements (if any)")
@@ -1251,6 +1271,17 @@ class SequanaGUI(QMainWindow, Tools):
             else:
                 self.warning("Saving config file (does not exist)")
                 cfg.save(yaml_path, cleanup=False)
+
+            # Save the configuration file for the cluster 
+            if self.mode == "sequana" and self.sequana_factory.clusterconfigfile:
+                target = self.working_dir + os.sep + "cluster_config.json"
+                shutil.copy(self.sequana_factory.clusterconfigfile, target)
+                # replace the name of the original file with the target one so 
+                # that the target can be edited. The target will also be used in
+                # place of the original version when launnching snakemake!
+                #self.snakemake_dialog.set()
+                self.snakemake_dialog.ui.snakemake_options_cluster_cluster__config_value.set_filenames(target)
+
         else:
             self.critical("Config file not saved (no wkdir)")
             msg = WarningMessage("You must set a working directory", self)
@@ -1341,6 +1372,21 @@ class SequanaGUI(QMainWindow, Tools):
     # -----------------------------------------------------------------------
 
     def show_dag(self):
+        try:    
+            # This command should work on various platform, just in case
+            # we add a try/except
+            easydev.cmd_exists('dot')
+            if easydev.cmd_exists('dot2') is False:
+                msg = "**dot** command not found. Use 'conda install " 
+                cmd += "graphviz' to install it."
+                self.warning(msg)
+                msg = WarningMessage((msg))
+                msg.exec_()
+                return
+        except:
+            pass
+
+
         self.info("Creating DAG image.")
         if self.snakefile is None:
             self.warning("No snakefile")

@@ -36,13 +36,24 @@ rule bowtie2_mapping:
         sam = temp(__bowtie2_mapping__sam)
     threads:
         config["bowtie2_mapping"]["threads"]
-    shell:
-        """
+    run:
+        unzip_file = [filename[:-3] for filename in input.fastq]
+        cmd = "bowtie2 -p {threads} {params.options} -x {params.prefix_index}"
+        # paired end or single end unzip
+        if len(input.fastq) == 2:
+            bowtie_input = "-1 " + unzip_file[0] + " -2 " + unzip_file[1]
+        else:
+            bowtie_input = unzip_file[0]
+        cmd = cmd + " " + bowtie_input
+        # sam to bam
+        cmd = "%%s | samtools view -Sbh -> {output.bam}" %% cmd
 
-        bowtie2 -p {threads} -X2000  --end-to-end \
-        -D 20 -R 3 -N 1 -L 20 -i S,1,0.50 -x {params.prefix_index} \
-        -1 {input.R1} -2 {input.R2} -S {params.sam} > {log.out} 2> {log.err}
+        # logs
+        cmd = "(%%s) > {log.out} 2> {log.err}" %% cmd
 
-        samtools view -bhS {params.sam} | samtools sort -o {output.sort} - >> {log.out} 2>> {log.err}
-        samtools index {output.sort} >> {log.out} 2>> {log.err}
-        """
+        # sort result
+        cmd = "%%s && samtools sort -o {output.sort} {output.bam}" %% cmd
+        cmd = "%%s && samtools index {output.sort}" %% cmd
+
+
+        shell("unpigz -fk {input.fastq} -p {threads} && " + cmd )

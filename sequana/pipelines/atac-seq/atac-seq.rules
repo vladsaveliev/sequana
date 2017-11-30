@@ -15,7 +15,7 @@ configfile: "config.yaml"
 __snakefile__ = srcdir(__snakefile__)
 
 # Generic include of some dynamic modules
-exec(open(sequana.modules["fastqc"], "r").read())
+exec(open(sequana.modules["fastqc_dynamic"], "r").read())
 
 
 manager = sm.PipelineManager("atac-seq", config)

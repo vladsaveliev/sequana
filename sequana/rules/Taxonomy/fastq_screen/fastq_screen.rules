@@ -27,12 +27,8 @@ rule fastq_screen:
     threads: 4
     params:
         configFile = config['fastq_screen']['conf'],
+        options = config['fastq_screen']['conf']
     shell:
         """
-        fastq_screen --subset 20000 \
-        --outdir {output.outdir} \
-        --threads {threads} \
-        --conf {params.configFile}  \
-        --aligner bowtie2  \
-        {input}
+        fastq_screen --outdir {output.outdir} --threads {threads} --conf {params.configFile} {params.options} {input}
         """

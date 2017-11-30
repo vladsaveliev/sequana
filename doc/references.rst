@@ -13,6 +13,13 @@ Adapters
     :members:
     :undoc-members:
 
+Assembly related
+-----------------------------
+
+.. automodule:: sequana.assembly
+    :members:
+    :undoc-members:
+
 BAMTOOLS related
 --------------------
 .. automodule:: sequana.bamtools
@@ -94,6 +101,7 @@ Pacbio module
 .. automodule:: sequana.pacbio
     :members:
     :undoc-members:
+    :inherited-members:
 
 Phred quality
 ------------------

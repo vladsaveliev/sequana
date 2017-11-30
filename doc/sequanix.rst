@@ -4,8 +4,18 @@
 Sequanix Tutorial
 ====================
 
+
 .. contents::
    :local:
+
+Quick Installation
+--------------------------
+
+**Sequanix** is shipped with **Sequana**. If you use **conda**, just type::
+
+    conda install sequana
+
+Please see :ref:`Installation` for details. The standalone name is **sequanix**.
 
 Introduction
 ---------------
@@ -18,6 +28,9 @@ as Snakemake workflows).
 
 However, we extended the interface so that it can handle other Snakemake
 workflows, referred to as **Generic pipelines** in the GUI.
+
+A tutorial in form of a video is available in another repository: 
+`video/tutorial <https://github.com/sequana/resources/blob/master/sequanix/videos/demo_sequana.webm?raw=true>`_
 
 
 .. figure:: _static/sequanix/sequanix.png

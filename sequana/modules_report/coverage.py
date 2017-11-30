@@ -36,8 +36,10 @@ class CoverageModule(SequanaBaseModule):
     :class:`GenomeCov` instances or a csv file where analysis are stored.
     """
     def __init__(self, data):
-        """
-        :param input: 
+        """.. rubric:: constructor
+
+        :param data: it can be a csv filename created by sequana_coverage or a
+        :class:`bedtools.GenomeCov` object.
         """
         super().__init__()
         try:
@@ -292,7 +294,8 @@ class ChromosomeCoverageModule(SequanaBaseModule):
             "<p>Regions with a z-score {0}er than {1:.2f} and at "
             "least one base with a z-score {0}er than {2:.2f} are detected as "
             "{0} coverage region. Thus, there are {3} {0} coverage regions."
-            "</p>")
+            "</p>"
+        )
         low_paragraph = roi_paragraph.format("low",
                                              self.chromosome.thresholds.low2,
                                              self.chromosome.thresholds.low,
@@ -337,7 +340,8 @@ class ChromosomeCoverageModule(SequanaBaseModule):
                 "and 1.0. A coefficient of 0 means no correlation, while a "
                 "coefficient of -1 or 1 means an existing "
                 "correlation between GC and Coverage</p>".format(
-                corr, self.chromosome.bed.gc_window_size, image)
+                    corr, self.chromosome.bed.gc_window_size, image
+                )
         })
 
     def normalized_coverage(self):
@@ -444,7 +448,7 @@ class SubCoverageModule(SequanaBaseModule):
                          'labelFontColor': '#FFC425'})
         # set datas
         cjs.set_data(index=0, data_dict={'type': 'line',
-                                         'name': "Coverage",
+                                         'name': "Filtered coverage",
                                          'showInLegend': 'true',
                                          'color': '#5BC0DE',
                                          'lineColor': '#5BC0DE'})

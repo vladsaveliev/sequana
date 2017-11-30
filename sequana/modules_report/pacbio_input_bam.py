@@ -36,9 +36,9 @@ class PacbioInputBAMModule(SequanaBaseModule):
 
     Input summary JSON file must contains these links:
 
-    - hist_read_length
-    - hist_gc_content
-    - hist_zmw
+    - images/hist_read_length
+    - images/hist_gc_content
+    - images/hist_zmw
 
     to PNG files and the **stats** dictionary created with 
     :meth:`sequana.pacbio.BAMPacbio.stats
@@ -51,8 +51,11 @@ class PacbioInputBAMModule(SequanaBaseModule):
         super().__init__()
         # Read the data
         self.title = "Pacbio QC (input BAM)"
+        self.name = "sequana_summary_pacbio_qc"
         with open(summary, "r") as fh:
             self.summary = json.load(fh)
+
+        assert "name" in self.summary.keys() and self.summary['name'] == self.name
 
         self.create_report_content()
         if output_filename:
@@ -72,7 +75,7 @@ class PacbioInputBAMModule(SequanaBaseModule):
             self.add_png(this)
 
     def add_stats(self):
-        df = pd.Series(self.summary['stats']).to_frame().T
+        df = pd.Series(self.summary['read_stats']).to_frame().T
         df.index = ['read length stats']
         table = DataTable(df, "table", index=True)
         table.datatable.datatable_options = {
@@ -104,8 +107,10 @@ class PacbioInputBAMModule(SequanaBaseModule):
             title = "GC vs length"
         elif key == "hist_snr":
             title = "Histogram SNR"
+        else:
+            return
 
-        html = self.png_to_embedded_png( self.summary[key])
+        html = self.png_to_embedded_png( self.summary["images"][key])
         html = """<figure style="float:center; width:89%; padding:0px; margin:0px;">
         {}
     <figcaption style="font-style:italic"></figcaption>

@@ -1,0 +1,30 @@
+# coding: utf-8
+"""The dynamic version of snpeff if you need it a multiple time in your
+pipeline.
+"""
+
+def snpeff_dynamic(name, project):
+    metadata = {'name': name,}
+    snpeff_code = '''
+rule snpeff_%(name)s:
+    """ SnpEff adds annotation of variants detected in a VCF file.
+    """
+    input:
+        vcf = __snpeff_%(name)s__input, 
+        gbk = __snpeff_%(name)s__gbk
+    output:
+        ann = __snpeff_%(name)s__output,
+        html = __snpeff_%(name)s__html
+    log:
+        log = __snpeff_%(name)s__log
+    params:
+        options = __snpeff_%(name)s__options
+    run:
+        from sequana import SnpEff
+
+        mydata = SnpEff(reference=input.gbk, log=log.log)
+        mydata.launch_snpeff(input.vcf, output.ann, html_output=output.html,
+                             options=params.options)
+    '''
+    from sequana.snaketools import build_dynamic_rule
+    return build_dynamic_rule(snpeff_code % metadata, project.pipeline_dir)

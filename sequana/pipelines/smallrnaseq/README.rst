@@ -1,7 +1,7 @@
-:Overview: small RNASeq (miRNA)
+:Overview: Small RNASeq (miRNA) analysis
 :Input: FastQ raw data from Illumina Sequencer (single end only)
-:Output: 
-:Config file requirements:
+:Output: BAM, count and HTML files
+
 
 
 
@@ -26,7 +26,7 @@ Requirements
 Details
 ~~~~~~~~~
 
-
+This pipeline allows to map and count reads on mature and hairpin sequences (to download from miRBase) and perform some QC on data. All results are summarized by multiQC.
 
 
 Rules and configuration details
@@ -39,7 +39,7 @@ configuration file. Here are the rules and their developer and user documentatio
 
 FastQC
 ^^^^^^^^^^^
-.. snakemakerule:: fastqc
+.. snakemakerule:: fastqc_dynamic
 
 Fastq_screen
 ^^^^^^^^^^^^^^^
@@ -51,6 +51,9 @@ Cutadapt
 
 Bowtie1
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Mapping on hairpin and mature sequences. The corresponding fasta files must be in the config file.
+
 .. snakemakerule:: bowtie1_mapping_dynamic
 
 Counting

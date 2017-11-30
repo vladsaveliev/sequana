@@ -73,18 +73,18 @@ quality += """QRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~"""
 from math import log10
 
 
-__all__ = ['Quality']
+__all__ = ['Quality', "proba_to_quality_sanger", "quality_to_proba_sanger"]
 
 
 def proba_to_quality_sanger(pe):
-    """A value beitween 0 and 93
+    """A value between 0 and 93
 
-pe is the probability of error.
-Q is the quality score.
+    :param pe: the probability of error.
+    :return: Q is the quality score.
 
-a high probability of error (0.99) gives Q=0
-q low proba of errors (0.05) gives Q = 13
-q low proba of errors (0.01) gives Q = 20
+    - a high probability of error (0.99) gives Q=0
+    - q low proba of errors (0.05) gives Q = 13
+    - q low proba of errors (0.01) gives Q = 20
 
     """
     if pe > 1:

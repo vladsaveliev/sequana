@@ -17,8 +17,9 @@ __snakefile__ = srcdir(__snakefile__)
 
 # Generic include of some dynamic modules
 exec(open(sequana.modules["bowtie1_mapping_dynamic"], "r").read())
-exec(open(sequana.modules["fastqc"], "r").read())
 exec(open(sequana.modules["bowtie1_index_dynamic"], "r").read())
+exec(open(sequana.modules["fastqc_dynamic"], "r").read())
+exec(open(sequana.modules["dynamic_unpigz"], "r").read())
 
 manager = sm.PipelineManager("rnaseq", config)
 
@@ -127,16 +128,12 @@ if manager.config.cutadapt.do:
 
     # Clean NGS
     if adapter_tool == "clean_ngs":
+        __clean_ngs__input = __data__input
+        __clean_ngs__output = [manager.getname("clean_ngs", "_R1_.clean_ngs.fastq.gz")]
         if manager.paired:
-            __clean_ngs__input = __data__input # must be -if1 R1.fastq -if2 R2.fastq
-            __clean_ngs__output = ["%s  -of2 %s" % (manager.sample, manager.sample)]
-            __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
-            __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
-        else:
-            __clean_ngs__input = __data__input
-            __clean_ngs__output = [manager.getname("clean_ngs", "_clean_ngs.fastq.gz")]
-            __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
-            __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
+            __clean_ngs__output += [manager.getname("clean_ngs", "_R2_.clean_ngs.fastq.gz")]
+        __clean_ngs__logs = manager.getname("clean_ngs", ".logs")
+        __clean_ngs__rej_files = [manager.getname("clean_ngs", "_rejected.fastq.gz")]
         include: sm.modules["clean_ngs"]
 
         #expected_output.extend(expand(__clean_ngs__output, sample=manager.samples))
@@ -175,6 +172,7 @@ if manager.config.fastq_screen.do:
     include: sm.modules["fastq_screen"]
     if manager.config.fastq_screen.pf2_report:
         __fastq_screen_report__input = __fastq_screen__outdir
+        __fastq_screen_report__sample = manager.sample
         __fastq_screen_report__input_done = __fastq_screen__output
         __fastq_screen_report__figure = manager.getname("fastq_screen", "_report.svg")
         __fastq_screen_report__logs =  manager.getname("fastq_screen", "pf2_report.logs")
@@ -191,9 +189,24 @@ __fastqc_filtered__wkdir       = manager.getwkdir("fastqc_filtered")
 include: fastqc_dynamic("filtered", manager)
 expected_output.extend(expand(__fastqc_filtered__output_done, sample=manager.samples))
 
+
+
+# Decompress fastq.gz file before to run bowtie1
+__unpigz_R1__input = manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")
+__unpigz_R1__output = manager.getname("cutadapt", "_R1_.cutadapt.fastq")
+include: dynamic_unpigz("R1", manager)
+__unpigz__output = [__unpigz_R1__output]
+if manager.paired:
+    __unpigz_R2__input = manager.getname("cutadapt", "_R2_.cutadapt.fastq.gz")
+    __unpigz_R2__output = manager.getname("cutadapt", "_R2_.cutadapt.fastq")
+    include: dynamic_unpigz("R2", manager)
+    __unpigz__output += [__unpigz_R2__output]
+
+
+
 if manager.config.bowtie1_mapping_rna.do:
     # rRNA
-    __bowtie1_mapping_rna__input = __clean_ngs__output
+    __bowtie1_mapping_rna__input = __unpigz__output
     __bowtie1_mapping_rna__index_done = __bowtie1_index_rna__output_done
     __bowtie1_mapping_rna__bam = manager.getname("bowtie1_mapping_rna", ".bam")
     __bowtie1_mapping_rna__sort = manager.getname("bowtie1_mapping_rna", ".sorted.bam")
@@ -201,19 +214,19 @@ if manager.config.bowtie1_mapping_rna.do:
     __bowtie1_mapping_rna__stdout = manager.getname("bowtie1_mapping_rna", "_rRNA.out")
     __bowtie1_mapping_rna__stderr = manager.getname("bowtie1_mapping_rna", "_rRNA.err")
 
-    include: bowtie1_mapping_dynamic("rna", manager.sample)
+    include: bowtie1_mapping_dynamic("rna", manager)
     expected_output.extend(expand(__bowtie1_mapping_rna__sort, sample=manager.samples))
 
 if manager.config.bowtie1_mapping_ref.do:
     # Mapper bowtie 1
-    __bowtie1_mapping_ref__input = __clean_ngs__output
+    __bowtie1_mapping_ref__input = __unpigz__output
     __bowtie1_mapping_ref__index_done = __bowtie1_index_ref__output_done
     __bowtie1_mapping_ref__bam = manager.getname("bowtie1_mapping_ref", ".bam")
     __bowtie1_mapping_ref__sort = manager.getname("bowtie1_mapping_ref", ".sorted.bam")
     __bowtie1_mapping_ref__prefix_index = __bowtie1_index__
     __bowtie1_mapping_ref__stdout = manager.getname("bowtie1_mapping_ref", ".out")
     __bowtie1_mapping_ref__stderr = manager.getname("bowtie1_mapping_ref", ".err")
-    include: bowtie1_mapping_dynamic("ref", manager.sample)
+    include: bowtie1_mapping_dynamic("ref", manager)
     expected_output.extend(expand(__bowtie1_mapping_ref__sort, sample=manager.samples))
     __mapping_output = __bowtie1_mapping_ref__sort
 if manager.config.star_mapping.do:
@@ -232,16 +245,6 @@ if manager.config.star_mapping.do:
     include: sm.modules["star_mapping"]
     expected_output.extend(expand(__star_mapping__sort, sample=manager.samples))
     __mapping_output = __star_mapping__sort
-if manager.config.tophat_mapping.do:
-     __tophat_mapping__input = __clean_ngs__output
-     __tophat_mapping__outdir = manager.getwkdir("tophat_mapping")
-     __tophat_mapping__bam =  manager.getname("tophat_mapping", "accepted_hits.bam")
-     __tophat_mapping__sort = manager.getname("tophat_mapping", "accepted_hits_sorted.bam")
-     __tophat_mapping__logs = manager.getname("tophat_mapping", ".logs")
-     __tophat_mapping__prefix_done = __bowtie1_index_ref__output_done
-     __tophat_mapping__prefix = __bowtie1_index__
-     include: sm.modules["tophat_mapping"]
-     expected_output.extend(expand(__tophat_mapping__sort, sample=manager.samples))
 
 
 # generating of bigwig files
@@ -308,7 +311,7 @@ if config["RNAseQC"]["do"]:
     include: sm.modules["RNAseQC"]
     expected_output.extend([__RNAseQC__figure])
 
-# !!!!!!!!!!!!!!!!!!! Reset expected_output variable after multiqc
+# !Reset expected_output variable after multiqc
 # Multiqc rule
 __multiqc__input = expected_output
 __multiqc__input_dir = "."
@@ -334,20 +337,20 @@ expected_output.extend([__conda__output])
 
 
 # create a json file that summarise information of your pipeline
-__summary_pipeline__inputs = __data__input
-if manager.config.cutadapt.do:
-    __summary_pipeline__outputs = [ __cutadapt__output ]
-
-__summary_pipeline__html = []
-__summary_pipeline__rulegraph = __rulegraph__output
-__summary_pipeline__requirements = "requirements.txt"
-__summary_pipeline__snakefile = __snakefile__
-__summary_pipeline__config = "config.yaml"
-__summary_pipeline__name = "RNA-seq"
-__summary_pipeline__json_output = manager.getname("summary_pipeline", ".json")
-include: sm.modules["summary_pipeline"]
-expected_output.append(expand(__summary_pipeline__json_output,
-                              sample=manager.samples))
+#__summary_pipeline__inputs = __data__input
+#if manager.config.cutadapt.do:
+#    __summary_pipeline__outputs = [ __cutadapt__output ]
+#
+#__summary_pipeline__html = []
+#__summary_pipeline__rulegraph = __rulegraph__output
+#__summary_pipeline__requirements = "requirements.txt"
+#__summary_pipeline__snakefile = __snakefile__
+#__summary_pipeline__config = "config.yaml"
+#__summary_pipeline__name = "RNA-seq"
+#__summary_pipeline__json_output = manager.getname("summary_pipeline", ".json")
+#include: sm.modules["summary_pipeline"]
+#expected_output.append(expand(__summary_pipeline__json_output,
+#                              sample=manager.samples))
 
 
 
@@ -373,20 +376,13 @@ onsuccess:
         except:pass
 
         shell("cp %s %s" % (__snakefile__, report_dir))
-        shell("cp rulegraph.svg %s/rulegraph.svg" % (report_dir))
+        #shell("cp rulegraph.svg %s/rulegraph.svg" % (report_dir))
         shell("cp config.yaml %s" % report_dir)
         shell("cp requirements.txt %s" % report_dir)
         shell("cp snakemake_stats.png %s" % report_dir)
 
-        shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
-        shell('cp -r %s/cutadapt/ %s' % (proj, report_dir))
-
-        # from sequana.reporting.report_summary import SequanaSummary
-        # #summary = SequanaSummary(proj, directory=report_dir,
-        #     output_filename="summary.html",
-        #    snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
-        #    manager=manager)
-        # summary.create_report()
+        os.mkdir("cluster_logs")
+        shell("mv slurm* cluster_logs/")
 
         # Create a cleanup python file to clean a sub-directory
         sm.create_cleanup(proj)

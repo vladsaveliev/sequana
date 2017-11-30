@@ -1,17 +1,20 @@
 rule format_contigs:
-    """ Change names of contigs to have sample name and filter reads shorter 
-    than a threshold.
+    """
+    This rule changes contigs name to have sample name and the contig number to
+    reduce the description line length. Otherwise, Prokka will not annotate our
+    contigs. This rule also removes contigs less long than a threshold.
 
     Required input:
-        - __format_contigs__input: fasta file
+        - __format_contigs__input: FASTA file with contigs.
 
     Required output:
-        - __format_contigs__output: fasta file
+        - __format_contigs__output: FASTA file with reformated contigs.
 
-    Required parameter:
-        - config["format_contigs"]["threshold"]: when the contig length is
-            lower than this number, the contig is not kept.
+    Required configuration:
+        .. code-block:: yaml
 
+            format_contigs:
+                threshold: 500 # remove contigs less long than this threshold.
     """
     input:
         contigs = __format_contigs__input

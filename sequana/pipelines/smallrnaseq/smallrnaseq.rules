@@ -16,17 +16,15 @@ __snakefile__ = srcdir(__snakefile__)
 
 # Generic include of some dynamic modules
 exec(open(sequana.modules["bowtie1_mapping_dynamic"], "r").read())
-exec(open(sequana.modules["fastqc"], "r").read())
+exec(open(sequana.modules["fastqc_dynamic"], "r").read())
 exec(open(sequana.modules["bowtie1_index_dynamic"], "r").read())
 exec(open(sequana.modules["miRNA_count_dynamic"], "r").read())
-
+exec(open(sequana.modules["dynamic_unpigz"], "r").read())
 
 manager = sm.PipelineManager("smallrnaseq", config)
 
 __data__input = manager.getrawdata()
 
-
-TODO = "todo"
 
 if manager.config.genome.do:
 
@@ -94,8 +92,6 @@ if manager.config.cutadapt.do:
         __cutadapt__input_fastq = __data__input
         __cutadapt__wkdir = manager.getwkdir("cutadapt")
         __cutadapt__output = [manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")]
-        if manager.paired:
-            __cutadapt__output += [manager.getname("cutadapt", "_R2_.cutadapt.fastq.gz")]
 
         # Set the fwd and rev adapters
         __cutadapt__fwd = manager.config.cutadapt.fwd
@@ -140,14 +136,21 @@ include: fastqc_dynamic("filtered", manager)
 expected_output.extend(expand(__fastqc_filtered__output_done, sample=manager.samples))
 
 
+# Decompress fastq.gz file before to run bowtie1
+__unpigz_R1__input = manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")
+__unpigz_R1__output = manager.getname("cutadapt", "_R1_.cutadapt.fastq")
+include: dynamic_unpigz("R1", manager)
+
+
+
 # mirRNA mature
-__bowtie1_mapping_mature__input = __clean__output
+__bowtie1_mapping_mature__input = __unpigz_R1__output
 __bowtie1_mapping_mature__index_done = __bowtie1_index_mature__output_done
 __bowtie1_mapping_mature__bam = manager.getname("bowtie1_mapping_miRNA", ".bam")
 __bowtie1_mapping_mature__sort = manager.getname("bowtie1_mapping_miRNA", ".sorted.bam")
 __bowtie1_mapping_mature__prefix_index = __mature_index__
-__bowtie1_mapping_mature__stdout = manager.getname("bowtie1_mapping_rna", "_mature-miRNA_mapping.txt")
-__bowtie1_mapping_mature__stderr = "%s/logs/bowtie/mature_mapping_stderr.txt" % manager.sample
+__bowtie1_mapping_mature__stdout = manager.getname("bowtie1_mapping_miRNA", "_miRNA.out")
+__bowtie1_mapping_mature__stderr = manager.getname("bowtie1_mapping_miRNA", "_miRNA.err")
 include: bowtie1_mapping_dynamic("mature", manager.sample)
 expected_output.extend(expand(__bowtie1_mapping_mature__sort, sample=manager.samples))
 
@@ -159,13 +162,13 @@ include: miRNA_count_dynamic("mature", manager)
 expected_output.extend(expand(__miRNA_count_mature__output, sample=manager.samples))
 
 # hairpin mapping
-__bowtie1_mapping_hairpin__input = __clean__output
+__bowtie1_mapping_hairpin__input = __unpigz_R1__output
 __bowtie1_mapping_hairpin__index_done = __bowtie1_index_hairpin__output_done
 __bowtie1_mapping_hairpin__bam = manager.getname("bowtie1_mapping_hairpin", ".bam")
 __bowtie1_mapping_hairpin__sort = manager.getname("bowtie1_mapping_hairpin", ".sorted.bam")
 __bowtie1_mapping_hairpin__prefix_index = __haipin_index__
-__bowtie1_mapping_hairpin__stdout = manager.getname("bowtie1_mapping_hairpin", "_hairpin_mapping.txt")
-__bowtie1_mapping_hairpin__stderr = "%s/logs/bowtie/haipin_mapping_stderr.txt" % manager.sample
+__bowtie1_mapping_hairpin__stdout = manager.getname("bowtie1_mapping_hairpin", "_hairpin.out")
+__bowtie1_mapping_hairpin__stderr = manager.getname("bowtie1_mapping_hairpin", "_hairpin.err")
 include: bowtie1_mapping_dynamic("hairpin", manager.sample)
 expected_output.extend(expand(__bowtie1_mapping_hairpin__sort, sample=manager.samples))
 
@@ -222,7 +225,7 @@ onsuccess:
         except:pass
 
         shell("cp %s %s" % (__snakefile__, report_dir))
-        shell("cp rulegraph.svg %s/rulegraph.svg" % (report_dir))
+        #shell("cp rulegraph.svg %s/rulegraph.svg" % (report_dir))
         shell("cp config.yaml %s" % report_dir)
         shell("cp requirements.txt %s" % report_dir)
         shell("cp snakemake_stats.png %s" % report_dir)
@@ -230,12 +233,21 @@ onsuccess:
         shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
         shell('cp -r %s/cutadapt/ %s' % (proj, report_dir))
 
+        os.mkdir("cluster_logs")
+        shell("mv slurm* cluster_logs/")
+        # from sequana.reporting.report_summary import SequanaSummary
+        # #summary = SequanaSummary(proj, directory=report_dir,
+        #     output_filename="summary.html",
+        #    snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
+        #    manager=manager)
+        # summary.create_report()
 
         # Create a cleanup python file to clean a sub-directory
         sm.create_cleanup(proj)
 
     sm.create_recursive_cleanup()
     sm.message("Done. To further cleanup the directory, type \n python .sequana_cleanup.py")
+
 
 onerror:
     print("An error occurred. See message above.")

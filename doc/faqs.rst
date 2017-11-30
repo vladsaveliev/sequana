@@ -13,6 +13,7 @@ Create a conda environment on IP cluster::
 add channel from where to download packages::
 
     conda config --add channels r bioconda
+    conda install sequana
 
 
 What are the dependencies
@@ -31,7 +32,12 @@ called **bioconda**. For instance::
     conda install bwa
 
 The full list of dependencies will be maintained in the :ref:`installation`
-section.
+section but those two lines should be sufficient to install most of the
+dependencies with **conda**::
+
+    conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements.txt
+    conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
+
 
 
 Installation issues
@@ -105,6 +111,16 @@ This may be solved by removing conda installation and using pip instead::
      conda remove pysam
      pip install pysam
 
+Another error know for pysam version 0.11.2.2 raises this error::
+
+    ImportError: libbz2.so.1.0: cannot open shared object file: No such file or
+    directory
+
+Downgrading to version 0.11.2.1 and upgrading to working version solves the problem::
+
+    conda install pysam=0.11.2.1
+
+
 
 qt
 ~~~~~~~~~~~~~~~~~~
@@ -116,7 +132,18 @@ qt
 This may be solved by re-installation qt using the main anaconda channel
 (instead of bioconda)::
 
-     conda install --override-channels -c anaconda qt
+    conda install --override-channels -c anaconda qt
+
+
+libselinux
+~~~~~~~~~~~~~~~~~
+
+If you get this error (using **conda install sequana**)::
+
+    ImportError: libselinux.so.1: cannot open shared object file: No such file or directory
+
+it looks like you need to install libselinux on your environment as reported 
+`here <https://github.com/sequana/sequana/issues/438>`_.
 
 
 Expected input format

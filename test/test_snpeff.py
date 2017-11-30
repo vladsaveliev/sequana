@@ -5,9 +5,12 @@ import os
 
 def test_snpeff():
     # a custom refrence
-    mydata = snpeff.SnpEff(reference=sequana_data("JB409847.gbk"))
+    fh_log = TempFile()
+
+    mydata = snpeff.SnpEff(reference=sequana_data("JB409847.gbk"), log=fh_log.name)
     with TempFile() as fh:
-        mydata.launch_snpeff(sequana_data("JB409847.vcf"), fh.name) 
+        mydata.launch_snpeff(sequana_data("JB409847.vcf"), fh.name)
+    fh_log.delete()
 
     # cleanup
     try:
@@ -25,6 +28,14 @@ def test_snpeff():
     except:
         pass
 
+    
+    try:
+        snpeff.SnpEff(reference="dummy")
+        assert False
+    except SystemExit:
+        assert True
+    except:
+        assert False
 
 
 def test_snpeff_download():
@@ -39,3 +50,52 @@ def test_snpeff_download():
             assert True
         except:
             assert False
+
+
+def test_add_locus_no_modification():
+    mydata = snpeff.SnpEff(reference=sequana_data("JB409847.gbk"))
+    with TempFile() as fh:
+        fastafile = sequana_data("JB409847.fasta")
+        mydata.add_locus_in_fasta(fastafile, fh.name)
+        # cleanup
+        try:
+            os.remove("snpEff.config")
+        except:
+            pass
+
+def test_add_locus_with_modification():
+
+    # Alter the original GBK to alter the locus name
+    data = open(sequana_data("JB409847.gbk"), "r").read()
+    newdata = data.replace("JB409847", "DUMMY_JB409847")
+
+    fh = TempFile(suffix="gbk")
+    with open(fh.name, 'w') as fout:
+        fout.write(newdata)
+
+    # Now we read this new GBK file that has a different locus name as
+    # compared to the fasta
+    mydata = snpeff.SnpEff(reference=fh.name)
+
+    # Here is the corresponding FASTA
+    fasta = sequana_data("JB409847.fasta")
+
+    with TempFile(suffix="fasta") as fh2:
+        mydata.add_locus_in_fasta(fasta, fh2.name)
+
+        # In theory, in the newly created fasta file, we should find back the
+        # DUMMY tag
+        # cleanup
+        try:
+            os.remove("snpEff.config")
+        except:
+            pass
+
+        data = open(fh2.name, "r").read()
+        assert "DUMMY" in data
+    fh.delete()
+
+
+
+
+

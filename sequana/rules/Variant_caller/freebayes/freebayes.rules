@@ -1,26 +1,39 @@
 rule freebayes:
-    """ Freebayes is a variant caller designed to find SNPs and short INDELs.
-    It is capable of calling multiple variants segregate on the same read.
+    """
+    Freebayes is a variant caller designed to find SNPs and short INDELs from a
+    BAM file. It produces a very well-annotated VCF output.
+    Moreover, it provides a quality score calculated by a bayesian model.
 
     Required input:
-        __freebayes__input: sorted bam file
-        __freebayes__reference: reference fasta file
+        - __freebayes__input: Sorted BAM file.
+        - __freebayes__reference: FASTA file of the reference genome.
 
     Required output:
-        __freebayes__output: vcf file
+        - __freebayes__output: VCF file of detected variants.
 
-    Required parameter:
-        config["freebayes"]["ploidy"]: set the ploidy of the sample
-        config["freebayes"]["max-complex-gap"]: set the maximum distance 
-            between polymorphisms segregate on the same read.
-        config["freebayes"]["options"]: others freebayes options
+    Required log:
+        - __freebayes__log: Log file with stdout and stderr of Freebayes.
+
+    Required configuration:
+        .. code-block:: yaml
+
+            freebayes:
+                ploidy: 1 # The sample ploidy.
+                options: # Any options recognised by freebayes.
+
+    Note:
+        The ploidy correspond to the expected ploidy of the sample.
+        For example, the ploidy must be set at 1 for a variant-calling on a
+        bacteria sample.
+
+    Reference:
+        - https://github.com/ekg/freebayes
     """
     input:
         bam = __freebayes__input,
-        ref = __freebayes__reference
+        ref = __freebayes__reference        
     output:
-        bai = __freebayes__bai,
-        vcf = __freebayes__output,
+        vcf = __freebayes__output
     log:
         __freebayes__log
     params:
@@ -28,9 +41,6 @@ rule freebayes:
         options = config["freebayes"]["options"]
     shell:
         """
-        # BAM must be indexed before variant calling
-        samtools index {input.bam}
-
         freebayes {params.options} --ploidy {params.ploidy} -f {input.ref} \
         -v {output.vcf} {input.bam} > {log} 2>&1
         """

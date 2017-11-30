@@ -59,5 +59,8 @@ def test_samflags():
     sf.get_flags()
 
 
-def test_bamreport():
+def test_bamreport(tmpdir):
+    directory = tmpdir.mkdir("bam")
+    from sequana.utils import config
+    config.output_dir = directory.__str__()
     r = BAMQCModule(datatest, "bam.html")
