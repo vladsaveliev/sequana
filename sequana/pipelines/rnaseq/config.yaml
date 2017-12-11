@@ -145,6 +145,22 @@ fastq_screen:
     options: "--subset 200000  --aligner bowtie2"
     pf2_report: yes
 
+
+#################################################################
+# For taxonomy. Used in quality_control pipeline
+#
+# :Parameters:
+#
+# - do:    if unchecked, this rule is ignored
+# - database_directory: select a directory with a kraken database
+#   Please see sequana documentation for details
+#
+kraken:
+    do: False
+    database_directory:  "%(kraken_database_directory)s"
+    threads: 4
+
+
 #############################################################################
 # bowtie1_mapping_rna used to align reads against ribosomal RNA
 #
