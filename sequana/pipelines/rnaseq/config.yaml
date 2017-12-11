@@ -231,7 +231,7 @@ bowtie2_mapping:
 feature_counts:
     do: yes
     #options: "-t exon -g gene_id"
-    options: "-t gene -g ID" ## if exon/CDS is used, put -O option
+    options: "-t gene -g ID -s 1 " ## if exon/CDS is used, put -O option
     threads: 2
 
 
@@ -298,7 +298,7 @@ coverage:
 #
 mark_duplicates:
     do: no
-    remove: 'True' ## may be False
+    remove: 'False' ## may be True
     tmpdir: "TMP_DIR=/local/scratch/" ## on Slurm cluster at Pasteur
 
 
