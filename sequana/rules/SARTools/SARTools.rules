@@ -7,7 +7,8 @@ rule SARTools:
     figures produced, explains the statistical methods and gives the results of the differential analysis.
 
     Required input:
-        __SARTools__input: a list of count files
+        __SARTools__input: path to the folder with count files
+        __SARTools__targetFile: the target file with conditions, groups and associated count-files
 
     Required output:
         __SARTools__output: SARTools html result file
@@ -21,7 +22,6 @@ rule SARTools:
                 design: path/to/file            #path to design file
                 projectName: "RNAseq"           # name of the project
                 author: "NAME"                  # author of the statistical analysis/report
-                rawDir: "featureCounts/"        # path to the directory containing raw counts files
                 featuresToRemove: "NULL"        # NULL if no feature to remove
 
                 #Optional parameters:
@@ -35,26 +35,25 @@ rule SARTools:
                 pAdjustMethod: "BH"                    # p-value adjustment method: "BH" (default) or "BY"
                 typeTrans: "VST"                       # transformation for PCA/clustering: "VST" or "rlog"
                 locfunc: "median"                      # "median" (default) or "shorth" to estimate the size factors
-                colors: c("dodgerblue","firebrick1",   # vector of colors of each biological condition on the plots
-                "MediumVioletRed","SpringGreen")
 
 
     """
 
 
     input:
-        __SARTools__input,
+        rawDir = __SARTools__input,
         targetFile = __SARTools__targetFile
+
     log:
         __SARTools__logs
     output:
-        output = __SARTools__output
+        folder = __SARTools__output
     threads: 1
     params:
         design = config['SARTools']['design'],
         projectName = config['SARTools']['projectName'],
         author = config['SARTools']['author'],
-        rawDir = config['SARTools']['rawDir'],
+
         featuresToRemove = config['SARTools']['featuresToRemove'],
         varInt = config['SARTools']['varInt'],
         condRef = config['SARTools']['condRef'],
@@ -66,7 +65,6 @@ rule SARTools:
         pAdjustMethod = config['SARTools']['pAdjustMethod'],
         typeTrans = config['SARTools']['typeTrans'],
         locfunc = config['SARTools']['locfunc'],
-        colors = config['SARTools']['colors'],
 
     run:
         R("""
@@ -77,18 +75,17 @@ rule SARTools:
 
         library(SARTools)
 
-        # NEED TO SET GOOD PATH IN THE
-        workDir <- # as input from a preSARTools rule ????
+        workDir <- "{ouput.folder}"
         setwd(workDir)
 
 
         # setting params
         targetFile <- "{input.targetFile}"
+        rawDir <- "{input.rawDir}"
 
         projectName <- "{params.projectName}"
         author <- "{params.author}"
 
-        rawDir <- "{params.rawDir}"
         featuresToRemove <- "{params.featuresToRemove}"
         varInt <- "{params.varInt}"
         condRef <- "{params.condRef}"
@@ -100,7 +97,7 @@ rule SARTools:
         locfunc <- "{params.locfunc}"
         alpha <- {params.alpha}
         pAdjustMethod <- "{params.pAdjustMethod}"
-        colors <- "{params.colors}"
+        colors <- c("dodgerblue","firebrick1", "MediumVioletRed","SpringGreen")
 
 
         # checking parameters
