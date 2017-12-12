@@ -334,3 +334,45 @@ RNAseQC:
 multiqc:
     options: "-c multiqc_config.yaml -f -x *_init_* -x *left_kept_reads* -x *report_rnaseq* -e htseq -e slamdunk"
     output-directory: "multiqc"
+
+#############################################################################
+#   Statistical analysis with SARTools for a simple experimental design
+#   see https://github.com/PF2-pasteur-fr/SARTools
+#
+# :Parameters:
+#  Required parameters:
+# - design: path to design file
+# - projectName: name of the project (No spaces allowed)
+# - author: author of the statistical analysis/report
+# - rawDir: path to the directory containing raw counts files
+# - featuresToRemove: NULL if no feature to remove
+#  Optional parameters:
+# - varInt: factor of interest
+# - condRef: reference biological condition
+# - batch: blocking factor: NULL (default) or "batch" for example
+# - fitType: mean-variance relationship: "parametric" (default) or "local"
+# - cooksCutoff: TRUE/FALSE to perform the outliers detection (default is TRUE)
+# - independentFiltering: TRUE/FALSE to perform independent filtering (default is TRUE)
+# - alpha: threshold of statistical significance
+# - pAdjustMethod: p-value adjustment method: "BH" (default) or "BY"
+# - typeTrans: transformation for PCA/clustering: "VST" or "rlog"
+# - locfunc: "median" (default) or "shorth" to estimate the size factors
+
+
+SARTools:
+  do: no
+  design: "path/to/file"
+  projectName: "RNAseq"
+  author: "NAME"
+  rawDir: "featureCounts/"
+  featuresToRemove: "NULL"
+  varInt: "group"
+  condRef: "WT"
+  batch: "NULL"
+  fitType: "parametric"
+  cooksCutoff: "TRUE"
+  independentFiltering: "TRUE"
+  alpha: "0.05"
+  pAdjustMethod: "BH"
+  typeTrans: "VST"
+  locfunc: "median"
