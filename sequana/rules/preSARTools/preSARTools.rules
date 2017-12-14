@@ -33,7 +33,7 @@ rule preSARTools:
         directory = __preSARTools__output_directory,
         targetFile = __preSARTools__targetFile
     threads: 1
-    params
+    params:
         design = config['SARTools']['design']
     run:
         import pandas as pd
