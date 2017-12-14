@@ -47,7 +47,8 @@ rule SARTools:
     log:
         __SARTools__logs
     output:
-        folder = __SARTools__output
+        folder = __SARTools__output,
+        done = __SARTools__output_file
     threads: 1
     params:
         design = config['SARTools']['design'],
@@ -139,6 +140,9 @@ rule SARTools:
                            condRef=condRef, batch=batch, fitType=fitType, cooksCutoff=cooksCutoff,
                            independentFiltering=independentFiltering, alpha=alpha, pAdjustMethod=pAdjustMethod,
                            typeTrans=typeTrans, locfunc=locfunc, colors=colors)
+
+        system("touch {input.done}")
+
 
         sink()
         """)
