@@ -39,7 +39,7 @@ rule preSARTools:
         import pandas as pd
         # move all featureCount files in a folder output.directory
         #shell("mkdir {output.directory}")
-        for file in input[0]:
+        for file in input:
             shell("cp {file} {output.directory}")
         # add a new colomn on target file with corresponding path to count files
         df = pd.DataFrame.from_csv(params.design, sep="\t", header = 0, index_col= None)
