@@ -1,3 +1,5 @@
+from snakemake.utils import R
+
 rule SARTools:
     """
     SARTools is a R package dedicated to the differential analysis of RNA-seq data.
