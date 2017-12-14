@@ -44,6 +44,14 @@ rule preSARTools:
         # add a new colomn on target file with corresponding path to count files
         df = pd.DataFrame.from_csv(params.design, sep="\t", header = 0, index_col= None)
         df.insert(0,"file","Nan")
+        files = {}
+        for fp in input:
+            for sample in df["sample"]:
+                if fp.startswith(sample):
+                    files[sample] = fp
+        df['file'] = df['sample'].map(files)
+        df.to_csv(output.targetFile, sep="\t", encoding='utf-8', index=False)
+
 
 
 
