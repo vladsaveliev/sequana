@@ -22,8 +22,7 @@ from sequana import logger
 
 
 class Variant(object):
-    """ Variant class to stock variant reader and dictionary that resume most
-    important informations.
+    """ Variant reader and dictionary that stores important variant information
     """
     def __init__(self, record):
         """.. rubric:: constructor
