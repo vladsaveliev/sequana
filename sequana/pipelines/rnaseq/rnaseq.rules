@@ -332,6 +332,21 @@ if config["RNAseQC"]["do"]:
     include: sm.modules["RNAseQC"]
     expected_output.extend([__RNAseQC__figure])
 
+if config["SARTools"]["do"]:
+    __preSARTools__input = expand(__feature_counts__output_gene_count, sample=manager.samples)
+    __preSARTools__logs = "SARTools/preSARTools.log"
+    __preSARTools__output_directory = "SARTools"
+    __preSARTools__targetFile = "SARTools/target.txt"
+    include: sm.modules["preSARTools"]
+    __SARTools__input = "SARTools" + config["SARTools"]["rawDir"]
+    __SARTools__targetFile = __preSARTools__targetFile
+    __SARTools__logs = "SARTools/SARTools.log"
+    __SARTools__output = "SARTools"
+    __SARTools__output_file = "SARTools/SARTools.done"
+    include: sm.modules["SARTools"]
+    expected_output.extend([__SARTools__output_file])
+
+
 # !Reset expected_output variable after multiqc
 # Multiqc rule
 __multiqc__input = expected_output
