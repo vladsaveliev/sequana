@@ -239,15 +239,48 @@ class BAMPacbio(PacbioBAMBase):
 
     Several plotting methods are available. For instance, :meth:`hist_snr`.
 
+
+    The BAM file used to store the Pacbio reads follows the BAM/SAM
+    specification. Note that the sequence read are termed query, a subsequence
+    of an entire Pacbio ZMW read ( a subread), which is basecalls from a single
+    pass of the insert DNA molecule.
+
+    In general, only a subsequence of the query will align to the
+    reference genome, and that subsequence is referred to as the aligned query.
+
+    When introspecting the aligned BAM file, the extent of the query in ZMW read
+    is denoted as [qStart, qEnd) and the extent of the aligned subinterval
+    as [aStart, aEnd). The following graphic illustrates these intervals:
+
+          qStart                         qEnd
+    0         |  aStart                aEnd  |
+    [--...----*--*---------------------*-----*-----...------)  < "ZMW read" coord. system
+              ~~~----------------------~~~~~~                  <  query; "-" =aligning subseq.
+    [--...-------*---------...---------*-----------...------)  < "ref." / "target" coord. system
+    0            tStart                tEnd
+
+    In the BAM files, the qStart, qEnd are contained in the qs and qe tags, (and
+    reflected in the QNAME); the bounds of the aligned query in the ZMW read can be
+    determined by adjusting qs and qe by the number of soft-clipped bases at the
+    ends of the alignment (as found in the CIGAR).
+
+    See also the comments in the code for other tags.
+
+    :reference: http://pacbiofileformats.readthedocs.io/en/3.0/BAM.html
+
+
     """
-    def __init__(self, filename):
+    def __init__(self, filename, testing=0):
         """.. rubric:: Constructor
 
         :param str filename: filename of the input pacbio BAM file. The content
             of the BAM file is not the ouput of a mapper. Instead, it is the
             output of a Pacbio (Sequel) sequencing (e.g., subreads).
+        :param int testing: for testing, you can set the number of subreads to
+            read (0 means read all subreads)
         """
         super(BAMPacbio, self).__init__(filename)
+        self.testing = testing
 
     def _get_df(self):
         # When scanning the BAM, we can extract the length, SNR of ACGT (still
@@ -277,12 +310,15 @@ class BAMPacbio(PacbioBAMBase):
         # - st: substituion tag
 
         # - RG: ?
+
+        # See http://pacbiofileformats.readthedocs.io/en/3.0/BAM.html
         if self._df is None:
             logger.info("Scanning input file. Please wait")
             self.reset()
             N = 0
 
             all_results = []
+            # This takes 60%  of the time...could use cython ?
             for read in self.data:
                 res = []
                 # count reads
@@ -306,6 +342,9 @@ class BAMPacbio(PacbioBAMBase):
 
                 # aggregate results
                 all_results.append(res)
+
+                if self.testing and N > self.testing:
+                    break 
 
             self._df = pd.DataFrame(all_results,
                 columns=['read_length','GC_content','snr_A','snr_C','snr_G','snr_T','ZMW'])
@@ -555,11 +594,12 @@ class BAMPacbio(PacbioBAMBase):
             formula : 1 - (in + del + mismatch / (in + del + mismatch + match) )
 
         For BWA and BLASR, the get_cigar_stats are different !!!
-        BWA for instance has no X stored
+        BWA for instance has no X stored while Pacbio forbids the use of the M
+        (CMATCH) tag. Instead, it uses X (CDIFF) and = (CEQUAL) characters.
 
-Subread Accuracy: The post-mapping accuracy of the basecalls. 
-Formula: [1 - (errors/subread length)], where errors = number of deletions +
-insertions + substitutions.
+        Subread Accuracy: The post-mapping accuracy of the basecalls. 
+        Formula: [1 - (errors/subread length)], where errors = number of deletions +
+        insertions + substitutions.
 
         """
         try:
@@ -617,7 +657,7 @@ insertions + substitutions.
         start = [this.reference_start for this in self.data]
         self.reset()
         end = [this.reference_end for this in self.data]
-        if reference_length: 
+        if reference_length:
             N  = reference_length
         else:
             N = max([x for x in end if x])
@@ -628,6 +668,19 @@ insertions + substitutions.
             else: pass
         return coverage
 
+    def hist_median_ccs(self, bins=1000, **kwargs):
+        """Group subreads by ZMW and plot median of read length for each polymerase"""
+        data = self.df[['read_length', 'ZMW']].groupby('ZMW')
+        data.median().hist(bins=bins, **kwargs)
+        pylab.title("CCS median read length")
+        return data
+
+    def hist_mean_ccs(self, bins=1000, **kwargs):
+        """Group subreads by ZMW and plot mean of read length for each polymerase"""
+        data = self.df[['read_length', 'ZMW']].groupby('ZMW')
+        data.mean().hist(bins=bins, **kwargs)
+        pylab.title("CCS mean read length")
+        return data
 
 
 class BAMSimul(PacbioBAMBase):
@@ -667,6 +720,7 @@ class BAMSimul(PacbioBAMBase):
 
                 # aggregate results
                 all_results.append(res)
+
 
             self._df = pd.DataFrame(all_results,
                 columns=['read_length','GC_content'])
