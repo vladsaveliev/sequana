@@ -84,8 +84,10 @@ class ReadSummary(object):
 
     def get_read1_with_adapters_percent(self):
         return self._get_read_with_adapters_percent("1")
+
     def get_read2_with_adapters_percent(self):
         return self._get_read_with_adapters_percent("2")
+
     def _get_read_with_adapters_percent(self, tag):
         d = self.get_cutadapt_stats()
         trimming = d["percent"]["Read%s with adapters" % tag]
@@ -101,10 +103,13 @@ class ReadSummary(object):
             trimming = d["Number of reads"]["Pairs kept"]
         except:
             trimming = d["Number of reads"]["Reads kept"]
-        trimming = trimming.strip()
-        for this in [",", "(", ")", "%"]:
-            trimming = trimming.replace(this, "")
-        trimming = int(trimming)
+        try: # previous version stored strings in the json; TODO add test
+            trimming = trimming.strip()
+            for this in [",", "(", ")", "%"]:
+                trimming = trimming.replace(this, "")
+            trimming = int(trimming)
+        except:
+            pass
         return trimming
 
 
@@ -210,7 +215,6 @@ class MultiSummary(SequanaBaseModule):
         try: self.populate_output_total_reads()
         except Exception as err:
             logger.debug("multi_summary: skip total reads")
-
 
         # Now we have all data in df as dictionaries. Let us merge them together
 
