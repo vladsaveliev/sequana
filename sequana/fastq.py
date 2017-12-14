@@ -1,6 +1,4 @@
-"""Utilities to manipulate FASTQ and Reads
-
-"""
+"""Utilities to manipulate FASTQ and Reads"""
 import io
 import time
 import zlib
@@ -686,6 +684,7 @@ class FastQ(object):
 
         if tozip is True: self._gzip(output_filename)
         """
+
     def filter(self, identifiers_list=[], min_bp=None, max_bp=None,
         progressbar=True, output_filename='filtered.fastq', remove=True):
         """Filter reads
@@ -781,6 +780,11 @@ class FastQ(object):
             for index, count in ts.items():
                 letters = "\t".join([x for x in index.decode()])
                 fout.write("%s\t" % count + letters + "\n")
+
+    def stats(self):
+        self.rewind()
+        data = [len(read['sequence']) for read in self]
+        return {"mean_read_length": pylab.mean(data), "N": len(data)}
 
     def __eq__(self, other):
         if id(other) == id(self):
