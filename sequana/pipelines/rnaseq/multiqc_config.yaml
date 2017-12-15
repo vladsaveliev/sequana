@@ -20,15 +20,15 @@
 #-------------------------------------------------------------------------------
 
 # Title to use for the report.
-title: "SLX Project"
+title: "Project Name"
 subtitle: "Titre de l'analyse"           # Grey text below title
-intro_text: "MultiQC reports summarise analysis results produced at the Transcriptome and EpiGenenome Platform (Biomics Pole)"          # Set to False to remove, or your own text
+intro_text: "MultiQC reports summarise analysis results produced at "          # Set your own text
 
 # Add generic information to the top of reports
 report_header_info:
 #- Example Config:: 'This is arbitrary'
 #- Another field:: 'Loaded from <code>multiqc_config_example.yaml</code>'
-    - Contact E-mail: '<login>@pasteur.fr'
+    - Contact E-mail: '<login>@example.com'
     - Application Type: 'Stranded RNA-seq'
     - Project Type: 'Differential gene expression'
     - Sequencing Platform: 'HiSeq 2500 High Output V4'
@@ -39,9 +39,9 @@ report_header_info:
 
 
 # Specify a custom logo to add to reports (uncomment to use)
-custom_logo: '/pasteur/projets/specific/PF2_ngs/protected/Institut_Pasteur.png'         # '/path/to/logo.png'
-custom_logo_url: 'https://research.pasteur.fr/en/team/transcriptome-and-epigenome/'    # 'https://www.example.com'
-custom_logo_title: 'Institut Pasteur'  # 'Our Institute Name'
+#custom_logo: '         # '/path/to/logo.png'
+#custom_logo_url: ''    # 'https://www.example.com'
+#custom_logo_title: ''  # 'Our Institute Name'
 
 
 

@@ -24,8 +24,7 @@ input_samples:
 # Note that sequana and url fields are followed by itemised files or links
 # using the front dashes
 requirements:
-    - phiX174.fa
-    - Institut_Pasteur.png
+
 
 
 
@@ -59,10 +58,10 @@ sequencing:
 #
 genome:
   do: yes
-  genome_directory: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
+  genome_directory: /path/to/your/directory
   name: "hg19" #path to index name
-  fasta_file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
-  gff_file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.gff
+  fasta_file: /path/to/your/directory/Genomes/hg19/hg19.fa
+  gff_file: /path/to/your/directory/Genomes/hg19/hg19.gff
   rRNA_file:
   rRNA_feature: "rRNA"
 
@@ -141,7 +140,7 @@ cutadapt:
 #
 fastq_screen:
     do: no
-    conf: "/pasteur/projets/specific/PF2_ngs/protected/bowtie2_genomes/fastq_screen.conf"
+    conf: "fastq_screen.conf"
     options: "--subset 200000  --aligner bowtie2"
     pf2_report: yes
 
@@ -280,7 +279,7 @@ coverage:
     minFragmentLength: 0 #Note that a value other than 0 will exclude all single-end reads.
     maxFragmentLength: 0 #A value of 0 disables filtering and is needed for including single-end and orphan reads.
     threads: 4
-    chromSize_file: /pasteur/projets/specific/PF2_ngs/protected/fasta_genomes/hg19.chrom.sizes
+    chromSize_file: hg19.chrom.sizes
 
 
 
@@ -294,12 +293,12 @@ coverage:
 # - remove: If true do not write duplicates to the output file instead of writing them with
 #            appropriate flags set.  Default value: false. This option can be set to 'null' to clear
 #            the default value. Possible values: {true, false}
-# - tmpdir: write tempory file on this directory (default TMP_DIR=/tmp/)
+# - tmpdir: write tempory file on this directory (default TMP_DIR=/tmp/, but could be "TMP_DIR=/local/scratch/")
 #
 mark_duplicates:
     do: no
     remove: 'False' ## may be True
-    tmpdir: "TMP_DIR=/local/scratch/" ## on Slurm cluster at Pasteur
+    tmpdir: "TMP_DIR=/tmp/"
 
 
 #############################################################################
@@ -317,8 +316,8 @@ mark_duplicates:
 
 RNAseQC:
      do: no
-     gtf_file: /pasteur/projets/specific/PF2_ngs/protected/annotation/gtf/hg19.gtf
-     BWArRNA_file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/human_rRNA/human_all_rRNA.fasta
+     gtf_file: /path/to/your/directory/annotation/gtf/hg19.gtf
+     BWArRNA_file: /path/to/your/directory/human_rRNA/human_all_rRNA.fasta
      options: ""
 
 
