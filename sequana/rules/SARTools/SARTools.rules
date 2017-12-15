@@ -78,7 +78,7 @@ rule SARTools:
 
         library(SARTools)
 
-        workDir <- "{ouput.folder}"
+        workDir <- "{output.folder}"
         setwd(workDir)
 
 
