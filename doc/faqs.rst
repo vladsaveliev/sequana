@@ -199,6 +199,23 @@ would recommend to use the code here to download the Fasta and genbank:
 
 http://sequana.readthedocs.io/en/master/tutorial.html#new-in-v0-10
 
+RNA-seq pipeline
+----------------------------
+
+If SARTools fails with this type of errors::
+
+    RuleException:
+    ValueError in line 150 of sequana/rules/SARTools/SARTools.rules:
+    Python 3 package rpy2 needs to be installed to use the R function.
+    File "sequana/rules/SARTools/SARTools.rules", line 150, in __rule_SARTools
+    File ".conda/envs/py35/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+
+and if you are sure that rpy2 is installed, try to execute in a python shell :
+
+    import rpy2.robjects as robjects
+
+if you have a 'ImportError: libicuuc.so.54: cannot open shared object file: No such file or directory' error, you need
+to remove rpy2 and install it again with r-channel and not conda-forge.
 
 
 
