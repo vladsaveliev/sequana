@@ -143,7 +143,7 @@ rule SARTools:
                            independentFiltering=independentFiltering, alpha=alpha, pAdjustMethod=pAdjustMethod,
                            typeTrans=typeTrans, locfunc=locfunc, colors=colors)
 
-        system("touch {input.done}")
+        system("touch {output.done}")
 
 
         sink()
