@@ -12,7 +12,17 @@ Changelog
 * BUGS:
 
     * Fix regression bug (https://github.com/sequana/sequana/issues/484)
+    * Fix missing N_final column in table of the quality_control multi-summary
+      page
+    * Remove phix174.fa requirements in RNAseq pipeline config file
+    * Fix path starting with tilde (https://github.com/sequana/sequana/issues/486)
 
+* NEWS:
+
+    * add isoseq Class
+    * add vcf_filter module back to help in filtering VCF files created with
+      mpileup for instance
+    * add sequana_vcf_filter standalone
 
 0.6.1
 ~~~~~~~~~~
