@@ -139,6 +139,15 @@ class VCF_freebayes(vcf.Reader):
                        "strand_ratio": 0.2}
         filter_v = v.filter_vcf(filter_dict)
         filter_v.to_vcf('output.filter.vcf')
+
+
+
+    Information about strand bias (aka strand balance, or strand ratio). This 
+    is a type of sequencing bias in which one DNA strand is favored over the other,
+    which can result in incorrect evaluation of the amount of evidence observed for
+    one allele vs. the other.
+
+
     """
     def __init__(self, filename, **kwargs):
         """.. rubric:: constructor
@@ -242,7 +251,6 @@ class VCF_freebayes(vcf.Reader):
         variants = [Variant(v) for v in self if self._filter_line(v)]
         self.rewind()
         return Filtered_freebayes(variants, self)
-
 
     def _filter_line(self, vcf_line):
         """ Filter variant with parameter set in :attr:`VCF_freebayes.filters`.
@@ -409,6 +417,14 @@ def compute_strand_balance(vcf_line):
     strand_bal = Alt Forward / (Alt Forward + Alt Reverse)
 
     :param vcf.model._Record vcf_line: variant record
+
+
+    FYI: in freebayes, the allele balance (reported under AB), strand 
+    bias counts (SRF, SRR, SAF, SAR) and bias estimate (SAP) 
+    can be used as well for filtering. Here, we use the strand balance
+    computed as SAF / (SAF + SAR)
+
+
     """
     strand_bal = [
         strand_ratio(vcf_line.INFO["SAF"][i], vcf_line.INFO["SAR"][i])
