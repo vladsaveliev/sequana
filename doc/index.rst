@@ -10,7 +10,7 @@ Sequana documentation
 
 
     <a href="http://bioconda.github.io/recipes/sequana/README.html">
-    <img src="https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square">
+    <img src="https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square"></a>
 
     <a href="https://pypi.python.org/pypi/sequana">
     <img src="https://badge.fury.io/py/sequana.svg"></a>
