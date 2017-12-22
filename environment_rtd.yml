@@ -12,8 +12,6 @@ dependencies:
 - pandas
 - matplotlib
 - pysam==0.12.0.1
-- krona
-- kraken
 - reports
 - easydev>=0.9.34
 - bioservices
