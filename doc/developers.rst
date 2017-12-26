@@ -616,17 +616,12 @@ and then used as::
     singularity exec sequana-sequana-master.img sequana_coverage --help
 
 One issue here is that we should push on master only when we are sure that the
-repository is not bugged. Since people may use the container, we should no
-remove them... but the will be lots of containers. 
+repository is not bugged. Since people may use the container, we should not
+remove them... but there will be lots of containers.
 
-Instead, we could create a specific tag e.g. release_0_5_2 , activate the
-branches in the singularity hub page, push an empty commit and disable that
-branch. In doing so, we have a unique container for the release 0_5_2
+Instead, we could create a specific tag e.g. release_0_5_2, activate the
+branch in the singularity hub page, push an empty commit and disable that
+branch. In doing so, we have a unique container for the release 0_5_2.
 
 
-======= ========= ==================
-branch  version   sequana version
-======= ========= ==================
-0_5_2   3253      0.5.2
-======= ========= ==================
 

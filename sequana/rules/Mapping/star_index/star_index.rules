@@ -23,8 +23,10 @@ rule star_index:
         wkdir = __star_index__output_dir
     log:
         __star_index__log
+    threads:
+        config['star_mapping']['threads']
     shell:
         """
-        STAR --runMode genomeGenerate --genomeFastaFiles {input.fasta} --genomeDir {params.wkdir}
+        STAR --runMode genomeGenerate --genomeFastaFiles {input.fasta} --genomeDir {params.wkdir} --runThreadN {threads}
         samtools faidx {input.fasta}
         """

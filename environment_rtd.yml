@@ -11,14 +11,9 @@ dependencies:
 - numpy
 - pandas
 - matplotlib
-- scipy
-- pysam
-- krona
-- kraken
-- pillow
-- sphinx
+- pysam==0.12.0.1
 - reports
-- easydev>=0.9.34
+- easydev>=0.9.36
 - bioservices
 - pip
 - shustring

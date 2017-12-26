@@ -39,16 +39,22 @@ class Cigar(object):
 
     Possible CIGAR types are:
 
-    - "M" for MATCH  (0)
-    - "I" for Insertion (1)
-    - "D" for deletion 2
-    - "N" for reference skipped 3
-    - "S" for soft clipping 4
-    - "H" for hard clipping 5
-    - "P" for padding
+    - "M" for alignment MATCH  (0)
+    - "I" for Insertion to the reference (1)
+    - "D" for deletion from the reference 2
+    - "N" for skipped region from the reference 3
+    - "S" for soft clipping (clipped sequence present in seq) 4
+    - "H" for hard clipping (clipped sequence NOT present in seq) 5
+    - "P" for padding (silent deletion from padded reference)
     - "=" for equal
-    - "X" for diff
-    - "B" for back
+    - "X" for diff (sequence mismatched)
+    - "B" for back     !!!! could be also NM ???
+    
+    !!! BWA MEM get_cigar_stats returns list with 11 items
+    Last item is 
+    !!! what is the difference between M and = ???
+    Last item is I + S + X 
+    !!! dans BWA, mismatch (X) not provided... should be deduced from last item - I - S
 
     .. note:: the length of the query sequence based on the CIGAR is calculated
         by adding the M, I, S, =, or X and other operations are ignored.

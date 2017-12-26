@@ -8,7 +8,7 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 6
-_MICRO               = 1
+_MICRO               = 2
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -122,6 +122,7 @@ setup(
            'sequana_mapping=sequana.scripts.mapping:main',
            'sequana_compressor=sequana.scripts.compressor:main',
            'sequana_report=sequana.scripts.reports:main',
+           'sequana_vcf_filter=sequana.scripts.vcf_filter:main',
         ],
         'sequana.module':[
             'sequana_coverage=sequana.modules_report.coverage:CoverageModule',
