@@ -139,10 +139,10 @@ class MultiSummary(SequanaBaseModule):
                  verbose=True, **kargs):
         super().__init__()
 
-        from sequana import sequana_debug_level
-        sequana_debug_level(level="INFO")
+        from sequana import logger
+        logger.level = "INFO"
         if verbose is False:
-            sequana_debug_level(level="WARNING")
+            logger.level = "WARNING"
 
         logger.info("Sequana Summary is still a tool in progress and have been " +
               "  tested with the quality_control pipeline only for now.")

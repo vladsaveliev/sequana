@@ -25,7 +25,7 @@ from optparse import OptionParser
 import argparse
 
 from easydev import DevTools
-from sequana import logger, sequana_debug_level
+from sequana import logger
 from sequana.modules_report.kraken import KrakenModule
 
 
@@ -116,7 +116,7 @@ def main(args=None):
     else:
        options = user_options.parse_args(args[1:])
 
-    sequana_debug_level(options.level)
+    logger.level = options.level
 
     # We put the import here to make the --help faster
     from sequana import KrakenPipeline, SequanaConfig

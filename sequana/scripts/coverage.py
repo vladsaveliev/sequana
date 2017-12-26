@@ -30,7 +30,6 @@ from sequana.modules_report.coverage import CoverageModule
 from sequana.modules_report.coverage import ChromosomeCoverageModule 
 from sequana.utils import config
 from sequana import logger
-from sequana import sequana_debug_level
 from sequana.bedtools import GenomeCov, FilteredGenomeCov
 
 from easydev import shellcmd, mkdirs
@@ -213,7 +212,7 @@ def main(args=None):
     else:
         options = user_options.parse_args(args[1:])
 
-    sequana_debug_level(options.logging_level)
+    logger.level = options.logging_level
 
     if options.download_reference:
         logger.info("Downloading reference %s from %s\n" %

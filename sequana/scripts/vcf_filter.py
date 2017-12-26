@@ -20,7 +20,7 @@ from sequana.vcf_filter import VCF
 import sys
 from optparse import OptionParser
 import argparse
-from sequana import logger, sequana_debug_level
+from sequana import logger
 from easydev.console import purple
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -113,7 +113,7 @@ def main(args=None):
         options = user_options.parse_args(args[1:])
 
     # set the level
-    sequana_debug_level(options.level)
+    logger.level = options.level
 
     vcf = VCF(options.input_filename)
     vcf.vcf.filter_dict['QUAL'] =  options.quality
