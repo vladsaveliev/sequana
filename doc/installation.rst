@@ -10,8 +10,8 @@ available on **bioconda**. Note, however, that
 releases of Sequana are also available on Pypi so you could also use **pip**. 
 
 If you just want to test **Sequana** or **Sequanix** or one of the Sequana
-standalone, we have started to provide **Singularity** containers since version
-0.5.2. This is a great solution for reproducibility as well. Containers are
+standalone, we also provide **Singularity** containers. This is a great 
+solution for reproducibility as well. Containers are
 available on https://singularity-hub.org/collections/114/. 
 
 
@@ -20,7 +20,7 @@ Overview of installation methods
 
 We support 3 types of installations:
 
-#. Singularity. Strictly speaking, there is no compilation. This method is for testing and production. It downloads an image / container that is ready-to-use::
+#. Singularity (tested with version 2.4.2) . Strictly speaking, there is no compilation. This method is for testing and production. It downloads an image / container that is ready-to-use::
 
     singularity pull --name sequana.img shub://sequana/sequana
     singularity shell sequana.img
@@ -160,10 +160,10 @@ environment) and would work for Linux users only for the time being. The main
 reason being that under Mac and windows a virtualbox is used by Singularity
 preventing a X connection. This should be solved in the near future.
 
-First, install singularity (http://singularity.lbl.gov/). For example ,here is
-how to download version 2.4.0 and install::
+First, install singularity (http://singularity.lbl.gov/). You must use at least
+version 2.4. We tested this recipe with version 2.4.2 (Dec 2017)::
 
-    VERSION=2.4
+    VERSION=2.4.2
     wget https://github.com/singularityware/singularity/releases/download/$VERSION/singularity-$VERSION.tar.gz
     tar xvf singularity-$VERSION.tar.gz
     cd singularity-$VERSION
@@ -177,7 +177,7 @@ Second, download a Sequana image. For instance, for the latest master version::
 
 or for the release 0.6.1::
 
-    singularity pull --name sequana.img shub://sequana/sequana@release_0_6_1
+    singularity pull --name sequana_0_6_1.img shub://sequana/sequana@release_0_6_1
 
 
 Do not interrupt the download (1.5Go). Once downloaded,
