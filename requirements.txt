@@ -3,7 +3,7 @@ bioservices>=1.4.14
 biokit>=0.4.1
 colorlog
 docutils
-easydev>=0.9.34
+easydev>=0.9.36
 matplotlib>=2.0.0
 mock
 multiqc==1.0
