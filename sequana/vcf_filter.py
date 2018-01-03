@@ -69,14 +69,17 @@ class VCF(object):
         if vcf.version == "4.1":
             self.vcf = VCF_mpileup_4dot1(filename, **kwargs)
         elif vcf.version == "4.2" and vcf.source.startswith("freeBayes"):
-            from sequana.vcf_freebayes import VCF_freebayes
+            from sequana.freebayes_vcf_filter import VCF_freebayes
             self.vcf = VCF_freebayes(filename, **kwargs)
         else:
+            print(vcf.version)
+            print(vcf.source)
             msg = """This VCF file is not recognised. So far we handle version
 v4.1 with mpileup and v4.2 with freebayes. You may use the force option but not
 all filters will be recognised"""
             if force is True:
-                print("VCF version %s not tested" % self.version)
+                print("VCF version %s not tested" % vcf.version)
+                self.vcf = vcf
             else:
                 raise ValueError(msg)
 
