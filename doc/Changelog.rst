@@ -23,6 +23,7 @@ Changelog
     * add vcf_filter module back to help in filtering VCF files created with
       mpileup for instance
     * add sequana_vcf_filter standalone
+    * add cigar module to help deciphering CIGAR strings
 
 0.6.1
 ~~~~~~~~~~
