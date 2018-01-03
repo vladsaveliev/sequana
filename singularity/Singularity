@@ -65,6 +65,7 @@ From: ubuntu:16.04
     conda install -y picard pigz samtools shustring star subread
     conda install -y snpeff spades sambamba
 
+
     # Let us save some space
     conda clean --packages -y
 
