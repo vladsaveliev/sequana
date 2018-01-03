@@ -95,6 +95,7 @@ From: ubuntu:16.04
     python -c "import sequana" # creates config file and check installation
 
 
+
 %environment
     export PATH=$PATH:/usr/local/anaconda/bin
     export LANG=C   # prevents perl for raising warnings
