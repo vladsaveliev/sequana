@@ -179,6 +179,13 @@ or for the release 0.6.1::
 
     singularity pull --name sequana_0_6_1.img shub://sequana/sequana@release_0_6_1
 
+For the latest version, use:
+
+    singularity pull --name sequana_0_6_1.img shub://sequana/sequana:latest
+
+The term latest in Singularity Hub will pull, across all of your branches, the
+most recent image. If development is more recent than master, it would be
+pulled, for example.
 
 Do not interrupt the download (1.5Go). Once downloaded,
 you can use, for instance, the sequana_coverage executable::
