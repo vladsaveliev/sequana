@@ -20,10 +20,13 @@ Overview of installation methods
 
 We support 3 types of installations:
 
-#. Singularity (tested with version 2.4.2) . Strictly speaking, there is no compilation. This method is for testing and production. It downloads an image / container that is ready-to-use::
+#. Singularity (tested with version 2.4.2) . Strictly speaking, there is no compilation. This method is for testing and production. It downloads an image / container that is ready-to-use (here the release 0_6_2)::
 
-    singularity pull --name sequana.img shub://sequana/sequana
-    singularity shell sequana.img
+    singularity pull --name sequana.img shub://sequana/sequana:0_6_2
+
+and can be used as follows (for example)::
+
+    singularity exec sequana.img sequanix --help
 
 #. Bioconda. **Sequana** is available on conda/bioconda as a pre-compiled package::
 
@@ -173,19 +176,14 @@ version 2.4. We tested this recipe with version 2.4.2 (Dec 2017)::
 
 Second, download a Sequana image. For instance, for the latest master version::
 
-    singularity pull --name sequana.img shub://sequana/sequana
+    singularity pull --name sequana.img shub://sequana/sequana:latest
 
-or for the release 0.6.1::
+or for the release 0.6.2::
 
-    singularity pull --name sequana_0_6_1.img shub://sequana/sequana@release_0_6_1
+    singularity pull --name sequana_0_6_2.img shub://sequana/sequana:release_0_6_2
 
-For the latest version, use:
-
-    singularity pull --name sequana_0_6_1.img shub://sequana/sequana:latest
-
-The term latest in Singularity Hub will pull, across all of your branches, the
-most recent image. If development is more recent than master, it would be
-pulled, for example.
+The term latest in Singularity Hub will pull, across all of your branches and
+tags, the most recent image, so if you come back in a year and get the latest (or ommit tha tag), you may not get the same container ! So, it is best using a specific tag. 
 
 Do not interrupt the download (1.5Go). Once downloaded,
 you can use, for instance, the sequana_coverage executable::
