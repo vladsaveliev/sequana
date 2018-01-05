@@ -6,6 +6,13 @@ Changelog
 2017
 ------
 
+0.6.3
+~~~~~~~~~~~
+
+* BUGS:
+
+    * Fix bug in the copy of the fastqc data sets in the quality control
+
 0.6.2
 ~~~~~~~~~~~~
 
