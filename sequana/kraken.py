@@ -87,6 +87,7 @@ class KrakenResults(object):
         if on_rtd is False:
             from biokit import Taxonomy
             self.tax = Taxonomy(verbose=True)
+            self.tax._load_flat_file() # make sure it is available locally
         else:
             class Taxonomy(object):
                 from sequana import sequana_data # must be local
