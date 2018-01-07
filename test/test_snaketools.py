@@ -57,7 +57,8 @@ def test_module():
     m.snakefile
     m.name
     m
-    m.cluster_config
+    assert m.cluster_config
+    assert m.schema_config
 
 
 def _test_module_onweb():
