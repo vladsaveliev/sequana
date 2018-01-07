@@ -37,8 +37,10 @@ if manager.config.cutadapt.tool_choice == "atropos":
         raise Exception
 
 if manager.config.kraken.do is True:
-    if manager.config.kraken.database_directory == "":
-        print("ERROR: no kraken database provided. Check http://sequana.readthedocs.io/en/master/applications.html#sequana-taxonomy")
+    if manager.config.kraken.database_directory in ["", None]:
+        print("ERROR: you must provide a kraken database path " +
+              " Check http://sequana.readthedocs.io/en/master/" +
+              "applications.html#sequana-taxonomy")
         raise Exception
 
 # Starting of the pipeline
