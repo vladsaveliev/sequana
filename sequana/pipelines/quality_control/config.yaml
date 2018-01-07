@@ -58,7 +58,7 @@ bwa_mem_phix:
 # in the filenames). In such case, the fwd and rev fields are ignored.
 #
 # If there is no design_file, the fwd and rev fields are used. It can be a
-# string, or a filename. If a filename, it must be prefixed with "file:" to 
+# string, or a filename. If a filename, it must be prefixed with "file:" to
 # specify that it is a file and not a string. If the tool is cutadapt, the empty
 # fwd and rev fields means that no adapters are to be used.
 #
@@ -78,7 +78,7 @@ bwa_mem_phix:
 # - rev: a string or file (prefixed with *file:*)
 # - tool: only cutadapt supported for now
 # - threads: number of threads to use (atropos only)
-# - options: See cutadapt documentation for details on 
+# - options: See cutadapt documentation for details on
 #            cutadapt.readthedocs.io. We change the default value
 #            of -O to 6 (at least 6 bases are required to match before
 #            trimming of an adapter)
@@ -90,14 +90,14 @@ bwa_mem_phix:
 cutadapt:
     do: yes
     tool_choice: cutadapt
-    adapter_choice: 
+    adapter_choice:
     design_file:
     fwd:
     rev:
-    m: 20                       # {"strict_min": 0}
-    mode: "b"                   # {"values": ["b","g","a"]}
+    m: 20
+    mode: "b"
     options: "-O 6 --trim-n"
-    quality: 30                 # {"range": [0,40]}
+    quality: 30
     threads: 4
 
 
@@ -120,14 +120,14 @@ fastq_sampling: # test
 #
 # - options: string with any valid FastQC options
 # - do_raw: performs fastqc on raw data
-# - do_after_adapter_removal: performs fastqc on data after 
+# - do_after_adapter_removal: performs fastqc on data after
 #   adapter removal
 # - do_after_phix_removal: performs fastqc on data without phix
 fastqc:
     options: "--nogroup"
-    do_raw: true
-    do_after_phix_removal: true
-    do_after_adapter_removal: true
+    do_raw: yes
+    do_after_phix_removal: yes
+    do_after_adapter_removal: yes
 
 
 #################################################################
@@ -140,6 +140,6 @@ fastqc:
 #   Please see sequana documentation for details
 #
 kraken:
-    do: False
+    do: no
     database_directory:  "%(kraken_database_directory)s"
     threads: 4
