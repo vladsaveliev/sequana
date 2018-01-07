@@ -32,7 +32,7 @@ from sequana.utils.datatables_js import DataTable
 
 
 class KrakenModule(SequanaBaseModule):
-    """ Write HTML report of BWA mapping (phix)"""
+    """ Write HTML report of Kraken results"""
     def __init__(self, input_directory, output_filename=None):
         """
         :param input_directory: the directory of the bwa_bam_to_fastq output
@@ -101,6 +101,7 @@ Besides, be aware that closely related species may not be classified precisely.
             'scrollCollapse': 'true',
             'dom': 'irtpB',
             "paging": "false",
+            "order": [[ 2, "desc"]],
             'buttons': ['copy', 'csv']}
         js = datatable.create_javascript_function()
         html_tab = datatable.create_datatable(float_format='%.3g')
