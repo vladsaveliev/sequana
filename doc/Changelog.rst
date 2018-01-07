@@ -6,12 +6,33 @@ Changelog
 2017
 ------
 
-0.6.3
+0.7.0
 ~~~~~~~~~~~
 
 * BUGS:
 
     * Fix bug in the copy of the fastqc data sets in the quality control
+    * atropos bug in the reports (not full). Bug reported to atropos
+      github. https://github.com/jdidion/atropos/issues/57. Need to use version
+      1.1.16
+    * kraken report table were not sorted by percentage (as expected). Also,
+      if the case of poor databases with few entries, the output may contain
+      lots of classified sequences with Taxon 1, which was not reported
+      correctly in the krona plot.
+
+* NEWS:
+
+    * example of a schema.yaml implemented for the quality control.
+    * sequanix: reads schema.yaml automatically for sequana pipelines
+      and can import one for generic cases. An option in the preference
+      was added to switch on/off the validation of the config file with this
+      schema. Can also import schema file for the generic case.
+
+* CHANGES:
+
+    * Taxonomy file is downloaded for Kraken only when Kraken is used, not in
+      the main __init__  file anymore.
+
 
 0.6.2
 ~~~~~~~~~~~~
