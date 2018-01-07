@@ -212,6 +212,12 @@ class SequanaFactory(BaseFactory):
             return module.cluster_config
     clusterconfigfile = property(_get_clusterconfigfile)
 
+    def _get_schemafile(self):
+        if self.pipeline:
+            module = snaketools.Module(self.pipeline)
+            return module.schema_config
+    schemafile = property(_get_schemafile)
+
     def _get_config(self):
         if self._imported_config:
             cfg = snaketools.SequanaConfig(self._imported_config)
@@ -231,7 +237,9 @@ class SequanaFactory(BaseFactory):
         txt = super(SequanaFactory, self).__repr__()
         txt += "\npipeline:%s\ninput:\n - %s\n - %s\n - directory:%s\n"
         if self.clusterconfigfile:
-            txt +=" - cluster config: %s" % self.clusterconfigfile
+            txt +=" - cluster config: %s\n" % self.clusterconfigfile
+        if self.schemafile:
+            txt +=" - schema config: %s" % self.schemafile
         return txt % (self.pipeline, in1, in2, self.directory)
 
 
@@ -248,6 +256,7 @@ class GenericFactory(BaseFactory):
         # when a snakefile or config is chosen, switch off run button
         self._config_browser.clicked_connect(self._switch_off_run)
         self._snakefile_browser.clicked_connect(self._switch_off_run)
+        self._schema = None
 
     def _return_none(self, this):
         if this is None or len(this) == 0:
@@ -262,6 +271,10 @@ class GenericFactory(BaseFactory):
     def _get_configfile(self):
         return self._return_none(self._config_browser.get_filenames())
     configfile = property(_get_configfile)
+
+    def _get_schemafile(self):
+        return self._return_none(self._schema)
+    schemafile = property(_get_schemafile)
 
     def _get_config(self):
         filename = self._return_none(self._config_browser.get_filenames())
@@ -291,8 +304,9 @@ class GenericFactory(BaseFactory):
 
     def __repr__(self):
         txt = super(GenericFactory, self).__repr__()
-        txt += "\nsnakefile:%s\nconfigfile:%s\ndirectory:%s\n"
-        return txt % (self.snakefile, self.configfile, self.directory)
+        txt += "\nsnakefile:%s\nconfigfile:%s\ndirectory:%s\nschema:%s"
+        return txt % (self.snakefile, self.configfile, self.directory,
+            self.schemafile)
 
 
 class SequanaGUI(QMainWindow, Tools):
@@ -418,6 +432,11 @@ class SequanaGUI(QMainWindow, Tools):
             self.info("Replace Sequana config file")
             self.menuImportConfig(cfg)
 
+        if isset(user_options, "schemafile"):
+            schemafile = user_options.schemafile
+            self.info("Set the schema file")
+            self.menuImportSchema(schemafile)
+
         # We may have set some pipeline, snakefile, working directory
         self.create_base_form()
         self.fill_until_starting()
@@ -484,6 +503,7 @@ class SequanaGUI(QMainWindow, Tools):
         # Connectors to actions related to the menu bar
         self.ui.actionQuit.triggered.connect(self.menuQuit)
         self.ui.action_import_configfile.triggered.connect(self.menuImportConfig)
+        self.ui.action_import_schemafile.triggered.connect(self.menuImportSchema)
         self.ui.actionHelp.triggered.connect(self.menuHelp)
         self.ui.actionAbout.triggered.connect(self.menuAbout)
         self.ui.actionSnakemake.triggered.connect(self.snakemake_dialog.exec_)
@@ -585,6 +605,21 @@ class SequanaGUI(QMainWindow, Tools):
             self.sequana_factory._imported_config = None
         self.create_base_form()
 
+    def menuImportSchema(self, schemafile=None ):
+        if schemafile:
+            self.generic_factory._schema = schemafile
+            return
+
+        self.info("Importing YAML schema file.")
+        file_filter="YAML file (*.yaml *.yml)"
+        browser = FileBrowser(file_filter=file_filter)
+        browser.browse_file()
+        schemafile = browser.paths
+        if schemafile:
+            self.generic_factory._schema = schemafile
+        else:
+            self.generic_factory._schema = None
+
     def menuAbout(self):
         from sequana import version
         url = 'sequana.readthedocs.io'
@@ -594,7 +629,7 @@ class SequanaGUI(QMainWindow, Tools):
             Online documentation on <a href="http://%(url)s">%(url)s</a>
             <br>
             <br>
-            Authors: Thomas Cokelaer and Dimitri Desvillechabrol, 2016
+            Authors: Thomas Cokelaer and Dimitri Desvillechabrol, 2017-2018
             """ % {"url": url})
         widget.setWindowTitle("Sequana")
         #widget.setStandardButtons(QW.QMessageBox.Ok)
@@ -706,8 +741,6 @@ class SequanaGUI(QMainWindow, Tools):
 
         # The config file connectors
         gaf._config_browser.clicked_connect(self.create_base_form)
-
-        # working directory tab
 
         # Update the main UI with
         self.ui.layout_generic_snakefile.addWidget(gaf._snakefile_browser)
@@ -1035,7 +1068,7 @@ class SequanaGUI(QMainWindow, Tools):
         # For each section, we create a widget (RuleForm). For isntance, first,
         # one is accessible as follows: gui.form.itemAt(0).widget()
 
-        print(self.configfile)
+        #print(self.configfile)
         docparser = YamlDocParser(self.configfile)
 
         for count, rule in enumerate(rules_list):
@@ -1249,6 +1282,7 @@ class SequanaGUI(QMainWindow, Tools):
                     form_dict["input_readtag"] = readtag
                 else:
                     form_dict["input_readtag"] = "_R[12]_"
+                form_dict["input_samples"] = {"file1":None, "file2":None}
 
             elif self.ui.tabWidget.currentIndex() == 1:
                 filename = self.sequana_factory._sequana_paired_tab.get_filenames()
@@ -1269,11 +1303,16 @@ class SequanaGUI(QMainWindow, Tools):
 
         # Let us update the attribute with the content of the form
         # This uses the user's information
+
         cfg = self.config
         cfg.config.update(form_dict)
         cfg._update_yaml()
         cfg.cleanup()
         self.cfg = cfg
+
+        pref = self.preferences_dialog.ui
+        box = pref.preferences_options_general_schema_value
+        checked_schema = box.isChecked()
 
         if self.working_dir:
             # Save the configuration file
@@ -1282,7 +1321,8 @@ class SequanaGUI(QMainWindow, Tools):
                 self.warning("copy requirements (if any)")
                 cfg.copy_requirements(target=self.working_dir)
             elif self.mode == "generic":
-                yaml_path = self.working_dir + os.sep + os.path.basename(self.generic_factory.configfile)
+                yaml_path = self.working_dir + os.sep + \
+                                os.path.basename(self.generic_factory.configfile)
 
             if os.path.isfile(yaml_path) and self.force is False:
                 save_msg = WarningMessage(
@@ -1298,10 +1338,24 @@ class SequanaGUI(QMainWindow, Tools):
                 retval = save_msg.exec_()
                 if retval in [16384, 2048]:
                     self.info("Saving config file (exist already)")
-                    cfg.save(yaml_path, cleanup=False)
+                    if checked_schema is False:
+                        cfg.save(yaml_path, cleanup=False)
+                    else:
+                        ret = self._check_and_save_config(cfg, yaml_path)
+                        if ret is False:
+                            # we do not want to save the config file and call
+                            # _save_teardown
+                            return
             else:
                 self.warning("Saving config file (does not exist)")
-                cfg.save(yaml_path, cleanup=False)
+                if checked_schema is False:
+                    cfg.save(yaml_path, cleanup=False)
+                else:
+                    ret = self._check_and_save_config(cfg, yaml_path)
+                    if ret is False:
+                        # we do not want to save the config file and call
+                        # _save_teardown
+                        return
 
             # Save the configuration file for the cluster
             if self.mode == "sequana" and self.sequana_factory.clusterconfigfile:
@@ -1329,11 +1383,67 @@ class SequanaGUI(QMainWindow, Tools):
         self.ui.run_btn.setEnabled(True)
         self.ui.dag_btn.setEnabled(True)
 
+    def _check_and_save_config(self, cfg, yaml_path):
+        # Here we save the config.yaml file when changed
+        # However, before that if there is a schema, we can 
+        # use it. This is the case for some sequana pipelines
+
+        # return False if the config is invalid and do not save it
+
+        if self.mode == "sequana" and \
+                self.sequana_factory.schemafile is None:
+            self.warning("No Schema found to validate the config file")
+
+        if self.mode == "sequana" and self.sequana_factory.schemafile:
+            schemafile = self.sequana_factory.schemafile
+        elif self.mode == "generic" and self.generic_factory.schemafile:
+            schemafile = self.generic_factory.schemafile
+        else:
+            schemafile = None
+
+        if schemafile:
+            # check that the config file is correct before saving it
+            # only if we have a schema_config file.
+            self.info("Checking config file with provided schema file.")
+            # We save the config as a dummy temporary file to check it
+            # if correct, we then save the file. If not, we provide an help
+            # message
+            from easydev import TempFile
+            with TempFile(suffix=".yaml") as fout:
+                # save a temporary version
+                cfg.save(fout.name, cleanup=False)
+                import ruamel
+                import warnings
+                from pykwalify.core import Core
+                warnings.simplefilter('ignore', ruamel.yaml.error.UnsafeLoaderWarning)
+                try:
+                    # open the config and the schema file
+                    c = Core(source_file=fout.name, schema_files=
+                        [schemafile])
+                except Exception as err:
+                    print(err)
+                    return False
+
+                try:
+                    c.validate()
+                except Exception as err:
+                    print(err)
+                    error_msg = "<b>CRITICAL: INVALID CONFIGURATION FILE</b>\n"
+                    error_msg += "<pre>" + err.msg + "</pre>"
+                    self.critical(error_msg)
+                    self.switch_off()
+                    msg = WarningMessage(error_msg, self)
+                    msg.exec_()
+                    return False
+        cfg.save(yaml_path, cleanup=False)
+
     def switch_off(self):
         self.debug('Switching RUN and DAG button off')
         self.ui.run_btn.setEnabled(False)
         self.ui.dag_btn.setEnabled(False)
 
+    def _reset_schema(self):
+        self.schemafile = None
     # -----------------------------------------------------------------------
     # SAVE LOG in a files
     # -----------------------------------------------------------------------
@@ -1406,8 +1516,7 @@ class SequanaGUI(QMainWindow, Tools):
         try:
             # This command should work on various platform, just in case
             # we add a try/except
-            easydev.cmd_exists('dot')
-            if easydev.cmd_exists('dot2') is False:
+            if easydev.cmd_exists('dot') is False:
                 msg = "**dot** command not found. Use 'conda install "
                 cmd += "graphviz' to install it."
                 self.warning(msg)
@@ -1416,9 +1525,9 @@ class SequanaGUI(QMainWindow, Tools):
                 return
         except:
             pass
+        finally:
+            self.info("Creating DAG image.")
 
-
-        self.info("Creating DAG image.")
         if self.snakefile is None:
             self.warning("No snakefile")
             return
@@ -1684,6 +1793,9 @@ class Options(argparse.ArgumentParser):
         group.add_argument("-c", "--configfile", dest="configfile",
             default=None,
             help="optional config file to be used by the Snakefile")
+        group.add_argument("-y", "--schema", dest="schemafile",
+            default=None,
+            help="optional schema file to check the config file")
 
 
 def main(args=None):
