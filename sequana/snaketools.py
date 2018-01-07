@@ -333,6 +333,7 @@ or open a Python shell and type::
         str += "Path: %s\n" % self.path
         str += "Config: %s\n" % self.config
         str += "Cluster config: %s\n" % self.cluster_config
+        str += "Schema for config file: %s\n" % self.schema_config
         return str
 
     def __str__(self):
@@ -352,6 +353,16 @@ or open a Python shell and type::
         return filename
     config = property(_get_config,
                       doc="full path to the config file of the module")
+
+    def _get_schema_config(self):
+        # The default config file for that module
+        filename = self._get_file("schema.yaml")
+        if filename is None:
+            # or the sequana default config file
+            filename = self._get_file("../schema.yaml")
+        return filename
+    schema_config = property(_get_schema_config,
+                      doc="full path to the schema config file of the module")
 
     def _get_cluster_config(self):
         # The default config file for that module
@@ -671,7 +682,6 @@ class SequanaConfig(object):
                     if key.endswith("_file") and value.startswith("~/"):
                         d[key] = os.path.expanduser(value)
 
-
     def cleanup_config(self):
         self._recursive_cleanup(self.config)
         self._update_yaml()
@@ -762,7 +772,6 @@ class PipelineManager(object):
     the sample name and  sample/rule/sample respectively. Whereas in the
     **wc** mode, the sample and basename are wildcard set to "{sample}"
     and "{sample}/rulename/{sample}". See the following methods :meth:`getname`.
-
 
     For developers: the config attribute should be used as getter only.
 
