@@ -10,6 +10,7 @@ multiqc==1.0
 pandas
 pygraphviz
 psutil
+pykwalify==1.6.0
 pyVCF
 pysam==0.12.0.1
 qtconsole
