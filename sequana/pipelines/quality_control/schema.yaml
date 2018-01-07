@@ -1,3 +1,6 @@
+# Schema validator for the quality_control
+# author: Thomas Cokelaer
+
 type: map
 mapping:
     "input_directory":
@@ -15,7 +18,7 @@ mapping:
     "input_samples":
         type: map
         mapping:
-            "file1": 
+            "file1":
                 type: str
                 required: False
             "file2":
@@ -26,12 +29,12 @@ mapping:
         type: map
         mapping:
             "do":
-                type: str
-                enum: [yes,no]
-                required: True
+                type: bool
+                default: True
             "reference_file":
                 type: str
                 required: True
+                pattern: .*
             "index_algorithm":
                 type: str
                 required: False
@@ -48,14 +51,13 @@ mapping:
                 type: str
                 required: True
                 default: './tmp'
+                pattern: .*
 
     "kraken":
         type: map
         mapping:
             "do":
-                type: str
-                enum: [yes,no]
-                required: True
+                type: bool
             "database_directory":
                 type: str
                 required: False
@@ -68,8 +70,7 @@ mapping:
         type: map
         mapping:
             "do":
-                type: str
-                enum: [yes,no]
+                type: bool
                 required: True
             "N":
                 type: int
@@ -82,17 +83,11 @@ mapping:
                 type: str
                 required: False
             "do_raw":
-                type: str
-                enum: [yes,no]
-                required: True
+                type: bool
             "do_after_phix_removal":
-                type: str
-                enum: [yes,no]
-                required: True
+                type: bool
             "do_after_adapter_removal":
-                type: str
-                enum: [yes,no]
-                required: True
+                type: bool
 
     "requirements":
         type: seq
@@ -103,12 +98,11 @@ mapping:
         type: map
         mapping:
             "do":
-                type: str
-                enum: [yes,no]
+                type: bool
                 required: True
             "tool_choice":
                 type: str
-                enum: [cutadapt, atropos]
+                enum: [cutadapt,atropos]
                 required: True
             "adapter_choice":
                 type: str
@@ -117,6 +111,7 @@ mapping:
             "design_file":
                 type: str
                 required: False
+                pattern: .*
             "fwd":
                 type: str
                 required: False
