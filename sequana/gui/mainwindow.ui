@@ -1496,6 +1496,7 @@ text-align: center;
     </property>
     <addaction name="separator"/>
     <addaction name="action_import_configfile"/>
+    <addaction name="action_import_schemafile"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuOption">
@@ -1588,6 +1589,11 @@ text-align: center;
   <action name="action_import_configfile">
    <property name="text">
     <string>Import Config File (sequana pipeline only)</string>
+   </property>
+  </action>
+  <action name="action_import_schemafile">
+   <property name="text">
+    <string>Import YAML/JSON Schema File (generic pipeline only)</string>
    </property>
   </action>
  </widget>
