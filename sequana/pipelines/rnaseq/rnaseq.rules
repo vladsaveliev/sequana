@@ -280,7 +280,7 @@ else :
     __igvtools__output = manager.getname("igvtools", ".tdf")
     __igvtools__log = manager.getname("igvtools", ".logs")
     include: sm.modules["igvtools"]
-    expected_output.extend(expand(__igvtools__output, sample=manager.samples))
+    #expected_output.extend(expand(__igvtools__output, sample=manager.samples))
 
 # Feature counts from subread suite
 if manager.config.star_mapping.do:
