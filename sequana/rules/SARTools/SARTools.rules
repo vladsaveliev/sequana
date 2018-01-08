@@ -47,7 +47,7 @@ rule SARTools:
         __SARTools__logs
     output:
         folder = __SARTools__output,
-        touch( __SARTools__output_file)
+        done = touch( __SARTools__output_file)
     threads: 1
     params:
         projectName = config['SARTools']['projectName'],
