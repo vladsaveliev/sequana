@@ -20,9 +20,9 @@ Overview of installation methods
 
 We support 3 types of installations:
 
-#. Singularity (tested with version 2.4.2) . Strictly speaking, there is no compilation. This method is for testing and production. It downloads an image / container that is ready-to-use (here the release 0_6_2)::
+#. Singularity (tested with version 2.4.2) . Strictly speaking, there is no compilation. This method is for testing and production. It downloads an image / container that is ready-to-use (here the release 0_6_3)::
 
-    singularity pull --name sequana.img shub://sequana/sequana:0_6_2
+    singularity pull --name sequana.img shub://sequana/sequana:0_6_3
 
 and can be used as follows (for example)::
 
@@ -178,9 +178,9 @@ Second, download a Sequana image. For instance, for the latest master version::
 
     singularity pull --name sequana.img shub://sequana/sequana:latest
 
-or for the release 0.6.2::
+or for the release 0.6.3::
 
-    singularity pull --name sequana_0_6_2.img shub://sequana/sequana:0_6_2
+    singularity pull --name sequana_0_6_3.img shub://sequana/sequana:0_6_3
 
 The term latest in Singularity Hub will pull, across all of your branches and
 tags, the most recent image, so if you come back in a year and get the latest (or ommit tha tag), you may not get the same container ! So, it is best using a specific tag. 

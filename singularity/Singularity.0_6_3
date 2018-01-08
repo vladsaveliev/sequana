@@ -32,6 +32,12 @@ From: ubuntu:16.04
     # the issue
     apt-get install -y libgnomeui-0
 
+    # avoid warning
+    #  Gtk-Message: Failed to load module "pk-gtk-module"
+    #  Gtk-Message: Failed to load module "canberra-gtk-module"
+    apt-get install -y libcanberra-gtk-module
+    apt-get install -y packagekit-gtk3-module
+
     # install anaconda
     if [ ! -d /usr/local/anaconda ]; then
         #wget https://repo.continuum.io/miniconda/Miniconda3-4.3.14-Linux-x86_64.sh\
@@ -72,7 +78,7 @@ From: ubuntu:16.04
     conda clean --packages -y
 
     # Sequana source code
-    pip install sequana==0.6.3
+    pip install sequana==0.6.3.post1
 
     conda clean --all -y # next requires lots of space
     rm -rf /usr/local/anaconda/pkgs
@@ -93,7 +99,6 @@ From: ubuntu:16.04
     export LANG=C   # prevents perl for raising warnings
     export PERL5LIB=/usr/local/anaconda/lib/perl5/5.22.0
     python -c "import sequana" # creates config file and check installation
-
 
 
 %environment
