@@ -55,7 +55,6 @@ class FastQStatsModule(SequanaBaseModule):
         super().__init__()
         self.path_to_fastqc = path_to_fastqc
         self.directory = input_directory
-        self.tag_R1 = tag_R1
         self.create_report_content()
         if output_filename:
             self.create_html(output_filename)
@@ -67,7 +66,8 @@ class FastQStatsModule(SequanaBaseModule):
         self.add_stats()
 
     def _get_files(self, pattern):
-        filenames = glob.glob(self.directory + os.sep + pattern)
+        # !! need to sort the files so that R1 appears before R2
+        filenames = sorted(glob.glob(self.directory + os.sep + pattern))
         if len(filenames) == 2:
             mode = "pe"
         elif len(filenames) == 1:
@@ -86,11 +86,8 @@ class FastQStatsModule(SequanaBaseModule):
         if mode == "pe":
             df1 = pd.read_json(filenames[0])
             df2 = pd.read_json(filenames[1])
-            # if _R1_ in filename (illumina case)
-            if self.tag_R1 in filenames[0]:
-                df  = pd.concat([df1, df2])
-            else:
-                df  = pd.concat([df2, df1])
+            df  = pd.concat([df1, df2])
+            # Should have been sorted !
             df.index = ['R1', 'R2']
         else:
             df = pd.read_json(filenames[0])
@@ -129,22 +126,26 @@ class FastQStatsModule(SequanaBaseModule):
    enveloppe gives the variation of the quality (1 standard deviation).</p>
    <p> Click on the image to jump to a full FastQC report.</p>"""
 
+        if len(filenames)==2: width="49"
+        else: width="65"
+
         filename = os.path.split(filenames[0])[1].replace("_boxplot.png", "_fastqc.html")
         href = self.path_to_fastqc + os.sep + filename
         html += """
-   <figure style="float:left; width:49%; padding:0px; margin:0px;">
+   <figure style="float:left; width:{}%; padding:0px; margin:0px;">
        <a href="{}">{}</a>
    <figcaption style="font-style:italic">Fig1: R1 reads</figcaption>
-   </figure>""".format(href, self.png_to_embedded_png(filenames[0]))
+   </figure>""".format(width, href, self.png_to_embedded_png(filenames[0]))
 
         if len(filenames) == 2:
             filename = os.path.split(filenames[1])[1].replace("_boxplot.png", "_fastqc.html")
             href = self.path_to_fastqc + os.sep + filename
             html += """
-   <figure style="float:right; width:49%; padding:0px; margin:0px;">
+   <figure style="float:right; width:{}%; padding:0px; margin:0px;">
        <a href="{}">{}</a>
    <figcaption style="font-style:italic">Fig2: R2 reads</figcaption>
-   </figure>""".format(href, self.png_to_embedded_png(filenames[1]))
+   </figure>""".format(width, href, self.png_to_embedded_png(filenames[1]))
+
 
         return html
 

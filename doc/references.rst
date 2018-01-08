@@ -20,6 +20,13 @@ Assembly related
     :members:
     :undoc-members:
 
+CIGAR tools
+---------------
+
+.. automodule:: sequana.cigar
+   :members:
+   :undoc-members:
+
 BAMTOOLS related
 --------------------
 .. automodule:: sequana.bamtools

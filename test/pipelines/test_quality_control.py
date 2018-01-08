@@ -1,28 +1,69 @@
 import os
+import json
 import tempfile
 from sequana import sequana_data
-from easydev import execute
+import subprocess
+
+from .common import Pipeline
+
+class QualityPipeline(Pipeline):
+    def __init__(self, wk=None):
+        super(QualityPipeline, self).__init__(wk)
+        data = sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz")
+        input_directory = os.path.dirname(data)
+        self.input_pattern = input_directory + "/Hm*gz"
+        self.pipeline = "quality_control"
+
+        self.output = self.wk + "/Hm2_GTGAAA_L005/report_qc_Hm2_GTGAAA_L005/summary.json"
+        cmd = [
+            "sequana", "--pipeline", self.pipeline,
+            "--input-pattern", '%s'% self.input_pattern,
+            "--working-directory", self.wk,
+            "--adapters", "Nextera", "--force"]
+
+        if "TRAVIS_PYTHON_VERSION" in os.environ:
+            cmd += ["--snakemake-jobs", "1"]
+
+        subprocess.check_call(cmd)
 
 
-def test_running():
-    data = sequana_data("Hm2_GTGAAA_L005_R1_001.fastq.gz")
-    input_directory = os.path.dirname(data)
+    def check(self):
+        if os.path.exists(self.output):
+            data = json.load(open(self.output))
+        assert data['project'] == "Hm2_GTGAAA_L005" 
+        #assert data == truth
 
-    with tempfile.TemporaryDirectory() as output_directory:
-        cmd = "sequana --pipeline quality_control --input-directory %s " + \
-            "--output-directory %s --no-adapters --force" 
-        execute(cmd % (input_directory, output_directory))
+        assert data["cutadapt_json"] == {"Number of reads": {'Pairs kept': '1,316',
+          'Pairs too short': '175',
+          'Read1 with adapters': '104',
+          'Read2 with adapters': '142',
+          'Total paired reads': '1,491'},
+         'percent': {'Pairs kept': '(88.3%)',
+          'Pairs too short': '(11.7%)',
+          'Read1 with adapters': '(7.0%)',
+          'Read2 with adapters': '(9.5%)',
+          'Total paired reads': '(100%)'}}
 
-        cwd = os.getcwd()
+        assert data['phix_section'] == {'R1_mapped': 8,
+             'R1_unmapped': 1491,
+             'R2_mapped': 8,
+             'R2_unmapped': 1491,
+             'contamination': 0.5336891260840559,
+             'duplicated': 0,
+             'mode': 'pe',
+             'unpaired': 0}
 
-        try:
-            os.chdir(output_directory)
-            execute("sh runme.sh")
-            # FIXME: more functional test. This is enough for now to check that the
-            # pipeline ends correctly
-            assert os.path.exists('%s/Hm2_GTGAAA_L005/report_qc_Hm2_GTGAAA_L005/summary.json' % output_directory)
-            os.chdir(cwd)
-        except:
-            os.chdir(cwd)
+        return data
+
+
+def test_quality_control():
+    QC = QualityPipeline()
+    try:
+        QC.run()
+        QC.check()
+        QC.clean()
+    except:
+        QC.clean()
+        raise Exception
 
 

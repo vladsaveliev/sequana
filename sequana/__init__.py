@@ -5,12 +5,14 @@ try:
 except:
     version = ">=0.20.0"
 
-import colorlog as logger
-def sequana_debug_level(level="WARNING"):
-    """A deubg level setter at top level of the library"""
-    assert level in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-    logging_level = getattr(logger.logging.logging, level)
-    logger.getLogger().setLevel(logging_level)
+
+try:
+    from easydev.logging_tools import Logging
+    logger = Logging("sequana", "WARNING")
+except:
+    import colorlog
+    logger = colorlog.getLogger("sequana")
+
 
 
 from easydev import CustomConfig
@@ -24,6 +26,7 @@ from .assembly import *
 from .adapters import AdapterReader, FindAdaptersFromDesign, Adapter
 from .bamtools import BAM, SAMFlags
 from .bedtools import GenomeCov
+from .cigar import Cigar
 from .coverage import Coverage
 from .expdesign import ExpDesignAdapter
 from .fastq import FastQ, FastQC, Identifier
@@ -52,6 +55,3 @@ def _download_biokit_taxon():
     tt._load_flat_file()
 try: _download_biokit_taxon()
 except: pass
-
-
-

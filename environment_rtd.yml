@@ -11,18 +11,18 @@ dependencies:
 - numpy
 - pandas
 - matplotlib
-- scipy
-- pysam
-- krona
-- kraken
-- pillow
-- sphinx
+- pysam==0.12.0.1
 - reports
-- easydev>=0.9.34
+- easydev>=0.9.36
 - bioservices
 - pip
 - shustring
 - biokit>=0.4.1
+- ruamel.yaml<=0.15.0
+- pygraphviz
+- snakemake==4.0.0
+- urllib3==1.22 # to fix bug in RTD (oct2017)
+
 - pip:
   - ipython
   - jupyter

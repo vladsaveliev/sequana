@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 import glob
 
 _MAJOR               = 0
-_MINOR               = 4
+_MINOR               = 6
 _MICRO               = 2
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
@@ -53,6 +53,11 @@ if on_rtd:
     extra_packages = ["pillow", "numpydoc", "sphinx"]
     requirements += extra_packages
 
+
+if sys.version_info.major == 2 or on_rtd:
+    requirements = [x for x in requirements 
+                    if x.startswith("snakemake") is False]
+
 setup(
     name             = "sequana",
     version          = version,
@@ -86,8 +91,8 @@ setup(
     # This is recursive include of data files
     exclude_package_data = {"": ["__pycache__"]},
     package_data = {
-        '': ['Snakefile*', '*html', 'README.rst', 'config*.yaml', '*.css', "*.js",
-                "snpEff.config*", "*.fa", "*.rules"],
+        '': ['Snakefile*', '*html', 'README.rst', "requirements*txt",
+             'config*.yaml', '*.css', "*.js", "snpEff.config*", "*.fa", "*.rules"],
         'sequana.rules' : ['*/*.rules', "*/*/*.rules"],
         'sequana.pipelines' : ['*/*.rules', "*/*/*.rules", "*/*yaml"],
         'sequana.resources.data' : ['*.*'],  # use *.* for files and not ./adapters
@@ -117,7 +122,7 @@ setup(
            'sequana_mapping=sequana.scripts.mapping:main',
            'sequana_compressor=sequana.scripts.compressor:main',
            'sequana_report=sequana.scripts.reports:main',
-           'sequana_foxi=sequana.scripts.browser:main',
+           'sequana_vcf_filter=sequana.scripts.vcf_filter:main',
         ],
         'sequana.module':[
             'sequana_coverage=sequana.modules_report.coverage:CoverageModule',

@@ -537,6 +537,8 @@ class Ui_MainWindow(object):
         self.gridLayout_3.addLayout(self.layout_logger, 0, 0, 1, 1)
         self.tabs.addTab(self.logger, "")
         self.tab_3 = QtWidgets.QWidget()
+        self.tab_3.setAcceptDrops(False)
+        self.tab_3.setToolTip("")
         self.tab_3.setObjectName("tab_3")
         self.gridLayout_4 = QtWidgets.QGridLayout(self.tab_3)
         self.gridLayout_4.setContentsMargins(0, 0, 0, 0)
@@ -552,7 +554,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 98, 28))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 595, 160))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.gridLayout_4.addWidget(self.scrollArea, 0, 0, 1, 1)
@@ -618,7 +620,7 @@ class Ui_MainWindow(object):
         self.gridLayout_2.addLayout(self.vlayout, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 647, 19))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 647, 26))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -665,7 +667,7 @@ class Ui_MainWindow(object):
         self.tabs_sequana.setCurrentIndex(0)
         self.tabWidget.setCurrentIndex(0)
         self.tabs_generic.setCurrentIndex(0)
-        self.tabs.setCurrentIndex(0)
+        self.tabs.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.tabs_pipeline, self.choice_button)
         MainWindow.setTabOrder(self.choice_button, self.starting_box)
@@ -731,11 +733,6 @@ class Ui_MainWindow(object):
 "- critical: bold red \n"
 "</pre>You can change the verbosity in the preferences dialog</p>"))
         self.tabs.setTabText(self.tabs.indexOf(self.logger), _translate("MainWindow", "&Logger"))
-        self.tab_3.setToolTip(_translate("MainWindow", "This tab contains the configuration file arguments. \n"
-"\n"
-"You can edit the form but will need to press SAVE to make it effective.\n"
-"\n"
-"Once saved, the DAG and RUN buttons should be available."))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_3), _translate("MainWindow", "&Config parameters"))
         self.run_btn.setToolTip(_translate("MainWindow", "<html><head/><body><p>Execute the Snakemake pipeline </p><p><span style=\" font-weight:600;\">shortcut: Ctrl+R</span></p></body></html>"))
         self.run_btn.setText(_translate("MainWindow", "&Run"))

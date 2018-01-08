@@ -38,6 +38,11 @@ dependencies with **conda**::
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements.txt
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
 
+Additional tools such as prokka, busco, canu and future heavy software will be
+maintained in this specific requirements for now::
+
+    conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines_extra.txt
+
 
 
 Installation issues
@@ -97,8 +102,11 @@ add a file called **matplotlibrc** with the following content::
 Save, exit the shell, start a new shell.
 
 
-pysam
-~~~~~~~~~~~~~~~~~~
+pysam / samtools / bzip2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We have experienced few issues with pysam and samtools. Here are some solutions.
+
 
 ::
 
@@ -119,6 +127,13 @@ Another error know for pysam version 0.11.2.2 raises this error::
 Downgrading to version 0.11.2.1 and upgrading to working version solves the problem::
 
     conda install pysam=0.11.2.1
+
+but one reason was also related to the order of the channel in the .condarc
+file. You may get bzip2 from the default channel and not from
+conda-forge (reference: https://github.com/bioconda/bioconda-recipes/issues/5188)
+::
+
+    conda install --override-channels -c conda-forge bzip2
 
 
 
@@ -204,5 +219,28 @@ http://sequana.readthedocs.io/en/master/tutorial.html#new-in-v0-10
 
 
 
+Singularity
+-----------------
 
+If you use the singularity container and get this kind of error::
+
+    singularity shell sequana-sequana-master.img
+    ERROR  : Base home directory does not exist within the container: /pasteur
+    ABORT  : Retval = 255
+
+it means the container does not know about the Base home directory.
+
+If you have sudo access, add the missing path as follows::
+
+    sudo singularity shell --writable sequana-sequana-master.img
+    mkdir /pasteur
+    exit
+
+If you do not have sudo permissions, copy the image on a computer where you have
+such permission, use the same code as above and copy back the new image on the
+computer where you had the issue. 
+
+Finally, try to use the container again using this code::
+
+    singularity shell sequana-sequana-master.img
 

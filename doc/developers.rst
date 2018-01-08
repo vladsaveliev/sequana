@@ -188,6 +188,8 @@ allows users to use any parameters.
 .. seealso:: Sequana contains many pipelines that can be used as examples.
     See `github repo <https://github.com/sequana/sequana/tree/master/sequana/pipelines>`_
 
+.. note:: Boolean are very permissive. One can use:
+   true|True|TRUE|false|False|FALSE yes|Yes|YES|no|No|NO on|On|ON|off|Off|OFF
 
 Add documentation in the rule
 ----------------------------------
@@ -597,46 +599,29 @@ In ./sequana/multiqc add a file called pipeline_count.py
 
 
 
+.. _dev_singularity:
 
+Singularity
+=============
 
+We provide a Singularity file. It is in the main directory and must be kept
+there to be found by singularity-hub. Each push to the master will then trigger
+this website to build a singularity image. This image can be downloaded as
+follows::
 
+    singularity pull shub://sequana/sequana:master
 
+and then used as::
 
+    singularity exec sequana-sequana-master.img sequana_coverage --help
 
+One issue here is that we should push on master only when we are sure that the
+repository is not bugged. Since people may use the container, we should not
+remove them... but there will be lots of containers.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Instead, we could create a specific tag e.g. release_0_5_2, activate the
+branch in the singularity hub page, push an empty commit and disable that
+branch. In doing so, we have a unique container for the release 0_5_2.
 
 
 

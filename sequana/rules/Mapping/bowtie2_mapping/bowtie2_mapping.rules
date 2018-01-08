@@ -55,4 +55,4 @@ rule bowtie2_mapping:
         cmd = "%%s && samtools index {output.sort}" %% cmd
 
 
-        shell("unpigz -fk {input.fastq} -p {threads} && " + cmd )
+        shell("unpigz -p {threads} -fk {input.fastq}  && " + cmd )

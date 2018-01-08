@@ -112,7 +112,15 @@ class BaseFactory(Tools):
             self.info("No working directory selected yet (copy snakefile)")
             return
 
+        # source and target filenames
         target = self.directory + os.sep + os.path.basename(self.snakefile)
+
+        if os.path.exists(target) and easydev.md5(target) == easydev.md5(self.snakefile):
+            self.info("Target and source (pipeline) are identical. Skipping copy.")
+            # if target and source are identical, nothing to do
+            return
+
+        # if filename are identical but different, do we want to overwrite it ?
         if os.path.basename(self.snakefile) == target:
             self.warning("%s exists already in %s" % (self.snakefile,
                 self.directory))
@@ -128,6 +136,14 @@ class BaseFactory(Tools):
 
         if self._directory_browser.path_is_setup() is False:
             self.info("No working directory selected yet (copy config)")
+            return
+
+        # FIXME
+        # THis does not check the formatting so when saved, it is different
+        # from original even though parameters are the same...
+        target = self.directory + os.sep + os.path.basename(self.configfile)
+        if os.path.exists(target) and easydev.md5(target) == easydev.md5(self.configfile):
+            self.info("Target and source (pipeline) are identical. Skipping copy.")
             return
 
         self.info("Copying config in %s " % self.directory)
@@ -328,18 +344,8 @@ class SequanaGUI(QMainWindow, Tools):
         self.initUI()
         self.read_settings()
 
-        self.setStyleSheet("""QToolTip {
-                           background-color: #aabbcc;
-                           color: black;
-                           border-style: double;
-                           border-width: 3px;
-                           border-color: green;
-                           border-radius: 5px;
-                           margin:5px;
-                           opacity: 255;
-                           } ;
-
-                            """)
+        # this should be after initUI and read_settings
+        self.set_style_sheet()
 
         # User option.
         def isset(options, key):
@@ -483,6 +489,8 @@ class SequanaGUI(QMainWindow, Tools):
         self.ui.actionSnakemake.triggered.connect(self.snakemake_dialog.exec_)
         self.ui.actionPreferences.triggered.connect(self.preferences_dialog.exec_)
 
+        self.preferences_dialog.ui.preferences_options_general_tooltip_value.clicked.connect(self.set_style_sheet)
+
         # connectors related to the pipeline tabs (pipeline/generic)
         self.set_sequana_pipeline()
         self.set_generic_pipeline()
@@ -515,7 +523,7 @@ class SequanaGUI(QMainWindow, Tools):
 
         self.ui.tabWidget.currentChanged.connect(lambda: self.ui.run_btn.setEnabled(False))
 
-        # if we are on one of those clusters, switch to the cluster choice in 
+        # if we are on one of those clusters, switch to the cluster choice in
         # the pipeline control combo box
         if misc.on_cluster(['tars-']) is True:
              self.ui.comboBox_local.setCurrentText("cluster")
@@ -523,6 +531,30 @@ class SequanaGUI(QMainWindow, Tools):
         # connect show advanced button with the until/starting frame
         self.ui.show_advanced_control.clicked.connect(self.click_advanced)
         self.ui.frame_control.hide()
+
+    def _get_opacity(self):
+        dialog = self.preferences_dialog
+        box = dialog.ui.preferences_options_general_tooltip_value
+        if box.isChecked():
+            return 255
+        else:
+            return 0
+    tooltip_opacity = property(_get_opacity)
+
+    def set_style_sheet(self):
+        self.setStyleSheet("""QToolTip {
+                           background-color: #aabbcc;
+                           color: black;
+                           border-style: double;
+                           border-width: 3px;
+                           border-color: green;
+                           border-radius: 5px;
+                           margin:5px;
+                           opacity: %s;
+                           } ;
+
+                            """ % self.tooltip_opacity)
+
 
     #|-----------------------------------------------------|
     #|                       MENU related                  |
@@ -623,7 +655,7 @@ class SequanaGUI(QMainWindow, Tools):
 
         # add widgets for the working dir
         self.ui.layout_sequana_wkdir.addWidget(saf._directory_browser)
-        
+
         # add widget for the input sample
         self.ui.layout_sequana_input_files.addWidget(saf._sequana_paired_tab)
         hlayout = QW.QHBoxLayout()
@@ -859,7 +891,7 @@ class SequanaGUI(QMainWindow, Tools):
         return option
 
     def _get_snakemake_command(self, snakefile):
-        """If the cluster option is selected, then the cluster field in 
+        """If the cluster option is selected, then the cluster field in
         the snakemake menu must be set to a string different from empty string.
 
         If we are on TARS, we also must set the option to cluster (not local)
@@ -973,7 +1005,6 @@ class SequanaGUI(QMainWindow, Tools):
     # -------------------------------------------------------------------
     # Create the base form
     # -------------------------------------------------------------------
-
     def create_base_form(self):
         """ Create form with all options necessary for a pipeline.
 
@@ -1093,7 +1124,7 @@ class SequanaGUI(QMainWindow, Tools):
             self.info("killing the main snakemake process. This may take a few seconds ")
             try:
                 self.info("process pid={} being killed".format(self.process.pid()))
-                pid_children = [this.pid for this in 
+                pid_children = [this.pid for this in
                                 psutil.Process(pid).children(recursive=True)]
                 # Kills the main process
                 os.kill(pid, signal.SIGINT)
@@ -1205,7 +1236,7 @@ class SequanaGUI(QMainWindow, Tools):
                 filename = self.sequana_factory._sequana_directory_tab.get_filenames()
                 form_dict["input_directory"] = (filename)
 
-                # If pattern provided, the input_directory is reset but used in 
+                # If pattern provided, the input_directory is reset but used in
                 # the pattern as the basename
                 pattern = self.sequana_factory._sequana_pattern_lineedit.text()
                 if len(pattern.strip()):
@@ -1272,11 +1303,11 @@ class SequanaGUI(QMainWindow, Tools):
                 self.warning("Saving config file (does not exist)")
                 cfg.save(yaml_path, cleanup=False)
 
-            # Save the configuration file for the cluster 
+            # Save the configuration file for the cluster
             if self.mode == "sequana" and self.sequana_factory.clusterconfigfile:
                 target = self.working_dir + os.sep + "cluster_config.json"
                 shutil.copy(self.sequana_factory.clusterconfigfile, target)
-                # replace the name of the original file with the target one so 
+                # replace the name of the original file with the target one so
                 # that the target can be edited. The target will also be used in
                 # place of the original version when launnching snakemake!
                 #self.snakemake_dialog.set()
@@ -1309,10 +1340,10 @@ class SequanaGUI(QMainWindow, Tools):
 
     def report_issues(self, filename="issue_debug.txt"):
         # save shell + shell_error in working directory as well as snakemake and
-        # config file. 
+        # config file.
         with open(filename, "w") as fh:
             fh.write("\nsequanix logger  ----------------------------------\n")
-            try: 
+            try:
                 file_logger = self.save_logger()
                 with open(file_logger, "r") as fin:
                     fh.write(fin.read())
@@ -1325,7 +1356,7 @@ class SequanaGUI(QMainWindow, Tools):
             fh.write("\nsequanix shell error ------------------------------\n")
             try:fh.writelines(self.shell_error)
             except:fh.write("No shell error info")
-        url = "https://github.com/sequana/sequana/issues " 
+        url = "https://github.com/sequana/sequana/issues "
         print("Created a file called {} to be posted on {}.".format(
             filename, url))
         self.init_logger()
@@ -1372,12 +1403,12 @@ class SequanaGUI(QMainWindow, Tools):
     # -----------------------------------------------------------------------
 
     def show_dag(self):
-        try:    
+        try:
             # This command should work on various platform, just in case
             # we add a try/except
             easydev.cmd_exists('dot')
             if easydev.cmd_exists('dot2') is False:
-                msg = "**dot** command not found. Use 'conda install " 
+                msg = "**dot** command not found. Use 'conda install "
                 cmd += "graphviz' to install it."
                 self.warning(msg)
                 msg = WarningMessage((msg))
@@ -1533,7 +1564,7 @@ class SequanaGUI(QMainWindow, Tools):
         else:
             self.critical("The config file that already exists is different. Nothing done")
             return False
-        return 
+        return
     """
 
     def eventFilter(self, source, event):

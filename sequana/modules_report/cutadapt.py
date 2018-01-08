@@ -19,6 +19,9 @@
 """Module to write coverage report"""
 import os
 import io
+import json
+from collections import Counter
+
 
 from sequana.modules_report.base_module import SequanaBaseModule
 from sequana.utils import config
@@ -46,9 +49,20 @@ class CutadaptModule(SequanaBaseModule):
         self.sample_name = sample_name
 
         self.jinja = {}
+        self.data = {}
 
-        self.read_data()
-        self.parse()
+        atropos_log = cutadapt_log.replace(".txt", ".json")
+
+        if os.path.exists(atropos_log):
+            self.input_mode = "atropos"
+            self.read_data() # store the rawdata
+            self.parse_atropos(atropos_log)
+        else:
+            self.input_mode = "cutadapt"
+            self.read_data() # store the rawdata
+            self.parse_cutadapt()
+            self._data_histograms = self._get_histogram_data()
+
         self.create_report_content()
         self.create_html(output_filename)
 
@@ -77,6 +91,7 @@ class CutadaptModule(SequanaBaseModule):
         if self.mode == 'se':
             tobefound.append(('total_reads', 'Total reads processed:'))
             tobefound.append(('reads_with_adapters', 'Reads with adapters:'))
+            tobefound.append(('reads_with_adapters', 'Reads with adapter:'))
             tobefound.append(('reads_too_short', 'Reads that were too short:'))
             tobefound.append(('reads_kept', 'Reads written (passing filters):'))
         else:
@@ -94,6 +109,7 @@ class CutadaptModule(SequanaBaseModule):
             "anchor": "log",
             "content": "<pre>\n"+ self._rawdata + "</pre>\n"
         })
+
 
     def _get_stats(self):
         if self.mode == "pe":
@@ -127,8 +143,7 @@ class CutadaptModule(SequanaBaseModule):
         return df
 
     def _get_stat_section(self):
-        df = self._get_stats()
-        datatable = DataTable(df, "cutadapt", index=True)
+        datatable = DataTable(self._get_stats(), "cutadapt", index=True)
         datatable.datatable.datatable_options = {
             'scrollX': '300px',
             'pageLength': 15,
@@ -178,7 +193,7 @@ class CutadaptModule(SequanaBaseModule):
             'buttons': ['copy', 'csv']}
         js = datatable.create_javascript_function()
         html_tab = datatable.create_datatable(float_format='%.3g')
-        self.jinja['adapters'] = "tralala"
+        self.jinja['adapters'] = ""
         self.sections.append({
             "name": "Adapters",
             "anchor": "adapters",
@@ -207,8 +222,7 @@ class CutadaptModule(SequanaBaseModule):
         """Show only histograms with at least 3 counts
 
         """
-        # This would work for cutadapt only
-        histograms = self._get_histogram_data()
+        histograms = self._data_histograms
         html = ""
         html += "<div>\n"
 
@@ -244,12 +258,11 @@ class CutadaptModule(SequanaBaseModule):
             "content":  "<p>Here are the most representative/significant adapters found in the data</p>"+ html
         })
 
-    def parse(self):
+    def parse_cutadapt(self):
         d = {}
         # output
         tobefound = self._get_data_tobefound()
         adapters = []
-        self.data = {}
 
         data = self._rawdata.splitlines()
         # some metadata to extract
@@ -261,7 +274,7 @@ class CutadaptModule(SequanaBaseModule):
             elif len(found) == 1:
                 text = found[0].split(":", 1)[1].strip()
                 try:
-                    this, percent = text.split(" ")
+                    this, percent = text.split()
                     self.jinja[key] = this
                     self.jinja[key+'_percent'] = percent
                 except:
@@ -273,7 +286,7 @@ class CutadaptModule(SequanaBaseModule):
         executable = "cutadapt"
         for pos, this in enumerate(data):
             if "This is Atropos" in this:
-                executable = "atropos" 
+                executable = "atropos"
             if "Command line parameters: " in this:
                 cmd = this.split("Command line parameters: ")[1]
                 self.jinja['command'] = executable + " " + cmd
@@ -367,3 +380,106 @@ class CutadaptModule(SequanaBaseModule):
                 else:
                     pass
         return dfs
+
+    def parse_atropos(self, filename):
+        """Parse the atropos report (JSON  format)"""
+        data = json.load(open(filename, "r"))
+
+
+        # Is it paired or single-ended ?
+        if data['input']['input_names'][1] is None:
+            self.jinja['mode'] = "Singled-end"
+            prefix = ""
+            self.mode = "se"
+        else:
+            self.jinja['mode'] = "Paired-end"
+            prefix = "paired_"
+            self.mode = "pe"
+
+        dfs = {}
+        self.data['adapters'] = []
+        data_adapters = data['trim']['modifiers']['AdapterCutter']['adapters']
+        reads = [0] * len(data_adapters[0])
+        adapters = list(data_adapters[0].keys())
+        N = data["record_counts"]['0']
+        try:
+            # Read2
+            reads.extend( [1] * len(data_adapters[1]))
+            adapters.extend(list(data_adapters[1].keys()))
+        except:
+            pass
+
+        read_tag = {0: "First read: ", 1: "Second read: "}
+
+        for read, name in zip(reads, adapters):
+            data_adapter = data_adapters[read][name]
+
+            type_ = data_adapter['where']['desc']
+            sequence = data_adapter["sequence"]
+            length = len(sequence)
+            trimmed = data_adapter['total']
+            max_error = data_adapter['max_error_rate']
+
+            # this takes care of the A,B,G mode of cutadapt/atropos
+            d = Counter()
+            for this in ['lengths_front', 'lengths_back']:
+                if this in data_adapter.keys():
+                    d += Counter(data_adapter[this]) 
+
+            count = pd.DataFrame(list(d.values()), list(d.keys()), columns=['count'])
+            count = count.reset_index().astype(int).sort_values("index", ascending=True)
+            count.set_index("index", inplace=True)
+            count['max err'] = [int(round(x * max_error)) for x in count.index]
+            count.reset_index(inplace=True)
+            count.rename(columns={"index":"length"}, inplace=True)
+            count['expect'] = 0.25 ** count['length'] * N
+            count.set_index("length", inplace=True)
+            count = count[["count", "expect", "max err"]]
+            dfs["R{}_".format(read+1) + name] = count.copy()
+
+            # Note that the following text must be kept as it is since
+            # it is then parsed in other methods
+            self.data['adapters'].append({"info": {
+                "Length": length,
+                "Sequence": sequence,
+                "Trimmed": "{} times.".format(trimmed),
+                "Type": type_}, "name": read_tag[read]+name})
+
+        # Store the histograms
+        self._data_histograms = dfs
+
+        # aliases
+        formatters = data['trim']['formatters']
+        filters = data['trim']['filters']['too_short']
+        cutter = data['trim']['modifiers']['AdapterCutter']
+        def _format(value):
+            return "({}%)".format(100 * int(round(value,3)*1000)/1000.)
+
+        self.jinja['%stotal_reads' % prefix] = N
+        self.jinja['%sreads1_with_adapters' % prefix] = \
+                str(cutter["records_with_adapters"][0])
+        self.jinja['%sreads1_with_adapters_percent'% prefix] = \
+            _format(cutter["fraction_records_with_adapters"][0])
+        # duplicated reads1 in reads for the single-end cae
+        # This should be clean but is required for now to be compatibl
+        # with the code used with cutadapt
+        self.jinja['%sreads_with_adapters' % prefix] = \
+                str(cutter["records_with_adapters"][0])
+        self.jinja['%sreads_with_adapters_percent'% prefix] = \
+            _format(cutter["fraction_records_with_adapters"][0])
+
+        if self.mode == "pe":
+            self.jinja['%sreads2_with_adapters' % prefix] = \
+                cutter["records_with_adapters"][1]
+            self.jinja['%sreads2_with_adapters_percent'% prefix] = \
+                _format(cutter["fraction_records_with_adapters"][1])
+        self.jinja['%sreads_too_short' % prefix] = filters["records_filtered"]
+        self.jinja['%sreads_too_short_percent'% prefix] = \
+            _format(filters["fraction_records_filtered"])
+        self.jinja['%sreads_kept' % prefix] = formatters['records_written']
+        self.jinja['%sreads_kept_percent' % prefix] = \
+             _format(formatters['fraction_records_written'])
+
+        self.jinja['command'] = "{} {} {}".format("atropos",
+            data['options']['action'], " ".join(data['options']['orig_args']))
+

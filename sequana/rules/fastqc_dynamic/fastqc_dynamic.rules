@@ -25,7 +25,7 @@ rule fastqc_%(name)s:
     Required parameters
         - __fastqc_%(name)s__wkdir: the working directory
 
-    Log: 
+    Log:
         - logs/fastqc_%(name)s/fastqc.log
 
     Required configuration:
@@ -47,7 +47,7 @@ rule fastqc_%(name)s:
         kargs = config['fastqc']['options']
     threads: 4
     log:
-        fastqc = "logs/fastqc_%(name)s/fastqc.log",
+        fastqc = __fastqc_%(name)s__log
     run:
         # if the content of the file is empty, this will fail. We need to
         # touch  a file in such case.

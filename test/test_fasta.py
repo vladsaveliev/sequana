@@ -10,3 +10,8 @@ def test_format_contigs_denovo():
     contigs = FastA(filename)
     with TempFile(suffix='.fasta') as fh:
         contigs.format_contigs_denovo(fh.name)
+
+
+    contigs.names
+    contigs.lengths
+    contigs.comments

@@ -17,7 +17,6 @@
 #
 ##############################################################################
 """Utilities for the genome coverage"""
-
 import re
 import ast
 import os
@@ -169,7 +168,6 @@ class GenomeCov(object):
     :attr:`chr_list`.
 
     """
-
     def __init__(self, input_filename, genbank_file=None,
                  low_threshold=-3, high_threshold=3, ldtr=0.5, hdtr=0.5):
         """.. rubric:: constructor
@@ -220,6 +218,23 @@ class GenomeCov(object):
 
     def __len__(self):
         return len(self.chr_list)
+
+    def __eq__(self, other):
+        if len(self.chr_list) != len(other.chr_list):
+            return False
+        for a,b in zip(self.chr_list, other.chr_list):
+            if all(a.df['cov'] == b.df['cov']) is False:
+                return False
+        return True
+
+    def compute_coverage(self, window, circular=False, reference=None):
+        """Compute GC content (if reference provided), running_median/zscore for each chromosome.
+        """
+        if reference:
+            self.compute_gc_content(reference)
+        for c in self.chr_list:
+            c.running_median(window, circular)
+            c.compute_zscore()
 
     @property
     def circular(self):
@@ -415,10 +430,10 @@ class GenomeCov(object):
             stats[chrom.chrom_name] = chrom.get_stats(output=output)
         return stats
 
-    def hist(self, logx=True, logy=True, fignum=1, N=20, lw=2):
+    def hist(self, logx=True, logy=True, fignum=1, N=20, lw=2, **kwargs):
         for chrom in self.chr_list:
             chrom.plot_hist_coverage(logx=logx, logy=logy, fignum=fignum, N=N,
-                histtype='step', hold=True, lw=lw)
+                histtype='step', hold=True, lw=lw, **kwargs)
             pylab.legend()
 
     def to_csv(self, output_filename, **kwargs):
@@ -442,6 +457,7 @@ class GenomeCov(object):
             for chrom in self.chr_list:
                 print("# {0}".format(chrom.get_gaussians()), file=fp)
             df.to_csv(fp, **kwargs)
+
 
 class ChromosomeCov(object):
     """Factory to manipulate coverage and extract region of interests.
@@ -488,7 +504,6 @@ class ChromosomeCov(object):
             self.thresholds = thresholds.copy()
         except:
             self.thresholds = DoubleThresholds()
-
 
     def __str__(self):
         stats = self.get_stats(output="dataframe")
@@ -797,6 +812,7 @@ class ChromosomeCov(object):
                     else:
                         features = None
                     logger.warning(msg % self.chrom_name)
+
             if features:
                 if alternative:
                     return FilteredGenomeCov(self.df.query(query), self.thresholds,
@@ -815,19 +831,37 @@ class ChromosomeCov(object):
     def plot_coverage(self, filename=None, fontsize=16,
             rm_lw=1, rm_color="#0099cc", rm_label="Running median",
             th_lw=1, th_color="r", th_ls="--", main_color="k", main_lw=1,
-            main_kwargs={}):
-
+            main_kwargs={}, sample=True, set_ylimits=True):
         """ Plot coverage as a function of base position.
 
         :param filename:
+        :param rm_lw: line width of the running median
+        :param rm_color: line color of the running median
+        :param rm_color: label for the running median
+        :param th_lw: line width of the thresholds
+        :param th_color: line color of the thresholds
+        :param main_color: line color of the coverage
+        :param main_lw: line width of the coverage
+        :param sample: if there are more than 1 000 000 points, we 
+            use an integer step to skip data points. We can still plot
+            all points at your own risk by setting this option to False
 
-        In addition, the running median and coverage confidence corresponding to
-        the lower and upper  zscore thresholds
+        :param set_ylimits: we want to focus on the "normal" coverage ignoring
+            unsual excess. To do so, we set the yaxis range between 0 and a
+            maximum value. This maximum value is set to the minimum between the
+            6 times the mean coverage and 1.5 the maximum of the high coverage
+            threshold curve. If you want to let the ylimits free, set this
+            argument to False
+
+        .. note:: if there are more than 1,000,000 points, we show only
+            1,000,000 by points. For instance for 5,000,000 points,
+
+        In addition to the coverage, the running median and coverage confidence
+        corresponding to the lower and upper  zscore thresholds are shown.
 
         .. note:: uses the thresholds attribute.
         """
         # z = (X/rm - \mu ) / sigma
-
         high_zcov = (self.thresholds.high * self.best_gaussian["sigma"] +
                 self.best_gaussian["mu"]) * self.df["rm"]
         low_zcov = (self.thresholds.low * self.best_gaussian["sigma"] +
@@ -839,21 +873,34 @@ class ChromosomeCov(object):
         pylab.xlim(0,self.df["pos"].iloc[-1])
         axes = []
         labels = []
-        p1, = pylab.plot(self.df["cov"], color=main_color, label="Coverage",
+
+        # 1,000,000 points is a lot for matplotlib. Let us restrict ourself to 1
+        # million points for now.
+        if len(self.df) > 1000000 and sample is True:
+            NN = int(len(self.df)/1000000)
+        else:
+            NN = 1
+
+        # the main coverage plot
+        p1, = pylab.plot(self.df["cov"][::NN], color=main_color, label="Coverage",
                 linewidth=main_lw, **main_kwargs)
         axes.append(p1)
         labels.append("Coverage")
-        if rm_lw>0:
-            p2, = pylab.plot(self.df["rm"],
+
+        # The running median plot
+        if rm_lw > 0:
+            p2, = pylab.plot(self.df["rm"][::NN],
                     color=rm_color,
                     linewidth=rm_lw,
                     label=rm_label)
             axes.append(p2)
             labels.append(rm_label)
-        if th_lw>0:
-            p3, = pylab.plot(high_zcov, linewidth=th_lw, color=th_color, ls=th_ls,
+
+        # The threshold curves
+        if th_lw > 0:
+            p3, = pylab.plot(high_zcov[::NN], linewidth=th_lw, color=th_color, ls=th_ls,
                 label="Thresholds")
-            p4, = pylab.plot(low_zcov, linewidth=th_lw, color=th_color, ls=th_ls,
+            p4, = pylab.plot(low_zcov[::NN], linewidth=th_lw, color=th_color, ls=th_ls,
                 label="_nolegend_")
             axes.append(p3)
             labels.append("Thresholds")
@@ -862,11 +909,21 @@ class ChromosomeCov(object):
         pylab.xlabel("Position", fontsize=fontsize)
         pylab.ylabel("Per-base coverage", fontsize=fontsize)
         pylab.grid(True)
-        pylab.ylim([0, pylab.ylim()[1]])
+
+        # sometimes there are large coverage value that squeeze the plot.
+        # Let us restrict it
+        if set_ylimits is True:
+            pylab.ylim([0, min([
+                high_zcov.max() * 1.5,
+                self.df["cov"].mean()*6])])
+        else:
+            pylab.ylim([0, pylab.ylim()[1]])
+
         try:
             pylab.tight_layout()
         except:
             pass
+
         if filename:
             pylab.savefig(filename)
 
@@ -1264,8 +1321,9 @@ class FilteredGenomeCov(object):
                         feature["product"] = feature["note"]
                     except:
                         feature["product"] = "None"
-                if region["start"] == 237433:
-                    print(dict(region, **feature))
+                # FIXME what that ?
+                #if region["start"] == 237433:
+                #    print(dict(region, **feature))
                 region_ann.append(dict(region, **feature))
                 try:
                     feature = next(iter_feature)

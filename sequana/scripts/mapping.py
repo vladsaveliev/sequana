@@ -65,6 +65,14 @@ Issues: http://github.com/sequana/sequana
             help="""R2 fastq file (zipped) """)
         self.add_argument("--reference", dest="reference", type=str,
             help="""reference """)
+        self.add_argument("--thread", dest="thread", type=int, default=4,
+            help="""number of threads """)
+        self.add_argument("--pacbio", dest="pacbio", action="store_true",
+            default=False,
+            help="""specific pacbio parameters recommended by bwa mem are used """)
+        self.add_argument("--use-sambamba", dest="sambamba", action="store_true",
+            default=False,
+            help="""use sambamba instead of samtools for the sorting """)
 
 
 def main(args=None):
@@ -89,7 +97,6 @@ def main(args=None):
     elif options.file1 is None:
         raise ValueError("--file1 must be used")
 
-
     from sequana import FastQ
     from sequana import FastA
     S = 0
@@ -102,19 +109,32 @@ def main(args=None):
     coverage = float(S) / len(ref.sequences[0])
     print('Theoretical Depth of Coverage : %s' % coverage)
 
-    params = {"reference": reference, "fastq": fastq}
+    params = {"reference": reference, "fastq": fastq, "thread": options.thread}
 
     # indexing
     shellcmd("bwa index %(reference)s " % params)
     cmd = "samtools faidx %(reference)s " % params
 
     # mapping
-    cmd = r"bwa mem -t 4 -R @RG\\tID:1\\tSM:1\\tPL:illumina -T 30 %(reference)s %(fastq)s  "
-    cmd += "| samtools view -Sbh -> %(reference)s.bam "
-    shellcmd(cmd % params)
+    cmd = "bwa mem -M "  # mark shorter split read as secondary; -M is not compulsary but recommended
+    if options.pacbio:
+        cmd += "-x pacbio "
+    cmd += r" -t %(thread)s -R @RG\\tID:1\\tSM:1\\tPL:illumina -T 30 %(reference)s %(fastq)s  "
 
-    # sorting BAM
-    shellcmd("samtools sort -o %(reference)s.sorted.bam  %(reference)s.bam" % params)
+    # Samtools options:
+    #   S:ignore input format
+    #   h:include header
+    #   b:bam output
+    if options.sambamba is False:
+        cmd += "| samtools view -Sbh | "
+        # sorting BAM
+        cmd += "samtools sort -@ %(thread)s -o %(reference)s.sorted.bam -"
+        shellcmd(cmd % params)
+    else:
+        # FIXME use sambamba for the view as well
+        cmd += "| samtools view -Sbu - | sambamba sort /dev/stdin -o %(reference)s.sorted.bam -t %(thread)s  --tmpdir=./tmp  " % params
+        shellcmd(cmd % params)
+
 
 
 """reference = "JB409847"

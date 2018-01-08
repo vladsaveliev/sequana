@@ -5,20 +5,17 @@
 Usage
 ~~~~~~~
 
-First copy the BAM files into a directory. Start **Sequanix** in that directory.
-Input BAM files must have the extension **.bam**.
-
-Then, start sequanix as follows::
+First copy the BAM files into a directory. Start **Sequanix** in that directory
+as follows (input BAM files must have the extension **.bam**)::
 
     sequanix -w analysis -i . -p pacbio_qc
 
-In the sequana/input file panel, just set the input directory where BAM files
-are stored. Note that currently all BAM files are taken into account
-irrespective of the pattern provided in Sequanix because the pipeline has
-hard-coded pattern to select all BAM files 
+You are ready to go. If you want to filter out some BAM files, you may use the
+pattern in tab 'input data'.
 
-In the configuration tab, in the kraken section add as many databases 
-as you wish.
+In the configuration tab, in the kraken section add as many databases
+as you wish. You may simply unset the first database to skip the taxonomy, which
+is experimental.
 
 Save the project and press Run. Once done, open the HTML report for the BAM of
 interest.
@@ -37,7 +34,7 @@ This pipeline takes as inputs a set of BAM files from Pacbio sequencers. It
 computes a set of basic statistics related to the read lengths. It also shows some
 histograms related to the GC content, SNR of the diodes and the so-called ZMW
 values. Finally, a quick taxonomy can be performed using Kraken. HTML reports
-are created for each sample.
+are created for each sample as well as a multiqc summary page.
 
 
 Rules and configuration details

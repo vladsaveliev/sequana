@@ -56,7 +56,6 @@ from easydev import get_path_sphinx_themes
 
 extensions = [
     'sphinx.ext.autodoc',
-
     ('sphinx.ext.imgmath'  # only available for sphinx >= 1.4
                   if sphinx.version_info[:2] >= (1, 4)
                   else 'sphinx.ext.pngmath'),
@@ -121,6 +120,7 @@ release = release
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
+exclude_trees = ['_build']
 exclude_patterns = []
 
 # The reST default role (used for this markup: `text`) to use for all documents.

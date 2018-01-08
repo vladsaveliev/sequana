@@ -7,4 +7,4 @@ def test_browser(qtbot):
     widget = Browser(url="sequana.readthedocs.io")
     widget.show()
     qtbot.addWidget(widget)
-
+    #widget.wb.createWindow(None)

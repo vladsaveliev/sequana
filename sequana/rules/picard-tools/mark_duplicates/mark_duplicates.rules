@@ -26,6 +26,8 @@ rule mark_duplicates:
     params:
         remove = config["mark_duplicates"]["remove"],
         tmpdir = config["mark_duplicates"]["tmpdir"]
+    threads:
+        int(config["mark_duplicates"]["threads"])
     shell:
         """
         (picard MarkDuplicates I={input} O={output.bam} \

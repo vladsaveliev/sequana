@@ -193,6 +193,10 @@ class SummaryModule(SequanaBaseModule):
         """ Return dependencies of Sequana.
         """
         dep_list = easydev.get_dependencies('sequana')
+        # if installed with conda, this will be empty
+        if len(dep_list) == 0:
+            return ""
+
         project_name = list()
         version = list()
         link = list()

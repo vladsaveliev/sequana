@@ -7,13 +7,16 @@ rule bam_to_fasta:
     Required output:
         - __bam_to_fasta__output_fasta
 
+    Configuration:
+        - config['bam_to_fasta']['thread']
+
      References:
          `sequana.pacbio <http://sequana.readthedocs.io/en/master/references.html#sequana.pacbio.BAMPa    cbio>`_
 
     """
     input: __bam_to_fasta__input_bam
     output: __bam_to_fasta__output_fasta
-    threads: 4
+    threads: config['bam_to_fasta']['thread']
     run:
         from sequana import pacbio
         p = pacbio.BAMPacbio(input[0])

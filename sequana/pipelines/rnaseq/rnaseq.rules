@@ -104,6 +104,7 @@ else:
 __fastqc_samples__input_fastq = __data__input
 __fastqc_samples__output_done = manager.getname("fastqc_samples", ".done")
 __fastqc_samples__wkdir       = manager.getwkdir("fastqc_samples")
+__fastqc_samples__log         = "%s/fastqc_samples/fastqc.log" % manager.sample
 include: fastqc_dynamic("samples", manager)
 expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samples))
 
@@ -207,6 +208,7 @@ if manager.config.kraken.do:
 __fastqc_filtered__input_fastq = __clean_ngs__output
 __fastqc_filtered__output_done = manager.getname("fastqc_filtered", ".done")
 __fastqc_filtered__wkdir       = manager.getwkdir("fastqc_filtered")
+__fastqc_filtered__log         = "%s/fastqc_filtered/fastqc.log" % manager.sample
 include: fastqc_dynamic("filtered", manager)
 expected_output.extend(expand(__fastqc_filtered__output_done, sample=manager.samples))
 
@@ -398,8 +400,6 @@ rule rnaseq:
     input: expected_output
 
 
-
-
 onsuccess:
     import os
     # Create plots about stats
@@ -417,15 +417,17 @@ onsuccess:
         shell("cp config.yaml %s" % report_dir)
         shell("cp requirements.txt %s" % report_dir)
         shell("cp snakemake_stats.png %s" % report_dir)
+        try: os.mkdir("cluster_logs")
+        except:pass
 
-        os.mkdir("cluster_logs")
-        shell("mv slurm* cluster_logs/")
+        try: shell("mv slurm* cluster_logs/")
+        except: pass
 
         # Create a cleanup python file to clean a sub-directory
         sm.create_cleanup(proj)
 
-    sm.create_recursive_cleanup()
-    sm.message("Done. To further cleanup the directory, type \n python .sequana_cleanup.py")
+    sm.OnSuccess()() # create instance to create main cleanup
+
 
 onerror:
     print("An error occurred. See message above.")

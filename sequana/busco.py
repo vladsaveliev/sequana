@@ -8,10 +8,9 @@ from easydev import DevTools, execute
 class BuscoConfig(object):
 
     def __init__(self, species, outpath=None, sample_name=None, conda_bin_path=None,
-            tmp_path=None, hmmsearch_bin_path="/usr/local/bin", Rscript_bin_path=None):
+            tmp_path=None, Rscript_bin_path=None):
 
         self.params = {}
-        self.params['hmmsearch_bin_path'] =  hmmsearch_bin_path
         self.params['conda_bin_path'] = conda_bin_path # "/home/cokelaer/miniconda3/env/py3/bin"
         self.params['Rscript'] = Rscript_bin_path # "/home/cokelaer/miniconda3/bin"
         self.params['sample'] = sample_name  # prefix used in output files
@@ -110,3 +109,111 @@ class BuscoDownload(object):
                 execute("rm -f %s" % ( target))
 
 
+class BuscoAnalysis(object):
+
+    def __init__(self, bin_path=None, config_path=None, species=None,
+                sample_name=None, outpath=None):
+        """
+
+        :param bin_path: path to busco binary file. 
+        :param config_path: is the path to augustus config path. See example
+            in sequana/resources/busco
+        :param species: one of busco dataset (e.g. bacteria_odb9)
+        :param sample_name: prefix used for all files
+        :param outpath: main output path
+
+        mode    = config['busco']['mode_choice'],
+        options = config['busco']['options'],
+        wkdir   =  __busco__workdir,
+        species = config['busco']['species_choice'],
+
+
+        If bin_path or config_path are none, uses CONDA_PREFIX or
+        CONDA_ENV_PATH.
+
+        """
+        assert outpath is not None
+        assert sample_name is not None
+        assert species is not None
+
+        import os
+        #sample_name = params.wkdir.split(os.sep)[0]
+        if bin_path is None:
+            # try conda
+            try:
+                self.conda_bin_path = os.environ['CONDA_PREFIX'] + os.sep +"bin"
+            except:
+                self.conda_bin_path = os.environ['CONDA_ENV_PATH'] + os.sep +"bin"
+        else:
+            self.conda_bin_path = bin_path
+
+        if config_path is None:
+            try:
+                self.augustus_config_path = os.environ['CONDA_PREFIX'] + os.sep + "config"
+            except KeyError:
+                self.augustus_config_path = os.environ['CONDA_ENV_PATH'] + os.sep + "config"
+        else:
+            self.augustus_config_path = config_path
+
+        self.species = species # TODO make it an attribute that calls set_config
+        self.sample_name = sample_name
+        self.outpath = outpath
+
+
+    def _set_config(self):
+        config = BuscoConfig(
+            self.species,
+            sample_name=self.sample_name,
+            outpath=self.outpath,
+            conda_bin_path=self.conda_bin_path,
+            Rscript_bin_path="", # not required by our analysis
+            tmp_path="./tmp_{}".format(self.sample_name)
+        )
+        from easydev import mkdirs
+        mkdirs(self.outpath)
+        self.config_filename = self.outpath + "/config.ini"
+        config.save_config_file(self.config_filename)
+
+    def run(self, infile, threads=4, mode="genome"):
+        """
+        mode_choice: genome, transcriptomics, proteins
+        species: name of a BUSCO dataset. (use Sequanix to get the list)
+        options: any options understood by busco
+        """
+        self._set_config()
+        # -f to force overwritten existing files
+        cmd = "export BUSCO_CONFIG_FILE={};".format(self.config_filename)
+        cmd += "export AUGUSTUS_CONFIG_PATH={};".format(self.augustus_config_path)
+        cmd += "run_busco -i {infile} -m {mode} -c {threads} -f 2>>{log};"
+        cmd = cmd.format(**{"infile":infile, 'mode':mode, "threads":threads, "log":"log"})
+
+        # Note that execute() does not keep the shell info
+        from easydev import execute as shell
+        from snakemake import shell
+        shell(cmd)
+        shell("rm -rf ./tmp_{}".format(self.sample_name))
+
+
+    def multirun(self, infile, threads=4, mode="genome", species=[]):
+        """
+
+        datasets = BuscoDownload().filenames
+        res = b.multirun("canu_test10X.contigs.fasta", threads=1,
+            species=datasets)
+
+        """
+        res = {}
+        buffer_ = self.species
+        for this in species:
+            self.species = this
+            try:
+                self.run(infile, threads=threads, mode=mode)
+                from sequana.assembly import BUSCO
+                ab = BUSCO("{}/run_{}/full_table_{}.tsv".format(
+                    self.outpath, self.sample_name, self.sample_name))
+                res[this] = ab.score
+            except:
+                pass
+        self.species = buffer_
+
+        return res

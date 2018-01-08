@@ -52,6 +52,9 @@ GenBank file is provided. The pipeline does the database building automatically.
 Although most of the species should be handled automatically, some special cases
 such as particular codon table will required edition of the snpeff configuration file.
 
+Finally, joint calling is also available and can be switch on if desired.
+
+
 Rules and configuration details
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

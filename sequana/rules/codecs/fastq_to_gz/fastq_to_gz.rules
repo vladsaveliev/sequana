@@ -20,4 +20,4 @@ rule fastq_to_gz:
     output: "{dataset}.gz"
     threads: config['compressor']['threads']
     run:
-        shell("pigz {input} -p {threads}")
+        shell("pigz -p {threads} {input} ")

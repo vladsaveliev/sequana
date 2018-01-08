@@ -6,6 +6,119 @@ Changelog
 2017
 ------
 
+0.6.2
+~~~~~~~~~~~~
+
+* BUGS:
+
+    * Fix regression bug (https://github.com/sequana/sequana/issues/484)
+    * Fix missing N_final column in table of the quality_control multi-summary
+      page
+    * Remove phix174.fa requirements in RNAseq pipeline config file
+    * Fix path starting with tilde (https://github.com/sequana/sequana/issues/486)
+
+* NEWS:
+
+    * add isoseq Class
+    * add vcf_filter module back to help in filtering VCF files created with
+      mpileup for instance
+    * add sequana_vcf_filter standalone
+
+0.6.1
+~~~~~~~~~~
+
+* BUGS:
+
+   * pipeline quality control: fix https://github.com/sequana/sequana/issues/477
+   * Fix empty dependency list in HTML report if sequana installed with conda
+
+0.6.0
+~~~~~~~~~~~~~
+
+ * BUGS:
+
+   * add missing file for the RNAseq pipeline in the setup.py
+   * Fix RTD building
+   * Fix reag_tag filtering https://github.com/sequana/sequana/issues/480 
+   * Set singularity hub (v2.4)
+
+0.5.2
+~~~~~~~~~~~~~~~
+
+* BUGS:
+
+    * cutadapt rule: remove the '--progress bar' for now because of a bug in atropos
+      (reported) that fails in the progress bar code
+
+* Updates:
+
+    * pipeline pacbio_qc: finalise output tree structure.
+    * pipeline quality_control: add sanity check (thread must be >1 for
+      atropos) and run fastqc on unmapped data (rather than mapped).  
+    * pin atropos version to 1.1.10 and added to requirements.txt
+    * Fix parsing of atropos report
+    * Update FastQC significantly to use atropos FastqReader instead of pysam.FastxFile
+    * documentation for the installation (remove docker, add singularity)
+    * rule/module atropos: implement ability to parse json report from atropos
+      https://github.com/sequana/sequana/issues/448
+    * rule fastqc: the log is now a variable. all pipelines using this rule
+      have been updated to save the log in {sample}/logs/ intead of ./logs
+    * add polyT in TruSeq adapters
+
+* News:
+
+    * add Singularity container
+    * BAM class (bamtools module): add plotting methods (coverage, letters,
+      indels)
+    * Add Cigar class (cigar module).
+    * Sequanix: add option to switch on/off the tooltips
+    * rule cutadapt: (1) check whether thread is set to > 1. if not set to 2
+      (2) add --report-format to save reports in JSON and TXT
+
+0.5.1
+~~~~~~~~~~~~~~~
+
+* BUGS:
+
+   * Set -t thread options correctly in the different rules (e.g. cutadapt)
+   * pipeline variant_calling: fix the VCF inputs when snpeff is off .
+     See https://github.com/sequana/sequana/issues/471
+   * pipeline quality_control. Fix regression bug introduced by the use 
+     of sambamba in the bwa_mem_dynamic rule (see 
+     ihttps://github.com/sequana/sequana/issues/472)
+   * Fix wrong total bases values in summary report of the quality_control
+     pipeline computed in FastQC class (see 
+     https://github.com/sequana/sequana/issues/470)
+   * pipeline pacbio_qc: hard-coded the number of threads to 4 otherwise may
+         fail on clusters. Does not change the pipeline or analysis itself
+   * sequana_coverage: fix chromosome option.
+   * Fix genbank_parser when the genbank contains several concatenated genbank
+     entries. This fixes the coverage reports CSV file that had missing
+     annotations.
+   * Fix regression bug introduced in rule bwa_mem_dynamic that messed 
+     up R1 and R2 order as compared to samtools by using sambamba. Fixed by
+     using -N parameter.
+   * Fix the -p option to be before the input whenever pigz is used in a rules. 
+     Indeed -p may be ignored otherwise e.g. on clusters.
+
+* Updates:
+
+   * add pacbio option in the mapping code
+   * pacbio_qc: fix pattern to filter input BAM files
+   * Speed up fastq_count (https://github.com/sequana/sequana/issues/465)
+   * bamtools module: speed up initialisation. add is_sorted method.
+   * bedtools: limit number of points to 1,000,000 in plot_coverage and set
+     ylimits manually to 6 mean coverage. add __eq__ function. See #464 issue
+   * Repeats can handle FastA properly (not limited to first sequence anymore)
+   * sequana_mapping: add thread in samtools call
+
+
+
+0.5.0 august 2017
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Tag a stable release
+
 
 
 0.4.2 August 2017

@@ -30,8 +30,7 @@ from sequana.modules_report.coverage import CoverageModule
 from sequana.modules_report.coverage import ChromosomeCoverageModule 
 from sequana.utils import config
 from sequana import logger
-from sequana import sequana_debug_level
-from sequana.bedtools import GenomeCov
+from sequana.bedtools import GenomeCov, FilteredGenomeCov
 
 from easydev import shellcmd, mkdirs
 from easydev.console import purple
@@ -73,14 +72,24 @@ class Options(argparse.ArgumentParser):
 
     An other interesting option is to provide a BED file with 4 columns. The
     fourth column being another coverage data created with a filter. One can
-    create such a file only from the BAM file using samtools as follows:
+    create such a file only from the BAM file using samtools as follows given
+    the original unfiltered BAM file named input.bam:
 
-        samtools view -q 35  -o data.filtered.bam input.fa.sorted.bam
-        samtools depth data.filtered.bam input.fa.sorted.bam  -aa > test.bed
-        sequana_coverage --input test.bed --show-html 
+        samtools view -q 35  -o data.filtered.bam input.bam
+        samtools depth input.bam data.filtered.bam  -aa > test.bed
+        sequana_coverage --input test.bed --show-html
 
     Note that the first file is the filtered one, and the second file is the
     unfiltered one.
+
+
+    Note for multi chromosome and genbank features: for now, you will need to call 
+    sequana_coverage for each chromosome individually since we accept only one
+    genbank as input parameter:
+
+        sequana_coverage --input file.bed --genbank chrom1.gbk -c 1
+
+    chromosome order in the BED and 
 
         """)
 
@@ -149,7 +158,6 @@ Issues: http://github.com/sequana/sequana
         group.add_argument(
             "-g", "--window-gc", dest="w_gc", type=int, default=201,
             help="""Length of the running window to compute the GC content""")
-            
         group.add_argument('-n', "--nlevels", dest="levels", type=int,
             default=3, help="""Number of levels in the contour""")
 
@@ -181,7 +189,7 @@ Issues: http://github.com/sequana/sequana
             help="""set lower and higher thresholds of the confidence interval.""")
 
         group = self.add_argument_group("Download reference")
-        group.add_argument("--download-reference", dest="accession",
+        group.add_argument("--download-reference", dest="download_reference",
             default=None, type=str)
         group.add_argument("--download-genbank", dest="download_genbank",
             default=None, type=str)
@@ -204,24 +212,25 @@ def main(args=None):
     else:
         options = user_options.parse_args(args[1:])
 
-    sequana_debug_level(options.logging_level)
+    logger.level = options.logging_level
 
-    if options.accession:
-        logger.info("Download accession %s from %s\n" %
-            (options.accession, options.database))
+    if options.download_reference:
+        logger.info("Downloading reference %s from %s\n" %
+            (options.download_reference, options.database))
 
         from bioservices.apps import download_fasta as df
-        df.download_fasta(options.accession, method=options.database)
-        return
+        df.download_fasta(options.download_reference, method=options.database)
+        if options.download_genbank is None:
+            return
 
     if options.download_genbank:
+        logger.info("Downloading genbank %s from %s\n" %
+            (options.download_reference, options.database))
         from sequana.snpeff import download_fasta_and_genbank
         download_fasta_and_genbank(options.download_genbank,
                                    options.download_genbank, 
                                    genbank=True, fasta=False)
         return
-
-    # We put the import here to make the --help faster
 
     if options.genbank:
         assert os.path.exists(options.genbank), \
@@ -231,39 +240,45 @@ def main(args=None):
         logger.info("Reading %s. This may take time depending on " 
             "your input file" % options.input)
 
+    # Convert BAM to BED
     if options.input.endswith(".bam"):
         bedfile = options.input.replace(".bam", ".bed")
         if options.verbose:
-            print("Converting BAM into BED file")
+            logger.info("Converting BAM into BED file")
         shellcmd("bedtools genomecov -d -ibam %s > %s" % (options.input, bedfile))
     elif options.input.endswith(".bed"):
         bedfile = options.input
     else:
         raise ValueError("Input file must be a BAM or BED file")
 
+    # Set the thresholds
     if options.low_threshold is None:
         options.low_threshold = -options.threshold
 
     if options.high_threshold is None:
         options.high_threshold = options.threshold
 
+    # and output directory
     config.output_dir = options.output_directory
     config.sample_name = os.path.basename(options.input).split('.')[0]
 
+    # Now we can create the instance of GenomeCoverage
     gc = GenomeCov(bedfile, options.genbank, options.low_threshold,
                    options.high_threshold, 0.5, 0.5)
 
+    # if we have the reference, let us use it
     if options.reference:
         logger.info('Computing GC content')
         gc.compute_gc_content(options.reference, options.w_gc,
                               options.circular)
 
+    # Now we scan the chromosomes, 
     if len(gc.chr_list) == 1:
         if options.verbose:
             logger.warning("There is only one chromosome. Selected automatically.")
         chrom = gc.chr_list[0]
         chromosomes = [chrom]
-        run_analysis(chrom, options)
+        run_analysis(chrom, options, gc.feature_dict)
     elif options.chromosome <=-1 or options.chromosome > len(gc.chr_list):
         raise ValueError("invalid chromosome index ; must be in [1-{}]".format(len(gc.chr_list)+1))
     else: # chromosome index is zero 
@@ -281,16 +296,16 @@ def main(args=None):
         for i, chrom in enumerate(chromosomes):
             if options.verbose:
                 print("==================== analysing chrom/contig %s/%s (%s)"
-                      % (i + 1 + options.chromosome, len(gc),
+                      % (i + options.chromosome, len(gc),
                       chrom.chrom_name))
-            run_analysis(chrom, options)
+            run_analysis(chrom, options, gc.feature_dict)
 
     if options.verbose:
-        logger.info("Creating report in %s" % config.output_dir)
-
-    datatable = CoverageModule.init_roi_datatable(gc[0]) 
+        logger.info("Creating report in %s. Please wait" % config.output_dir)
 
     if options.chromosome:
+        cc = options.chromosome - 1
+        datatable = CoverageModule.init_roi_datatable(gc[cc])
         ChromosomeCoverageModule(chromosomes[0], datatable, None)
         page = "{0}{1}{2}.cov.html".format(config.output_dir, os.sep,
                                            chrom.chrom_name)
@@ -303,7 +318,7 @@ def main(args=None):
         onweb(page)
 
 
-def run_analysis(chrom, options):
+def run_analysis(chrom, options, feature_dict):
 
     if options.verbose:
         print(chrom)
@@ -311,6 +326,7 @@ def run_analysis(chrom, options):
     if options.verbose:
         logger.info('Computing running median (w=%s)' % options.w_median)
 
+    # compute running median
     chrom.running_median(n=options.w_median, circular=options.circular)
 
     stats = chrom.get_stats(output="dataframe")
@@ -325,10 +341,28 @@ def run_analysis(chrom, options):
     if options.verbose:
         print("Number of mixture model %s " % options.k)
         print('Computing zscore')
+
+    # Compute zscore
     chrom.compute_zscore(k=options.k, verbose=options.verbose)
 
+    # Save the CSV file of the ROIs
+    high = chrom.thresholds.high2
+    low = chrom.thresholds.low2
+    query = "zscore > @high or zscore < @low"
+    if feature_dict and chrom.chrom_name in feature_dict:
+        f = FilteredGenomeCov(chrom.df.query(query),
+                        chrom.thresholds,
+                        feature_list=feature_dict[chrom.chrom_name])
+    else:
+        f = FilteredGenomeCov(chrom.df.query(query), chrom.thresholds)
+    directory = options.output_directory 
+    directory += os.sep + "coverage_reports" 
+    directory += os.sep + chrom.chrom_name
+    mkdirs(directory)
+    f.df.to_csv("{}/rois.csv".format(directory))
+
     if options.verbose:
-        print("Computing centralness")
+        logger.info("Computing centralness")
 
     # Let us save the thresholds first and then change it to compute centralness
     thresholds = chrom.thresholds.copy()

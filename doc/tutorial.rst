@@ -63,8 +63,10 @@ Taxonomy
 -------------------------------
 
 To perform a quick taxonomy of your reads, you can use :ref:`standalone_sequana_taxonomy`
+either from Python or as a standalone.
 
-**sequana_taxonomy**
+Here we show how to use the Python approach (see :ref:`standalones`) for the
+other approach.
 
 Download a toy kraken database designed for this problem (contains only 100
 FASTA files mixing measles viruses and others viruses)::
@@ -219,12 +221,12 @@ RNA-seq
 
 
 See more information in the :ref:`pipeline_rnaseq` section.
-The following example will show how to initialise and run the RNAseq pipeline on a couple of FastQ files (in single end mode).
+The following example will show you how to initialise and run the RNAseq pipeline on a couple of FastQ files (in single-end mode).
 The data comes from a sequencing (using HiSeq2500 technology) of a saccharomyces cerevisiae strain.
 For testing purposes, you can download :download:`Fastq1
 <../sequana/resources/data/WT_ATCACG_L001_R1_001.fastq.gz>` and
 :download:`Fastq2 <../sequana/resources/data/KO_ATCACG_L001_R1_001.fastq.gz>`)
-files that contain only 1500 reads. Copy them in a local directory.
+files that contain only 100,000 reads. Copy them in a local directory.
 
 
 Initialise the pipeline
@@ -236,7 +238,12 @@ Call **sequana** standalone as follows::
     sequana --pipeline rnaseq --input-directory . --working-directory EXAMPLE
         --adapter-fwd GATCGGAAGAGCACACGTCTGAACTCCAGTCA --adapter-rev GTGACTGGAGTTCAGACGTGTGCTCTTCCGATC
 
-Or use Sequanix.
+This command download the pipeline and its configuration file. The configuration
+file is prefilled with adapter information and input data files found in the
+input directory provided. You can change the configuration afterwards.
+
+An alternative is to use :ref:`sequanix`.
+
 
 Go to the project directory
 ::
@@ -257,32 +264,50 @@ the fasta and the GFF files from SGD before to run the pipeline::
     tar -xvzf chromFa.tar.gz
     cat *.fa > Saccer3.fa
     wget http://downloads.yeastgenome.org/curation/chromosomal_feature/saccharomyces_cerevisiae.gff -O Saccer3.gff
-    rm chr*
+    rm -f chr*
     cd ..
 
-.. warning:: All files (fasta, GFF, GTF...) used in RNA-seq pipeline must have the same prefix (Saccer3 in the example)
-    and must be placed in a new directory, named as the prefix or not
+.. warning:: All files (fasta, GFF, GTF...) used in RNA-seq pipeline must have 
+    the same prefix (Saccer3 in the example) and must be placed in a new directory, 
+    named as the prefix or not.
 
-.. warning:: For the counting step, the RNA-seq pipeline take only GFF files. GTF and SAF files must be integrated soon.
+.. warning:: For the counting step, the RNA-seq pipeline take only GFF files. GTF and SAF files will be integrated soon.
 
-Edit the config file
+Edit the config file(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Edit the config file **config.yaml** and fill the genome section::
 
     genome:
       do: yes
-      genome_directory: ../Saccer3
+      genome_directory: Saccer3
       name: Saccer3 #path to index name
-      fasta_file: ../Saccer3/Saccer3.fa
-      gff_file: ../Saccer3/Saccer3.gff
+      fasta_file: Saccer3/Saccer3.fa
+      gff_file: Saccer3/Saccer3.gff
       rRNA_file:
       rRNA_feature: "rRNA"
 
 
-.. warning:: Note fastq_screen if off by default. It's because sequana not embed a database for this tool.
-    If you want to run fastq_screen, please see the manual (https://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/)
-    and add the config file in the tool section.
+.. warning:: Note that fastq_screen is off by default. Indeed, Sequana does not provide 
+   a fastq_screen database so far. Therefore, if you want to run fastq_screen, please 
+   see the manual (https://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/)
+   and add the config file in the tool section.
+
+
+Finally, also edit the **multi_config.yaml** file and replace::
+
+    custom_logo: "Institut_Pasteur.png"
+
+with yours or as follows (empty, not an empty string like "" ) ::
+
+    custom_logo:
+
+.. note:: there are other places with hard-coded path but the corresponding
+   sections are not used by default. If you decide to use them (e.g.
+    fastq_screen), you will need to edit the configuration file accordingly.
+
+
+
 
 
 Run the pipeline
@@ -302,3 +327,47 @@ on slurm cluster ::
     sbatch snakemake -s rnaseq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json
     --cluster "sbatch --mem={cluster.ram} --cpus-per-task={threads} "
 
+
+
+Singularity and Sequanix
+----------------------------
+
+.. warning:: FOR LINUX USERS ONLY IF YOU WANT TO USE SEQUANIX. YOU CAN STILL USE
+   THE SEQUANA STANDALONE
+
+
+Here we will use singularity to use Sequanix and the quality pipeline to analyse
+local data sets stored in your /home/user/data directory.
+
+
+First, Install singularity (http://singularity.lbl.gov/). Check also the
+:ref:`Installation` for information.
+
+Second, download this specific container::
+
+    singularity pull shub://sequana/sequana:release_0_5_2
+
+This is about 5Go of data. Once downloaded, enter the container as follows::
+
+    singularity shell -B /home/user/data/:/data sequana-sequana-release_0_5_2.img
+
+
+replace "/home/user/data" by whatever local directory where you have Fastq.gz 
+
+Once in the container, you should see a prompt like this::
+
+    Singularity: Invoking an interactive shell within container...
+    Singularity sequana-sequana-release_0_5_2.img:~/Work/github/sequana/singularity>
+
+Just move to the /data directory::
+
+    cd data
+
+You should see your input files. You can now analyse your data following the
+quality pipeline tutorial (top of the page), or use Sequanix::
+
+    sequanix -i . -w analysis -p quality_tutorial
+
+
+A Sequanix window should appear. You can now follow the Sequanix tutorial
+:ref:`sequanix`

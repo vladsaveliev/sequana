@@ -4,7 +4,7 @@ from easydev import TempFile
 
 def test_busco_config():
     bc = BuscoConfig("species", outpath="test", sample_name="test",
-            conda_bin_path="test", tmp_path="test", hmmsearch_bin_path="itest",
+            conda_bin_path="test", tmp_path="test",
             Rscript_bin_path=None)
     with TempFile() as fh:
         bc.save_config_file(fh.name)

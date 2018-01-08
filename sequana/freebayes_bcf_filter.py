@@ -186,6 +186,10 @@ class BCF_freebayes(VariantFile):
 
         Return line if all filters are passed.
         """
+        # SRF="Number of reference observations on the forward strand
+        # SRR="Number of reference observations on the reverse strand
+        # SAF="Number of alternate observations on the forward strand
+        # SAR=Number of alternate observations on the reverse strand
         if bcf_line.qual < self.filters["freebayes_score"]:
             return False
 
@@ -285,6 +289,7 @@ def strand_ratio(number1, number2):
         return 0
     return division
 
+
 def compute_freq(bcf_line):
     """ Compute frequency of alternate allele.
         alt_freq = Count Alternate Allele / Depth
@@ -294,6 +299,7 @@ def compute_freq(bcf_line):
     alt_freq = [float(count)/bcf_line.info["DP"]
                 for count in bcf_line.info["AO"]]
     return alt_freq
+
 
 def compute_strand_bal(bcf_line):
     """ Compute strand balance of alternate allele include in [0,0.5].

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>469</width>
-    <height>319</height>
+    <width>507</width>
+    <height>366</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -177,6 +177,16 @@
              </property>
              <property name="text">
               <string>Form browser keywords</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QCheckBox" name="preferences_options_general_tooltip_value">
+             <property name="toolTip">
+              <string>Turn on/off tootips</string>
+             </property>
+             <property name="text">
+              <string>Show tooltips</string>
              </property>
             </widget>
            </item>

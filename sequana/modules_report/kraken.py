@@ -26,7 +26,7 @@ from sequana.utils import config
 
 from sequana.lazy import pandas as pd
 from sequana.lazy import pylab
-from sequana import logger
+from sequana import logger, sequana_data
 
 from sequana.utils.datatables_js import DataTable
 
@@ -43,7 +43,8 @@ class KrakenModule(SequanaBaseModule):
         self.title = "Kraken report"
         self.directory = input_directory
         self.create_report_content()
-        self.create_html(output_filename)
+        if output_filename:
+            self.create_html(output_filename)
 
     def create_report_content(self):
         """ Generate the sections list to fill the HTML report.
@@ -57,8 +58,18 @@ class KrakenModule(SequanaBaseModule):
 
     def _get_summary_section(self):
 
-        # TODO: embedded image
-        pngimage = self.directory + os.sep + "kraken.png"
+        df = self._get_stats()
+        if len(df) == 1 and df.ix[0]['taxon'] == -1:
+            pngimage = sequana_data("no_data.jpg")
+            extra = "<p> no reads could be identified with the given the database(s)."
+        else:
+            pngimage = self.directory + os.sep + "kraken.png"
+            extra = """<p>The following <b>clickable image</b> is a simplified 
+version (only genus are shown) of an interactive and more detailled version 
+based on Krona. Finally, note that the unclassified species in the pie plot 
+may correspond to species not present in the data base or adapters (if not 
+removed).</p>"""
+
         html = """
     <p>Overview of the Taxonomic content of the filtered reads. </p>
     <p>The taxonomic analysis is performed with Kraken (see database name in 
@@ -73,22 +84,16 @@ may be detected instead).
 Besides, be aware that closely related species may not be classified precisely.
 </p>
 
-    <p>The following <b>clickable image</b> is a simplified version (only genus
-are shown) of an
-interactive and more detailled version based on Krona. Finally, note that the
-unclassified
-species in the pie plot may correspond to species not present in the data base
-or adapters (if not removed).</p>
-    <div style="text-align:center"><a href="./kraken/kraken.html"> {0} </a></div>
+    {0}
+    <div style="text-align:center"><a href="./kraken/kraken.html"> {1} </a></div>
     <br>
-""".format(self.png_to_embedded_png(pngimage))
+""".format(extra, self.png_to_embedded_png(pngimage))
 
-        df = self._get_stats()
         datatable = DataTable(df, "kraken", index=False)
         # add links
         if "ena" in df.columns:
             urlena = "http://www.ebi.ac.uk/ena/data/view/"
-            datatable.datatable.set_links_to_column("ena", 
+            datatable.datatable.set_links_to_column("ena",
                 [urlena + this for this in df['ena']])
         datatable.datatable.datatable_options = {
             'scrollX': '300px',

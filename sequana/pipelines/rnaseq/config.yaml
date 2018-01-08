@@ -24,6 +24,7 @@ input_samples:
 # Note that sequana and url fields are followed by itemised files or links
 # using the front dashes
 requirements:
+    - Institut_Pasteur.png
 
 
 
@@ -142,7 +143,7 @@ fastq_screen:
     do: no
     conf: "fastq_screen.conf"
     options: "--subset 200000  --aligner bowtie2"
-    pf2_report: yes
+    pf2_report: no
 
 
 #################################################################
@@ -185,7 +186,7 @@ bowtie1_mapping_rna:
 #
 star_mapping:
     do: no
-    options: ""
+    options: "--outFilterMismatchNoverLmax 0.05 --outSAMunmapped Within "
     threads: 4
 
 #############################################################################
@@ -229,7 +230,6 @@ bowtie2_mapping:
 #
 feature_counts:
     do: yes
-    #options: "-t exon -g gene_id"
     options: "-t gene -g ID -s 1 " ## if exon/CDS is used, put -O option
     threads: 2
 
@@ -299,6 +299,8 @@ mark_duplicates:
     do: no
     remove: 'False' ## may be True
     tmpdir: "TMP_DIR=/tmp/"
+    threads: 4
+
 
 
 #############################################################################
