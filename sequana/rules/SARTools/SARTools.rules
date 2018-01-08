@@ -73,10 +73,17 @@ rule SARTools:
         #change directory
         chdir(output.folder)
         #run R script
-        shell("Rscript --no-save --no-restore %s --rawDir {input.rawDir} --targetFile {input.targetFile} \
+        if params.batch is "NULL" :
+            shell("Rscript --no-save --no-restore %s --rawDir {input.rawDir} --targetFile {input.targetFile} \
+               --projectName {params.projectName}  --author {params.author} --featuresToRemove {params.featuresToRemove} \
+               --varInt {params.varInt}  --condRef {params.condRef} --fitType {params.fitType} \
+               --cooksCutoff {params.cooksCutoff} --independentFiltering {params.independentFiltering} \
+               --alpha {params.alpha} --pAdjustMethod {params.pAdjustMethod} --typeTrans {params.typeTrans} \
+               --locfunc {params.locfunc} 2> {log}" % (sartools_script))
+        else :
+            shell("Rscript --no-save --no-restore %s --rawDir {input.rawDir} --targetFile {input.targetFile} \
                --projectName {params.projectName}  --author {params.author} --featuresToRemove {params.featuresToRemove} \
                --varInt {params.varInt}  --condRef {params.condRef} --batch {params.batch} --fitType {params.fitType} \
                --cooksCutoff {params.cooksCutoff} --independentFiltering {params.independentFiltering} \
                --alpha {params.alpha} --pAdjustMethod {params.pAdjustMethod} --typeTrans {params.typeTrans} \
                --locfunc {params.locfunc} 2> {log}" % (sartools_script))
-
