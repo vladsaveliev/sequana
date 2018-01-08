@@ -6,7 +6,16 @@ Changelog
 2017
 ------
 
-0.7.0
+
+0.6.3.post1
+~~~~~~~~~~~~~
+
+- a bug fix in the sequanix GUI and singularity. a statement related to the 
+  ruamel.yaml package causes trouble if version is not 0.15. A temporary fix
+  consisted in adding a try/except (the statement is just a warning.filter and
+  has no impact on analysis)
+
+0.6.3
 ~~~~~~~~~~~
 
 * BUGS:
