@@ -24,7 +24,6 @@ input_samples:
 # Note that sequana and url fields are followed by itemised files or links
 # using the front dashes
 requirements:
-    - phiX174.fa
     - Institut_Pasteur.png
 
 

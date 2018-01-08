@@ -113,16 +113,21 @@ fastq_sampling: # test
     do: no
     N: 2500
 
-
 #################################################################
 # FastQC section
 #
 # :Parameters:
 #
 # - options: string with any valid FastQC options
-#
+# - do_raw: performs fastqc on raw data
+# - do_after_adapter_removal: performs fastqc on data after 
+#   adapter removal
+# - do_after_phix_removal: performs fastqc on data without phix
 fastqc:
     options: "--nogroup"
+    do_raw: true
+    do_after_phix_removal: true
+    do_after_adapter_removal: true
 
 
 #################################################################

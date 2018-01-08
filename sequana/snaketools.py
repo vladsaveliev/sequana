@@ -556,6 +556,11 @@ class SequanaConfig(object):
     can override a value with a False but this is interepted as "False"
     This will transform back the "True" into True.
 
+    Another interest concerns the automatic expansion of the path to directories
+    and files starting with the special ~ (tilde) character, that are expanded
+    transparently.
+
+
     """
     def __init__(self, data=None, converts_none_to_str=True):
         """Could be a JSON or a YAML file
@@ -647,6 +652,8 @@ class SequanaConfig(object):
         self._recursive_update(self.config, self._yaml_code)
 
     def _recursive_cleanup(self, d):
+        # expand the tilde (see https://github.com/sequana/sequana/issues/486)
+        # remove the %() templates
         for key, value in d.items():
             try:
                 self._recursive_cleanup(value)
@@ -658,6 +665,12 @@ class SequanaConfig(object):
                         d[key] = None
                     else:
                         d[key] = value.strip()
+                    # https://github.com/sequana/sequana/issues/486
+                    if key.endswith("_directory") and value.startswith("~/"):
+                        d[key] = os.path.expanduser(value)
+                    if key.endswith("_file") and value.startswith("~/"):
+                        d[key] = os.path.expanduser(value)
+
 
     def cleanup_config(self):
         self._recursive_cleanup(self.config)

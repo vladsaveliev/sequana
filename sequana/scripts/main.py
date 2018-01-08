@@ -34,10 +34,10 @@ from sequana.snaketools import FastQFactory
 from sequana.snaketools import FileFactory
 from sequana.adapters import FindAdaptersFromDesign, AdapterReader
 from sequana import SequanaConfig, sequana_data
-from sequana import logger, Module, sequana_debug_level
+from sequana import logger, Module
 
 
-sequana_debug_level('INFO')
+logger.level = 'INFO'
 
 adapters_choice = ["Nextera", "Rubicon", "PCRFree", "TruSeq", "SMARTer", "Small"]
 

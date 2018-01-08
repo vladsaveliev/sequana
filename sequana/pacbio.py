@@ -142,7 +142,7 @@ class PacbioBAMBase(object):
         pylab.xlim([0, 100])
 
     def plot_GC_read_len(self, hold=False, fontsize=12, bins=[40,40],
-                grid=True, xlabel="GC %", ylabel="#"):
+                grid=True, xlabel="GC %", ylabel="#", cmap="hot"):
         """Plot GC content versus read length
 
         :param bool hold:
@@ -171,7 +171,7 @@ class PacbioBAMBase(object):
             pylab.clf()
         data = self._df.loc[:,['read_length','GC_content']]
         h = biokit.viz.hist2d.Hist2D(data)
-        res = h.plot(bins=bins, contour=False, nnorm='log', Nlevels=6)
+        res = h.plot(bins=bins, contour=False, nnorm='log', Nlevels=6, cmap=cmap)
         pylab.xlabel("Read length", fontsize=fontsize)
         pylab.ylabel("GC %", fontsize=fontsize)
         pylab.title("GC %% vs length \n Mean length : %.2f , Mean GC : %.2f" % 
@@ -239,27 +239,86 @@ class BAMPacbio(PacbioBAMBase):
 
     Several plotting methods are available. For instance, :meth:`hist_snr`.
 
+
+    The BAM file used to store the Pacbio reads follows the BAM/SAM
+    specification. Note that the sequence read are termed query, a subsequence
+    of an entire Pacbio ZMW read ( a subread), which is basecalls from a single
+    pass of the insert DNA molecule.
+
+    In general, only a subsequence of the query will align to the
+    reference genome, and that subsequence is referred to as the aligned query.
+
+    When introspecting the aligned BAM file, the extent of the query in ZMW read
+    is denoted as [qStart, qEnd) and the extent of the aligned subinterval
+    as [aStart, aEnd). The following graphic illustrates these intervals:
+
+          qStart                         qEnd
+    0         |  aStart                aEnd  |
+    [--...----*--*---------------------*-----*-----...------)  < "ZMW read" coord. system
+              ~~~----------------------~~~~~~                  <  query; "-" =aligning subseq.
+    [--...-------*---------...---------*-----------...------)  < "ref." / "target" coord. system
+    0            tStart                tEnd
+
+    In the BAM files, the qStart, qEnd are contained in the qs and qe tags, (and
+    reflected in the QNAME); the bounds of the aligned query in the ZMW read can be
+    determined by adjusting qs and qe by the number of soft-clipped bases at the
+    ends of the alignment (as found in the CIGAR).
+
+    See also the comments in the code for other tags.
+
+    :reference: http://pacbiofileformats.readthedocs.io/en/3.0/BAM.html
+
+
     """
-    def __init__(self, filename):
+    def __init__(self, filename, testing=0):
         """.. rubric:: Constructor
 
         :param str filename: filename of the input pacbio BAM file. The content
             of the BAM file is not the ouput of a mapper. Instead, it is the
             output of a Pacbio (Sequel) sequencing (e.g., subreads).
+        :param int testing: for testing, you can set the number of subreads to
+            read (0 means read all subreads)
         """
         super(BAMPacbio, self).__init__(filename)
+        self.testing = testing
 
     def _get_df(self):
         # When scanning the BAM, we can extract the length, SNR of ACGT (still
         # need to know how to use it). The GC content (note there is no
         # ambiguity so no S character). The ZMW. Also, from the tags we could
         # get more
+
+        # In each alignement, there are lots of information to retrieve.
+        # One could for instance introspect the tags.
+        # - cx: subread local context flags
+        # - ip: vector of length qlen from 0 to 250. This is the IPD (raw frames
+        # or codec V1)
+        # - np: number of passes (1 for subread, variable for CCS)
+        # - pw: vector of length qlen from 0 to 128? This is the PulseWidth (raw
+        # frames or codec V1)
+        # - qs: 0-based start of query in the ZMW read (absent in CCS)
+        # - qe: 0-based end of query in the ZMW read (absent in CCS)
+        # - zm: position/ID of the ZMW
+        # - sn: list of ACGT SNRs. A, C, G, T in that order
+        # - rq: float encoding exepted accuracy
+
+        # - dq: DeletionQV
+        # - dt: deletion Tag
+        # - iq: insertionQV
+        # - mq: mergeQV
+        # - sq: substituionQV
+        # - st: substituion tag
+
+        # - RG: ?
+
+        # See http://pacbiofileformats.readthedocs.io/en/3.0/BAM.html
         if self._df is None:
             logger.info("Scanning input file. Please wait")
             self.reset()
             N = 0
 
             all_results = []
+            # This takes 60%  of the time...could use cython ?
             for read in self.data:
                 res = []
                 # count reads
@@ -284,6 +343,9 @@ class BAMPacbio(PacbioBAMBase):
                 # aggregate results
                 all_results.append(res)
 
+                if self.testing and N > self.testing:
+                    break 
+
             self._df = pd.DataFrame(all_results,
                 columns=['read_length','GC_content','snr_A','snr_C','snr_G','snr_T','ZMW'])
             self._N = N
@@ -295,6 +357,7 @@ class BAMPacbio(PacbioBAMBase):
         # cast to allows json dump
         data =  self.df.read_length.describe().to_dict()
         data['nb_bases'] = int(self.df.read_length.sum())
+        data['nb_reads'] = len(self.df)
         data['mean_GC'] = float(self.df.GC_content.mean())
         return data
     stats = property(_get_stats, doc="return basic stats about the read length")
@@ -393,6 +456,31 @@ class BAMPacbio(PacbioBAMBase):
                 if ((read.query_length > threshold_min) & (read.query_length < threshold_max)):
                     fh.write(read)
 
+    def filter_mapq(self, output_filename, threshold_min=0,
+        threshold_max=255):
+        """Select and Write reads within a given range
+
+        :param str output_filename: name of output file
+        :param int threshold_min: minimum length of the reads to keep
+        :param int threshold_max: maximum length of the reads to keep
+
+        """
+        assert threshold_min < threshold_max
+        assert output_filename != self.filename, \
+            "output filename should be different from the input filename"
+        self.reset()
+        count = 0
+        with pysam.AlignmentFile(output_filename,  "wb", template=self.data) as fh:
+            for read in self.data:
+                if ((read.mapq < threshold_max) & (read.mapq > threshold_min)):
+                    fh.write(read)
+                    print(count, "Keep", read.mapq)
+                else:
+                    print(count, "skip", read.mapq)
+                count += 1
+                if count % 10000: 
+                    print("%s sequence processed" % count)
+
     def hist_snr(self, bins=50, alpha=0.5, hold=False, fontsize=12,
                 grid=True, xlabel="SNR", ylabel="#",title=""):
         """Plot histogram of the ACGT SNRs for all reads
@@ -432,7 +520,7 @@ class BAMPacbio(PacbioBAMBase):
             pylab.grid(True)
 
     def hist_ZMW_subreads(self, alpha=0.5, hold=False, fontsize=12,
-                          grid=True, xlabel="Number of ZMW passes",
+                          grid=True, xlabel="Number of ZMW passes", logy=True,
                           ylabel="#", label="", title="Number of ZMW passes"):
         """Plot histogram of number of reads per ZMW (number of passes)
 
@@ -442,6 +530,7 @@ class BAMPacbio(PacbioBAMBase):
         :param bool grid:
         :param str xlabel:
         :param str ylabel:
+        :param bool logy: use log scale on the y axis (default to True)
         :param str label: label of the histogram (for the legend)
         :param str title:
 
@@ -463,16 +552,135 @@ class BAMPacbio(PacbioBAMBase):
         # histogram nb passes
         if hold is False:
             pylab.clf()
-        pylab.bar(k, val, alpha=alpha, label=label)
+        pylab.bar(k, val, alpha=alpha, label=label, log=logy)
         if len(k) < 5:
             pylab.xticks(range(6), range(6))
 
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
-        pylab.yscale('log')
         pylab.title(title, fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
+
+    def _set_rlen(self):
+        pass
+
+    def _set_concordance(self, method):
+        from sequana import Cigar
+        self._concordance = []
+        self.reset()
+        if method == "blasr":
+            for align in self.data:
+                if align.cigarstring:
+                    this = Cigar(align.cigarstring).stats()
+                    S, D, I, M = this[4] , this[2] , this[1], this[0]
+                    self._concordance.append((1- (D+I+S)/(D+I+M+S)))
+        elif method == "bwa":
+            for align in self.data:
+                if align.cigarstring:
+                    this = align.get_cigar_stats()[0]
+                    # Last item is total error though but cannot use Cigar class
+                    # that does not have that value
+                    error = this[-1]  # suppose to be I + D + X
+                    # can check with alignment.get_cigar_stats() on blasr data
+                    # for instance
+                    # 
+                    total = this[-1] + this[0]
+                    self._concordance.append((1- (error)/(total)))
+
+    def hist_concordance(self, method, bins=100, fontsize=16):
+        """
+
+            formula : 1 - (in + del + mismatch / (in + del + mismatch + match) )
+
+        For BWA and BLASR, the get_cigar_stats are different !!!
+        BWA for instance has no X stored while Pacbio forbids the use of the M
+        (CMATCH) tag. Instead, it uses X (CDIFF) and = (CEQUAL) characters.
+
+        Subread Accuracy: The post-mapping accuracy of the basecalls. 
+        Formula: [1 - (errors/subread length)], where errors = number of deletions +
+        insertions + substitutions.
+
+        """
+        try:
+            concordance = self._concordance
+        except:
+            self._set_concordance(method)
+            concordance = self._concordance
+
+        pylab.hist(concordance, bins=bins)
+        pylab.grid()
+        mu = np.mean(concordance)
+        median = np.median(concordance)
+        pylab.axvline(mu, color='r', alpha=0.5)
+        pylab.axvline(median, color='r', alpha=0.5, ls="--")
+        pylab.xlabel("concordance", fontsize=fontsize)
+
+    def _get_data(self, method="blasr"):
+        from sequana import Cigar
+        data = []
+        self.reset()
+        count = 0
+        for align in self.data:
+            mapq = align.mapq
+            length = align.rlen
+            if method == "blasr":
+                this = Cigar(align.cigarstring).stats()
+                S, D, I, M = this[4] , this[2] , this[1], this[0]
+                concordance = 1 - (D+I+S)/(D + I + M + S)
+            else:
+                this = align.get_cigar_stats()[0]
+                error = this[-1]  # suppose to be I + D + X
+                total = this[-1] + this[0]
+                if total:concordance = 1- (error)/(total)
+                else:concordance = 0
+            data.append([mapq, length, concordance])
+            if count % 10000 == 0: print("%s" % count)
+            count+=1
+        return data
+
+    def boxplot_mapq_concordance(self, method):
+        # method can only be bwa for now
+        assert method == "bwa"
+        data = self._get_data(method)
+        df = pd.DataFrame(data, columns=["mapq", "length", "concordance"])
+        pylab.clf()
+        pylab.boxplot([df[df.mapq == i]['concordance'] for i in range(1,61)])
+        pylab.xlabel("mapq")
+        pylab.ylabel("concordance")
+        pylab.grid()
+        tt = [10,20,30,40,50,60]
+        pylab.xticks(tt, tt)
+
+    def get_coverage(self, reference_length=None):
+        self.reset()
+        start = [this.reference_start for this in self.data]
+        self.reset()
+        end = [this.reference_end for this in self.data]
+        if reference_length:
+            N  = reference_length
+        else:
+            N = max([x for x in end if x])
+
+        coverage = np.zeros(N)
+        for x, y in zip(start, end):
+            if y and x>=0 and y>=0: coverage[x:y] += 1
+            else: pass
+        return coverage
+
+    def hist_median_ccs(self, bins=1000, **kwargs):
+        """Group subreads by ZMW and plot median of read length for each polymerase"""
+        data = self.df[['read_length', 'ZMW']].groupby('ZMW')
+        data.median().hist(bins=bins, **kwargs)
+        pylab.title("CCS median read length")
+        return data
+
+    def hist_mean_ccs(self, bins=1000, **kwargs):
+        """Group subreads by ZMW and plot mean of read length for each polymerase"""
+        data = self.df[['read_length', 'ZMW']].groupby('ZMW')
+        data.mean().hist(bins=bins, **kwargs)
+        pylab.title("CCS mean read length")
+        return data
 
 
 class BAMSimul(PacbioBAMBase):
@@ -512,6 +720,7 @@ class BAMSimul(PacbioBAMBase):
 
                 # aggregate results
                 all_results.append(res)
+
 
             self._df = pd.DataFrame(all_results,
                 columns=['read_length','GC_content'])

@@ -23,4 +23,4 @@ snpeff
 spades
 star
 subread
-multiqc
+multiqc==1.0

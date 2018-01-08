@@ -141,6 +141,10 @@ class DNA(Sequence):
         >>> d.complement
         >>> d.reverse_complement
 
+    Some long computations are done when setting the window size::
+
+        d.window = 100
+
     """
     def __init__(self, sequence,
         codons_stop = ["TAA","TGA","TAG"],
