@@ -1,5 +1,3 @@
-from snakemake.utils import R
-
 rule SARTools:
     """
     SARTools is a R package dedicated to the differential analysis of RNA-seq data.
@@ -54,7 +52,6 @@ rule SARTools:
     params:
         projectName = config['SARTools']['projectName'],
         author = config['SARTools']['author'],
-
         featuresToRemove = config['SARTools']['featuresToRemove'],
         varInt = config['SARTools']['varInt'],
         condRef = config['SARTools']['condRef'],
@@ -70,6 +67,7 @@ rule SARTools:
     run:
         from sequana import sequana_data
         from os import chdir
+
         #get R script path
         sartools_script = sequana_data("template_script_DESeq2_CL.r", where="scripts")
         #change directory
@@ -79,6 +77,6 @@ rule SARTools:
                --projectName {params.projectName}  --author {params.author} --featuresToRemove {params.featuresToRemove} \
                --varInt {params.varInt}  --condRef{params.condRef} --batch {params.batch} --fitType {params.fitType} \
                --cooksCutoff {params.cooksCutoff} --independentFiltering {params.independentFiltering} \
-               --alpha {params.alpha} --pAdjustMethod {params.pAdjustMethod}  --typeTrans {params.typeTrans} \
+               --alpha {params.alpha} --pAdjustMethod {params.pAdjustMethod} --typeTrans {params.typeTrans} \
                --locfunc {params.locfunc} 2> {log}""")
 
