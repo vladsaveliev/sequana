@@ -45,15 +45,13 @@ rule SARTools:
     input:
         rawDir = __SARTools__input,
         targetFile = __SARTools__targetFile
-
     log:
         __SARTools__logs
     output:
         folder = __SARTools__output,
-        done = __SARTools__output_file
+        touch( __SARTools__output_file)
     threads: 1
     params:
-        design = config['SARTools']['design'],
         projectName = config['SARTools']['projectName'],
         author = config['SARTools']['author'],
 
@@ -70,82 +68,17 @@ rule SARTools:
         locfunc = config['SARTools']['locfunc'],
 
     run:
-        R("""
-
-        rm(list=ls())
-
-        sink("{log}")
-
-        library(SARTools)
-
-        workDir <- "{output.folder}"
-        setwd(workDir)
-
-
-        # setting params
-        targetFile <- "{input.targetFile}"
-        rawDir <- "{input.rawDir}"
-
-        projectName <- "{params.projectName}"
-        author <- "{params.author}"
-
-        featuresToRemove <- "{params.featuresToRemove}"
-        varInt <- "{params.varInt}"
-        condRef <- "{params.condRef}"
-        batch <- {params.batch}
-        fitType <- "{params.fitType}"
-        cooksCutoff <- {params.cooksCutoff}
-        independentFiltering <- {params.independentFiltering}
-        typeTrans <- "{params.typeTrans}"
-        locfunc <- "{params.locfunc}"
-        alpha <- {params.alpha}
-        pAdjustMethod <- "{params.pAdjustMethod}"
-        colors <- c("dodgerblue","firebrick1", "MediumVioletRed","SpringGreen")
-
-
-        # checking parameters
-        checkParameters.DESeq2(projectName=projectName,author=author,targetFile=targetFile,
-                               rawDir=rawDir,featuresToRemove=featuresToRemove,varInt=varInt,
-                               condRef=condRef,batch=batch,fitType=fitType,cooksCutoff=cooksCutoff,
-                               independentFiltering=independentFiltering,alpha=alpha,pAdjustMethod=pAdjustMethod,
-                               typeTrans=typeTrans,locfunc=locfunc,colors=colors)
-
-        # loading target file
-        target <- loadTargetFile(targetFile=targetFile, varInt=varInt, condRef=condRef, batch=batch)
-
-        # loading counts
-        counts <- loadCountData(target=target, rawDir=rawDir, featuresToRemove=featuresToRemove)
-
-        # description plots
-        majSequences <- descriptionPlots(counts=counts, group=target[,varInt], col=colors)
-
-        # analysis with DESeq2
-        out.DESeq2 <- run.DESeq2(counts=counts, target=target, varInt=varInt, batch=batch,
-                                 locfunc=locfunc, fitType=fitType, pAdjustMethod=pAdjustMethod,
-                                 cooksCutoff=cooksCutoff, independentFiltering=independentFiltering, alpha=alpha)
-
-        # PCA + clustering
-        exploreCounts(object=out.DESeq2$dds, group=target[,varInt], typeTrans=typeTrans, col=colors)
-
-        # summary of the analysis (boxplots, dispersions, diag size factors, export table, nDiffTotal, histograms, MA plot)
-        summaryResults <- summarizeResults.DESeq2(out.DESeq2, group=target[,varInt], col=colors,
-                                                  independentFiltering=independentFiltering,
-                                                  cooksCutoff=cooksCutoff, alpha=alpha)
-
-        # save image of the R session
-        save.image(file=paste0(projectName, ".RData"))
-
-        # generating HTML report
-        writeReport.DESeq2(target=target, counts=counts, out.DESeq2=out.DESeq2, summaryResults=summaryResults,
-                           majSequences=majSequences, workDir=workDir, projectName=projectName, author=author,
-                           targetFile=targetFile, rawDir=rawDir, featuresToRemove=featuresToRemove, varInt=varInt,
-                           condRef=condRef, batch=batch, fitType=fitType, cooksCutoff=cooksCutoff,
-                           independentFiltering=independentFiltering, alpha=alpha, pAdjustMethod=pAdjustMethod,
-                           typeTrans=typeTrans, locfunc=locfunc, colors=colors)
-
-        system("touch {output.done}")
-
-
-        sink()
-        """)
+        from sequana import sequana_data
+        from os import chdir
+        #get R script path
+        sartools_script = sequana_data("template_script_DESeq2_CL.r", where="scripts")
+        #change directory
+        chdir({output.folder})
+        #run R script
+        shell("""Rscript --no-save --no-restore sartools_script --rawDir {input.rawDir} --targetFile {input.targetFile} \
+               --projectName {params.projectName}  --author {params.author} --featuresToRemove {params.featuresToRemove} \
+               --varInt {params.varInt}  --condRef{params.condRef} --batch {params.batch} --fitType {params.fitType} \
+               --cooksCutoff {params.cooksCutoff} --independentFiltering {params.independentFiltering} \
+               --alpha {params.alpha} --pAdjustMethod {params.pAdjustMethod}  --typeTrans {params.typeTrans} \
+               --locfunc {params.locfunc} 2> {log}""")
 
