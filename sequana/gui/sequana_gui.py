@@ -1415,7 +1415,10 @@ class SequanaGUI(QMainWindow, Tools):
                 import ruamel
                 import warnings
                 from pykwalify.core import Core
-                warnings.simplefilter('ignore', ruamel.yaml.error.UnsafeLoaderWarning)
+                # causes issue with ruamel.yaml 0.12.13. Works for 0.15
+                try:warnings.simplefilter('ignore', ruamel.yaml.error.UnsafeLoaderWarning)
+                except: pass
+
                 try:
                     # open the config and the schema file
                     c = Core(source_file=fout.name, schema_files=
