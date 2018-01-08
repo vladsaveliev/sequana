@@ -1,4 +1,4 @@
-atropos<=1.1.10
+atropos==1.1.16
 bioservices>=1.4.14
 biokit>=0.4.1
 colorlog
