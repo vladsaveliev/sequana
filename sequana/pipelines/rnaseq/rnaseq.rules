@@ -342,7 +342,7 @@ if config["SARTools"]["do"]:
     __preSARTools__targetFile = "SARTools/target.txt"
     include: sm.modules["preSARTools"]
     __SARTools__input = config["SARTools"]["rawDir"]
-    __SARTools__targetFile = "target.txt"
+    __SARTools__targetFile = __preSARTools__targetFile
     __SARTools__logs = "SARTools.log"
     __SARTools__output = "SARTools/"
     __SARTools__output_file = "SARTools/SARTools.done"
