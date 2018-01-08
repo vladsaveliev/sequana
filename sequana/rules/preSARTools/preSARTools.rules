@@ -37,6 +37,8 @@ rule preSARTools:
         design = config['SARTools']['design']
     run:
         import pandas as pd
+        from os.path import basename, join
+
         # move all featureCount files in a folder output.directory
         #shell("mkdir {output.directory}")
         for file in input:
@@ -48,7 +50,7 @@ rule preSARTools:
         for fp in input:
             for sample in df["sample"]:
                 if fp.startswith(sample):
-                    files[sample] = fp
+                    files[sample] = join(output.directory + basename(fp))
         df['file'] = df['sample'].map(files)
         df.to_csv(output.targetFile, sep="\t", encoding='utf-8', index=False)
 
