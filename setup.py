@@ -58,6 +58,7 @@ if sys.version_info.major == 2 or on_rtd:
     requirements = [x for x in requirements 
                     if x.startswith("snakemake") is False]
 
+
 setup(
     name             = "sequana",
     version          = version,
@@ -92,9 +93,10 @@ setup(
     exclude_package_data = {"": ["__pycache__"]},
     package_data = {
         '': ['Snakefile*', '*html', 'README.rst', "requirements*txt",
-             'config*.yaml', '*.css', "*.js", "snpEff.config*", "*.fa", "*.rules"],
+             'config*.yaml', '*.css', "*.js", 
+             "snpEff.config*", "*.fa", "*.rules"],
         'sequana.rules' : ['*/*.rules', "*/*/*.rules"],
-        'sequana.pipelines' : ['*/*.rules', "*/*/*.rules", "*/*yaml"],
+        'sequana.pipelines' : ['*/*'],
         'sequana.resources.data' : ['*.*'],  # use *.* for files and not ./adapters
         'sequana.resources.data.adapters' : ['*'],
         'sequana.resources.images' : ['*'],
