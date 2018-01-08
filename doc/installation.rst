@@ -180,7 +180,7 @@ Second, download a Sequana image. For instance, for the latest master version::
 
 or for the release 0.6.2::
 
-    singularity pull --name sequana_0_6_2.img shub://sequana/sequana:release_0_6_2
+    singularity pull --name sequana_0_6_2.img shub://sequana/sequana:0_6_2
 
 The term latest in Singularity Hub will pull, across all of your branches and
 tags, the most recent image, so if you come back in a year and get the latest (or ommit tha tag), you may not get the same container ! So, it is best using a specific tag. 
