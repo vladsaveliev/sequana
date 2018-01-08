@@ -34,7 +34,8 @@ rule preSARTools:
         targetFile = __preSARTools__targetFile
     threads: 1
     params:
-        design = config['SARTools']['design']
+        design = config['SARTools']['design'],
+        rawDir = config["SARTools"]["rawDir"]
     run:
         import pandas as pd
         from os.path import basename, join
@@ -50,7 +51,7 @@ rule preSARTools:
         for fp in input:
             for sample in df["sample"]:
                 if fp.startswith(sample):
-                    files[sample] = join(output.directory + basename(fp))
+                    files[sample] = join(params.rawDir + basename(fp))
         df['file'] = df['sample'].map(files)
         df.to_csv(output.targetFile, sep="\t", encoding='utf-8', index=False)
 
