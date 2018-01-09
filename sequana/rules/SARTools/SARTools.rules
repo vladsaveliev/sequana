@@ -46,10 +46,10 @@ rule SARTools:
     log:
         __SARTools__logs
     output:
-        folder = __SARTools__output,
-        done = touch( __SARTools__output_file)
+        touch( __SARTools__output_file)
     threads: 1
     params:
+        wkdir = __SARTools__output,
         projectName = config['SARTools']['projectName'],
         author = config['SARTools']['author'],
         featuresToRemove = config['SARTools']['featuresToRemove'],
@@ -72,7 +72,7 @@ rule SARTools:
         #get R script path
         sartools_script = sequana_data("template_script_DESeq2_CL.r", where="scripts")
         #change directory
-        chdir(output.folder)
+        chdir(params.wkdir)
         target = basename(input.targetFile)
         #run R script
         if params.batch == "NULL" :
