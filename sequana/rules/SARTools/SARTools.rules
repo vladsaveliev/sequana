@@ -75,7 +75,7 @@ rule SARTools:
         chdir(output.folder)
         target = basename(input.targetFile)
         #run R script
-        if params.batch is "NULL" :
+        if params.batch == "NULL" :
             shell("Rscript --no-save --no-restore %s --rawDir {input.rawDir} --targetFile %s \
                --projectName {params.projectName}  --author {params.author} --featuresToRemove {params.featuresToRemove} \
                --varInt {params.varInt}  --condRef {params.condRef} --fitType {params.fitType} \
