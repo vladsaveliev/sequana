@@ -345,7 +345,7 @@ if config["SARTools"]["do"]:
     __SARTools__targetFile = __preSARTools__targetFile
     __SARTools__logs = "SARTools.log"
     __SARTools__output = "SARTools/"
-    __SARTools__output_file = "SARTools/SARTools.done"
+    __SARTools__output_file = "SARTools.done"
     include: sm.modules["SARTools"]
     expected_output.extend([__SARTools__output_file])
 
