@@ -39,7 +39,9 @@ Sequana documentation
 :Source: See  `http://github.com/sequana/sequana <https://github.com/sequana/sequana/>`_.
 :Issues: Please fill a report on `github <https://github.com/sequana/sequana/issues>`_
 :How to cite: For Sequana in general including the pipelines, please use 
-    the `JOSS DOI (10.21105/joss.00352) <http://www.doi2bib.org/bib/10.21105%2Fjoss.00352>`_
+
+    Cokelaer et al, (2017), 'Sequana': a Set of Snakemake NGS pipelines, Journal of
+    Open Source Software, 2(16), 352, `JOSS DOI doi:10.21105/joss.00352 <http://www.doi2bib.org/bib/10.21105%2Fjoss.00352>`_
 
 
     For the **genome coverage** tool (sequana_coverage):  Dimitri Desvillechabrol,
