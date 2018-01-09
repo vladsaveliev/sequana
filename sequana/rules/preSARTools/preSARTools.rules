@@ -20,8 +20,6 @@ rule preSARTools:
             SARTools:
                 design: path/to/file            #path to design file
 
-
-
     """
 
 
