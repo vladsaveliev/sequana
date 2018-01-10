@@ -6,6 +6,14 @@ Changelog
 2017
 ------
 
+0.7.0
+~~~~~~~~~~
+
+* BUGS:
+
+    * Fix issue https://github.com/sequana/sequana/issues/380 is_sorted property
+      of the BAM class.
+
 
 0.6.3.post1
 ~~~~~~~~~~~~~
