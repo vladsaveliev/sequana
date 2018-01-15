@@ -104,6 +104,8 @@ class VCFBase(vcf.Reader):
         fileformat = self.metadata['fileformat']
         if fileformat == 'VCFv4.1':
             return "4.1"
+        elif fileformat == "VCFv4.2":
+            return "4.2"
         else:
             return fileformat
     version = property(_get_version)

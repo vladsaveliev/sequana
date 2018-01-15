@@ -48,10 +48,3 @@ from .sequence import DNA, RNA, Sequence, Repeats
 from . import scripts
 
 
-def _download_biokit_taxon():
-    # This is done only once
-    from .lazy import biokit
-    tt = biokit.Taxonomy()
-    tt._load_flat_file()
-try: _download_biokit_taxon()
-except: pass

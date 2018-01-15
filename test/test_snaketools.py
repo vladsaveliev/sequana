@@ -57,7 +57,9 @@ def test_module():
     m.snakefile
     m.name
     m
-    m.cluster_config
+    print(m)
+    assert m.cluster_config.endswith("cluster_config.json")
+    assert m.schema_config.endswith("schema.yaml")
 
 
 def _test_module_onweb():

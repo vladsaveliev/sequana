@@ -32,12 +32,6 @@ From: ubuntu:16.04
     # the issue
     apt-get install -y libgnomeui-0
 
-    # avoid warning
-    #  Gtk-Message: Failed to load module "pk-gtk-module"
-    #  Gtk-Message: Failed to load module "canberra-gtk-module"
-    apt-get install -y libcanberra-gtk-module
-    apt-get install -y packagekit-gtk3-module
-
     # install anaconda
     if [ ! -d /usr/local/anaconda ]; then
         #wget https://repo.continuum.io/miniconda/Miniconda3-4.3.14-Linux-x86_64.sh\
@@ -63,29 +57,34 @@ From: ubuntu:16.04
     # The main packages for sequana:
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements.txt
 
-    # equivalent to requirements_pipelines.txt version 0.6.2
-    conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
+    # equivalent to requirements_pipelines.txt version 0.6.0
+    conda install -y bcftools bedtools bleach bowtie bowtie2 bwa
+    conda install -y cutadapt dsrc fastq-screen fastqc==0.11.5
+    conda install -y freebayes khmer
+    conda install -y kraken krona multiqc
+    conda install -y picard pigz samtools shustring star subread
+    conda install -y snpeff spades sambamba
+
 
     # Let us save some space
     conda clean --packages -y
 
-    # For the pipelines_extra, busco takes for ever, so we skip it for now
     conda install -y canu
-    # this one hangs for ever busco==3.0.2
-    # conda install -y prokka # takes lots of place
+    # this one hangs for ever busco==3.0.2 
+    conda install -y prokka # takes lots of place
 
     # Let us save some space
     conda clean --packages -y
 
     # Sequana source code
-    pip install sequana==0.6.3.post1
+    pip install sequana==0.6.1
 
     conda clean --all -y # next requires lots of space
     rm -rf /usr/local/anaconda/pkgs
 
     # pysam/bzip/hstlib is tricky. We pin versions as follows
     conda install --override-channels -c conda-forge bzip2
-    conda install --override-channels -c bioconda -c conda-forge htslib==1.5.0
+    conda install --override-channels -c bioconda -c conda-forge htslib==1.5.0 
     conda install pysam==0.12.0.1
 
     if [ ! -d /data ]; then mkdir /data; fi

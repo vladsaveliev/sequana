@@ -173,7 +173,7 @@
            <item row="4" column="0">
             <widget class="QLabel" name="label_2">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In Sequanix, we a config file is loaded, we dynamically created a form that is editable.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;In the form, widgets are automatically included for fields ending in _file or _browser. One can add specific field to be transformed into a browser widget. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;This can be done by adding the field names in this preference box. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Fields must be separated by commas, semi-columns or spaces&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In Sequanix, when a config file is imported or loaded, we dynamically create a form that is editable. In the form, widgets are automatically included in place of  fields ending in _file or _browser. One can add specific field to be transformed into a browser widget by adding such suffix in this preference box. &lt;/p&gt;&lt;p&gt;Fields must be separated by commas, semi-columns or spaces&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>Form browser keywords</string>
@@ -187,6 +187,16 @@
              </property>
              <property name="text">
               <string>Show tooltips</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QCheckBox" name="preferences_options_general_schema_value">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;YAML/JSON Schema files can be provided. If so, they can be used to check the validity of the configuration file. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;For Sequana projects, if a schema file is available with the pipeline, it is automatically fetched.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;For Generic projects, you can import one in the File menu.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Sometimes, the schema file may be wrong. If so, you can uncheck this box to force the config file to be saved.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Check config with schema</string>
              </property>
             </widget>
            </item>

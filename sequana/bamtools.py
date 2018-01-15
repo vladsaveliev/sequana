@@ -161,8 +161,9 @@ class BAM(pysam.AlignmentFile):
     def _get_is_sorted(self):
         pos = next(self).pos
         for this in self:
-            if this.pos > pos:
+            if this.pos < pos:
                 return False
+            pos = this.pos
         return True
     is_sorted = property(_get_is_sorted, doc="return True is the BAM is sorted")
 

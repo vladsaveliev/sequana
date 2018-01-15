@@ -651,8 +651,11 @@ class Ui_MainWindow(object):
         self.actionHelp.setObjectName("actionHelp")
         self.action_import_configfile = QtWidgets.QAction(MainWindow)
         self.action_import_configfile.setObjectName("action_import_configfile")
+        self.action_import_schemafile = QtWidgets.QAction(MainWindow)
+        self.action_import_schemafile.setObjectName("action_import_schemafile")
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.action_import_configfile)
+        self.menuFile.addAction(self.action_import_schemafile)
         self.menuFile.addAction(self.actionQuit)
         self.menuOption.addAction(self.actionSnakemake)
         self.menuOption.addAction(self.actionPreferences)
@@ -779,4 +782,5 @@ class Ui_MainWindow(object):
         self.actionHelp.setText(_translate("MainWindow", "Quick Start"))
         self.actionHelp.setShortcut(_translate("MainWindow", "Ctrl+H"))
         self.action_import_configfile.setText(_translate("MainWindow", "Import Config File (sequana pipeline only)"))
+        self.action_import_schemafile.setText(_translate("MainWindow", "Import YAML/JSON Schema File (generic pipeline only)"))
 

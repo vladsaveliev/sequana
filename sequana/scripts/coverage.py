@@ -187,6 +187,11 @@ Issues: http://github.com/sequana/sequana
         group.add_argument("-T", "--threshold", dest="threshold",
             default=4, type=float,
             help="""set lower and higher thresholds of the confidence interval.""")
+        group.add_argument("-C", "--clustering-parameter", dest="double_threshold",
+            default=0.5, type=float,
+            help="""set lower and higher double threshold parameter (in [0,1]).
+Do not use value close to zero. Ideally, around 0.5. lower value will tend to
+cluster more than higher value""")
 
         group = self.add_argument_group("Download reference")
         group.add_argument("--download-reference", dest="download_reference",
@@ -228,7 +233,7 @@ def main(args=None):
             (options.download_reference, options.database))
         from sequana.snpeff import download_fasta_and_genbank
         download_fasta_and_genbank(options.download_genbank,
-                                   options.download_genbank, 
+                                   options.download_genbank,
                                    genbank=True, fasta=False)
         return
 
@@ -237,7 +242,7 @@ def main(args=None):
             "%s does not exists" % options.genbank
 
     if options.verbose:
-        logger.info("Reading %s. This may take time depending on " 
+        logger.info("Reading %s. This may take time depending on "
             "your input file" % options.input)
 
     # Convert BAM to BED
@@ -264,7 +269,8 @@ def main(args=None):
 
     # Now we can create the instance of GenomeCoverage
     gc = GenomeCov(bedfile, options.genbank, options.low_threshold,
-                   options.high_threshold, 0.5, 0.5)
+                   options.high_threshold, options.double_threshold,
+                    options.double_threshold)
 
     # if we have the reference, let us use it
     if options.reference:
@@ -272,7 +278,7 @@ def main(args=None):
         gc.compute_gc_content(options.reference, options.w_gc,
                               options.circular)
 
-    # Now we scan the chromosomes, 
+    # Now we scan the chromosomes,
     if len(gc.chr_list) == 1:
         if options.verbose:
             logger.warning("There is only one chromosome. Selected automatically.")
@@ -299,6 +305,9 @@ def main(args=None):
                       % (i + options.chromosome, len(gc),
                       chrom.chrom_name))
             run_analysis(chrom, options, gc.feature_dict)
+
+    if options.create_report is False:
+        return
 
     if options.verbose:
         logger.info("Creating report in %s. Please wait" % config.output_dir)
@@ -359,6 +368,10 @@ def run_analysis(chrom, options, feature_dict):
     directory += os.sep + "coverage_reports" 
     directory += os.sep + chrom.chrom_name
     mkdirs(directory)
+
+    if options.verbose:
+        print("Number of ROIs found: {}".format(len(f.df)))
+
     f.df.to_csv("{}/rois.csv".format(directory))
 
     if options.verbose:
@@ -386,6 +399,9 @@ def run_analysis(chrom, options, feature_dict):
         print("Evenness: %8.3f" % chrom.get_evenness())
         print("Centralness (3 sigma): %f" % round(c3,3))
         print("Centralness (4 sigma): %f" % round(c4,4))
+
+    # Saving statistics
+
 
     if options.verbose:
         print("\n\n")

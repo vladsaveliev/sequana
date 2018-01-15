@@ -8,9 +8,11 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 6
-_MICRO               = 2
+_MICRO               = 3
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
+
+version += ".post1"
 
 metainfo = {
     'authors': {"main": ("yourname", "email@whatever.org")},
@@ -58,6 +60,7 @@ if sys.version_info.major == 2 or on_rtd:
     requirements = [x for x in requirements 
                     if x.startswith("snakemake") is False]
 
+
 setup(
     name             = "sequana",
     version          = version,
@@ -92,9 +95,10 @@ setup(
     exclude_package_data = {"": ["__pycache__"]},
     package_data = {
         '': ['Snakefile*', '*html', 'README.rst', "requirements*txt",
-             'config*.yaml', '*.css', "*.js", "snpEff.config*", "*.fa", "*.rules"],
+             'config*.yaml', '*.css', "*.js", 
+             "snpEff.config*", "*.fa", "*.rules"],
         'sequana.rules' : ['*/*.rules', "*/*/*.rules"],
-        'sequana.pipelines' : ['*/*.rules', "*/*/*.rules", "*/*yaml"],
+        'sequana.pipelines' : ['*/*'],
         'sequana.resources.data' : ['*.*'],  # use *.* for files and not ./adapters
         'sequana.resources.data.adapters' : ['*'],
         'sequana.resources.images' : ['*'],

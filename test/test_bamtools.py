@@ -11,7 +11,7 @@ def test_bam(tmpdir):
 
     s = BAM(datatest)
     assert len(s) == 1000
-    assert s.is_sorted is False
+    assert s.is_sorted is True
 
     assert len(list(s.iter_unmapped_reads())) == 2
     s.reset()

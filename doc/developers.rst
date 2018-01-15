@@ -605,23 +605,44 @@ Singularity
 =============
 
 We provide a Singularity file. It is in the main directory and must be kept
-there to be found by singularity-hub. Each push to the master will then trigger
-this website to build a singularity image. This image can be downloaded as
-follows::
+there to be found by singularity-hub. Each commit to the Singularity file (in the master branch) will trigger this website to build a singularity image. The latest built image can be downloaded as follwos:: 
 
-    singularity pull shub://sequana/sequana:master
+    singularity pull shub://sequana/sequana
 
-and then used as::
+Note that by default, this downloads the latest version. It is equivalent to
+adding a tag named "latest"::
 
-    singularity exec sequana-sequana-master.img sequana_coverage --help
+    singularity pull shub://sequana/sequana:latest
 
-One issue here is that we should push on master only when we are sure that the
-repository is not bugged. Since people may use the container, we should not
-remove them... but there will be lots of containers.
+In order to provide **frozen** built, you must use tags. This is achieved by
+adding extension to singularity files in the directory ./singularity. For
+example::
 
-Instead, we could create a specific tag e.g. release_0_5_2, activate the
-branch in the singularity hub page, push an empty commit and disable that
-branch. In doing so, we have a unique container for the release 0_5_2.
+    singularity/Singularity.0_6_2
 
+will contain a recipe that fetches the version 0.6.2 of sequana on pypi. Once
+this file is created, the container is built on singularity hub and should never
+be changed again (except for bugs) !! This may not be the safest way. Another
+way is to create a branch. For example branch release_0_6_2 but here, it is very
+important to also name the singularity file with a unique tag. Indeed, consider
+this case:
 
+- branch master with a singularity/Singularity file
+- branch release_0_6_2 with a singularity/Singularity file
 
+Although those two files (if built on singularity) are in different branches,
+they will have the same URI (sequana/sequana:latest) so the latest will be
+considered and you have two identical containers. 
+
+So, whatever solution is chosen, a unique tag must always be added.
+
+When downloading a container without the **--name** argument, your file is
+named::
+
+    sequana-sequana-<release name>_<tag>.simg
+
+This may change in the future version of singularity. Once downloaded, use the
+container as follows::
+
+.. note:: only Singularity files that have been changed since the last commit will be
+    built with Automatic Building in this fashion. Empty commits won't work.

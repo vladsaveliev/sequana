@@ -28,6 +28,9 @@ from easydev import DevTools
 from sequana import logger
 from sequana.modules_report.kraken import KrakenModule
 
+import colorlog
+_log = colorlog.getLogger(__name__)
+
 
 class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana_taxonomy"):
@@ -83,6 +86,9 @@ Issues: http://github.com/sequana/sequana
                 documentation (see HierarchicalKRaken""")
         self.add_argument("--output-directory", dest="directory", type=str,
             help="""name of the output directory""", default="taxonomy")
+        self.add_argument("--keep-temp-files", default=False,
+            action="store_true", dest="keep_temp_files",
+            help="keep temporary files (hierarchical case with several databases")
         self.add_argument("--thread", dest="thread", type=int,
             help="""number of threads to use (default 4)""", default=4)
         self.add_argument("--show-html", dest="html",
@@ -119,7 +125,7 @@ def main(args=None):
     logger.level = options.level
 
     # We put the import here to make the --help faster
-    from sequana import KrakenPipeline, SequanaConfig
+    from sequana import KrakenPipeline
     from sequana.kraken import KrakenHierarchical
     devtools = DevTools()
 
@@ -140,7 +146,7 @@ def main(args=None):
 
     from sequana import sequana_config_path as scfg
     if options.databases is None:
-        logger.critical("You must provide a database")
+        _log.critical("You must provide a database")
         sys.exit(1)
 
     databases = []
@@ -164,6 +170,7 @@ def main(args=None):
 
     # if there is only one database, use the pipeline else KrakenHierarchical
     if len(databases) == 1:
+        _log.info("Using 1 database")
         k = KrakenPipeline(fastq, databases[0], threads=options.thread,
             output_directory=output_directory)
 
@@ -171,8 +178,10 @@ def main(args=None):
         k.run(output_filename_classified=_pathto(options.classified_out),
               output_filename_unclassified=_pathto(options.unclassified_out))
     else:
+        _log.info("Using %s databases" % len(databases))
         k = KrakenHierarchical(fastq, databases, threads=options.thread,
-            output_directory=output_directory+os.sep, force=True)
+            output_directory=output_directory+os.sep, force=True,
+            keep_temp_files=options.keep_temp_files)
         k.run(output_prefix="kraken")
 
     # This statements sets the directory where HTML will be saved
@@ -183,8 +192,8 @@ def main(args=None):
     # output_filename is relative to the config.output_dir defined above
     kk = KrakenModule(output_directory, output_filename="summary.html")
 
-    logger.info("Open ./%s/summary.html" % options.directory)
-    logger.info("or ./%s/kraken/kraken.html" % options.directory)
+    _log.info("Open ./%s/summary.html" % options.directory)
+    _log.info("or ./%s/kraken/kraken.html" % options.directory)
 
     if options.html is True:
         ss.onweb()

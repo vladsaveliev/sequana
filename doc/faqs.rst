@@ -93,9 +93,14 @@ matplotlib
 If you get errors related to the X connection, you may need to change the
 backend of matplotlib. To do so, go in your home directory and in this directory
 
-    /home/user/.config/matplotlib ,
+    cd /home/user/.config/matplotlib/
 
-add a file called **matplotlibrc** with the following content::
+Check if the file **matplotlibrc** exits, if not, type::
+
+    echo "backend: Agg" > matplotlibrc
+
+or edit the file and make sure the line starting with "backend" uses the Agg
+backend::
 
     backend: Agg
 

@@ -1,4 +1,4 @@
-atropos<=1.1.10
+atropos==1.1.16
 bioservices>=1.4.14
 biokit>=0.4.1
 colorlog
@@ -10,6 +10,7 @@ multiqc==1.0
 pandas
 pygraphviz
 psutil
+pykwalify
 pyVCF
 pysam==0.12.0.1
 qtconsole

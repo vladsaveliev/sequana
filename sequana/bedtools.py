@@ -50,8 +50,7 @@ class DoubleThresholds(object):
 
     This means the low threshold is -3 while the high threshold is 4. The two
     following values must be between 0 and 1 and are used to define the value
-    of the double threshold set to half the value of th the main threshold by
-    default.
+    of the double threshold set to half the value of the main threshold.
 
     Internally, the main thresholds are stored in the low and high attributes.
     The secondary thresholds are derived from the main thresholds and the
@@ -275,8 +274,7 @@ class GenomeCov(object):
         if n % 2 == 0:
             logger.warning("Window size must be an odd number.")
             self._gc_window_size = n + 1
-            logger.warning("{0} is incremented to {1}".format(
-                n, self._window_size))
+            logger.warning("{0} is incremented by 1".format(n))
         else:
             self._gc_window_size = n
 
@@ -1098,7 +1096,7 @@ class ChromosomeCov(object):
         """
         return self.df[['cov', 'gc']].corr().iloc[0, 1]
 
-    def get_max_gc_correlation(self, reference):
+    def get_max_gc_correlation(self, reference, guess=100):
         """Plot correlation between coverage and GC content by varying the GC window
 
          The GC content uses a moving window of size W. This parameter affects
@@ -1121,7 +1119,7 @@ class ChromosomeCov(object):
             return corr
 
         from scipy.optimize import fmin
-        res = fmin(func, 100, xtol=1, disp=False)  # guess is 200
+        res = fmin(func, guess, xtol=1, disp=False)  # guess is 200
         pylab.plot(wss, corrs, "o")
         pylab.xlabel("GC window size")
         pylab.ylabel("Correlation")

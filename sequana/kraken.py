@@ -68,7 +68,8 @@ class KrakenResults(object):
 
     See kraken documentation for details.
 
-
+    .. note:: a taxon of ID 1 (root) means that the read is classified but in
+        differen domain. https://github.com/DerrickWood/kraken/issues/100
 
     .. note:: This takes care of fetching taxons and the corresponding lineages
         from online web services.
@@ -87,6 +88,7 @@ class KrakenResults(object):
         if on_rtd is False:
             from biokit import Taxonomy
             self.tax = Taxonomy(verbose=True)
+            self.tax._load_flat_file() # make sure it is available locally
         else:
             class Taxonomy(object):
                 from sequana import sequana_data # must be local
@@ -151,7 +153,7 @@ class KrakenResults(object):
             try:
                 default['name'] = this[-1][0]
             except:
-                default['name'] = "no genus specified"
+                default['name'] = "root (ambigous kingdom)"
             results.append(default)
 
         df = pd.DataFrame.from_records(results)
@@ -193,9 +195,13 @@ class KrakenResults(object):
 
         self._df.columns = columns
 
+        count = sum(self._df.taxon == 1)
+        if count:
+            logger.warning("Found %s taxons with root ID (1)" % count)
+
         # This gives the list of taxons as index and their amount
-        # above, we select only columns 0,2,3  the column are still labelled
-        # 0,2,3 in the df
+        # above, we select only columns 0, 2, 3  the column are still labelled
+        # 0, 2, 3 in the df
         self._taxons = self._df.groupby("taxon").size()
         try:
             self._taxons.drop(0, inplace=True)
@@ -298,13 +304,15 @@ class KrakenResults(object):
             with open(output_filename, "w") as fout:
                 fout.write("%s\t%s" % (self.unclassified, "Unclassified"))
             return False
+
         # classified reads as root  (1)
-        try:
+        """try:
             logger.warning("Removing taxon 1 (%s values) " % self.taxons.ix[1])
             logger.info("Found %s taxons " % len(taxon_to_find))
             taxon_to_find.pop(taxon_to_find.index(1))
         except:
             pass
+        """
 
         if len(taxon_to_find) == 0:
             return False
@@ -340,14 +348,15 @@ class KrakenResults(object):
         self.output_filename = output_filename
         with open(output_filename, "w") as fout:
             for i, this in enumerate(self.lineage):
-                index = self.taxons.index[i]
-                line = str(self.taxons.ix[index])+"\t"+"\t".join(this.split(';'))
+                taxon = taxon_to_find[i]
+                count = self.taxons.loc[taxon]
+                line = str(count)+"\t"+"\t".join(this.split(';'))
                 line += " " +self.scnames[i]
                 fout.write(line+'\n')
             try:
                 fout.write("%s\t%s" % (self.unclassified, "Unclassified"))
             except:
-                pass #unclassified may not exists
+                pass #unclassified may not exists if all classified
         self._data_created = True
         return True
 
@@ -371,7 +380,8 @@ class KrakenResults(object):
             or the standalone application **sequana_taxonomy**.
         """
         if len(self._df) == 0:
-            return 
+            return
+
         if self._data_created == False:
             status = self.kraken_to_krona()
 
@@ -445,7 +455,7 @@ class KrakenPipeline(object):
 
     ::
 
-        from sequana import KrakenTaxon
+        from sequana import KrakenPipeline
         kt = KrakenPipeline(["R1.fastq.gz", "R2.fastq.gz"], database="krakendb")
         kt.run()
         kt.show()
@@ -455,7 +465,6 @@ class KrakenPipeline(object):
         or use this class to download a toy example that will
         be stored in e.g .config/sequana under Unix platforms.
         See :class:`KrakenDownload`.
-
 
     .. seealso:: We provide a standalone application of this class, which is
         called sequana_taxonomy and can be used within a command shell.
@@ -468,11 +477,12 @@ class KrakenPipeline(object):
         :param fastq: either a fastq filename or a list of 2 fastq filenames
         :param database: the path to a valid Kraken database
         :param threads: number of threads to be used by Kraken
-        :param output: output filename of the Krona HTML page
+        :param output_directory: output filename of the Krona HTML page
+        :param dbname:
 
         Description: internally, once Kraken has performed an analysis, reads
         are associated to a taxon (or not). We then find the correponding
-        lineage and scientif names to store within a Krona formatted file.
+        lineage and scientific names to be stored within a Krona formatted file.
         KtImportTex is then used to create the Krona page.
 
         """
@@ -487,7 +497,7 @@ class KrakenPipeline(object):
         else:
             self.dbname = dbname
 
-    def run(self, output_filename_classified=None, 
+    def run(self, output_filename_classified=None,
                 output_filename_unclassified=None,
                 only_classified_output=False):
         """Run the analysis using Kraken and create the Krona output
@@ -497,7 +507,9 @@ class KrakenPipeline(object):
         """
         # Run Kraken (KrakenAnalysis)
         kraken_results = self.output_directory + os.sep + "kraken.out"
-        self.ka.run(output_filename=kraken_results,
+
+        self.ka.run(
+            output_filename=kraken_results,
             output_filename_unclassified=output_filename_unclassified,
             output_filename_classified=output_filename_classified,
             only_classified_output=only_classified_output
@@ -788,6 +800,7 @@ class KrakenHierarchical(object):
         # create html report
         logger.info("Analysing results")
         result = KrakenResults(file_output_final)
+
         # TODO: this looks similar to the code in KrakenPipeline. could be factorised
         result.to_js("%s%s%s.html" % (self.output_directory, os.sep, output_prefix))
         result.plot(kind="pie")

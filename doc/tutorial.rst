@@ -335,31 +335,33 @@ Singularity and Sequanix
 .. warning:: FOR LINUX USERS ONLY IF YOU WANT TO USE SEQUANIX. YOU CAN STILL USE
    THE SEQUANA STANDALONE
 
-
-Here we will use singularity to use Sequanix and the quality pipeline to analyse
+Here we will use a singularity container to run Sequanix and the quality pipeline to analyse
 local data sets stored in your /home/user/data directory.
-
 
 First, Install singularity (http://singularity.lbl.gov/). Check also the
 :ref:`Installation` for information.
 
 Second, download this specific container::
 
-    singularity pull shub://sequana/sequana:release_0_5_2
+    singularity pull --name sequana.img shub://sequana/sequana
 
-This is about 5Go of data. Once downloaded, enter the container as follows::
+This is about 1.5Go of data. Once downloaded, you can play with the container in
+**shell** or **exec** mode. 
 
-    singularity shell -B /home/user/data/:/data sequana-sequana-release_0_5_2.img
+**shell** mode means that you enter in the container where you have an
+isolated environement. Because the isolated environment is protected, only the
+directory from where you start singularity, and optional bound directories are
+writable. So, if you want to read/write data in a specific directory, you must
+use the -B option::
 
-
-replace "/home/user/data" by whatever local directory where you have Fastq.gz 
+    singularity shell -B /home/user/data/:/data sequana.img
 
 Once in the container, you should see a prompt like this::
 
     Singularity: Invoking an interactive shell within container...
     Singularity sequana-sequana-release_0_5_2.img:~/Work/github/sequana/singularity>
 
-Just move to the /data directory::
+Just move to the *data* directory::
 
     cd data
 
@@ -368,6 +370,13 @@ quality pipeline tutorial (top of the page), or use Sequanix::
 
     sequanix -i . -w analysis -p quality_tutorial
 
+In **exec** mode, this is even simpler::
+
+    singularity exec sequana.img sequanix
+
+or with pre-filled parameters:: 
+
+    sequanix -i . -w analysis -p quality_tutorial
 
 A Sequanix window should appear. You can now follow the Sequanix tutorial
 :ref:`sequanix`

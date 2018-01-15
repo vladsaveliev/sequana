@@ -6,6 +6,52 @@ Changelog
 2017
 ------
 
+0.7.0
+~~~~~~~~~~
+
+* BUGS:
+
+    * Fix issue https://github.com/sequana/sequana/issues/380 is_sorted property
+      of the BAM class.
+    * Fix --no-report option in sequana_coverage and add --clustering (double
+      threshold option)
+
+0.6.3.post1
+~~~~~~~~~~~~~
+
+- a bug fix in the sequanix GUI and singularity. a statement related to the 
+  ruamel.yaml package causes trouble if version is not 0.15. A temporary fix
+  consisted in adding a try/except (the statement is just a warning.filter and
+  has no impact on analysis)
+
+0.6.3
+~~~~~~~~~~~
+
+* BUGS:
+
+    * Fix bug in the copy of the fastqc data sets in the quality control
+    * atropos bug in the reports (not full). Bug reported to atropos
+      github. https://github.com/jdidion/atropos/issues/57. Need to use version
+      1.1.16
+    * kraken report table were not sorted by percentage (as expected). Also,
+      if the case of poor databases with few entries, the output may contain
+      lots of classified sequences with Taxon 1, which was not reported
+      correctly in the krona plot.
+
+* NEWS:
+
+    * example of a schema.yaml implemented for the quality control.
+    * sequanix: reads schema.yaml automatically for sequana pipelines
+      and can import one for generic cases. An option in the preference
+      was added to switch on/off the validation of the config file with this
+      schema. Can also import schema file for the generic case.
+
+* CHANGES:
+
+    * Taxonomy file is downloaded for Kraken only when Kraken is used, not in
+      the main __init__  file anymore.
+
+
 0.6.2
 ~~~~~~~~~~~~
 
@@ -23,6 +69,7 @@ Changelog
     * add vcf_filter module back to help in filtering VCF files created with
       mpileup for instance
     * add sequana_vcf_filter standalone
+    * add cigar module to help deciphering CIGAR strings
 
 0.6.1
 ~~~~~~~~~~
