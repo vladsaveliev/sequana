@@ -13,7 +13,8 @@ Changelog
 
     * Fix issue https://github.com/sequana/sequana/issues/380 is_sorted property
       of the BAM class.
-
+    * Fix --no-report option in sequana_coverage and add --clustering (double
+      threshold option)
 
 0.6.3.post1
 ~~~~~~~~~~~~~
