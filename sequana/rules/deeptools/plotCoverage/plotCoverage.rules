@@ -1,7 +1,11 @@
 
 rule plotCoverage:
     """
-    Summary of bam coverage files in png format. Is part of deeptools http://deeptools.readthedocs.io/en/latest/index.html
+    This tool is useful to assess the sequencing depth of a given sample. It samples 1 million bp, counts the number
+    of overlapping reads and can report a histogram that tells you how many bases are covered how many times.
+    Multiple BAM files are accepted, but they all should correspond to the same genome assembly.
+
+    Is part of deeptools http://deeptools.readthedocs.io/en/latest/index.html
 
     Required input:
         __plotCoverage__input: list of bam files

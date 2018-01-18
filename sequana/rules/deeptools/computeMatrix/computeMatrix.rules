@@ -1,0 +1,28 @@
+rule computeMatrix:
+    """
+    This tool calculates scores per genome regions and prepares an intermediate file that can be used with plotHeatmap
+    and plotProfiles. Typically, the genome regions are genes, but any other regions defined in a BED file can be used.
+    computeMatrix accepts multiple score files (bigWig format) and multiple regions files (BED format).
+    This tool can also be used to filter and sort regions according to their score.
+    Is part of deeptools http://deeptools.readthedocs.io/en/latest/index.html
+
+    Required input:
+        __computeMatrix__input: output of multiBAMSummary
+
+    Required output:
+        __computeMatrix__output: gz matrix file
+    """
+    input:
+        __computeMatrix__wig
+    params:
+        regionsFileName = config['heatmap']['regionsFileName'],
+        options = config['heatmap']['options_matrix']
+    log:
+        __computeMatrix__log
+    output:
+        __computeMatrix__output
+    threads: 4
+    shell:
+        """
+        computeMatrix reference-point -S {input} -R {params.regionsFileName} {params.options} -o {output} 2> {log}')
+        """

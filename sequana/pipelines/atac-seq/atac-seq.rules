@@ -1,11 +1,12 @@
 """ATAC-seq pipeline
 
-Affiliation: Institut Pasteur @ 2016
+Affiliation: Institut Pasteur @ 2018
 
 This pipeline is part of Sequana software (sequana.readthedocs.io)
 """
 import os
 import sequana
+from os.path import join
 from sequana import snaketools as sm
 sm.init("rnaseq.rules", globals())
 
@@ -16,23 +17,11 @@ __snakefile__ = srcdir(__snakefile__)
 
 # Generic include of some dynamic modules
 exec(open(sequana.modules["fastqc_dynamic"], "r").read())
-
+exec(open(sequana.modules["dynamic_unpigz"], "r").read())
 
 manager = sm.PipelineManager("atac-seq", config)
 
 __data__input = manager.getrawdata()
-
-
-TODO = "todo"
-
-# FASTQC on input data set
-__fastqc_samples__input_fastq = __data__input
-__fastqc_samples__output_done = manager.getname("fastqc_samples", ".done")
-__fastqc_samples__wkdir       = manager.getwkdir("fastqc_samples")
-__fastqc_samples__log         = "%s/fastqc_samples/fastqc.log" % manager.sample
-include: fastqc_dynamic("samples", manager.sample)
-expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samples))
-
 
 
 __prefix_name__ = join(config["genome"]["genome_directory"], config["genome"]["name"])
@@ -64,17 +53,24 @@ else:
 
 
 
+# FASTQC on input data set
+__fastqc_samples__input_fastq = __data__input
+__fastqc_samples__output_done = manager.getname("fastqc_samples", ".done")
+__fastqc_samples__wkdir       = manager.getwkdir("fastqc_samples")
+__fastqc_samples__log         = "%s/fastqc_samples/fastqc.log" % manager.sample
+include: fastqc_dynamic("samples", manager.sample)
+expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samples))
 
 
 
-# Perform the adapter removal and trimming
-if manager.config['cutadapt']['do']:
-    adapter_removal = manager.config['cutadapt']['tool_choice']
+
+if manager.config.cutadapt.do:
+    adapter_tool = manager.config.cutadapt.tool_choice
 
     from sequana.adapters import _get_registered_adapters as registered
     from sequana.adapters import get_sequana_adapters
 
-    # Users may provide Nextera, PCRFree, Rubicon or other registered adapters
+    # Users may provide TruSeq, Nextera, PCRFree or other registered adapters
     fwd = manager.config.cutadapt.fwd
     if isinstance(fwd, str) and fwd in registered():
         filename = "file:"+ get_sequana_adapters(fwd, "fwd")
@@ -85,27 +81,13 @@ if manager.config['cutadapt']['do']:
         filename = "file:"+ get_sequana_adapters(rev, "revcomp")
         manager.config.cutadapt.rev = filename
 
-    if adapter_removal in ["cutadapt", "atropos"]:
-        adapter_removal = "cutadapt"
-        if manager.config.bwa_mem_phix.do:
-            __cutadapt__input_fastq = [x for x in __bwa_bam_to_fastq__fastq_output
-                                       if "unmapped" in x]
-            __cutadapt__output = [x.replace("bwa_bam_to_fastq",
-                                  "cutadapt").replace("unmapped","cutadapt")
-                                  for x in __cutadapt__input_fastq]
-        else:
-            # If the fix is not yet performed, __data__input is a wildcard
-            # function so the output must be specified by hand
-            __cutadapt__input_fastq = __data__input
-            if manager.paired:
-                __cutadapt__output = [
-                    "{sample}/cutadapt/{sample}_R1_.cutadapt.fastq.gz",
-                    "{sample}/cutadapt/{sample}_R2_.cutadapt.fastq.gz"]
-            else:
-                __cutadapt__output = [
-                    "{sample}/cutadapt/{sample}_R1_.cutadapt.fastq.gz"]
-
-        __cutadapt__wkdir = "%s/cutadapt" % manager.sample
+    if adapter_tool in ["cutadapt", "atropos"]:
+        adapter_tool = "cutadapt"
+        __cutadapt__input_fastq = __data__input
+        __cutadapt__wkdir = manager.getwkdir("cutadapt")
+        __cutadapt__output = [manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")]
+        if manager.paired:
+            __cutadapt__output += [manager.getname("cutadapt", "_R2_.cutadapt.fastq.gz")]
 
         # Set the fwd and rev adapters
         __cutadapt__fwd = manager.config.cutadapt.fwd
@@ -118,8 +100,10 @@ if manager.config['cutadapt']['do']:
         __cutadapt__log = "%s/logs/cutadapt/cutadapt.txt" % manager.sample
         __cutadapt__sample = manager.sample
         include: sm.modules["cutadapt"]
+
     else:
-        raise ValueError("trimming must be either cutadapt or atropos")
+        raise ValueError("Invalid choice of cutadapt:tool in config file. Use either clean_ngs or cutadapt")
+
 
 # FASTQC on input data set
 __fastqc_filtered__input_fastq = __cutadapt__output
@@ -147,6 +131,7 @@ __add_read_group__log_std ="%s/logs/AddOrReplaceReadGroups/stdout.logs" % manage
 __add_read_group__rg = "ID=%s LB=%s PL=%s PU=%s SM=%s" % (manager.sample, manager.sample, manager.config.sequencing.platform, manager.config.sequencing.flowcell, manager.sample)
 include: sm.modules["add_read_group"]
 
+
 # Mark duplicates
 __mark_duplicates__input = __add_read_group__output
 __mark_duplicates__output = manager.getname("mark_duplicates", ".bam")
@@ -165,45 +150,63 @@ __CollectInsertSizeMetrics__log_err = "%s/logs/InsertSizeMetrics/stderr.logs" % 
 include: sm.modules["CollectInsertSizeMetrics"]
 expected_output.extend(expand(__CollectInsertSizeMetrics__output, sample=manager.samples))
 
+# TODO split data as NUC-free and all ?
+
 
 # TODO prendre en compte le design experimental
-__macs2__input = __mark_duplicates__output
-__macs2__input_bam = ## relative to INPUT bam (or Control condition)
-__macs2__log_std = "%s/logs/macs2/stdout.logs" % manager.sample
-__macs2__log_err = "%s/logs/macs2/stderr.logs" % manager.sample
+__macs2__ = __mark_duplicates__output
+__macs2__input_bam = "None"
+__macs2__log = "%s/logs/macs2/peak_calling.err" % manager.sample
 __macs2__output = #Be carefull, the output is a prefix
+__macs2__output_done = manager.getname("macs2", ".done")
 include: sm.modules["macs2"]
 expected_output.extend(expand(__macs2__output, sample=manager.samples))
 
 
-# BamPEFragmentSize (part of Deeptools)
-__BamPEFragmentSize__input_bams = expand(__bowtie2_mapping__sort)
-__BamPEFragmentSize__binsize = 10000
-__BamPEFragmentSize__logs = "%s/logs/deeptools/BamPEFragmentSize.err" % manager.sample
-__BamPEFragmentSize__output =
-include: sm.modules["BamPEFragmentSize"]
-expected_output.extend(expand(__BamPEFragmentSize__output, sample=manager.samples))
+if manager.paired:
+    # BamPEFragmentSize (part of Deeptools)
+    __BamPEFragmentSize__input_bams = expand(__bowtie2_mapping__sort)
+    __BamPEFragmentSize__binsize = 10000
+    __BamPEFragmentSize__logs = "logs/deeptools/BamPEFragmentSize.err"
+    __BamPEFragmentSize__output = manager.getname("deeptools", "BamPEFragmentSize.png")
+    include: sm.modules["BamPEFragmentSize"]
+    expected_output.extend(expand(__BamPEFragmentSize__output, sample=manager.samples))
+
+if manager.config.coverage.do:
+    #Bam coverage (part of Deeptools)
+    __bamCoverage__input = __mark_duplicates__output
+    __bamCoverage__output = manager.getname("BamCoverage", "_norm.bw")
+    __bamCoverage__log = "logs/deeptools/BamCoverage_%s.err." % manager.sample
+    include: sm.modules["bamCoverage"]
+    expected_output.extend(expand(__bamCoverage__output, sample=manager.samples))
+
+if manager.config.correlation.do:
+    # plot correlation (part of Deeptools)
+    __multiBamSummary__input = expand(__mark_duplicates__output)
+    __multiBamSummary__log = "logs/deeptools/BamSummary.err"
+    __multiBamSummary__output = "BamSummary.npz"
+    include: sm.modules["multiBamSummary"]
+    __plotCorrelation__input = __multiBamSummary__output
+    __plotCorrelation__output = manager.getname("deeptools", "scatterplot_correlation.svg")
+    __plotCorrelation__log = "logs/deeptools/plotCorrelation.err"
+    expected_output.extend(expand(__bamCoverage__output, sample=manager.samples))
+    include: sm.modules["plotCorrelation"]
 
 
-#Bam coverage (part of Deeptools)
-__bamCoverage__input = __mark_duplicates__output
-__bamCoverage__output = manager.getname("BamCoverage", "_norm.bw")
-__bamCoverage__log = "%s/logs/deeptools/BamCoverage.err." % manager.sample
-include: sm.modules["bamCoverage"]
-expected_output.extend(expand(__bamCoverage__output, sample=manager.samples))
+if manager.config.heatmap.do:
+    # compute Matrix
+    __computeMatrix__wig = expand(__bamCoverage__output)
+    __computeMatrix__log = "logs/deeptools/computeMatrix.err"
+    __computeMatrix__output = manager.getname("deeptools", "matrixHeatmap.gz")
+    include: sm.modules["computeMatrix"]
+    # plotHeatmap
+    __plotHeatmap__input = __computeMatrix_output
+    __plotHeatmap__log = "logs/deeptools/plotHeatmap.err"
+    __plotHeatmap__output = manager.getname("deeptools", "Heatmap_plot.png")
+    include: sm.modules["plotHeatmap"]
+    expected_output.extend(expand(__plotHeatmap_output, sample=manager.samples))
 
-
-# plot correlation (part of Deeptools)
-__multiBamSummary__input = expand(__mark_duplicates__output)
-__multiBamSummary__log = "%s/logs/deeptools/BamSummary.err" % manager.sample
-__multiBamSummary__output = "BamSummary.npz"
-__plotCorrelation__input = __multiBamSummary__output
-__plotCorrelation__output = "scatterplot_correlation.svg"
-__plotCorrelation__log = "%s/logs/deeptools/plotCorrelation.err" % manager.sample
-
-
-
-# !!!!!!!!!!!!!!!!!!! Reset expected_output variable after multiqc
+# !Reset expected_output variable after multiqc
 # Multiqc rule
 __multiqc__input = expected_output
 __multiqc__input_dir = "."
@@ -211,6 +214,7 @@ __multiqc__logs = "multiqc/multiqc.log"
 __multiqc__output = config['multiqc']['output-directory'] + "/multiqc_report.html"
 include: sm.modules["multiqc"]
 expected_output = [__multiqc__output]
+
 
 
 # Include rule graph for each sample
@@ -226,10 +230,12 @@ __conda__output = "requirements.txt"
 include: sm.modules['conda']   # Create requirements.txt(dependencies)
 expected_output.extend([__conda__output])
 
-# Those rules takes a couple of seconds so no need for a cluster
-localrules:  conda, rulegraph
 
-rule atacseq:
+
+# Those rules takes a couple of seconds so no need for a cluster
+localrules: conda, rulegraph
+
+rule ataseq:
     input: expected_output
 
 
@@ -239,39 +245,28 @@ onsuccess:
     sm.plot_stats(N=len(manager.samples))
 
     # Main directory
-    report_dir_format = "%(proj)s/report_atac-seq_%(proj)s"
+    report_dir_format = "%(proj)s/report_atacseq_%(proj)s"
     for proj in manager.samples.keys():
         report_dir = report_dir_format % {"proj": proj}
         try:os.mkdir(report_dir)
         except:pass
 
         shell("cp %s %s" % (__snakefile__, report_dir))
-        shell("cp rulegraph.svg %s/rulegraph.svg" % (report_dir))
+        #shell("cp rulegraph.svg %s/rulegraph.svg" % (report_dir))
         shell("cp config.yaml %s" % report_dir)
         shell("cp requirements.txt %s" % report_dir)
         shell("cp snakemake_stats.png %s" % report_dir)
+        try: os.mkdir("cluster_logs")
+        except:pass
 
-        shell('cp -r %s/fastqc_*/ %s' % (proj, report_dir))
-        shell('cp -r %s/cutadapt/ %s' % (proj, report_dir))
-
-        """
-        # Commented by TC Avril 2017 since reporting package is now removed
-        # and create_cleanup will be deprecated
-        from sequana.reporting.report_summary import SequanaSummary
-        summary = SequanaSummary(proj, directory=report_dir,
-            output_filename="summary.html",
-            snakefile=__snakefile__, configfile=report_dir+"/config.yaml",
-            manager=manager)
-        summary.create_report()
+        try: shell("mv slurm* cluster_logs/")
+        except: pass
 
         # Create a cleanup python file to clean a sub-directory
         sm.create_cleanup(proj)
-        """
 
-    #sm.create_recursive_cleanup()
-    #sm.message("Done. To further cleanup the directory, type \n python .sequana_cleanup.py")
+    sm.OnSuccess()() # create instance to create main cleanup
+
 
 onerror:
     print("An error occurred. See message above.")
-
-

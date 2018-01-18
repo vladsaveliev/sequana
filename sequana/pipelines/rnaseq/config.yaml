@@ -269,7 +269,7 @@ feature_counts:
 #                      needed for including single-end and orphan reads.
 # - threads: number of threads to be used
 # - chromSize: path to index of reference genome obtain by samtools faidx
-
+# - options: any options recognised by bamCoverage tools
 
 coverage:
     do: no
@@ -279,6 +279,7 @@ coverage:
     minFragmentLength: 0 #Note that a value other than 0 will exclude all single-end reads.
     maxFragmentLength: 0 #A value of 0 disables filtering and is needed for including single-end and orphan reads.
     threads: 4
+    options: ""
     chromSize_file: hg19.chrom.sizes
 
 

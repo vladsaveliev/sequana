@@ -26,9 +26,15 @@ Requirements
 Details
 ~~~~~~~~~
 
-Snakemake RNA-seq pipeline s based on a workflow used at Biomics Pole in Institut Pasteur. The pipeline runs some quality control (e.g., FastQC), fastq_screen (you need your own database). Reads could be trimmed by several tools (cutadapt, atropos, clean_ngs) and mapped against a reference genome (with bowtie or STAR, bowtie2 is used by fastq_screen) and ribosomal RNA (with bowtie1). Then, reads are counted with feature-counts (HTSeq-count soon available) against a GFF file. All results are summarized using multiQC.
+Snakemake RNA-seq pipeline s based on a workflow used at Biomics Pole in Institut Pasteur.
+The pipeline runs some quality control (e.g., FastQC), fastq_screen (you need your own database).
+Reads could be trimmed by several tools (cutadapt, atropos, clean_ngs) and mapped against a reference genome
+(with bowtie or STAR, bowtie2 is used by fastq_screen) and ribosomal RNA (with bowtie1).
+Then, reads are counted with feature-counts (HTSeq-count soon available) against a GFF file.
+All results are summarized using multiQC.
 
-.. warning:: The statistical analysis is not included in our pipeline because it is a step that is difficult to automate before the exploration of the data. However, you can perform this analysis with SARTools (https://github.com/PF2-pasteur-fr/SARTools).
+.. warning:: The statistical analysis is not included in our pipeline because it is a step that is difficult to
+automate before the exploration of the data. However, you can perform this analysis with SARTools (https://github.com/PF2-pasteur-fr/SARTools).
 
 Rules and configuration details
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,6 +92,14 @@ Counting
 FeatureCounts is used for counting
 
 .. snakemakerule:: feature_counts
+
+Statistical analysis
+^^^^^^^^^^^^
+
+SARTools is used to perform statistical analysis
+
+.. snakemakerule:: SARTools
+
 
 Reporting
 ^^^^^^^^^^^^

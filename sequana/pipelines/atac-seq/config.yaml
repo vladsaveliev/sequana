@@ -24,10 +24,7 @@ input_samples:
 # Note that sequana and url fields are followed by itemised files or links
 # using the front dashes
 requirements:
-    - phiX174.fa
     - Institut_Pasteur.png
-    - design.tab
-
 
 
 ##################################################################
@@ -54,15 +51,12 @@ sequencing:
 # - dir: directory where all indexed are written
 # - name: name of prefix use in all mapping rules
 # - fasta: path to Reference Genome in fasta format
-# - gff: path to GFF annotation file. Be carefull: chromosome names must me concordant with Fasta file
-# - rRNA_fasta: path to fasta file for ribosomal RNA if provided
-# - rRNA_feature: if rRNA_fasta not provided, ribosomal RNA will be extract from GFF using this feature
 #
 genome:
   do: yes
-  genome_directory: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19
+  genome_directory: /path/to/your/directory
   name: "hg19" #path to index name
-  fasta_file: /pasteur/projets/specific/PF2_ngs/protected/Genomes/hg19/hg19.fa
+  fasta_file: /path/to/your/directory/Genomes/hg19/hg19.fa
 
 
 #################################################################
@@ -74,6 +68,7 @@ genome:
 #
 fastqc:
     options: "--nogroup"
+
 
 #######################################################################
 # Quality trimming and adapter removal
@@ -113,7 +108,7 @@ fastqc:
 #
 #   ref: http://cutadapt.readthedocs.io/
 # adapter_choice__ = ["", "PCRFree", "Rubicon", "Nextera", "TruSeq"]
-# tool_choice__ = ["atropos", "cutadapt"]
+# tool_choice__ = ["cutadapt", "atropos"]
 cutadapt:
     do: yes
     tool_choice: cutadapt
@@ -126,6 +121,8 @@ cutadapt:
     options: "-O 6 --trim-n"
     quality: 30                 # {"range": [0,40]}
     threads: 4
+
+
 
 #############################################################################
 # bowtie2_mapping used to align reads against genome
@@ -143,6 +140,7 @@ bowtie2_mapping:
     threads: 4
 
 
+
 #############################################################################
 # mark_duplicates (picard-tools) allows to mark PCR duplicate in BAM files
 #
@@ -152,12 +150,14 @@ bowtie2_mapping:
 # - remove: If true do not write duplicates to the output file instead of writing them with
 #            appropriate flags set.  Default value: false. This option can be set to 'null' to clear
 #            the default value. Possible values: {true, false}
-# - tmpdir: write tempory file on this directory (default TMP_DIR=/tmp/)
+# - tmpdir: write tempory file on this directory (default TMP_DIR=/tmp/, but could be "TMP_DIR=/local/scratch/")
 #
 mark_duplicates:
     do: no
-    remove: 'False' ## may be False
-    tmpdir: "TMP_DIR=/local/scratch/" ## on Slurm cluster at Pasteur
+    remove: 'False' ## may be True
+    tmpdir: "TMP_DIR=/tmp/"
+    threads: 4
+
 
 
 
@@ -187,29 +187,109 @@ macs2:
     genomeSize: "mm"
     readLength: 100
     qval: 0.1
-    options: ""
+    options: "--nomodel "
 
 
-
+##### DEEPTOOLS SECTION
+## BAM Coverage
 #############################################################################
-# DEEPTOOLS allows to perform the peak calling
+# bamCoverage write file in bigwig format from BAM files.
+# This tool takes an alignment of reads or fragments as input (BAM file) and
+# generates a coverage track (bigWig or bedGraph) as output. The coverage is
+# calculated as the number of reads per bin, where bins are short consecutive
+# counting windows of a defined size. It is possible to extended the length of
+# the reads to better reflect the actual fragment length. *bamCoverage* offers
+# normalization by scaling factor, Reads Per Kilobase per Million mapped reads
+# (RPKM), and 1x depth (reads per genome coverage, RPGC).
 #
 # :Parameters:
 #
-# - genomeSize:
-##### DEEPTOOLS SECTION
+# - do: if unchecked, this rule is ignored
+# - binSize: Size of the bins, in bases, for the output of the
+#            bigwig/bedgraph file. (default: 50)
+# - genomeSize: Report read coverage normalized to 1x sequencing depth
+#                        (also known as Reads Per Genomic Content (RPGC)).
+#                        Sequencing depth is defined as: (total number of
+#                        mapped reads * fragment length) / effective genome
+#                        size. The scaling factor used is the inverse of the
+#                        sequencing depth computed for the sample to match the
+#                        1x coverage. To use this option, the effective genome
+#                        size has to be indicated after the option. The
+#                        effective genome size is the portion of the genome
+#                        that is mappable.
+# - extendReads: This parameter allows the extension of reads to
+#                fragment size.
+# - minFragmentLength: The minimum fragment length needed for read/pair
+#                      inclusion. Note that a value other than 0 will exclude
+#                      all single-end reads.
+# - maxFragmentLength: The maximum fragment length needed for read/pair
+#                      inclusion. A value of 0 disables filtering and is
+#                      needed for including single-end and orphan reads.
+# - threads: number of threads to be used
+# - options: any options recognised by bamCoverage tools
 
-correlation:
-    binSize: 10000
-    type: "scatterplot"
-    metyhode: "pearson"
+
 
 coverage:
+    do: no
     binSize: 10
-    genomeSize: 121400000
-    fragmentLength: 120
+    genomeSize : 2150570000 ##mm10
+    extendReads: 65
+    minFragmentLength: 0 #Note that a value other than 0 will exclude all single-end reads.
+    maxFragmentLength: 0 #A value of 0 disables filtering and is needed for including single-end and orphan reads.
+    options: ""
+    threads: 4
 
 
+## plotCorrelation
+#############################################################################
+# plotCorrelation is part of DEEPTools.
+# Tool for the analysis and visualization of sample correlations based on the output
+# of multiBamSummary or multiBigwigSummary. Pearson or Spearman methods are available
+# to compute correlation coefficients.
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - binSize: Size of the bins, in bases, for the output of the
+#            bigwig/bedgraph file. (default: 50)
+# - type: Choose between a heatmap or pairwise scatter plots. Possible choices: heatmap, scatterplot
+#
+# - method: Correlation method. Possible choices: spearman, pearson
+
+correlation:
+    do: no
+    binSize: 10000
+    type: "scatterplot"
+    method: "pearson"
+
+
+## plotHeatmap
+#############################################################################
+# plotHeatmap is part of DEEPTools.
+# This tool creates a heatmap for scores associated with genomic regions.
+# The program requires a matrix file generated by the tool computeMatrix.
+# This tool calculates scores per genome regions and prepares an intermediate
+# file that can be used with plotHeatmap and plotProfiles. Typically, the genome regions are genes,
+# but any other regions defined in a BED file can be used. computeMatrix accepts multiple score files
+# (bigWig format) and multiple regions files (BED format). This tool can also be used to filter and sort
+# regions according to their score.
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored
+# - regionsFileName: File name or names, in BED or GTF format, containing the regions to plot.
+#                   If multiple bed files are given, each one is considered a group that can be plotted separately.
+#                   Also, adding a “#” symbol in the bed file causes all the regions until the previous “#” to be considered one group.
+# - options-heatmap: any options recognised by plotHeatmap tools
+#
+# - options_matrix: any options recognised by computeMatrix tools
+
+heatmap:
+    do: no
+    regionsFileName: /path/to/file.bed
+    options_matrix: "--beforeRegionStartLength 1000 --afterRegionStartLength 1000 --skipZeros "
+    options-heatmap: ""
 
 
 #############################################################################
@@ -224,5 +304,3 @@ coverage:
 multiqc:
     options: "-c multiqc_config.yaml -f -x *_init_* -x *left_kept_reads* -x *report_rnaseq* -e htseq -e slamdunk"
     output-directory: "multiqc"
-
-
