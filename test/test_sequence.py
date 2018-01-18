@@ -18,7 +18,6 @@ def test_dna():
     dna.reverse()
     dna.complement()
     dna.reverse_complement()
- 
 
     dna = DNA("jjjj")
     try:

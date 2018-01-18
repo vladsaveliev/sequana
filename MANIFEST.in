@@ -6,6 +6,6 @@ include requirements*txt
 include CONTRIBUTING.rst
 include LICENSE
 include README.rst
-exclude sequana/methylation/tools.py
-exclude sequana/methylation/__init__.py
+recursive-exclude sequana/methylation *
+recursive-exclude test *
 exclude sequana/rm2.py

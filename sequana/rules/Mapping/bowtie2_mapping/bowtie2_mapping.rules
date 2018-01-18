@@ -25,14 +25,14 @@ rule bowtie2_mapping:
         fastq = __bowtie2_mapping__input,
         index = __bowtie2_mapping__index_done
     output:
-        sort = __bowtie2_mapping__sort
+        sort = __bowtie2_mapping__sort,
+        bam = temp(__bowtie2_mapping__bam)
     log:
         err = __bowtie2_mapping__logs_err,
         out = __bowtie2_mapping__logs_out
     params:
         prefix_index = __bowtie2_mapping__prefix index,
         options = config["bowtie2_mapping"]["options"],
-        sam = temp(__bowtie2_mapping__sam)
     threads:
         config["bowtie2_mapping"]["threads"]
     run:
@@ -42,7 +42,7 @@ rule bowtie2_mapping:
         if len(input.fastq) == 2:
             bowtie_input = "-1 " + unzip_file[0] + " -2 " + unzip_file[1]
         else:
-            bowtie_input = unzip_file[0]
+            bowtie_input = "-U "unzip_file[0]
         cmd = cmd + " " + bowtie_input
         # sam to bam
         cmd = "%%s | samtools view -Sbh -> {output.bam}" %% cmd
@@ -55,4 +55,4 @@ rule bowtie2_mapping:
         cmd = "%%s && samtools index {output.sort}" %% cmd
 
 
-        shell("unpigz -fk {input.fastq} -p {threads} && " + cmd )
+        shell("unpigz -p {threads} -fk {input.fastq}  && " + cmd )

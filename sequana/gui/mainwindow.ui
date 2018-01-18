@@ -1200,7 +1200,7 @@
          <string notr="true">background-color:#ffffff</string>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="snakemake">
          <property name="sizePolicy">
@@ -1280,12 +1280,11 @@ Color code:
          </layout>
         </widget>
         <widget class="QWidget" name="tab_3">
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
          <property name="toolTip">
-          <string>This tab contains the configuration file arguments. 
-
-You can edit the form but will need to press SAVE to make it effective.
-
-Once saved, the DAG and RUN buttons should be available.</string>
+          <string/>
          </property>
          <attribute name="title">
           <string>&amp;Config parameters</string>
@@ -1313,8 +1312,8 @@ Once saved, the DAG and RUN buttons should be available.</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>98</width>
-               <height>28</height>
+               <width>595</width>
+               <height>160</height>
               </rect>
              </property>
             </widget>
@@ -1488,7 +1487,7 @@ text-align: center;
      <x>0</x>
      <y>0</y>
      <width>647</width>
-     <height>19</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

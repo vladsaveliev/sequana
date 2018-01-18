@@ -41,12 +41,58 @@ def test_threshold():
         assert True
 
 def test_genomecov():
-
     filename = sequana_data('JB409847.bed')
-    bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
 
+    try:
+        bed = bedtools.GenomeCov("dummy.csv")
+        assert False
+    except:
+        assert True
+
+    try:
+        bed = bedtools.GenomeCov(filename, "dummy.gbk")
+        assert False
+    except:
+        assert True
+
+    # !now let us read the good data sets
+    bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
+    bed.compute_coverage(4001)
+
+    bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
+    bed2 = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
+    assert bed == bed
+
+    # test equality for same chromosome but different data
+    bed2.chr_list[0].df["cov"] += 100
+    assert bed != bed2
+    # test equality for same chromosome but different data
+    bed2.chr_list[0].df["cov"] -= 100
+    bed2.chr_list.append("dummy")
+    assert bed != bed2
+
+
+    # setter must be bool
+    try:
+        bed.circular = 1
+        assert False
+    except:
+        assert True
+
+    # cant use setter
+    try:
+        bed.feature_dict = {}
+        assert False
+    except:
+        assert True
+
+    assert len(bed) == 1
     # a getter for the first chromosome
     bed[0]
+
+    # setter available but not sure this is useful
+    bed.window_size = 4001
+    bed.hist()
 
     # This requires to call other method before
     for chrom in bed:
@@ -72,6 +118,14 @@ def test_genomecov():
         bed.to_csv(fh.name)
         bed2 = bedtools.GenomeCov(fh.name, sequana_data('JB409847.gbk'))
 
+    # plotting
+    bed.chr_list[0].plot_hist_coverage()
+    bed.chr_list[0].plot_hist_coverage(logx=False,logy=True)
+    bed.chr_list[0].plot_hist_coverage(logx=True,logy=False)
+    with TempFile(suffix=".png") as fh:
+        bed.chr_list[0].plot_hist_coverage(logx=False,logy=False,
+            filename=fh.name)
+
 def test_gc_content():
     bed = sequana_data('JB409847.bed')
     fasta = sequana_data('JB409847.fasta')
@@ -86,11 +140,10 @@ def test_gc_content():
     ch.get_evenness()
     ch.get_cv()
     assert ch.get_centralness() > 0.84 and ch.get_centralness()<0.85
-    ch.plot_gc_vs_coverage()
+    with TempFile(suffix=".png") as fh:
+        ch.plot_gc_vs_coverage(filename=fh.name)
 
-    from easydev import TempFile
     with TempFile() as fh:
         ch.to_csv(fh.name)
-
 
     ch.get_max_gc_correlation(fasta)

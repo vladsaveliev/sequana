@@ -34,10 +34,10 @@ from sequana.snaketools import FastQFactory
 from sequana.snaketools import FileFactory
 from sequana.adapters import FindAdaptersFromDesign, AdapterReader
 from sequana import SequanaConfig, sequana_data
-from sequana import logger, Module, sequana_debug_level
+from sequana import logger, Module
 
 
-sequana_debug_level('INFO')
+logger.level = 'INFO'
 
 adapters_choice = ["Nextera", "Rubicon", "PCRFree", "TruSeq", "SMARTer", "Small"]
 
@@ -292,8 +292,8 @@ behavious, use this option."""
         group.add_argument("--input-pattern", dest="pattern", type=str,
             default=None,
             help="""a pattern to find files. You can use wildcards e.g.
-                    '*/*.fastq.gz'  . Note that fastq.gz or fq.gz must be used
-                    and that the pattern must be between quotes""")
+                    '*/*.fastq.gz'  . NOTE THAT fastq.gz OR fq.gz MUST BE USED.
+                    AND THAT THE PATTERN MUST BE BETWEEN QUOTES""")
         group.add_argument("-i", "--input-directory", dest="input_directory", type=str,
             default=None,
             help="""Search for a pair (or single) of reads in the directory,

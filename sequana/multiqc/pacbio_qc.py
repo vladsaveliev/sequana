@@ -44,10 +44,10 @@ class MultiqcModule(BaseMultiqcModule):
 
         info = "<ul>"
         for this in sorted(self.sequana_data.keys()):
-            info += '<li><a href="report_{}.html">{}</a></li>'.format(this,this)
+            info += '<li><a href="{}/summary.html">{}</a></li>'.format(this,this,this)
         info += "</ul>"
-        href="http://github.com/sequana/sequana/"
-        target = "sequana"
+        href="http://sequana.readthedocs.io/en/master/"
+        target = "Sequana"
         mname = '<a href="{}" target="_blank">{}</a> individual report pages:'.format(href, target)
         self.intro = '<p>{} {}</p>'.format( mname, info)
 
@@ -70,7 +70,7 @@ class MultiqcModule(BaseMultiqcModule):
             data[name] = {'mean': self.sequana_data[name]["mean_length"]}
 
         pconfig = {
-            "title": "Number of reads per sample",
+            "title": "Mean read length",
             "percentages": False,
             "min": 100,
             "logswitch": True,

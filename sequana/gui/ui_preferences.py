@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Preferences(object):
     def setupUi(self, Preferences):
         Preferences.setObjectName("Preferences")
-        Preferences.resize(469, 319)
+        Preferences.resize(507, 366)
         Preferences.setSizeGripEnabled(False)
         self.gridLayout = QtWidgets.QGridLayout(Preferences)
         self.gridLayout.setObjectName("gridLayout")
@@ -69,6 +69,9 @@ class Ui_Preferences(object):
         self.label_2 = QtWidgets.QLabel(self.tab_general)
         self.label_2.setObjectName("label_2")
         self.formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.label_2)
+        self.preferences_options_general_tooltip_value = QtWidgets.QCheckBox(self.tab_general)
+        self.preferences_options_general_tooltip_value.setObjectName("preferences_options_general_tooltip_value")
+        self.formLayout.setWidget(5, QtWidgets.QFormLayout.LabelRole, self.preferences_options_general_tooltip_value)
         self.verticalLayout_2.addLayout(self.formLayout)
         self.tabs.addTab(self.tab_general, "")
         self.gridLayout_2.addWidget(self.tabs, 0, 0, 1, 1)
@@ -125,5 +128,7 @@ class Ui_Preferences(object):
         self.preferences_options_general_htmlpage_value.setText(_translate("Preferences", "multi_summary.html"))
         self.label_2.setToolTip(_translate("Preferences", "<html><head/><body><p>In Sequanix, we a config file is loaded, we dynamically created a form that is editable.</p><p><br/></p><p>In the form, widgets are automatically included for fields ending in _file or _browser. One can add specific field to be transformed into a browser widget. </p><p><br/></p><p>This can be done by adding the field names in this preference box. </p><p><br/></p><p>Fields must be separated by commas, semi-columns or spaces</p></body></html>"))
         self.label_2.setText(_translate("Preferences", "Form browser keywords"))
+        self.preferences_options_general_tooltip_value.setToolTip(_translate("Preferences", "Turn on/off tootips"))
+        self.preferences_options_general_tooltip_value.setText(_translate("Preferences", "Show tooltips"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_general), _translate("Preferences", "General"))
 

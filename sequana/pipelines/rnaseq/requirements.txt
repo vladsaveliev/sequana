@@ -6,3 +6,4 @@
 - STAR
 - fastq_screen
 - featureCounts [subread]
+- rpy2

@@ -56,12 +56,12 @@ rule RNAseQC:
         from re import split
 
         #create the sample index
-        data = [(split(r'.[ATCG]{6,7,8}\_.*',file)[0], file, 'NA') for file in input]
+        data = [(split(r'_',file)[0], file, 'NA') for file in input]
         df = pd.DataFrame(data, columns=['Sample ID','Bam File','Notes'])
         df.to_csv(output.sample_index, sep="\t",index=False)
 
         #run RNAseQC
-        shell("rna-seqc -o {output.dir}  -r {params.genome}  -s {output.sample_index} -t {params.gtf}  -BWArRNA {params.rRNA} {params.kwargs} 2> {log}")
+        shell("RNA-SeQC -o {output.dir}  -r {params.genome}  -s {output.sample_index} -t {params.gtf}  -BWArRNA {params.rRNA} {params.kwargs} 2> {log}")
 
         if os.path.isfile(os.path.join(output.dir,'metrics.tsv')):
             df = pd.DataFrame.from_csv(os.path.join(output.dir,'metrics.tsv'), header = 0, sep="\t")

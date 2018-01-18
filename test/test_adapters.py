@@ -138,7 +138,7 @@ def test_nextera():
     design = sequana_data("test_index_mapper.csv")
     ad = FindAdaptersFromDesign(design, "Nextera")
     results = ad.get_adapters_from_sample("C4405-M1-EC1")
-    assert results['index1']['fwd'][0].identifier  == 'Nextera_index_N703|name:N703|seq:AGGCAGAA'
+    assert results['index1']['fwd'].identifier  == 'Nextera_index_N703|name:N703|seq:AGGCAGAA'
 
     ad.check()  # all samples are used in get_adapters_from_sample
     ad.sample_names
@@ -228,6 +228,14 @@ def test_rubicon():
     fa.check()
 
 
+def test_wrong_sample():
+    design = sequana_data("test_index_mapper.csv")
+    ad = FindAdaptersFromDesign(design, "Rubicon")
+    res = ad.get_adapters_from_sample("C4405-M1-EC1")
+    assert res['index1']['fwd'] is None
+    assert res['index1']['rev'] is None
+
+
 def test_get_sequana_adapters():
 
     assert "adapters_PCRFree_rev.fa" in adapters.get_sequana_adapters("PCRFree", "rev")
@@ -255,3 +263,76 @@ def test_duplicated_design():
     res = ss.get_adapters_from_sample("VB-22")
     assert res['index1']['fwd'].identifier == "Small_Adapter_5|name:small5|seq:ACAGTG"
     assert res['index1']['fwd'].sequence == "CAAGCAGAAGACGGCATACGAGATACAGTGGTGACTGGAGTTCCTTGGCACCCGAGAATTCCA"
+
+
+
+def test_all_adapters():
+    # test all adapters using a dummy design file.
+
+    design = sequana_data("test_index_mapper.csv")
+
+    # Rubicon
+    fa = FindAdaptersFromDesign(design, "Rubicon")
+    res = fa.get_adapters_from_sample("C1152-S2-EC1")
+    assert "PolyA" not in res.keys()
+    assert "PolyT" not in res.keys()
+    assert "universal" in res.keys()
+    assert "fwd" in res['universal']
+    assert "rev" in res['universal']
+
+    # TruSeq
+    fa = FindAdaptersFromDesign(design, "TruSeq")
+    res = fa.get_adapters_from_sample("C1152-S2-EC1")
+    assert "PolyA" in res.keys()
+    assert "PolyT" in res.keys()
+    assert "universal" in res
+    assert "fwd" in res['universal']
+    assert "rev" in res['universal']
+
+    # Nextera
+    fa = FindAdaptersFromDesign(design, "Nextera")
+    res = fa.get_adapters_from_sample("C1152-S2-EC1")
+    assert res['index1']['fwd'].identifier == "Nextera_index_N701|name:N701|seq:TAAGGCGA"
+    assert "transposase_seq_1" in res.keys()
+    assert "transposase_seq_2" in res.keys()
+    assert "universal" in res.keys()
+    assert "fwd" in res['universal']
+    assert "rev" in res['universal']
+
+    # PCRFree
+    fa = FindAdaptersFromDesign(design, "PCRFree")
+    res = fa.get_adapters_from_sample("C1152-S2-EC1")
+    assert "universal" in res.keys()
+    assert "fwd" in res['universal']
+    assert "rev" in res['universal']
+    # let us be more precise for PCRFree only for a regression bug where 
+    # res['universal'] 
+    assert res["universal"]["fwd"].identifier == "Universal_Adapter|name:universal"
+    assert res["universal"]["fwd"].sequence == "AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT"
+
+
+    # NEBNext
+    fa = FindAdaptersFromDesign(design, "NEBNext")
+    res = fa.get_adapters_from_sample("C1152-S2-EC1")
+    assert "universal" in res.keys()
+    assert "fwd" in res['universal']
+    assert "rev" in res['universal']
+
+    # Small
+    fa = FindAdaptersFromDesign(design, "Small")
+    res = fa.get_adapters_from_sample("C1152-S2-EC1")
+    assert "universal" in res.keys()
+    assert "fwd" in res['universal']
+    assert "rev" in res['universal']
+
+
+
+
+
+
+
+
+
+
+
+

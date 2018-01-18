@@ -87,7 +87,10 @@ class PacbioInputBAMModule(SequanaBaseModule):
             'buttons': ['copy', 'csv']
             }
         js = table.create_javascript_function()
-        html_tab = table.create_datatable(float_format='%.3g')
+        # IMPORTANT: here conversion to integer with %d
+        # to round and make integer. !! The GC is therefore
+        # converted to integer as well.
+        html_tab = table.create_datatable(float_format='%d')
         html = "{} {}".format(html_tab, js)
 
         self.sections.append({

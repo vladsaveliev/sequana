@@ -19,7 +19,7 @@ rule unpigz_%(name)s:
     threads: 4
     shell:
         """
-        unpigz -fk {input} -p {threads} --stdout > {output}
+        unpigz -p {threads} -fk {input} --stdout > {output}
         """
 
 

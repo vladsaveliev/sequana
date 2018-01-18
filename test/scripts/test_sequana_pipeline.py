@@ -67,7 +67,7 @@ def test_mutually_exclusive():
         assert True
 
 def test_input(tmpdir):
-    directory = tmpdir.mkdir("analysis")
+    directory = tmpdir.mkdir("analysis0")
     name = directory.__str__()
 
     file1 = sequana_data('Hm2_GTGAAA_L005_R1_001.fastq.gz', 'data')
@@ -107,7 +107,7 @@ def test_input(tmpdir):
 
 
 def test_without_cluster_config(tmpdir):
-    directory = tmpdir.mkdir("analysis")
+    directory = tmpdir.mkdir("analysis1")
     name = directory.__str__()
     file1 = sequana_data('Hm2_GTGAAA_L005_R1_001.fastq.gz', 'data')
     main.main([prog, "--pipeline", "rnaseq", "--file1", file1, "--snakemake-cluster", 
@@ -136,14 +136,19 @@ def test_get_config():
     os.remove("config.yaml")
 
 
-def test_config_params():
+
+def test_config_params(tmpdir):
+    directory = tmpdir.mkdir("analysis3")
+    name = directory.__str__()
     file1 = sequana_data('Hm2_GTGAAA_L005_R1_001.fastq.gz', 'data')
     main.main([prog, "--pipeline", "quality_control", "--force",  "--file1", file1,
-        "--no-adapters",  "--config-params",  "bwa_mem_phix:threads:4"])
+        "--no-adapters",  "--config-params",  "bwa_mem_phix:threads:4" ,
+        "--working-directory", name])
 
     try:
         main.main([prog, "--pipeline", "quality_control", "--force",  "--file1", file1,
-            "--no-adapters",  "--config-params",  "bwa_mem_phix"])
+            "--no-adapters",  "--config-params",  "bwa_mem_phix",
+            "--working-directory", name])
         assert False
     except:
         assert True

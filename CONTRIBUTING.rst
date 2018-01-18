@@ -1,6 +1,19 @@
 ================================
-Sequana pull request guidelines
+Sequana contributing guidelines
 ================================
+
+Issues
+==========
+
+You have an issue ? You found a bug ? Please submit an issue with 
+
+- a description of the problem
+- the version of Sequana used
+- the error message if any
+
+
+pull requests
+===================
 
 Pull requests are always welcome, and the Sequana community appreciates
 any help you give.

@@ -7,7 +7,8 @@ configfile: "config.yaml"
 __snakefile__ = srcdir(__snakefile__)
 
 # generic means do not use/set the read_tag
-manager = sm.PipelineManager("pacbio_denovo", config)
+manager = sm.PipelineManager("pacbio_denovo", config, fastq=False)
+sm.message("Number of samples: %d" % len(manager.samples))
 
 
 # Starting of the pipeline
@@ -56,8 +57,13 @@ rule busco_scores:
     run:
         from sequana.assembly import BUSCO
         scores = [BUSCO(x).score for x in input]
-        df = pd.DataFrame([[x.split(os.sep)[-1] for x in input], scores], columns=['file', 'score'])
-        df.to_csv(output[0])
+        if len(scores)>1:
+            df = pd.DataFrame([[x.split(os.sep)[-1] for x in input], scores], 
+                columns=['file', 'score'])
+            df.to_csv(output[0])
+        else:
+            df = pd.Series(scores)
+            df.to_csv(output[0])
 expected_output.append(__busco_scores__output)
 
 

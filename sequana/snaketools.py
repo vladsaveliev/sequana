@@ -556,6 +556,11 @@ class SequanaConfig(object):
     can override a value with a False but this is interepted as "False"
     This will transform back the "True" into True.
 
+    Another interest concerns the automatic expansion of the path to directories
+    and files starting with the special ~ (tilde) character, that are expanded
+    transparently.
+
+
     """
     def __init__(self, data=None, converts_none_to_str=True):
         """Could be a JSON or a YAML file
@@ -647,6 +652,8 @@ class SequanaConfig(object):
         self._recursive_update(self.config, self._yaml_code)
 
     def _recursive_cleanup(self, d):
+        # expand the tilde (see https://github.com/sequana/sequana/issues/486)
+        # remove the %() templates
         for key, value in d.items():
             try:
                 self._recursive_cleanup(value)
@@ -658,6 +665,12 @@ class SequanaConfig(object):
                         d[key] = None
                     else:
                         d[key] = value.strip()
+                    # https://github.com/sequana/sequana/issues/486
+                    if key.endswith("_directory") and value.startswith("~/"):
+                        d[key] = os.path.expanduser(value)
+                    if key.endswith("_file") and value.startswith("~/"):
+                        d[key] = os.path.expanduser(value)
+
 
     def cleanup_config(self):
         self._recursive_cleanup(self.config)
@@ -754,7 +767,7 @@ class PipelineManager(object):
     For developers: the config attribute should be used as getter only.
 
     """
-    def __init__(self, name, config, pattern="*.fastq.gz"):
+    def __init__(self, name, config, pattern="*.fastq.gz", fastq=True):
         """.. rubric:: Constructor
 
         :param name: name of the pipeline
@@ -799,24 +812,26 @@ class PipelineManager(object):
         if not cfg.config.input_readtag:
              cfg.config.input_readtag = "_R[12]_"
 
-        try:
+        if fastq:
             self._get_fastq_files(glob_dir, cfg.config.input_readtag)
-        except:
+        else:
             self._get_bam_files(glob_dir)
         # finally, keep track of the config file
         self.config = cfg.config
 
     def _get_fastq_files(self, glob_dir, read_tag):
         """
+
         """
         self.ff = FastQFactory(glob_dir, read_tag=read_tag)
         if self.ff.filenames == 0:
-            self.error("No files were found.")
+            self.error("No files were found with pattern %s and read tag %s.".format(glob_dir, read_tag))
 
         # change [12] regex
         rt1 = read_tag.replace("[12]", "1")
         rt2 = read_tag.replace("[12]", "2")
 
+        # count number of occurences
         R1 = [1 for this in self.ff.filenames if rt1 in this]
         R2 = [1 for this in self.ff.filenames if rt2 in this]
 
@@ -960,7 +975,7 @@ class DOTParser(object):
 
     _name_to_drops = {'dag', 'conda', 'rulegraph', 'copy_multiple_files'}
 
-    def __init__(self, filename):
+    def __init__(self, filename, mode="v2"):
         """.. rubric:: constructor
 
          :param str filename: a DAG in dot format created by snakemake
@@ -970,8 +985,9 @@ class DOTParser(object):
         self.re_index = re.compile('(\d+)\[')
         self.re_name = re.compile('label = "(\w+)"')
         self.re_arrow = re.compile('(\d+) -> (\d+)')
+        self.mode = mode
 
-    def add_urls(self, output_filename=None, mapper={}):
+    def add_urls(self, output_filename=None, mapper={}, title=None):
         """Change the dot file adding URL on some nodes
 
         :param str output_filename: the DAG file in dot format (graphviz)
@@ -979,6 +995,18 @@ class DOTParser(object):
             names for which an HTML will be available (provided here as keys)
 
         """
+        if self.mode == "v2":
+            self._add_urls_mode2(output_filename, mapper, title)
+        else:
+            self._add_urls_mode1(output_filename, mapper, title)
+
+    def _drop_arrow(self, index, indices_to_drop, title=None):
+        for i in index:
+            if i in indices_to_drop:
+                return True
+        return False
+
+    def _add_urls_mode2(self, output_filename=None, mapper={}, title=None):
         # Open the original file
         with open(self.filename, "r") as fh:
             data = fh.read()
@@ -987,11 +1015,63 @@ class DOTParser(object):
             import os
             output_filename = os.path.basename(self.filename)
 
-        def drop_arrow(index, indices_to_drop):
-            for i in index:
-                if i in indices_to_drop:
-                    return True
-            return False
+        # The DOT parsing
+        with open(output_filename.replace(".dot", ".ann.dot"), "w") as fout:
+            indices_to_drop = set()
+            for line in data.split("\n"):
+                if line.strip().startswith("node["):
+                    fout.write(' node[style="filled"; shape=box, ' +
+                        ' color="black", fillcolor="#FCF3CF", ' +
+                        ' fontname=sans, fontsize=10, penwidth=2];\n')
+                    continue
+                if line.strip().startswith("edge["):
+                    fout.write(' edge[penwidth=2, color=black]; \n')
+                    continue
+
+                if line.strip() == "}":
+                    if title:
+                        fout.write('overlap=false\nlabel="%s"\nfontsize=10;\n}\n' % title)
+                    else:
+                        fout.write(line)
+                    continue
+
+
+                name = self.re_name.search(line)
+                if name:
+                    name = name.group(1)
+                    if name in self._name_to_drops:
+                        index = self.re_index.search(line).group(1)
+                        indices_to_drop.add(index)
+                    elif name in mapper.keys():
+                        url = mapper[name]
+                        newline = line.split(name)[0] + name +'"' 
+                        newline += (' URL="%s", target="_parent", fillcolor="#5499C7"'
+                                   '];\n') % url
+                        #newline = line.replace('];', newline)
+                        newline = newline.replace("dashed", "")
+                        fout.write(newline)
+                    else:
+                        newline = line.split(name)[0] + name +'"];\n'
+                        fout.write(newline)
+                else:
+                    arrow = self.re_arrow.findall(line)
+                    if arrow:
+                        index = arrow[0]
+                        if not self._drop_arrow(index, indices_to_drop):
+                            fout.write(line + "\n")
+                    else:
+                        line = line.replace("dashed", "")
+                        fout.write(line + "\n")
+
+    def _add_urls_mode1(self, output_filename=None, mapper={}, title=None):
+
+        # Open the original file
+        with open(self.filename, "r") as fh:
+            data = fh.read()
+
+        if output_filename is None:
+            import os
+            output_filename = os.path.basename(self.filename)
 
         # The DOT parsing
         with open(output_filename.replace(".dot", ".ann.dot"), "w") as fout:
@@ -1018,7 +1098,7 @@ class DOTParser(object):
                     arrow = self.re_arrow.findall(line)
                     if arrow:
                         index = arrow[0]
-                        if not drop_arrow(index, indices_to_drop):
+                        if not self.drop_arrow(index, indices_to_drop):
                             fout.write(line + "\n")
                     else:
                         line = line.replace("dashed", "")
@@ -1174,6 +1254,11 @@ class FastQFactory(FileFactory):
         """
         super(FastQFactory, self).__init__(pattern)
 
+        # Filter out reads that do not have the read_tag
+        # https://github.com/sequana/sequana/issues/480
+        self._glob = [filename for filename in self._glob 
+                      if re.search(read_tag, os.path.basename(filename))]
+
         if len(self.filenames) == 0:
             msg = "No files found with the requested pattern (%s)" % pattern
             logger.critical(msg)
@@ -1232,7 +1317,7 @@ class FastQFactory(FileFactory):
             msg = "Found no valid matches. "
             msg += "Files must have the tag %s" % read_tag
             logger.critical(msg)
-            raise Exception(msg)
+            raise Exception
         else:
             logger.critical('Found too many candidates: %s ' % candidates)
             msg = 'Found too many candidates or identical names: %s '\
@@ -1259,12 +1344,16 @@ def init(filename, namespace):
         * expected_output as an empty list
         * toclean as an empty  list
 
+    Use e.g. in quality_control pipeline for bwa_mem_dynamic option
     """
     # Create global name for later
     if "__snakefile__" in namespace.keys():
         pass
     else:
+        # This contains the full path of the snakefile
         namespace['__snakefile__'] = filename
+        namespace['__pipeline_name__'] = \
+            os.path.split(filename)[1].replace(".rules", "")
         namespace['expected_output'] = []
         namespace['toclean'] = []
 
@@ -1385,6 +1474,7 @@ for this in {1}:
     except:
         print("%s not found (not deleted)" % this)
 
+shellcmd("rm -rf tmp/")
 shellcmd("rm -f {0}")
 print("done")
     """.format(self.cleanup_filename, additional_dir))

@@ -22,4 +22,4 @@ rule gz_to_fastq:
     output: "{dataset}"
     threads: config['compressor']['threads']
     run:
-        shell("unpigz {input} -p {threads}")
+        shell("unpigz -p {threads} {input} ")

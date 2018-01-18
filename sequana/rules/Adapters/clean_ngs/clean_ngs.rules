@@ -68,5 +68,5 @@ rule clean_ngs:
         cmd = cmd + " " + fastq_rejected
 
 
-        shell("unpigz -fk {input.fastq} -p {threads} && " + cmd )
+        shell("unpigz -p {threads} -fk {input.fastq}  && " + cmd )
 

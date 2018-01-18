@@ -1,12 +1,21 @@
 
+try:
+    __pacbio_quality__output_summary
+except:
+    __pacbio_quality__output_summary = "{sample}/summary_{sample}.json"
+
 rule pacbio_quality:
     """Pacbio quality control
 
     Required input:
-        - __pacbio_quality__input : the input BAM file 
+        - __pacbio_quality__input : the input BAM file
 
     Required output:
-        - __pacbio_quality__output_summary : summary_{sample}.json
+        - __pacbio_quality__output_summary: summary_{sample}.json
+
+    Optional parameters:
+        - __pacbio_quality__images_directory: where to save PNG
+          images (default to ./images)
 
     In addition to a summary file with basic statistics, this
     rules creates 5 images with basic histograms about the read
@@ -19,14 +28,16 @@ rule pacbio_quality:
     """
     input: __pacbio_quality__input
     output:
-        read_len   = "hist_read_len_{sample}.png",
-        GC_content = "GC_content_{sample}.png",
-        ZMW        = "ZMW_passes_{sample}.png",
-        SNR        = "SNR_{sample}.png",
-        GC_vs_len  = "GC_vs_len_{sample}.png",
+        read_len   = "{sample}/images/hist_read_len_{sample}.png",
+        GC_content = "{sample}/images/GC_content_{sample}.png",
+        ZMW        = "{sample}/images/ZMW_passes_{sample}.png",
+        SNR        = "{sample}/images/SNR_{sample}.png",
+        GC_vs_len  = "{sample}/images/GC_vs_len_{sample}.png",
         summary    = __pacbio_quality__output_summary
-
     run:
+        import pylab
+        def setname(name):
+            return name
         ########## labels for plots
         short_name = input[0].replace(".bam","").split("/")[-1]
         bam_pacbio = pacbio.BAMPacbio(input[0])
@@ -34,46 +45,49 @@ rule pacbio_quality:
         ########## Read length
         # individual histograms
         bam_pacbio.hist_len(label=short_name)
-        pylab.title("Read length")
+        pylab.title("")
         pylab.legend()
-        pylab.savefig(output.read_len)
+        pylab.savefig(setname(output.read_len))
 
         ########## GC content
         # individual histograms
         bam_pacbio.hist_GC(label=short_name)
-        pylab.title("GC content")
+        pylab.title("")
         pylab.legend()
-        pylab.savefig(output.GC_content)
+        pylab.savefig(setname(output.GC_content))
 
         ########## ZMW passes
         # individual histograms
         bam_pacbio.hist_ZMW_subreads(label=short_name)
-        pylab.title("ZMW passes")
+        pylab.title("")
         pylab.legend()
-        pylab.savefig(output.ZMW)
+        pylab.savefig(setname(output.ZMW))
 
         ########## SNR
         # individual histograms
         bam_pacbio.hist_snr()
-        pylab.title("SNR %s" %short_name)
-        pylab.savefig(output.SNR)
+        pylab.title("")
+        pylab.savefig(setname(output.SNR))
 
         # plot GC versus read length
         bam_pacbio.plot_GC_read_len()
-        pylab.savefig(output.GC_vs_len)
+        pylab.title("")
+        pylab.savefig(setname(output.GC_vs_len))
 
+        # summary
         summary = bam_pacbio.summary()
         with open(output.summary, "w") as fh:
             summary.update(
-                {"images": 
+                {"images":
                     {"hist_read_length": output.read_len,
                     "hist_gc_content": output.GC_content,
                     "hist_snr": output.SNR,
                     "gc_vs_length": output.GC_vs_len,
                     "hist_zmw": output.ZMW}
                 })
-            sample_name = output.summary[8:].rstrip(".json") 
+            sample_name = output.summary[8:].rstrip(".json")
             summary.update({'sample': sample_name})
+            summary.update({'generator': "sequana_pacbio_quality"})
             json.dump(summary, fh, indent=True, sort_keys=True)
         pylab.close()
 

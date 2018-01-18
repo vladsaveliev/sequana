@@ -24,7 +24,7 @@ Issues: http://github.com/sequana/sequana
 
         prints basic stats about a set of input files.
 
-        THe format of the input files must be homogeneous with one of the
+        The format of the input files must be homogeneous with one of the
         following extensions:
 
             - fastq or fastq.gz
@@ -66,6 +66,7 @@ def get_bed_stats(filename):
     stats = bed.get_stats("dataframe")
     return stats[list(stats.keys())[0]]
 
+
 def get_bam_stats(filename):
     from sequana import BAM
     import pandas as pd
@@ -74,6 +75,7 @@ def get_bam_stats(filename):
     df = pd.Series(stats).to_frame().T
     return df
 
+
 def main(args=None):
     from sequana import logger
     if args is None:
@@ -81,7 +83,6 @@ def main(args=None):
 
     user_options = Options(prog="sequana")
 
-    logger.warning("the usage of the summary tool may change significantly in the future")
 
     # If --help or no options provided, show the help
     if len(args) == 1:

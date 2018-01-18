@@ -169,9 +169,13 @@ class KrakenResults(object):
         # we select only col 0,2,3 to save memoty, which is required on very
         # large files
         try:
+            # each call to concat in the for loop below
+            # will take time and increase with chunk position.
+            # for 15M reads, this has a big cost. So chunksize set to 1M
+            # is better than 1000 and still reasonable in memory
             reader = pd.read_csv(self.filename, sep="\t", header=None,
-                               usecols=[0,2,3], chunksize=1000)
-        except pd.parser.EmptyDataError:
+                               usecols=[0,2,3], chunksize=1000000)
+        except pd.parser.CParserError:
             raise NotImplementedError  # this section is for the case
                 #only_classified_output when there is no found classified read
             self.unclassified = N # size of the input data set

@@ -23,8 +23,9 @@ import base64
 
 from jinja2 import Environment, PackageLoader
 
-from reports import HTMLTable
+#from reports import HTMLTable
 from sequana.utils import config
+from sequana import logger
 
 
 __all__ = ["SequanaBaseModule"]
@@ -48,6 +49,9 @@ class SequanaBaseModule(object):
         """ Create the report directory. All necessary directories are copied
         in working directory.
         """
+        # Be aware of #465 issue. We need to check that the target file is
+        # valid, in which case there is no need to copy the files.
+
         # Create report directory
         if os.path.isdir(config.output_dir) is False:
             os.mkdir(self.output_dir)
@@ -61,6 +65,7 @@ class SequanaBaseModule(object):
             target = os.sep.join([self.output_dir, 'css'])
             if os.path.isfile(target) is False:
                 shutil.copy(filename, target)
+
         for filename in config.js_list:
             target = os.sep.join([self.output_dir, 'js'])
             if os.path.isfile(target) is False:
@@ -140,7 +145,7 @@ class SequanaBaseModule(object):
                 pass
             else:
                 msg = "{0} exist and it is not a directory".format(directory)
-                config.logger.error(msg)
+                logger.error(msg)
                 raise FileExistsError
         try:
             shutil.copy(filename, directory)
@@ -161,7 +166,8 @@ class SequanaBaseModule(object):
                 '</code></pre></div>')
         return html.format(language, content)
 
-    def dataframe_to_html_table(self, dataframe, **kwargs):
+    # will be removed in v > 0.5.2
+    def __dataframe_to_html_table(self, dataframe, **kwargs):
         """ Convert dataframe in html.
         """
         html = HTMLTable(dataframe)

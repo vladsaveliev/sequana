@@ -56,13 +56,16 @@ rule cutadapt:
         design = __cutadapt__design,
         design_adapter = __cutadapt__design_adapter,
         sample = __cutadapt__sample,
-        thread = config['cutadapt']['threads']
+    threads:
+        config['cutadapt']['threads']
     log: __cutadapt__log
     run:
         executable = config['cutadapt']['tool_choice'] # could be cutadapt or atropos
 
         if config['cutadapt']['design_file']:
             from sequana import FindAdaptersFromDesign
+            # FIXME how important is this that the sample name contains a _
+            # character ?
             sample = params.sample.split("_")[0]
             fa = FindAdaptersFromDesign(params.design, params.design_adapter)
             fwd, rev = fa.save_adapters_to_fasta(sample, output_dir=params.wkdir)
@@ -76,10 +79,18 @@ rule cutadapt:
             fwd = params.fwd
             rev = params.rev
 
+
+        # For atropos, output must be txt AND json for the module to work.
         if len(input.fastq) == 2:
             if executable == "atropos":
                 cmd = "%s trim -p {output.fastq[1]}" % executable
-                cmd += " -pe1 {input.fastq[0]} -pe2 {input.fastq[1]} --progress bar -T {params.thread}"
+                cmd += " -pe1 {input.fastq[0]} -pe2 {input.fastq[1]} "
+                # atropos requires at least 2 threads
+                if int(threads) > 1:
+                    cmd += " -T {threads} "
+                cmd += " --process-timeout 600 "
+                logpath = log[0].replace(".txt", "")
+                cmd += " --report-formats json txt --report-file %s" % logpath
             else:
                 cmd = "%s -p {output.fastq[1]}" % executable
                 cmd += " {input.fastq[0]} {input.fastq[1]} "
@@ -101,7 +112,14 @@ rule cutadapt:
             shell(cmd)
         else:
             if executable == "atropos":
-                cmd = "%s trim -se {input.fastq[0]}" % executable
+                cmd = "%s trim -se {input.fastq[0]}  " % executable
+                # atropos requires at least 2 threads
+
+                if int(threads) > 1:
+                    cmd += " -T {threads} "
+                cmd += " --process-timeout 600 "
+                logpath = log[0].replace(".txt", "")
+                cmd += " --report-formats json txt --report-file %s" % logpath
             else:
                 cmd = "%s {input.fastq[0]}" % executable
             if fwd:

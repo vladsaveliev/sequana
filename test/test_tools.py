@@ -1,6 +1,6 @@
 from sequana.tools import bam_to_mapped_unmapped_fastq, reverse_complement, StatsBAM2Mapped
 from sequana import sequana_data
-from sequana.tools import bam_get_paired_distance
+from sequana.tools import bam_get_paired_distance, GZLineCounter, PairedFastQ
 
 
 def test_StatsBAM2Mapped():
@@ -32,3 +32,13 @@ def test_gc_content():
     from sequana.tools import gc_content
     data = sequana_data('test.fasta', "testing")
     gc_content(data, 10)['seq1']
+
+def test_gzlinecounter():
+    assert len(GZLineCounter(sequana_data("test.fastq.gz"))) == 1000
+
+
+def test_paired_file():
+    f1 = sequana_data("test.fastq.gz")
+    f2 = sequana_data("test.fastq.gz")
+
+    assert PairedFastQ(f1,f2).is_synchronised()

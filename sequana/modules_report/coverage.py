@@ -27,8 +27,8 @@ from sequana.utils.datatables_js import DataTable, DataTableFunction
 from sequana.plots.canvasjs_linegraph import CanvasJSLineGraph
 from sequana import logger
 
-__all__ = ["CoverageModule", "ChromosomeCoverageModule"]
 
+__all__ = ["CoverageModule", "ChromosomeCoverageModule"]
 
 
 class CoverageModule(SequanaBaseModule):
@@ -94,7 +94,8 @@ class CoverageModule(SequanaBaseModule):
 
     def create_reports(self):
         """ Create HTML report for each chromosome present in data.
-        """ 
+        """
+        # FIXME: why bed[0] (i.e. first chromosome)
         datatable_js = CoverageModule.init_roi_datatable(self.bed[0])
         chrom_output_dir = config.output_dir + os.sep + "coverage_reports"
         if not os.path.exists(chrom_output_dir):
@@ -448,14 +449,14 @@ class SubCoverageModule(SequanaBaseModule):
                          'labelFontColor': '#FFC425'})
         # set datas
         cjs.set_data(index=0, data_dict={'type': 'line',
-                                         'name': "Filtered coverage",
+                                         'name': "Coverage",
                                          'showInLegend': 'true',
                                          'color': '#5BC0DE',
                                          'lineColor': '#5BC0DE'})
         try:
             i = y_col.index('mapq0')
             cjs.set_data(index=i, data_dict={'type': 'line',
-                                             'name': "Unfiltered coverage",
+                                             'name': "Filtered coverage",
                                              'showInLegend': 'true',
                                              'color': '#D9534F',
                                              'lineColor': '#D9534F'})
@@ -511,7 +512,8 @@ class SubCoverageModule(SequanaBaseModule):
                 "{4}\n"
                 "<p>Running median is the median computed along the genome "
                 "using a sliding window. The following tables give regions of "
-                "interest detected by sequana. Here is some captions:</p>\n"
+                "interest detected by sequana. Here are some definition of the "
+                "table's columns:</p>\n"
                 "<ul><li><b>mean_cov</b>: the average of coverage</li>\n"
                 "<li><b>mean_rm</b>: the average of running median</li>\n"
                 "<li><b>mean_zscore</b>: the average of zscore</li>\n"

@@ -22,6 +22,8 @@ import string
 import glob
 import json
 import re
+import gzip
+import io
 from collections import Counter
 
 from sequana.lazy import pandas as pd
@@ -30,9 +32,10 @@ from sequana import BAM
 
 from pysam import FastxFile
 from easydev import precision
+from easydev.misc import cmd_exists
+import subprocess
 
-
-__all__ = ['StatsBAM2Mapped', 'bam_to_mapped_unmapped_fastq']
+__all__ = ['StatsBAM2Mapped', 'bam_to_mapped_unmapped_fastq', "GZLineCounter"]
 
 
 class DataContainer(dict):
@@ -112,7 +115,9 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
     In the paired-end case, 4 files are created.
 
     Note that this function is efficient in that it does not create intermediate
-    files limiting IO in the process.
+    files limiting IO in the process. As compared to standard tools such as 
+    bedtools bamtofastq, it is 1.5 to 2X slower but it does create the mapped
+    AND unmapped reads.
 
     :Details: Secondary alignment (flag 256) are dropped so as to remove any
         ambiguous alignments. The output dictionary stores "secondary" key to
@@ -138,7 +143,7 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
 
     .. note:: the mapped reads may not be synchronized because we include also
         the chimeric alignment (cf samtools documentation). However, 
-        total reads = unmappeds reads + R1 mapped + R2 mapped - supplemntary
+        total reads = unmappeds reads + R1 mapped + R2 mapped - supplementary
         reads (those with flag 2048).
     """
     bam = BAM(filename)
@@ -162,7 +167,6 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
 
     rt1 = "_R1_"
     rt2 = "_R2_"
-
 
     R1_mapped = open(newname + "{}.mapped.fastq".format(rt1), "wb")
     R1_unmapped = open(newname + "{}.unmapped.fastq".format(rt1), "wb")
@@ -251,8 +255,10 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
     if bam.is_paired:
         R2_mapped.close()
         R2_unmapped.close()
+
     if verbose:
         print("\nNumber of entries in the BAM: %s" % str(i+1))
+
     R1_mapped.close()
     R1_unmapped.close()
 
@@ -380,13 +386,13 @@ def genbank_features_parser(input_filename):
                     name = line.split()[1]
                 elif line.startswith("FEATURE"):
                     feature_field = True
-
             else:
                 # if feature field is finished
                 if line.startswith("ORIGIN"):
                     feature_field = False
                     records[name] = feature_list
                     feature_list = []
+                    new_feature = []
                     continue
 
                 # if there are a word in qualifier indent (feature type)
@@ -425,3 +431,93 @@ def genbank_features_parser(input_filename):
                         else:
                             new_feature[key] += " " + quali_line
     return records
+
+
+
+
+class GZLineCounter(object):
+    """Fast GZipped line counter
+
+    Uses zcat if possible, otherwise gzip library (twice as slow).
+
+    .. doctest::
+
+        >>> from sequana import sequana_data
+        >>> from sequana.misc import GZLineCounter
+        >>> gz = GZLineCounter(sequana_data("test.fastq.gz"))
+        >>> len(gz)
+        100
+
+    """
+    def __init__(self, filename):
+        self.filename = filename
+        if cmd_exists("zcat"):
+            self.use_zcat = True
+        else:
+            self.use_zcat = False
+
+    def __len__(self):
+        if self.use_zcat:
+            return self._use_zcat()
+        else:
+            return self._use_gzip()
+
+    def _use_zcat(self):
+        i = 0
+        p = subprocess.Popen(["zcat", self.filename], stdout=subprocess.PIPE)
+        for line in p.stdout:
+            i +=1
+        return i
+
+    """twice as fast as the other method below but large memory print
+    def _use_gzip(self):
+        with gzip.open(self.filename) as gz_file:
+            data = gz_file.read()
+        return len(data.splitlines())
+    """
+    def _use_gzip(self):
+        i = 0
+        with gzip.open(self.filename) as gz_file:
+            with io.BufferedReader(gz_file) as f:
+                for line in f:
+                    i += 1
+        return i
+
+
+
+class PairedFastQ(object):
+
+    def __init__(self, fq1, fq2):
+        self.fq1 = fq1
+        self.fq2 = fq2
+
+    def is_synchronised(self):
+        from sequana import FastQ
+        N = 0
+        for a, b in zip(FastQ(self.fq1), FastQ(self.fq2)):
+            a = a['identifier'].decode()
+            b = b['identifier'].decode()
+            a = a.split()[0]
+            b = b.split()[0]
+
+            if a.endswith("/1"):
+                id1 = a.rsplit("/1")[0]
+            elif a.endswith("/2"):
+                id1 = a.rsplit("/2")[0]
+            else:
+                id1 = a
+            if b.endswith("/1"):
+                id2 = b.rsplit("/1")[0]
+            elif b.endswith("/2"):
+                id2 = b.rsplit("/2")[0]
+            else:
+                id2 = b
+
+            if id1 != id2:
+                print("%s differs from %s" % (id1, id2))
+                print(a)
+                print(b)
+                return False
+            N += 1
+        print(N)
+        return True

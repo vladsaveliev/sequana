@@ -64,6 +64,7 @@ rule bwa_mem_%(name)s:
                 threads: 4         # Number of threads used by BWA mem.
                 options:           # Any options recognised by BWA mem tool.
                 tmp_directory: '/tmp' # Temporary directory.
+                sambamba_sort: -N  # -N for QC pipeline and "" for variant and denovo.
 
     Note:
         When a dynamic rule is included, template variables must be replaced.
@@ -86,14 +87,21 @@ rule bwa_mem_%(name)s:
         tmp = config['bwa_mem_%(name)s']['tmp_directory']
     threads:
         int(config['bwa_mem_%(name)s']['threads'])
-    shell:
-        """
+    run:
+        # -N is important to sort like in samtools
+        if __pipeline_name__ == "quality_control":
+            sambamba_sort = " -N "
+        else:
+            sambamba_sort = ""
+        shell("""
         ({params.bwa_exe} mem -t {threads} {params.options} \
         {input.reference} {input.fastq} | \
-        samtools view -Sbu - | \
+        sambamba view -t {threads} -S -f bam -o /dev/stdout /dev/stdin | \
         sambamba sort /dev/stdin -o {output.bam} -t {threads} \
-        --tmpdir={params.tmp}) 2> {log}
-        """
+        --tmpdir={params.tmp} """ + sambamba_sort + """ )  2> {log}""")
+
+        # v0.5.1 replace this: samtools view -Sbu - | \ 
+        # sambamba
     '''
     from sequana.snaketools import build_dynamic_rule
     return build_dynamic_rule(bwa_mem_code % metadata, project.pipeline_dir)

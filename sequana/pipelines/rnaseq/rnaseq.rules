@@ -103,6 +103,7 @@ else:
 __fastqc_samples__input_fastq = __data__input
 __fastqc_samples__output_done = manager.getname("fastqc_samples", ".done")
 __fastqc_samples__wkdir       = manager.getwkdir("fastqc_samples")
+__fastqc_samples__log         = "%s/fastqc_samples/fastqc.log" % manager.sample
 include: fastqc_dynamic("samples", manager)
 expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samples))
 
@@ -171,7 +172,6 @@ if manager.config.fastq_screen.do:
     include: sm.modules["fastq_screen"]
     if manager.config.fastq_screen.pf2_report:
         __fastq_screen_report__input = __fastq_screen__outdir
-        __fastq_screen_report__sample = manager.sample
         __fastq_screen_report__input_done = __fastq_screen__output
         __fastq_screen_report__figure = manager.getname("fastq_screen", "_report.svg")
         __fastq_screen_report__logs =  manager.getname("fastq_screen", "pf2_report.logs")
@@ -181,10 +181,33 @@ if manager.config.fastq_screen.do:
         expected_output.extend(expand(__fastq_screen__output, sample=manager.samples))
 
 
+
+# if no database provided, let us make sure kraken option is off
+if manager.config.kraken.database_directory is False:
+    manager.config.kraken.do = False
+
+if manager.config.kraken.do:
+    if manager.config['cutadapt'].do:
+        __kraken__input = __clean_ngs__output
+    else:
+        __kraken__input = __data_input
+
+    __kraken__output_wkdir = manager.getwkdir("kraken")
+    __kraken__output_html = manager.sample + "/kraken/kraken.html"
+    __kraken__output = manager.sample + "/kraken/kraken.out"
+    __kraken__output_csv = manager.sample + "/kraken/kraken.csv"
+    __kraken__output_json = manager.sample + "/kraken/kraken.json"
+    include: sm.modules['kraken']
+    expected_output.append(expand(__kraken__output_html, sample=manager.samples))
+    expected_output.append(expand(__kraken__output_json, sample=manager.samples))
+
+
+
 # FASTQC on input data set
 __fastqc_filtered__input_fastq = __clean_ngs__output
 __fastqc_filtered__output_done = manager.getname("fastqc_filtered", ".done")
 __fastqc_filtered__wkdir       = manager.getwkdir("fastqc_filtered")
+__fastqc_filtered__log         = "%s/fastqc_filtered/fastqc.log" % manager.sample
 include: fastqc_dynamic("filtered", manager)
 expected_output.extend(expand(__fastqc_filtered__output_done, sample=manager.samples))
 
@@ -264,7 +287,7 @@ else :
 if manager.config.star_mapping.do:
     __feature_counts__input = __star_mapping__sort
 else :
-    __feature_counts__input = __bowtie1_mapping_ref__sort
+    __feature_counts__input = __mapping_output
 if manager.config.feature_counts.do:
 	__feature_counts__output_count = manager.getname("feature_counts", "_feature.out")
 	__feature_counts__gff = config["genome"]["gff_file"]
@@ -309,6 +332,22 @@ if config["RNAseQC"]["do"]:
     __RNAseQC__figure =  "RNAseQC/Transcript-associated_Reads_metrics.svg"
     include: sm.modules["RNAseQC"]
     expected_output.extend([__RNAseQC__figure])
+
+
+if config["SARTools"]["do"]:
+    __preSARTools__input = expand(__feature_counts__output_gene_count, sample=manager.samples)
+    __preSARTools__logs = "SARTools/preSARTools.log"
+    __preSARTools__output_directory = "SARTools/" + config["SARTools"]["rawDir"]
+    __preSARTools__targetFile = "SARTools/target.txt"
+    include: sm.modules["preSARTools"]
+    __SARTools__input = config["SARTools"]["rawDir"]
+    __SARTools__targetFile = __preSARTools__targetFile
+    __SARTools__logs = "SARTools.log"
+    __SARTools__output = "SARTools/"
+    __SARTools__output_file = "SARTools.done"
+    include: sm.modules["SARTools"]
+    expected_output.extend([__SARTools__output_file])
+
 
 # !Reset expected_output variable after multiqc
 # Multiqc rule
@@ -360,8 +399,6 @@ rule rnaseq:
     input: expected_output
 
 
-
-
 onsuccess:
     import os
     # Create plots about stats
@@ -382,13 +419,14 @@ onsuccess:
         try: os.mkdir("cluster_logs")
         except:pass
 
-        shell("mv slurm* cluster_logs/")
+        try: shell("mv slurm* cluster_logs/")
+        except: pass
 
         # Create a cleanup python file to clean a sub-directory
         sm.create_cleanup(proj)
 
-    sm.create_recursive_cleanup()
-    sm.message("Done. To further cleanup the directory, type \n python .sequana_cleanup.py")
+    sm.OnSuccess()() # create instance to create main cleanup
+
 
 onerror:
     print("An error occurred. See message above.")

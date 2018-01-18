@@ -27,7 +27,7 @@ rule fastq_screen:
     threads: 4
     params:
         configFile = config['fastq_screen']['conf'],
-        options = config['fastq_screen']['conf']
+        options = config['fastq_screen']['options']
     shell:
         """
         fastq_screen --outdir {output.outdir} --threads {threads} --conf {params.configFile} {params.options} {input}

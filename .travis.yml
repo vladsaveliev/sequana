@@ -29,9 +29,9 @@ install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements.txt
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_dev.txt
   # ideally, we should use requirements_pipelines but this lead to stall on
-  # travis. so we provide just the following packages, required for the test
-  # only
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION kraken bwa snpeff shustring krona
+  # travis because of many dependencies. For testing, we only need those ones
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION kraken bwa snpeff shustring krona sambamba
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION picard pigz freebayes cutadapt fastqc
   #- conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_pipelines.txt
   - pip install pytest-xdist # somehow needs to be installed with pip (not registered with conda)
   - pip install .

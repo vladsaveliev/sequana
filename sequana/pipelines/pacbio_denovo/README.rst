@@ -1,5 +1,6 @@
 :Overview: denovo with canu dedicated to pacbio raw data set followed by quality assessment
-:Input: ***.fasta** files  to be found in a directory
+:Input: ***.fasta** files  to be found in a directory. This is not the BAM file.
+    To convert the BAM to fasta, you may use **converter** from biokit.
 :Output: assembly
 :Status: in progress
 
