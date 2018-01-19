@@ -120,7 +120,7 @@ __bowtie2_mapping__sort = manager.getname("bowtie2_mapping", ".sorted.bam")
 __bowtie2_mapping__bam = manager.getname("bowtie2_mapping", ".bam")
 __bowtie2_mapping__logs_err = "%s/logs/bowtie2/stderr.logs" % manager.sample
 __bowtie2_mapping__logs_out = "%s/logs/bowtie2/stdout.logs" % manager.sample
-__bowtie2_mapping__prefix index = __bowtie2_index__
+__bowtie2_mapping__prefix_index = __bowtie2_index__
 include: sm.modules["bowtie2_mapping"]
 expected_output.extend(expand(__bowtie2_mapping__sort, sample=manager.samples))
 
@@ -158,7 +158,7 @@ expected_output.extend(expand(__CollectInsertSizeMetrics__output, sample=manager
 __macs2__ = __mark_duplicates__output
 __macs2__input_bam = "None"
 __macs2__log = "%s/logs/macs2/peak_calling.err" % manager.sample
-__macs2__output = #Be carefull, the output is a prefix
+__macs2__output = manager.getname("macs2", "Peaks")
 __macs2__output_done = manager.getname("macs2", ".done")
 include: sm.modules["macs2"]
 expected_output.extend(expand(__macs2__output, sample=manager.samples))

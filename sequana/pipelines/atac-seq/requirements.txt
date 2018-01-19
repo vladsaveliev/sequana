@@ -1,6 +1,5 @@
 - cutadapt
 - picard-tools
-- macs2
 - bowtie2
 - multiqc
 - deeptools
