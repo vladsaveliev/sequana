@@ -31,7 +31,7 @@ rule bowtie2_mapping:
         err = __bowtie2_mapping__logs_err,
         out = __bowtie2_mapping__logs_out
     params:
-        prefix_index = __bowtie2_mapping__prefix index,
+        prefix_index = __bowtie2_mapping__prefix_index,
         options = config["bowtie2_mapping"]["options"],
     threads:
         config["bowtie2_mapping"]["threads"]

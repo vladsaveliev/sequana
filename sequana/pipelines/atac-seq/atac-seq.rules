@@ -8,7 +8,7 @@ import os
 import sequana
 from os.path import join
 from sequana import snaketools as sm
-sm.init("rnaseq.rules", globals())
+sm.init("atac-seq.rules", globals())
 
 
 # This must be defined before the include
@@ -58,7 +58,7 @@ __fastqc_samples__input_fastq = __data__input
 __fastqc_samples__output_done = manager.getname("fastqc_samples", ".done")
 __fastqc_samples__wkdir       = manager.getwkdir("fastqc_samples")
 __fastqc_samples__log         = "%s/fastqc_samples/fastqc.log" % manager.sample
-include: fastqc_dynamic("samples", manager.sample)
+include: fastqc_dynamic("samples", manager)
 expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samples))
 
 
@@ -110,21 +110,22 @@ __fastqc_filtered__input_fastq = __cutadapt__output
 __fastqc_filtered__output_done = manager.getname("fastqc_filtered", ".done")
 __fastqc_filtered__wkdir       = manager.getwkdir("fastqc_filtered")
 __fastqc_filtered__log         = "%s/fastqc_filtered/fastqc.log" % manager.sample
-include: fastqc_dynamic("filtered", manager.sample)
+include: fastqc_dynamic("filtered", manager)
 expected_output.extend(expand(__fastqc_filtered__output_done, sample=manager.samples))
 
 # Mapping with bowtie2
 __bowtie2_mapping__input = __cutadapt__output
 __bowtie2_mapping__index_done = __bowtie2_index__output_done
 __bowtie2_mapping__sort = manager.getname("bowtie2_mapping", ".sorted.bam")
+__bowtie2_mapping__bam = manager.getname("bowtie2_mapping", ".bam")
 __bowtie2_mapping__logs_err = "%s/logs/bowtie2/stderr.logs" % manager.sample
 __bowtie2_mapping__logs_out = "%s/logs/bowtie2/stdout.logs" % manager.sample
-__bowtie2_mapping__prefix index = __prefix_name__
-__bowtie2_mapping__sam = manager.getname("bowtie2_mapping", ".sam")
-
+__bowtie2_mapping__prefix index = __bowtie2_index__
+include: sm.modules["bowtie2_mapping"]
+expected_output.extend(expand(__bowtie2_mapping__sort, sample=manager.samples))
 
 # Add Read group on BAM files
-__add_read_group__input = __mapping_output
+__add_read_group__input = __bowtie2_mapping__sort
 __add_read_group__output = manager.getname("add_read_group/", "_RG_sorted.bam")
 __add_read_group__log_err = "%s/logs/AddOrReplaceReadGroups/stderr.logs" % manager.sample
 __add_read_group__log_std ="%s/logs/AddOrReplaceReadGroups/stdout.logs" % manager.sample
