@@ -43,11 +43,11 @@ rule bowtie2_mapping:
             bowtie_input = "-U " + input.fastq[0]
         cmd = cmd + " " + bowtie_input
         # sam to bam
-        cmd = "%%s | samtools view -Sbh - > {output.bam}" %% cmd
+        cmd = cmd + " | samtools view -Sbh - > {output.bam}"
         # logs
-        cmd = "(%%s) > {log.out} 2> {log.err}" %% cmd
+        cmd = cmd + " > {log.out} 2> {log.err}"
         # sort result
-        cmd = "%%s && samtools sort -o {output.sort} {output.bam}" %% cmd
-        cmd = "%%s && samtools index {output.sort}" %% cmd
+        cmd = cmd + " && samtools sort -o {output.sort} {output.bam}"
+        cmd = cmd + " && samtools index {output.sort}"
 
         shell(cmd )
