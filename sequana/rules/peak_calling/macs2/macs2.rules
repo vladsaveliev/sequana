@@ -1,4 +1,3 @@
-
 rule macs2:
     """
     macs2 peak caller https://github.com/taoliu/MACS. Main MACS2 Function to Call peaks from alignment results.

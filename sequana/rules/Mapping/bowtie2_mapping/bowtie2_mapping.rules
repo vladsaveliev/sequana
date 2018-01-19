@@ -1,5 +1,4 @@
 rule bowtie2_mapping:
-
     """
     Read mapping for either single end and paired end data using Bowtie2.
 
