@@ -44,7 +44,7 @@ rule bowtie2_mapping:
             bowtie_input = "-U " + unzip_file[0]
         cmd = cmd + " " + bowtie_input
         # sam to bam
-        cmd = "%%s | samtools view -Sbh -> {output.bam}" %% cmd
+        cmd = "%%s | samtools view -Sbh - > {output.bam}" %% cmd
 
         # logs
         cmd = "(%%s) > {log.out} 2> {log.err}" %% cmd
@@ -54,4 +54,4 @@ rule bowtie2_mapping:
         cmd = "%%s && samtools index {output.sort}" %% cmd
 
 
-        shell("unpigz -p {threads} -fk {input.fastq}  && " + cmd )
+        shell(cmd )
