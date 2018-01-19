@@ -41,7 +41,7 @@ rule bowtie2_mapping:
         if len(input.fastq) == 2:
             bowtie_input = "-1 " + unzip_file[0] + " -2 " + unzip_file[1]
         else:
-            bowtie_input = "-U "unzip_file[0]
+            bowtie_input = "-U " + unzip_file[0]
         cmd = cmd + " " + bowtie_input
         # sam to bam
         cmd = "%%s | samtools view -Sbh -> {output.bam}" %% cmd
