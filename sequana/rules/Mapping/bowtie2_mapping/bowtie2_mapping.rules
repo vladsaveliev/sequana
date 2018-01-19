@@ -35,13 +35,12 @@ rule bowtie2_mapping:
     threads:
         config["bowtie2_mapping"]["threads"]
     run:
-        unzip_file = [filename[:-3] for filename in input.fastq]
         cmd = "bowtie2 -p {threads} {params.options} -x {params.prefix_index}"
-        # paired end or single end unzip
+        # paired end or single end
         if len(input.fastq) == 2:
-            bowtie_input = "-1 " + unzip_file[0] + " -2 " + unzip_file[1]
+            bowtie_input = "-1 " + input.fastq[0] + " -2 " + input.fastq[1]
         else:
-            bowtie_input = "-U " + unzip_file[0]
+            bowtie_input = "-U " + input.fastq[0]
         cmd = cmd + " " + bowtie_input
         # sam to bam
         cmd = "%%s | samtools view -Sbh - > {output.bam}" %% cmd
