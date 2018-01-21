@@ -35,13 +35,14 @@ class CoverageModule(SequanaBaseModule):
     """ Write HTML report of coverage analysis. This class takes either a
     :class:`GenomeCov` instances or a csv file where analysis are stored.
     """
-    def __init__(self, data):
+    def __init__(self, data, region_window=200000):
         """.. rubric:: constructor
 
         :param data: it can be a csv filename created by sequana_coverage or a
         :class:`bedtools.GenomeCov` object.
         """
         super().__init__()
+        self.region_window=region_window
         try:
             self.bed = bedtools.GenomeCov(data)
         except FileNotFoundError:
@@ -50,12 +51,14 @@ class CoverageModule(SequanaBaseModule):
             raise FileNotFoundError(msg)
         except TypeError:
             self.bed = data
+
         try:
             html_list = self.create_reports()
         except TypeError:
             msg = ("Data must be either a csv file or a :class:`GenomeCov` "
                    "instance where zscore is computed.")
             raise TypeError(msg)
+
         self.title = "Coverage Report of {0}".format(config.sample_name)
         self.intro = ("<p>Report the coverage of your sample {0} to check the "
                       "quality of your mapping and to highlight regions of "
@@ -100,10 +103,12 @@ class CoverageModule(SequanaBaseModule):
         chrom_output_dir = config.output_dir + os.sep + "coverage_reports"
         if not os.path.exists(chrom_output_dir):
             os.makedirs(chrom_output_dir)
+
         page_list = []
         for chrom in self.bed:
             logger.info("Creating coverage report {}".format(chrom.chrom_name))
-            chrom_report = ChromosomeCoverageModule(chrom, datatable_js)
+            chrom_report = ChromosomeCoverageModule(chrom, datatable_js,
+                                                    region_window=self.region_window)
             page_list.append(chrom_report.html_page)
         return page_list
 
@@ -115,7 +120,7 @@ class CoverageModule(SequanaBaseModule):
         let's initiate its only once.
         """
         # get an roi df
-        df = chrom.get_roi().df.copy()
+        df = chrom.get_rois().df.copy()
         df['link'] = ''
         # set datatable options
         datatable_js = DataTableFunction(df, 'roi')
@@ -133,10 +138,20 @@ class ChromosomeCoverageModule(SequanaBaseModule):
     """ Write HTML report of coverage analysis for each chromosome. It is
     created by CoverageModule.
     """
-    def __init__(self, chromosome, datatable, directory="coverage_reports"):
+    def __init__(self, chromosome, datatable, directory="coverage_reports",
+            region_window=200000):
         """
+
+        :param chromosome:
+        :param datatable:
+        :param directory:
+        :param int region_window: length of the sub coverage plot
+
         """
         super().__init__()
+        self.region_window = region_window
+
+
         # to define where are css and js
         if directory in {None, '.'}:
             self.path = ''
@@ -159,7 +174,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         """
         self.sections = list()
 
-        rois = self.chromosome.get_roi()
+        rois = self.chromosome.get_rois()
 
         self.coverage_plot()
         links = self.subcoverage(rois, directory)
@@ -208,28 +223,61 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         })
 
     def subcoverage(self, rois, directory):
-        """ Create subcoverage report to have acces of a zoomable line plot.
+        """ Create subcoverage reports to have access to a zoomable line plot.
+
+        :params rois:
+        :param directory:
+
+        This method create sub reports for each region of 200,000 bases (can be
+        changed). Usually, it starts at position 0 so reports will be stored
+        in e.g. for a genome of 2,300,000 bases::
+
+            chromosome_name/chromosome_name_0_200000.html
+            chromosome_name/chromosome_name_200000_400000.html
+            ...
+            ...
+            chromosome_name/chromosome_name_2000000_2200000.html
+            chromosome_name/chromosome_name_2200000_2300000.html
+
+        Note that if the BED file positions does not start at zero, then
+        names will take care of that.
+
         """
+        # an aliases
+        W = self.region_window
+        name = self.chromosome.chrom_name
+        chrom = self.chromosome
+        N = len(self.chromosome)
+
+        # position does not always start at position zero 
+        shift = self.chromosome.df.pos.iloc[0]
+        maxpos = self.chromosome.df.pos.iloc[-1]
+
         # create directory
         chrom_output_dir = os.sep.join([config.output_dir, directory,
-                                       str(self.chromosome.chrom_name)])
+                                       str(name)])
         if not os.path.exists(chrom_output_dir):
             os.makedirs(chrom_output_dir)
+
         # create the combobox to link toward different sub coverage
-        links = ["{0}/{0}_{1}_{2}.html".format(self.chromosome.chrom_name,
-                 i, min(i + 200000, len(self.chromosome))) for i in
-                 range(0, len(self.chromosome), 200000)]
-        intra_links = ("{0}_{1}_{2}.html".format(self.chromosome.chrom_name,
-                       i, min(i + 200000, len(self.chromosome))) for i in
-                       range(0, len(self.chromosome), 200000))
+        # Here, we should (1) get the length of the data and (2)
+        # figure out the boundary. Indeed, you can imagine a BED file
+        # that does not start at position zero, but from POS1>0 to POS2
+
+        links = ["{0}/{0}_{1}_{2}.html".format(name,
+                 i, min(i + W, maxpos)) for i in range(shift, shift+N, W)]
+        intra_links = ("{0}_{1}_{2}.html".format(name,
+                       i, min(i + W, maxpos)) for i in range(shift, shift+N, W))
+
         combobox = self.create_combobox(links, 'sub', True)
         combobox_intra = self.create_combobox(intra_links, 'sub', False)
         datatable = self._init_datatable_function(rois)
-        # break the chromosome as piece of 200 Mbp
-        for i in range(0, len(self.chromosome), 200000):
-            SubCoverageModule(self.chromosome, rois, combobox_intra, datatable,
-                              i, min(i + 200000, len(self.chromosome)),
-                              directory)
+
+        # break the chromosome as pieces of 200,000 bp
+        for i in range(shift, shift+N, W):
+            SubCoverageModule(chrom, rois, combobox_intra, datatable,
+                              i, min(i + W, maxpos), directory)
+
         self.sections.append({'name': 'Subcoverage',
                               'anchor': 'subcoverage',
                               'content': combobox})
@@ -252,10 +300,23 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         """ Basics statistics section.
         """
         li = '<li><b>{0}</b> ({1}): {2:.2f}</li>'
-        df = self.chromosome.get_stats(output="dataframe")
-        stats = [li.format(tag, desc, value) for desc, value, tag in
-                 zip(df['Description'], df['Value'], df['name'])]
-        stats = '<ul>{0}</ul>'.format('\n'.join(stats))
+        stats = self.chromosome.get_stats()
+
+        description = {
+            "BOC": "breadth of coverage: the proportion (in %s) "+
+                   " of the genome covered by at least one read.",
+            "CV": "the coefficient of variation.",
+            "DOC": "the sequencing depth (Depth of Coverage), that is the " +
+                    "average the genome coverage.",
+            "MAD": "median of the absolute median deviation defined as median(|X-median(X)|).",
+            "Median": "Median of the coverage.",
+            "STD":  "standard deviation.",
+            "GC": "GC content (%)"}
+
+        data = [li.format(key, description[key], stats[key]) for key in ["BOC", "CV", "DOC",
+"MAD", "Median", "STD", "GC"] if key in stats.keys()]
+
+        stats = '<ul>{0}</ul>'.format('\n'.join(data))
         self.sections.append({
             'name': "Basic stats",
             'anchor': 'basic_stats',
@@ -265,22 +326,19 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         })
 
     def regions_of_interest(self, rois, links):
-        """ Region of interest section.
-        """ 
-        # add links to the roi
-        x = 200000
-        i = 0
-        def connect_link(n, x, i):
-            condition = True
-            while condition:
-                if n > x:
-                    x += 200000
-                    i += 1
-                else:
-                    condition = False
-            return i
-        links_list = [links[connect_link(n[0],x,i)] for n in
-                     zip(rois.df['start'])]
+        """ Region of interest section. """
+
+        def connect_link(x):
+            for link in links:
+                _, x1, x2 = link.rsplit(os.sep)[1].rstrip(".html").split("_")
+                x1 = int(x1)
+                x2 = int(x2)
+                if x >= x1 and x<x2:
+                    return link
+            raise Exception("{} position not in the range of reports".format(x))
+
+        links_list = [connect_link(n) for n in rois.df['start']]
+
         rois.df['link'] = links_list
         # create datatable
         low_roi = rois.get_low_roi()
@@ -293,8 +351,8 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         rois.df.drop('link', 1, inplace=True)
         roi_paragraph = (
             "<p>Regions with a z-score {0}er than {1:.2f} and at "
-            "least one base with a z-score {0}er than {2:.2f} are detected as "
-            "{0} coverage region. Thus, there are {3} {0} coverage regions."
+            "least one base with a z-score {0}er than {2:.2f} are detected."
+            "There are {3} {0} regions of interest."
             "</p>"
         )
         low_paragraph = roi_paragraph.format("low",
@@ -385,10 +443,12 @@ class SubCoverageModule(SequanaBaseModule):
     def __init__(self, chromosome, rois, combobox, datatable, start, stop,
                  directory):
         super().__init__()
+
         if directory == ".":
             self.path = "../"
         else:
             self.path = "../../"
+
         self.chromosome = chromosome
         self.rois = rois
         self.combobox = combobox
@@ -483,6 +543,7 @@ class SubCoverageModule(SequanaBaseModule):
         """ Region of interest section.
         """
         subseq = [self.start, self.stop]
+
         low_roi = self.rois.get_low_roi(subseq)
         high_roi = self.rois.get_high_roi(subseq)
         js = self.datatable.create_javascript_function()
@@ -505,6 +566,7 @@ class SubCoverageModule(SequanaBaseModule):
                                               self.chromosome.thresholds.high,
                                               len(high_roi), self.start,
                                               self.stop)
+
         self.sections.append({
             "name": "Regions Of Interest (ROI)",
             "anchor": "roi",

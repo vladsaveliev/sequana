@@ -65,7 +65,7 @@ def test_input(tmpdir):
         print(err)
         assert True
     print(os.listdir(directory_run.__str__()))
-    assert os.path.exists(directory_run.__str__() + os.sep + "sequana_coverage.html")
+    assert os.path.exists(directory_run.__str__() + os.sep + "multiqc_report.html")
     try:
         coverage.main([prog, '-i', filename, "-o", "--output-directory",
                        directory_run.__str__(), "-r",
@@ -75,3 +75,5 @@ def test_input(tmpdir):
         print(err)
         assert True
     assert os.path.exists(str(directory_run) + os.sep + 'JB409847.cov.html')
+
+

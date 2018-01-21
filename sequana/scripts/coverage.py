@@ -27,7 +27,7 @@ from argparse import RawTextHelpFormatter
 
 from sequana import bedtools
 from sequana.modules_report.coverage import CoverageModule
-from sequana.modules_report.coverage import ChromosomeCoverageModule 
+from sequana.modules_report.coverage import ChromosomeCoverageModule
 from sequana.utils import config
 from sequana import logger
 from sequana.bedtools import GenomeCov, FilteredGenomeCov
@@ -36,6 +36,7 @@ from easydev import shellcmd, mkdirs
 from easydev.console import purple
 
 from pylab import show, figure, savefig
+
 
 
 # http://stackoverflow.com/questions/18462610/argumentparser-epilog-and-description-formatting-in-conjunction-with-argumentdef
@@ -50,13 +51,13 @@ class Options(argparse.ArgumentParser):
     Extract and plot coverage of one or more chromosomes/contigs in a BED or BAM
     file. In addition, running median used in conjunction with double thresholds
     extract regions of interests (low or high coverage). A reference may be
-    provided to plot the coverage versus GC content. 
+    provided to plot the coverage versus GC content.
 
     The input file should be one of the following:
 
     - a BED file that is a tabulated file at least 3 columns.
-      The first column being the reference, the second is the position 
-      and the third column contains the coverage itself. 
+      The first column being the reference, the second is the position
+      and the third column contains the coverage itself.
     - or a BAM file that is converted automatically
       into a BED file using the following command:
 
@@ -83,13 +84,13 @@ class Options(argparse.ArgumentParser):
     unfiltered one.
 
 
-    Note for multi chromosome and genbank features: for now, you will need to call 
+    Note for multi chromosome and genbank features: for now, you will need to call
     sequana_coverage for each chromosome individually since we accept only one
     genbank as input parameter:
 
         sequana_coverage --input file.bed --genbank chrom1.gbk -c 1
 
-    chromosome order in the BED and 
+    chromosome order in the BED and
 
         """)
 
@@ -117,12 +118,11 @@ Issues: http://github.com/sequana/sequana
 
         group = self.add_argument_group("Optional biological arguments")
         group.add_argument(
-            '-c', "--chromosome", dest="chromosome", type=int, default=0,
-            help="Chromosome number (if only one, no need to use: the single"
-                 " chromosome is chosen automatically). Default is "
-                 " first chromosome found in the BED file. You may want to"
-                 " analyse all chromosomes at the same time. If so, set this"
-                 " parameter to 0")
+            '-c', "--chromosome", dest="chromosome", type=int, default=-1,
+            help="Chromosome number (if only one chromosome found, the single"
+                 " chromosome is chosen automatically). Otherwise all "
+                 "chromosomes are analysed. You may want to analyse only one"
+                 " in which case, use this parameter (e.g., -c 1)")
         group.add_argument('-o', "--circular", dest="circular",
             default=False, action="store_true",
             help="""If the DNA of the organism is circular (typically
@@ -131,16 +131,18 @@ Issues: http://github.com/sequana/sequana
         group = self.add_argument_group("General")
         group.add_argument("--output-directory", dest="output_directory",
             default="report", help="name of the output (report) directory.")
-        group.add_argument('--show-html', dest="show_html", default=False,
-            action='store_true',
-            help="""When report is created, you can open
-            the main page automatically with this option (default is False)""")
         group.add_argument("-q", "--quiet", dest="verbose",
             default=True, action="store_false")
-        group.add_argument('--no-report', dest="create_report",
-            default=True, action='store_false',
-            help="""Do not create any HTML report""")
-        group.add_argument("--logging-level", dest="logging_level",
+        group.add_argument('--no-html', dest="skip_html",
+            default=False, action='store_true',
+            help="""Do not create any HTML reports. Save ROIs and statistics only.""")
+        group.add_argument('--no-multiqc', dest="skip_multiqc",
+            default=False, action='store_true',
+            help="""Do not create any multiqc HTML page.""")
+        group.add_argument("--debug-level", dest="logging_level",
+            default="INFO",
+            help="set to DEBUG, INFO, WARNING, CRITICAL, ERROR")
+        group.add_argument("--level", dest="logging_level",
             default="INFO",
             help="set to DEBUG, INFO, WARNING, CRITICAL, ERROR")
         group = self.add_argument_group('Annotation')
@@ -164,11 +166,11 @@ Issues: http://github.com/sequana/sequana
         #group running median
         group = self.add_argument_group("Running Median related")
         group.add_argument("-w", "--window-median", dest="w_median", type=int,
-            help="""Length of the running median window (default 4001,
-                 recommended for viruses).  For long genome, 20001
-                 or 30001 is recommended but larger windows may be
-                 useful in the presence of long deleted regions.""",
-            default=4001)
+            help="""Length of the running median window (default 20001,
+                recommended for bacteria).  For short genome (below 100000
+                bases), we set this parameter to one fifth of the genome 
+                length .""",
+            default=20001)
 
         group.add_argument("-k", "--mixture-models", dest="k", type=int,
             help="""Number of mixture models to use (default 2, although if sequencing
@@ -193,6 +195,7 @@ Issues: http://github.com/sequana/sequana
 Do not use value close to zero. Ideally, around 0.5. lower value will tend to
 cluster more than higher value""")
 
+        # group facilities
         group = self.add_argument_group("Download reference")
         group.add_argument("--download-reference", dest="download_reference",
             default=None, type=str)
@@ -241,15 +244,13 @@ def main(args=None):
         assert os.path.exists(options.genbank), \
             "%s does not exists" % options.genbank
 
-    if options.verbose:
-        logger.info("Reading %s. This may take time depending on "
-            "your input file" % options.input)
+    logger.info("Reading %s. This may take time depending on "
+        "your input file" % options.input)
 
     # Convert BAM to BED
     if options.input.endswith(".bam"):
         bedfile = options.input.replace(".bam", ".bed")
-        if options.verbose:
-            logger.info("Converting BAM into BED file")
+        logger.info("Converting BAM into BED file")
         shellcmd("bedtools genomecov -d -ibam %s > %s" % (options.input, bedfile))
     elif options.input.endswith(".bed"):
         bedfile = options.input
@@ -270,7 +271,8 @@ def main(args=None):
     # Now we can create the instance of GenomeCoverage
     gc = GenomeCov(bedfile, options.genbank, options.low_threshold,
                    options.high_threshold, options.double_threshold,
-                    options.double_threshold)
+                   options.double_threshold)
+
 
     # if we have the reference, let us use it
     if options.reference:
@@ -279,133 +281,122 @@ def main(args=None):
                               options.circular)
 
     # Now we scan the chromosomes,
-    if len(gc.chr_list) == 1:
-        if options.verbose:
-            logger.warning("There is only one chromosome. Selected automatically.")
-        chrom = gc.chr_list[0]
-        chromosomes = [chrom]
-        run_analysis(chrom, options, gc.feature_dict)
-    elif options.chromosome <=-1 or options.chromosome > len(gc.chr_list):
-        raise ValueError("invalid chromosome index ; must be in [1-{}]".format(len(gc.chr_list)+1))
-    else: # chromosome index is zero 
-        # For user, we start at position 1 but in python, we start at zero
-        if options.chromosome:
-            chromosomes = [gc[options.chromosome-1]]
-        else:
-            chromosomes = gc
-
-        if options.verbose:
-            print("There are %s chromosomes/contigs." % len(gc))
-            for this in gc.chr_list:
-                print("    {}".format(this.chrom_name))
-
-        for i, chrom in enumerate(chromosomes):
-            if options.verbose:
-                print("==================== analysing chrom/contig %s/%s (%s)"
-                      % (i + options.chromosome, len(gc),
-                      chrom.chrom_name))
-            run_analysis(chrom, options, gc.feature_dict)
-
-    if options.create_report is False:
-        return
-
-    if options.verbose:
-        logger.info("Creating report in %s. Please wait" % config.output_dir)
-
-    if options.chromosome:
-        cc = options.chromosome - 1
-        datatable = CoverageModule.init_roi_datatable(gc[cc])
-        ChromosomeCoverageModule(chromosomes[0], datatable, None)
-        page = "{0}{1}{2}.cov.html".format(config.output_dir, os.sep,
-                                           chrom.chrom_name)
+    if len(gc.chrom_names) == 1:
+        logger.warning("There is only one chromosome. Selected automatically.")
+        gc._read_bed(contig=gc.chrom_names[0])
+        run_analysis(gc.chr_list[0], options, gc.feature_dict)
+    elif options.chromosome <-1 or options.chromosome > len(gc.chrom_names):
+        msg = "invalid chromosome index; must be in [1;{}]".format(len(gc.chrom_names))
+        logger.error(msg)
+        raise ValueError(msg)
     else:
-        CoverageModule(gc)
-        page = "{0}{1}coverage.html".format(config.output_dir, os.sep)
+        if options.chromosome == -1:
+            chromosomes = gc.chrom_names # take all chromosomes
+        else:
+            # For user, we start at position 1 but in python, we start at zero
+            chromosomes = [gc.chrom_names[options.chromosome-1]]
 
-    if options.show_html:
-        from easydev import onweb
-        onweb(page)
+        logger.info("There are %s chromosomes/contigs." % len(gc))
+        for this in gc.chrom_names:
+            data = (this, gc.positions[this]["start"], gc.positions[this]["end"])
+            logger.info("    {} (starting pos: {}, ending pos: {})".format(*data))
+
+        # here we read chromosome by chromosome to save memory.
+        # However, if the data is small.
+        for i, chrom in enumerate(chromosomes):
+            logger.info("==================== analysing chrom/contig %s/%s (%s)"
+                  % (i + 1, len(gc), gc.chrom_names[i]))
+            # since we read just one contig/chromosome, the chr_list contains
+            # only one contig, so we access to it with index 0
+            gc._read_bed(contig=chrom)
+            run_analysis(gc.chr_list[0], options, gc.feature_dict)
+
+    if options.skip_multiqc is False:
+        logger.info("=========================")
+        logger.info("Creating multiqc report")
+        cmd = 'multiqc . -m sequana_coverage -f'
+        import subprocess
+        proc = subprocess.Popen(cmd.split(), cwd=options.output_directory)
+        proc.wait()
+
+    #    CoverageModule(gc)
+    #    page = "{0}{1}coverage.html".format(config.output_dir, os.sep)
 
 
 def run_analysis(chrom, options, feature_dict):
+    if chrom.DOC < 8:
+        logger.warning("The depth of coverage is below 8. sequana_coverage is"
+                        " not optimised for such depth. You may want to "
+                        " increase the threshold to avoid too many false detections")
+    logger.info("Computing some metrics")
+    logger.info(chrom.__str__())
 
-    if options.verbose:
-        print(chrom)
+    if options.w_median > len(chrom.df) / 5:
+        NW = int(len(chrom.df) / 5)
+        logger.warning("median window length is too long. \n"
+            "    Setting the window length automatically to a fifth of\n"
+            "    the chromosome length ({})".format(NW))
+        options.w_median = NW
 
-    if options.verbose:
-        logger.info('Computing running median (w=%s)' % options.w_median)
-
+    logger.info('Computing running median (w=%s)' % options.w_median)
     # compute running median
     chrom.running_median(n=options.w_median, circular=options.circular)
 
-    stats = chrom.get_stats(output="dataframe")
-    stats.set_index("name", inplace=True)
-
-    DOC = stats.ix['DOC'].Value
-    if options.k is None and DOC < 8:
+    #
+    """if options.k is None and chrom.DOC < 8:
         options.k = 1
-    elif options.k is None:
+    """
+    if options.k is None:
         options.k = 2
 
-    if options.verbose:
-        print("Number of mixture model %s " % options.k)
-        print('Computing zscore')
+    logger.info("Number of mixture model %s " % options.k)
+    logger.info('Computing zscore')
 
     # Compute zscore
     chrom.compute_zscore(k=options.k, verbose=options.verbose)
+    res = chrom._get_best_gaussian()
+    logger.info("sigma and mu of the central distribution: mu=%s, sigma=%s" %
+            (round(res["mu"],3), round(res['sigma'],3)))
 
     # Save the CSV file of the ROIs
     high = chrom.thresholds.high2
     low = chrom.thresholds.low2
+    logger.info("Searching for ROIs (threshold=[{},{}] ; double =[{},{}])".format(
+        chrom.thresholds.low, chrom.thresholds.high, low, high))
     query = "zscore > @high or zscore < @low"
     if feature_dict and chrom.chrom_name in feature_dict:
-        f = FilteredGenomeCov(chrom.df.query(query),
+        filtered = FilteredGenomeCov(chrom.df.query(query),
                         chrom.thresholds,
                         feature_list=feature_dict[chrom.chrom_name])
     else:
-        f = FilteredGenomeCov(chrom.df.query(query), chrom.thresholds)
-    directory = options.output_directory 
-    directory += os.sep + "coverage_reports" 
+        data = chrom.df.query(query)
+        data.insert(0, "chr", chrom.chrom_name)
+        filtered = FilteredGenomeCov(data, chrom.thresholds)
+    logger.info("Number of ROIs found: {}".format(len(filtered.df)))
+    logger.info("    - below average: {}".format(len(filtered.get_low_roi())))
+    logger.info("    - above average: {}".format(len(filtered.get_high_roi())))
+
+    # Create directory and save ROIs
+    directory = options.output_directory
+    directory += os.sep + "coverage_reports"
     directory += os.sep + chrom.chrom_name
     mkdirs(directory)
+    filtered.df.to_csv("{}/rois.csv".format(directory))
 
-    if options.verbose:
-        print("Number of ROIs found: {}".format(len(f.df)))
+    # save summary and metrics
+    logger.info("Computing extra metrics")
+    summary = chrom.summary()
+    summary.to_json(directory + os.sep + "sequana_summary_coverage.json")
+    logger.info("Evenness: {}".format(summary.data['evenness']))
+    logger.info("Centralness (3 sigma): {}".format(summary.data['Centralness 3']))
+    logger.info("Centralness (4 sigma): {}".format(summary.data['Centralness 4']))
 
-    f.df.to_csv("{}/rois.csv".format(directory))
+    if options.skip_html:
+        return
 
-    if options.verbose:
-        logger.info("Computing centralness")
-
-    # Let us save the thresholds first and then change it to compute centralness
-    thresholds = chrom.thresholds.copy()
-
-    chrom.thresholds.low = -3
-    chrom.thresholds.high = 3
-    c3 = chrom.get_centralness()
-
-    chrom.thresholds.low = -4
-    chrom.thresholds.high = 4
-    c4 = chrom.get_centralness()
-    chrom.thresholds = thresholds.copy()   # Get back to the original values
-
-    if options.verbose and chrom.thresholds:
-        print(chrom.thresholds)
-
-    if options.verbose:
-        res = chrom._get_best_gaussian()
-        print("sigma and mu of the central distribution: mu=%s, sigma=%s" %
-            (round(res["mu"],3), round(res['sigma'],3)))
-        print("Evenness: %8.3f" % chrom.get_evenness())
-        print("Centralness (3 sigma): %f" % round(c3,3))
-        print("Centralness (4 sigma): %f" % round(c4,4))
-
-    # Saving statistics
-
-
-    if options.verbose:
-        print("\n\n")
-
+    logger.info("Creating report in %s. Please wait" % config.output_dir)
+    datatable = CoverageModule.init_roi_datatable(chrom)
+    ChromosomeCoverageModule(chrom, datatable)
 
 if __name__ == "__main__":
    import sys
