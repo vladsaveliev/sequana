@@ -136,6 +136,7 @@ setup(
         "multiqc.modules.v1": [
             "sequana_pacbio_qc=sequana.multiqc.pacbio_qc:MultiqcModule",
             "sequana_quality_control=sequana.multiqc.quality_control:MultiqcModule",
+            "sequana_coverage=sequana.multiqc.coverage:MultiqcModule",
         ],
         'multiqc.hooks.v1': [
             'before_config = sequana.multiqc:multiqc_sequana_config',
