@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 """ MultiQC module to parse output from sequana"""
-from __future__ import print_function
-from collections import OrderedDict
 import logging
 import os
 import re
-from collections import defaultdict
-import yaml
 
 from multiqc import config
 from multiqc.modules.base_module import BaseMultiqcModule

@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-#from sequana.multiqc.sequana import MultiqcModule
 from multiqc import config
 
 # Add search patterns and config options for the things that are used in
@@ -12,6 +11,9 @@ def multiqc_sequana_config():
         },
         'sequana/quality_control': {
             'fn': 'summary.json'
+        },
+        'sequana/coverage': {
+            'fn': 'sequana_summary_coverage.json',
         },
     }
     config.update_dict(config.sp, sequana_search_patterns)
@@ -27,4 +29,12 @@ def multiqc_sequana_config():
             'reads_mapped_percent': False,
             'raw_total_sequences': False,
         }
-})
+    })
+
+    # config.log_filesize_limit =  500000
+    # in sequana_coverage, large html files are created.
+    # they can be ignored
+    config.fn_ignore_files = ['*html']
+
+
+    #config.update_dict(config.log_filesize_limit, 500000)

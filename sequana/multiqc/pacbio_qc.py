@@ -1,19 +1,16 @@
 #!/usr/bin/env python
 
 """ MultiQC module to parse output from sequana"""
-
-from __future__ import print_function
-from collections import OrderedDict
-import logging
 import os
 import re
-from collections import defaultdict
-import yaml
 
+# prevent boring warning (version 1.0)
+import logging
+logging.captureWarnings(True)
 from multiqc import config
 from multiqc.modules.base_module import BaseMultiqcModule
 from multiqc.plots import linegraph, table, heatmap, bargraph
-#from multiqc_sequana import srna
+logging.captureWarnings(False)
 
 # Initialise the logger
 log = logging.getLogger('multiqc.sequana/pacbio_qc')
