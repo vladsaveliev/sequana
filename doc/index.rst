@@ -50,8 +50,9 @@ Sequana documentation
 
     For **Sequanix**: Dimitri Desvillechabrol, Rachel Legendre, Claire Rioualen,
     Christiane Bouchier, Jacques van Helden, Sean Kennedy, Thomas Cokelaer
-    http://www.biorxiv.org/content/early/2017/07/12/162701
-    DOI: https://doi.org/10.1101/162701
+    Sequanix: A Dynamic Graphical Interface for Snakemake Workflows
+    Bioinformatics, bty034, https://doi.org/10.1093/bioinformatics/bty034
+    Also available on bioRxiv(DOI: https://doi.org/10.1101/162701)
 
 
 What is Sequana ?

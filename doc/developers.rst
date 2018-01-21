@@ -579,24 +579,26 @@ MultiQC
 
 If you have several samples in a pipeline and the pipeline creates *N* HTML reports
 and / or summary.json files thanks to the module report (see above), there is a
-high probability that you also want to have a multi summary. 
+high probability that you also want to have a multi summary.
 
-We decided to use multiqc (http://multiqc.info/) for that purpose. 
-
+We decided to use multiqc (http://multiqc.info/) for that purpose.
 
 We consider the example used here above with the pipeline named **pipeline_count**. 
-We suppose that the output is also made of a **summary_count_SAMPLE.json** file created for each sample. Let us assume you took care of creating a nice HTML page (optional).
+We suppose that the output is also made of a **summary_count_SAMPLE.json** file created for each sample. Let us assume you took care of creating a nice individual HTML pages (optional).
 
-Now, you wish to create a multiQC report. This means you want to retrieve
-automatically the file summary_count_SAMPLE.json.
+Now, you wish to create a multiQC report to summarize those individual sample
+analysis. This means you want to retrieve
+automatically the file sequana_summary_count_SAMPLE.json. Note that they may be named
+differently; for instance, sample/sequana_summary.json
 
-In ./sequana/multiqc add a file called pipeline_count.py 
+In ./sequana/multiqc directoty, add a file called pipeline_count.py
 
 - Take as example the already existing file such as pacbio_qc.py
-- update the __init__.py to add the search pattern for your input (here summary_count*.json)
+- update the sequana/multiqc/__init__.py to add the search pattern for your input (here summary_count*.json)
 - In the setup.py, add the entry point following the example of pacbio_qc
 - In the ./test/multiqc add a test in test_multiqc.py
 
+To create the summary, we provide a convienent class in summary.Summary.
 
 
 .. _dev_singularity:

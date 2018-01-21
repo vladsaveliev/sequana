@@ -16,6 +16,20 @@ Changelog
     * Fix --no-report option in sequana_coverage and add --clustering (double
       threshold option)
 
+* NEWS:
+
+    * SARTools rule added and used in the RNAseq pipeline
+    * add summary module.
+
+* CHANGES:
+
+    * MAJOR REFACTORING of bedtools and sequana_coverage standalone. In
+      particular, change default window size to 20,001 or a fifth of genome 
+      length (for small genome); speed up code; add plot_roi function, uses
+      multiqc for summary page; add log2 ratio column. See
+      https://github.com/sequana/sequana/issues/495 for details. 
+      Scan large files by chunk.
+
 0.6.3.post1
 ~~~~~~~~~~~~~
 
