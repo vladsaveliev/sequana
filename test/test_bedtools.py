@@ -70,7 +70,7 @@ def test_genomecov():
     bed2.chr_list[0].df["cov"] -= 100
     bed2.chr_list.append("dummy")
     assert bed != bed2
-
+    
 
     # setter must be bool
     try:
@@ -101,7 +101,7 @@ def test_genomecov():
         chrom.running_median(n=501, circular=False)
 
         chrom.compute_zscore()
-        roi = chrom.get_roi()
+        roi = chrom.get_rois()
         with TempFile(suffix='.png') as fh:
             chrom.plot_coverage(filename=fh.name)
         with TempFile(suffix='.png') as fh:
@@ -112,8 +112,8 @@ def test_genomecov():
         len(chrom)
         print(chrom)
         chrom.get_size()
-        chrom.get_mean_cov()
-        chrom.get_var_coef()
+        chrom.DOC
+        chrom.CV
     with TempFile(suffix='.csv') as fh:
         bed.to_csv(fh.name)
         bed2 = bedtools.GenomeCov(fh.name, sequana_data('JB409847.gbk'))
@@ -126,6 +126,7 @@ def test_genomecov():
         bed.chr_list[0].plot_hist_coverage(logx=False,logy=False,
             filename=fh.name)
 
+
 def test_gc_content():
     bed = sequana_data('JB409847.bed')
     fasta = sequana_data('JB409847.fasta')
@@ -137,8 +138,8 @@ def test_gc_content():
     ch.running_median(4001,circular=True)
     ch.compute_zscore()
 
-    ch.get_evenness()
-    ch.get_cv()
+    ch.evenness
+    ch.CV
     assert ch.get_centralness() > 0.84 and ch.get_centralness()<0.85
     with TempFile(suffix=".png") as fh:
         ch.plot_gc_vs_coverage(filename=fh.name)
