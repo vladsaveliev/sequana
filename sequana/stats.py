@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>, 
+#      Dimitri Desvillechabrol <dimitri.desvillechabrol@pasteur.fr>,
 #          <d.desvillechabrol@gmail.com>
 #
 #  Distributed under the terms of the 3-clause BSD license.
@@ -22,7 +22,7 @@ from sequana.lazy import numpy as np
 from sequana.lazy import pandas as pd
 
 
-__all__ = ["moving_average", "evenness"] 
+__all__ = ["moving_average", "evenness"]
 
 
 def moving_average(data, n):
@@ -36,9 +36,8 @@ def moving_average(data, n):
         >>> ma([1,1,1,1,3,3,3,3], 4)
         array([ 1. ,  1.5,  2. ,  2.5,  3. ])
 
-    .. note:: the final vector does not have the same size as the input 
-        vector. 
-
+    .. note:: the final vector does not have the same size as the input
+        vector.
 
     """
     ret = np.cumsum(data, dtype=float)
@@ -50,10 +49,19 @@ def moving_average(data, n):
 def evenness(data):
     """Return Evenness of the coverage
 
-    :Reference: Konrad Oexle, Journal of Human Genetics 2016, Evaulation 
+    :Reference: Konrad Oexle, Journal of Human Genetics 2016, Evaulation
         of the evenness score in NGS.
 
     work before or after normalisation but lead to different results.
+
+    .. math::
+
+        C = mean(X)
+        D2 = X[X<=C]
+        N = len(X)
+        n = len(D2)
+        E = 1 - (n - sum(D2) / C) / N
+
     """
     coverage = pd.Series(data)
 
@@ -64,5 +72,5 @@ def evenness(data):
     if len(D2) == 0:
         return 1
     else:
-        
+
         return 1. - (len(D2) - sum(D2) / C) / len(coverage)
