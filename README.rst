@@ -36,9 +36,10 @@ SEQUANA
     http://biorxiv.org/content/early/2016/12/08/092478
 
     For **Sequanix**: Dimitri Desvillechabrol, Rachel Legendre, Claire Rioualen,
-    Christiane Bouchier, Jacques van Helden, Sean Kennedy, Thomas Cokelaer
-    http://www.biorxiv.org/content/early/2017/07/12/162701
-    DOI: https://doi.org/10.1101/162701
+    Christiane Bouchier, Jacques van Helden, Sean Kennedy, Thomas Cokelaer.
+    Sequanix: A Dynamic Graphical Interface for Snakemake Workflows 
+    Bioinformatics, bty034, https://doi.org/10.1093/bioinformatics/bty034
+    Also available on bioRxiv (DOI: https://doi.org/10.1101/162701)
 
 
 **Sequana** includes a set of pipelines related to NGS (new generation sequencing) including quality control, variant calling, coverage, taxonomy, transcriptomics. We also ship **Sequanix**, a graphical user interface for Snakemake pipelines. 
