@@ -153,7 +153,12 @@ __CollectInsertSizeMetrics__log_err = "%s/logs/InsertSizeMetrics/stderr.logs" % 
 include: sm.modules["CollectInsertSizeMetrics"]
 expected_output.extend(expand(__CollectInsertSizeMetrics__output, sample=manager.samples))
 
-# TODO split data as NUC-free and all ?
+# split data as NUC-free
+__get_nuc_free__input = __mark_duplicates__output
+__get_nuc_free__log = "%s/logs/mark_duplicates/split_as_nucFree.logs" % manager.sample
+__get_nuc_free__output = manager.getname("mark_duplicates", "_nucFree.bam")
+include: sm.modules["get_nuc_free"]
+expected_output.extend(expand(__get_nuc_free__output, sample=manager.samples))
 
 
 # TODO prendre en compte le design experimental
