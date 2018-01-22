@@ -77,7 +77,7 @@ In order to estimate rRNA rate, a bowtie alignment on ribosomal sequences is per
 Mapping on reference genome
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-According to your genome, you can choose to align sequences with bowtie1 or STAR, or both.
+According to your genome, you can choose to align sequences with bowtie (1or 2) or STAR, or both.
 
 Bowtie1
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -86,6 +86,11 @@ Bowtie1
 STAR
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. snakemakerule:: star_mapping
+
+Bowtie2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. snakemakerule:: bowtie2_mapping
+
 
 Counting
 ^^^^^^^^^^^^
