@@ -1,0 +1,32 @@
+rule get_nuc_free:
+    """
+    Select all fragments with a size comprise between x and -x in a BAM file.
+
+    Required input:
+        __get_nuc_free__input: BAM file
+
+    Required output:
+        __get_nuc_free__output: BAM file with selected fragments
+
+    config:
+
+        .. code-block:: yaml
+
+            peak-calling:
+                nucFree_length: length to select all nucleosome-free fragments
+
+    """
+    input:
+        __get_nuc_free__input
+    params:
+        length = config['peak-calling']['nucFree_length']
+    log:
+        __get_nuc_free__log
+    output:
+        __get_nuc_free__output
+    threads: 1
+    shell:
+        """
+        samtools view -h {input} | awk 'BEGIN{len=0} {if ($0~/^@.*/) {print $0} else {len=$9 ; if (len<120 && len>-120 && len!=0) {print $0}}}' | samtools view -bhS - > {output} 2> {log}
+        """
+
