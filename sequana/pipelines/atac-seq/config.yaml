@@ -163,10 +163,12 @@ mark_duplicates:
 
 
 #############################################################################
-# MACS2 allows to perform the peak calling
+# This step allows to perform the peak calling
 #
 # :Parameters:
 #
+# - do: if unchecked, this rule is ignored
+# - tool_choice:  only MACS2 supported for now
 # - genomeSize: It's the mappable genome size or effective genome size which is defined
 #                as the genome size which can be sequenced. Because of the repetitive
 #                 features on the chromsomes, the actual mappable genome size will be smaller
@@ -179,15 +181,23 @@ mark_duplicates:
 #                is set or when MACS fails to build model and --fix-bimodal is on.
 # - qval: The qvalue (minimum FDR) cutoff to call significant regions. Default is 0.05.
 #          For broad marks, you can try 0.05 as cutoff. Q-values are calculated from p-values using Benjamini-Hochberg procedure.
-# - options: any options recognised by MACS2 tool
-# Go to https://github.com/taoliu/MACS for more explanation
-#
+# - options: any options recognised by peak calling tool
+# - split_nucFree: if unchecked, calling will be perform on all fragments, otherwise, peak calling will be perform on
+#                  nucleosome-free and all fragments, respectively.
+# - nucFree_length: length to select all nucleosome-free fragments
 
-macs2:
+# Go to https://github.com/taoliu/MACS for more explanation
+# tool_choice__ =
+
+peak-calling:
+    do: yes
+    tool_choice: MACS2
     genomeSize: "mm"
     readLength: 100
     qval: 0.1
     options: "--nomodel "
+    split_nucFree: yes
+    nucFree_length: 120
 
 
 ##### DEEPTOOLS SECTION

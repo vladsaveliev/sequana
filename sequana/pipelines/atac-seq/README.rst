@@ -86,8 +86,8 @@ MACS2 is used for peak calling
 
 .. snakemakerule:: macs2
 
-.. warning:: MACS2 is not included as requirements in sequana pipelines. We asked for the portage to python 3. See
-https://github.com/taoliu/MACS/issues/179
+.. warning:: MACS2 is not included as requirements in Sequana pipelines. We asked for the portage to python 3 (See
+https://github.com/taoliu/MACS/issues/179)
 
 
 DeepTools
