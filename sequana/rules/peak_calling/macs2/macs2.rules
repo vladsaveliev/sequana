@@ -18,10 +18,10 @@ rule macs2:
     input:
         bam = __macs2__input_treatment
     params:
-        gsize = config["macs2"]["genomeSize"],
-        readLength = config["macs2"]["readLength"],
-        qval = config["macs2"]["qval"],
-        options = config["macs2"]['options'],
+        gsize = config["peakCalling"]["genomeSize"],
+        readLength = config["peakCalling"]["readLength"],
+        qval = config["peakCalling"]["qval"],
+        options = config["peakCalling"]['options'],
         prefix =  __macs2__output,
         ctl = __macs2__input_control
     log:
