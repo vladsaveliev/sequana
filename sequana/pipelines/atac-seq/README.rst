@@ -11,7 +11,8 @@ Example::
 
     sequana --pipeline atac-seq -i data/ -o analysis --no-adapters
     cd analysis
-    sbatch snakemake -s atac-seq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json --cluster "sbatch --mem={cluster.ram} --cpus-per-task={threads}"
+    sbatch snakemake -s atac-seq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json
+    --cluster "sbatch --mem={cluster.ram} --cpus-per-task={threads}"
 
 Or use :ref:`sequanix_tutorial` interface.
 
@@ -20,13 +21,22 @@ Requirements
 
 .. include:: ../sequana/pipelines/atac-seq/requirements.txt
 
-.. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/atac-seq/dag.svg
+.. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/atac-seq/dag.png
 
 
 Details
 ~~~~~~~~~
 
-Snakemake atac-seq pipeline s based on a workflow used at Biomics Pole in Institut Pasteur.
+Transposons are believed to incorporate preferentially into genomic regions free of nucleosomes (nucleosome-free regions)
+or stretches of exposed DNA in general. Thus enrichment of sequences from certain loci in the genome indicates absence
+of DNA-binding proteins or nucleosome in the region.
+An ATAC-seq experiment will typically produce millions of reads that can be successfully mapped on the reference genome
+(with bowtie2). After elimination of duplicates (MarkDuplicates), each sequencing read points to a position on the
+genome where one transposition (or cutting) event took place during the experiment. One can then assign a cut count for
+each genomic position and create a signal with base-pair resolution (DeepTools Coverage).
+Regions of the genome where DNA was accessible during the experiment will contain significantly more sequencing reads
+(since that is where the transposase preferentially acts), and form peaks in the ATAC-seq signal that are detectable
+with peak calling tools (MACS2).
 
 
 Rules and configuration details
@@ -53,20 +63,42 @@ Cutadapt is used to trim and filter sequences.
 .. snakemakerule:: cutadapt
 
 
-Bowtie2
+Mapping on the reference genome
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Bowtie2 is used for mapping
 
 .. snakemakerule:: bowtie2_mapping
 
-MACS2
+Identifies duplicate reads
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This tool locates and tags duplicate reads in a BAM or SAM file, where duplicate reads are defined as originating
+from a single fragment of DNA. Duplicates can arise during sample preparation e.g. library construction using PCR.
+
+.. snakemakerule:: mark_duplicates
+
+
+Peak Calling
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 MACS2 is used for peak calling
 
 .. snakemakerule:: macs2
 
+DeepTools
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+DeepTools is a suite of python tools particularly developed for the efficient analysis of high-throughput sequencing
+data, such as ChIP-seq, RNA-seq or MNase-seq.
+
+.. snakemakerule:: BamPEfragmentSize
+.. snakemakerule:: bamCoverage
+.. snakemakerule:: computeMatrix
+.. snakemakerule:: multiBamSummary
+.. snakemakerule:: plotCorrelation
+.. snakemakerule:: plotCoverage
+.. snakemakerule:: plotHeatmap
 
 
 Reporting
