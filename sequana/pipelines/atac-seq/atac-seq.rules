@@ -154,7 +154,7 @@ include: sm.modules["CollectInsertSizeMetrics"]
 expected_output.extend(expand(__CollectInsertSizeMetrics__output, sample=manager.samples))
 
 # split data as NUC-free
-if manager.config.peak-calling.split_nucFree:
+if manager.config.peakCalling.split_nucFree:
     __get_nuc_free__input = __mark_duplicates__output
     __get_nuc_free__log = "%s/logs/mark_duplicates/split_as_nucFree.logs" % manager.sample
     __get_nuc_free__output = manager.getname("mark_duplicates", "_nucFree.bam")
@@ -163,8 +163,8 @@ if manager.config.peak-calling.split_nucFree:
 
 
 # TODO prendre en compte le design experimental
-if manager.config.peak-calling.do:
-    peak_tool = manager.config.peak-calling.tool_choice
+if manager.config.peakCalling.do:
+    peak_tool = manager.config.peakCalling.tool_choice
     if peak_tool == "MACS2" :
         __macs2__input_treatment = __mark_duplicates__output
         __macs2__input_control = None

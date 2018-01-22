@@ -189,7 +189,7 @@ mark_duplicates:
 # Go to https://github.com/taoliu/MACS for more explanation
 # tool_choice__ =
 
-peak-calling:
+peakCalling:
     do: yes
     tool_choice: MACS2
     genomeSize: "mm"

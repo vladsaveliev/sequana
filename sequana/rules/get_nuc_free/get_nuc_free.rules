@@ -19,7 +19,7 @@ rule get_nuc_free:
     input:
         __get_nuc_free__input
     params:
-        length = config['peak-calling']['nucFree_length']
+        length = config['peakCalling']['nucFree_length']
     log:
         __get_nuc_free__log
     output:
