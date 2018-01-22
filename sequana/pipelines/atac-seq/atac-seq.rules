@@ -123,11 +123,12 @@ if manager.config.bowtie2_mapping.do:
     __bowtie2_mapping__logs_out = "%s/logs/bowtie2/stdout.logs" % manager.sample
     __bowtie2_mapping__prefix_index = __bowtie2_index__
     include: sm.modules["bowtie2_mapping"]
+    __mapping_output = __bowtie2_mapping__sort
     expected_output.extend(expand(__bowtie2_mapping__sort, sample=manager.samples))
 
 # Add Read group on BAM files
 __add_read_group__input = __bowtie2_mapping__sort
-__add_read_group__output = manager.getname("add_read_group/", "_RG_sorted.bam")
+__add_read_group__output = manager.getname("add_read_group", "_RG_sorted.bam")
 __add_read_group__log_err = "%s/logs/AddOrReplaceReadGroups/stderr.logs" % manager.sample
 __add_read_group__log_std ="%s/logs/AddOrReplaceReadGroups/stdout.logs" % manager.sample
 __add_read_group__rg = "ID=%s LB=%s PL=%s PU=%s SM=%s" % (manager.sample, manager.sample, manager.config.sequencing.platform, manager.config.sequencing.flowcell, manager.sample)
@@ -156,18 +157,18 @@ expected_output.extend(expand(__CollectInsertSizeMetrics__output, sample=manager
 
 
 # TODO prendre en compte le design experimental
-__macs2__ = __mark_duplicates__output
-__macs2__input_bam = "None"
+__macs2__input_treatment = __mark_duplicates__output
+__macs2__input_control = None
 __macs2__log = "%s/logs/macs2/peak_calling.err" % manager.sample
-__macs2__output = manager.getname("macs2", "Peaks")
+__macs2__output = manager.getname("macs2", "_Peaks")
 __macs2__output_done = manager.getname("macs2", ".done")
 include: sm.modules["macs2"]
-expected_output.extend(expand(__macs2__output, sample=manager.samples))
+expected_output.extend(expand(__macs2__output_done, sample=manager.samples))
 
 
 if manager.paired:
     # BamPEFragmentSize (part of Deeptools)
-    __BamPEFragmentSize__input_bams = expand(__bowtie2_mapping__sort)
+    __BamPEFragmentSize__input_bams = expand(__bowtie2_mapping__sort, sample=manager.samples)
     __BamPEFragmentSize__binsize = 10000
     __BamPEFragmentSize__logs = "logs/deeptools/BamPEFragmentSize.err"
     __BamPEFragmentSize__output = manager.getname("deeptools", "BamPEFragmentSize.png")
@@ -184,7 +185,7 @@ if manager.config.coverage.do:
 
 if manager.config.correlation.do:
     # plot correlation (part of Deeptools)
-    __multiBamSummary__input = expand(__mark_duplicates__output)
+    __multiBamSummary__input = expand(__mark_duplicates__output, sample=manager.samples)
     __multiBamSummary__log = "logs/deeptools/BamSummary.err"
     __multiBamSummary__output = "BamSummary.npz"
     include: sm.modules["multiBamSummary"]
@@ -197,16 +198,16 @@ if manager.config.correlation.do:
 
 if manager.config.heatmap.do:
     # compute Matrix
-    __computeMatrix__wig = expand(__bamCoverage__output)
+    __computeMatrix__wig = expand(__bamCoverage__output, sample=manager.samples)
     __computeMatrix__log = "logs/deeptools/computeMatrix.err"
-    __computeMatrix__output = manager.getname("deeptools", "matrixHeatmap.gz")
+    __computeMatrix__output = manager.getname("deeptools", "matrix_Heatmap.gz")
     include: sm.modules["computeMatrix"]
     # plotHeatmap
-    __plotHeatmap__input = __computeMatrix_output
+    __plotHeatmap__input = __computeMatrix__output
     __plotHeatmap__log = "logs/deeptools/plotHeatmap.err"
     __plotHeatmap__output = manager.getname("deeptools", "Heatmap_plot.png")
     include: sm.modules["plotHeatmap"]
-    expected_output.extend(expand(__plotHeatmap_output, sample=manager.samples))
+    expected_output.extend(expand(__plotHeatmap__output, sample=manager.samples))
 
 # !Reset expected_output variable after multiqc
 # Multiqc rule

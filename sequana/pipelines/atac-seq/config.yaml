@@ -289,7 +289,7 @@ heatmap:
     do: no
     regionsFileName: /path/to/file.bed
     options_matrix: "--beforeRegionStartLength 1000 --afterRegionStartLength 1000 --skipZeros "
-    options-heatmap: ""
+    options_heatmap: ""
 
 
 #############################################################################

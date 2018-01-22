@@ -267,7 +267,18 @@ if manager.config.star_mapping.do:
     include: sm.modules["star_mapping"]
     expected_output.extend(expand(__star_mapping__sort, sample=manager.samples))
     __mapping_output = __star_mapping__sort
-
+# Mapping with bowtie2
+if manager.config.bowtie2_mapping.do:
+    __bowtie2_mapping__input = __cutadapt__output
+    __bowtie2_mapping__index_done = __bowtie2_index__output_done
+    __bowtie2_mapping__sort = manager.getname("bowtie2_mapping", ".sorted.bam")
+    __bowtie2_mapping__bam = manager.getname("bowtie2_mapping", ".bam")
+    __bowtie2_mapping__logs_err = "%s/logs/bowtie2/stderr.logs" % manager.sample
+    __bowtie2_mapping__logs_out = "%s/logs/bowtie2/stdout.logs" % manager.sample
+    __bowtie2_mapping__prefix_index = __bowtie2_index__
+    include: sm.modules["bowtie2_mapping"]
+    expected_output.extend(expand(__bowtie2_mapping__sort, sample=manager.samples))
+    __mapping_output = __bowtie2_mapping__sort
 
 # generating of bigwig files
 if manager.config.coverage.do:
@@ -299,7 +310,7 @@ if manager.config.feature_counts.do:
 
 # Add Read group on BAM files
 __add_read_group__input = __mapping_output
-__add_read_group__output = manager.getname("add_read_group/", ".bam")
+__add_read_group__output = manager.getname("add_read_group", ".bam")
 __add_read_group__log_err = "%s/logs/AddOrReplaceReadGroups/stderr.logs" % manager.sample
 __add_read_group__log_std ="%s/logs/AddOrReplaceReadGroups/stdout.logs" % manager.sample
 __add_read_group__rg = "ID=%s LB=%s PL=%s PU=%s SM=%s" % (
@@ -340,7 +351,7 @@ if config["SARTools"]["do"]:
     __preSARTools__output_directory = "SARTools/" + config["SARTools"]["rawDir"]
     __preSARTools__targetFile = "SARTools/target.txt"
     include: sm.modules["preSARTools"]
-    __SARTools__input = config["SARTools"]["rawDir"]
+    __SARTools__input = __preSARTools__output_directory
     __SARTools__targetFile = __preSARTools__targetFile
     __SARTools__logs = "SARTools.log"
     __SARTools__output = "SARTools/"
