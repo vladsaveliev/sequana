@@ -35,7 +35,7 @@ rule bowtie2_mapping:
     threads:
         config["bowtie2_mapping"]["threads"]
     run:
-        cmd = "bowtie2 -p {threads} {params.options} -x {params.prefix_index}"
+        cmd = "(bowtie2 -p {threads} {params.options} -x {params.prefix_index}"
         # paired end or single end
         if len(input.fastq) == 2:
             bowtie_input = "-1 " + input.fastq[0] + " -2 " + input.fastq[1]
@@ -43,11 +43,11 @@ rule bowtie2_mapping:
             bowtie_input = "-U " + input.fastq[0]
         cmd = cmd + " " + bowtie_input
         # sam to bam
-        cmd = cmd + " | samtools view -Sbh - > {output.bam}"
+        cmd = cmd + " | samtools view -Sbh - > {output.bam})"
         # logs
         cmd = cmd + " > {log.out} 2> {log.err}"
         # sort result
         cmd = cmd + " && samtools sort -o {output.sort} {output.bam}"
         cmd = cmd + " && samtools index {output.sort}"
 
-        shell(cmd )
+        shell(cmd)
