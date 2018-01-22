@@ -32,7 +32,7 @@ The pipeline runs some quality control (e.g., FastQC), fastq_screen (you need yo
 Reads could be trimmed by several tools (cutadapt, atropos, clean_ngs) and mapped against a reference genome
 (with bowtie or STAR, bowtie2 is used by fastq_screen) and ribosomal RNA (with bowtie1).
 Then, reads are counted with feature-counts (HTSeq-count soon available) against a GFF file.
-For simple designs, SARTtools could be used to call differentially expressed genes.
+For simple designs, SARTools could be used to call differentially expressed genes.
 All results are summarized using multiQC.
 
 
