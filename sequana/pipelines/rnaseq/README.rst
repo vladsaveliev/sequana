@@ -32,10 +32,10 @@ The pipeline runs some quality control (e.g., FastQC), fastq_screen (you need yo
 Reads could be trimmed by several tools (cutadapt, atropos, clean_ngs) and mapped against a reference genome
 (with bowtie or STAR, bowtie2 is used by fastq_screen) and ribosomal RNA (with bowtie1).
 Then, reads are counted with feature-counts (HTSeq-count soon available) against a GFF file.
+For simple designs, SARTtools could be used to call differentially expressed genes.
 All results are summarized using multiQC.
 
-.. warning:: The statistical analysis is not included in our pipeline because it is a step that is difficult to
-automate before the exploration of the data. However, you can perform this analysis with SARTools (https://github.com/PF2-pasteur-fr/SARTools).
+
 
 Rules and configuration details
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
