@@ -180,7 +180,7 @@ if manager.paired:
     __BamPEFragmentSize__input_bams = expand(__bowtie2_mapping__sort, sample=manager.samples)
     __BamPEFragmentSize__binsize = 10000
     __BamPEFragmentSize__logs = "logs/deeptools/BamPEFragmentSize.err"
-    __BamPEFragmentSize__output = manager.getname("deeptools", "BamPEFragmentSize.png")
+    __BamPEFragmentSize__output = manager.getname("deeptools", "_BamPEFragmentSize.png")
     include: sm.modules["BamPEFragmentSize"]
     expected_output.extend(expand(__BamPEFragmentSize__output, sample=manager.samples))
 
@@ -188,7 +188,7 @@ if manager.config.coverage.do:
     #Bam coverage (part of Deeptools)
     __bamCoverage__input = __mark_duplicates__output
     __bamCoverage__output = manager.getname("BamCoverage", "_norm.bw")
-    __bamCoverage__log = "logs/deeptools/BamCoverage_%s.err." % manager.sample
+    __bamCoverage__log = "logs/deeptools/BamCoverage_%s.err" % manager.sample
     include: sm.modules["bamCoverage"]
     expected_output.extend(expand(__bamCoverage__output, sample=manager.samples))
 
@@ -199,7 +199,7 @@ if manager.config.correlation.do:
     __multiBamSummary__output = "BamSummary.npz"
     include: sm.modules["multiBamSummary"]
     __plotCorrelation__input = __multiBamSummary__output
-    __plotCorrelation__output = manager.getname("deeptools", "scatterplot_correlation.svg")
+    __plotCorrelation__output = manager.getname("deeptools", "_scatterplot_correlation.svg")
     __plotCorrelation__log = "logs/deeptools/plotCorrelation.err"
     expected_output.extend(expand(__bamCoverage__output, sample=manager.samples))
     include: sm.modules["plotCorrelation"]
@@ -209,12 +209,12 @@ if manager.config.heatmap.do:
     # compute Matrix
     __computeMatrix__wig = expand(__bamCoverage__output, sample=manager.samples)
     __computeMatrix__log = "logs/deeptools/computeMatrix.err"
-    __computeMatrix__output = manager.getname("deeptools", "matrix_Heatmap.gz")
+    __computeMatrix__output = manager.getname("deeptools", "_matrix_Heatmap.gz")
     include: sm.modules["computeMatrix"]
     # plotHeatmap
     __plotHeatmap__input = __computeMatrix__output
     __plotHeatmap__log = "logs/deeptools/plotHeatmap.err"
-    __plotHeatmap__output = manager.getname("deeptools", "Heatmap_plot.png")
+    __plotHeatmap__output = manager.getname("deeptools", "_Heatmap_plot.png")
     include: sm.modules["plotHeatmap"]
     expected_output.extend(expand(__plotHeatmap__output, sample=manager.samples))
 

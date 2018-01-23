@@ -299,7 +299,7 @@ coverage:
 mark_duplicates:
     do: no
     remove: 'False' ## may be True
-    tmpdir: "TMP_DIR=/tmp/"
+    tmpdir: "/tmp/"
     threads: 4
 
 
