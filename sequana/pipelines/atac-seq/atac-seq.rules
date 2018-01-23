@@ -179,7 +179,8 @@ if manager.paired:
     # BamPEFragmentSize (part of Deeptools)
     __BamPEFragmentSize__input_bams = expand(__bowtie2_mapping__sort, sample=manager.samples)
     __BamPEFragmentSize__binsize = 10000
-    __BamPEFragmentSize__logs = "logs/deeptools/BamPEFragmentSize.err"
+    __BamPEFragmentSize__log_std = "logs/deeptools/BamPEFragmentSize.out"
+    __BamPEFragmentSize__log_err = "logs/deeptools/BamPEFragmentSize.err"
     __BamPEFragmentSize__output = manager.getname("deeptools", "_BamPEFragmentSize.png")
     include: sm.modules["BamPEFragmentSize"]
     expected_output.extend(expand(__BamPEFragmentSize__output, sample=manager.samples))

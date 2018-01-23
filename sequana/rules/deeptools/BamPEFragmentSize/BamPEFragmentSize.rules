@@ -18,10 +18,12 @@ rule BamPEFragmentSize:
     params:
         bs = __BamPEFragmentSize__binsize
     log:
-        __BamPEFragmentSize__logs
+        out = __BamPEFragmentSize__log_std,
+        err = __BamPEFragmentSize__log_err
     output:
         __BamPEFragmentSize__output
     threads: 4
     run:
         labels = " ".join(str(os.path.basename(label).split("_")[0]) for label in input.bam)
-        shell("bamPEFragmentSize --bamfiles  {input.bam} --histogram {output}  --binSize {params.bs} -p {threads} --samplesLabel " + labels + "  2> {log}")
+        shell("""bamPEFragmentSize --bamfiles  {input.bam} --histogram {output}  --binSize {params.bs}
+        -p {threads} --samplesLabel " + labels + "  > {log.out} 2> {log.err}""")
