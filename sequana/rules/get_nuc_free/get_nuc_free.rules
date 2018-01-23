@@ -27,6 +27,6 @@ rule get_nuc_free:
     threads: 1
     shell:
         """
-        samtools view -h {input} | awk 'BEGIN{len=0} {if ($0~/^@.*/) {print $0} else {len=$9 ; if (len<120 && len>-120 && len!=0) {print $0}}}' | samtools view -bhS - > {output} 2> {log}
+        samtools view -h {input} | awk 'BEGIN{{len=0}} {if ($0~/^@.*/) {{print $0}} else {{len=$9 ; if (len<120 && len>-120 && len!=0) {{print $0}}}}}}' | samtools view -bhS - > {output} 2> {log}
         """
 
