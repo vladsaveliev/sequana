@@ -18,5 +18,7 @@ rule CollectInsertSizeMetrics:
         err = __CollectInsertSizeMetrics__log_err
     shell:
         """
-        CollectInsertSizeMetrics I={input} O={output.pdf} H={output.metrics} M=0.5 > {log.out} 2> {log.err}
+        (picard CollectInsertSizeMetrics I={input} \
+        O={output.pdf} H={output.metrics} M=0.5 ) > \
+        {log.out} 2> {log.err}
         """
