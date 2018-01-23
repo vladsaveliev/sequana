@@ -187,7 +187,7 @@ mark_duplicates:
 # - nucFree_length: length to select all nucleosome-free fragments
 
 # Go to https://github.com/taoliu/MACS for more explanation
-# tool_choice__ =
+# tool_choice__ = ["MACS2"]
 
 peakCalling:
     do: yes
