@@ -25,5 +25,4 @@ rule BamPEFragmentSize:
     threads: 4
     run:
         labels = " ".join(str(os.path.basename(label).split("_")[0]) for label in input.bam)
-        shell("""bamPEFragmentSize --bamfiles  {input.bam} --histogram {output}  --binSize {params.bs}
-        -p {threads} --samplesLabel " + labels + "  > {log.out} 2> {log.err}""")
+        shell("""bamPEFragmentSize --bamfiles  {input.bam} --histogram {output}  --binSize {params.bs} -p {threads} --samplesLabel " + labels + "  > {log.out} 2> {log.err}""")
