@@ -273,8 +273,8 @@ if manager.config.bowtie2_mapping.do:
     __bowtie2_mapping__index_done = __bowtie2_index__output_done
     __bowtie2_mapping__sort = manager.getname("bowtie2_mapping", ".sorted.bam")
     __bowtie2_mapping__bam = manager.getname("bowtie2_mapping", ".bam")
-    __bowtie2_mapping__logs_err = "%s/logs/bowtie2/stderr.logs" % manager.sample
-    __bowtie2_mapping__logs_out = "%s/logs/bowtie2/stdout.logs" % manager.sample
+    __bowtie2_mapping__logs_err = manager.getname("bowtie2_mapping", ".err")
+    __bowtie2_mapping__logs_out = manager.getname("bowtie2_mapping", ".out")
     __bowtie2_mapping__prefix_index = __bowtie2_index__
     include: sm.modules["bowtie2_mapping"]
     expected_output.extend(expand(__bowtie2_mapping__sort, sample=manager.samples))
