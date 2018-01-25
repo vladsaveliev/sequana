@@ -2,9 +2,14 @@ from sequana import sequana_data, bedtools
 from sequana.utils.datatables_js import DataTable, DataTableFunction
 
 def test_datatables():
-        bed = bedtools.GenomeCov(sequana_data("JB409847.cov.csv"),
+        bed = bedtools.GenomeCov(sequana_data("JB409847.bed"),
                                  sequana_data("JB409847.gbk"))
-        rois = bed[0].get_roi()
+        fasta = sequana_data("JB409847.fasta")
+        bed.compute_gc_content(fasta)
+
+        c = bed.chr_list[0]
+        c.run(4001)
+        rois = c.get_rois()
         rois.df['link'] = 'test'
         datatable_js = DataTableFunction(rois.df, 'roi')
         datatable_js.set_links_to_column('link', 'start')

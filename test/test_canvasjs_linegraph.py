@@ -3,7 +3,14 @@ from sequana import bedtools, sequana_data
 
 
 def test_canvasjs_linegraph():
-    bed = bedtools.GenomeCov(sequana_data("JB409847.cov.csv"))
+    bed = bedtools.GenomeCov(sequana_data("JB409847.bed"))
+    fasta = sequana_data("JB409847.fasta")
+    bed.compute_gc_content(fasta)
+
+
+    c = bed.chr_list[0]
+    c.run(4001)
+
     df = bed[0].df
     csv = df.to_csv(columns=['pos', 'cov', 'gc'], index=False,
                     float_format='%.3g')

@@ -11,7 +11,7 @@ def test_coverage():
 
     cover.N = 600000
     assert cover.a == 1
-   
+
     cover.__repr__()  # Now that N and a are defined
     # one can cahnge L and G afterwards
     cover.L = 500

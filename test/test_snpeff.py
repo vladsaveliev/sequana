@@ -3,6 +3,7 @@ from sequana import snpeff
 from easydev import TempFile
 import os
 
+
 def test_snpeff():
     # a custom refrence
     fh_log = TempFile()
@@ -28,7 +29,6 @@ def test_snpeff():
     except:
         pass
 
-    
     try:
         snpeff.SnpEff(reference="dummy")
         assert False
@@ -62,6 +62,7 @@ def test_add_locus_no_modification():
             os.remove("snpEff.config")
         except:
             pass
+
 
 def test_add_locus_with_modification():
 
