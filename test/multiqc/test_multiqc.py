@@ -10,7 +10,7 @@ try:
     #   self.conversion_graph.add_edge(start_type, target_type,
     #   {'conversion_function': conversion_function})
     #E   TypeError: add_edge() takes 3 positional arguments but 4 were given
-    from sequana.multiqc import pacbio_qc, quality_control
+    from sequana.multiqc import pacbio_qc, quality_control, coverage
 
     def test_pacbio():
         # When calling multiqc on the command line, it scans the directory
@@ -33,6 +33,14 @@ try:
             [ { 'fn': sequana_data('summary_qc.json'), 'root': '.'}]
         }
         quality_control.MultiqcModule()
+
+
+    def test_coverage():
+        report.files = {"sequana/coverage":
+            [ { 'fn': sequana_data('summary_coverage1.json'), 'root': '.'},
+              { 'fn': sequana_data('summary_coverage1.json'), 'root': '.'}]
+        }
+        coverage.MultiqcModule()
 
 except TypeError:
     pass
