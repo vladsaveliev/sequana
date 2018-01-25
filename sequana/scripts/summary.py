@@ -63,8 +63,8 @@ def get_bed_stats(filename):
     from sequana import GenomeCov
     import pandas as pd
     bed = GenomeCov(filename)
-    stats = bed.get_stats("dataframe")
-    return stats[list(stats.keys())[0]]
+    stats = bed.get_stats()
+    return stats
 
 
 def get_bam_stats(filename):
@@ -131,6 +131,22 @@ def main(args=None):
             mc.add_job(get_bam_stats, filename)
     mc.run()
 
+
+    # For the BED file only
+    if extension.endswith("bed"):
+        results = []
+        for i, this in enumerate(ff.filenames):
+            df = mc.results[i]
+            df = pd.DataFrame(df)
+            df = df.T
+            df.index.name = this
+            df = df.reset_index()
+            df["filename"] = [this] * len(df)
+            results.append(df)
+        df = pd.concat(results).set_index("filename")
+        print(df)
+        return df
+
     results = {}
     for i, this in enumerate(ff.filenames):
         if i == 0:
@@ -148,13 +164,6 @@ def main(args=None):
     # For FastQ only
     try:df.index = ff.filenames
     except:pass
-
-    # For the bed files only
-    try:
-        df = pd.concat([this.set_index("name").Value for this in results.values()], axis=1)
-        df.columns = [i for i in range(len(results))]
-    except Exception as err:
-        print(err)
 
     print()
     print(df)
