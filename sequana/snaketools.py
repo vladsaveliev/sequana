@@ -41,10 +41,11 @@ import re
 import json
 import glob
 import shutil
+import warnings
 
 import easydev
 from easydev import get_package_location as gpl
-from easydev import load_configfile, AttrDict
+from easydev import load_configfile, AttrDict, TempFile
 
 import ruamel.yaml
 from ruamel.yaml import comments
@@ -719,6 +720,24 @@ class SequanaConfig(object):
                     output = requirement.split("/")[-1]
                     wget(requirement, target + os.sep + output)
 
+    def check_config_with_schema(self, schemafile):
+        """Check the config file with respect to a schema file
+
+        Sequana pipelines should have a schema file in the Module.
+
+        """
+        from pykwalify.core import Core
+        # causes issue with ruamel.yaml 0.12.13. Works for 0.15
+        warnings.simplefilter('ignore', ruamel.yaml.error.UnsafeLoaderWarning)
+        try:
+            # open the config and the schema file
+            with TempFile(suffix=".yaml") as fh:
+                self.save(fh.name)
+                c = Core(source_file=fh.name, schema_files=[schemafile])
+        except Exception as err:
+            print(err)
+            return False
+
 
 class DummyManager(object):
     def __init__(self, filenames=None, samplename="custom"):
@@ -934,6 +953,9 @@ class PipelineManager(object):
             else:
                 raise FileNotFoundError("%s not found" % file2)
         return filenames
+
+    def message(self, msg):
+        message(msg)
 
 
 def message(mes):
