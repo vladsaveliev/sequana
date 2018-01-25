@@ -43,6 +43,20 @@ from pylab import show, figure, savefig
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
     pass
 
+class Min(argparse.Action):
+    def __init__(self, min=None, *args, **kwargs):
+        self.min = min
+        kwargs["metavar"] = "[minimum=%d]" % (self.min)
+        super(Min, self).__init__(*args, **kwargs)
+
+    def __call__(self, parser, namespace, value, option_string=None):
+        if not (self.min < value):
+            msg = 'invalid choice: %r (choose value above %d)' % \
+                (value, self.min)
+            raise argparse.ArgumentError(self, msg)
+        setattr(namespace, self.dest, value)
+
+
 
 class Options(argparse.ArgumentParser):
     def  __init__(self, prog="sequana_coverage"):
@@ -164,7 +178,7 @@ Issues: http://github.com/sequana/sequana
             default=3, help="""Number of levels in the contour""")
 
         #group running median
-        group = self.add_argument_group("Running Median related")
+        group = self.add_argument_group("Running Median and clustering related")
         group.add_argument("-w", "--window-median", dest="w_median", type=int,
             help="""Length of the running median window (default 20001,
                 recommended for bacteria).  For short genome (below 100000
@@ -172,11 +186,16 @@ Issues: http://github.com/sequana/sequana
                 length .""",
             default=20001)
 
+        group = self.add_argument_group("Large data related")
+        group.add_argument("-s", "--chunk-size", dest="chunksize", type=int,
+            default=5000000, min=1000000, action=Min,
+            help="""Length of the chunk to be used for the analysis""")
+
         group.add_argument("-k", "--mixture-models", dest="k", type=int,
             help="""Number of mixture models to use (default 2, although if sequencing
         depth is below 8, k is set to 1 automatically). To ignore that behaviour
         set k to the required value""",
-            default=None)
+            default=2)
 
         group.add_argument("-L", "--low-threshold", dest="low_threshold",
             default=None, type=float,
@@ -283,12 +302,11 @@ def main(args=None):
     # Now we scan the chromosomes,
     if len(gc.chrom_names) == 1:
         logger.warning("There is only one chromosome. Selected automatically.")
-        gc._read_bed(contig=gc.chrom_names[0])
         run_analysis(gc.chr_list[0], options, gc.feature_dict)
     elif options.chromosome <-1 or options.chromosome > len(gc.chrom_names):
         msg = "invalid chromosome index; must be in [1;{}]".format(len(gc.chrom_names))
         logger.error(msg)
-        raise ValueError(msg)
+        sys.exit(1)
     else:
         if options.chromosome == -1:
             chromosomes = gc.chrom_names # take all chromosomes
@@ -308,8 +326,7 @@ def main(args=None):
                   % (i + 1, len(gc), gc.chrom_names[i]))
             # since we read just one contig/chromosome, the chr_list contains
             # only one contig, so we access to it with index 0
-            gc._read_bed(contig=chrom)
-            run_analysis(gc.chr_list[0], options, gc.feature_dict)
+            run_analysis(gc.chr_list[i], options, gc.feature_dict)
 
     if options.skip_multiqc is False:
         logger.info("=========================")
@@ -318,85 +335,88 @@ def main(args=None):
         import subprocess
         proc = subprocess.Popen(cmd.split(), cwd=options.output_directory)
         proc.wait()
-
-    #    CoverageModule(gc)
-    #    page = "{0}{1}coverage.html".format(config.output_dir, os.sep)
+        # replaced by multiqc:
+        #    CoverageModule(gc)
+        #    page = "{0}{1}coverage.html".format(config.output_dir, os.sep)
 
 
 def run_analysis(chrom, options, feature_dict):
+
+
+    logger.info("Computing some metrics")
     if chrom.DOC < 8:
         logger.warning("The depth of coverage is below 8. sequana_coverage is"
                         " not optimised for such depth. You may want to "
                         " increase the threshold to avoid too many false detections")
-    logger.info("Computing some metrics")
     logger.info(chrom.__str__())
 
     if options.w_median > len(chrom.df) / 5:
         NW = int(len(chrom.df) / 5)
+        if NW % 2 == 0:
+            NW += 1
         logger.warning("median window length is too long. \n"
             "    Setting the window length automatically to a fifth of\n"
             "    the chromosome length ({})".format(NW))
         options.w_median = NW
 
-    logger.info('Computing running median (w=%s)' % options.w_median)
-    # compute running median
-    chrom.running_median(n=options.w_median, circular=options.circular)
+    # compute the running median, zscore and ROIs for each chunk summarizing the
+    # results in a ChromosomeCovMultiChunk instane
+    logger.info('Using running median (w=%s)' % options.w_median)
+    logger.info("Number of mixture models %s " % options.k)
+    results = chrom.run(options.w_median, options.k,
+                        circular=options.circular)
 
-    #
-    """if options.k is None and chrom.DOC < 8:
-        options.k = 1
-    """
-    if options.k is None:
-        options.k = 2
+    # Print some info related to the fitted mixture models
+    try:
+        mu = results.data[0][0].as_dict()['data']['fit_mu']
+        sigma = results.data[0][0].as_dict()['data']['fit_sigma']
+        pi = results.data[0][0].as_dict()['data']['fit_pi']
+        logger.info("Fitted central distribution (first chunk): mu=%s, sigma=%s, pi=%s" %
+              (round(mu,3), round(sigma,3), round(pi,3)))
+    except:
+        pass
 
-    logger.info("Number of mixture model %s " % options.k)
-    logger.info('Computing zscore')
-
-    # Compute zscore
-    chrom.compute_zscore(k=options.k, verbose=options.verbose)
-    res = chrom._get_best_gaussian()
-    logger.info("sigma and mu of the central distribution: mu=%s, sigma=%s" %
-            (round(res["mu"],3), round(res['sigma'],3)))
-
-    # Save the CSV file of the ROIs
+    # some information about the ROIs found
     high = chrom.thresholds.high2
     low = chrom.thresholds.low2
     logger.info("Searching for ROIs (threshold=[{},{}] ; double =[{},{}])".format(
         chrom.thresholds.low, chrom.thresholds.high, low, high))
-    query = "zscore > @high or zscore < @low"
-    if feature_dict and chrom.chrom_name in feature_dict:
-        filtered = FilteredGenomeCov(chrom.df.query(query),
-                        chrom.thresholds,
-                        feature_list=feature_dict[chrom.chrom_name])
-    else:
-        data = chrom.df.query(query)
-        data.insert(0, "chr", chrom.chrom_name)
-        filtered = FilteredGenomeCov(data, chrom.thresholds)
-    logger.info("Number of ROIs found: {}".format(len(filtered.df)))
-    logger.info("    - below average: {}".format(len(filtered.get_low_roi())))
-    logger.info("    - above average: {}".format(len(filtered.get_high_roi())))
+    ROIs = results.get_rois() # results is a ChromosomeCovMultiChunk instane
+    logger.info("Number of ROIs found: {}".format(len(ROIs.df)))
+    logger.info("    - below average: {}".format(len(ROIs.get_low_rois())))
+    logger.info("    - above average: {}".format(len(ROIs.get_high_rois())))
 
     # Create directory and save ROIs
     directory = options.output_directory
     directory += os.sep + "coverage_reports"
     directory += os.sep + chrom.chrom_name
     mkdirs(directory)
-    filtered.df.to_csv("{}/rois.csv".format(directory))
+    ROIs.df.to_csv("{}/rois.csv".format(directory))
 
     # save summary and metrics
     logger.info("Computing extra metrics")
-    summary = chrom.summary()
+    summary = results.get_summary()
+
     summary.to_json(directory + os.sep + "sequana_summary_coverage.json")
     logger.info("Evenness: {}".format(summary.data['evenness']))
-    logger.info("Centralness (3 sigma): {}".format(summary.data['Centralness 3']))
-    logger.info("Centralness (4 sigma): {}".format(summary.data['Centralness 4']))
+    logger.info("Centralness (3 sigma): {}".format(summary.data['C3']))
+    logger.info("Centralness (4 sigma): {}".format(summary.data['C4']))
 
     if options.skip_html:
         return
 
     logger.info("Creating report in %s. Please wait" % config.output_dir)
-    datatable = CoverageModule.init_roi_datatable(chrom)
-    ChromosomeCoverageModule(chrom, datatable)
+    if chrom._mode == "chunks":
+        logger.warning(("This chromosome is large (more than {0}). Producing " 
+            "plots and HTML sub coverage plots only for data from 0 to " 
+            "{0} bases. Neccesitate to recompute some metrics. Please wait").format(
+            options.chunksize))
+    datatable = CoverageModule.init_roi_datatable(ROIs)
+    ChromosomeCoverageModule(chrom, datatable,
+            options={"W": options.w_median,
+                     "k": options.k,
+                     "ROIs": ROIs,
+                     "circular": options.circular})
 
 if __name__ == "__main__":
    import sys
