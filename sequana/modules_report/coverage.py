@@ -42,7 +42,7 @@ class CoverageModule(SequanaBaseModule):
         :class:`bedtools.GenomeCov` object.
         """
         super().__init__()
-        self.region_window=region_window
+        self.region_window = region_window
         try:
             self.bed = bedtools.GenomeCov(data)
         except FileNotFoundError:
@@ -75,7 +75,7 @@ class CoverageModule(SequanaBaseModule):
         """ Create table with links to chromosome reports
         """
         df = pd.DataFrame([[chrom.chrom_name, chrom.get_size(),
-                          chrom.get_mean_cov(), chrom.get_var_coef(), page] for
+                          chrom.COV, chrom.CV, page] for
                           chrom, page in zip(self.bed.chr_list, html_list)],
                           columns=["chromosome", "size", "mean_coverage",
                           "coef_variation", "link"])
@@ -112,15 +112,21 @@ class CoverageModule(SequanaBaseModule):
             page_list.append(chrom_report.html_page)
         return page_list
 
-    # I made it as static method because I need it in the coverage standalone
-    # to initiate my datatables
-    def init_roi_datatable(chrom):
+    # a static method because we need it in the coverage standalone
+    # to initiate the datatables
+    def init_roi_datatable(rois):
         """ Initiate :class:`DataTableFunction` to create table to link each
-        row with sub HTML report. All table will have the same appearance. So,
-        let's initiate its only once.
+        row with sub HTML report. All table will have the same appearance.
+        We can therefore initialise the roi once for all.
+
+        :param rois: can be a ROIs from ChromosomeCov instance or a simple 
+            dataframe
         """
-        # get an roi df
-        df = chrom.get_rois().df.copy()
+        # computed
+        try:
+            df = rois.df.copy()
+        except:
+            df = rois
         df['link'] = ''
         # set datatable options
         datatable_js = DataTableFunction(df, 'roi')
@@ -139,18 +145,18 @@ class ChromosomeCoverageModule(SequanaBaseModule):
     created by CoverageModule.
     """
     def __init__(self, chromosome, datatable, directory="coverage_reports",
-            region_window=200000):
+            region_window=200000, options=None):
         """
 
         :param chromosome:
         :param datatable:
         :param directory:
         :param int region_window: length of the sub coverage plot
+        :param options: should contain "W", "k", "circular"
 
         """
         super().__init__()
         self.region_window = region_window
-
 
         # to define where are css and js
         if directory in {None, '.'}:
@@ -164,17 +170,31 @@ class ChromosomeCoverageModule(SequanaBaseModule):
             self.chromosome.chrom_name)
         self.intro = ("<p>The genome coverage analysis of the chromosome "
                       "<b>{0}</b>.</p>".format(self.chromosome.chrom_name))
-        self.create_report_content(directory)
+        self.create_report_content(directory, options=options)
         self.html_page = "{0}{1}{2}.cov.html".format(
             directory, os.sep, self.chromosome.chrom_name)
+
+
         self.create_html(self.html_page)
 
-    def create_report_content(self, directory):
+    def create_report_content(self, directory, options=None):
         """ Generate the sections list to fill the HTML report.
         """
         self.sections = list()
 
-        rois = self.chromosome.get_rois()
+        if self.chromosome._mode == "memory":
+            # nothing to do, all computations should be already available
+            # and in memory
+            rois = self.chromosome.get_rois()
+        elif self.chromosome._mode == "chunks":
+            # we need to reset the data to the first chunk 
+            # and compute the median and zscore. So, first, we save the entire
+            # data set
+            self.chromosome.reset()
+            self.chromosome.running_median(options['W'], circular=options['circular'])
+            self.chromosome.compute_zscore(options['k'])
+            # We mus set the ROI manually 
+            rois = options['ROIs']
 
         self.coverage_plot()
         links = self.subcoverage(rois, directory)
@@ -330,19 +350,22 @@ class ChromosomeCoverageModule(SequanaBaseModule):
 
         def connect_link(x):
             for link in links:
-                _, x1, x2 = link.rsplit(os.sep)[1].rstrip(".html").split("_")
+                _, x1, x2 = link.rsplit(os.sep)[1].rstrip(".html").rsplit("_", 2)
                 x1 = int(x1)
                 x2 = int(x2)
                 if x >= x1 and x<x2:
                     return link
-            raise Exception("{} position not in the range of reports".format(x))
+            # for the same where the data is fully stored in memory, we must
+            # find all events !
+            if self.chromosome._mode == "memory":
+                raise Exception("{} position not in the range of reports".format(x))
 
         links_list = [connect_link(n) for n in rois.df['start']]
 
         rois.df['link'] = links_list
         # create datatable
-        low_roi = rois.get_low_roi()
-        high_roi = rois.get_high_roi()
+        low_roi = rois.get_low_rois()
+        high_roi = rois.get_high_rois()
         js = self.datatable.create_javascript_function()
         lroi = DataTable(low_roi, "lroi", self.datatable)
         hroi = DataTable(high_roi, "hroi", self.datatable)
@@ -544,8 +567,8 @@ class SubCoverageModule(SequanaBaseModule):
         """
         subseq = [self.start, self.stop]
 
-        low_roi = self.rois.get_low_roi(subseq)
-        high_roi = self.rois.get_high_roi(subseq)
+        low_roi = self.rois.get_low_rois(subseq)
+        high_roi = self.rois.get_high_rois(subseq)
         js = self.datatable.create_javascript_function()
         lroi = DataTable(low_roi, "lroi", self.datatable)
         hroi = DataTable(high_roi, "hroi", self.datatable)
