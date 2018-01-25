@@ -253,7 +253,7 @@ class NumberOption(GeneralOption):
             self.number = QW.QDoubleSpinBox()
         else:
             self.number = QW.QSpinBox()
-        self.number.setRange(-1000000, 1000000)
+        self.number.setRange(-1000000000, 1000000000)
         self.number.setValue(value)
         self.number.installEventFilter(self)
 
