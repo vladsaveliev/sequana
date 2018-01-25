@@ -36,8 +36,10 @@ class MultiqcModule(BaseMultiqcModule):
             if name.startswith("summary_"):
                 name = name.replace("summary_", "")
             data = self.parse_logs(myfile["f"])
-            self.sequana_data[data['data']['chrom_name']] = data['data']
-            self.sequana_desc[data['data']['chrom_name']] = data['data_description']
+
+            key = data['data']['chrom_name']
+            self.sequana_data[key] = data['data']
+            self.sequana_desc[key] = data['data_description']
 
 
         info = "<ul>"
@@ -62,6 +64,7 @@ class MultiqcModule(BaseMultiqcModule):
         self.add_BOC()
         self.add_CV()
         self.add_ROI()
+        self.add_C3()
 
     def parse_logs(self, log_dict):
         import json
@@ -141,6 +144,26 @@ class MultiqcModule(BaseMultiqcModule):
             helptext = "",
             plot = bargraph.plot(data, None, pconfig))
 
+    def add_C3(self):
+        data = {}
+        for name in self.sequana_data.keys():
+            data[name] = {'C3': self.sequana_data[name]["C3"]}
+
+        pconfig = {
+            "title": self.sequana_desc[name]["C3"],
+            "percentages": False,
+            "min": 0,
+            "max": 0,
+            "logswitch": False}
+
+        self.add_section(
+            name = 'C3',
+            anchor = 'C3',
+            description = 'Centralness (roughly speaking, ratio of ' + \
+                          'outliers versus total genome length).',
+            helptext = "",
+            plot = bargraph.plot(data, None, pconfig))
+
     def add_length(self):
         data = {}
         for name in self.sequana_data.keys():
@@ -210,12 +233,14 @@ class MultiqcModule(BaseMultiqcModule):
         headers = {}
         formats = {
             "BOC": '{:,.2f}',
+            "CV": '{:,.2f}',
             "DOC": '{:,.2f}',
             "length": '{:,d}',
-            "ROI": '{:,d}'
+            "ROI": '{:,d}',
+            "C3": '{:,.2f}'
         }
 
-        for field in ['BOC', 'DOC', 'ROI', 'length']:
+        for field in ['BOC', 'DOC', 'ROI', 'length', "CV", "C3"]:
 
             # description are supposed to be the same for all samples, let us
             # take the first one
