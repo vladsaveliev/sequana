@@ -19,7 +19,7 @@ Changelog
 * NEWS:
 
     * SARTools rule added and used in the RNAseq pipeline
-    * add summary module.
+    * add summary module to store summary in json formats.
 
 * CHANGES:
 
@@ -28,7 +28,9 @@ Changelog
       length (for small genome); speed up code; add plot_roi function, uses
       multiqc for summary page; add log2 ratio column. See
       https://github.com/sequana/sequana/issues/495 for details. 
-      Scan large files by chunk.
+      Scan large files by chunk. Add a snakemake that can be used in sequanix.
+    * remove the sequana_report standalone, which was not finalised and won't be
+      used in the future. We will use multiqc instead.
 
 0.6.3.post1
 ~~~~~~~~~~~~~
