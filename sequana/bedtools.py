@@ -497,13 +497,15 @@ class GenomeCov(object):
                        " BED/BAM file) not found in the reference.")
                 logger.warning(msg.format(chrom))
 
-    def get_stats(self, output="json"):
+    def get_stats(self):
         """Return basic statistics for each chromosome
 
         :return: dictionary with chromosome names as keys
             and statistics as values.
 
         .. seealso:: :class:`ChromosomeCov`.
+
+        .. note:: used in sequana_summary standalone
         """
         stats = {}
         for chrom in self.chr_list:
