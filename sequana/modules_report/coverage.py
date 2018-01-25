@@ -43,14 +43,12 @@ class CoverageModule(SequanaBaseModule):
         """
         super().__init__()
         self.region_window = region_window
-        try:
-            self.bed = bedtools.GenomeCov(data)
-        except FileNotFoundError:
-            msg = ("The csv file is not present. Please, check if your"
-                   " file is present.")
-            raise FileNotFoundError(msg)
-        except TypeError:
+
+
+        if isinstance(data, bedtools.GenomeCov):
             self.bed = data
+        else:
+            raise TypeError
 
         try:
             html_list = self.create_reports()
@@ -75,7 +73,7 @@ class CoverageModule(SequanaBaseModule):
         """ Create table with links to chromosome reports
         """
         df = pd.DataFrame([[chrom.chrom_name, chrom.get_size(),
-                          chrom.COV, chrom.CV, page] for
+                          chrom.DOC, chrom.CV, page] for
                           chrom, page in zip(self.bed.chr_list, html_list)],
                           columns=["chromosome", "size", "mean_coverage",
                           "coef_variation", "link"])
@@ -201,7 +199,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         self.coverage_barplot()
         self.basic_stats()
         self.regions_of_interest(rois, links)
-        if "gc" in self.chromosome.columns():
+        if "gc" in self.chromosome.df.columns:
             self.gc_vs_coverage()
         self.normalized_coverage()
         self.zscore_distribution()
@@ -499,7 +497,7 @@ class SubCoverageModule(SequanaBaseModule):
         # set column of interest and create the csv
         x_col = 'pos'
         y_col = ('cov', 'mapq0', 'gc')
-        columns = self.chromosome.columns()
+        columns = self.chromosome.df.columns
         y_col = [n for n in y_col if n in columns]
         csv = self.chromosome.to_csv(start=self.start, stop=self.stop,
                                      columns=[x_col] + y_col, index=False,
