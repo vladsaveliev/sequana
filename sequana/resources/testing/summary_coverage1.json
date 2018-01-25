@@ -1,0 +1,39 @@
+{
+    "data": {
+        "BOC": 99.99790289996672,
+        "C3": 0.9734,
+        "C4": 0.99375,
+        "CV": 0.1886402729439463,
+        "DOC": 105.47361570337183,
+        "ROI": 3877,
+        "ROI(high)": 2908,
+        "ROI(low)": 969,
+        "chrom_name": "CU329670",
+        "evenness": 0.93035,
+        "fit_mu": 1.0013003787868449,
+        "fit_pi": 0.9676493030439713,
+        "fit_sigma": 0.16494399367855064,
+        "length": 5579133
+    },
+    "data_description": {
+        "BOC": "Breadth of Coverage",
+        "C3": "Centralness (1 - ratio outliers by genome length) using zscore of 3",
+        "C4": "Centralness (1 - ratio outliers by genome length) using zscore of 4",
+        "CV": "coefficient of variation of the DOC",
+        "DOC": "Depth of Coverage",
+        "ROI": "number of regions of interest found",
+        "ROI(high)": null,
+        "ROI(low)": null,
+        "chrom_name": "name of the contig/chromosome",
+        "evenness": null,
+        "fit_mu": null,
+        "fit_pi": null,
+        "fit_sigma": null,
+        "length": "length of the contig/chromosome"
+    },
+    "date": "Thu Jan 25 17:57:40 2018",
+    "description": "",
+    "name": "sequana_summary_coverage",
+    "sample_name": "S_pombe_vs_09052011_filtered.bed",
+    "version": "0.6.3.post1"
+}
