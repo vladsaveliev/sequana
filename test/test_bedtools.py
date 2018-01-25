@@ -40,37 +40,42 @@ def test_threshold():
     except:
         assert True
 
+
 def test_genomecov():
     filename = sequana_data('JB409847.bed')
 
+    # wrong file
     try:
         bed = bedtools.GenomeCov("dummy.csv")
         assert False
     except:
         assert True
 
+    # wrong threshold
+    try:
+        bed = bedtools.GenomeCov(filename, high_threshold=2)
+        assert False
+    except:
+        assert True
+
+    # wrong threshold
+    try:
+        bed = bedtools.GenomeCov(filename, low_threshold=-2)
+        assert False
+    except:
+        assert True
+
+    # wrong genbank
     try:
         bed = bedtools.GenomeCov(filename, "dummy.gbk")
         assert False
     except:
         assert True
 
-    # !now let us read the good data sets
-    bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
-    bed.compute_coverage(4001)
-
-    bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
-    bed2 = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
-    assert bed == bed
-
-    # test equality for same chromosome but different data
-    bed2.chr_list[0].df["cov"] += 100
-    assert bed != bed2
-    # test equality for same chromosome but different data
-    bed2.chr_list[0].df["cov"] -= 100
-    bed2.chr_list.append("dummy")
-    assert bed != bed2
-    
+    # !now let us read the good data sets by chunkd
+    bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'),chunksize=5000)
+    for c in bed.chr_list:
+        c.run(4001, k=2)
 
     # setter must be bool
     try:
@@ -91,6 +96,7 @@ def test_genomecov():
     bed[0]
 
     # setter available but not sure this is useful
+    bed.window_size = 4000
     bed.window_size = 4001
     bed.hist()
 
@@ -115,8 +121,8 @@ def test_genomecov():
         chrom.DOC
         chrom.CV
     with TempFile(suffix='.csv') as fh:
+        bed.gc_window_size = 100
         bed.to_csv(fh.name)
-        bed2 = bedtools.GenomeCov(fh.name, sequana_data('JB409847.gbk'))
 
     # plotting
     bed.chr_list[0].plot_hist_coverage()
@@ -127,10 +133,50 @@ def test_genomecov():
             filename=fh.name)
 
 
+def test_chromosome():
+    filename = sequana_data('JB409847.bed')
+    # using chunksize of 7000, we test odd number
+    bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'),chunksize=7000)
+    chrom = bed.chr_list[0]
+    chrom.run(501, k=2, circular=True)
+    print(chrom)
+
+    # using chunksize of 7000, we test even number
+    bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'),chunksize=7000)
+    chrom = bed.chr_list[0]
+    chrom.run(501, k=2, circular=True)
+
+    # no chunksize
+    bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
+    chrom = bed.chr_list[0]
+    chrom.run(501, k=2, circular=True)
+    print(chrom)
+
+    # no chunksize
+    bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'))
+    chrom = bed.chr_list[0]
+    try:
+        chrom._coverage_scaling()
+        assert False
+    except KeyError:
+        assert True
+    except:
+        assert False
+
+    # zscore not computed yet, so error
+    try:
+        chrom.plot_rois(3000, 8000) 
+        assert False
+    except:
+        assert True
+    chrom.run(4001)
+    chrom.plot_rois(3000, 8000) 
+
 def test_gc_content():
     bed = sequana_data('JB409847.bed')
     fasta = sequana_data('JB409847.fasta')
     cov = bedtools.GenomeCov(bed)
+    cov.chrom_names.append("dummy")
     cov.compute_gc_content(fasta)
     cov.get_stats()
     ch = cov[0]
@@ -148,3 +194,12 @@ def test_gc_content():
         ch.to_csv(fh.name)
 
     ch.get_max_gc_correlation(fasta)
+
+def test_ChromosomeCovMultiChunk():
+    filename = sequana_data('JB409847.bed')
+    # using chunksize of 7000, we test odd number
+    bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'),chunksize=7000)
+    chrom = bed.chr_list[0]
+    res = chrom.run(501, k=2, circular=True)
+    res.get_summary()
+    res.get_rois()
