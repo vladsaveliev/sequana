@@ -1,0 +1,36 @@
+
+
+# ============================================================================
+# Config file for coverage pipeline
+# ==========================================[ Sections for the users ]========
+#
+# One of input_directory, input_pattern and input_samples must be provided
+# If input_directory provided, use it otherwise if input_pattern provided,
+# use it, otherwise use input_samples.
+# If input_extension provided, use it otherwise assume fastq.gz
+# ============================================================================
+input_directory: "%(input_directory)s"
+input_readtag: "%(input_readtag)s"
+input_extension: "%(input_extension)s"
+input_pattern: "%(input_pattern)s"
+input_samples:
+    file1: "%(file1)s"
+    file2: "%(file2)s"
+
+
+####################################"
+#
+# :Parameters:
+#
+# 
+#
+coverage:
+    circular: True
+    double_threshold: 0.5
+    genbank_file: 
+    high_threshold: 4.
+    low_threshold: -4.
+    mixture_models: 2
+    reference_file: 
+    window: 20001
+    chunksize: 5000000
