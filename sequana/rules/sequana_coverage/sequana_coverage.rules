@@ -36,7 +36,7 @@ rule sequana_coverage:
     Reference:
         - https://doi.org/10.1101/092478
     """
-    input: 
+    input:
         bed = __sequana_coverage__bed,
         fasta = __sequana_coverage__fasta,
         gbk = __sequana_coverage__gbk
@@ -62,8 +62,7 @@ rule sequana_coverage:
         bed.compute_gc_content(input['fasta'], params['gc_size'],
                                params['circular'])
         for chrom in bed:
-            chrom.running_median(params['size'], params['circular'])
-            chrom.compute_zscore(params['k'])
+            chrom.run(params['size'], circular=params['circular'], k=params['k'])
         bed.to_csv(output['csv'], float_format='%.3g')
 
         # Create HTML reports
