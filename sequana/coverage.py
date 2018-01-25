@@ -111,7 +111,7 @@ class Coverage(object):
         self._G = G  # length target genome
 
     def __repr__(self):
-        if self._N is None: 
+        if self._N is None:
             N = "undefined"
         else:
             N = self._N
@@ -220,7 +220,7 @@ class Coverage(object):
         r"""Expected length of the contigs
 
         .. math:: \frac{e^a-1)L}{a}
-        
+
         """
         return (math.exp(self.a) - 1) * self.L / self.a
 
