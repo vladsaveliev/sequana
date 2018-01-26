@@ -1,7 +1,7 @@
 import os
 
 from sequana import logger as _log
-from sequana import GenomeCov
+from sequana import GenomeCov, sequana_data
 from sequana.modules_report.coverage import CoverageModule, ChromosomeCoverageModule
 from sequana import snaketools as sm
 
@@ -43,18 +43,24 @@ def scan_genome(infile):
     genome = GenomeCov(infile,
                 genbank_file=config['coverage']['genbank_file'],
                 chunksize=config["coverage"]["chunksize"],
+                low_threshold=config["coverage"]["low_threshold"],
+                high_threshold=config["coverage"]["high_threshold"],
+                ldtr=config["coverage"]["double_threshold"],
+                hdtr=config['coverage']["double_threshold"],
                 quiet_progress=True)
 
     #################################################### GC content
     reffile = config["coverage"]["reference_file"]
     # if length of the fasta > 100 million bases, we do not compute the GC
-    if reffile and os.path.getsize(reffile) <= 100000000:
-        genome.compute_gc_content(reffile)
-    else:
-        _log.warning("do not compute GC content (file is larger than 100 million bases.")
+    if reffile:
+        if os.path.getsize(reffile) <= 100000000:
+            genome.compute_gc_content(reffile)
+        else:
+            _log.warning("do not compute GC content (file is larger than 100 million bases).")
     return genome
 
-sm.message("//scanning input file. May take time depending on the input file")
+
+sm.message("scanning input file. May take time depending on the input file")
 genome = scan_genome(__bedfile__)
 
 
@@ -67,8 +73,9 @@ rule pipeline:
 rule multiqc:
     input: expand(summary_files_pattern, sample=genome.chrom_names),
     output: __multiqc__output
-    shell: "multiqc . -m sequana_coverage  -f"
-
+    params:
+        config=sequana_data("multiqc_config.yaml", "../multiqc")
+    shell: "multiqc . -m sequana_coverage  -f -c {params.config}"
 
 
 # The main coverage factory
