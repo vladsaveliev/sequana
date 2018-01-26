@@ -59,10 +59,11 @@ class MultiqcModule(BaseMultiqcModule):
         log.info("Found {} reports".format(len(self.sequana_data)))
 
         self.populate_columns()
-        self.add_length()
+        self.add_hist_coverage()
         self.add_DOC()
         self.add_BOC()
         self.add_CV()
+        self.add_length()
         self.add_ROI()
         self.add_C3()
 
@@ -175,56 +176,50 @@ class MultiqcModule(BaseMultiqcModule):
             "min": 0,
             "logswitch": False}
         self.add_section(
-            name = 'length',
+            name = 'Contig length',
             anchor = 'length',
-            description = 'length of the contig/chromosome',
+            description = 'Length of the contig/chromosome',
             helptext = "",
             plot = bargraph.plot(data, None, pconfig))
 
-    def add_hist_GC(self):
-        """ Create the HTML for the FastQC GC content plot """
+    def add_hist_coverage(self):
         data = dict()
         data_norm = dict()
         for s_name in self.sequana_data:
             try:
-                X = self.sequana_data[s_name]["hist_gc"]['X']
-                Y = self.sequana_data[s_name]["hist_gc"]['Y']
-                Y = [y / float(sum(Y)) for y in Y]
-                data[s_name] = {x:10*y for x,y in zip(X[1:], Y)}
+                X = self.sequana_data[s_name]["hist_coverage"]['X']
+                Y = self.sequana_data[s_name]["hist_coverage"]['Y']
+                Y = [y  for y in Y]
+                data[s_name] = {x:y for x,y in zip(X, Y)}
             except KeyError:
                 pass
-            #else:
-            #    data_norm[s_name] = dict()
-            #    total = sum( [ c for c in data[s_name].values() ] )
-            #    for gc, count in data[s_name].items():
-            #        data_norm[s_name][gc] = (count / total) * 100
 
         if len(data) == 0:
-            log.debug('no data for the GC content plots')
+            log.debug('no data for the coverage plots')
             return None
 
         pconfig = {
-            'id': 'sequana_pacbio_per_sequence_gc_content_plot',
-            'title': 'Per Sequence GC Content',
-            'ylab': 'Count',
-            'xlab': '% GC',
+            'id': 'sequana_coverage_hist',
+            'title': 'Depth of Coverage',
+            'ylab': '#',
+            'xlab': 'DOC',
             'ymin': 0,
             #'ymax': 0.2,
-            'xmax': 100,
+            #'xmax': 100,
             'xmin': 0,
-            'yDecimals': False,
-            'tt_label': '<b>{point.x}% GC</b>: {point.y}',
+            'yDecimals': True,
+            'tt_label': '<b>{point.x:.2f} DOC</b>: {point.y:.4f}',
             #'colors': self.get_status_cols('per_sequence_gc_content'),
             'data_labels': [
-                {'name': 'Percentages', 'ylab': 'Percentage'},
+                #{'name': 'Percentages', 'ylab': 'Percentage'},
                 {'name': 'Counts', 'ylab': 'PDF'}
             ]
         }
 
         self.add_section (
-            name = 'Per Sequence GC Content',
-            anchor = 'fastqc_per_sequence_gc_content',
-            description = "GC content (normalised)",
+            name = 'Depth of Coverage Histogram',
+            anchor = 'coverage_hist',
+            description = "Histogram (normalised) of the depth of coverage",
             #plot = linegraph.plot([data_norm, data], pconfig))
             plot = linegraph.plot(data, pconfig))
 
