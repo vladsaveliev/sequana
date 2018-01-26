@@ -512,7 +512,7 @@ class GenomeCov(object):
             stats[chrom.chrom_name] = chrom.get_stats()
         return stats
 
-    def hist(self, logx=True, logy=True, fignum=1, N=20, lw=2, **kwargs):
+    def hist(self, logx=True, logy=True, fignum=1, N=25, lw=2, **kwargs):
         for chrom in self.chr_list:
             chrom.plot_hist_coverage(logx=logx, logy=logy, fignum=fignum, N=N,
                 histtype='step', hold=True, lw=lw, **kwargs)
@@ -1286,10 +1286,12 @@ class ChromosomeCov(object):
         if filename:
             pylab.savefig(filename)
 
-    def plot_hist_coverage(self, logx=True, logy=True, fontsize=16, N=20,
-        fignum=1, hold=False, alpha=0.5, filename=None, **kw_hist):
+    def plot_hist_coverage(self, logx=True, logy=True, fontsize=16, N=25,
+        fignum=1, hold=False, alpha=0.8, ec="k", filename=None, zorder=10, **kw_hist):
         """
 
+        :param N:
+        :param ec:
         """
         if hold is False:
             pylab.figure(fignum)
@@ -1303,25 +1305,25 @@ class ChromosomeCov(object):
         if logx is True and logy is True:
             bins = pylab.logspace(0, pylab.log10(maxcov), N)
             pylab.hist(data, bins=bins, log=True, label=self.chrom_name,
-                alpha=alpha, **kw_hist)
+                alpha=alpha, ec=ec, zorder=zorder, **kw_hist)
             pylab.semilogx()
             pylab.xlabel("Coverage (log scale)", fontsize=fontsize)
             pylab.ylabel("Count (log scale)", fontsize=fontsize)
         elif logx is False and logy is True:
             pylab.hist(data, bins=N, log=True, label=self.chrom_name,
-                alpha=alpha, **kw_hist)
+                alpha=alpha, ec=ec, zorder=zorder, **kw_hist)
             pylab.xlabel("Coverage", fontsize=fontsize)
             pylab.ylabel("Count (log scale)", fontsize=fontsize)
         elif logx is True and logy is False:
             bins = pylab.logspace(0, pylab.log10(maxcov), N)
             pylab.hist(data, bins=N, label=self.chrom_name, alpha=alpha,
-                **kw_hist)
+                zorder=zorder, ec=ec, **kw_hist)
             pylab.xlabel("Coverage (log scale)", fontsize=fontsize)
             pylab.ylabel("Count", fontsize=fontsize)
             pylab.semilogx()
         else:
             pylab.hist(data, bins=N, label=self.chrom_name, alpha=alpha,
-                **kw_hist)
+                zorder=zorder, ec=ec, **kw_hist)
             pylab.xlabel("Coverage", fontsize=fontsize)
             pylab.ylabel("Count", fontsize=fontsize)
         pylab.grid(True)
@@ -1440,6 +1442,16 @@ class ChromosomeCov(object):
         pylab.grid()
         return res[0]
 
+    def _get_hist_data(self, bins=30):
+        data = self.df['cov'].dropna().values
+        maxcov = data.max() 
+        try:
+            Y, X, _ = pylab.hist(data, bins=bins, normed=True)
+            print(X, Y)
+            return {"X": list(X[1:]), "Y": list(Y)}
+        except:
+            return {"X": [], "Y": []}
+
     def get_summary(self, C3=None, C4=None,  stats=None):
 
         if stats is None:
@@ -1451,9 +1463,9 @@ class ChromosomeCov(object):
 
         fit = self._get_best_gaussian()
 
-        d = {"evenness": round(self.evenness,4),
-             "C3": round(self.C3,4),
-             "C4": round(self.C4,4),
+        d = {"evenness": round(self.evenness, 4),
+             "C3": round(self.C3, 4),
+             "C4": round(self.C4, 4),
              "BOC": self.BOC,
              "length": len(self.df),
              "DOC": self.DOC,
@@ -1464,7 +1476,8 @@ class ChromosomeCov(object):
              "ROI(high)": ROIhigh,
              "fit_mu": fit["mu"],
              "fit_sigma": fit["sigma"],
-             "fit_pi": fit["pi"]
+             "fit_pi": fit["pi"],
+             "hist_coverage": self._get_hist_data()
         }
         if "gc" in stats:
             d["GC"] = stats['gc']
