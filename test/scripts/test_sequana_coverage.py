@@ -58,8 +58,9 @@ def test_input(tmpdir):
     filename = sequana_data('JB409847.bed')
     try:
         coverage.main([prog, '-i', filename, "-o", "--output-directory",
-                       directory_run.__str__(), "-r",
-                       "%s/JB409847.fa" % directory_data.__str__()])
+                directory_run.__str__(), 
+                "--window-median", "3001", "-r", 
+                "%s/JB409847.fa" % directory_data.__str__()])
         assert False
     except Exception as err:
         print(err)
@@ -68,12 +69,13 @@ def test_input(tmpdir):
     assert os.path.exists(directory_run.__str__() + os.sep + "multiqc_report.html")
     try:
         coverage.main([prog, '-i', filename, "-o", "--output-directory",
-                       directory_run.__str__(), "-r",
+                       directory_run.__str__(),
+                       "--window-median", "3001", "-r",
                        "%s/JB409847.fa" % directory_data.__str__(), '-c', '1'])
         assert False
     except Exception as err:
         print(err)
         assert True
-    assert os.path.exists(str(directory_run) + os.sep + 'JB409847.cov.html')
+    assert os.path.exists(str(directory_run) + os.sep + 'multiqc_report.html')
 
 
