@@ -25,7 +25,7 @@ import argparse
 from optparse import OptionParser
 from argparse import RawTextHelpFormatter
 
-from sequana import bedtools
+from sequana import bedtools, sequana_data
 from sequana.modules_report.coverage import CoverageModule
 from sequana.modules_report.coverage import ChromosomeCoverageModule
 from sequana.utils import config
@@ -331,7 +331,8 @@ def main(args=None):
     if options.skip_multiqc is False:
         logger.info("=========================")
         logger.info("Creating multiqc report")
-        cmd = 'multiqc . -m sequana_coverage -f'
+        pathtocfg = sequana_data("multiqc_config.yaml", "../multiqc/")
+        cmd = 'multiqc . -m sequana_coverage -f -c {}'.format(pathtocfg)
         import subprocess
         proc = subprocess.Popen(cmd.split(), cwd=options.output_directory)
         proc.wait()
