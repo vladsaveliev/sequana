@@ -104,6 +104,7 @@ setup(
         'sequana.resources.images' : ['*'],
         'sequana.resources.testing' : ['*'],
         'sequana.resources.busco' : ['*'],
+        'sequana.multiqc' : ['*yaml'],
         },
 
     # these files do not need to be added in MANIFEST.in since there are python
