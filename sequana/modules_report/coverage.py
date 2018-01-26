@@ -213,7 +213,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
             "name": "Coverage",
             "anchor": "coverage",
             "content":
-                "<p>The following figure shows the per-base coverage along the"
+                "<p>The following figures shows the per-base coverage along the"
                 " reference genome (black line). The blue line indicates the "
                 "running median. From the normalised coverage, we estimate "
                 "z-scores on a per-base level. The red lines indicates the "
@@ -235,8 +235,9 @@ class ChromosomeCoverageModule(SequanaBaseModule):
             'name': "Coverage histogram",
             'anchor': "cov_barplot",
             'content':
-                "<p>The following figure contains the histogram of the genome "
-                "coverage. The X and Y axis being in log scale.</p>\n"
+                "<p>The following figures contain the histogram of the genome "
+                "coverage. The X and Y axis being in log scale in the left panel"
+                "while only the Y axis is in log scale in the right panel.</p>\n"
                 "{0}\n{1}".format(image1, image2)
         })
 
