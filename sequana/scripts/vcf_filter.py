@@ -44,7 +44,7 @@ class Options(argparse.ArgumentParser):
         usage += """Examples:
 
     sequana_vcf_filter --input test.vcf --quality 40 
-                --filter "AF>0.95&AF<0.05, MQ<30"
+                --filter "AF1>0.95&AF1<0.05"
                 --filter "MQ<30"
 
 
@@ -146,11 +146,13 @@ def main(args=None):
         signs = [">", "<", ">=", "<="]
         for sign in signs:
             if sign in this:
-                key, value = this.split(sign)
+                key, value = this.split(sign, 1)
                 key = key.strip()
                 value = sign.strip() + value.strip()
                 vcf.vcf.filter_dict['INFO'][key] = value
-                continue
+                break
+
+
     print(vcf.vcf.filter_dict)
 
     res = vcf.vcf.filter_vcf(options.output_filename,
