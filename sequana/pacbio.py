@@ -335,7 +335,10 @@ class BAMPacbio(PacbioBAMBase):
                 # res[3] = snr C
                 # res[4] = snr G
                 # res[5] = snr T
-                snr = list([x for x in read.tags if x[0]=='sn'][0][1])
+                try:
+                    snr = list([x for x in read.tags if x[0]=='sn'][0][1])
+                except:
+                    snr = [None] * 4
                 res = res + snr
                 #res[6] = ZMW name
                 res.append(read.qname.split('/')[1])
@@ -505,6 +508,14 @@ class BAMPacbio(PacbioBAMBase):
         """
         if self._df is None:
             self._get_df()
+
+        # old pacbio format has no SNR stored
+        if len(self._df['snr_A'].dropna()) == 0:
+            # nothing to plot
+            from sequana import sequana_data
+            pylab.imshow(pylab.imread(sequana_data("no_data.jpg")))
+            pylab.gca().axis('off')
+            return
 
         if hold is False:
             pylab.clf()
