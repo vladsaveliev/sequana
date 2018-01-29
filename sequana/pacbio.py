@@ -141,8 +141,8 @@ class PacbioBAMBase(object):
             pylab.grid(True)
         pylab.xlim([0, 100])
 
-    def plot_GC_read_len(self, hold=False, fontsize=12, bins=[40,40],
-                grid=True, xlabel="GC %", ylabel="#", cmap="hot"):
+    def plot_GC_read_len(self, hold=False, fontsize=12, bins=[60, 60],
+                grid=True, xlabel="GC %", ylabel="#", cmap="BrBG"):
         """Plot GC content versus read length
 
         :param bool hold:
@@ -169,9 +169,10 @@ class PacbioBAMBase(object):
 
         if hold is False:
             pylab.clf()
-        data = self._df.loc[:,['read_length','GC_content']]
+
+        data = self._df.loc[:,['read_length','GC_content']].dropna()
         h = biokit.viz.hist2d.Hist2D(data)
-        res = h.plot(bins=bins, contour=False, nnorm='log', Nlevels=6, cmap=cmap)
+        res = h.plot(bins=bins, contour=False, norm='log', Nlevels=6, cmap=cmap)
         pylab.xlabel("Read length", fontsize=fontsize)
         pylab.ylabel("GC %", fontsize=fontsize)
         pylab.title("GC %% vs length \n Mean length : %.2f , Mean GC : %.2f" % 
@@ -513,6 +514,7 @@ class BAMPacbio(PacbioBAMBase):
         if len(self._df['snr_A'].dropna()) == 0:
             # nothing to plot
             from sequana import sequana_data
+            pylab.clf()
             pylab.imshow(pylab.imread(sequana_data("no_data.jpg")))
             pylab.gca().axis('off')
             return
