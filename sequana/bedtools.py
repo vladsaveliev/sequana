@@ -1443,11 +1443,20 @@ class ChromosomeCov(object):
         return res[0]
 
     def _get_hist_data(self, bins=30):
-        data = self.df['cov'].dropna().values
-        maxcov = data.max() 
+        data = self.df['cov'].dropna()
+        m = data.quantile(0.01)
+        M = data.quantile(0.99)
+        # we 
+        step = 1
+        bins = pylab.arange(m, M, step)
+
+        while len(bins) > 150:
+            step *= 2
+            bins = pylab.arange(m, M, step)
+
         try:
-            Y, X, _ = pylab.hist(data, bins=bins, normed=True)
-            print(X, Y)
+            #Y, X, _ = pylab.hist(data, bins=bins, normed=True)
+            Y, X, = np.histogram(data, bins=bins, normed=True)
             return {"X": list(X[1:]), "Y": list(Y)}
         except:
             return {"X": [], "Y": []}
