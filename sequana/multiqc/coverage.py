@@ -219,10 +219,10 @@ class MultiqcModule(BaseMultiqcModule):
         self.add_section (
             name = 'Depth of Coverage Histogram',
             anchor = 'coverage_hist',
-            description = "Histogram (normalised) of the depth of coverage. Be
-aware that for convenience, we take only the 99% quantile of the data so you may
-not see outliers. For detailled histogram, please see the links above for
-histogram with the whole data set",
+            description = ("Histogram (normalised) of the depth of coverage. For"
+                        " convenience, only  99% the data (centered) to "
+                        "avoid outliers. For detailled histograms, please see "
+                        " the links above "),
             #plot = linegraph.plot([data_norm, data], pconfig))
             plot = linegraph.plot(data, pconfig))
 
