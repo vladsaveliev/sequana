@@ -44,8 +44,6 @@ class PacbioQCPipeline(Pipeline):
         assert "hist_gc" in data
 
 
-
-
 def test_pipeline():
     QC = PacbioQCPipeline()
     try:
