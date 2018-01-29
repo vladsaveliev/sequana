@@ -100,6 +100,7 @@ class PacbioInputBAMModule(SequanaBaseModule):
         })
 
     def add_png(self, key):
+        text = ""
         if key == "hist_read_length":
             title = "Histogram read length"
         elif key == "hist_gc_content":
@@ -108,8 +109,11 @@ class PacbioInputBAMModule(SequanaBaseModule):
             title = "Histogram ZMW"
         elif key == "gc_vs_length":
             title = "GC vs length"
-        elif key == "hist_snr":
+        elif key == "hist_snr":            
             title = "Histogram SNR"
+            text = ("SNR histogram of A, C, G, T bases from the raw data if "
+                    "present in the BAM file, otherwise you will see a 'no "
+                    "data' icon")
         else:
             return
 
@@ -122,5 +126,5 @@ class PacbioInputBAMModule(SequanaBaseModule):
         self.sections.append({
             "name": title,
             "anchor": key,
-            "content":  html
+            "content": "<p>{}</p><br>".format(text) + html
         })
