@@ -68,13 +68,14 @@ rule kraken:
         if len(input) == 1:
             shell("kraken -db {params.database} {input[0]} "
                 " --threads {threads}"
-                " --out {output.kraken} "
+                " --output {output.kraken} "
+                " --out-fmt legacy "
                 " --unclassified-out %s " % outname
                 )
         elif len(input) == 2:
             shell("kraken -db {params.database}  {input[0]} {input[1]} "
                 " --threads {threads} "
-                " --paired  --out {output.kraken}"
+                " --paired  --output {output.kraken} --out-fmt legacy"
                 " --unclassified-out %s " % outname
                 )
         # Now we compress the unclassified file

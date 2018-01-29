@@ -10,7 +10,7 @@ fastq-screen
 fastqc==0.11.5
 freebayes
 khmer
-kraken
+kraken==1.1
 krona
 shustring
 picard

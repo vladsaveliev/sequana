@@ -639,7 +639,8 @@ class KrakenAnalysis(object):
 
         if self.paired:
             command += " %(file2)s --paired"
-        command += " --threads %(thread)s --out %(kraken_output)s"
+        command += " --threads %(thread)s --output %(kraken_output)s "
+        command += " --out-fmt legacy"
 
         if output_filename_unclassified:
             command +=  " --unclassified-out %(output_filename_unclassified)s "
