@@ -3,7 +3,7 @@
 """ MultiQC module to parse output from sequana (coverage)"""
 import os
 import re
-
+from math import log10
 
 # prevent boring warning (version 1.0)
 import logging
@@ -190,7 +190,7 @@ class MultiqcModule(BaseMultiqcModule):
                 X = self.sequana_data[s_name]["hist_coverage"]['X']
                 Y = self.sequana_data[s_name]["hist_coverage"]['Y']
                 Y = [y  for y in Y]
-                data[s_name] = {x:y for x,y in zip(X, Y)}
+                data[s_name] = {x: y if y else 0 for x,y in zip(X, Y)}
             except KeyError:
                 pass
 
@@ -219,7 +219,10 @@ class MultiqcModule(BaseMultiqcModule):
         self.add_section (
             name = 'Depth of Coverage Histogram',
             anchor = 'coverage_hist',
-            description = "Histogram (normalised) of the depth of coverage",
+            description = "Histogram (normalised) of the depth of coverage. Be
+aware that for convenience, we take only the 99% quantile of the data so you may
+not see outliers. For detailled histogram, please see the links above for
+histogram with the whole data set",
             #plot = linegraph.plot([data_norm, data], pconfig))
             plot = linegraph.plot(data, pconfig))
 
