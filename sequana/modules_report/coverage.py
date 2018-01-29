@@ -352,7 +352,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
                 _, x1, x2 = link.rsplit(os.sep)[1].rstrip(".html").rsplit("_", 2)
                 x1 = int(x1)
                 x2 = int(x2)
-                if x >= x1 and x<x2:
+                if x >= x1 and x<=x2:
                     return link
             # for the same where the data is fully stored in memory, we must
             # find all events !
