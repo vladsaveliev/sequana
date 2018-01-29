@@ -370,13 +370,12 @@ class GenomeCov(object):
             data.to_csv(fh.name, index=None, sep="\t")
             smallsize = os.path.getsize(fh.name)
 
-
         Nchunk = int(fullsize/smallsize)
-        pb = Progress(Nchunk)
+        if Nchunk >1:
+            pb = Progress(Nchunk)
         i = 0
         for chunk in pd.read_table(input_filename, header=None, sep="\t",
                 usecols=[0], chunksize=self.chunksize):
-            #print(".", end="", flush=True)
             # accumulate length
             N += len(chunk)
 
@@ -1359,9 +1358,9 @@ class ChromosomeCov(object):
                     raise FileExistsError
         return self.df.loc[start:stop].to_csv(filename, **kwargs)
 
-    def plot_gc_vs_coverage(self, filename=None, bins=None, Nlevels=6,
+    def plot_gc_vs_coverage(self, filename=None, bins=None, Nlevels=None,
                             fontsize=20, norm="log", ymin=0, ymax=100,
-                            contour=True, **kwargs):
+                            contour=True, cmap="BrBG", **kwargs):
         """Plot histogram 2D of the GC content versus coverage
 
 
@@ -1388,10 +1387,10 @@ class ChromosomeCov(object):
                 h2.plot(bins=bins, xlabel="Per-base coverage",
                     ylabel=r'GC content (%)',
                     Nlevels=Nlevels, contour=contour, norm=norm,
-                    fontsize=fontsize, **kwargs)
+                    fontsize=fontsize, cmap=cmap, **kwargs)
             except:
                 h2.plot(bins=bins, xlabel="Per-base coverage",
-                    ylabel=r'GC content (%)' ,
+                    ylabel=r'GC content (%)' , cmap=cmap,
                     Nlevels=Nlevels, contour=False, norm=norm,
                     fontsize=fontsize, **kwargs)
 

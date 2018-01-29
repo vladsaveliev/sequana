@@ -15,6 +15,7 @@ Changelog
       of the BAM class.
     * Fix --no-report option in sequana_coverage and add --clustering (double
       threshold option)
+    * pacbio_qc pipeline is now able to also read old pacbio format
 
 * NEWS:
 
