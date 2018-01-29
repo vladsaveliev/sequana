@@ -20,9 +20,11 @@ Changelog
 
     * SARTools rule added and used in the RNAseq pipeline
     * add summary module to store summary in json formats.
+    * simple vcf_filter standalone
 
 * CHANGES:
 
+    * pin kraken version to 1.1 (newest on bioconda)
     * MAJOR REFACTORING of bedtools and sequana_coverage standalone. In
       particular, change default window size to 20,001 or a fifth of genome 
       length (for small genome); speed up code; add plot_roi function, uses
