@@ -8,11 +8,11 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 6
-_MICRO               = 3
+_MICRO               = 4
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
-version += ".post1"
+#version += ".post1"
 
 metainfo = {
     'authors': {"main": ("yourname", "email@whatever.org")},
