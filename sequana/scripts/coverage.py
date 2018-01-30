@@ -252,7 +252,7 @@ def main(args=None):
 
     if options.download_genbank:
         logger.info("Downloading genbank %s from %s\n" %
-            (options.download_reference, options.database))
+            (options.download_genbank, options.database))
         from sequana.snpeff import download_fasta_and_genbank
         download_fasta_and_genbank(options.download_genbank,
                                    options.download_genbank,
