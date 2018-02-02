@@ -47,6 +47,8 @@ import shlex
 import io
 
 from sequana.lazy import pandas as pd
+import colorlog
+logger = colorlog.getLogger(__name__)
 
 
 __all__ = ["ExpDesignAdapter", "ExpDesignMiSeq", "ExpDesignHiSeq",
@@ -100,17 +102,17 @@ class ExpDesignAdapter(object):
         try:
             exp = ExpDesignMiSeq(filename)
             if self.verbose:
-                print("Found MiSeq design file")
+                logger.info("Found MiSeq design file")
         except Exception as err:
             try:
                 exp = ExpDesignHiSeq(filename)
                 if self.verbose:
-                    print("Found HiSeq design file")
+                    logger.info("Found HiSeq design file")
             except:
                 try:
                     exp = ExpDesignGeneric(filename)
                     if self.verbose:
-                        print("Found Generic Sequencer design file")
+                        logger.info("Found Generic Sequencer design file")
                 except:
                     msg = "Input file could not be read or interpreted"
                     raise IOError(msg)
@@ -291,7 +293,7 @@ class ExpDesignMiSeq(ExpDesignBase):
 
         for this in ["Header", "Reads", "Settings", "Data"]:
             if this not in data.keys():
-                print("%s not found in the DesignExpMiSeq file" % this)
+                logger.warning("%s not found in the DesignExpMiSeq file" % this)
 
         self.data = data
         self.df = pd.read_csv(io.StringIO(data["Data"]))
