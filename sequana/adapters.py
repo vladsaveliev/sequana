@@ -74,7 +74,11 @@ import os
 
 from sequana.fasta import FastA
 from sequana.datatools import sequana_data
-from sequana import logger
+#from sequana import logger
+
+import colorlog
+logger = colorlog.getLogger(__name__)
+
 
 import pysam
 
@@ -491,10 +495,8 @@ class AdapterReader(object):
 
         if len(adapters) == 0:
             return None
-        elif len(adapters) == 1:
-            return adapters[0]
-        else:
-            raise ValueError("Found two adapters matching the identifier. This should never happen")
+        elif len(adapters)>=2:
+            logger.warning("Found two adapters matching the index {}. This may happen e.g. with Nextera adapters".format(index_name))
         return adapters
 
     def get_adapter_by_index_name(self, index_name):
@@ -700,9 +702,9 @@ class FindAdaptersFromDesign(object):
         """
         data = self.get_sample(sample_name)
 
-        res = {'index1': {}, 'index2': {}, 'universal': {}, 
-                'transposase_seq_1': {}, 
-                'transposase_seq_2': {}, 
+        res = {'index1': {}, 'index2': {}, 'universal': {},
+                'transposase_seq_1': {},
+                'transposase_seq_2': {},
                 'PolyA': {}, 'PolyT': {}}
 
         # Index1_Seq must always be present. This is part of the API of the
@@ -717,7 +719,7 @@ class FindAdaptersFromDesign(object):
             if column not in data.index:
                 continue
             key = column.split("_")[0].lower()
-            index = data.ix[column]
+            index = data.loc[column]
             if index is None:
                 continue
             seq = self._adapters_fwd.get_adapter_by_index_seq(index)
@@ -725,12 +727,12 @@ class FindAdaptersFromDesign(object):
                 raise ValueError("Found no index for %s (sample %s)" % (index,sample_name))
 
             # drop potential duplicates
-            #uniques = set([this.sequence for this in seq])
-            #if len(uniques) > 1:
-            #    raise ValueError("Found 2 sequences with index %s " % (index, sample_name))
+            uniques = set([this.sequence for this in seq])
+            if len(uniques) > 1:
+                raise ValueError("Found 2 sequences with index %s " % (index, sample_name))
 
             # If there are duplicates, or not, just take first element
-            res[key]['fwd'] = seq
+            res[key]['fwd'] = seq[0]
 
             # Reverse version
             from sequana.tools import reverse_complement as revcomp
@@ -738,21 +740,21 @@ class FindAdaptersFromDesign(object):
             if seq is None: #Index2 is optional so no error raised
                 pass
             else:
-                #uniques = set([this.sequence for this in seq])
-                #if len(uniques) > 1:
-                #    raise ValueError("Found 2 sequences with index %s " % (index, sample_name))
-                res[key]['rev'] = seq
+                uniques = set([this.sequence for this in seq])
+                if len(uniques) > 1:
+                    raise ValueError("Found 2 sequences with index %s " % (index, sample_name))
+                res[key]['rev'] = seq[0]
 
         # If Index1_Seq not in the index, then we should use the IDs
         if "Index1_Seq" not in data.index:
             if "Index1_ID" in data.index:
                 logger.warning("Usage of IDs for indexing adapters is deprecated. See adapters module")
-                index1 = data.ix['Index1_ID']
+                index1 = data.loc['Index1_ID']
                 res['index1']['fwd'] = self._adapters_fwd.get_adapter_by_index_name(index1)
                 res['index1']['rev'] = self._adapters_revc.get_adapter_by_index_name(index1)
             if "Index2_ID" in data.index:
                 logger.warning("Usage of IDs for indexing adapters is deprecated. See adapters module")
-                index2 = data.ix['Index2_ID']
+                index2 = data.loc['Index2_ID']
                 res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index_name(index2)
                 res['index2']['rev'] = self._adapters_revc.get_adapter_by_index_name(index2)
 
@@ -760,11 +762,11 @@ class FindAdaptersFromDesign(object):
         for this in ["universal", "PolyA", "PolyT", "transposase_seq_1",
                 "transposase_seq_2"]:
             if this in self._adapters_fwd.index_names:
-                res[this]['fwd']= \
-                    self._adapters_fwd.get_adapter_by_index_name(this)
+                res[this]['fwd'] = \
+                    self._adapters_fwd.get_adapter_by_index_name(this)[0]
             if this in self._adapters_revc.index_names:
                 res[this]['rev'] = \
-                    self._adapters_revc.get_adapter_by_index_name(this)
+                    self._adapters_revc.get_adapter_by_index_name(this)[0]
 
         # FIXME changes the dictionary in the loop. May not be wise
         res = dict([(k,v) for k,v in res.items() if len(v)!=0])
@@ -787,7 +789,7 @@ class FindAdaptersFromDesign(object):
 
         file_fwd = output_dir + os.sep + "%s_adapters_fwd.fa"% sample_name
         with open(file_fwd, "w") as fout:
-            for this in ["universal", "transposase", "universal", "polyA", "polyT"]:
+            for this in ["universal", "transposase", "polyA", "polyT"]:
                 try:
                     fout.write(str(adapters[this]['fwd'])+"\n")
                 except:pass
@@ -798,7 +800,7 @@ class FindAdaptersFromDesign(object):
 
         file_rev = output_dir + os.sep + "%s_adapters_revcomp.fa" % sample_name
         with open(file_rev, "w") as fout:
-            for this in ["transposase", "universal", "polyA", "polyT"]:
+            for this in ["universal", "transposase", "polyA", "polyT"]:
                 try:
                     fout.write(str(adapters[this]['fwd'])+"\n")
                 except:pass
