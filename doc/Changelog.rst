@@ -6,6 +6,14 @@ Changelog
 2017
 ------
 
+0.6.5
+~~~~~~~~~~~
+
+* BUGS:
+
+    * double indexing adapters issue for Nextera fixed: https://github.com/sequana/sequana/issues/501
+
+
 0.6.4
 ~~~~~~~~~~
 
