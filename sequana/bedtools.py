@@ -609,14 +609,20 @@ class ChromosomeCov(object):
             self.thresholds = DoubleThresholds()
         """
 
+        self._df = None
+        self._reset_metrics()
+
         # open the file as an iterator (may be huge), set _df to None and 
         # all attributes to None.
-        self.reset()
+        #self.reset()
 
     def reset(self):
         # jump to the file position corresponding to the chrom name.
         N = self.bed.positions[self.chrom_name]['N']
         toskip = self.bed.positions[self.chrom_name]['start']
+
+        # the skip is slow for human genome. Cannot do anything about it so
+        # we should call reset, only on request, not in the constructor
         self.iterator = pd.read_table(self.bed.input_filename, skiprows=toskip,
                                       nrows=N, header=None, sep="\t", 
                                       chunksize=self.chunksize)
@@ -722,6 +728,7 @@ class ChromosomeCov(object):
     @property
     def df(self):
         if self._df is None:
+            self.reset()
             self.next()
         return self._df
 
@@ -933,6 +940,7 @@ class ChromosomeCov(object):
 
         # ignore start and end (corrupted due to running median window)
         # this is a copy (using a slice) so we can modify it
+        logger.debug("compute_zscore: range: {}".format(self.range))
         data = self.df['scale'][self.range[0]:self.range[1]]
 
         if len(data) <= 100000:
