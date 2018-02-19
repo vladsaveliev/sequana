@@ -104,9 +104,10 @@ class IsoSeqQC(object):
 
             results['classification'] = {
                 "total_ccs_reads" : len(self.data),
-                "five_prime_reads" : sum(self.data.fiveseen),
-                "three_prime_reads" : sum(self.data.threeseen),
-                "polyA_reads" : sum(self.data.polyAseen),
+                "five_prime_reads" : int(self.data.fiveseen.sum()),
+                "three_prime_reads" : int(self.data.threeseen.sum()),
+                "chimera" : int(self.data.chimera.sum()),
+                "polyA_reads" : int(self.data.polyAseen.sum()),
             }
 
         if self.lq_isoforms:
@@ -179,17 +180,19 @@ class IsoSeqQC(object):
 
         bins is from 0 to 94 
         """
-        hq_qv = [pylab.mean([phred.ascii_to_quality(X) for X in read['quality'].decode()]) 
+
+        hq_qv = [pylab.mean([ord(X)-33 for X in read['quality'].decode()]) 
                 for read in self.hq_sequence]
-        lq_qv = [pylab.mean([phred.ascii_to_quality(X) for X in read['quality'].decode()]) 
+        lq_qv = [pylab.mean([ord(X) -33 for X in read['quality'].decode()]) 
             for read in self.lq_sequence]
 
         if bins is None:
             bins = range(0,94)
-        Y1, X = np.histogram(hq_qv, bins=range(0,94))
-        Y2, X = np.histogram(lq_qv, bins=range(0,94))
+        Y1, X = np.histogram(hq_qv, bins=bins)
+        Y2, X = np.histogram(lq_qv, bins=bins)
         pylab.bar(X[1:], Y1, width=1, label="HQ")
         pylab.bar(X[1:], Y2, bottom=Y1, width=1, label="LQ")
+        pylab.xlim([0.5, 93.5])
 
         pylab.xlabel("Isoform average QV")
         pylab.ylabel("# Isoform")
@@ -197,8 +200,7 @@ class IsoSeqQC(object):
 
         ax = pylab.twinx()
         N = np.sum(Y1+Y2)
-        ax.plot(X, [N] + list(N-np.cumsum(Y1+Y2)), "k", label=)
-
+        ax.plot(X, [N] + list(N-np.cumsum(Y1+Y2)), "k")
 
 
 class IsoSeqBAM(object):
