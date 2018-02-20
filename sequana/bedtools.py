@@ -182,7 +182,7 @@ class GenomeCov(object):
 
     """
     def __init__(self, input_filename, genbank_file=None,
-                 low_threshold=-3, high_threshold=3, ldtr=0.5, hdtr=0.5,
+                 low_threshold=-4, high_threshold=4, ldtr=0.5, hdtr=0.5,
                  force=False, chunksize=5000000, quiet_progress=False):
         """.. rubric:: constructor
 
