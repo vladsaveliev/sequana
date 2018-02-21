@@ -731,8 +731,9 @@ class ChromosomeCov(object):
 
         if binning is None or binning==1:
             self.binning = 1
-            pb = Progress(N)
-            if N > 1: pb.animate(0)
+            if N > 1:
+                pb = Progress(N)
+                pb.animate(0)
             for i, chunk in enumerate(self.iterator):
                 self._set_chunk(chunk)
 
@@ -744,14 +745,16 @@ class ChromosomeCov(object):
                     rois.merge_rois_into_cnvs(delta=cnv_delta)
                 summary = self.get_summary()
                 self.chunk_rois.append([summary, rois])
-                if N > 1: pb.animate(i+1)
+                if N > 1:
+                    pb.animate(i+1)
             if N > 1:
                 print()
         else:
             # Need to store the length
             total_length = 0
             binned_df = None
-            pb = Progress(N)
+            if N > 1:
+                pb = Progress(N)
             for i, chunk in enumerate(self.iterator):
                 # we group the data by small chunk of "binning" values
                 self._set_chunk(chunk)
@@ -795,7 +798,8 @@ class ChromosomeCov(object):
                     binned_df = binned_df.append(df)
                 else:
                     binned_df = df
-                if N > 1: pb.animate(i+1)
+                if N > 1: 
+                    pb.animate(i+1)
             if N > 1:
                 print()
             # used by __len__
