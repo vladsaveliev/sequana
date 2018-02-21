@@ -30,7 +30,7 @@ from sequana.modules_report.coverage import CoverageModule
 from sequana.modules_report.coverage import ChromosomeCoverageModule
 from sequana.utils import config
 from sequana import logger
-from sequana.bedtools import GenomeCov, FilteredGenomeCov
+from sequana.bedtools import GenomeCov
 
 from easydev import shellcmd, mkdirs
 from easydev.console import purple
@@ -147,7 +147,8 @@ Issues: http://github.com/sequana/sequana
             help="Chromosome number (if only one chromosome found, the single"
                  " chromosome is chosen automatically). Otherwise all "
                  "chromosomes are analysed. You may want to analyse only one"
-                 " in which case, use this parameter (e.g., -c 1)")
+                 " in which case, use this parameter (e.g., -c 1). "
+                "!!START AT INDEX 0 !!")
         group.add_argument('-o', "--circular", dest="circular",
             default=False, action="store_true",
             help="""If the DNA of the organism is circular (typically
@@ -311,9 +312,14 @@ def main(args=None):
     config.sample_name = os.path.basename(options.input).split('.')[0]
 
     # Now we can create the instance of GenomeCoverage
+    if options.chromosome == -1:
+        chrom_list = []
+    else: 
+        chrom_list = [options.chromosome]
     gc = GenomeCov(bedfile, options.genbank, options.low_threshold,
                    options.high_threshold, options.double_threshold,
-                   options.double_threshold, chunksize=options.chunksize)
+                   options.double_threshold, chunksize=options.chunksize,
+                   chromosome_list=chrom_list)
 
 
     # if we have the reference, let us use it
@@ -430,10 +436,8 @@ def run_analysis(chrom, options, feature_dict):
 
     logger.info("Creating report in %s. Please wait" % config.output_dir)
     if chrom._mode == "chunks":
-        logger.warning(("This chromosome is large (more than {0}). Producing " 
-            "plots and HTML sub coverage plots only for data from 0 to " 
-            "{0} bases. ").format(
-            options.chunksize))
+        logger.warning(("This chromosome is large. " 
+            "Plots in the HTML reports are skipped"))
     datatable = CoverageModule.init_roi_datatable(ROIs)
     ChromosomeCoverageModule(chrom, datatable,
                 options={"W": options.w_median,
