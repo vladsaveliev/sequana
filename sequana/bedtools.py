@@ -183,7 +183,8 @@ class GenomeCov(object):
     """
     def __init__(self, input_filename, genbank_file=None,
                  low_threshold=-4, high_threshold=4, ldtr=0.5, hdtr=0.5,
-                 force=False, chunksize=5000000, quiet_progress=False):
+                 force=False, chunksize=5000000, quiet_progress=False,
+                 chromosome_list=[]):
         """.. rubric:: constructor
 
         :param str input_filename: the input data with results of a bedtools
@@ -208,10 +209,12 @@ class GenomeCov(object):
         :param force: some constraints are set in the code to prevent unwanted
             memory issues with specific data sets of parameters. Currently,
             by default, (i) you cannot set the threshold below 2.5 (considered as
-            noise), (ii), GC is not computed for input fasta larger than
-            chunksize times number of chromosomes. If you think you have enough
-            memory, set this *force* argument to True
-
+            noise).
+        :param chromosome_list: list of chromosomes to consider (names). This is useful for
+            very large input data files (hundreds million of lines) where each
+            chromosome can be analysed one by one. Used by the sequana_coverage
+            standalone. The only advantage is to speed up the constructor creation
+            and could also be used by the Snakemake implementation.
 
         """
         # Keep information if the genome is circular and the window size used
@@ -254,6 +257,7 @@ class GenomeCov(object):
         self.thresholds = DoubleThresholds(low_threshold, high_threshold,
                                                ldtr, hdtr)
         if input_filename.endswith(".bed"):
+            self.chromosome_list = chromosome_list
             self._scan_bed(input_filename)
         else:
             raise Exception(("Input file must be a BED file "
@@ -406,6 +410,11 @@ class GenomeCov(object):
 
         self.positions = positions
 
+        tokeep = []
+        if len(self.chromosome_list):
+            for this in self.chromosome_list:
+                tokeep.append(self.chrom_names[this])
+            self.chrom_names = tokeep
         self._set_chr_list()
     """
     def _read_csv(self, input_filename):
@@ -467,9 +476,11 @@ class GenomeCov(object):
                 chrom.df['scale'][chrom.range[0]:chrom.range[1]])
     """
     def _set_chr_list(self):
-        self.chr_list = [ChromosomeCov(self, name, self.thresholds,
-                                       self.chunksize)
-                        for name in self.chrom_names]
+        self.chr_list = []
+        for name in self.chrom_names:
+            logger.debug("Creating ChromosomeCov instance for {}".format(name))
+            self.chr_list.append(ChromosomeCov(self, name, self.thresholds,
+                                       self.chunksize))
 
     def compute_gc_content(self, fasta_file, window_size=101, circular=False,
                            letters=['G', 'C', 'c', 'g']):
@@ -712,6 +723,10 @@ class ChromosomeCov(object):
 
     def run(self, W, k=2, circular=False, binning=None, cnv_delta=None):
         self.reset()
+        if binning:
+            logger.debug("binning={}".format(binning))
+        if cnv_delta:
+            logger.debug("cnv_delta={}".format(cnv_delta))
         if self.chunksize < 5 * W:
             logger.warning(("chunksize is small as compared to W. "
                             "Not recommended! "))
@@ -735,6 +750,7 @@ class ChromosomeCov(object):
                 pb = Progress(N)
                 pb.animate(0)
             for i, chunk in enumerate(self.iterator):
+                logger.debug("Analysing chunk {}".format(i+1))
                 self._set_chunk(chunk)
 
                 self.running_median(W, circular=circular)
@@ -1215,14 +1231,15 @@ class ChromosomeCov(object):
                          "\n\n", self.__doc__)
             sys.exit(1)
 
-    def plot_rois(self, x1, x2, set_ylimits=False, rois=None):
+    def plot_rois(self, x1, x2, set_ylimits=False, rois=None, fontsize=16):
         if rois is None:
             rois = self.rois
 
         high = rois.get_high_rois().query("end>@x1 and start<@x2")
         low = rois.get_low_rois().query("end>@x1 and start<@x2")
 
-        self.plot_coverage(x1=x1, x2=x2, set_ylimits=set_ylimits, sample=False)
+        self.plot_coverage(x1=x1, x2=x2, set_ylimits=set_ylimits, sample=False,
+            fontsize=fontsize)
 
         for start, end, cov in zip(high.start, high.end, high.mean_cov):
             pylab.plot([start, end], [cov, cov], lw=2, color="r", marker="o")
