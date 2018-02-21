@@ -813,8 +813,9 @@ class ChromosomeCov(object):
                 rois.merge_rois_into_cnvs(delta=cnv_delta)
             summary = self.get_summary()
             self.chunk_rois.append([summary, rois])
-
-        return ChromosomeCovMultiChunk(self.chunk_rois)
+        results = ChromosomeCovMultiChunk(self.chunk_rois)
+        self._rois = results.get_rois()
+        return results
 
     @property
     def df(self):
@@ -1659,7 +1660,8 @@ class FilteredGenomeCov(object):
     """
     _feature_not_wanted = {"gene", "regulatory", "source"}
 
-    def __init__(self, df, threshold, feature_list=None, step=1):
+    def __init__(self, df, threshold, feature_list=None, step=1,
+            apply_threshold_after_merging=True):
         """ .. rubric:: constructor
 
         :param df: dataframe with filtered position used within
@@ -1667,11 +1669,14 @@ class FilteredGenomeCov(object):
             ["pos", "cov", "rm", "zscore"]
         :param int threshold: a :class:`~sequana.bedtools.DoubleThresholds`
             instance.
+        :param apply_threshold_after_merging: see :meth:`merge_rois_into_cnvs`.
+
 
         """
         self.rawdf = df.copy()
         self.rawdf
-        self.threshold = threshold
+        self.thresholds = threshold
+        self.apply_threshold_after_merging = True
 
         if isinstance(feature_list, list) and len(feature_list) == 0:
             feature_list = None
@@ -1762,13 +1767,13 @@ class FilteredGenomeCov(object):
                 prev = stop
                 region_zscore = zscore
 
-            if zscore > 0 and zscore > self.threshold.high:
+            if zscore > 0 and zscore > self.thresholds.high:
                 if not region_start:
                     region_start = pos
                     region_stop = pos
                 else:
                     region_stop = pos
-            elif zscore < 0 and zscore < self.threshold.low:
+            elif zscore < 0 and zscore < self.thresholds.low:
                 if not region_start:
                     region_start = pos
                     region_stop = pos
@@ -1885,6 +1890,17 @@ class FilteredGenomeCov(object):
 
         Where new large events will combine information from 
         the small events.
+
+        When merging two events, we recompute the  max_zscore and mean_zscore
+        and apply the threshold again.
+
+        To illustrate this feature, imagine two marginal events at position 1 
+        and 1000 with a zscore of 4 each (marginals). When there are merged, 
+        their mean_zscore is recomputed and should be smaller than 4. Those 
+         events are just noise but will appear as significant events (since
+        long size). So, we can remove then by checking the new mean_zscore to 
+        be > than the thresholds.
+
         """
         logger.info("Merging ROIs into CNV-like events")
 
@@ -1951,6 +1967,13 @@ class FilteredGenomeCov(object):
             region_list.append(this_cluster)
 
         merge_df = self._dict_to_df(region_list, self.feature_list)
+
+
+        # finally, remove events that are small.
+        if self.apply_threshold_after_merging:
+            merge_df = merge_df.query(
+                "mean_zscore>@self.thresholds.high or mean_zscore<@self.thresholds.low")
+
         return merge_df
 
 
