@@ -116,7 +116,7 @@ rule coverage:
 
         # then, we run the analysis (median, zscore, rois)
         results = chromosome.run(NW, params.mixture_models, circular=params.circular, 
-                                 binning=params.binning, cnv_delta=params.cnv_delta)
+                                 binning=params.binning, cnv_delta=params.cnv_clustering)
         ROIs = results.get_rois()
         summary = results.get_summary()
 
