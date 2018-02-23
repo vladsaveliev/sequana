@@ -14,5 +14,5 @@ pykwalify
 pyVCF
 pysam
 qtconsole
-ruamel.yaml
+ruamel_yaml
 snakemake==4.5.0
