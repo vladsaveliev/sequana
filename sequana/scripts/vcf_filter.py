@@ -43,25 +43,66 @@ class Options(argparse.ArgumentParser):
         usage += """usage2: %s vcf_filter""" % prog
         usage += """Examples:
 
-    sequana_vcf_filter --input test.vcf --quality 40 
+    sequana_vcf_filter --input test.vcf --quality 40
                 --filter "AF1>0.95&AF1<0.05"
                 --filter "MQ<30"
 
 
-Note that you must use quotes to surround the filter values.
+    You should look into the VCF file to figure out the valid TAGs. Then, you
+    can apply various filters. 
 
-Instead of providing the filters one by one and forget about it, you can store
-them in a file with the following format (same for the --quality argument):
+    A filter should be interpreted as :
 
-[general]
-quality=50
+    ''filter out variants that agree with the filter''
 
-[filters]
-DP                  = <4
-DP4[0]              = <10
-DP4[2]              = <10
-sum(DP4[0], DP4[1]) = <10
-AF1                 = >0.05&<0.95
+    For example::
+
+        --filter "DP<30"
+
+    means ''remove SNPs with DP below 30''. We accept those types of comparison:
+
+        DP<30
+        DP<=30
+        DP>30
+        DP>=30
+
+    For some tags, you want to keep values within or outside a range of
+    values. You can then use the & and | characters::
+
+        DP<30|>60  # to keep only values in the ranges [0-30] and [60-infinite]
+
+    or
+
+        DP>30&<60  # to keep only values in the range [30-60]
+
+    Some tags stores a list of values. For instance DP4 contains 4 values.
+    To filter the value at position 1, use e.g.::
+
+        DP4[0]<0.5
+
+    you can use the same convention for the range as above::
+
+        DP4[0]>0.05&<0.95
+
+    you may also need something like:
+
+        sum(DP4[2]+DP4[3]) <2
+
+
+    Note that you must use quotes to surround the filter values.
+
+    Instead of providing the filters one by one and forget about it, you can store
+    them in a file with the following format (same for the --quality argument):
+
+    [general]
+    quality=50
+
+    [filters]
+    DP                  = <4
+    DP4[0]              = <10
+    DP4[2]              = <10
+    sum(DP4[0], DP4[1]) = <10
+    AF1                 = >0.05&<0.95
 
         """
         super(Options, self).__init__(usage=usage, prog=prog,
@@ -74,14 +115,15 @@ AF1                 = >0.05&<0.95
         self.add_argument("--quality", dest="quality",
                           type=int, default=0, help="filter sites below this quality")
         self.add_argument("--depth", dest="depth",
-                          type=int, default=0, help="filter sites below this quality")
+                          type=int, default=0, help="filter sites with depth below this number")
 
         self.add_argument("--filter", dest="filter", action="append",
                         nargs=1, type=str, default=[],
-                        help="Provide any filters using following convention. ")
+                        help="Provide as many filters as you want. See example above ")
 
         self.add_argument("--output", dest="output_filename",
                             default="remaining.vcf", type=str)
+
         self.add_argument("--output-filtered", dest="output_filtered_filename",
                             default="filtered.vcf", type=str)
 
