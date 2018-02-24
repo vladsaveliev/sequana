@@ -49,6 +49,7 @@ class IsoSeqQC(object):
     def __init__(self, directory=".", prefix=""):
         self.prefix = prefix
         self.directory = directory
+        self.sample_name = "undefined"
 
         # low quality isoforms
         filename = "all.polished_lq.fastq"
@@ -139,13 +140,26 @@ class IsoSeqQC(object):
 
         return results
 
+
+    def to_summary(self, filename="sequana_summary_isoseq.json", data=None):
+        """Save statistics into a JSON file
+
+        :param filename:
+        :param data: dictionary to save. If not provided, use :meth:`stats`
+
+        """
+        from sequana.summary import Summary
+        if data is None:
+            data = self.stats()
+        Summary("isoseq",self.sample_name, data=data).to_json(filename)
+
+
     def hist_read_length_consensus_isoform(self, mode="all", bins=80, rwidth=0.8,
         align="left", fontsize=16, edgecolor="k", **kwargs):
         """
 
         mode can be all, lq, hq
         """
-
         pylab.clf()
 
         L1 = [len(read['sequence']) for read in self.lq_sequence]
