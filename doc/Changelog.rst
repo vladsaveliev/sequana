@@ -23,7 +23,11 @@ Changelog
 * NEWS:
 
     * add cnvnator class
+    * coverage pipeline added in the pipelines
 
+* BUGS:
+
+    * Fix silent warning (regex) in snpeff module
 
 
 0.6.4
