@@ -22,7 +22,7 @@ input_samples:
 #
 # :Parameters:
 #
-# 
+#
 #
 coverage:
     circular: True
@@ -34,5 +34,5 @@ coverage:
     reference_file:
     window: 20001
     chunksize: 5000000
-    binning: 10
-    cnv_clustering: 1000
+    binning: 
+    cnv_clustering: 

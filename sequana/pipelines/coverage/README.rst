@@ -1,5 +1,5 @@
 :Overview: Coverage
-:Input: One BAM or BED file. BED file must have 3 or 4 columns. First colum is
+:Input: One BAM or BED file. BED file must have 3 or 4 columns. First column is
 the chromosome/contig name, second column stored positions and third the
 coverage. Fourth optional columns contains a filtered coverage (not used in the
 analysis but shown in the HTML reports)
