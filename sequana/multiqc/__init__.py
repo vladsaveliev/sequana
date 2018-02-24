@@ -15,6 +15,9 @@ def multiqc_sequana_config():
         'sequana/coverage': {
             'fn': 'sequana_summary_coverage.json',
         },
+        'sequana/isoseq': {
+            'fn': 'sequana_summary_isoseq.json',
+        },
     }
     config.update_dict(config.sp, sequana_search_patterns)
     #config.fn_clean_exts.append({'type': 'regex', 'pattern': 'summary_*.*'})
