@@ -17,6 +17,7 @@ The following sections are dedicated to each pipeline.
 .. toctree::
     :maxdepth: 1
 
+    pipeline_coverage.rst
     pipeline_denovo_assembly.rst
     pipeline_quality_control.rst
     pipeline_rnaseq.rst

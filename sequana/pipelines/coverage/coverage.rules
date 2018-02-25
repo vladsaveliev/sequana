@@ -1,6 +1,6 @@
 import os
-
 from sequana import logger as _log
+_log.level = "DEBUG"
 from sequana import GenomeCov, sequana_data
 from sequana.modules_report.coverage import CoverageModule, ChromosomeCoverageModule
 from sequana import snaketools as sm
@@ -8,7 +8,6 @@ from sequana import snaketools as sm
 configfile: "config.yaml"
 
 manager = sm.PipelineManager("coverage", config,  fastq=False)
-
 
 # Sanity check for the input file
 if len(manager.samples) == 0:
@@ -38,7 +37,7 @@ summary_files_pattern = "coverage_reports/{sample}/sequana_summary_coverage.json
 rois_pattern = "coverage_reports/{sample}/rois.csv"
 
 
-def scan_genome(infile):
+def scan_genome(infile, chromosome_list=[]):
     # Read input file to get the list of chromosomes
     genome = GenomeCov(infile,
                 genbank_file=config['coverage']['genbank_file'],
@@ -47,7 +46,7 @@ def scan_genome(infile):
                 high_threshold=config["coverage"]["high_threshold"],
                 ldtr=config["coverage"]["double_threshold"],
                 hdtr=config['coverage']["double_threshold"],
-                quiet_progress=True)
+                quiet_progress=True, chromosome_list=chromosome_list)
 
     #################################################### GC content
     reffile = config["coverage"]["reference_file"]
@@ -59,9 +58,20 @@ def scan_genome(infile):
             _log.warning("do not compute GC content (file is larger than 100 million bases).")
     return genome
 
-
-sm.message("scanning input file. May take time depending on the input file")
-genome = scan_genome(__bedfile__)
+# Read the input file and save chromosomes once for all to avoid reading the
+# large input file again and again
+filename = "{}.chrom_names.txt".format(__bedfile__)
+if os.path.exists(filename):
+    chrom_names = open(filename, "r").read().split()
+else:
+    sm.message("Scanning input file to save chromosomes names. "
+               "May take time depending on the input file")
+    genome = scan_genome(__bedfile__)
+    with open(filename, "w") as fout:
+        for this in genome.chrom_names:
+            fout.write("{}\n".format(this))
+    chrom_names = genome.chrom_names
+#sm.message(str(chrom_names))
 
 
 # The pipeline itself, we need the multiqc as final result:
@@ -71,7 +81,7 @@ rule pipeline:
 
 # the multiqc rule that requires the JSON as input.
 rule multiqc:
-    input: expand(summary_files_pattern, sample=genome.chrom_names),
+    input: expand(summary_files_pattern, sample=chrom_names),
     output: __multiqc__output
     params:
         config=sequana_data("multiqc_config.yaml", "../multiqc")
@@ -80,18 +90,22 @@ rule multiqc:
 
 # The main coverage factory
 rule coverage:
-    input: __bedfile__
+    input: __bedfile__, filename
     output:
         summary_files_pattern,
         rois_pattern,
     params:
         window=config['coverage']["window"],
+        binning=config['coverage']["binning"],
         circular=config['coverage']['circular'],
         mixture_models=config['coverage']['mixture_models'],
+        cnv_delta=config['coverage']['cnv_clustering'],
     run:
+        sm.message("Scanning input file. May take time depending on the input file")
         sample = output[0].split("/")[1]
-        chrom_index = genome.chrom_names.index(sample)
-        chromosome = genome.chr_list[chrom_index]
+        chrom_index = chrom_names.index(sample)
+        genome = scan_genome(__bedfile__, [chrom_index])
+        chromosome = genome.chr_list[0]
 
         if params.window > len(chromosome.df) / 5:
             NW = int(len(chromosome.df) / 5)
@@ -101,7 +115,8 @@ rule coverage:
             NW = params.window
 
         # then, we run the analysis (median, zscore, rois)
-        results = chromosome.run(NW, params.mixture_models, circular=params.circular)
+        results = chromosome.run(NW, params.mixture_models, circular=params.circular, 
+                                 binning=params.binning, cnv_delta=params.cnv_clustering)
         ROIs = results.get_rois()
         summary = results.get_summary()
 

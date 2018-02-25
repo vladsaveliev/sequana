@@ -1,0 +1,16 @@
+{
+    "__default__" :
+    {
+        "ram" : "5G"
+    },
+
+	"star_mapping" :
+	{
+		"ram" : "34G"
+	},
+
+	"star_index" :
+	{
+		"ram" : "34G"
+	}
+}

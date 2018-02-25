@@ -22,15 +22,17 @@ input_samples:
 #
 # :Parameters:
 #
-# 
+#
 #
 coverage:
     circular: True
     double_threshold: 0.5
-    genbank_file: 
+    genbank_file:
     high_threshold: 4.
     low_threshold: -4.
     mixture_models: 2
-    reference_file: 
+    reference_file:
     window: 20001
     chunksize: 5000000
+    binning: 
+    cnv_clustering: 

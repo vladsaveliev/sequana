@@ -8,7 +8,7 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 6
-_MICRO               = 4
+_MICRO               = 5
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -59,6 +59,9 @@ if on_rtd:
 if sys.version_info.major == 2 or on_rtd:
     requirements = [x for x in requirements 
                     if x.startswith("snakemake") is False]
+
+
+requirements += ['ruamel.yaml']
 
 
 setup(
@@ -138,9 +141,12 @@ setup(
             "sequana_pacbio_qc=sequana.multiqc.pacbio_qc:MultiqcModule",
             "sequana_quality_control=sequana.multiqc.quality_control:MultiqcModule",
             "sequana_coverage=sequana.multiqc.coverage:MultiqcModule",
+            "sequana_isoseq=sequana.multiqc.isoseq:MultiqcModule",
         ],
         'multiqc.hooks.v1': [
             'before_config = sequana.multiqc:multiqc_sequana_config',
-]
+        ]
     },
+
+
 )
