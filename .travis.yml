@@ -34,6 +34,7 @@ install:
   # Version py36 seems to work though
   # So, instead of using conda install requirements.txt, we install by hand all
   # packages in requirements, and let pip install ruamel yaml
+  - pip install ruamel.yaml==0.12.13
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements.txt
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_dev.txt
   # ideally, we should use requirements_pipelines but this lead to stall on
