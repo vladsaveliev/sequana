@@ -31,8 +31,6 @@ install:
   - conda create --yes --name testenv python=$TRAVIS_PYTHON_VERSION
   - source activate testenv
   
-  #- pip install ruamel.yaml==0.12.13
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION ruamel.yaml==0.12.13 
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements.txt
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_dev.txt
   # ideally, we should use requirements_pipelines but this lead to stall on
