@@ -1056,14 +1056,7 @@ class ChromosomeCov(object):
         self._coverage_scaling()
 
         # ignore start and end (corrupted due to running median window)
-<<<<<<< HEAD
-        # this is a copy (using a slice) so we can modify it
-        logger.debug("compute_zscore: range: {}".format(self.range))
-        data = self.df['scale'][self.range[0]:self.range[1]]
-=======
-        # the slice does not seem to work as a copy, hence the copy()
         data = self.df['scale'][self.range[0]:self.range[1]].copy()
->>>>>>> develop
 
         # remove zero, nan and inf values and ignore values above 4 that would
         # bias the estimation of the central
