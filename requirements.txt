@@ -4,13 +4,10 @@ biokit>=0.4.2
 colorlog>=3.1.0
 docutils
 easydev>=0.9.36
-# issue on RTD so no version
-#matplotlib>=2.1.2
 matplotlib
 mock
 multiqc==1.0
 pandas>=0.22
-#1.4.0 causes trouble on RTD
 pygraphviz==1.3.1
 psutil
 pykwalify
