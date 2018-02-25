@@ -17,13 +17,6 @@ before_install:
     - ./miniconda.sh -b
     - export PATH=$HOME/miniconda3/bin:$PATH
     - hash -r
-    - if  [[ "$TRAVIS_PYTHON_VERSION" == "3.5" ]]; then
-          conda create --name py35 python=3.5
-          source activate py35
-      else
-          conda create --name py36 python=3.6
-          source activate py36
-      fi
     - conda update --yes conda
     - conda config --add channels r
     - conda config --add channels defaults
@@ -35,6 +28,9 @@ before_install:
 
 install:
   - echo $TRAVIS_PYTHON_VERSION
+  - conda create --name testenv python=$TRAVIS_PYTHON_VERSION
+  - source actv
+  
   - pip install ruamel.yaml==0.12.13
   - cat requirements.txt
   - cat $HOME/.condarc
