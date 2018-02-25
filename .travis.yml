@@ -28,8 +28,8 @@ before_install:
 install:
   - echo $TRAVIS_PYTHON_VERSION
   - pip install ruamel.yaml==0.12.13
-  - echo requirements.txt
-  - echo $HOME/.condarc
+  - cat requirements.txt
+  - cat $HOME/.condarc
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements.txt
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_dev.txt
   # ideally, we should use requirements_pipelines but this lead to stall on
