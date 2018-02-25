@@ -61,7 +61,7 @@ if sys.version_info.major == 2 or on_rtd:
                     if x.startswith("snakemake") is False]
 
 
-requirements += ['ruamel.yaml==0.12.13']
+requirements += ['ruamel.yaml']
 
 
 setup(
