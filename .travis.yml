@@ -30,9 +30,11 @@ install:
   - pip install ruamel.yaml==0.12.13
   - cat requirements.txt
   - cat $HOME/.condarc
-  - conda info ruamel.yaml
-  - conda info ruamel_yaml
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION ruamel.yaml==0.12.13
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION ruamel.yaml==0.12.13 --channel=bioconda
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION atropos==1.1.16
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION bioservices>=1.5.1
+
+
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements.txt
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_dev.txt
   # ideally, we should use requirements_pipelines but this lead to stall on
