@@ -27,13 +27,6 @@ before_install:
 
 install:
   - echo $TRAVIS_PYTHON_VERSION
-  # Since Feb 2018, ruamel_yaml causes trouble on travis due to unsatisfied
-  # spec between py35 and ruaml_yaml. Could not figure out why but looks like
-  # there is ruamel_yaml and ruamel.yaml and that differen version are available
-  # on anaconda, bioconda, conda-forge
-  # Version py36 seems to work though
-  # So, instead of using conda install requirements.txt, we install by hand all
-  # packages in requirements, and let pip install ruamel yaml
   - pip install ruamel.yaml==0.12.13
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements.txt
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_dev.txt
