@@ -8,7 +8,7 @@ import glob
 
 _MAJOR               = 0
 _MINOR               = 6
-_MICRO               = 4
+_MICRO               = 5
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
@@ -142,6 +142,8 @@ setup(
         ],
         'multiqc.hooks.v1': [
             'before_config = sequana.multiqc:multiqc_sequana_config',
-]
+        ]
     },
+
+
 )
