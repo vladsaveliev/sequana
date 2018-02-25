@@ -1,6 +1,6 @@
 .. _pipeline_coverage:
 
-Quality control
+Coverage
 =================
 
 .. include:: ../sequana/pipelines/coverage/README.rst
