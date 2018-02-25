@@ -34,10 +34,10 @@ install:
   # Version py36 seems to work though
   # So, instead of using conda install requirements.txt, we install by hand all
   # packages in requirements, and let pip install ruamel yaml
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION atropos==1.1.16, bioservices>=1.4.14, biokit>=0.4.2, colorlog>=3.1.0, docutils, easydev>=0.9.36
+  #- conda install --yes python=$TRAVIS_PYTHON_VERSION atropos==1.1.16, bioservices>=1.4.14, biokit>=0.4.2, colorlog>=3.1.0, docutils, easydev>=0.9.36
 
 
-  #- conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements.txt
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements.txt
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_dev.txt
   # ideally, we should use requirements_pipelines but this lead to stall on
   # travis because of many dependencies. For testing, we only need those ones
