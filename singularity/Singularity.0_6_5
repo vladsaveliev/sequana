@@ -78,7 +78,7 @@ From: ubuntu:16.04
     conda clean --packages -y
 
     # Sequana source code
-    pip install sequana==0.6.5.post1
+    pip install sequana==0.6.5.post2
 
     conda clean --all -y # next requires lots of space
     rm -rf /usr/local/anaconda/pkgs
