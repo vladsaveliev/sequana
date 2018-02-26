@@ -105,5 +105,9 @@ From: ubuntu:16.04
     export PATH=$PATH:/usr/local/anaconda/bin
     export LANG=C   # prevents perl for raising warnings
     export PERL5LIB=/usr/local/anaconda/lib/perl5/5.22.0
+    # Issue with multiqc/click should be solved with those 2 exports
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+
     #echo "backend:agg" > matplotlibrc
 
