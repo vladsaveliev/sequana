@@ -33,7 +33,7 @@ From: ubuntu:16.04
     apt-get install -y libgnomeui-0
 
     # on some system, there is waning message about dvipng missing
-    apt-get install -y dvipng
+    #apt-get install -y dvipng
 
     # avoid warning
     #  Gtk-Message: Failed to load module "pk-gtk-module"
