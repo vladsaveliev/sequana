@@ -99,7 +99,7 @@ rule coverage:
         binning=config['coverage']["binning"],
         circular=config['coverage']['circular'],
         mixture_models=config['coverage']['mixture_models'],
-        cnv_delta=config['coverage']['cnv_clustering'],
+        cnv_clustering=config['coverage']['cnv_clustering'],
     run:
         sm.message("Scanning input file. May take time depending on the input file")
         sample = output[0].split("/")[1]
