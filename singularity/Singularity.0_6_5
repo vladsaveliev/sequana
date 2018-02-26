@@ -78,7 +78,7 @@ From: ubuntu:16.04
     conda clean --packages -y
 
     # Sequana source code
-    pip install sequana==0.6.5.post2
+    pip install sequana==0.6.5.post3
 
     conda clean --all -y # next requires lots of space
     rm -rf /usr/local/anaconda/pkgs
@@ -106,8 +106,12 @@ From: ubuntu:16.04
     export LANG=C   # prevents perl for raising warnings
     export PERL5LIB=/usr/local/anaconda/lib/perl5/5.22.0
     # Issue with multiqc/click should be solved with those 2 exports
-    export LC_ALL=C.UTF-8
-    export LANG=C.UTF-8
+    # This one raises a warning: Error: Fontconfig warning: ignoring C.UTF-8:
+    # not a valid language tag. 
+    #export LANG=C.UTF-8
+    #export LC_ALL=C.UTF-8
+    # according to https://github.com/uncss/uncss/issues/166, should use
+    export LC_ALL=C
 
     #echo "backend:agg" > matplotlibrc
 
