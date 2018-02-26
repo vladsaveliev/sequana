@@ -622,15 +622,12 @@ class ChromosomeCov(object):
 
         # open the file as an iterator (may be huge), set _df to None and
         # all attributes to None.
-        #self.reset()
+        self.reset()
 
     def reset(self):
         # jump to the file position corresponding to the chrom name.
         N = self.bed.positions[self.chrom_name]['N']
         toskip = self.bed.positions[self.chrom_name]['start']
-
-        # the skip is slow for human genome. Cannot do anything about it so
-        # we should call reset, only on request, not in the constructor
         self.iterator = pd.read_table(self.bed.input_filename, skiprows=toskip,
                                       nrows=N, header=None, sep="\t",
                                       chunksize=self.chunksize)
@@ -843,7 +840,6 @@ class ChromosomeCov(object):
     @property
     def df(self):
         if self._df is None:
-            self.reset()
             self.next()
         return self._df
 
@@ -1056,6 +1052,7 @@ class ChromosomeCov(object):
         self._coverage_scaling()
 
         # ignore start and end (corrupted due to running median window)
+        # the slice does not seem to work as a copy, hence the copy()
         data = self.df['scale'][self.range[0]:self.range[1]].copy()
 
         # remove zero, nan and inf values and ignore values above 4 that would
