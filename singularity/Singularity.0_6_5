@@ -32,6 +32,9 @@ From: ubuntu:16.04
     # the issue
     apt-get install -y libgnomeui-0
 
+    # on some system, there is waning message about dvipng missing
+    apt-get install -y dvipng
+
     # avoid warning
     #  Gtk-Message: Failed to load module "pk-gtk-module"
     #  Gtk-Message: Failed to load module "canberra-gtk-module"
@@ -53,7 +56,6 @@ From: ubuntu:16.04
     # set anaconda path
     export PATH=$PATH:/usr/local/anaconda/bin
     conda update conda
-
 
     conda config --add channels r
     conda config --add channels defaults
@@ -92,6 +94,7 @@ From: ubuntu:16.04
     if [ ! -d /scripts ]; then mkdir /scripts; fi
     if [ ! -d /scratch ]; then mkdir /scratch; fi
     if [ ! -d /mounting ]; then mkdir /mounting; fi
+    # temporary fix for IP cluster
     if [ ! -d /pasteur ]; then mkdir /pasteur; fi
     echo "backend:tkagg" > matplotlibrc
 
