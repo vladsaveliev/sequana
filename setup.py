@@ -12,7 +12,7 @@ _MICRO               = 5
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
-#version += ".post1"
+version += ".post1"
 
 metainfo = {
     'authors': {"main": ("yourname", "email@whatever.org")},
