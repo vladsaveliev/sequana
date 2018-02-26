@@ -723,6 +723,15 @@ class ChromosomeCov(object):
 
     def run(self, W, k=2, circular=False, binning=None, cnv_delta=None):
         self.reset()
+
+        # for the coverare snakemake pipeline
+        if binning == -1:
+            binning = None
+
+        # for the coverare snakemake pipeline
+        if cnv_delta == -1:
+            cnv_delta = None
+
         if binning:
             logger.debug("binning={}".format(binning))
         if cnv_delta:
