@@ -107,11 +107,13 @@ From: ubuntu:16.04
     export PERL5LIB=/usr/local/anaconda/lib/perl5/5.22.0
     # Issue with multiqc/click should be solved with those 2 exports
     # This one raises a warning: Error: Fontconfig warning: ignoring C.UTF-8:
-    # not a valid language tag. 
+    # not a valid language tag.
     #export LANG=C.UTF-8
     #export LC_ALL=C.UTF-8
     # according to https://github.com/uncss/uncss/issues/166, should use
-    export LC_ALL=C
+    #export LC_ALL=C  but does not work ! Same error as above
+    export LC_ALL=C.UTF-8
+
 
     #echo "backend:agg" > matplotlibrc
 
