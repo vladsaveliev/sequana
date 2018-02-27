@@ -98,6 +98,10 @@ sp:
         fn: "summary.json"
     sequana/coverage:
         fn: "sequana_summary_coverage.json"
+    sequana/isoseq:
+        fn: "sequana_summary_isoseq.json"
+    sequana/isoseq_qc:
+        fn: "sequana_summary_isoseq.json"
 
 
 # Specify a custom logo to add to reports (uncomment to use)
