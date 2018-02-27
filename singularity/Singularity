@@ -32,6 +32,9 @@ From: ubuntu:16.04
     # the issue
     apt-get install -y libgnomeui-0
 
+    # on some system, there is waning message about dvipng missing
+    #apt-get install -y dvipng
+
     # avoid warning
     #  Gtk-Message: Failed to load module "pk-gtk-module"
     #  Gtk-Message: Failed to load module "canberra-gtk-module"
@@ -54,7 +57,6 @@ From: ubuntu:16.04
     export PATH=$PATH:/usr/local/anaconda/bin
     conda update conda
 
-
     conda config --add channels r
     conda config --add channels defaults
     conda config --add channels conda-forge
@@ -63,7 +65,7 @@ From: ubuntu:16.04
     # The main packages for sequana:
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements.txt
 
-    # equivalent to requirements_pipelines.txt version 0.6.2
+    # the packages for various pipelines
     conda install --file https://raw.githubusercontent.com/sequana/sequana/master/requirements_pipelines.txt
 
     # Let us save some space
@@ -78,7 +80,7 @@ From: ubuntu:16.04
     conda clean --packages -y
 
     # Sequana source code
-    pip install sequana==0.6.3.post1
+    pip install sequana==0.6.5.post3
 
     conda clean --all -y # next requires lots of space
     rm -rf /usr/local/anaconda/pkgs
@@ -92,6 +94,7 @@ From: ubuntu:16.04
     if [ ! -d /scripts ]; then mkdir /scripts; fi
     if [ ! -d /scratch ]; then mkdir /scratch; fi
     if [ ! -d /mounting ]; then mkdir /mounting; fi
+    # temporary fix for IP cluster
     if [ ! -d /pasteur ]; then mkdir /pasteur; fi
     echo "backend:tkagg" > matplotlibrc
 
@@ -105,5 +108,15 @@ From: ubuntu:16.04
     export PATH=$PATH:/usr/local/anaconda/bin
     export LANG=C   # prevents perl for raising warnings
     export PERL5LIB=/usr/local/anaconda/lib/perl5/5.22.0
+    # Issue with multiqc/click should be solved with those 2 exports
+    # This one raises a warning: Error: Fontconfig warning: ignoring C.UTF-8:
+    # not a valid language tag.
+    #export LANG=C.UTF-8
+    #export LC_ALL=C.UTF-8
+    # according to https://github.com/uncss/uncss/issues/166, should use
+    #export LC_ALL=C  but does not work ! Same error as above
+    export LC_ALL=C.UTF-8
+
+
     #echo "backend:agg" > matplotlibrc
 
