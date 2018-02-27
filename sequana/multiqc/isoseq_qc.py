@@ -29,7 +29,7 @@ class MultiqcModule(BaseMultiqcModule):
             info="pipelines multi Summary")
 
         self.sequana_data = {}
-        for myfile in self.find_log_files("sequana/isoseq_qc"):
+        for myfile in self.find_log_files("sequana/isoseq_qc", filehandles=True):
             #print( myfile['f'] )       # File contents
             #print( myfile['s_name'] )  # Sample name (from cleaned filename)
             #print( myfile['fn'] )      # Filename
@@ -66,7 +66,8 @@ class MultiqcModule(BaseMultiqcModule):
         self.add_productivity()
 
     def add_productivity(self):
-        data = {}
+        from collections import OrderedDict
+        data = OrderedDict()
         for name in self.sequana_data.keys():
             data[name] = {
                 'P0': self.sequana_data[name]["P0"],
@@ -101,16 +102,20 @@ class MultiqcModule(BaseMultiqcModule):
         return data
 
     def populate_columns(self):
-        headers = {}
-        if any(['P1' in self.sequana_data[s] for s in self.sequana_data]):
-            headers['P1'] = {
-                'title': 'P1',
-                'description': 'P1',
-                'min': 0,
-                'scale': 'RdYlGn',
-                'format': '{:,.0d}',
-                'shared_key': 'count',
-            }
+        from collections import OrderedDict
+        headers = OrderedDict()
+
+        for this in ["P0", "P1", "P2"]:
+            if any([this in self.sequana_data[s] for s in self.sequana_data]):
+               headers[this] = {
+                    'title': this,
+                    'description': this,
+                    'min': 0,
+                    'max': 100,
+                    'scale': 'RdYlGn',
+                    'format': '{:,.0d}',
+                    'shared_key': 'count',
+                }
 
         if len(headers.keys()):
             self.general_stats_addcols(self.sequana_data, headers)

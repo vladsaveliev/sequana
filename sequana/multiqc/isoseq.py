@@ -19,7 +19,7 @@ log = logging.getLogger('multiqc.sequana/isoseq')
 class MultiqcModule(BaseMultiqcModule):
 
     def __init__(self):
-
+        print("------------------------------------")
         # Initialise the parent object
         super(MultiqcModule, self).__init__(
             name='Sequana/isoseq',    # name that appears at the top
@@ -28,14 +28,17 @@ class MultiqcModule(BaseMultiqcModule):
             href='http://github.com/sequana/sequana/',
             info="pipelines multi Summary")
 
+        print("------------------------------------")
         self.sequana_data = {}
+        files = self.find_log_files("sequana/isoseq", filehandles=True)
+        print(len(list(files)))
         for myfile in self.find_log_files("sequana/isoseq"):
             #print( myfile['f'] )       # File contents
             #print( myfile['s_name'] )  # Sample name (from cleaned filename)
             #print( myfile['fn'] )      # Filename
             #print( myfile['root'] )    # Directory file was in
             name = myfile['s_name']
-            #print(name)
+            print("test")
             #if name.startswith("summary_"):
             #    name = name.replace("summary_", "")
 
@@ -46,6 +49,7 @@ class MultiqcModule(BaseMultiqcModule):
                 continue
             name = parsed_data["s_name"]
             self.sequana_data[name] = parsed_data
+        print("------------------------------------")
 
         info = "<ul>"
         for this in sorted(self.sequana_data.keys()):
