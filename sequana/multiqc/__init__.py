@@ -19,7 +19,7 @@ def multiqc_sequana_config():
             'fn': 'sequana_summary_isoseq.json',
         },
         'sequana/isoseq_qc': {
-            'fn': 'sequana_summary_isoseq.json',
+            'fn': 'sequana_summary_isoseq_qc.json',
         },
     }
     config.update_dict(config.sp, sequana_search_patterns)
