@@ -19,7 +19,6 @@ log = logging.getLogger('multiqc.sequana/isoseq')
 class MultiqcModule(BaseMultiqcModule):
 
     def __init__(self):
-        print("------------------------------------")
         # Initialise the parent object
         super(MultiqcModule, self).__init__(
             name='Sequana/isoseq',    # name that appears at the top
@@ -28,19 +27,9 @@ class MultiqcModule(BaseMultiqcModule):
             href='http://github.com/sequana/sequana/',
             info="pipelines multi Summary")
 
-        print("------------------------------------")
         self.sequana_data = {}
-        files = self.find_log_files("sequana/isoseq", filehandles=True)
-        print(len(list(files)))
         for myfile in self.find_log_files("sequana/isoseq"):
-            #print( myfile['f'] )       # File contents
-            #print( myfile['s_name'] )  # Sample name (from cleaned filename)
-            #print( myfile['fn'] )      # Filename
-            #print( myfile['root'] )    # Directory file was in
             name = myfile['s_name']
-            print("test")
-            #if name.startswith("summary_"):
-            #    name = name.replace("summary_", "")
 
             try:
                 parsed_data = self.parse_logs(myfile["f"])
@@ -49,7 +38,6 @@ class MultiqcModule(BaseMultiqcModule):
                 continue
             name = parsed_data["s_name"]
             self.sequana_data[name] = parsed_data
-        print("------------------------------------")
 
         info = "<ul>"
         for this in sorted(self.sequana_data.keys()):
@@ -69,6 +57,47 @@ class MultiqcModule(BaseMultiqcModule):
         self.populate_columns()
         self.add_ccs_reads_section()
         self.add_ccs_mean_length_section()
+        self.add_isoforms("hq")
+        self.add_isoforms("lq")
+        self.add_polyA()
+        #self.add_prime("three")
+        #self.add_prime("five")
+
+    def add_polyA(self):
+        data = {}
+        for name in self.sequana_data.keys():
+            data[name] = {
+                'polyA':
+                    self.sequana_data[name]["polyA"]
+            }
+        pconfig = {
+            "title": "polyA",
+            "logswitch": True,
+        }
+        self.add_section(
+            name = 'Number of polyA',
+            anchor = 'poylA',
+            description = 'polyA',
+            helptext="",
+            plot = bargraph.plot(data, None, pconfig))
+
+    def add_isoforms(self, mode):
+        data = {}
+        for name in self.sequana_data.keys():
+            data[name] = {
+                'number_{}_isoforms'.format(mode):
+                    self.sequana_data[name]["number_{}_isoforms".format(mode)]
+            }
+        pconfig = {
+            "title": "Number of {} isoforms".format(mode.upper()),
+            "logswitch": True,
+        }
+        self.add_section(
+            name = 'Number of {} isoforms'.format(mode.upper()),
+            anchor = 'number_{}_isoforms'.format(mode),
+            description = 'Number of {} isoforms'.format(mode.upper()),
+            helptext="",
+            plot = bargraph.plot(data, None, pconfig))
 
     def add_ccs_reads_section(self):
         data = {}
@@ -117,12 +146,12 @@ class MultiqcModule(BaseMultiqcModule):
         #data['count'] = log_dict['data']["count"]
         data["mean_length"] = log_dict['data']['CCS']["mean_length"]
         data["number_ccs_reads"] = log_dict['data']['CCS']["number_ccs_reads"]
+        data["number_hq_isoforms"] = log_dict['data']['hq_isoform']["N"]
+        data["number_lq_isoforms"] = log_dict['data']['lq_isoform']["N"]
+        data["polyA"] = log_dict['data']['classification']["polyA_reads"]
         data["alldata"] = log_dict
         data["s_name"] = log_dict['sample_name']
 
-        #data["mean_gc"] = log_dict['mean_gc']
-        #data["hist_gc"] = log_dict['hist_gc']
-        #data["hist_read_length"] = log_dict['hist_read_length']
         return data
 
     def populate_columns(self):
@@ -145,6 +174,24 @@ class MultiqcModule(BaseMultiqcModule):
                 'scale': 'RdYlGn',
                 'format': '{:,.0d}'
             }
+
+        for this in ['number_hq_isoforms', 'number_lq_isoforms']:
+            if any([this in self.sequana_data[s] for s in self.sequana_data]):
+                headers[this] = {
+                    'title': " ".join(this.split()),
+                    'description': " ".join(this.split()),
+                    'min': 0,
+                    'scale': 'RdYlGn',
+                    'format': '{:,.0d}'
+                }
+        if any(["polyA" in self.sequana_data[s] for s in self.sequana_data]):
+                headers["polyA"] = {
+                    'title': "polyA",
+                    'description': "",
+                    'min': 0,
+                    'scale': 'RdYlGn',
+                    'format': '{:,.0d}'
+                }
 
         if len(headers.keys()):
             self.general_stats_addcols(self.sequana_data, headers)
