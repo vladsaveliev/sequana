@@ -143,7 +143,8 @@ class ExpDesignBase(object):
     :class:`ExpDesignHiSeq`.
 
     """
-    def __init__(self, filename):
+    def __init__(self, filename, sep=","):
+        self.sep = sep
         self.filename = filename
         self.adapter_type = "unset"
         self.name = "ExpDesignBase"
@@ -157,7 +158,7 @@ class ExpDesignBase(object):
 
     def read(self):
         """Read a CSV file"""
-        self.df = pd.read_csv(self.filename, sep=",")
+        self.df = pd.read_csv(self.filename, sep=self.sep)
 
     def __repr__(self):
         txt = "%s: %s entries\n" % (self.name, len(self.df))
@@ -202,8 +203,8 @@ class ExpDesignHiSeq(ExpDesignBase):
     note also FCID = flowcell ID
 
     """
-    def __init__(self, filename):
-        super(ExpDesignHiSeq, self).__init__(filename)
+    def __init__(self, filename, sep=","):
+        super(ExpDesignHiSeq, self).__init__(filename, sep=sep)
         self.name = "ExpDesignHiSeq"
         self.read()
 
