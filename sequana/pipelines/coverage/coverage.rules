@@ -82,6 +82,8 @@ rule coverage:
             summary = results.get_summary()
 
             # and save the results
+            try: os.mkdir("coverage_reports/{}".format(chromosome.chrom_name))
+            except:pass
             output_json = "{}/{}/sequana_summary_coverage.json".format(
                                 output_directory, chromosome.chrom_name)
             output_roi = "{}/{}/rois.csv".format(
