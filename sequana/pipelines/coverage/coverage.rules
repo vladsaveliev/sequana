@@ -23,9 +23,11 @@ for filename in filenames:
 
 
 # Some final and intermediate file patterns
+output_directory = "coverage_reports"
+prefix = output_directory + "/{sample}/"
 __multiqc__output = "multiqc_report.html"
-__coverage__output_summary = "coverage_reports/{sample}/sequana_summary_coverage.json"
-__coverage__output_rois = "coverage_reports/{sample}/rois.csv"
+__coverage__output_summary = prefix + "sequana_summary_coverage.json"
+__coverage__output_rois = prefix + "rois.csv"
 
 
 # The pipeline itself, we need the multiqc as final result:
@@ -80,8 +82,13 @@ rule coverage:
             summary = results.get_summary()
 
             # and save the results
-            summary.to_json(output[0])
-            ROIs.df.to_csv(output[1])
+            output_json = "{}/{}/sequana_summary_coverage.json".format(
+                                output_directory, chromosome.chrom_name)
+            output_roi = "{}/{}/rois.csv".format(
+                                output_directory, chromosome.chrom_name)
+
+            summary.to_json(output_json)
+            ROIs.df.to_csv(output_roi)
 
             # Finally HTML reports
             from sequana.utils import config as sequana_config
