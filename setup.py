@@ -7,12 +7,12 @@ from setuptools import setup, find_packages
 import glob
 
 _MAJOR               = 0
-_MINOR               = 6
-_MICRO               = 5
+_MINOR               = 7
+_MICRO               = 0
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
-version += ".post3"
+#version += ".post3"
 
 metainfo = {
     'authors': {"main": ("yourname", "email@whatever.org")},
