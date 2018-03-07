@@ -16,6 +16,19 @@ the command::
 
     samtools depth -aa input.bam > output.bed
 
+
+If you have a CRAM file::
+
+    samtools view -@ 4 -T reference.fa -b -o out.bam  in.cram
+
+For very large BAM/BED files, we recommend to split the BED file by
+chromosomes. For instance for the chromosome  chr1, type::
+
+
+    # samtools index in.bam
+    samtools depth -aa input.bam -r chr1 in.bam > chr1.bed
+
+
 The standalone or Snakemake application can also take as input your BAM file and
 will convert it automatically into a BED file.
 
