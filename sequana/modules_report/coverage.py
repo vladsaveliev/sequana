@@ -195,7 +195,10 @@ class ChromosomeCoverageModule(SequanaBaseModule):
             rois = options['ROIs']
 
         self.coverage_plot()
-        links = self.subcoverage(rois, directory)
+        if self.chromosome._mode == "memory":
+            links = self.subcoverage(rois, directory)
+        else:
+            links = None
         self.basic_stats()
         self.regions_of_interest(rois, links)
         self.coverage_barplot()
@@ -211,7 +214,6 @@ class ChromosomeCoverageModule(SequanaBaseModule):
             "anchor": "command",
             "content": ("<p>Command used: <pre>{}</pre>.</p>".format(self.command))
                 })
-        
 
     def _add_large_data_section(self, name, anchor):
         self.sections.append({
@@ -385,7 +387,10 @@ class ChromosomeCoverageModule(SequanaBaseModule):
             if self.chromosome._mode == "memory" and self.chromosome.binning ==1:
                 raise Exception("{} position not in the range of reports".format(x))
 
-        links_list = [connect_link(n) for n in rois.df['start']]
+        if links:
+            links_list = [connect_link(n) for n in rois.df['start']]
+        else:
+            links_list = [None for n in rois.df['start']]
 
         rois.df['link'] = links_list
         # create datatable

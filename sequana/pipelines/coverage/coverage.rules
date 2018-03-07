@@ -1,4 +1,4 @@
-import os
+import os, glob
 from sequana import logger as _log
 _log.level = "DEBUG"
 from sequana import GenomeCov, sequana_data
@@ -9,69 +9,23 @@ configfile: "config.yaml"
 
 manager = sm.PipelineManager("coverage", config,  fastq=False)
 
-# Sanity check for the input file
-if len(manager.samples) == 0:
-    raise Exception("no input file found")
-elif len(manager.samples) == 1:
-    pass
-elif len(manager.samples) > 1:
-    raise Exception(("Found several input files. Expected only one. Found:\n "
-        "{}".format("\n".join(manager.samples.values()))))
 
-# Do we need to convert the input file from BAM to BED ?
-# Depending on the answer, the pipeline will be different
-inputfilename = list(manager.samples.values())[0]
-if inputfilename.endswith(".bam"):
-    __bamfile__ = inputfilename
-    __bedfile__ = inputfilename.replace(".bam", ".bed")
-    shell("samtools depth -aa {} > {}".format(__bamfile__, __bedfile__))
-elif inputfilename.endswith(".bed"):
-    __bedfile__ = inputfilename
-else:
-    raise IOError("Input file must be a BAM or BED file")
+# check that the input are BED files ?
+filenames = list(manager.samples.values())
+__coverage__input = filenames
+
+
+# Get chrom name from the BED files. Assuming only one chromosome per BED file
+chrom_names = []
+for filename in filenames:
+    chrom_name = open(filename, "r").readline().split()[0].strip()
+    chrom_names.append(chrom_name)
 
 
 # Some final and intermediate file patterns
 __multiqc__output = "multiqc_report.html"
-summary_files_pattern = "coverage_reports/{sample}/sequana_summary_coverage.json"
-rois_pattern = "coverage_reports/{sample}/rois.csv"
-
-
-def scan_genome(infile, chromosome_list=[]):
-    # Read input file to get the list of chromosomes
-    genome = GenomeCov(infile,
-                genbank_file=config['coverage']['genbank_file'],
-                chunksize=config["coverage"]["chunksize"],
-                low_threshold=config["coverage"]["low_threshold"],
-                high_threshold=config["coverage"]["high_threshold"],
-                ldtr=config["coverage"]["double_threshold"],
-                hdtr=config['coverage']["double_threshold"],
-                quiet_progress=True, chromosome_list=chromosome_list)
-
-    #################################################### GC content
-    reffile = config["coverage"]["reference_file"]
-    # if length of the fasta > 100 million bases, we do not compute the GC
-    if reffile:
-        if os.path.getsize(reffile) <= 100000000:
-            genome.compute_gc_content(reffile)
-        else:
-            _log.warning("do not compute GC content (file is larger than 100 million bases).")
-    return genome
-
-# Read the input file and save chromosomes once for all to avoid reading the
-# large input file again and again
-filename = "{}.chrom_names.txt".format(__bedfile__)
-if os.path.exists(filename):
-    chrom_names = open(filename, "r").read().split()
-else:
-    sm.message("Scanning input file to save chromosomes names. "
-               "May take time depending on the input file")
-    genome = scan_genome(__bedfile__)
-    with open(filename, "w") as fout:
-        for this in genome.chrom_names:
-            fout.write("{}\n".format(this))
-    chrom_names = genome.chrom_names
-#sm.message(str(chrom_names))
+__coverage__output_summary = "coverage_reports/{sample}/sequana_summary_coverage.json"
+__coverage__output_rois = "coverage_reports/{sample}/rois.csv"
 
 
 # The pipeline itself, we need the multiqc as final result:
@@ -81,19 +35,20 @@ rule pipeline:
 
 # the multiqc rule that requires the JSON as input.
 rule multiqc:
-    input: expand(summary_files_pattern, sample=chrom_names),
+    input: expand(__coverage__output_summary, sample=chrom_names),
     output: __multiqc__output
     params:
         config=sequana_data("multiqc_config.yaml", "../multiqc")
     shell: "multiqc . -m sequana_coverage  -f -c {params.config}"
 
 
+
 # The main coverage factory
 rule coverage:
-    input: __bedfile__, filename
+    input: __coverage__input
     output:
-        summary_files_pattern,
-        rois_pattern,
+        __coverage__output_summary,
+        __coverage__output_rois
     params:
         window=config['coverage']["window"],
         binning=config['coverage']["binning"],
@@ -102,37 +57,42 @@ rule coverage:
         cnv_clustering=config['coverage']['cnv_clustering'],
     run:
         sm.message("Scanning input file. May take time depending on the input file")
-        sample = output[0].split("/")[1]
-        chrom_index = chrom_names.index(sample)
-        genome = scan_genome(__bedfile__, [chrom_index])
-        chromosome = genome.chr_list[0]
 
-        if params.window > len(chromosome.df) / 5:
-            NW = int(len(chromosome.df) / 5)
-            if NW % 2 == 0:
-                NW += 1
-        else:
-            NW = params.window
+        genome = GenomeCov(input[0])
 
-        # then, we run the analysis (median, zscore, rois)
-        results = chromosome.run(NW, params.mixture_models, circular=params.circular, 
-                                 binning=params.binning, cnv_delta=params.cnv_clustering)
-        ROIs = results.get_rois()
-        summary = results.get_summary()
 
-        # and save the results
-        summary.to_json(output[0])
-        ROIs.df.to_csv(output[1])
+        for index in range(len(genome.chr_list)):
+            chromosome = genome.chr_list[index]
 
-        # Finally HTML reports
-        from sequana.utils import config as sequana_config
-        sequana_config.output_dir = "." #config['coverage']['output_directory']
-        datatable = CoverageModule.init_roi_datatable(ROIs)
-        ChromosomeCoverageModule(chromosome, datatable,
-                options={"W": NW,
-                         "ROIs": ROIs,
-                         "k": params.mixture_models,
-                         "circular": params.circular})
+            if params.window > len(chromosome.df) / 4:
+                NW = int(len(chromosome.df) / 4)
+                if NW % 2 == 0:
+                    NW += 1
+            else:
+                NW = params.window
+
+            # then, we run the analysis (median, zscore, rois)
+            results = chromosome.run(NW, params.mixture_models,
+                                     circular=params.circular,
+                                     binning=params.binning,
+                                     cnv_delta=params.cnv_clustering)
+            ROIs = results.get_rois()
+            summary = results.get_summary()
+
+            # and save the results
+            summary.to_json(output[0])
+            ROIs.df.to_csv(output[1])
+
+            # Finally HTML reports
+            from sequana.utils import config as sequana_config
+            sequana_config.output_dir = "." #config['coverage']['output_directory']
+            datatable = CoverageModule.init_roi_datatable(ROIs)
+            ChromosomeCoverageModule(chromosome, datatable,
+                    options={"W": NW,
+                             "ROIs": ROIs,
+                             "k": params.mixture_models,
+                             "circular": params.circular})
+
 
 
 onsuccess:

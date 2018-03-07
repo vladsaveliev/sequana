@@ -173,7 +173,7 @@ Issues: http://github.com/sequana/sequana
             help="set to DEBUG, INFO, WARNING, CRITICAL, ERROR")
         group = self.add_argument_group('Annotation')
         group.add_argument("-b", "--genbank", dest="genbank",
-            type=str, default=None, help='a valida genbank annotation')
+            type=str, default=None, help='a valid genbank annotation')
 
         # Group related to GC content
         group = self.add_argument_group("GC content related")
@@ -377,8 +377,8 @@ def run_analysis(chrom, options, feature_dict):
                         " increase the threshold to avoid too many false detections")
     logger.info(chrom.__str__())
 
-    if options.w_median > len(chrom.df) / 5:
-        NW = int(len(chrom.df) / 5)
+    if options.w_median > len(chrom.df) / 4:
+        NW = int(len(chrom.df) / 4)
         if NW % 2 == 0:
             NW += 1
         logger.warning("median window length is too long. \n"

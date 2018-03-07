@@ -1240,7 +1240,9 @@ class ChromosomeCov(object):
                          "\n\n", self.__doc__)
             sys.exit(1)
 
-    def plot_rois(self, x1, x2, set_ylimits=False, rois=None, fontsize=16):
+    def plot_rois(self, x1, x2, set_ylimits=False, rois=None, fontsize=16,
+                  color_high="r", color_low="g", clf=True):
+
         if rois is None:
             rois = self.rois
 
@@ -1248,19 +1250,22 @@ class ChromosomeCov(object):
         low = rois.get_low_rois().query("end>@x1 and start<@x2")
 
         self.plot_coverage(x1=x1, x2=x2, set_ylimits=set_ylimits, sample=False,
-            fontsize=fontsize)
+            fontsize=fontsize, clf=clf)
 
         for start, end, cov in zip(high.start, high.end, high.mean_cov):
-            pylab.plot([start, end], [cov, cov], lw=2, color="r", marker="o")
+            pylab.plot([start, end], [cov, cov], lw=2, color=color_high, 
+                       marker="o")
 
         for start, end, cov in zip(low.start, low.end, low.mean_cov):
-            pylab.plot([start, end], [cov, cov], lw=2, color="g", marker="o")
+            pylab.plot([start, end], [cov, cov], lw=2, color=color_low, 
+                       marker="o")
         pylab.xlim([x1,x2])
 
     def plot_coverage(self, filename=None, fontsize=16,
             rm_lw=1, rm_color="#0099cc", rm_label="Running median",
             th_lw=1, th_color="r", th_ls="--", main_color="k", main_lw=1,
-            main_kwargs={}, sample=True, set_ylimits=True, x1=None, x2=None):
+            main_kwargs={}, sample=True, set_ylimits=True, x1=None, x2=None,
+            clf=True):
         """ Plot coverage as a function of base position.
 
         :param filename:
@@ -1308,7 +1313,7 @@ class ChromosomeCov(object):
         low_zcov = (self.thresholds.low * self.best_gaussian["sigma"] +
                 self.best_gaussian["mu"]) * df["rm"]
 
-        pylab.clf()
+        if clf:pylab.clf()
         ax = pylab.gca()
         ax.set_facecolor('#eeeeee')
         pylab.xlim(df["pos"].iloc[0], df["pos"].iloc[-1])
