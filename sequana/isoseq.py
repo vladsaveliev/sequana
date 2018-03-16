@@ -217,14 +217,68 @@ class IsoSeqQC(object):
         ax.plot(X, [N] + list(N-np.cumsum(Y1+Y2)), "k")
 
 
+class CCS(object):
+    def __init__(self, filename):
+        self.filename = filename
+
+
+
 class IsoSeqBAM(object):
-    """Here, we load a BAM file generated with minimap using 
+    """Reads raw IsoSeq BAM file (subreads)
+
+    Creates some plots and stats
+
+    """
+    def __init__(self, filename):
+        self.filename = filename
+        self._passes = None
+        self._lengths = None
+
+    @property
+    def lengths(self):
+        if self._lengths is None:
+            _ = self.passes # extract passes and lengths
+        return self._lengths
+
+    @property
+    def passes(self):
+        from collections import Counter
+        if self._passes is None:
+            # for BAM of 1M reads, takes 10-15 seconds
+            from pysam import AlignmentFile
+            ccs = AlignmentFile(self.filename, check_sq=False)
+            qnames = [a.qname for a in ccs]
+            names = [int(qname.split("/")[1]) for qname in qnames]
+            self.qnames = qnames
+            lengths = []
+            for qname in qnames:
+                a,b = qname.split("/")[2].split("_")
+                lengths.append(int(b)-int(a))
+            self._lengths = lengths
+            self._passes = list(Counter(names).values())
+        return self._passes
+
+    def hist_passes(self, bins=100):
+        pylab.hist(self.passes, bins=bins)
+
+    def hist_read_length(self, bins=100):
+        pylab.hist(self.lengths, bins=bins)
+
+    def stats(self):
+        return {"mean_read_length": pylab.mean(self.lengths), 
+                "ZMW": len(self.passes),
+                "N": len(self.lengths),
+                "mean_ZMW_passes": pylab.mean(self.passes)}
+
+
+class IsoSeqMappedIsoforms(object):
+    """Here, we load a SAM/BAM file generated with minimap using
     as input the BAM file  created with the mapping og HQ isoforms
     on a reference.
 
     df contains a dataframe for each read found in the SAM (and hq_isoform)
     we populate the GC content, the mapping flag, the reference name (-1 means
-    no mapping i.e flag ==4). flag of 4 means unmapped and there is no 
+    no mapping i.e flag ==4). flag of 4 means unmapped and there is no
     ambiguity about it.
 
     In the data file example, other falgs are 0, 16 (SEQ being reverse
@@ -232,39 +286,45 @@ class IsoSeqBAM(object):
 
     Example of minimap2 command::
 
-        minimap2 -t 4  -ax splice -uf --secondary=no  SIRV-E0.fa 
-            hq_isoforms.fasta > hq_isoforms.fasta.sam 2> hq_isoforms.fasta.sam.log
+        minimap2 -t 4  -ax splice -uf --secondary=no  SIRV-E0.fa
+            hq_isoforms.fasta 1> hq_isoforms.fasta.sam 2> hq_isoforms.fasta.sam.log
 
-
+    Reads a SAM file for now. BAM should work as well
 
     """
     def __init__(self, filename):
         self.filename = filename
         self.bam = BAMPacbio(self.filename)
+        self._df = None
 
     @property
     def df(self):
+        if self._df is not None:
+            return self._df
+
+        # !! for isoseq, we should be able to load everything into memory
         self.bam.reset()
-        rnames = [self.bam.data.get_reference_name(a.rname) if a.rname!=-1 
-                  else -1 for a in self.bam.data]
+        data = [a for a in self.bam.data]
 
         df = self.bam.df.copy()
+
+        rnames = [self.bam.data.get_reference_name(a.rname) if a.rname!=-1
+                  else -1 for a in data]
+
         df['reference_name'] = rnames
-
-        self.bam.reset()
-        df['flags'] = [a.flag for a in self.bam.data]
-
-        self.bam.reset()
-        df['mapq'] = [a.mapq for a in self.bam.data]
-
-        self.bam.reset()
-        df['cigar'] = [a.cigarstring for a in self.bam.data]
+        df['flags'] = [a.flag for a in data]
+        df['mapq'] = [a.mapq for a in data]
+        df['cigar'] = [a.cigarstring for a in data]
 
         # Drop SNR that are not populated in the mapped BAM file.
         df.drop(['snr_A', 'snr_C', 'snr_G', 'snr_T'], axis=1, inplace=True)
 
-        return df
+        df["full_length"] = df.ZMW.apply(lambda x: int(x.split("p")[0].strip("f")))
+        df["non_full_length"] = df.ZMW.apply(lambda x: int(x.split("p")[1].strip("p")))
 
+        self._df = df
+
+        return self._df
 
     def hist_isoform_length_mapped_vs_unmapped(self, bins=None):
         df = self.df
@@ -273,13 +333,23 @@ class IsoSeqBAM(object):
         mapped = df[df.reference_name != -1]
         unmapped = df[df.reference_name == -1]
         pylab.hist(mapped.read_length, bins=bins, alpha=0.5,
-            label="mapped {}".format(len(mapped)), normed=True)
+            label="mapped {}".format(len(mapped)), normed=False)
         pylab.hist(unmapped.read_length, bins=bins, alpha=0.5,
-            label="unmapped {}".format(len(unmapped)), normed=True)
+            label="unmapped {}".format(len(unmapped)), normed=False)
         pylab.xlabel("Isoform length")
         pylab.legend()
 
+    def hist_transcript(self):
+        pylab.clf()
+        ts = self.df.query("read_length>0").groupby("reference_name").count().read_length
+        ts.plot(kind="bar" ,color="r")
+        try: pylab.tight_layout()
+        except: pass
 
-
+    def bar_mapq(self, logy=True, xmin=0, xmax=60, fontsize=12):
+        self.df.mapq.hist()
+        pylab.semilogy()
+        pylab.xlim([xmin, xmax])
+        pylab.xlabel("Mapping quality", fontsize=fontsize)
 
 

@@ -329,8 +329,10 @@ class BAMPacbio(PacbioBAMBase):
                 #res[0] = read length
                 res.append(read.query_length)
                 # collections.counter is slow, let us do it ourself
+
                 res.append( 100. / read.qlen * sum(
-                    [read.query_sequence.count(letter) for letter in "CGcgSs"]))
+                    [read.query_sequence.count(letter) if read.query_sequence
+                        else 0 for letter in "CGcgSs"]))
 
                 # res[2] = snr A
                 # res[3] = snr C
