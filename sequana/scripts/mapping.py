@@ -37,7 +37,7 @@ class Options(argparse.ArgumentParser):
         samtools faidx REFERENCE
 
         # mapping
-        bwa_mem -t 4 -R @RG\\tID:1\\tSM:1\\tPL:illumina -T 30 REFERENCE FASTQ_FILES  | samtools 
+        bwa mem -t 4 -R @RG\\tID:1\\tSM:1\\tPL:illumina -T 30 REFERENCE FASTQ_FILES  | samtools 
         view -Sbh -> REFERENCE.bam
 
         samtools sort -o REFERENCE.sorted.bam  REFERENCE.bam 
