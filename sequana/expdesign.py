@@ -299,6 +299,9 @@ class ExpDesignMiSeq(ExpDesignBase):
         self.data = data
         self.df = pd.read_csv(io.StringIO(data["Data"]))
 
+        # Fixes https://github.com/sequana/sequana/issues/507
+        self.df["Sample_ID"] = self.df["Sample_ID"].astype(str)
+
         self.df.rename(columns={"I7_Index_ID":"Index1_ID", "index":"Index1_Seq",
             "I5_Index_ID": "Index2_ID", "index2":"Index2_Seq"},
                        inplace=True)
