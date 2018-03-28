@@ -64,6 +64,7 @@ class Summary(object):
                 data = json.loads(fin.read())
                 self._name = data["name"]
                 self.description = data["description"]
+                self._data_description = data["data_description"]
                 self.sample_name = data["sample_name"]
                 self.data = data["data"]
 
@@ -73,6 +74,7 @@ class Summary(object):
             assert isinstance(data, dict), "data must be a dictionary"
             self._name = name
             self.description = ""
+            self._data_description = {}
             self.sample_name = sample_name
             self.data = data
 
