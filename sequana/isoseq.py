@@ -20,7 +20,8 @@ from collections import Counter
 
 
 from sequana.lazy import  pandas as pd
-from sequana import FastQ, FastA, BAMPacbio
+from sequana import FastQ, FastA
+from sequana.pacbio import PacbioSubreads
 from sequana.lazy import pylab
 from sequana import logger, phred
 
@@ -217,12 +218,6 @@ class IsoSeqQC(object):
         ax.plot(X, [N] + list(N-np.cumsum(Y1+Y2)), "k")
 
 
-class CCS(object):
-    def __init__(self, filename):
-        self.filename = filename
-
-
-
 class IsoSeqBAM(object):
     """Reads raw IsoSeq BAM file (subreads)
 
@@ -271,7 +266,7 @@ class IsoSeqBAM(object):
                 "mean_ZMW_passes": pylab.mean(self.passes)}
 
 
-class IsoSeqMappedIsoforms(object):
+class PacbioIsoSeqMappedIsoforms(object):
     """Here, we load a SAM/BAM file generated with minimap using
     as input the BAM file  created with the mapping og HQ isoforms
     on a reference.
@@ -294,7 +289,7 @@ class IsoSeqMappedIsoforms(object):
     """
     def __init__(self, filename):
         self.filename = filename
-        self.bam = BAMPacbio(self.filename)
+        self.bam = PacbioSubreads(self.filename)
         self._df = None
 
     @property
@@ -315,12 +310,20 @@ class IsoSeqMappedIsoforms(object):
         df['flags'] = [a.flag for a in data]
         df['mapq'] = [a.mapq for a in data]
         df['cigar'] = [a.cigarstring for a in data]
+        df['qname'] = [a.qname for a in data]
 
         # Drop SNR that are not populated in the mapped BAM file.
         df.drop(['snr_A', 'snr_C', 'snr_G', 'snr_T'], axis=1, inplace=True)
 
-        df["full_length"] = df.ZMW.apply(lambda x: int(x.split("p")[0].strip("f")))
-        df["non_full_length"] = df.ZMW.apply(lambda x: int(x.split("p")[1].strip("p")))
+
+        # TODO. input could be basde on mapping of CCS in which case, the ZMW is
+        # stored and the following does not work. could check whether the
+        # pattern is pXXfXX
+        try:
+            df["full_length"] = df["qname"].apply(lambda x: int(x.split('/')[1].split("p")[0].strip("f")))
+            df["non_full_length"] = df["qname"].apply(lambda x: int(x.split("/")[1].split("p")[1].strip("f")))
+        except:
+            pass
 
         self._df = df
 
@@ -329,27 +332,205 @@ class IsoSeqMappedIsoforms(object):
     def hist_isoform_length_mapped_vs_unmapped(self, bins=None):
         df = self.df
         if bins is None:
-            bins = range(0, df.read_length.max(), 100)
+            bins = range(0, len(df.reference_length.max()), 100)
         mapped = df[df.reference_name != -1]
         unmapped = df[df.reference_name == -1]
-        pylab.hist(mapped.read_length, bins=bins, alpha=0.5,
+        pylab.hist(mapped.reference_length, bins=bins, alpha=0.5,
             label="mapped {}".format(len(mapped)), normed=False)
-        pylab.hist(unmapped.read_length, bins=bins, alpha=0.5,
+        pylab.hist(unmapped.reference, bins=bins, alpha=0.5,
             label="unmapped {}".format(len(unmapped)), normed=False)
         pylab.xlabel("Isoform length")
         pylab.legend()
 
-    def hist_transcript(self):
+    def hist_transcript(self, hide_unmapped=True):
         pylab.clf()
-        ts = self.df.query("read_length>0").groupby("reference_name").count().read_length
+
+        if hide_unmapped is True:
+            query = "reference_length>0 and reference_name!=-1"
+        else:
+            query = "reference_length>0"
+
+        print(query)
+        ts = self.df.query(query).groupby("reference_name").count().reference_length
+        if len(ts) == 0:
+            print("nothing to plot")
+            return ts
+
         ts.plot(kind="bar" ,color="r")
         try: pylab.tight_layout()
         except: pass
+        return ts
 
     def bar_mapq(self, logy=True, xmin=0, xmax=60, fontsize=12):
         self.df.mapq.hist()
-        pylab.semilogy()
+        if logy:
+            pylab.semilogy()
         pylab.xlim([xmin, xmax])
         pylab.xlabel("Mapping quality", fontsize=fontsize)
+
+
+class PacbioIsoseqSIRV(PacbioIsoSeqMappedIsoforms):
+
+    def __init__(self, filename):
+        super(PacbioIsoseqSIRV, self).__init__(filename)
+
+    def plot_sirv_by_group(self, title, shift=5, plot=False, mapq_min=-1):
+        aa = self.df.query('reference_name!=-1').copy()
+        if len(aa) == 0:
+            return pd.Series(), self.df
+
+        aa['group'] = aa.reference_name.apply(lambda x: x[0:shift])
+        data = aa.query("mapq>@mapq_min").groupby("group").count()["mapq"]
+        data.name = None
+
+
+        if plot:
+            data.plot(kind="bar")
+            pylab.title(title)
+            pylab.tight_layout()
+        #data.to_csv(path + "_hq_sirv_grouped.csv")
+        return data, self.df
+
+
+class SIRV(object):
+    def __init__(self, filename, shift=4):
+        from sequana import FastA
+        self.SIRV = FastA(filename)
+        self.shift = 5
+
+    def __len__(self):
+        return len(self.SIRV.names)
+
+    @property
+    def groups(self):
+        data = list(set([x[0:self.shift] for x in self.SIRV.names]))
+        return sorted(data)
+
+
+class PacbioIsoseqMultipleIsoforms(object):
+    """
+
+        mul.read("./180223_113019_lexo1/data/ccs_sirv.sam", "lexo1 ccs")
+        mul.read("./180223_221457_lexo2/data/ccs_sirv.sam", "lexo2 ccs")
+        mul.read("./180206_193114_lexo3/data/ccs_sirv.sam", "lexo3 ccs")
+        mul.read("./180224_083446_lexo3/data/ccs_sirv.sam", "lexo3 ccs bis")
+
+    """
+    SIRV_names = ["SIRV1", "SIRV2", "SIRV3", "SIRV4", "SIRV5", "SIRV6", "SIRV7"]
+    def __init__(self, sirv=None, sirv_shift=5):
+        self.labels = []
+        self.sirv = []
+        self.rawdata = []
+        if sirv:
+            try:
+                sirv = SIRV(sirv, shift=sirv_shift).groups
+                self.SIRV_names = sirv
+            except:
+                pass
+
+    @property
+    def N(self):
+        return [len(x) for x in self.rawdata]
+
+    def read(self, filename, tag, mapq_min=-1):
+        res = PacbioIsoseqSIRV(filename)
+        mapped, data = res.plot_sirv_by_group(tag, mapq_min=mapq_min)
+
+        try:
+            for this in self.SIRV_names:
+                if this not in mapped.index:
+                    mapped.loc[this] = None
+        except:pass
+
+        self.rawdata.append(data)
+        self.labels.append(tag)
+        self.sirv.append(mapped)
+
+    def chi2(self, normalise=True):
+        # are the different results equally distributed
+        # for examples, if we have 4 experiments and 7 SIRV groups,
+        # we compute the chi2 and return pvalue ; null hypothesis
+        N = np.array(self.N)
+        dd = pd.DataFrame(self.sirv).T
+        if normalise:
+            dd = dd/ (N/max(N))
+
+        from scipy.stats import chi2
+        df = pd.DataFrame(dd).T
+        dof = df.size - 2
+
+        mu = df.iloc[:,0].sum() * df.loc[0,:].sum() / df.sum().sum()
+        chi = ((df-mu)**2 / mu).sum().sum()
+
+        pv = 1 - chi2.cdf(x=chi, df=dof)
+        return pv
+
+    def plot_bar_grouped(self, normalise=True, ncol=2):
+        """
+
+        :param normalise:
+
+        """
+        N = np.array(self.N)
+        dd = pd.DataFrame(self.sirv).T
+        if normalise:
+            dd = dd/ (N/max(N))
+        dd.columns = self.labels
+
+        dd.plot(kind="bar")
+        pylab.xlabel("")
+        pylab.legend(self.labels, ncol=ncol)
+        pylab.tight_layout()
+        return dd
+
+    def spikes_found(self, spikes_filename=None):
+        if spikes_filename:
+            sirv_names = SIRV(spikes_filename).SIRV.names
+        else:
+            sirv_names = []
+            for data in self.rawdata:
+                sirv_names.extend(data.reference_name.unique())
+            sirv_names = set(sirv_names)
+            sirv_names.remove(-1)
+            sirv_names = sorted(list(sirv_names))
+
+        df = pd.DataFrame(index=sirv_names, columns=self.labels)
+        for i, data in enumerate(self.rawdata):
+            aa = data.query("reference_name!=-1").copy()
+            sirv_detected = aa.groupby("reference_name").count()['mapq']
+            df[self.labels[i]] = sirv_detected
+        return df
+
+    def plot_bar(self, spikes_filename=None):
+        data = self.spikes_found(spikes_filename)
+        data.plot(kind="bar")
+        pylab.tight_layout()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
