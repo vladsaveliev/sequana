@@ -30,7 +30,7 @@ from sequana.modules_report.coverage import CoverageModule
 from sequana.modules_report.coverage import ChromosomeCoverageModule
 from sequana.utils import config
 from sequana import logger
-from sequana.bedtools import GenomeCov, FilteredGenomeCov
+from sequana.bedtools import GenomeCov
 
 from easydev import shellcmd, mkdirs
 from easydev.console import purple
@@ -50,7 +50,7 @@ class Min(argparse.Action):
         super(Min, self).__init__(*args, **kwargs)
 
     def __call__(self, parser, namespace, value, option_string=None):
-        if not (self.min < value):
+        if not (self.min <= value):
             msg = 'invalid choice: %r (choose value above %d)' % \
                 (value, self.min)
             raise argparse.ArgumentError(self, msg)
@@ -97,14 +97,25 @@ class Options(argparse.ArgumentParser):
     Note that the first file is the filtered one, and the second file is the
     unfiltered one.
 
-
     Note for multi chromosome and genbank features: for now, you will need to call
     sequana_coverage for each chromosome individually since we accept only one
     genbank as input parameter:
 
         sequana_coverage --input file.bed --genbank chrom1.gbk -c 1
 
-    chromosome order in the BED and
+    Large genomes:
+    --------------
+
+    If your input data is large and does not fit into memory, use the --binning BIN
+    options to average data into bin of BIN values.
+
+    CNV cases:
+    --------------
+
+    By default, sequana_coverage identify events as small as 1 bin. For the CNV
+    detection case, you may want to cluster events. the --cnv-merging DELTA option
+    merges consecutives events whose distance is smaller that DELTA
+
 
         """)
 
@@ -136,7 +147,8 @@ Issues: http://github.com/sequana/sequana
             help="Chromosome number (if only one chromosome found, the single"
                  " chromosome is chosen automatically). Otherwise all "
                  "chromosomes are analysed. You may want to analyse only one"
-                 " in which case, use this parameter (e.g., -c 1)")
+                 " in which case, use this parameter (e.g., -c 1). "
+                "!!START AT INDEX 0 !!")
         group.add_argument('-o', "--circular", dest="circular",
             default=False, action="store_true",
             help="""If the DNA of the organism is circular (typically
@@ -161,7 +173,7 @@ Issues: http://github.com/sequana/sequana
             help="set to DEBUG, INFO, WARNING, CRITICAL, ERROR")
         group = self.add_argument_group('Annotation')
         group.add_argument("-b", "--genbank", dest="genbank",
-            type=str, default=None, help='a valida genbank annotation')
+            type=str, default=None, help='a valid genbank annotation')
 
         # Group related to GC content
         group = self.add_argument_group("GC content related")
@@ -186,10 +198,6 @@ Issues: http://github.com/sequana/sequana
                 length .""",
             default=20001)
 
-        group = self.add_argument_group("Large data related")
-        group.add_argument("-s", "--chunk-size", dest="chunksize", type=int,
-            default=5000000, min=1000000, action=Min,
-            help="""Length of the chunk to be used for the analysis""")
 
         group.add_argument("-k", "--mixture-models", dest="k", type=int,
             help="""Number of mixture models to use (default 2, although if sequencing
@@ -213,6 +221,22 @@ Issues: http://github.com/sequana/sequana
             help="""set lower and higher double threshold parameter (in [0,1]).
 Do not use value close to zero. Ideally, around 0.5. lower value will tend to
 cluster more than higher value""")
+
+        group = self.add_argument_group("Large data related - CNV detection")
+        group.add_argument("-s", "--chunk-size", dest="chunksize", type=int,
+            default=5000000, min=1000000, action=Min,
+            help="""Length of the chunk to be used for the analysis. """)
+        group.add_argument("-B", "--binning", dest="binning", type=int,
+            default=None, min=2, action=Min,
+            help="""merge consecutive (non overlapping) data points, taking the
+mean. This is useful for large genome (e.g. human). This allows a faster
+computation, especially for CNV detection were only large windows are of
+interest. For instance, using a binning of 50 or 100 allows the human genome to
+be analysed.""")
+        group.add_argument("--cnv-clustering", dest="cnv_clustering",
+            default=-1, type=int,
+            help="""Two consecutive ROIs are merged when their distance in bases
+is below this parameter. If set to -1, not used. """)
 
         # group facilities
         group = self.add_argument_group("Download reference")
@@ -288,9 +312,14 @@ def main(args=None):
     config.sample_name = os.path.basename(options.input).split('.')[0]
 
     # Now we can create the instance of GenomeCoverage
+    if options.chromosome == -1:
+        chrom_list = []
+    else: 
+        chrom_list = [options.chromosome]
     gc = GenomeCov(bedfile, options.genbank, options.low_threshold,
                    options.high_threshold, options.double_threshold,
-                   options.double_threshold)
+                   options.double_threshold, chunksize=options.chunksize,
+                   chromosome_list=chrom_list)
 
 
     # if we have the reference, let us use it
@@ -336,9 +365,6 @@ def main(args=None):
         import subprocess
         proc = subprocess.Popen(cmd.split(), cwd=options.output_directory)
         proc.wait()
-        # replaced by multiqc:
-        #    CoverageModule(gc)
-        #    page = "{0}{1}coverage.html".format(config.output_dir, os.sep)
 
 
 def run_analysis(chrom, options, feature_dict):
@@ -351,8 +377,8 @@ def run_analysis(chrom, options, feature_dict):
                         " increase the threshold to avoid too many false detections")
     logger.info(chrom.__str__())
 
-    if options.w_median > len(chrom.df) / 5:
-        NW = int(len(chrom.df) / 5)
+    if options.w_median > len(chrom.df) / 4:
+        NW = int(len(chrom.df) / 4)
         if NW % 2 == 0:
             NW += 1
         logger.warning("median window length is too long. \n"
@@ -365,7 +391,9 @@ def run_analysis(chrom, options, feature_dict):
     logger.info('Using running median (w=%s)' % options.w_median)
     logger.info("Number of mixture models %s " % options.k)
     results = chrom.run(options.w_median, options.k,
-                        circular=options.circular)
+                        circular=options.circular, binning=options.binning,
+                        cnv_delta=options.cnv_clustering)
+
 
     # Print some info related to the fitted mixture models
     try:
@@ -408,16 +436,15 @@ def run_analysis(chrom, options, feature_dict):
 
     logger.info("Creating report in %s. Please wait" % config.output_dir)
     if chrom._mode == "chunks":
-        logger.warning(("This chromosome is large (more than {0}). Producing " 
-            "plots and HTML sub coverage plots only for data from 0 to " 
-            "{0} bases. Neccesitate to recompute some metrics. Please wait").format(
-            options.chunksize))
+        logger.warning(("This chromosome is large. " 
+            "Plots in the HTML reports are skipped"))
     datatable = CoverageModule.init_roi_datatable(ROIs)
     ChromosomeCoverageModule(chrom, datatable,
-            options={"W": options.w_median,
-                     "k": options.k,
-                     "ROIs": ROIs,
-                     "circular": options.circular})
+                options={"W": options.w_median,
+                         "k": options.k,
+                         "ROIs": ROIs,
+                         "circular": options.circular},
+                command=" ".join(["sequana_coverage"] + sys.argv[1:]))
 
 if __name__ == "__main__":
    import sys

@@ -1,15 +1,17 @@
 language: python
 cache:
   directories:
-    - $HOME/.cache/pip
+    #- $HOME/.cache/pip
     #- $HOME/miniconda3
     - $HOME/.config/sequana
 
 matrix:
   include:
     - python: 3.5
+    - python: 3.6
 
 before_install:
+
     - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
     - chmod +x miniconda.sh
     - ./miniconda.sh -b
@@ -26,12 +28,17 @@ before_install:
 
 install:
   - echo $TRAVIS_PYTHON_VERSION
+  - conda create --yes --name testenv python=$TRAVIS_PYTHON_VERSION
+  - source activate testenv
+  
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements.txt
   - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_dev.txt
   # ideally, we should use requirements_pipelines but this lead to stall on
   # travis because of many dependencies. For testing, we only need those ones
   - conda install --yes python=$TRAVIS_PYTHON_VERSION kraken bwa snpeff shustring krona sambamba
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION picard pigz freebayes cutadapt fastqc
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION picard pigz cutadapt fastqc
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION freebayes --no-deps
+
   #- conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_pipelines.txt
   - pip install pytest-xdist # somehow needs to be installed with pip (not registered with conda)
   - pip install .

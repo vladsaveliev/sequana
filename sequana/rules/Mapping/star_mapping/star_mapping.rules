@@ -52,7 +52,6 @@ rule star_mapping:
              --genomeLoad NoSharedMemory \
              --outSAMtype BAM SortedByCoordinate \
              --readFilesCommand zcat \
-             --seedSearchStartLmax 20 \
              --outFileNamePrefix {params.prefix1} \
             {params.kwargs}  2> {log}""")
 

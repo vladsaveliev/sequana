@@ -552,7 +552,9 @@ def main(args=None):
         options.pattern = ""
         options.extension = ""
 
-    if options.extension == 'bam' or options.pattern.endswith('bam'):
+    if options.extension == 'bam' or options.pattern.endswith('bam') or \
+            options.pattern.endswith('bed'):
+
         ff = FileFactory(data)
     else:
         ff = FastQFactory(data, read_tag=options.input_readtag,

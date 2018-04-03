@@ -7,12 +7,12 @@ from setuptools import setup, find_packages
 import glob
 
 _MAJOR               = 0
-_MINOR               = 6
-_MICRO               = 4
+_MINOR               = 7
+_MICRO               = 0
 version              = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release              = '%d.%d' % (_MAJOR, _MINOR)
 
-#version += ".post1"
+#version += ".post3"
 
 metainfo = {
     'authors': {"main": ("yourname", "email@whatever.org")},
@@ -59,6 +59,7 @@ if on_rtd:
 if sys.version_info.major == 2 or on_rtd:
     requirements = [x for x in requirements 
                     if x.startswith("snakemake") is False]
+
 
 
 setup(
@@ -138,9 +139,13 @@ setup(
             "sequana_pacbio_qc=sequana.multiqc.pacbio_qc:MultiqcModule",
             "sequana_quality_control=sequana.multiqc.quality_control:MultiqcModule",
             "sequana_coverage=sequana.multiqc.coverage:MultiqcModule",
+            "sequana_isoseq=sequana.multiqc.isoseq:MultiqcModule",
+            "sequana_isoseq_qc=sequana.multiqc.isoseq_qc:MultiqcModule",
         ],
         'multiqc.hooks.v1': [
             'before_config = sequana.multiqc:multiqc_sequana_config',
-]
+        ]
     },
+
+
 )

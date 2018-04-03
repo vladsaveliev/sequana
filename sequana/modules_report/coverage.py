@@ -26,7 +26,7 @@ from sequana.utils import config
 from sequana.utils.datatables_js import DataTable, DataTableFunction
 from sequana.plots.canvasjs_linegraph import CanvasJSLineGraph
 from sequana import logger
-
+from sequana.modules_report.summary import SummaryModule
 
 __all__ = ["CoverageModule", "ChromosomeCoverageModule"]
 
@@ -143,7 +143,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
     created by CoverageModule.
     """
     def __init__(self, chromosome, datatable, directory="coverage_reports",
-            region_window=200000, options=None):
+            region_window=200000, options=None, command=""):
         """
 
         :param chromosome:
@@ -164,6 +164,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
             self.path = '../'
         self.chromosome = chromosome
         self.datatable = datatable
+        self.command = command
         self.title = "Coverage analysis of chromosome {0}".format(
             self.chromosome.chrom_name)
         self.intro = ("<p>The genome coverage analysis of the chromosome "
@@ -171,7 +172,6 @@ class ChromosomeCoverageModule(SequanaBaseModule):
         self.create_report_content(directory, options=options)
         self.html_page = "{0}{1}{2}.cov.html".format(
             directory, os.sep, self.chromosome.chrom_name)
-
 
         self.create_html(self.html_page)
 
@@ -188,25 +188,48 @@ class ChromosomeCoverageModule(SequanaBaseModule):
             # we need to reset the data to the first chunk 
             # and compute the median and zscore. So, first, we save the entire
             # data set
-            self.chromosome.reset()
-            self.chromosome.running_median(options['W'], circular=options['circular'])
-            self.chromosome.compute_zscore(options['k'])
+            #self.chromosome.reset()
+            #self.chromosome.running_median(options['W'], circular=options['circular'])
+            #self.chromosome.compute_zscore(options['k'])
             # We mus set the ROI manually 
             rois = options['ROIs']
 
         self.coverage_plot()
-        links = self.subcoverage(rois, directory)
-        self.coverage_barplot()
+        if self.chromosome._mode == "memory":
+            links = self.subcoverage(rois, directory)
+        else:
+            links = None
         self.basic_stats()
         self.regions_of_interest(rois, links)
+        self.coverage_barplot()
         if "gc" in self.chromosome.df.columns:
             self.gc_vs_coverage()
         self.normalized_coverage()
         self.zscore_distribution()
+        self.add_command()
+
+    def add_command(self):
+        self.sections.append({
+            "name": "Command",
+            "anchor": "command",
+            "content": ("<p>Command used: <pre>{}</pre>.</p>".format(self.command))
+                })
+
+    def _add_large_data_section(self, name, anchor):
+        self.sections.append({
+                    "name": name,
+                    "anchor": anchor,
+                    "content": ("<p>Large data sets (--chunk-size argument "
+                                "used), skipped plotting.</p>")
+                })
 
     def coverage_plot(self):
         """ Coverage section.
         """
+        if self.chromosome._mode == "chunks":
+            self._add_large_data_section("Coverage", "coverage")
+            return
+
         image = self.create_embedded_png(self.chromosome.plot_coverage,
                                          input_arg="filename")
         self.sections.append({
@@ -218,12 +241,17 @@ class ChromosomeCoverageModule(SequanaBaseModule):
                 "running median. From the normalised coverage, we estimate "
                 "z-scores on a per-base level. The red lines indicates the "
                 "z-scores at plus or minus N standard deviations, where N is "
-                "chosen by the user. (default:4)</p>\n{0}".format(image)
+                "chosen by the user. (default:4). Only a million point are"
+                "shown. This may explain some visual discrepancies with. </p>\n{0}".format(image)
         })
 
     def coverage_barplot(self):
         """ Coverage barplots section.
         """
+        if self.chromosome._mode == "chunks":
+            self._add_large_data_section("Coverage histogram", "cov_barplot")
+            return
+
         image1 = self.create_embedded_png(self.chromosome.plot_hist_coverage,
                                           input_arg="filename",
                                           style="width:45%")
@@ -356,10 +384,13 @@ class ChromosomeCoverageModule(SequanaBaseModule):
                     return link
             # for the same where the data is fully stored in memory, we must
             # find all events !
-            if self.chromosome._mode == "memory":
+            if self.chromosome._mode == "memory" and self.chromosome.binning ==1:
                 raise Exception("{} position not in the range of reports".format(x))
 
-        links_list = [connect_link(n) for n in rois.df['start']]
+        if links:
+            links_list = [connect_link(n) for n in rois.df['start']]
+        else:
+            links_list = [None for n in rois.df['start']]
 
         rois.df['link'] = links_list
         # create datatable
@@ -390,8 +421,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
             'anchor': 'roi',
             'content':
                 "{4}\n"
-                "<p>Running median is the median computed along the genome "
-                "using a sliding window. The following tables give regions of "
+                "<p>The following tables give regions of "
                 "interest detected by sequana. Here are the definitions of the "
                 "columns:</p>\n"
                 "<ul><li>mean_cov: the average of coverage</li>\n"
@@ -428,6 +458,10 @@ class ChromosomeCoverageModule(SequanaBaseModule):
     def normalized_coverage(self):
         """ Barplot of normalized coverage section.
         """
+        if self.chromosome._mode == "chunks":
+            self._add_large_data_section("Normalised coverage", "normalised_coverage")
+            return
+
         image = self.create_embedded_png(
             self.chromosome.plot_hist_normalized_coverage,
             input_arg="filename")
@@ -443,6 +477,10 @@ class ChromosomeCoverageModule(SequanaBaseModule):
     def zscore_distribution(self):
         """ Barplot of zscore distribution section.
         """
+        if self.chromosome._mode == "chunks":
+            self._add_large_data_section("Z-Score distribution", "zscore_distribution")
+            return
+
         image = self.create_embedded_png(self.chromosome.plot_hist_zscore,
                                       input_arg="filename")
         self.sections.append({
@@ -602,7 +640,8 @@ class SubCoverageModule(SequanaBaseModule):
                 "<li><b>mean_rm</b>: the average of running median</li>\n"
                 "<li><b>mean_zscore</b>: the average of zscore</li>\n"
                 "<li><b>max_zscore</b>: the higher zscore contains in the "
-                "region</li></ul>\n"
+                "region</li>\n"
+                "<li><b>log2_ratio</b>:log2(mean_cov/mean_rm)</li></ul>\n"
                 "<h3>Low coverage region</h3>\n{0}\n{1}\n"
                 "<h3>High coverage region</h3>\n{2}\n{3}\n".format(
                 low_paragraph, html_low_roi, high_paragraph, html_high_roi, js)

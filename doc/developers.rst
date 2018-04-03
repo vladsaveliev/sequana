@@ -624,9 +624,8 @@ example::
 
 will contain a recipe that fetches the version 0.6.2 of sequana on pypi. Once
 this file is created, the container is built on singularity hub and should never
-be changed again (except for bugs) !! This may not be the safest way. Another
-way is to create a branch. For example branch release_0_6_2 but here, it is very
-important to also name the singularity file with a unique tag. Indeed, consider
+be changed again (except for bugs) !! Althoug you may also create a branch (e.g.
+named release_0_6_2), you still need to keep the singularity filename unique. Indeed, consider
 this case:
 
 - branch master with a singularity/Singularity file
@@ -634,9 +633,10 @@ this case:
 
 Although those two files (if built on singularity) are in different branches,
 they will have the same URI (sequana/sequana:latest) so the latest will be
-considered and you have two identical containers. 
+considered and you have two identical containers.
 
-So, whatever solution is chosen, a unique tag must always be added.
+So, whatever solution is chosen, a unique tag must always be added. We decided
+to only use the master branch for now.
 
 When downloading a container without the **--name** argument, your file is
 named::
@@ -644,7 +644,7 @@ named::
     sequana-sequana-<release name>_<tag>.simg
 
 This may change in the future version of singularity. Once downloaded, use the
-container as follows::
+container as follows:
 
 .. note:: only Singularity files that have been changed since the last commit will be
     built with Automatic Building in this fashion. Empty commits won't work.

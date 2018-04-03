@@ -16,15 +16,13 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-"""Utilities to manipulate FASTQ and Reads
-
-"""
+"""Utilities to manipulate FASTQ and Reads"""
 import os
-
 from pysam import FastxFile
 
 
 __all__ = ["FastA"]
+
 
 # cannot inherit from FastxFile (no object in the API ?)
 class FastA(object):
@@ -78,6 +76,9 @@ class FastA(object):
     def _get_lengths(self):
         return [len(this.sequence) for this in self]
     lengths = property(_get_lengths)
+
+    def get_lengths_as_dict(self):
+        return dict(zip(self.names, self.lengths))
 
     def format_contigs_denovo(self, output_file, len_min=500):
         """Replace NODE with the project name and remove contigs with a length 

@@ -61,6 +61,12 @@ mapping:
                 default: 20001
                 type: int
                 range: { min: 3 }
+            "binning":
+                type: int
+                range: { min: -1 }
+            "cnv_clustering":
+                type: int
+                range: { min: -1 }
 
 
 

@@ -73,9 +73,9 @@ def test_genomecov():
         assert True
 
     # !now let us read the good data sets by chunkd
-    bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'),chunksize=5000)
+    bed = bedtools.GenomeCov(filename, sequana_data('JB409847.gbk'), chunksize=5000)
     for c in bed.chr_list:
-        c.run(4001, k=2)
+        c.run(1001, k=2)
 
     # setter must be bool
     try:

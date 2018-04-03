@@ -35,7 +35,7 @@ Sequana documentation
     </div>
 
 
-:Python version: Python 3.5 although some modules are Python2.7 compatible
+:Python version: Python 3.5, 3.6 although most modules are Python2.7 compatible.
 :Source: See  `http://github.com/sequana/sequana <https://github.com/sequana/sequana/>`_.
 :Issues: Please fill a report on `github <https://github.com/sequana/sequana/issues>`_
 :How to cite: For Sequana in general including the pipelines, please use 

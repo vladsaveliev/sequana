@@ -6,6 +6,32 @@ Changelog
 2017
 ------
 
+
+
+0.6.5
+~~~~~~~~~~~
+
+* CHANGES:
+
+    * sequana_coverage. Major refactoring of bedtools module to handle large
+      data sets (human), and provide ability to focus on CNVs using an
+      additional naive clustering (merge_rois_into_cnvs method) and binning. 
+      We can also analyse data chunk by chunk (to avoid filling the memory). 
+      added a plot_rois function
+    * sequana_coverage standalone: add the --chunksize, --cnv-clustering and
+      --binning options.
+
+* NEWS:
+
+    * add cnvnator class
+    * coverage pipeline added in the pipelines
+
+* BUGS:
+
+    * Fix silent warning (regex) in snpeff module
+    * double indexing adapters issue for Nextera fixed: https://github.com/sequana/sequana/issues/501
+
+
 0.6.4
 ~~~~~~~~~~
 

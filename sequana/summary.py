@@ -16,7 +16,8 @@
 ##############################################################################
 """simple summary class to handle summary data with metadata"""
 import time
-
+import os
+import json
 
 __all__ = ["Summary"]
 
@@ -33,8 +34,8 @@ class Summary(object):
         chr1
 
 
-    Here, we prefix the name with the "sequana_summary" tag. Then, 
-    we populate the sequana version and date automatically. The final 
+    Here, we prefix the name with the "sequana_summary" tag. Then,
+    we populate the sequana version and date automatically. The final
     summary content is then accessible as a dictionary::
 
         >>> s.as_dict()
@@ -45,7 +46,7 @@ class Summary(object):
          'version': '0.6.3.post1'}
 
     You can also populate a description dictionary that will provide a
-    description for the keys contained in the *data* field. For instance, 
+    description for the keys contained in the *data* field. For instance,
     here, the data dictionary contains only one obvious field (mean), we could
     provide a description::
 
@@ -57,15 +58,25 @@ class Summary(object):
 
     """
     def __init__(self, name, sample_name="undefined", data={}):
-        name = name.strip()
-        assert len(name.split()) == 1, "no space allowed in the name"
-        assert isinstance(data, dict), "data must be a dictionary"
 
-        self._name = name
-        self.data = data
-        self.description = ""
-        self._data_description = {}
-        self.sample_name = sample_name
+        if os.path.exists(name):
+            with open(name, "r") as fin:
+                data = json.loads(fin.read())
+                self._name = data["name"]
+                self.description = data["description"]
+                self._data_description = data["data_description"]
+                self.sample_name = data["sample_name"]
+                self.data = data["data"]
+
+        else:
+            name = name.strip()
+            assert len(name.split()) == 1, "no space allowed in the name"
+            assert isinstance(data, dict), "data must be a dictionary"
+            self._name = name
+            self.description = ""
+            self._data_description = {}
+            self.sample_name = sample_name
+            self.data = data
 
     def as_dict(self):
         return {
@@ -105,6 +116,7 @@ class Summary(object):
 
     @data_description.setter
     def data_description(self, desc):
+        self._data_description = {}
         assert isinstance(desc, dict), "data_description must be a dictionary"
         for k,v in desc.items():
             if k not in self.data.keys():

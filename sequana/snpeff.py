@@ -154,7 +154,7 @@ class SnpEff(object):
 
     def _get_seq_ids(self):
         regex = re.compile('^LOCUS\s+([\w\.\-]+)')
-        chrom_regex = re.compile('\\chromosome="([\w\.\-]+)"')
+        chrom_regex = re.compile(r'\\chromosome="([\w\.\-]+)"')
         with open(self.reference, "r") as fp:
             line = fp.readline()
             seq = regex.findall(line)
