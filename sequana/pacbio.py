@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Mélissa Cardon <melissa.cardon@pasteur.fr>, 
+#      Mélissa Cardon <melissa.cardon@pasteur.fr>,
 #
 #  Distributed under the terms of the 3-clause BSD license.
 #  The full license is in the LICENSE file, distributed with this software.
@@ -30,7 +30,9 @@ import pysam
 from sequana import logger
 from sequana.summary import Summary
 
+
 __all__ = ["PacbiobMappedBAM", "PacbioSubreads", "PBSim", "BAMSimul"]
+
 
 # from pbcore.io import openAlignmentFile
 # b = openAlignmentFile(filename)
@@ -144,7 +146,7 @@ class PacbioBAMBase(object):
         :param bool hold:
         :param int fontsize: fontsize of the x and y labels and title.
         :param bool grid: add grid or not
-        :param str xlabel: 
+        :param str xlabel:
         :param str ylabel:
         :param str label: label of the histogram (for the legend)
         :param str title:
@@ -168,8 +170,8 @@ class PacbioBAMBase(object):
         if hold is False:
             pylab.clf()
         pylab.hist(self.df.loc[:,'GC_content'], bins=bins,
-            alpha=alpha, label=label + ", mean : " + str(round(mean_GC,2))
-            + ", N : " + str(self._N))
+            alpha=alpha, label=label + ", mean : " + str(round(mean_GC, 2))
+            + ", N : " + str(len(self)))
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
         pylab.title(title, fontsize=fontsize)
@@ -211,7 +213,7 @@ class PacbioBAMBase(object):
         res = h.plot(bins=bins, contour=False, norm='log', Nlevels=6, cmap=cmap)
         pylab.xlabel("Read length", fontsize=fontsize)
         pylab.ylabel("GC %", fontsize=fontsize)
-        pylab.title("GC %% vs length \n Mean length : %.2f , Mean GC : %.2f" % 
+        pylab.title("GC %% vs length \n Mean length : %.2f , Mean GC : %.2f" %
             (mean_len, mean_GC), fontsize=fontsize)
         pylab.ylim([0, 100])
         if grid is True:
@@ -507,10 +509,11 @@ class PacbioSubreads(PacbioBAMBase):
                     fh.write(read)
 
     def hist_snr(self, bins=50, alpha=0.5, hold=False, fontsize=12,
-                grid=True, xlabel="SNR", ylabel="#",title=""):
+                grid=True, xlabel="SNR", ylabel="#",title="", clip_upper_SNR=30):
         """Plot histogram of the ACGT SNRs for all reads
 
-        :param int bins: binning for the histogram
+        :param int bins: binning for the histogram. Note that the range starts
+            at 0 and ends at clip_upper_SNR
         :param float alpha: transparency of the histograms
         :param bool hold:
         :param int fontsize:
@@ -542,10 +545,22 @@ class PacbioSubreads(PacbioBAMBase):
 
         if hold is False:
             pylab.clf()
-        pylab.hist(self._df.loc[:,'snr_A'], alpha=alpha, label="A", bins=bins)
-        pylab.hist(self._df.loc[:,'snr_C'], alpha=alpha, label="C", bins=bins)
-        pylab.hist(self._df.loc[:,'snr_G'], alpha=alpha, label="G", bins=bins)
-        pylab.hist(self._df.loc[:,'snr_T'], alpha=alpha, label="T", bins=bins)
+
+        maxSNR = 0
+        for letter in "ACGT":
+            m = self._df.loc[:,"snr_{}".format(letter)].max()
+            if m > maxSNR:
+                maxSNR = m
+
+        if maxSNR > clip_upper_SNR:
+            maxSNR = clip_upper_SNR
+
+        bins = pylab.linspace(0, maxSNR, bins)
+
+        pylab.hist(self._df.loc[:,'snr_A'].clip_upper(maxSNR), alpha=alpha, label="A", bins=bins)
+        pylab.hist(self._df.loc[:,'snr_C'].clip_upper(maxSNR), alpha=alpha, label="C", bins=bins)
+        pylab.hist(self._df.loc[:,'snr_G'].clip_upper(maxSNR), alpha=alpha, label="G", bins=bins)
+        pylab.hist(self._df.loc[:,'snr_T'].clip_upper(maxSNR), alpha=alpha, label="T", bins=bins)
         pylab.legend()
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
@@ -583,7 +598,7 @@ class PacbioSubreads(PacbioBAMBase):
         # histogram nb passes
         if hold is False:
             pylab.clf()
-        pylab.hist(self.df.nb_passes, bins=bins, alpha=alpha, 
+        pylab.hist(self.df.nb_passes, bins=bins, alpha=alpha,
                    label=label, log=logy, width=1)
         if len(k) < 5:
             pylab.xticks(range(6), range(6))
@@ -639,7 +654,7 @@ class CCS(PacbioBAMBase):
         # np: number of passes
         # rq ?
         # rs: list 6 numbers ?
-        # za: 
+        # za:
         # zm ID of the ZMW
         # sn: SNR how is this computed ?
         # zs
@@ -818,7 +833,7 @@ class PacbioMappedBAM(PacbioBAMBase):
                     error = this[-1]  # suppose to be I + D + X
                     # can check with alignment.get_cigar_stats() on blasr data
                     # for instance
-                    # 
+                    #
                     total = this[-1] + this[0]
                     self._concordance.append((1- (error)/(total)))
 
@@ -831,7 +846,7 @@ class PacbioMappedBAM(PacbioBAMBase):
         BWA for instance has no X stored while Pacbio forbids the use of the M
         (CMATCH) tag. Instead, it uses X (CDIFF) and = (CEQUAL) characters.
 
-        Subread Accuracy: The post-mapping accuracy of the basecalls. 
+        Subread Accuracy: The post-mapping accuracy of the basecalls.
         Formula: [1 - (errors/subread length)], where errors = number of deletions +
         insertions + substitutions.
 
@@ -991,10 +1006,10 @@ class PBSim(object):
     See https://github.com/pfaucon/PBSIM-PacBio-Simulator for details.
 
     We get a fastq file where simulated read sequences are randomly sampled from
-    the reference sequence ("reference.fasta") and differences (errors) of the 
+    the reference sequence ("reference.fasta") and differences (errors) of the
     sampled reads are introduced.
 
-    The Fastq can be converted to 
+    The Fastq can be converted to
 
     """
     def __init__(self, input_bam, simul_bam):

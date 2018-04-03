@@ -23,7 +23,7 @@ rule pacbio_quality:
     A,C,G,T nucleotides, and a 2D histogram of GC versus read length
 
     References:
-        `sequana.pacbio <http://sequana.readthedocs.io/en/master/references.html#sequana.pacbio.BAMPacbio>`_
+        `sequana.pacbio <http://sequana.readthedocs.io/en/master/references.html#sequana.pacbio.PacbioSubreads>`_
 
     """
     input: __pacbio_quality__input
@@ -40,11 +40,11 @@ rule pacbio_quality:
             return name
         ########## labels for plots
         short_name = input[0].replace(".bam","").split("/")[-1]
-        bam_pacbio = pacbio.BAMPacbio(input[0])
+        bam_pacbio = pacbio.PacbioSubreads(input[0])
 
         ########## Read length
         # individual histograms
-        bam_pacbio.hist_len(label=short_name)
+        bam_pacbio.hist_read_length(label=short_name)
         pylab.title("")
         pylab.legend()
         pylab.savefig(setname(output.read_len))
@@ -58,7 +58,7 @@ rule pacbio_quality:
 
         ########## ZMW passes
         # individual histograms
-        bam_pacbio.hist_ZMW_subreads(label=short_name)
+        bam_pacbio.hist_nb_passes(label=short_name)
         pylab.title("")
         pylab.legend()
         pylab.savefig(setname(output.ZMW))
