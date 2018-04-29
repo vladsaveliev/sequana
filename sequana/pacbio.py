@@ -373,9 +373,11 @@ class PacbioSubreads(PacbioBAMBase):
                 res.append(read.reference_length) # also stored in tags["qe"] - tags["qs"]
 
                 # collections.counter is slow, let us do it ourself
-                res.append( 100. / read.qlen * sum(
-                    [read.query_sequence.count(letter) if read.query_sequence
-                        else 0 for letter in "CGcgSs"]))
+                if read.query_length and read.query_sequence:
+                    res.append( 100. / read.query_length * sum(
+                        [read.query_sequence.count(letter) for letter in "CGcgSs"]))
+                else:
+                    res.append(None)
 
                 # res[1:4] contains SNR  stored in tags['sn'] in the order A, C, G, T
                 try:
