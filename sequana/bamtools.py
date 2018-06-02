@@ -134,7 +134,7 @@ class BAM(pysam.AlignmentFile):
         self.reset()
 
         # running a second time the len() should return the correct answer with
-        # BAM files but the SAM will not work and return 0. This takes time 
+        # BAM files but the SAM will not work and return 0. This takes time
         # so let us not do it anymore in the constructor
         # if len(self) == 0:
         #     raise ValueError("Convert your SAM file to a BAM file please")
@@ -157,7 +157,7 @@ class BAM(pysam.AlignmentFile):
         mapped = (this.qname for this in self if this.is_unmapped is False)
         return mapped
 
-    @seek 
+    @seek
     def _get_is_sorted(self):
         pos = next(self).pos
         for this in self:
@@ -298,8 +298,13 @@ class BAM(pysam.AlignmentFile):
         """
         flags = self.get_flags()
         data = [(this, [flag&this for flag in flags])
-            for this in [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]]
+            for this in [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]]
         df = pd.DataFrame(dict(data))
+
+        # special case of flag 0 has to be handled separetely. Indeed 0 & 0 is 0
+        # If flag is zero, we store 1, otherwise 0
+        df[0] = [1 if x==0 else 0 for x in flags]
+
         df = df > 0
         return df
 
@@ -690,7 +695,7 @@ class BAM(pysam.AlignmentFile):
         """Plot indel count (+ ratio)
 
         :Return: list of insertions, deletions and ratio insertion/deletion for
-            different length starting at 1  
+            different length starting at 1
 
         .. plot::
             :include-source:
@@ -819,6 +824,7 @@ class SAMFlags(object):
     ======= ====================================================================
     bit     Meaning/description
     ======= ====================================================================
+    0       mapped segment
     1       template having multiple segments in sequencing
     2       each segment properly aligned according to the aligner
     4       segment unmapped
@@ -838,6 +844,7 @@ class SAMFlags(object):
     def __init__(self, value=4095):
         self.value = value
         self._flags = {
+            0: "segment mapped",
             1: "template having multiple segments in sequencing",
             2: "each segment properly aligned according to the aligner",
             4: "segment unmapped",
