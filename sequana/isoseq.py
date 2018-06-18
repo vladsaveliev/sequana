@@ -141,7 +141,6 @@ class IsoSeqQC(object):
 
         return results
 
-
     def to_summary(self, filename="sequana_summary_isoseq.json", data=None):
         """Save statistics into a JSON file
 
@@ -153,7 +152,6 @@ class IsoSeqQC(object):
         if data is None:
             data = self.stats()
         Summary("isoseq",self.sample_name, data=data).to_json(filename)
-
 
     def hist_read_length_consensus_isoform(self, mode="all", bins=80, rwidth=0.8,
         align="left", fontsize=16, edgecolor="k", **kwargs):
@@ -368,28 +366,61 @@ class PacbioIsoSeqMappedIsoforms(object):
         pylab.xlim([xmin, xmax])
         pylab.xlabel("Mapping quality", fontsize=fontsize)
 
-
-class PacbioIsoseqSIRV(PacbioIsoSeqMappedIsoforms):
-
-    def __init__(self, filename):
-        super(PacbioIsoseqSIRV, self).__init__(filename)
-
     def plot_sirv_by_group(self, title, shift=5, plot=False, mapq_min=-1):
         aa = self.df.query('reference_name!=-1').copy()
         if len(aa) == 0:
             return pd.Series(), self.df
 
         aa['group'] = aa.reference_name.apply(lambda x: x[0:shift])
-        data = aa.query("mapq>@mapq_min").groupby("group").count()["mapq"]
-        data.name = None
-
+        mapped = aa.query("mapq>@mapq_min").groupby("group").count()["mapq"]
+        mapped.name = None
 
         if plot:
-            data.plot(kind="bar")
+            mapped.plot(kind="bar")
             pylab.title(title)
             pylab.tight_layout()
         #data.to_csv(path + "_hq_sirv_grouped.csv")
-        return data, self.df
+        return mapped, self.df
+
+
+class SirvReference():
+    """
+
+    """
+    def __init__(self):
+        pass
+
+    def from_excel(self, filename):
+        """
+        skip 4 empty rows. next two are a header split on two lines
+
+        """
+        df = pd.read_excel(filename,  skiprows=4, header=None)
+        assert df.iloc[1, 4] == "c" # this column will be used
+        assert df.iloc[0, 2] == "SIRV ID"
+        assert df.iloc[0, 1] == "SIRV gene"
+        assert df.iloc[1, 23] == "length (nt)"
+        assert df.iloc[1, 26] == "Sequence"
+        assert df.iloc[1, 29] == "Sequence"
+        # filter out useless columns and drop header
+        df = df.iloc[2:, [1,2,4,23,26,29]]
+        # drop header
+        df.reset_index(inplace=True, drop=True)
+
+        print(df.size)
+        print(df.ndim)
+        self.df1 = df
+        df.columns = ["sirv_gene", "sirv_id", "annotation", "length", 
+                      "sequence_with_polya", "sequence"]
+        self.df = df
+
+    def to_fasta(self, filename):
+        data = self.df.query("annotation == 1").copy()
+        with open(filename, "w") as fout:
+            for _, this in data.iterrows():
+                fout.write(">{}\n{}\n".format(this.sirv_id, this.sequence))
+
+
 
 
 class SIRV(object):
@@ -402,12 +433,17 @@ class SIRV(object):
         return len(self.SIRV.names)
 
     @property
-    def groups(self):
+    def group_names(self):
         data = list(set([x[0:self.shift] for x in self.SIRV.names]))
         return sorted(data)
 
+    @property
+    def group_lengths(self):
+        data = dict(Counter( list([x[0:self.shift] for x in self.SIRV.names])))
+        return data
 
-class PacbioIsoseqMultipleIsoforms(object):
+
+class PacbioIsoSeqMultipleIsoforms(object):
     """
 
         mul.read("./180223_113019_lexo1/data/ccs_sirv.sam", "lexo1 ccs")
@@ -417,61 +453,86 @@ class PacbioIsoseqMultipleIsoforms(object):
 
     """
     SIRV_names = ["SIRV1", "SIRV2", "SIRV3", "SIRV4", "SIRV5", "SIRV6", "SIRV7"]
+    SIRV_total_lengths = [7075, 6395, 12988, 5592, 16206, 15278, 13375]
     def __init__(self, sirv=None, sirv_shift=5):
         self.labels = []
-        self.sirv = []
         self.rawdata = []
         if sirv:
             try:
-                sirv = SIRV(sirv, shift=sirv_shift).groups
-                self.SIRV_names = sirv
+                self.SIRV_data = SIRV(sirv, shift=sirv_shift)
+                self.SIRV_names = self.SIRV_data.group_names
+                self.SIRV_lengths = self.SIRV_data.SIRV.get_lengths_as_dict()
             except:
-                pass
+                print("Could not read {}".format(sirv))
+
+        self.mapq_min = 0
 
     @property
     def N(self):
         return [len(x) for x in self.rawdata]
 
-    def read(self, filename, tag, mapq_min=-1):
-        res = PacbioIsoseqSIRV(filename)
-        mapped, data = res.plot_sirv_by_group(tag, mapq_min=mapq_min)
+    @property
+    def sirv(self):
+        sirv = []
+        shift=5
+        for df in self.rawdata:
+            aa = df.query("reference_name not in [-1, '-1']").copy()
+            if len(aa) == 0:
+                sirv.append(pd.Series(index=self.SIRV_names))
+                continue
 
-        try:
-            for this in self.SIRV_names:
-                if this not in mapped.index:
-                    mapped.loc[this] = None
-        except:pass
+            aa['group'] = aa.reference_name.apply(lambda x: x[0:shift])
+            # filter quality and flags
+            #mask = np.logical_or(df.flags & 256, df.flags & 2048)
+            #aa = aa.query("mapq>=@self.mapq_min and @mask")
+
+            data = aa.groupby("group").count()["mapq"]
+            data.name = None
+            sirv.append(data)
+        return sirv
+
+    def filter_raw_data(self, quality=0, flags=[256,2048]):
+        for i, df in enumerate(self.rawdata):
+            mask = np.logical_or(df.flags & 256, df.flags & 2048)
+            ones = [-1, '-1']
+            df = df.query("mapq>=@quality and not @mask and reference_name not in @ones")
+            self.rawdata[i] = df
+
+    def read(self, filename, tag):
+        if filename.endswith(".csv"):
+            data = pd.read_csv(filename)
+            data = data.query("reference_name not in [-1, '-1']")
+        else:
+            sam = PacbioIsoSeqMappedIsoforms(filename)
+            mapped, data = sam.plot_sirv_by_group(tag)
 
         self.rawdata.append(data)
         self.labels.append(tag)
-        self.sirv.append(mapped)
 
-    def chi2(self, normalise=True):
-        # are the different results equally distributed
-        # for examples, if we have 4 experiments and 7 SIRV groups,
-        # we compute the chi2 and return pvalue ; null hypothesis
-        N = np.array(self.N)
-        dd = pd.DataFrame(self.sirv).T
-        if normalise:
-            dd = dd/ (N/max(N))
+    def plot_corr(self):
+        lengths = self.SIRV_data.SIRV.get_lengths_as_dict()
+        spikes = self.spikes_found()
+        spikes["lengths"] = [lengths[k] for k in spikes.index]
+        corr = spikes.corr()
+        pylab.imshow(corr)
+        N = len(spikes.columns)
+        pylab.xticks(range(N), spikes.columns, rotation=90)
+        pylab.yticks(range(N), spikes.columns)
+        pylab.clim(0,1)
+        pylab.colorbar()
 
-        from scipy.stats import chi2
-        df = pd.DataFrame(dd).T
-        dof = df.size - 2
-
-        mu = df.iloc[:,0].sum() * df.loc[0,:].sum() / df.sum().sum()
-        chi = ((df-mu)**2 / mu).sum().sum()
-
-        pv = 1 - chi2.cdf(x=chi, df=dof)
-        return pv
-
-    def plot_bar_grouped(self, normalise=True, ncol=2):
+    def plot_bar_grouped(self, normalise=False, ncol=2, N=None):
         """
 
         :param normalise:
+        :param ncol: columns in the legend
 
         """
-        N = np.array(self.N)
+        if N is not None:
+            N = np.array(N)
+        else:
+            N = np.array([len(x) for x in self.rawdata])
+
         dd = pd.DataFrame(self.sirv).T
         if normalise:
             dd = dd/ (N/max(N))
@@ -491,7 +552,8 @@ class PacbioIsoseqMultipleIsoforms(object):
             for data in self.rawdata:
                 sirv_names.extend(data.reference_name.unique())
             sirv_names = set(sirv_names)
-            sirv_names.remove(-1)
+            try:sirv_names.remove(-1)
+            except:pass
             sirv_names = sorted(list(sirv_names))
 
         df = pd.DataFrame(index=sirv_names, columns=self.labels)
@@ -501,25 +563,49 @@ class PacbioIsoseqMultipleIsoforms(object):
             df[self.labels[i]] = sirv_detected
         return df
 
-    def plot_bar(self, spikes_filename=None):
+    def plot_bar(self, spikes_filename=None, ratio=100):
         data = self.spikes_found(spikes_filename)
+        lengths = [self.SIRV_lengths[x] for x in data.index]
         data.plot(kind="bar")
+        pylab.plot(np.array(lengths)/ratio)
         pylab.tight_layout()
+        return data
 
 
 
 
+def get_stats(pattern, mode):
+    data = [[],[]]
+    for filename in glob.glob(pattern + "/data/{}_sirv.sam".format(mode)):
+        b = isoseq.PacbioIsoSeqMappedIsoforms(filename)
+        N = Summary(filename.split("/")[0]+"/sequana_summary_isoseq.json").data["hq_isoform"]['N']
+        data[0].append(N)
+        data[1].append(len(b.df.query("reference_name!=-1")))
+        print("scanned {}".format(filename))
+    return data
 
 
 
 
+class GeneCoverage():
+    def __init__(self, filename):
+        self.filename = filename
+        self.df = pd.read_csv(filename, header=None, sep="\t")
+        self.coverage_column = 12
 
-
-
-
-
-
-
+    def __str__(self):
+        icol = self.coverage_column
+        L = len(self.df)
+        S0 = sum(self.df[icol]==0)
+        S2 = sum(self.df[icol]==1)
+        S1 = L - S0 - S2
+        S90 = sum(self.df[icol]>0.9)
+        txt = "Number of genes: {}\n".format(len(self.df))
+        txt += "Fully detected genes: {} ({:.2}%)\n".format(S2, S2/L*100)
+        txt += "Partially detected genes: {} ({:.2f}%)\n".format(S1, S1/L*100)
+        txt += "Detected genes (90% covered): {} ({:.2f}%)\n".format(S90, S90/L*100)
+        txt += "Undetected genes: {} ({:.2f}%)\n".format(S0, S0/L*100)
+        return txt
 
 
 
