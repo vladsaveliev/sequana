@@ -1020,13 +1020,13 @@ class SequanaGUI(QMainWindow, Tools):
         # Start process
         # If an argument contains spaces, we should use quotes. However,
         # with PyQt quotes must be escaped
-        print(snakemake_args)
+        #print(snakemake_args)
 
         args = []
         for this in snakemake_args:
             if re.search(r"\s", this) is True:
                 args.append("\"%s\"" % this)
-                print(this)
+                #print(this)
             else:
                 args.append(this)
         snakemake_args = args
