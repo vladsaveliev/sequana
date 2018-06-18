@@ -206,15 +206,22 @@ def bam_to_mapped_unmapped_fastq(filename, output_directory=None, verbose=True):
             if this.is_paired is False:
                 stats['unpaired'] += 1
         else:
+
+            # quick hack
+            if this.is_read1:
+                suffix = b"/1"
+            else:
+                suffix = b"/2"
+
             # in pysam, seq is a string and qual a bytes....
             if this.is_reverse is True:
-                txt = b"@" + bytes(this.qname, "utf-8") + b"\n"
+                txt = b"@" + bytes(this.qname, "utf-8") + suffix + b"\n"
                 revcomp = reverse_complement(this.seq)
                 txt += bytes(revcomp, "utf-8") + b"\n"
                 txt += b"+\n"
                 txt += bytes(this.qual[::-1], 'utf-8') + b"\n"
             else:
-                txt = b"@" + bytes(this.qname, "utf-8") + b"\n"
+                txt = b"@" + bytes(this.qname, "utf-8") + suffix + b"\n"
                 txt += bytes(this.seq, "utf-8") + b"\n"
                 txt += b"+\n"
                 txt += bytes(this.qual,"utf-8") + b"\n"
@@ -366,6 +373,7 @@ def gc_content(filename, window_size, circular=False,
 
     """
     return _base_content(filename, window_size, letters, circular=circular)
+
 
 def genbank_features_parser(input_filename):
     """ Return dictionary with features contains inside a genbank file.
