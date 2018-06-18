@@ -264,7 +264,6 @@ class PacbioBAMBase(object):
         pylab.gca().set_xlim(left=0)
 
 
-
 class PacbioSubreads(PacbioBAMBase):
     """BAM reader for Pacbio (reads)
 
@@ -809,12 +808,11 @@ class PacbioMappedBAM(PacbioBAMBase):
             for read in self.data:
                 if ((read.mapq < threshold_max) & (read.mapq > threshold_min)):
                     fh.write(read)
-                    print(count, "Keep", read.mapq)
                 else:
-                    print(count, "skip", read.mapq)
+                    pass
                 count += 1
                 if count % 10000:
-                    print("%s sequence processed" % count)
+                    logger.info("%s sequence processed" % count)
 
     def _set_concordance(self):
         from sequana import Cigar
@@ -870,7 +868,7 @@ class PacbioMappedBAM(PacbioBAMBase):
     def boxplot_mapq_concordance(self):
         # method can only be bwa for now
         assert self.method == "bwa"
-        data = self._get_data(method)
+        data = self._get_data()
         df = pd.DataFrame(data, columns=["mapq", "length", "concordance"])
         pylab.clf()
         pylab.boxplot([df[df.mapq == i]['concordance'] for i in range(1,61)])
