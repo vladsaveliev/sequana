@@ -767,7 +767,6 @@ class Repeats(object):
     def _get_be_repeats(self):
         self._find_begin_end_repeats()
         return self._begin_end_repeat_position
-
     begin_end_repeat_position = property(_get_be_repeats)
 
     def _set_threshold(self,value):
@@ -781,14 +780,12 @@ class Repeats(object):
 
     def _get_threshold(self):
         return self._threshold
-
     threshold = property(_get_threshold, _set_threshold)
 
     def _get_list_len_repeats(self):
         if self._list_len_repeats is None:
             raise UserWarning("Please set threshold (minimum length of repeats to output)")
         return self._list_len_repeats
-
     list_len_repeats = property(_get_list_len_repeats)
 
     def _get_merge_repeats(self):
@@ -821,7 +818,6 @@ class Repeats(object):
 
                 self._begin_end_repeat_position = begin_end_repeat_position_merge
 
-
     def _get_do_merge(self):
         return self._do_merge
 
@@ -842,21 +838,19 @@ class Repeats(object):
 
     def hist_length_repeats(self, bins=20, alpha=0.5, hold=False,
             fontsize=12, grid=True, title="Repeat length",
-            xlabel="Repeat length", ylabel="#"):
+            xlabel="Repeat length", ylabel="#", logy=True):
         """Plots histogram of the repeat lengths
-
 
         """
         # check that user has set a threshold
-        if self._list_len_repeats is None:
-            self._get_list_len_repeats()
-
         if hold is False:
             pylab.clf()
-        pylab.hist(self._list_len_repeats, alpha=alpha, bins=bins)
+        pylab.hist(self.list_len_repeats, alpha=alpha, bins=bins)
         pylab.title(title)
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
+        if logy:
+            pylab.semilogy()
 
