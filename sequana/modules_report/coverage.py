@@ -194,18 +194,23 @@ class ChromosomeCoverageModule(SequanaBaseModule):
             # We mus set the ROI manually 
             rois = options['ROIs']
 
-        self.coverage_plot()
-        if self.chromosome._mode == "memory":
-            links = self.subcoverage(rois, directory)
+        if self.chromosome.DOC >= 1:
+            self.coverage_plot()
+            if self.chromosome._mode == "memory":
+                links = self.subcoverage(rois, directory)
+            else:
+                links = None
         else:
             links = None
         self.basic_stats()
-        self.regions_of_interest(rois, links)
-        self.coverage_barplot()
-        if "gc" in self.chromosome.df.columns:
-            self.gc_vs_coverage()
-        self.normalized_coverage()
-        self.zscore_distribution()
+
+        if self.chromosome.DOC:
+            self.regions_of_interest(rois, links)
+            self.coverage_barplot()
+            if "gc" in self.chromosome.df.columns:
+                self.gc_vs_coverage()
+            self.normalized_coverage()
+            self.zscore_distribution()
         self.add_command()
 
     def add_command(self):
@@ -232,6 +237,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
 
         image = self.create_embedded_png(self.chromosome.plot_coverage,
                                          input_arg="filename")
+        
         self.sections.append({
             "name": "Coverage",
             "anchor": "coverage",
@@ -241,7 +247,7 @@ class ChromosomeCoverageModule(SequanaBaseModule):
                 "running median. From the normalised coverage, we estimate "
                 "z-scores on a per-base level. The red lines indicates the "
                 "z-scores at plus or minus N standard deviations, where N is "
-                "chosen by the user. (default:4). Only a million point are"
+                "chosen by the user. (default:4). Only a million point are "
                 "shown. This may explain some visual discrepancies with. </p>\n{0}".format(image)
         })
 
