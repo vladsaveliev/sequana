@@ -33,8 +33,9 @@ class MultiqcModule(BaseMultiqcModule):
 
             try:
                 parsed_data = self.parse_logs(myfile["f"])
-            except:
-                print("{} could not be parsed".format(name))
+            except Exception as err:
+                print("{} {} could not be parsed".format(name, myfile['f']))
+                print(err)
                 continue
             name = parsed_data["s_name"]
             self.sequana_data[name] = parsed_data
@@ -62,19 +63,18 @@ class MultiqcModule(BaseMultiqcModule):
         self.add_polyA()
         self.add_primes("three")
         self.add_primes("five")
-        #self.add_flnc()
+        self.add_flnc()
         #self.add_ratio_flnc_hq()
 
-    """def add_flnc(self):
+    def add_flnc(self):
         data = {}
         for name in self.sequana_data.keys():
             data[name] = {
-                'flnc':
-                    self.sequana_data[name]["flnc"]
+                'flnc': self.sequana_data[name]["flnc"]
             }
         pconfig = {
             "title": "flnc",
-            "logswitch": True,
+            "logswitch": False,
         }
         self.add_section(
             name = 'Number of flnc',
@@ -82,7 +82,6 @@ class MultiqcModule(BaseMultiqcModule):
             description = "flnc",
             helptext="",
             plot = bargraph.plot(data, None, pconfig))
-    """
 
     def add_primes(self, label):
         name2 = "{} primes".format(label)
@@ -188,7 +187,7 @@ class MultiqcModule(BaseMultiqcModule):
         data["number_ccs_reads"] = log_dict['data']['CCS']["number_ccs_reads"]
         data["number_hq_isoforms"] = log_dict['data']['hq_isoform']["N"]
         data["number_lq_isoforms"] = log_dict['data']['lq_isoform']["N"]
-        #data["flnc"] = log_dict['data']['classification']["full_length_non_chimeric_reads"]
+        data["flnc"] = log_dict['data']['classification']["full_length_non_chimeric_reads"]
         data["polyA"] = log_dict['data']['classification']["polyA_reads"]
         data["three_primes"] = log_dict['data']['classification']["three_prime_reads"]
         data["five_primes"] = log_dict['data']['classification']["five_prime_reads"]
@@ -249,6 +248,14 @@ class MultiqcModule(BaseMultiqcModule):
         if any(["five_primes" in self.sequana_data[s] for s in self.sequana_data]):
                 headers["five_primes"] = {
                     'title': "five prime",
+                    'description': "",
+                    'min': 0,
+                    'scale': 'RdYlGn',
+                    'format': '{:,.0d}'
+            }
+        if any(["flnc" in self.sequana_data[s] for s in self.sequana_data]):
+                headers["flnc"] = {
+                    'title': "flnc",
                     'description': "",
                     'min': 0,
                     'scale': 'RdYlGn',
