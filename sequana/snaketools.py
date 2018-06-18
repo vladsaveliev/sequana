@@ -650,6 +650,7 @@ class SequanaConfig(object):
                 target[key] = comments.CommentedMap(
                     self._recursive_update(target[key], data[key]))
             else:
+                #print(target)
                 if key in target.keys():
                     target[key] = value
                 else:
