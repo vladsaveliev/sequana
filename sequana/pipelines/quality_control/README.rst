@@ -67,6 +67,23 @@ For the second database, you will need **synapseclient**::
 
 and an account on synapse website (https://www.synapse.org/).
 
+FAQS
+~~~~~~~~~~~~~~
+
+If you use the quality_control pipeline for the first time, you will need a DB
+of taxons, which is downloaded automatically. 
+
+However, if you are on a server that do not allow network connection, it will
+not be downloaded and an error may occur. If you have a network connection on
+the head / master where you start sequanix/sequana, then you will need to
+download the DB yourself manually. To do so, open an IPython or Python shell and
+type::
+
+    from biokit import Taxonomy
+    tax = Taxonomy(verbose=True)
+    tax._load_flat_file()
+
+
 Rules and configuration details
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
