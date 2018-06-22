@@ -352,7 +352,7 @@ This is about 1.5Go of data. Once downloaded, you can play with the container in
 isolated environement. Because the isolated environment is protected, only the
 directory from where you start singularity, and optional bound directories are
 writable. So, if you want to read/write data in a specific directory, you must
-use the -B option::
+use the -B option (see section bind path here below)::
 
     singularity shell -B /home/user/data/:/data sequana.img
 
@@ -380,3 +380,28 @@ or with pre-filled parameters::
 
 A Sequanix window should appear. You can now follow the Sequanix tutorial
 :ref:`sequanix`
+
+
+binding path (Mounting)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have data on a non standard path or want to mount a path so that the
+container can see it, use the binding method (see also above). 
+
+Imagine that your data on the host machine is located on /projets/1/data and
+that the file to analyse is called virus.bed, you can use the sequana_coverage
+tool as follows to analyse your data::
+
+    singularity exec -B /projets/1/data/:/data sequana.simg sequana_coverage --input /data/virus.bed
+
+Here we bind the /projects/1/data directory (host) on the /data directory
+available in the container. Other directories available within the container are
+/mounting and /scratch.
+
+
+
+
+
+
+
+
