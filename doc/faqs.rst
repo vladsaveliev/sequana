@@ -220,8 +220,12 @@ would recommend to use the code here to download the Fasta and genbank:
 http://sequana.readthedocs.io/en/master/tutorial.html#new-in-v0-10
 
 
+Quality Control pipeline
+---------------------------
 
+Please see the tutorial, user guide or pipelines section and look for the quality control.
 
+Then, if you do not find your solution, please open an issue on github: https://github.com/sequana/sequana/issues
 
 
 Singularity
