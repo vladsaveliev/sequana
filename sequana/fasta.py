@@ -19,6 +19,10 @@
 """Utilities to manipulate FASTQ and Reads"""
 import os
 from pysam import FastxFile
+from easydev import Progress
+
+from sequana import logger
+logger.name = __name__
 
 
 __all__ = ["FastA"]
@@ -34,6 +38,8 @@ class FastA(object):
         if filename.endswith(".gz"):
             raise ValueError("Must be decompressed.")
         self._fasta = FastxFile(filename)
+        self.filename = filename
+        logger.info("Reading input fasta file...please wait") 
         self._N = len([x for x in FastxFile(filename)])
 
     def __iter__(self):
@@ -117,3 +123,39 @@ class FastA(object):
                     len(contigs.sequence), 80)]) + "\n"
                 fp.write(name + sequence)
                 n += 1
+
+    def select_random_reads(self, N=None, output_filename="random.fasta"):
+        """Select random reads and save in a file
+
+        :param int N: number of random unique reads to select
+            should provide a number but a list can be used as well.
+        :param str output_filename:
+        """
+        import numpy as np
+        thisN = len(self)
+        if isinstance(N, int):
+            if N > thisN:
+                N = thisN
+            # create random set of reads to pick up
+            cherries = list(range(thisN))
+            np.random.shuffle(cherries)
+            # cast to set for efficient iteration
+            cherries = set(cherries[0:N])
+        elif isinstance(N, set):
+            cherries = N
+        elif isinstance(N, list):
+            cherries = set(N)
+        fasta = FastxFile(self.filename)
+        pb = Progress(thisN) # since we scan the entire file
+        with open(output_filename, "w") as fh:
+            for i, read in enumerate(fasta):
+                if i in cherries:
+                    fh.write(read.__str__() + "\n")
+                else:
+                    pass
+                pb.animate(i+1)
+        return cherries
+
+
+
+
