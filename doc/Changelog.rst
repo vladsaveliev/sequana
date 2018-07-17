@@ -6,7 +6,15 @@ Changelog
 2017
 ------
 
+* BUGS:
 
+    * add /1 and /2 in quality control pipeline https://github.com/sequana/sequana/issues/508
+
+* CHANGES:
+
+    * sequana_vcf_filter: finalised version with INDEL removal, filters on DP4
+      and AF1 fields
+    * rename PacbioBAM into PacbioSubreads
 
 0.6.5
 ~~~~~~~~~~~
