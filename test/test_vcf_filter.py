@@ -173,5 +173,5 @@ def test_vcf_filter_dp4():
     v.vcf.apply_dp4_filter = True
     with TempFile() as fh:
         res = v.vcf.filter_vcf(fh.name)
-    assert res ==  {'N': 573, 'filtered': 416, 'unfiltered': 157}
+    assert res ==  {'N': 573, 'filtered': 414, 'unfiltered': 159}
 
