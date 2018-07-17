@@ -18,7 +18,6 @@
 from sequana.vcf_filter import VCF
 
 import sys
-from optparse import OptionParser
 import argparse
 from sequana import logger
 from easydev.console import purple
@@ -91,19 +90,6 @@ class Options(argparse.ArgumentParser):
 
     Note that you must use quotes to surround the filter values.
 
-    Instead of providing the filters one by one and forget about it, you can store
-    them in a file with the following format (same for the --quality argument):
-
-    [general]
-    quality=50
-
-    [filters]
-    DP                  = <4
-    DP4[0]              = <10
-    DP4[2]              = <10
-    sum(DP4[0], DP4[1]) = <10
-    AF1                 = >0.05&<0.95
-
         """
         super(Options, self).__init__(usage=usage, prog=prog,
                 epilog=epilog,
@@ -113,9 +99,28 @@ class Options(argparse.ArgumentParser):
                             required=True, help="input fastq gzipped or not")
 
         self.add_argument("--quality", dest="quality",
-                          type=int, default=0, help="filter sites below this quality")
-        self.add_argument("--depth", dest="depth",
-                          type=int, default=0, help="filter sites with depth below this number")
+                          type=int, default=-1, help="filter sites below this quality")
+
+        self.add_argument("--apply-indel-filter", dest="apply_indel_filter",
+                          action="store_true", help="remove INDELs")
+
+        self.add_argument("--apply-dp4-filter", dest="apply_dp4_filter",
+                          action="store_true", 
+                          help="apply DP4 filters. see online doc, vcf_filter section")
+
+        self.add_argument("--apply-af1-filter", dest="apply_af1_filter",
+                          action="store_true", 
+                          help="apply AF1 filters. see online doc, vcf_filter section")
+
+        self.add_argument("--minimum-af1", dest="minimum_af1", 
+            type=float, default=0.95, help="default to 0.95")
+        self.add_argument("--minimum-ratio", dest="minimum_ratio", 
+            type=float, default=0.75, help="default to 0.75")
+        self.add_argument("--minimum-depth", dest="minimum_depth", 
+            type=float, default=4, help="default to 4")
+        self.add_argument("--minimum_depth-strand", dest="minimum_depth_strand", 
+            type=float, default=2, help="default to 2")
+
 
         self.add_argument("--filter", dest="filter", action="append",
                         nargs=1, type=str, default=[],
@@ -129,12 +134,6 @@ class Options(argparse.ArgumentParser):
 
         self.add_argument('--level', dest="level",
             default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
-
-        self.add_argument("--filter-file", dest="filter_file", default=None,
-                            help=r"""You may provide config file storing all
-filters and quality (to re-use). See format explanation above.
-
-""")
 
 
 def main(args=None):
@@ -159,28 +158,19 @@ def main(args=None):
 
     vcf = VCF(options.input_filename)
     vcf.vcf.filter_dict['QUAL'] =  options.quality
+
+    vcf.vcf.apply_indel_filter = options.apply_indel_filter
+    vcf.vcf.apply_dp4_filter = options.apply_dp4_filter
+    vcf.vcf.apply_af1_filter = options.apply_af1_filter
+    vcf.vcf.dp4_minimum_depth = options.minimum_depth
+    vcf.vcf.dp4_minimum_depth_strand = options.minimum_depth_strand
+    vcf.vcf.dp4_minimum_ratio = options.minimum_ratio
+    vcf.vcf.minimum_af1 = options.minimum_af1
     vcf.vcf.filter_dict['INFO'] = {}
+    vcf.vcf.filter_dict['QUAL'] =  options.quality
 
-    print("------------------")
-    # Read filters from a file
-    if options.filter_file:
-        import configparser
-        cfg = configparser.RawConfigParser()
-        cfg.optionsxform = str
-        cfg.read(options.filter_file)
-        if cfg.has_section('filters'):
-            for key, value in cfg.items('filters'):
-                vcf.vcf.filter_dict["INFO"][key.upper()] = value
-        else:
-            raise ValueError("filter file must contain a section "
-                             "[filters] use --help for more information")
 
-        if cfg.has_section('general'):
-            quality = cfg.getint('general', 'quality')
-            vcf.vcf.filter_dict['QUAL'] =  quality
 
-    if options.quality != 0:
-        vcf.vcf.filter_dict['QUAL'] =  options.quality
 
 
     for this in options.filter:
@@ -195,7 +185,7 @@ def main(args=None):
                 break
 
 
-    print(vcf.vcf.filter_dict)
+    logger.info(vcf.vcf.filter_dict)
 
     res = vcf.vcf.filter_vcf(options.output_filename,
                        output_filtered=options.output_filtered_filename)
