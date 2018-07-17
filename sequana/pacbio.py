@@ -28,6 +28,8 @@ from sequana.lazy import biokit
 import pysam
 
 from sequana import logger
+logger.name == __name__
+
 from sequana.summary import Summary
 
 
