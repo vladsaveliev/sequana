@@ -95,7 +95,7 @@ class PacbioBAMBase(object):
         self.sample_name = os.path.basename(self.filename)
 
     def __len__(self):
-        return len(self._df)
+        return len(self.df)
 
     def __str__(self):
         return "Length: {}".format(len(self))
@@ -242,7 +242,7 @@ class PacbioBAMBase(object):
             from sequana.pacbio import PacbioBAM
             from sequana import sequana_data
             b = PacbioBAM(sequana_data("test_pacbio_subreads.bam"))
-            b.hist_len()
+            b.hist_read_length()
 
         """
         mean_len =  np.mean(self.df.loc[:,'read_length'])
@@ -350,7 +350,6 @@ class PacbioSubreads(PacbioBAMBase):
         # - mq: mergeQV
         # - sq: substituionQV
         # - st: substituion tag
-
         # - RG: ?
 
         # See http://pacbiofileformats.readthedocs.io/en/3.0/BAM.html
@@ -631,21 +630,19 @@ class PacbioSubreads(PacbioBAMBase):
     '''
 
 
-class PacbioBAM(PacbioSubreads):
-    def __init__(self, filename):
-        """Same as :class:`PacbioSubreads`
-
-        """
-        super(PacbioBAM, self).__init__(filename)
-        logger.warning("Deprecated, please use PacbioSubreads")
-
-
 class CCS(PacbioBAMBase):
     """
 
-    singularity run /home/cokelaer/pacbio.simg ccs  --minPasses 80  \
-        m54091_180224_083446.subreads.bam test.bam
+    You can get a CCS file from a BAM file as follows::
 
+        singularity run /home/cokelaer/pacbio.simg ccs  --minPasses 80  \
+            m54091_180224_083446.subreads.bam test.bam
+
+    If empty, you may need to set other parameter such as the predicted
+    accuracy::
+
+    singularity run /home/cokelaer/pacbio.simg ccs --minPasses 0 \
+        test_pacbio_subreads.bam out.bam  --minPredictedAccuracy 0.7
 
     """
     def __init__(self, filename):
@@ -738,7 +735,6 @@ class CCS(PacbioBAMBase):
         }
         s.to_json(filename)
 
-
     def hist_passes(self, maxp=50, fontsize=16):
         passes = self.df.nb_passes.copy()
         passes.clip_upper(maxp).hist(bins=maxp)
@@ -788,7 +784,8 @@ class PacbioMappedBAM(PacbioBAMBase):
                 if total:concordance = 1- (error)/(total)
                 else:concordance = 0
             data.append([mapq, length, concordance])
-            if count % 10000 == 0: print("%s" % count)
+            if count % 10000 == 0: 
+                logger.info("%s" % count)
             count+=1
         return data
 
@@ -931,7 +928,7 @@ class BAMSimul(PacbioBAMBase):
                 # count reads
                 N += 1
                 if (N % 10000) == 0:
-                    print("Read %d sequences" %N)
+                    logger.info("Read %d sequences" %N)
                 #res[0] = read length
                 res.append(read.query_length)
                 # res[1] = GC content
@@ -1015,7 +1012,7 @@ class PBSim(object):
 
     """
     def __init__(self, input_bam, simul_bam):
-        self.bam = PacbioBAM(input_bam)
+        self.bam = PacbioSubreads(input_bam)
         self.Nreads = len(self.bam)
         self.bam_simul = BAMSimul(simul_bam)
 
