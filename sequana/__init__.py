@@ -36,7 +36,7 @@ from .freebayes_bcf_filter import BCF_freebayes
 from .kraken_builder import KrakenBuilder
 from .krona import KronaMerger
 from .kraken import KrakenResults, KrakenPipeline, KrakenAnalysis, KrakenDownload
-from .pacbio import PacbioBAM
+from .pacbio import PacbioSubreads
 from .phred import Quality
 from .running_median import RunningMedian
 from .snaketools import *
