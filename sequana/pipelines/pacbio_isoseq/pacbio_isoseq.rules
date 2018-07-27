@@ -45,7 +45,15 @@ __polish__log_err = "%s/logs/polish/stderr.logs" % manager.sample
 include: sm.modules['polish']
 expected_output.extend([__polish__output])
 
-
+#mapping with minimap2
+if manager.config.minimap2_mapping.do:
+    __minimap2_mapping__input = "%s/polish/polished.hq.fasta.gz" % manager.sample
+    __minimap2_mapping__logs = manager.getname("minimap2", ".logs")
+    __minimap2_mapping__sort = manager.getname("minimap2_mapping", "_sort.bam")
+    __minimap2_mapping__output_bam = manager.getname("minimap2_mapping", ".bam")
+    __minimap2_mapping__ref = config["genome"]["fasta_file"]
+    include: sm.modules['minimap2_mapping']
+    expected_output.extend([__minimap2_mapping__sort])
 
 
 # Include rule graph for each sample
