@@ -47,15 +47,27 @@ genome:
 
 
 #############################################################################
-# star_mapping used to align reads against genome file
+# Isoseq3 PacBio pipeline
+# available here:  https://github.com/PacificBiosciences/IsoSeq3
 #
 # :Parameters:
 #
-# - do: if unchecked, this rule is ignored
-# - options: any options recognised by rna-star tool
+# - primers: primer(+barcode) sequences in fasta format
+# - options: any options recognized by different commands of isoseq3 tool
 # - threads: number of threads to be used
-#
-star_mapping:
-    do: no
-    options: "--outFilterMismatchNoverLmax 0.05 --outSAMunmapped Within "
-    threads: 4
+
+lima:
+  primers: /path/to/barcoded_primers
+  threads: 12
+
+cluster:
+  options: ''
+  threads: 12
+
+polish:
+  options: ''
+  threads: 12
+
+summarize:
+  options: ''
+  threads: 12

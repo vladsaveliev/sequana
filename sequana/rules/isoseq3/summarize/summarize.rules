@@ -1,0 +1,29 @@
+rule summarize:
+    """
+    IsoSeq3 Summary Stage, De Novo Transcript Reconstruction
+
+
+    Required input:
+        __summarize__input: polished reads in BAM format (unpolished.bam or unpolished.transcriptset.xml)
+
+    Required output:
+        __summarize__output: output csv file
+
+    params:
+        config['summarize']['options']: any options recognized by isoseq3 cluster
+    """
+    input:
+        __summarize__input
+    output:
+        __summarize__output
+    params:
+        options = config['summarize']['options']
+    threads:
+        config['summarize']['threads']
+    log:
+        out = __summarize__log_std,
+        err = __summarize__log_err
+    shell:
+        """
+        isoseq3 summarize {input} {output} -j {threads} {params.options} --verbose > {log.out} 2> {log.err}
+        """

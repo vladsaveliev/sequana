@@ -1,0 +1,37 @@
+rule lima:
+    """
+    Removal of primers and identification of barcodes is performed using lima, which offers a specialized --isoseq mode.
+    Even in the case that your sample is not barcoded, primer removal is performed by lima.
+
+    The following is the primer.fasta for the Clontech SMARTer cDNA library prep, which is the officially recommended protocol:
+
+        >primer_5p
+        AAGCAGTGGTATCAACGCAGAGTACATGGG
+        >primer_3p
+        GTACTCTGCGTTGATACCACTGCTT
+
+
+    Required input:
+        __lima__input: CCS bam file
+
+    Required output:
+        __lina__output: output demux bam file
+
+    params:
+        __lima__barcoded_primers: barcoded primers for PacBio libraries
+    """
+    input:
+        __lima__input
+    output:
+        __lima__output
+    params:
+        primers = __lima__barcoded_primers
+    threads:
+        config['lima']['threads']
+    log:
+        out = __lima__log_std,
+        err = __lima__log_err
+    shell:
+        """
+        lima {input} {params.primers} {output} --isoseq --no-pbi -j {threads} > {log.out} 2> {log.err}
+        """

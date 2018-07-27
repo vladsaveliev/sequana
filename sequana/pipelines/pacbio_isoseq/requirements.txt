@@ -1,1 +1,2 @@
-- STAR
+- isoseq3
+- minimap2

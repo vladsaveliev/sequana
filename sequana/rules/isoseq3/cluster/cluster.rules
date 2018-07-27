@@ -1,0 +1,36 @@
+rule cluster:
+    """
+    Compared to previous IsoSeq approaches, IsoSeq3 performs a single clustering technique.
+    Due to the nature of the algorithm, it can't be efficiently chunked without creating IO bottlenecks;
+    it is advised to give this step as many cores as possible. The individual steps of cluster are as following:
+
+    - Trimming of polyA tails
+    - Rapid concatmer identification and removal
+    - Clustering using hierarchical n*log(n) alignment and iterative cluster merging
+    - Unpolished POA sequence generation
+
+
+    Required input:
+        __cluster__input: one demultiplexed CCS file (<demux.ccs.bam> or <demux.ccs.consensusreadset.xml>)
+
+    Required output:
+        __cluster__output: output unpolished bam file
+
+    params:
+        config['cluster']['options']: any options recognized by isoseq3 cluster
+    """
+    input:
+        __cluster__input
+    output:
+        __cluster__output
+    params:
+        options = config['cluster']['options']
+    threads:
+        config['cluster']['threads']
+    log:
+        out = __cluster__log_std,
+        err = __cluster__log_err
+    shell:
+        """
+        isoseq3 cluster {input} {output} -j {threads} {params.options} --verbose > {log.out} 2> {log.err}
+        """
