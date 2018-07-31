@@ -64,6 +64,6 @@ def test_variant_calling():
         QC.run()
         QC.check()
         QC.clean()
-    except:
+    except Exception as err:
         QC.clean()
-        raise Exception
+        raise(err)
