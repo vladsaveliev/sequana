@@ -540,7 +540,7 @@ class BAM(pysam.AlignmentFile):
         except:
             X = bins.copy()
 
-        pylab.hist(data, X, normed=True, ec=ec)
+        pylab.hist(data, X, density=True, ec=ec)
         pylab.grid(True)
         mu = pylab.mean(data)
         sigma = pylab.std(data)
