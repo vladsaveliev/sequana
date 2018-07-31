@@ -449,7 +449,7 @@ class PacbioSubreads(PacbioBAMBase):
                         shift = np.random.randint(stride)
 
     def random_selection(self, output_filename, nreads=None,
-            expected_coverage=None, reference_length=None):
+            expected_coverage=None, reference_length=None, read_lengths=None):
         """Select random reads
 
         :param nreads: number of reads to select randomly. Must be less than
@@ -457,22 +457,31 @@ class PacbioSubreads(PacbioBAMBase):
         :param expected_coverage:
         :param reference_length:
 
-        of expected_coverage and reference_length provided, nreads is replaced
+        if expected_coverage and reference_length provided, nreads is replaced
         automatically.
+
+        .. note:: to speed up computation (if you need to call random_selection
+            many times), you can provide the mean read length manually
         """
         assert output_filename != self.filename, \
             "output filename should be different from the input filename"
-        self.reset()
+
+        if read_lengths is None:
+            self.reset()
+            read_lengths = [read.query_length for i, read in enumerate(self.data)]
+        
+        N = len(read_lengths)
 
         if expected_coverage and reference_length:
-            mu = self.stats['mean']
+            mu = pylab.mean(read_lengths)
             nreads = int(expected_coverage * reference_length / mu)
 
-        assert nreads < len(self), "nreads parameter larger than actual Number of reads"
-        selector = random.sample(range(len(self)), nreads)
+        assert nreads < N, "nreads parameter larger than actual Number of reads"
+        selector = random.sample(range(N), nreads)
         logger.info("Creating a pacbio BAM file with {} reads".format(nreads))
 
         with pysam.AlignmentFile(output_filename,"wb", template=self.data) as fh:
+            self.reset()
             for i, read in enumerate(self.data):
                 if i in selector:
                     fh.write(read)
