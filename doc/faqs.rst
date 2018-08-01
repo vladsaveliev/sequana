@@ -166,6 +166,25 @@ it looks like you need to install libselinux on your environment as reported
 `here <https://github.com/sequana/sequana/issues/438>`_.
 
 
+pytz installation
+~~~~~~~~~~~~~~~~~~~~
+
+
+If you get this error::
+
+    ImportError: C extension: No module named 'pytz.tzinfo' not built. If you
+    want to import pandas from the source directory, you may need to run 'python
+    setup.py build_ext --inplace --force' to build the C extensions first.
+
+try this::
+
+    pip uninstall pytz
+    pip install --pre pytz
+
+reference: https://github.com/sequana/sequana/issues/499
+
+
+
 Expected input format
 ----------------------------
 
