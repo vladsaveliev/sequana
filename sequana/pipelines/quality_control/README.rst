@@ -23,11 +23,11 @@ Requirements
 Details
 ~~~~~~~~~
 
-This pipeline is used to check the quality of the input FastQ files. It id used
+This pipeline is used to check the quality of the input FastQ files. It is used
 to remove the Phix (coliphage) that may be present in the data. Low quality reads
-are trimmed using a dedicated tool such as **cutadapt** or **atropos**. If one specifies 
-the quality trimming option in the config file, then we trim
-low-quality ends from reads BEFORE adapter removal.
+are trimmed using a dedicated tool such as **cutadapt** or **atropos**. If one specifies
+the quality trimming option in the config file, then we trim low-quality ends from 
+reads BEFORE adapter removal.
 
 The quality trimming algorithm from cutadapt/atropos is the same as in BWA. That is: substract the
 cutoff (e.g. 30) from all qualities; compute partial sums from the end of the
@@ -46,10 +46,24 @@ Minimum is -25, we keep the bases 1,2,3,4::
 
     42, 40, 26, 27
 
-Another important point is that all searches for adapter 
-sequences are error tolerant (allowing errors such as 
+Another important point is that all searches for adapter
+sequences are error tolerant (allowing errors such as
 mismatches, insertions and deletions). The level of error tolerance
 is 10% by default.
+
+
+In the cutadapt configuration section, you can provide the type of adapters to
+remove such as PCRFree, Nextera, TruSeq, etc. Note, however, that this removes
+all adapters. It is useless and may take more time than expected. Instead, you
+can provide an *experimental design* file that associate each sample with
+its adapter. See the reference for more information :class:`~sequana.expdesign.ExpDesignAdapter`
+Typically, you will provide a file such as::
+
+    SampleID, Index1_Seq
+    Hm2, GTGAAA
+    Hm3, CGATGT
+
+
 
 
 Another optional step is the taxonomy analysis. This is performed with Kraken

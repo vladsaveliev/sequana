@@ -41,8 +41,6 @@ if manager.config.cutadapt.design_file:
         logger.error("Quality control error. Incorrect design file")
         raise ValueError(err)
 
-    
-
 
 
 if manager.config.cutadapt.tool_choice == "atropos":
