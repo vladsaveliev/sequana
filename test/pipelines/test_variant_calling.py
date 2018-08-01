@@ -47,16 +47,19 @@ class VariantCallingPipeline(Pipeline):
             "/report_vc_Hm2_GTGAAA_L005/outputs/Hm2_GTGAAA_L005.raw.vcf")
         vcf.rewind()
         vv = [Variant(v)._resume for v in vcf]
-        assert len(vv) == 85
-        vv[29] == {'alternative': 'G',
-            'chr': 'ENA|K01711|K01711.1',
-            'depth': 5,
-            'freebayes_score': 126.901,
-            'frequency': '1.00',
-            'position': '276',
-            'reference': 'C',
-            'strand_balance': '0.40'}
-
+        event276 = {'alternative': 'G',
+                'chr': 'ENA|K01711|K01711.1',
+                'depth': 5,
+                'freebayes_score': 126.901,
+                'frequency': '1.00',
+                'position': '276',
+                'reference': 'C',
+                'strand_balance': '0.40'}
+        event = [v for v in vv if v['position'] =="276"][0]
+        assert len(vv) in (85,93) # 85 in freebayes 1.0 and 93 in freebayes 1.2
+        for k in ["depth", "chr", "frequency", "position", "reference",
+                  "alternative", "strand_balance"]:
+            assert event[k] == event276[k]
 
 def test_variant_calling():
     QC = VariantCallingPipeline()
