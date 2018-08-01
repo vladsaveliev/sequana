@@ -10,6 +10,7 @@ import os
 import glob
 import sequana
 from sequana import snaketools as sm
+
 sm.init("quality_control.rules", globals())
 
 
@@ -29,6 +30,21 @@ manager = sm.PipelineManager("quality_control", config)
 
 
 # Sanity checks ============================================================
+
+
+if manager.config.cutadapt.design_file:
+    try:
+        sequana.expdesign.ExpDesignAdapter(manager.config.cutadapt.design_file)
+    except Exception as err:
+        from sequana import logger
+        logger.__name__ = "quality control"
+        logger.error("Quality control error. Incorrect design file")
+        raise ValueError(err)
+
+    
+
+
+
 if manager.config.cutadapt.tool_choice == "atropos":
     if manager.config.cutadapt.threads < 2:
         print("ERROR: when selecting atropos as the tool choice in "
