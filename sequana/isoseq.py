@@ -334,9 +334,9 @@ class PacbioIsoSeqMappedIsoforms(object):
         mapped = df[df.reference_name != -1]
         unmapped = df[df.reference_name == -1]
         pylab.hist(mapped.reference_length, bins=bins, alpha=0.5,
-            label="mapped {}".format(len(mapped)), normed=False)
+            label="mapped {}".format(len(mapped)), density=False)
         pylab.hist(unmapped.reference, bins=bins, alpha=0.5,
-            label="unmapped {}".format(len(unmapped)), normed=False)
+            label="unmapped {}".format(len(unmapped)), density=False)
         pylab.xlabel("Isoform length")
         pylab.legend()
 

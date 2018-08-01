@@ -149,9 +149,9 @@ low quality regions in the reads. """ # from canu report
             self.getfile("correction/2-correction/*.original-expected-corrected-length.dat"),
             sep="\t", header=None)
         pylab.clf()
-        df[1].hist(bins=100, alpha=0.5, normed=True, label="original")
-        df[2].hist(bins=100, alpha=0.5, normed=True, label="expected")
-        df[3].hist(bins=100, alpha=0.5, normed=True, label="corrected")
+        df[1].hist(bins=100, alpha=0.5, density=True, label="original")
+        df[2].hist(bins=100, alpha=0.5, density=True, label="expected")
+        df[3].hist(bins=100, alpha=0.5, density=True, label="corrected")
         pylab.legend()
         pylab.xlabel("read length", fontsize=fontsize)
         pylab.ylabel("number of reads ", fontsize=fontsize)

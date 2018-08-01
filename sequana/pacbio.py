@@ -1039,7 +1039,7 @@ class PBSim(object):
         # compute histogram of the input reads once for all to be used
         # in the target_distribution method
         self.bins = bins
-        self.Y, self.X = np.histogram(self.bam.df.read_length, bins=bins, normed=True)
+        self.Y, self.X = np.histogram(self.bam.df.read_length, bins=bins, density=True)
 
         lengths = self.bam_simul.df.read_length.values
         self.tokeep = []

@@ -1599,7 +1599,7 @@ class ChromosomeCov(object):
 
         try:
             #Y, X, _ = pylab.hist(data, bins=bins, normed=True)
-            Y, X, = np.histogram(data, bins=bins, normed=True)
+            Y, X, = np.histogram(data, bins=bins, density=True)
             return {"X": list(X[1:]), "Y": list(Y)}
         except:
             return {"X": [], "Y": []}

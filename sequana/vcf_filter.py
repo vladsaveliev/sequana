@@ -234,24 +234,28 @@ class VCF_mpileup_4dot1(VCFBase):
                 return True
         return False
 
+    def _get_variant_tag(self, variant):
+        return "{}/{}".format(variant.CHROM, variant.POS)
+
     def _filter_line(self, vcf_line, filter_dict=None, iline=None):
         """
-        !!!!
+
         return False if the variant should be filter
 
         """
+        VT = self._get_variant_tag(vcf_line)
 
         if filter_dict is None:
             # a copy to avoid side effects
             filter_dict = self.filter_dict.copy()
 
         if filter_dict["QUAL"] != -1 and vcf_line.QUAL < filter_dict["QUAL"]:
-            logger.debug("filtered variant with QUAL below {}".format(filter_dict["QUAL"]))
+            logger.debug("{} filtered variant with QUAL below {}".format(VT, filter_dict["QUAL"]))
             return False
 
         if self.apply_indel_filter:
             if self.is_indel(vcf_line) is True:
-                logger.debug("filter out line {} (INDEL)".format(iline))
+                logger.debug("{}: filter out line {} (INDEL)".format(VT, iline))
                 return False
 
         # DP4
@@ -260,14 +264,14 @@ class VCF_mpileup_4dot1(VCFBase):
                         self.dp4_minimum_depth_strand,
                         self.dp4_minimum_ratio)
             if status is False:
-                logger.debug("filter out DP4 line {} {}".format(iline, vcf_line.INFO['DP4']))
+                logger.debug("{}: filter out DP4 line {} {}".format(VT, iline, vcf_line.INFO['DP4']))
                 return False
 
         # AF1
         if self.apply_af1_filter and "AF1" in vcf_line.INFO:
             status = self.is_valid_af1(vcf_line, self.minimum_af1)
             if status is False:
-                logger.debug("filter out AF1 {} on line {}".format(vcf_line.INFO['AF1'], iline))
+                logger.debug("{}: filter out AF1 {} on line {}".format(VT, vcf_line.INFO['AF1'], iline))
                 return False
 
         for key, value in filter_dict["INFO"].items():
@@ -291,7 +295,7 @@ class VCF_mpileup_4dot1(VCFBase):
                 lcl[mykey] = vcf_line.INFO[mykey]
                 result = eval(expr)
                 if self._filter_info_field(result, value):
-                    logger.debug("filtered variant {},{} with value {}".format(result, expr, value))
+                    logger.debug("{} filtered variant {},{} with value {}".format(VT, result, expr, value))
                     return False
                 else:
                     return True
@@ -299,7 +303,7 @@ class VCF_mpileup_4dot1(VCFBase):
             # key could be with an index e.g. "DP4[0]<4"
             if "[" in key:
                 if "]" not in key:
-                    raise ValueError("Found innvalid filter %s" % key)
+                    raise ValueError("Found invalid filter %s" % key)
                 else:
                     key, index = key.split("[", 1)
                     key = key.strip()
@@ -312,7 +316,7 @@ class VCF_mpileup_4dot1(VCFBase):
                 if(type(vcf_line.INFO[key]) != list):
                     if(self._filter_info_field(vcf_line.INFO[key], value)):
                         val = vcf_line.INFO[key]
-                        logger.debug("filtered variant {},{} with value {}".format(key, value, val))
+                        logger.debug("{}: filtered variant {},{} with value {}".format(VT, key, value, val))
                         return False
                 else:
                     Nlist = len(vcf_line.INFO[key])
