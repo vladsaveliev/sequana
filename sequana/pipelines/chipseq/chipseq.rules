@@ -1,0 +1,97 @@
+"""ChIPseq pipeline
+
+Affiliation: Institut Pasteur @ 2018
+
+This pipeline is part of Sequana software (sequana.readthedocs.io)
+"""
+import os
+import sequana
+from os.path import join
+from sequana import snaketools as sm
+sm.init("chipseq.rules", globals())
+
+
+# This must be defined before the include
+configfile: "config.yaml"
+__snakefile__ = srcdir(__snakefile__)
+
+# Generic include of some dynamic modules
+exec(open(sequana.modules["fastqc_dynamic"], "r").read())
+
+
+manager = sm.PipelineManager("chipseq", config)
+
+__data__input = manager.getrawdata()
+
+
+
+
+
+
+
+
+# !Reset expected_output variable after multiqc
+# Multiqc rule
+__multiqc__input = expected_output
+__multiqc__input_dir = "."
+__multiqc__logs = "multiqc/multiqc.log"
+__multiqc__output = config['multiqc']['output-directory'] + "/multiqc_report.html"
+include: sm.modules["multiqc"]
+expected_output = [__multiqc__output]
+
+
+
+# Include rule graph for each sample
+__rulegraph__input = __snakefile__
+__rulegraph__output = "rulegraph/rulegraph.svg"
+__rulegraph__mapper = {"fastqc_samples": "fastqc_samples/"}
+include: sm.modules['rulegraph']
+expected_output.extend([__rulegraph__output])
+
+
+# Add Conda
+__conda__output = "requirements.txt"
+include: sm.modules['conda']   # Create requirements.txt(dependencies)
+expected_output.extend([__conda__output])
+
+
+
+# Those rules takes a couple of seconds so no need for a cluster
+localrules: conda, rulegraph
+
+rule chipseq:
+    input: expected_output
+
+
+onsuccess:
+    import os
+    # Create plots about stats
+    sm.plot_stats(N=len(manager.samples))
+
+    # Main directory
+    report_dir_format = "%(proj)s/report_rnaseq_%(proj)s"
+    for proj in manager.samples.keys():
+        report_dir = report_dir_format % {"proj": proj}
+        try:os.mkdir(report_dir)
+        except:pass
+
+        shell("cp %s %s" % (__snakefile__, report_dir))
+        #shell("cp rulegraph.svg %s/rulegraph.svg" % (report_dir))
+        shell("cp config.yaml %s" % report_dir)
+        shell("cp requirements.txt %s" % report_dir)
+        shell("cp snakemake_stats.png %s" % report_dir)
+        try: os.mkdir("cluster_logs")
+        except:pass
+
+        try: shell("mv slurm* cluster_logs/")
+        except: pass
+
+        # Create a cleanup python file to clean a sub-directory
+        sm.create_cleanup(proj)
+
+    sm.OnSuccess()() # create instance to create main cleanup
+
+
+onerror:
+    print("An error occurred. See message above.")
+
