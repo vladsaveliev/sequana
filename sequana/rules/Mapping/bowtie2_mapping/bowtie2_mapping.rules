@@ -17,8 +17,8 @@ rule bowtie2_mapping:
         .. code-block:: yaml
 
             bowtie2_mapping:
-                prefix_index: "" #path to the index file of reference genome
-                options:  "" #options for bowtie1 you want use
+                thread: 4      #number of threads to be used
+                options:  ""   #options for bowtie2 you want use
     """
 
     input:
