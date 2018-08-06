@@ -28,7 +28,6 @@ requirements:
 
 
 
-
 ##################################################################
 # sequencing information. These informations will be inserted as
 # read group in BAM files
@@ -43,6 +42,22 @@ sequencing:
     platform: "Illumina"
     instrument: "Hiseq2500"
     flowcell: "H35CTBCXY"
+
+##################################################################
+# Design information. These informations will be used during the
+# peak calling step
+#
+# :Parameters:
+#
+# - design_file: Path to a design file in tabulated format. See documentation
+# - spike: set to 'yes' if you have spikes in your data. Possible values: {yes, no}
+
+design:
+    design_file: /path/to/your/design_file.txt
+    spike: yes
+
+
+
 
 #############################################################################
 # Indexing section: if checked, all index for bowtie (1&2), star, etc... will be produced in dir
@@ -153,13 +168,33 @@ bowtie2_mapping:
 # - remove: If true do not write duplicates to the output file instead of writing them with
 #            appropriate flags set.  Default value: false. This option can be set to 'null' to clear
 #            the default value. Possible values: {true, false}
-# - tmpdir: write tempory file on this directory (default TMP_DIR=/tmp/, but could be "TMP_DIR=/local/scratch/")
+# - tmpdir: write tempory file on this directory (default /tmp/, but could be "/local/scratch/")
 #
 mark_duplicates:
     do: no
-    remove: 'False' ## may be True
+    remove: 'True' ## may be True
     tmpdir: "/tmp/"
     threads: 4
+
+
+#############################################################################
+# peak calling blabla
+#
+# :Parameters:
+#
+# - model: model used by MACS2. Could be 'narrow' or 'broad'.
+# - no-model: use --no-model option. See MACS2 documentation. Possible values: {yes, no}
+# - force_shift: Possible values: {yes, no}
+#
+# tool_choice__ = ["narrow", "broad"]
+#
+peak_calling:
+    model_choice: 'narrow'    ## may be broad
+    no-model: no             ## may be yes
+    force_shift: no           ## may be yes
+
+
+
 
 
 
