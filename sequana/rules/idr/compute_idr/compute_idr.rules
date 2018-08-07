@@ -1,0 +1,41 @@
+rule compute_idr:
+    """
+    Irreproducibility Discovery Rate
+
+    Required input:
+        __compute_idr__input: peak file
+
+    Required output:
+        idr = __compute_idr__output: idr file
+
+    Required configuration:
+        .. code-block:: yaml
+
+            compute_idr:
+                mode:  # narrow/broad
+                rank: # ranking method
+                prefix = # config["compute_idr"]["prefix"]
+                tresh = # idr threshold
+
+    """
+    input:
+        __compute_idr__input
+    output:
+        idr = __compute_idr__output,
+    log:
+        out = __mark_duplicates__log_std,
+        err = __mark_duplicates__log_err
+    params:
+        mode = config["compute_idr"]["mode"],
+        rank = config["compute_idr"]["rank"]
+        prefix = config["compute_idr"]["prefix"]
+        thresh = config["compute_dr"]["thresh"]
+    threads:
+        int(config["mark_duplicates"]["threads"])
+    shell:
+        """
+
+
+
+            > {log.out} 2> {log.err}
+        """
