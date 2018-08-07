@@ -1,0 +1,42 @@
+rule compute_idr:
+    """
+    Irreproducibility Discovery Rate
+
+    Required input:
+        input1 = __compute_idr__input1 : peak file
+        input2 = __compute_idr__input2 : peak file
+
+    Required output:
+        idr = __compute_idr__output: idr file
+
+    Required configuration:
+        .. code-block:: yaml
+
+            compute_idr:
+                mode:  # narrow/broad
+                rank: # ranking method
+                thresh = # idr threshold
+
+    """
+    input:
+        input1 = __compute_idr__input1,
+        input2 = __compute_idr__input2
+    output:
+        idr = __compute_idr__output
+    log:
+        out = __compute_idr__log_std,
+        err = __compute_idr__log_err
+    params:
+        mode = config["compute_idr"]["mode"],
+        rank = config["compute_idr"]["rank"],
+        thresh = config["compute_dr"]["thresh"]
+    shell:
+        """
+        idr --samples {input.input1} {input.input2} \
+            --input-file-type ${mode}Peak \
+            --output-file {output.idr} \
+            --rank {params.rank} \
+            --soft-idr-threshold {params.thresh} \
+            --plot
+        > {log.out} 2> {log.err}
+        """
