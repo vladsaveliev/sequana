@@ -1,0 +1,22 @@
+rule select_peaks:
+
+"""
+Rule for selecting 100,000 first peaks for IDR rule
+"""
+
+
+    input:
+        __select_peaks__input
+    log:
+        __select_peaks__logs
+    output:
+        __select_peaks__output
+    shell:
+        """
+        nP=$( wc -l {input} | awk '{print $1}')
+        # Sorting peaks
+        if [ $nP -lt 100000 ]
+            then sort -k 7nr,7nr {input} | grep -v track > {output}
+            else sort -k 7nr,7nr {input} | head -n 100000 > {output}
+        fi
+        """
