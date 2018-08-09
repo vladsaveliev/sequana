@@ -128,7 +128,7 @@ fastqc:
 #
 #   ref: http://cutadapt.readthedocs.io/
 # adapter_choice__ = ["", "PCRFree", "Rubicon", "Nextera", "TruSeq"]
-# tool_choice__ = ["atropos", "cutadapt", "clean_ngs"]
+# tool_choice__ = ["atropos", "cutadapt"]
 cutadapt:
     do: yes
     tool_choice: cutadapt
@@ -136,9 +136,9 @@ cutadapt:
     design_file:
     fwd:
     rev:
-    m: 20                       # {"strict_min": 0}
+    m: 25                       # {"strict_min": 0}
     mode: "b"                   # {"values": ["b","g","a"]}
-    options: "-O 6 --trim-n"
+    options: "-O 6 --trim-n --max-n 1"
     quality: 30                 # {"range": [0,40]}
     threads: 4
 
