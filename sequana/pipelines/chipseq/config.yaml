@@ -55,6 +55,7 @@ sequencing:
 design:
     design_file: /path/to/your/design_file.txt
     spike: yes
+    spike_genome_file: /path/to/your/directory/Genomes/spike_genome/spike_genome.fa
 
 
 
@@ -68,7 +69,7 @@ design:
 # - dir: directory where all indexed are written
 # - name: name of prefix use in all mapping rules
 # - fasta: path to Reference Genome in fasta format
-# - blacklist: path to BED file with all blacklisted regions
+
 
 #
 genome:
@@ -76,7 +77,7 @@ genome:
   genome_directory: /path/to/your/directory
   name: "hg19" #path to index name
   fasta_file: /path/to/your/directory/Genomes/hg19/hg19.fa
-  blacklist_file: /path/to/your/directory/Genomes/hg19/hg19_blacklist.bed
+
 
 
 #################################################################
@@ -162,21 +163,35 @@ bowtie2_mapping:
 
 
 #############################################################################
-# mark_duplicates (picard-tools) allows to mark PCR duplicate in BAM files
+# mark duplicates (picard-tools) allows to mark PCR duplicate in BAM files
 #
 # :Parameters:
 #
 # - do: if unchecked, this rule is ignored. Mandatory for RNA-SeQC tool.
 # - remove: If true do not write duplicates to the output file instead of writing them with
-#            appropriate flags set.  Default value: false. This option can be set to 'null' to clear
-#            the default value. Possible values: {true, false}
+#            appropriate flags set.  Default value: true. Have to be True
 # - tmpdir: write tempory file on this directory (default /tmp/, but could be "/local/scratch/")
 #
 mark_duplicates:
     do: no
-    remove: 'True' ## may be True
+    remove: 'True' ## Have to be True
     tmpdir: "/tmp/"
     threads: 4
+
+
+#############################################################################
+# remove blacklist
+#
+# :Parameters:
+#
+# - do: if unchecked, this rule is ignored.
+# - blacklist_file: path to BED file containing all blacklisted regions
+#
+remove_blacklist:
+    do: yes
+    blacklist_file: /path/to/your/directory/Genomes/hg19/hg19_blacklist.bed
+
+
 
 
 #############################################################################
