@@ -84,9 +84,11 @@ genome:
 #
 # :Parameters:
 #
+# - do: if unchecked, this rule is ignored
 # - options: string with any valid FastQC options
 #
 fastqc:
+    do: yes
     options: "--nogroup"
 
 
@@ -153,7 +155,7 @@ cutadapt:
 # - threads: number of threads to be used
 #
 bowtie2_mapping:
-    do: no
+    do: yes
     #options: "--dovetail --no-mixed --no-discordant " for paired-end data
     options: ""
     threads: 4

@@ -17,7 +17,8 @@ __snakefile__ = srcdir(__snakefile__)
 
 # Generic include of some dynamic modules
 exec(open(sequana.modules["fastqc_dynamic"], "r").read())
-
+exec(open(sequana.modules["bowtie2_mapping_dynamic"], "r").read())
+exec(open(sequana.modules["bowtie2_index_dynamic"], "r").read())
 
 manager = sm.PipelineManager("chipseq", config)
 
@@ -68,23 +69,55 @@ if manager.config.cutadapt.do:
 else:
     __cutadapt__output = __data__input
 
+if manager.config.fastqc.do:
+    # FASTQC on input data set
+    __fastqc_raw__input_fastq = __data__input
+    __fastqc_raw__output_done = "0-Fastqc/%s_fastqc_raw.done" % manager.sample
+    __fastqc_raw__wkdir       = "0-Fastqc"
+    __fastqc_raw__log         = "0-Fastqc/logs/%s_fastqc_raw.log" % manager.sample
+    include: fastqc_dynamic("raw", manager)
+    expected_output.extend(expand(__fastqc_raw__output_done, sample=manager.samples))
 
-# FASTQC on input data set
-__fastqc_raw__input_fastq = __data__input
-__fastqc_raw__output_done = "0-Fastqc/%s_fastqc_raw.done" % manager.sample
-__fastqc_raw__wkdir       = "0-Fastqc"
-__fastqc_raw__log         = "0-Fastqc/logs/%s_fastqc_raw.log" % manager.sample
-include: fastqc_dynamic("raw", manager)
-expected_output.extend(expand(__fastqc_raw__output_done, sample=manager.samples))
+
+if manager.config.cutadapt.do:
+    # FASTQC on trimmed data set
+    __fastqc_trim__input_fastq = __cutadapt__output
+    __fastqc_trim__output_done = "0-Fastqc/%s_fastqc_trim.done" % manager.sample
+    __fastqc_trim__wkdir       = "0-Fastqc"
+    __fastqc_trim__log         = "0-Fastqc/logs/%s_fastqc_trim.log" % manager.sample
+    include: fastqc_dynamic("trim", manager)
+    expected_output.extend(expand(__fastqc_trim__output_done, sample=manager.samples))
 
 
-# FASTQC on trimmed data set
-__fastqc_trim__input_fastq = __cutadapt__output
-__fastqc_trim__output_done = "0-Fastqc/%s_fastqc_trim.done" % manager.sample
-__fastqc_trim__wkdir       = "0-Fastqc"
-__fastqc_trim__log         = "0-Fastqc/logs/%s_fastqc_trim.log" % manager.sample
-include: fastqc_dynamic("trim", manager)
-expected_output.extend(expand(__fastqc_trim__output_done, sample=manager.samples))
+if manager.config.bowtie2_mapping_ref.do:
+    # mapping on ref
+    __bowtie2_mapping_ref__input =
+    __bowtie2_mapping_ref__index_done =
+    __bowtie2_mapping_ref__sort =
+    __bowtie2_mapping_ref__bam =
+    __bowtie2_mapping_ref__logs_err =
+    __bowtie2_mapping_ref__logs_out =
+    __bowtie2_mapping_ref__prefix_index =
+
+    include: bowtie2_mapping_dynamic("ref", manager)
+    expected_output.extend(expand(__bowtie2_mapping_ref__sort, sample=manager.samples))
+
+else:
+    __bowtie2_mapping_ref__sort = __data__input
+
+
+if manager.config.design.spike.do:
+    # mapping on ref
+    __bowtie2_mapping_spike__input =
+    __bowtie2_mapping_spike__index_done =
+    __bowtie2_mapping_spike__sort =
+    __bowtie2_mapping_spike__bam =
+    __bowtie2_mapping_spike__logs_err =
+    __bowtie2_mapping_spike__logs_out =
+    __bowtie2_mapping_spike__prefix_index =
+
+    include: bowtie2_mapping_dynamic("spike", manager)
+    expected_output.extend(expand(__bowtie2_mapping_spike__sort, sample=manager.samples))
 
 
 
