@@ -29,7 +29,6 @@ __data__input = manager.getrawdata()
 
 
 
-
 # !Reset expected_output variable after multiqc
 # Multiqc rule
 __multiqc__input = expected_output
