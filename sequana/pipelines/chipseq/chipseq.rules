@@ -25,6 +25,10 @@ manager = sm.PipelineManager("chipseq", config)
 
 __data__input = manager.getrawdata()
 
+
+# Check the design file
+__design__ = manager.config.design.design_file
+
 if manager.config.fastqc.do:
     # FASTQC on input data set
     __fastqc_raw__input_fastq = __data__input
@@ -164,6 +168,20 @@ if manager.config.remove_blacklist.do:
     __remove_blacklist__log_err = "4-NoBlacklist/%s_ref_sort_dedup_NoBlacklist.e" % manager.sample
     include: sm.modules["remove_blacklist"]
     expected_output.extend(expand(__remove_blacklist__output, sample=manager.samples))
+
+
+
+
+# Peak calling
+if manager.config.peak_calling.model_choice in ["narrow", "broad"]:
+    if manager.config.peak_calling.model_choice in ["narrow"]:
+        #add corresponding options
+        pass
+    else:
+        pass
+else:
+    raise ValueError("Invalid choice of model for peak calling. Use either narrow or broad")
+
 
 # !Reset expected_output variable after multiqc
 # Multiqc rule
