@@ -8,8 +8,8 @@ import os
 import sequana
 from os.path import join
 from sequana import snaketools as sm
-sm.init("chipseq.rules", globals())
 
+sm.init("chipseq.rules", globals())
 
 # This must be defined before the include
 configfile: "config.yaml"
@@ -19,31 +19,20 @@ __snakefile__ = srcdir(__snakefile__)
 exec(open(sequana.modules["fastqc_dynamic"], "r").read())
 exec(open(sequana.modules["bowtie2_mapping_dynamic"], "r").read())
 exec(open(sequana.modules["bowtie2_index_dynamic"], "r").read())
+exec(open(sequana.modules["dynamic_unpigz"], "r").read())
 
 manager = sm.PipelineManager("chipseq", config)
 
 __data__input = manager.getrawdata()
 
-
 if manager.config.fastqc.do:
     # FASTQC on input data set
     __fastqc_raw__input_fastq = __data__input
     __fastqc_raw__output_done = "0-Fastqc/%s_fastqc_raw.done" % manager.sample
-    __fastqc_raw__wkdir       = "0-Fastqc"
-    __fastqc_raw__log         = "0-Fastqc/logs/%s_fastqc_raw.log" % manager.sample
+    __fastqc_raw__wkdir = "0-Fastqc"
+    __fastqc_raw__log = "0-Fastqc/logs/%s_fastqc_raw.log" % manager.sample
     include: fastqc_dynamic("raw", manager)
     expected_output.extend(expand(__fastqc_raw__output_done, sample=manager.samples))
-
-
-if manager.config.cutadapt.do:
-    # FASTQC on trimmed data set
-    __fastqc_trim__input_fastq = __cutadapt__output
-    __fastqc_trim__output_done = "0-Fastqc/%s_fastqc_trim.done" % manager.sample
-    __fastqc_trim__wkdir       = "0-Fastqc"
-    __fastqc_trim__log         = "0-Fastqc/logs/%s_fastqc_trim.log" % manager.sample
-    include: fastqc_dynamic("trim", manager)
-    expected_output.extend(expand(__fastqc_trim__output_done, sample=manager.samples))
-
 
 if manager.config.cutadapt.do:
     adapter_tool = manager.config.cutadapt.tool_choice
@@ -54,20 +43,19 @@ if manager.config.cutadapt.do:
     # Users may provide TruSeq, Nextera, PCRFree or other registered adapters
     fwd = manager.config.cutadapt.fwd
     if isinstance(fwd, str) and fwd in registered():
-        filename = "file:"+ get_sequana_adapters(fwd, "fwd")
+        filename = "file:" + get_sequana_adapters(fwd, "fwd")
         manager.config.cutadapt.fwd = filename
 
     rev = manager.config.cutadapt.rev
     if isinstance(rev, str) and rev in registered():
-        filename = "file:"+ get_sequana_adapters(rev, "revcomp")
+        filename = "file:" + get_sequana_adapters(rev, "revcomp")
         manager.config.cutadapt.rev = filename
 
-
-    if  adapter_tool in ["cutadapt", "atropos"]:
+    if adapter_tool in ["cutadapt", "atropos"]:
         adapter_tool = "cutadapt"
         __cutadapt__input_fastq = __data__input
         __cutadapt__wkdir = "1-Trimming"
-        #__cutadapt__output = [manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")]
+        # __cutadapt__output = [manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")]
         __cutadapt__output = ["1-Trimming/%s_R1_trim.fastq.gz" % manager.sample]
         if manager.paired:
             __cutadapt__output += ["1-Trimming/%s_R2_trim.fastq.gz" % manager.sample]
@@ -89,6 +77,15 @@ if manager.config.cutadapt.do:
 else:
     __cutadapt__output = __data__input
 
+if manager.config.cutadapt.do:
+    # FASTQC on trimmed data set
+    __fastqc_trim__input_fastq = __cutadapt__output
+    __fastqc_trim__output_done = "0-Fastqc/%s_fastqc_trim.done" % manager.sample
+    __fastqc_trim__wkdir = "0-Fastqc"
+    __fastqc_trim__log = "0-Fastqc/logs/%s_fastqc_trim.log" % manager.sample
+    include: fastqc_dynamic("trim", manager)
+    expected_output.extend(expand(__fastqc_trim__output_done, sample=manager.samples))
+
 __prefix_name__ = join(config["genome"]["genome_directory"], config["genome"]["name"])
 
 if manager.config.genome.do:
@@ -97,13 +94,26 @@ if manager.config.genome.do:
     __bowtie2_index_ref__output_done = __prefix_name__ + ".1.bt2"
     __bowtie2_index_ref__output_prefix = __prefix_name__
     __bowtie2_index_ref__log = "2-Mapping/logs/bowtie2_ref_indexing.log"
-    include: bowtie1_index_dynamic("ref")
+    include: bowtie2_index_dynamic("ref")
+    expected_output.extend([__bowtie2_index_ref__output_done])
 
-if manager.config.bowtie2_mapping_ref.do:
+if manager.config.bowtie2_mapping.do:
+    # Decompress fastq.gz file before to run bowtie2
+    __unpigz_R1__input = "1-Trimming/%s_R1_trim.fastq.gz" % manager.sample
+    __unpigz_R1__output = "1-Trimming/%s_R1_trim.fastq" % manager.sample
+    include: dynamic_unpigz("R1", manager)
+    __unpigz__output = [__unpigz_R1__output]
+    if manager.paired:
+        __unpigz_R2__input = "1-Trimming/%s_R2_trim.fastq.gz" % manager.sample
+        __unpigz_R2__output = "1-Trimming/%s_R2_trim.fastq" % manager.sample
+        include: dynamic_unpigz("R2", manager)
+        __unpigz__output += [__unpigz_R2__output]
+
+
     # mapping on ref
-    __bowtie2_mapping_ref__input = __cutadapt__output
+    __bowtie2_mapping_ref__input = __unpigz__output
     __bowtie2_mapping_ref__index_done = __bowtie2_index_ref__output_done
-    #TODO integrer la variable genome dans le nom du bam
+    # TODO integrer la variable genome dans le nom du bam
     __bowtie2_mapping_ref__sort = "2-Mapping/%s_ref_sort.bam" % manager.sample
     __bowtie2_mapping_ref__bam = "2-Mapping/%s_ref.bam" % manager.sample
     __bowtie2_mapping_ref__logs_err = "2-Mapping/logs/%s_ref_mapping.e" % manager.sample
@@ -115,17 +125,17 @@ if manager.config.bowtie2_mapping_ref.do:
 else:
     __bowtie2_mapping_ref__sort = __data__input
 
-
-if manager.config.design.spike.do:
+if manager.config.design.spike:
     # indexing for bowtie2
     __prefix_name__ = config["design"]["spike_genome_file"]
     __bowtie2_index_spike__fasta = __prefix_name__
     __bowtie2_index_spike__output_done = __prefix_name__ + ".1.bt2"
     __bowtie2_index_spike__output_prefix = __prefix_name__
     __bowtie2_index_spike__log = "2-Mapping/logs/bowtie2_spike_indexing.log"
-    include: bowtie1_index_dynamic("spike")
+    include: bowtie2_index_dynamic("spike")
+    expected_output.extend([__bowtie2_index_spike__output_done])
 
-    # mapping on ref
+    # mapping on spike
     __bowtie2_mapping_spike__input = __cutadapt__output
     __bowtie2_mapping_spike__index_done = __bowtie2_index_spike__output_done
     __bowtie2_mapping_spike__sort = "2-Mapping/%s_spike_sort.bam" % manager.sample
@@ -136,15 +146,13 @@ if manager.config.design.spike.do:
     include: bowtie2_mapping_dynamic("spike", manager)
     expected_output.extend(expand(__bowtie2_mapping_spike__sort, sample=manager.samples))
 
-
-
 # Mark duplicates
 if manager.config.mark_duplicates.do:
     __mark_duplicates__input = __bowtie2_mapping_ref__sort
     __mark_duplicates__output = "3-Deduplication/%s_ref_sort_dedup.bam" % manager.sample
     __mark_duplicates__metrics = "3-Deduplication/%s_ref_sort_dedup.txt" % manager.sample
     __mark_duplicates__log_std = "3-Deduplication/logs/%s_ref_sort_dedup.e" % manager.sample
-    __mark_duplicates__log_err =  "3-Deduplication/logs/%s_ref_sort_dedup.e" % manager.sample
+    __mark_duplicates__log_err = "3-Deduplication/logs/%s_ref_sort_dedup.e" % manager.sample
     include: sm.modules["mark_duplicates"]
     expected_output.extend(expand(__mark_duplicates__output, sample=manager.samples))
 
@@ -157,8 +165,6 @@ if manager.config.remove_blacklist.do:
     include: sm.modules["remove_blacklist"]
     expected_output.extend(expand(__remove_blacklist__output, sample=manager.samples))
 
-
-
 # !Reset expected_output variable after multiqc
 # Multiqc rule
 __multiqc__input = expected_output
@@ -168,8 +174,6 @@ __multiqc__output = config['multiqc']['output-directory'] + "/multiqc_report.htm
 include: sm.modules["multiqc"]
 expected_output = [__multiqc__output]
 
-
-
 # Include rule graph for each sample
 __rulegraph__input = __snakefile__
 __rulegraph__output = "rulegraph/rulegraph.svg"
@@ -177,20 +181,16 @@ __rulegraph__mapper = {"fastqc_samples": "fastqc_samples/"}
 include: sm.modules['rulegraph']
 expected_output.extend([__rulegraph__output])
 
-
 # Add Conda
 __conda__output = "requirements.txt"
-include: sm.modules['conda']   # Create requirements.txt(dependencies)
+include: sm.modules['conda']  # Create requirements.txt(dependencies)
 expected_output.extend([__conda__output])
-
-
 
 # Those rules takes a couple of seconds so no need for a cluster
 localrules: conda, rulegraph
 
 rule chipseq:
     input: expected_output
-
 
 onsuccess:
     import os
@@ -223,4 +223,3 @@ onsuccess:
 
 onerror:
     print("An error occurred. See message above.")
-

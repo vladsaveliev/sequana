@@ -23,7 +23,7 @@ rule remove_blacklist:
         out = __remove_blacklist__log_std,
         err = __remove_blacklist__log_err
     params:
-        blacklist = config["remove_blacklist"]["blacklist"]
+        blacklist = config["remove_blacklist"]["blacklist_file"]
     threads:
         int(config["remove_blacklist"]["threads"])
     shell:

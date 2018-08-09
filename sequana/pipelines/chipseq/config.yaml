@@ -173,7 +173,7 @@ bowtie2_mapping:
 # - tmpdir: write tempory file on this directory (default /tmp/, but could be "/local/scratch/")
 #
 mark_duplicates:
-    do: no
+    do: yes
     remove: 'True' ## Have to be True
     tmpdir: "/tmp/"
     threads: 4
@@ -190,7 +190,7 @@ mark_duplicates:
 remove_blacklist:
     do: yes
     blacklist_file: /path/to/your/directory/Genomes/hg19/hg19_blacklist.bed
-
+    threads: 1
 
 
 
@@ -261,3 +261,19 @@ coverage:
     maxFragmentLength: 0 #A value of 0 disables filtering and is needed for including single-end and orphan reads.
     threads: 4
     chromSize_file: hg19.chrom.sizes
+
+
+
+
+#############################################################################
+#   MultiQC aggregates results from bioinformatics analyses across many
+#   samples into a single report.
+#
+# :Parameters:
+#
+# - options: any options recognised by multiqc
+# - output-directory: Create report in the specified output directory
+#
+multiqc:
+    options: "-c multiqc_config.yaml -f -x *_init_* -x *left_kept_reads* -x *report_rnaseq* -e htseq -e slamdunk"
+    output-directory: "multiqc"
