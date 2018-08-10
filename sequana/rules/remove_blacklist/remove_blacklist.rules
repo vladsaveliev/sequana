@@ -28,7 +28,6 @@ rule remove_blacklist:
         int(config["remove_blacklist"]["threads"])
     shell:
         """
-        intersectBed -v -abam {input} -b {params.blacklist} > {output}
-        && samtools index {output.bam}) \
-            > {log.out} 2> {log.err}
+        intersectBed -v -abam {input} -b {params.blacklist} > {output} \
+        && samtools index {output.bam}) > {log.out} 2> {log.err}
         """
