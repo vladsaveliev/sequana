@@ -23,9 +23,9 @@ rule macs2:
     input:
         bam = __macs2__input_bam
     params:
-        mode = config["macs2"]["mode"],
         gsize = config["macs2"]["genomeSize"],
-        options = config["macs2"]['options'],
+        # options must contain both mode and full options
+        options = __macs2__options,
         input = __macs2__input,
         prefix = __macs2__output_prefix
     log:
