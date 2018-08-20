@@ -1,0 +1,48 @@
+def macs2_dynamic(name, manager):
+
+    metadata = {'name':name}
+
+    macs2_code = '''
+rule macs2_%(name)s:
+    """
+    macs2 peak caller https://github.com/taoliu/MACS. Main MACS2 Function to Call peaks from alignment results.
+
+    Required input:
+        __macs2_%(name)s__input: bam file
+
+    Required output:
+        __macs2_%(name)s__output: peak file
+
+    Required configuration:
+        .. code-block:: yaml
+
+            macs2:
+                mode: narrow or broad
+                gsize: mappable size of your genome. See MACS2 documentation
+                options:  ""   #options for macs2 you want use
+                no-model: yes or no
+                force_shift: yes or no
+
+    """
+
+    input:
+        bam = __macs2_%(name)s__input_bam
+    params:
+        gsize = config["peak_calling"]["genomeSize"],
+        # options must contain both mode and full options
+        options = __macs2_%(name)s__options,
+        input = __macs2_%(name)s__input,
+        prefix = __macs2_%(name)s__output_prefix
+    log:
+        out = __macs2_%(name)s__log_std,
+        err = __macs2_%(name)s__log_err
+    output:
+        __macs2_%(name)s__output
+    shell:
+        """
+        macs2 callpeak -t {input.bam} {params.input} -f BAM -g {params.gsize} -n {params.prefix} --outdir {output} {params.options} 2> {log}
+        """
+'''
+
+from sequana.snaketools import build_dynamic_rule
+return build_dynamic_rule(macs2_code % metadata, manager.pipeline_dir)
