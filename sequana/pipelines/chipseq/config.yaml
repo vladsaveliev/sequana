@@ -202,6 +202,12 @@ remove_blacklist:
 # - model: model used by MACS2. Could be 'narrow' or 'broad'.
 # - no-model: use --no-model option. See MACS2 documentation. Possible values: {yes, no}
 # - force_shift: Possible values: {yes, no}
+# - options: any option recognized by MACS2. For paired-end reads, it is very recommended
+# to put --keep-dup 2500
+# - genomeSize: It's the mappable genome size or effective genome size which is defined as the genome size which can
+# be sequenced. Because of the repetitive features on the chromsomes, the actual mappable genome size will be smaller
+# than the original size, about 90% or 70% of the genome size. The default hs -- 2.7e9 is recommended for UCSC human
+# hg18 assembly.
 #
 # tool_choice__ = ["narrow", "broad"]
 #
@@ -209,8 +215,8 @@ peak_calling:
     model_choice: 'narrow'    ## may be broad
     no-model: no             ## may be yes
     force_shift: no           ## may be yes
-
-
+    options: "--keep-dup 2500 "
+    genomeSize: 2.7e9
 
 
 

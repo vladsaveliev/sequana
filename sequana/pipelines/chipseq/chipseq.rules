@@ -8,6 +8,8 @@ import os
 import sequana
 from os.path import join
 from sequana import snaketools as sm
+import pandas as pd
+from fnmatch import fnmatch
 
 sm.init("chipseq.rules", globals())
 
@@ -20,6 +22,7 @@ exec(open(sequana.modules["fastqc_dynamic"], "r").read())
 exec(open(sequana.modules["bowtie2_mapping_dynamic"], "r").read())
 exec(open(sequana.modules["bowtie2_index_dynamic"], "r").read())
 exec(open(sequana.modules["dynamic_unpigz"], "r").read())
+exec(open(sequana.modules["macs2_dynamic"], "r").read())
 
 manager = sm.PipelineManager("chipseq", config)
 
@@ -28,6 +31,52 @@ __data__input = manager.getrawdata()
 
 # Check the design file
 __design__ = manager.config.design.design_file
+
+design = pd.read_csv(__design__, header=0, sep='\t')
+
+
+MARKS = []
+CONDS = []
+REP = []
+
+for IP in design["IP_NAME"]:
+    mark, cond = IP.split("_")
+    if mark not in MARKS:
+        MARKS.append(mark)
+    if cond not in CONDS:
+        CONDS.append(cond)
+
+for mark in MARKS:
+    for file in manager.ff.filenames:
+        if fnmatch(file, mark+"*"):
+            print(file, mark)
+
+# get design structure:
+DESIGN = {}
+for IP in design["IP_NAME"]:
+    mark, cond = IP.split("_")
+    if mark in DESIGN.keys():
+        DESIGN[mark][cond] = {}
+    else:
+        DESIGN[mark] = {}
+        DESIGN[mark][cond] = {}
+
+
+
+#for list of input file (get_input methods)
+INPUT = []
+for mark in design['INPUT_NAME']:
+    for file in manager.ff.filenames:
+        if fnmatch(file, mark+"*1_R1*") and file not in INPUT:
+            INPUT.append(file)
+
+IP = []
+for mark in design['IP_NAME']:
+    for file in manager.ff.filenames:
+        if fnmatch(file, mark+"*") and file not in IP:
+            IP.append(file)
+
+
 
 if manager.config.fastqc.do:
     # FASTQC on input data set
@@ -171,16 +220,29 @@ if manager.config.remove_blacklist.do:
 
 
 
-
 # Peak calling
-if manager.config.peak_calling.model_choice in ["narrow", "broad"]:
-    if manager.config.peak_calling.model_choice in ["narrow"]:
+model = manager.config.peak_calling.model_choice
+if model in ["narrow", "broad"]:
+    if model in ["narrow"]:
         #add corresponding options
-        pass
+        __macs2_rep__options = "" + config["peak_calling"]['options']
+        __macs2_rep__output = "5-PeakCalling/{}/{{IP}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
     else:
-        pass
+        __macs2_rep__options = "--broad " + config["peak_calling"]['options']
+        __macs2_rep__output = "5-PeakCalling/{}/{{IP}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
+
+    # no matter which model
+    __macs2_rep__input_bam = "4-NoBlacklist/{IP}_ref_sort_dedup_NoBlacklist.bam"
+    __macs2_rep__input = "4-NoBlacklist/{INPUT}_Rep1_R1_ref_sort_dedup_NoBlacklist.bam"
+    __macs2_rep__log_std = "5-PeakCalling/%s/logs/{IP}_vs_{INPUT}.o" % model
+    __macs2_rep__log_err ="5-PeakCalling/%s/logs/{IP}_vs_{INPUT}.e" % model
+    __macs2_rep__output_prefix = "5-PeakCalling/%s/{IP}_vs_{INPUT}" % model
+    __macs2_rep__output = "5-PeakCalling/{IP}_vs_{INPUT}_peaks.narrowPeak"
+    #expected_output.extend(expand(__macs2_rep__output, zip, IP=list(design['IP_NAME']), INPUT=list(design['INPUT_NAME'])))
+    include: macs2_dynamic("rep", manager)
 else:
     raise ValueError("Invalid choice of model for peak calling. Use either narrow or broad")
+
 
 
 # !Reset expected_output variable after multiqc
