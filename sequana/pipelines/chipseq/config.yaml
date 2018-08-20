@@ -213,7 +213,7 @@ remove_blacklist:
 #
 peak_calling:
     model_choice: 'narrow'    ## may be broad
-    no-model: no             ## may be yes
+    no_model: no             ## may be yes
     force_shift: no           ## may be yes
     options: "--keep-dup 2500 "
     genomeSize: 2.7e9

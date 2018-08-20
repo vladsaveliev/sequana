@@ -204,7 +204,7 @@ if manager.config.mark_duplicates.do:
     __mark_duplicates__input = __bowtie2_mapping_ref__sort
     __mark_duplicates__output = "3-Deduplication/%s_ref_sort_dedup.bam" % manager.sample
     __mark_duplicates__metrics = "3-Deduplication/%s_ref_sort_dedup.txt" % manager.sample
-    __mark_duplicates__log_std = "3-Deduplication/logs/%s_ref_sort_dedup.e" % manager.sample
+    __mark_duplicates__log_std = "3-Deduplication/logs/%s_ref_sort_dedup.o" % manager.sample
     __mark_duplicates__log_err = "3-Deduplication/logs/%s_ref_sort_dedup.e" % manager.sample
     include: sm.modules["mark_duplicates"]
     expected_output.extend(expand(__mark_duplicates__output, sample=manager.samples))
@@ -213,12 +213,24 @@ if manager.config.mark_duplicates.do:
 if manager.config.remove_blacklist.do:
     __remove_blacklist__input = __mark_duplicates__output
     __remove_blacklist__output = "4-NoBlacklist/%s_ref_sort_dedup_NoBlacklist.bam" % manager.sample
-    __remove_blacklist__log_std = "4-NoBlacklist/%s_ref_sort_dedup_NoBlacklist.o" % manager.sample
-    __remove_blacklist__log_err = "4-NoBlacklist/%s_ref_sort_dedup_NoBlacklist.e" % manager.sample
+    __remove_blacklist__log_std = "4-NoBlacklist/logs/%s_ref_sort_dedup_NoBlacklist.o" % manager.sample
+    __remove_blacklist__log_err = "4-NoBlacklist/logs/%s_ref_sort_dedup_NoBlacklist.e" % manager.sample
     include: sm.modules["remove_blacklist"]
     expected_output.extend(expand(__remove_blacklist__output, sample=manager.samples))
 
 
+
+# PhantomPeakQualTools rule
+__spp__input = "4-NoBlacklist/{IP}_ref_sort_dedup_NoBlacklist.bam"
+__spp__output_pdf = "5-PhantomPeakQualTools/{IP}_ref_sort_dedup_NoBlacklist.bam"
+__spp__metrics = "5-PhantomPeakQualTools/{IP}_ppqt.txt"
+__spp__log_std = "5-PhantomPeakQualTools/logs/{IP}_ppqt.o"
+__spp__log_err = "5-PhantomPeakQualTools/logs/{IP}_ppqt.e"
+expected_output.extend(expand(__spp__metrics, sample=list(design['IP_NAME'])))
+include: sm.modules["spp"]
+
+
+rep = ['Rep1','Rep2']
 
 # Peak calling
 model = manager.config.peak_calling.model_choice
@@ -230,18 +242,21 @@ if model in ["narrow", "broad"]:
     else:
         __macs2_rep__options = "--broad " + config["peak_calling"]['options']
         __macs2_rep__output = "5-PeakCalling/{}/{{IP}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
-
+    if manager.config.peak_calling.no_model:
+        # TODO add function to get the shift value done by PPQT
+        __macs2_rep__options += " --nomodel --extsize %s " % ("150")
     # no matter which model
-    __macs2_rep__input_bam = "4-NoBlacklist/{IP}_ref_sort_dedup_NoBlacklist.bam"
-    __macs2_rep__input = "4-NoBlacklist/{INPUT}_Rep1_R1_ref_sort_dedup_NoBlacklist.bam"
-    __macs2_rep__log_std = "5-PeakCalling/%s/logs/{IP}_vs_{INPUT}.o" % model
-    __macs2_rep__log_err ="5-PeakCalling/%s/logs/{IP}_vs_{INPUT}.e" % model
-    __macs2_rep__output_prefix = "5-PeakCalling/%s/{IP}_vs_{INPUT}" % model
-    __macs2_rep__output = "5-PeakCalling/{IP}_vs_{INPUT}_peaks.narrowPeak"
-    #expected_output.extend(expand(__macs2_rep__output, zip, IP=list(design['IP_NAME']), INPUT=list(design['INPUT_NAME'])))
+    __macs2_rep__input_bam = "4-NoBlacklist/{{IP}}_{}_ref_sort_dedup_NoBlacklist.bam".format('Rep1')
+    __macs2_rep__input = "-c 4-NoBlacklist/{INPUT}_Rep1_R1_ref_sort_dedup_NoBlacklist.bam"
+    __macs2_rep__log_std = "6-PeakCalling/%s/logs/{IP}_vs_{INPUT}.o" % model
+    __macs2_rep__log_err ="6-PeakCalling/%s/logs/{IP}_vs_{INPUT}.e" % model
+    __macs2_rep__output_prefix = "6-PeakCalling/%s/{IP}_vs_{INPUT}" % model
+    __macs2_rep__output = "6-PeakCalling/{IP}_vs_{INPUT}_peaks.narrowPeak"
+    expected_output.extend(expand(__macs2_rep__output, zip, IP=list(design['IP_NAME']), INPUT=list(design['INPUT_NAME'])))
     include: macs2_dynamic("rep", manager)
+
 else:
-    raise ValueError("Invalid choice of model for peak calling. Use either narrow or broad")
+    raise ValueError("Invalid choice of model for peak calling. Use either narrow or broad, or set no-model to yes")
 
 
 
