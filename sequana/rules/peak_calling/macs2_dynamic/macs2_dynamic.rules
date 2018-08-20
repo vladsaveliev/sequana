@@ -42,7 +42,7 @@ rule macs2_%(name)s:
         """
         macs2 callpeak -t {input.bam} {params.input} -f BAM -g {params.gsize} -n {params.prefix} --outdir {output} {params.options} 2> {log}
         """
-'''
+    '''
 
-from sequana.snaketools import build_dynamic_rule
-return build_dynamic_rule(macs2_code % metadata, manager.pipeline_dir)
+    from sequana.snaketools import build_dynamic_rule
+    return build_dynamic_rule(macs2_code % metadata, manager.pipeline_dir)
