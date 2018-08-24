@@ -1,0 +1,87 @@
+rule preIDR_%(name)s:
+    """
+    pre-IDR rule preprocess bam files for IDR step
+
+    Required input:
+        __preIDR_%(name)s__input: list of bam file (IP or INPUT) at condition level (all replicates)
+
+    Required output:
+        __preIDR_%(name)s__output: peak file
+
+    Required params:
+        __preIDR_%(name)s__case : use case SPR, PPR, or Pool
+
+    """
+
+    input:
+        __preIDR_%(name)s__input_bam
+    params:
+        case = __preIDR_%(name)s__case
+    log:
+        __preIDR_%(name)s__log
+    output:
+        dynamic(__preIDR_%(name)s__output)
+    shell:
+        if {params.case}=="SPR"; then
+            i = 1
+            for file in {input}; do
+                if [ $i -eq 1 ] ; then SPR = "SPR1" ; elif [ $i -eq 2 ] ; then SPR = "SPR2" ; else SPR="SPR3"; fi
+
+                echo "starting $SPR ..." > {log}
+
+                samtools view -H {file} > ${file%.*}_header.sam
+
+                echo "Spliting bam file ${file} ..."
+
+                nlinesSPR=$(samtools view {file} | wc -l ) # Number of reads in the BAM file
+
+                nlinesSPR=$(( ($nlinesSPR+1)/2 )) # half that number
+
+                samtools view {file} | shuf | split -d -l ${nlinesSPR} - ${file%.*} # This will shuffle the lines in the file and split it into two SAM files
+
+                cat ${file%.*}_header.sam ${file%.*}00 | samtools view -bS | samtools sort -o ${file/Rep${i}/${SPR}.1}
+                cat ${file%.*}_header.sam ${file%.*}01 | samtools view -bS | samtools sort -o ${file/Rep${i}/${SPR}.2}
+
+
+                echo "Indexing self pseudos-replicates Bamfiles ${file}"
+                samtools index ${file/Rep${i}/${SPR}.1}
+                samtools index ${file/Rep${i}/${SPR}.2}
+
+                # Cleaning of useless files
+                rm ${file%.*}_header.sam
+                rm ${file%.*}00
+                rm ${file%.*}01
+                i++
+            done
+
+        elif {params.case}=="PPR"; then
+
+        else {params.case}=="Pool";
+            #Merge treatment BAMS
+            echo "Merging BAM files for pseudoreplicates..."
+
+            FILE1={input}[0]
+            FILE2={input}[1]
+
+            samtools merge ${FILE1/Rep1/Pool} $FILE1 $FILE2
+
+            echo "Sorting pool Bamfile"
+            samtools sort -o ${FILE1/Rep1/Pool_sort} ${FILE1/Rep1/Pool}
+
+            echo "Indexing pool Bamfiles"
+            samtools index ${FILE1/Rep1/Pool_sort}
+
+            # Cleaning of useless files
+            echo "Removing unsort-files"
+            rm $PPRdir/${FILE1/Rep1/Pool}
+
+            # if more than 2 input, create also a maxi pool
+            if len({input}) > 2:
+                echo "Merging BAM files on maxi pool for pseudoreplicates..."
+                FILE3={input}[2]
+                samtools merge ${FILE1/Rep1/MaxiPool} $FILE1 $FILE2 $FILE3
+                samtools sort -o ${FILE1/Rep1/MaxiPool_sort} ${FILE1/Rep1/MaxiPool}
+                samtools index ${FILE1/Rep1/MaxiPool_sort}
+                rm ${FILE1/Rep1/MaxiPool}
+        fi
+
