@@ -41,6 +41,7 @@ from sequana.lazy import pylab
 import pysam
 from sequana import jsontool, logger
 
+logger.name = __name__
 """
 #http://www.acgt.me/blog/2014/12/16/understanding-mapq-scores-in-sam-files-does-37-42#
 #http://biofinysics.blogspot.fr/2014/05/how-does-bowtie2-assign-mapq-scores.html
@@ -52,7 +53,7 @@ Interesting commands::
     samtools stats contaminant.bam
 """
 
-__all__ = ['BAM','Alignment', 'SAMFlags']
+__all__ = ['BAM','Alignment', 'SAMFlags', "CS", "BAM2"]
 
 # simple decorator to rewind the BAM file
 from functools import wraps
@@ -64,6 +65,122 @@ def seek(f):
         args[0].reset()
         return f(*args, **kargs)
     return wrapper
+
+
+# here we use an underscore to not overlap with the reset() method
+# of the AlignmentFile class
+def _reset(f):
+    @wraps(f)
+    def wrapper(*args, **kargs):
+        args[0].reset()
+        return f(*args, **kargs)
+    return wrapper
+
+
+# There are lots of trouble with inheriting from pysam.AlignmentFile
+# First, you cannot use super(). indeed, it works for py27 but not 
+# with py35 probably a missing __init__  or __new__ in
+# AlignmentFile class. See e.g., stackoverflow/questions/
+# 26653401/typeerror-object-takes-no-parameters-but-only-in-python-3
+# So we should call the __init__.
+
+# Second problem. The parent method reset() works for BAM but not for SAM 
+# files. Indeed, the reset() method rewind the file but with SAM, it seems to 
+# be confused with the header somehow. So we need to overload the reset()
+# to call the __init__ again but this is not appropriate to call the constructor
+# again. It may have side effects. 
+
+# So, we decided to store the SAM/BAM as an attribute. 
+
+# Other known issues with pysam.AlignmentFile:
+# - in PY3, there is an attribute **format** that tells us if the input is BAM
+# or SAM but this does not work in PY2 where the attribute is missing...
+# - we cannot use the method is_bam trustfully.
+# - Using AlignmentFile one must provide the proper mode 'e.g. rb will set
+# is_bam to True while 'r' only will set it to False. However, it seems
+# there is not sanity check inside the file.
+
+class SAMBAMbase():
+    def __init__(self, filename, mode="r", *args):
+        self._filename = filename
+        self._mode = mode
+        self._args = args
+
+        # Save the length so that second time we need it, it is already
+        # computed.
+        self._N = None
+        self.reset()
+
+    def reset(self):
+        try:
+            self._data.close()
+        except:
+            pass
+        self._data = pysam.AlignmentFile(self._filename,
+            mode=self._mode, *self._args)
+
+    @_reset
+    def get_read_names(self):
+        """Return the reads' names"""
+        names = [this.qname for this in self._data]
+        return names
+
+    @_reset
+    def __len__(self):
+        if self._N is None:
+            logger.warning("Scanning the BAM. Please wait")
+            self._N = sum(1 for _ in self)
+            self.reset()
+        return self._N
+
+    @_reset
+    def get_df_concordance(self, max_align=-1):
+        from sequana import Cigar
+        count = 0
+        I, D, M, L, mapq, flags, NM = [], [], [], [], [], [], []
+        mm = []
+        dd = []
+        ii = []
+        for i, a in enumerate(self._data):
+            if a.flag in [4]:
+                continue
+            #c = Cigar(a.cigarstring).as_dict()
+            #d, i, m = c["D"] , c["I"], c["M"]
+            count+=1
+            #I.append(i)
+            #D.append(d)
+            #M.append(m)
+            mapq.append(a.mapq)
+            L.append(a.qlen)
+            NM.append([x[1] for x in a.tags if x[0] == "NM"][0])
+            flags.append(a.flag)
+            if 'cs' in dict(a.tags):
+                cs = CS(dict(a.tags)['cs'])
+                mm.append(cs['S'])
+                I.append(cs['I'])
+                D.append(cs['D'])
+                M.append(cs['M'])
+            else:
+                mm.append(None)
+            if max_align>0 and count == max_align:
+                break
+        import pandas as pd
+        C = 1 - (np.array(I)+np.array(mm)+np.array(D))/(np.array(mm)+np.array(I)+np.array(D)+np.array(M))
+        df = pd.DataFrame([C, L, I, D, M, mapq, flags, NM, mm])
+        df = df.T
+        df.columns = ["concordance", 'length', "I", "D", "M", "mapq", "flags", "NM", "mismatch"]
+        return df
+
+
+class SAM(SAMBAMbase):
+    def __init__(self, filename, *args):
+        super(SAM, self).__init__(filename, mode="r", *args)
+
+
+
+class BAM2(SAMBAMbase):
+    def __init__(self, filename, *args):
+        super(SAM, self).__init__(filename, mode="rb", *args)
 
 
 class BAM(pysam.AlignmentFile):
@@ -90,60 +207,47 @@ class BAM(pysam.AlignmentFile):
         start at the beginning.
 
 
-
-
     """
     def __init__(self, filename,  mode='rb',  *args):
         """.. rubric:: Constructor
 
         """
-        # The mode rb means read-only (r) and that the format is BAM or SAM (b)
-
-        # super()  works for py27 but not py35 probably a missing __init__  or __new__ in
-        # AlignmentFile class. See e.g., stackoverflow/questions/
-        # 26653401/typeerror-object-takes-no-parameters-but-only-in-python-3
+        # The mode rb means read-only (r) and that (b) for binary the format
+        # So BAM or SAM can be read in theory.
 
         pysam.AlignmentFile.__init__(filename, mode=mode, *args)
 
+        self._mode = mode
+        self._args = args
         self._filename = filename
+        self.reset()  # to keep. This initialise the parent class
+
         self.metrics_count = None
-        # the BAM format can be rewinded but not SAM. This is a pain since one
-        # need to reload the instance after each operation. With the BAM, we can
-        # do that automatically. We therefore enforce the BAM format.
-
-        # Another issue is that in PY3, there is an attribute **format** that
-        # tells us if the input is BAM or SAM but this does not work in PY2
-        # where the attribute is missing...
-
-        # another know issue is that we cannot use the method is_bam trustfully.
-        # Using AlignmentFile one must provide the proper mode 'e.g. rb will set
-        # is_bam to True while 'r' only will set it to False. However, it seems
-        # there is not sanity check inside the file. Besides, using
-        # AlignmentFile.__init__ instead of the class itself seems to haev also
-        # some side effects.
-
-        # Let us save the length (handy and use in other places).
-        # If it is a SAM file, the rewind does not work and calling it again wil
-        # return 0. This may give us a hint that it is a SAM file
-        self.N = None
+        self._N = None
 
         # Figure out if the data is paired-end or not
         # I believe that checking just one alignement is enough.
-        self.reset()
-        self.is_paired = next(self).is_paired
-        self.reset()
+        # If we call reset(), SAM cannot be read
+        #self.reset()
+        #self.is_paired = next(self).is_paired
+        #self.reset()
 
-        # running a second time the len() should return the correct answer with
-        # BAM files but the SAM will not work and return 0. This takes time
-        # so let us not do it anymore in the constructor
-        # if len(self) == 0:
-        #     raise ValueError("Convert your SAM file to a BAM file please")
+        # Without an index, random access via
+        # :meth:`~pysam.AlignmentFile.fetch` and :meth:`~pysam.AlignmentFile.pileup`
+        # is disabled.
 
     @seek
     def get_read_names(self):
         """Return the reads' names"""
-        names = [this.qname for this in self]
-        return names
+        return [this.qname for this in self]
+
+    @seek
+    def __len__(self):
+        if self._N is None:
+            logger.warning("Scanning the BAM. Please wait")
+            self._N = sum(1 for _ in self)
+            self.reset()
+        return self._N
 
     @seek
     def iter_unmapped_reads(self):
@@ -165,15 +269,8 @@ class BAM(pysam.AlignmentFile):
                 return False
             pos = this.pos
         return True
-    is_sorted = property(_get_is_sorted, doc="return True is the BAM is sorted")
+    is_sorted = property(_get_is_sorted, doc="return True if the BAM is sorted")
 
-    @seek
-    def __len__(self):
-        if self.N is None:
-            logger.warning("Scanning the BAM. Please wait")
-            self.N = sum(1 for _ in self)
-            self.reset()
-        return self.N
 
     @seek
     def get_flags(self):
@@ -689,7 +786,6 @@ class BAM(pysam.AlignmentFile):
         pylab.ylabel("Number of mapped bases")
         pylab.grid()
 
-
     @seek
     def plot_indel_dist(self, fontsize=16):
         """Plot indel count (+ ratio)
@@ -876,3 +972,47 @@ class SAMFlags(object):
             if self.value & this:
                 txt += "%s: %s\n" % (this, self._flags[this])
         return txt
+
+
+
+class CS(dict):
+    """Interpret CS tag from SAM/BAM file tag 
+
+
+        from sequana import CS
+        >>> CS('-a:6-g:14+g:2+c:9*ac:10-a:13-a')
+        {'D': 3, 'I': 2, 'M': 54, 'S': 1}
+
+    When using some mapper, CIGAR are stored in another format called CS, which
+    also includes the substitutions. See minimap2 documentation for details.
+    """
+    def __init__(self, tag):
+        self.tag = tag
+        d = self._scan()
+        for k,v in d.items():
+            self[k] = v
+
+    def _scan(self):
+        d = {"M":0, "I":0, "D":0, "S":0}
+        current = ":"  # this is just to start the loop with a key (set to 0)
+        number = "0"
+
+        for c in self.tag:
+            if c in ":+-*":
+                if current == ":":
+                    d["M"] += int(number)
+                elif current == "+":
+                    d["I"] += len(number)
+                elif current == "-":
+                    d["D"] += len(number)
+                elif current == "*":
+                    d["S"] += len(number)
+                current = c
+                number = ""
+            else: # a letter or number
+                number += c
+        assert d['S'] % 2 == 0
+        d['S'] //= 2
+        return d
+
+
