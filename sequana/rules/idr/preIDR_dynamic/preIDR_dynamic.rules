@@ -104,6 +104,7 @@ rule preIDR_%(name)s:
                     rm ${FILE_Pool%.*}_header.sam
                     rm ${FILE_Pool%.*}00
                     rm ${FILE_Pool%.*}01
+
                     n++
                 done
 
