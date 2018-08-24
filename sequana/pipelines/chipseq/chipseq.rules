@@ -222,11 +222,11 @@ if manager.config.remove_blacklist.do:
 
 # PhantomPeakQualTools rule
 __spp__input = "4-NoBlacklist/{IP}_ref_sort_dedup_NoBlacklist.bam"
-__spp__output_pdf = "5-PhantomPeakQualTools/{IP}_ref_sort_dedup_NoBlacklist.bam"
-__spp__metrics = "5-PhantomPeakQualTools/{IP}_ppqt.txt"
-__spp__log_std = "5-PhantomPeakQualTools/logs/{IP}_ppqt.o"
-__spp__log_err = "5-PhantomPeakQualTools/logs/{IP}_ppqt.e"
-expected_output.extend(expand(__spp__metrics, sample=list(design['IP_NAME'])))
+__spp__output_pdf = "5-PhantomPeakQualTools/{IP}_ref_sort_dedup_NoBlacklist_phantom.pdf"
+__spp__metrics = "5-PhantomPeakQualTools/{IP}_ref_sort_dedup_NoBlacklist_phantom.txt"
+__spp__log_std = "5-PhantomPeakQualTools/logs/{IP}_phantom.o"
+__spp__log_err = "5-PhantomPeakQualTools/logs/{IP}_phantom.e"
+expected_output.extend(expand(__spp__metrics, IP=list(design['IP_NAME'])))
 include: sm.modules["spp"]
 
 
@@ -244,9 +244,13 @@ if model in ["narrow", "broad"]:
         __macs2_rep__output = "5-PeakCalling/{}/{{IP}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
     if manager.config.peak_calling.no_model:
         # TODO add function to get the shift value done by PPQT
-        __macs2_rep__options += " --nomodel --extsize %s " % ("150")
+        __macs2_rep__options += " --nomodel "
+        __macs2__rep__shift_file = "5-PhantomPeakQualTools/{IP}_ref_sort_dedup_NoBlacklist_phantom.txt"
+    else :
+        __macs2__rep__shift_file = ""
     # no matter which model
-    __macs2_rep__input_bam = "4-NoBlacklist/{{IP}}_{}_ref_sort_dedup_NoBlacklist.bam".format('Rep1')
+    __macs2_rep__input_bam = unpack(expand("4-NoBlacklist/{IP}_{REP}_ref_sort_dedup_NoBlacklist.bam",
+                            zip,IP=list(design['IP_NAME']),REP=rep))
     __macs2_rep__input = "-c 4-NoBlacklist/{INPUT}_Rep1_R1_ref_sort_dedup_NoBlacklist.bam"
     __macs2_rep__log_std = "6-PeakCalling/%s/logs/{IP}_vs_{INPUT}.o" % model
     __macs2_rep__log_err ="6-PeakCalling/%s/logs/{IP}_vs_{INPUT}.e" % model
