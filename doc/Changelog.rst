@@ -3,18 +3,31 @@ Changelog
 
 .. contents::
 
-2017
+0.7.1
+---------
+
+* NEWS:
+
+    * added metropolis hastings module
+
+
+
+0.7.0
 ------
 
 * BUGS:
 
     * add /1 and /2 in quality control pipeline https://github.com/sequana/sequana/issues/508
+    * Fix test failure due to freebayes version 1 and 1.2 https://github.com/sequana/sequana/issues/512
+    * Fix reading of SampleSheet for MiSeq: https://github.com/sequana/sequana/issues/511
+    * Add Exp Design checked in quality control pipeline: https://github.com/sequana/sequana/issues/500
 
 * CHANGES:
 
     * sequana_vcf_filter: finalised version with INDEL removal, filters on DP4
       and AF1 fields
     * rename PacbioBAM into PacbioSubreads
+
 
 0.6.5
 ~~~~~~~~~~~
