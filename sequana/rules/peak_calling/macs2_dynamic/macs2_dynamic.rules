@@ -32,15 +32,24 @@ rule macs2_%(name)s:
         # options must contain both mode and full options
         options = __macs2_%(name)s__options,
         input = __macs2_%(name)s__input,
-        prefix = __macs2_%(name)s__output_prefix
+        prefix = __macs2_%(name)s__output_prefix,
+        shift_file = __macs2_%(name)s__shift_file,
+        read_length = config["peak_calling"]["readLength"]
     log:
         out = __macs2_%(name)s__log_std,
         err = __macs2_%(name)s__log_err
     output:
         __macs2_%(name)s__output
-    shell:
-        """
-        macs2 callpeak -t {input.bam} {params.input} -f BAM -g {params.gsize} -n {params.prefix} --outdir {output} {params.options} 2> {log}
+    run:
+        import os
+        if os.path.exists({params.shift_file}):
+            shift = shell("awk '{print $2}' {params.shift_file} | awk -F ',' 'if ($1=={{params.read_length}}){print $2}
+            else {print $1}' ")
+            shell("macs2 callpeak -t {input.bam} {params.input} -f BAM -g {params.gsize} -n {params.prefix}
+            --outdir {output} {params.options} --extsize %s 2> {log}".format(shift))
+        else
+            shell("macs2 callpeak -t {input.bam} {params.input} -f BAM -g {params.gsize} -n {params.prefix}
+            --outdir {output} {params.options} 2> {log}"
         """
     '''
 
