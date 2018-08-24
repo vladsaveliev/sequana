@@ -1,3 +1,8 @@
+def preIDR_dynamic(name, project):
+
+    metadata = {"name": name}
+
+    preIDR_code = '''
 rule preIDR_%(name)s:
     """
     pre-IDR rule preprocess bam files for IDR step
@@ -56,8 +61,8 @@ rule preIDR_%(name)s:
 
         elif [ {params.case}=="PPR" ]; then
 
-            FILE1=${{input}[0]}
-            FILE2=${{input}[1]}
+            FILE1={input}[0]
+            FILE2={input}[1]
             FILE_Pool=${FILE1/Rep1/Rep12-Pool}
             echo "Merging BAM files for pseudoreplicates..." > {log}
             samtools merge $FILE_Pool $FILE1 $FILE2
@@ -80,8 +85,8 @@ rule preIDR_%(name)s:
                 rm ${FILE_Pool%.*}00
                 rm ${FILE_Pool%.*}01
 
-            if [ ! ${{input}[2]} == "" ]
-                FILE3=${{input}[2]}
+            if [ ! {input}[2] == "" ]
+                FILE3={input}[2]
                 n=1
                 for $FILEN in $FILE1 $FILE2 ; do
                     FILE_Pool=${FILE1/Rep1/Rep${n}3-Pool}
@@ -109,7 +114,7 @@ rule preIDR_%(name)s:
                 done
 
                 echo "Merging BAM files on maxi pool for pseudoreplicates..." > {log}
-                FILE3=${{input}[2]}
+                FILE3={input}[2]
                 samtools merge ${FILE1/Rep1/MaxiPool} $FILE1 $FILE2 $FILE3
                 samtools sort -o ${FILE1/Rep1/MaxiPool_sort} ${FILE1/Rep1/MaxiPool}
                 samtools index ${FILE1/Rep1/MaxiPool_sort}
@@ -122,8 +127,8 @@ rule preIDR_%(name)s:
             #Merge treatment BAMS
             echo "Merging BAM files for Input..."
 
-            FILE1=${{input}[0]}
-            FILE2=${{input}[1]}
+            FILE1={input}[0]
+            FILE2={input}[1]
 
             samtools merge ${FILE1/Rep1/Pool} $FILE1 $FILE2
 
@@ -138,12 +143,16 @@ rule preIDR_%(name)s:
             rm $PPRdir/${FILE1/Rep1/Pool}
 
             # if more than 2 input, create also a maxi pool
-            if [ ! ${{input}[2]} == "" ]
+            if [ ! {input}[2] == "" ]
                 echo "Merging BAM files on maxi pool for Input..." > {log}
-                FILE3=${{input}[2]}
+                FILE3={input}[2]
                 samtools merge ${FILE1/Rep1/MaxiPool} $FILE1 $FILE2 $FILE3
                 samtools sort -o ${FILE1/Rep1/MaxiPool_sort} ${FILE1/Rep1/MaxiPool}
                 samtools index ${FILE1/Rep1/MaxiPool_sort}
                 rm ${FILE1/Rep1/MaxiPool}
         fi
+    '''
+
+    from sequana.snaketools import build_dynamic_rule
+    return build_dynamic_rule(preIDR_code % metadata, manager.pipeline_dir)
 
