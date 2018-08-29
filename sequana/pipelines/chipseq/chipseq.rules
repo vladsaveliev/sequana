@@ -53,17 +53,6 @@ for mark in MARKS:
         if fnmatch(file, mark+"*"):
             print(file, mark)
 
-# get design structure:
-DESIGN = {}
-for IP in design["IP_NAME"]:
-    mark, cond = IP.split("_")
-    if mark in DESIGN.keys():
-        DESIGN[mark][cond] = {}
-    else:
-        DESIGN[mark] = {}
-        DESIGN[mark][cond] = {}
-
-
 
 #for list of input file (get_input methods)
 INPUT = []
