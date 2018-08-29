@@ -1,4 +1,4 @@
-def preIDR_dynamic(name, project):
+def preIDR_dynamic(name, manager):
 
     metadata = {"name": name}
 
