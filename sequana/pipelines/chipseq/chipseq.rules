@@ -4,7 +4,7 @@ Affiliation: Institut Pasteur @ 2018
 
 This pipeline is part of Sequana software (sequana.readthedocs.io)
 """
-import os
+
 import sequana
 from os.path import join
 from sequana import snaketools as sm
@@ -23,6 +23,8 @@ exec(open(sequana.modules["bowtie2_mapping_dynamic"], "r").read())
 exec(open(sequana.modules["bowtie2_index_dynamic"], "r").read())
 exec(open(sequana.modules["dynamic_unpigz"], "r").read())
 exec(open(sequana.modules["macs2_dynamic"], "r").read())
+exec(open(sequana.modules["preIDR_dynamic"], "r").read())
+
 
 manager = sm.PipelineManager("chipseq", config)
 
@@ -75,6 +77,18 @@ for mark in design['IP_NAME']:
     for file in manager.ff.filenames:
         if fnmatch(file, mark+"*") and file not in IP:
             IP.append(file)
+
+# From the design file, we get only IP with more than one replicate
+IP_REP = []
+for row in design.itertuples(index=True, name='Pandas'):
+    if getattr(row, "NB_IP") > 1:
+        IP_REP.append(getattr(row, "IP_NAME"))
+
+# We get only INPUT with more than one replicate that are linked to an IP with multiple replicates
+INPUT_REP = []
+for row in design.itertuples(index=True, name='Pandas'):
+    if getattr(row, "NB_INPUT") > 1 and getattr(row, "NB_IP") > 1 and (getattr(row, "INPUT_NAME")) not in INPUT_REP:
+        INPUT_REP.append(getattr(row, "INPUT_NAME"))
 
 
 
@@ -226,8 +240,43 @@ __spp__output_pdf = "5-PhantomPeakQualTools/{IP}_ref_sort_dedup_NoBlacklist_phan
 __spp__metrics = "5-PhantomPeakQualTools/{IP}_ref_sort_dedup_NoBlacklist_phantom.txt"
 __spp__log_std = "5-PhantomPeakQualTools/logs/{IP}_phantom.o"
 __spp__log_err = "5-PhantomPeakQualTools/logs/{IP}_phantom.e"
-expected_output.extend(expand(__spp__metrics, IP=list(design['IP_NAME'])))
+#expected_output.extend(expand(__spp__metrics, IP=list(design['IP_NAME'])))
 include: sm.modules["spp"]
+
+
+# preIDR rules
+# run preIDR on INPUT
+if INPUT_REP:
+    __preIDR_INPUT__input_bam = expand("4-NoBlacklist/{INPUT}_{REP}_ref_sort_dedup_NoBlacklist.bam", INPUT=list(INPUT_REP),
+                                       REP=".*")
+    __preIDR_INPUT__case = "Pool"
+    __preIDR_INPUT__log = "4-NoBlacklist/logs/preIDR_input.o"
+    __preIDR_INPUT__output = dynamic("4-NoBlacklist/{INPUT}_{REP}_ref_sort_dedup_NoBlacklist.bam", INPUT=list(INPUT_REP),
+                                       REP=".*")
+    include: preIDR_dynamic("INPUT", manager)
+    expected_output.extend(dynamic(__preIDR_INPUT__output, INPUT=list(INPUT_REP))
+
+if IP_REP:
+    # run SPR
+    __preIDR_SPR__input_bam = expand("4-NoBlacklist/{IP}_{REP}_ref_sort_dedup_NoBlacklist.bam", IP=list(IP_REP),
+                                       REP=".*")
+    __preIDR_SPR__case = "SPR"
+    __preIDR_SPR__log = "4-NoBlacklist/logs/preIDR_SPR.o"
+    __preIDR_SPR__output = dynamic("4-NoBlacklist/{INPUT}_{REP}_ref_sort_dedup_NoBlacklist.bam", IP=list(IP_REP),
+                                       REP=".*")
+    include: preIDR_dynamic("SPR", manager)
+    expected_output.extend(expand(__preIDR_SPR__output, IP=list(IP_REP)))
+
+    # run PPR
+    __preIDR_PPR__input_bam = expand("4-NoBlacklist/{IP}_{REP}_ref_sort_dedup_NoBlacklist.bam", IP=list(IP_REP),
+                                       REP=".*")
+    __preIDR_PPR__case = "PPR"
+    __preIDR_PPR__log = "4-NoBlacklist/logs/preIDR_PPR.o"
+    __preIDR_PPR__output = dynamic("4-NoBlacklist/{INPUT}_{REP}_ref_sort_dedup_NoBlacklist.bam", IP=list(IP_REP),
+                                       REP=".*")
+    include: preIDR_dynamic("PPR", manager)
+    expected_output.extend(expand(__preIDR_PPR__output, IP=list(IP_REP)))
+
 
 
 rep = ['Rep1','Rep2']
@@ -249,8 +298,9 @@ if model in ["narrow", "broad"]:
     else :
         __macs2__rep__shift_file = ""
     # no matter which model
-    __macs2_rep__input_bam = unpack(expand("4-NoBlacklist/{IP}_{REP}_ref_sort_dedup_NoBlacklist.bam",
-                            zip,IP=list(design['IP_NAME']),REP=rep))
+    __macs2_rep__input_bam = expand("4-NoBlacklist/{IP}_{REP}_ref_sort_dedup_NoBlacklist.bam",
+                            zip,IP=list(design['IP_NAME']),REP=rep)
+
     __macs2_rep__input = "-c 4-NoBlacklist/{INPUT}_Rep1_R1_ref_sort_dedup_NoBlacklist.bam"
     __macs2_rep__log_std = "6-PeakCalling/%s/logs/{IP}_vs_{INPUT}.o" % model
     __macs2_rep__log_err ="6-PeakCalling/%s/logs/{IP}_vs_{INPUT}.e" % model
