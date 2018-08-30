@@ -10,6 +10,16 @@ Changelog
 
     * added metropolis hastings module
 
+* CHANGES:
+
+    * refactoring of bamtools. added SAM and CRAM classes. remove the
+      plot_acgt_content method. Instead of inheriting from pysam.Alignement, 
+      we store the data as an attribute.
+
+* FIXES:
+
+    * cutadapt rules and expdesign can now handle sample names with several
+      underscores
 
 
 0.7.0
