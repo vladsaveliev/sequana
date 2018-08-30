@@ -156,6 +156,8 @@ class FastA(object):
                 pb.animate(i+1)
         return cherries
 
-
-
-
+    def get_stats(self):
+        stats = {}
+        stats["N"] = 2
+        stats["mean_length"] = mean(self.lengths)
+        return stats
