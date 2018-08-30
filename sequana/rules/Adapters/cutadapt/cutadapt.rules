@@ -64,11 +64,22 @@ rule cutadapt:
 
         if config['cutadapt']['design_file']:
             from sequana import FindAdaptersFromDesign
-            # FIXME how important is this that the sample name contains a _
-            # character ?
-            sample = params.sample.split("_")[0]
-            fa = FindAdaptersFromDesign(params.design, params.design_adapter)
-            fwd, rev = fa.save_adapters_to_fasta(sample, output_dir=params.wkdir)
+            # sample names are e.g. SAMPLE1_CACGAT and therefore we should split
+            # the real sample name from the index. Unfortunately, users may
+            # call their sample name "SAMPLE1_MYNAME_CAGCGT. How do we know
+            # that the index CAGCCT is not part of the name ? How do we know
+            # how many underscores the users used in its sample name ? There is
+            # no way to know ... so we will try by trial and error
+            underscores = params.sample.count("_")
+            for i, trial in enumerate(range(underscores+1)):
+                sample = params.sample.rsplit("_", i)[0]
+                #print("{} {}".format(sample, i), flush=True)
+                try:
+                    fa = FindAdaptersFromDesign(params.design, params.design_adapter)
+                    fwd, rev = fa.save_adapters_to_fasta(sample, output_dir=params.wkdir)
+                    break # we succeed to find the correct name
+                except ValueError:
+                    pass
             fwd = "file:%s" % fwd
             rev = "file:%s" % rev
         elif params.design_adapter:
