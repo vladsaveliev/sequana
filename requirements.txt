@@ -15,4 +15,4 @@ pyVCF
 pysam
 ruamel.yaml==0.12.13
 qtconsole
-snakemake==4.5.0
+snakemake
