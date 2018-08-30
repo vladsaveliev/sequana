@@ -367,7 +367,7 @@ class PacbioIsoSeqMappedIsoforms(object):
         pylab.xlabel("Mapping quality", fontsize=fontsize)
 
     def plot_sirv_by_group(self, title, shift=5, plot=False, mapq_min=-1):
-        aa = self.df.query('reference_name!=-1').copy()
+        aa = self.df.query("reference_name not in [-1, '-1']").copy()
         if len(aa) == 0:
             return pd.Series(), self.df
 
