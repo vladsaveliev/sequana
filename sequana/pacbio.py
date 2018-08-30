@@ -469,7 +469,7 @@ class PacbioSubreads(PacbioBAMBase):
         if read_lengths is None:
             self.reset()
             read_lengths = [read.query_length for i, read in enumerate(self.data)]
-        
+
         N = len(read_lengths)
 
         if expected_coverage and reference_length:
@@ -779,10 +779,11 @@ class PacbioMappedBAM(PacbioBAMBase):
         data = []
         self.reset()
         count = 0
+
         for align in self.data:
             mapq = align.mapq
             length = align.rlen
-            if self.method == "blasr":
+            if self.method in ["blasr", "minimap2"]:
                 this = Cigar(align.cigarstring).stats()
                 S, D, I, M = this[4] , this[2] , this[1], this[0]
                 concordance = 1 - (D+I+S)/(D + I + M + S)
@@ -793,7 +794,7 @@ class PacbioMappedBAM(PacbioBAMBase):
                 if total:concordance = 1- (error)/(total)
                 else:concordance = 0
             data.append([mapq, length, concordance])
-            if count % 10000 == 0: 
+            if count % 10000 == 0:
                 logger.info("%s" % count)
             count+=1
         return data
@@ -826,12 +827,16 @@ class PacbioMappedBAM(PacbioBAMBase):
         from sequana import Cigar
         self._concordance = []
         self.reset()
-        if self.method == "blasr":
+        count = 0
+        if self.method in ["blasr", "minimap2"]:
             for align in self.data:
                 if align.cigarstring:
-                    this = Cigar(align.cigarstring).stats()
-                    S, D, I, M = this[4] , this[2] , this[1], this[0]
+                    this = Cigar(align.cigarstring).as_dict()
+                    S, D, I, M = this["S"] , this["D"] , this["I"], this["M"]
                     self._concordance.append((1- (D+I+S)/(D+I+M+S)))
+                count += 1
+                if count %1000 ==0 : print(count)
+                if count == 10000: break
         elif self.method == "bwa":
             for align in self.data:
                 if align.cigarstring:
@@ -1066,7 +1071,7 @@ class PBSim(object):
         pylab.plot(vec)
         pylab.subplot(212)
 
-        pylab.hist(vec[burn:], bins=bins,normed=1)
+        pylab.hist(vec[burn:], bins=bins, density=1)
         pylab.plot(x,y,'r-')
         pylab.ylabel('Frequency')
         pylab.xlabel('x')
@@ -1074,13 +1079,4 @@ class PBSim(object):
 
         if output_filename is not None:
             self.bam_simul.filter_bool(output_filename, self.tokeep)
-
-
-
-
-
-
-
-
-
 
