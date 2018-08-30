@@ -196,7 +196,7 @@ class ExpDesignHiSeq(ExpDesignBase):
 
     This is a format that may change in the future.
 
-    The SampleID is convert into Sample_ID, "Index Seq". Note that "Index Seq"
+    The SampleID is converted into Sample_ID, "Index Seq". Note that "Index Seq"
     may be empty, or filled with an index sequence, or 2 index sequences
     separated by a "-" sign.
 
