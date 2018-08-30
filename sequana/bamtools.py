@@ -50,25 +50,15 @@ logger.name = __name__
 Interesting commands::
 
     samtools flagstat contaminant.bam
-    samtools stats contaminant.bam
 """
 
-__all__ = ['BAM','Alignment', 'SAMFlags', "CS", "BAM2"]
+__all__ = ['BAM','Alignment', 'SAMFlags', "CS"]
+
 
 # simple decorator to rewind the BAM file
-from functools import wraps
-def seek(f):
-    @wraps(f)
-    def wrapper(*args, **kargs):
-        #args[0] is the self of the method
-        # For BAM files only
-        args[0].reset()
-        return f(*args, **kargs)
-    return wrapper
-
-
 # here we use an underscore to not overlap with the reset() method
 # of the AlignmentFile class
+from functools import wraps
 def _reset(f):
     @wraps(f)
     def wrapper(*args, **kargs):
@@ -101,10 +91,32 @@ def _reset(f):
 # there is not sanity check inside the file.
 
 class SAMBAMbase():
+    """Base class for SAM/BAM/CRAM data sets
+
+
+    We provide a few test files in Sequana, which can be retrieved with
+    sequana_data:
+
+    .. doctest::
+
+        >>> from sequana import BAM, sequana_data
+        >>> b = BAM(sequana_data("test.bam"))
+        >>> len(b)
+        1000
+        >>> from sequana import CRAM
+        >>> b = CRAM(sequana_data("test_measles.cram"))
+        >>> len(b)
+        60
+
+    """
+    # The mode rb means read-only (r) and that (b) for binary the format
+    # So BAM or SAM can be read in theory.
     def __init__(self, filename, mode="r", *args):
         self._filename = filename
         self._mode = mode
         self._args = args
+        self._summary = None
+        self._sorted = None
 
         # Save the length so that second time we need it, it is already
         # computed.
@@ -129,167 +141,220 @@ class SAMBAMbase():
     def __len__(self):
         if self._N is None:
             logger.warning("Scanning the BAM. Please wait")
-            self._N = sum(1 for _ in self)
+            self._N = sum(1 for _ in self._data)
             self.reset()
         return self._N
 
     @_reset
     def get_df_concordance(self, max_align=-1):
+        """This methods returns a dataframe with Insert, Deletion, Match,
+        Substitution, read length, concordance (see below for a definition)
+
+
+        Be aware that the SAM or BAM file must be created using minimap2 and the
+        --cs option to store the CIGAR in a new CS format, which also contains
+        the information about substitution. Other mapper are also handled (e.g.
+        bwa) but the substitution are solely based on the NM tag if it exists.
+
+        alignment that have no CS tag or CIGAR are ignored.
+
+
+        """
         from sequana import Cigar
         count = 0
         I, D, M, L, mapq, flags, NM = [], [], [], [], [], [], []
-        mm = []
-        dd = []
-        ii = []
+        S = []
         for i, a in enumerate(self._data):
-            if a.flag in [4]:
+            # tags and cigar populated  if there is a match
+            # if we use --cs cigar is not populated so we can only look at tags
+            # tags can be an empty list
+            if a.tags is None or len(a.tags) == 0:
                 continue
-            #c = Cigar(a.cigarstring).as_dict()
-            #d, i, m = c["D"] , c["I"], c["M"]
-            count+=1
-            #I.append(i)
-            #D.append(d)
-            #M.append(m)
+            count += 1
             mapq.append(a.mapq)
             L.append(a.qlen)
-            NM.append([x[1] for x in a.tags if x[0] == "NM"][0])
+            try:
+                NM.append([x[1] for x in a.tags if x[0] == "NM"][0])
+            except:
+                NM.append(-1)
+
             flags.append(a.flag)
+
             if 'cs' in dict(a.tags):
                 cs = CS(dict(a.tags)['cs'])
-                mm.append(cs['S'])
+                S.append(cs['S'])
                 I.append(cs['I'])
                 D.append(cs['D'])
                 M.append(cs['M'])
+            elif a.cigarstring:
+                cigar = Cigar(a.cigarstring).as_dict()
+                I.append(cigar["I"])
+                D.append(cigar['D'])
+                M.append(cigar['M'])
+                S.append(None)  # no info about substitutions in the cigar
             else:
-                mm.append(None)
+                I.append(0)
+                D.append(0)
+                M.append(0)
+                S.append(0)
+
             if max_align>0 and count == max_align:
                 break
-        import pandas as pd
-        C = 1 - (np.array(I)+np.array(mm)+np.array(D))/(np.array(mm)+np.array(I)+np.array(D)+np.array(M))
-        df = pd.DataFrame([C, L, I, D, M, mapq, flags, NM, mm])
+
+            if count % 10000 == 0:
+                logger.debug("Read {} alignments".format(count))
+
+        I = np.array(I)
+        D = np.array(D)
+        M = np.array(M)
+        NM = np.array(NM)
+
+        try:
+            S = np.array(S)
+            C = 1 - (I + D + S)/(S + I + D + M)
+            logger.info("computed Concordance based on minimap2 --cs option")
+        except:
+            logger.info("computed Concordance based on standard CIGAR information using INDEL and NM tag")
+            computed_S = NM - D - I
+            C = 1 - (I + D + computed_S)/(computed_S + I + D + M)
+
+        df = pd.DataFrame([C, L, I, D, M, mapq, flags, NM, S])
         df = df.T
         df.columns = ["concordance", 'length', "I", "D", "M", "mapq", "flags", "NM", "mismatch"]
         return df
 
+    def __iter__(self):
+        return self
 
-class SAM(SAMBAMbase):
-    def __init__(self, filename, *args):
-        super(SAM, self).__init__(filename, mode="r", *args)
+    def __next__(self):
+        return next(self._data)
 
+    # properties
+    @_reset
+    def _get_paired(self):
+        return next(self).is_paired
+    is_paired = property(_get_paired)
 
-
-class BAM2(SAMBAMbase):
-    def __init__(self, filename, *args):
-        super(SAM, self).__init__(filename, mode="rb", *args)
-
-
-class BAM(pysam.AlignmentFile):
-    """BAM data structure, statistics and plotting
-
-    .. note:: Python2.7 and 3.5 behave differently
-        and we would recommend the Python 3.5 version. For instance,
-        :meth:`to_fastq` would work only with Python 3.5.
-
-    We provide a test file in Sequana:
-
-    .. doctest::
-
-        >>> from sequana import BAM, sequana_data
-        >>> b = BAM(sequana_data("test.bam"))
-        >>> len(b)
-        1000
-
-    .. note:: Once you loop over this data structure,  you must call
-        :meth:`reset` to force the next iterator to start at position 0 again.
-        The methods implemented in this data structure take care of that
-        for you thanks to a decorator called seek.
-        If you want to use the :meth:`next` function, call :meth:`reset` to make sure you
-        start at the beginning.
-
-
-    """
-    def __init__(self, filename,  mode='rb',  *args):
-        """.. rubric:: Constructor
-
-        """
-        # The mode rb means read-only (r) and that (b) for binary the format
-        # So BAM or SAM can be read in theory.
-
-        pysam.AlignmentFile.__init__(filename, mode=mode, *args)
-
-        self._mode = mode
-        self._args = args
-        self._filename = filename
-        self.reset()  # to keep. This initialise the parent class
-
-        self.metrics_count = None
-        self._N = None
-
-        # Figure out if the data is paired-end or not
-        # I believe that checking just one alignement is enough.
-        # If we call reset(), SAM cannot be read
-        #self.reset()
-        #self.is_paired = next(self).is_paired
-        #self.reset()
-
-        # Without an index, random access via
-        # :meth:`~pysam.AlignmentFile.fetch` and :meth:`~pysam.AlignmentFile.pileup`
-        # is disabled.
-
-    @seek
-    def get_read_names(self):
-        """Return the reads' names"""
-        return [this.qname for this in self]
-
-    @seek
-    def __len__(self):
-        if self._N is None:
-            logger.warning("Scanning the BAM. Please wait")
-            self._N = sum(1 for _ in self)
-            self.reset()
-        return self._N
-
-    @seek
-    def iter_unmapped_reads(self):
-        """Return an iterator on the reads that are unmapped"""
-        unmapped = (this.qname for this in self if this.is_unmapped)
-        return unmapped
-
-    @seek
-    def iter_mapped_reads(self):
-        """Return an iterator on the reads that are mapped"""
-        mapped = (this.qname for this in self if this.is_unmapped is False)
-        return mapped
-
-    @seek
+    @_reset
     def _get_is_sorted(self):
-        pos = next(self).pos
-        for this in self:
+        if self._sorted:
+            return self._sorted
+        pos = next(self._data).pos
+        for this in self._data:
             if this.pos < pos:
+                self._sorted = False
                 return False
             pos = this.pos
-        return True
+        self._sorted = True
+        return self._sorted
     is_sorted = property(_get_is_sorted, doc="return True if the BAM is sorted")
 
+    def get_full_stats_as_df(self):
+        """Return a dictionary with full stats about the BAM/SAM file
 
-    @seek
-    def get_flags(self):
-        """Return flags of all reads as a list
+        The index of the dataframe contains the flags. The column contains
+        the counts.
 
-        .. seealso:: :meth:`get_flags_as_df`, :class:`SAMFlags`"""
-        flags = [s.flag for s in self]
-        return flags
+        ::
+
+            >>> from sequana import BAM, sequana_data
+            >>> b = BAM(sequana_data("test.bam"))
+            >>> df = b.get_full_stats_as_df()
+            >>> df.query("description=='average quality'")
+            36.9
+
+        .. note:: uses samtools behind the scene
+        """
+        from easydev import shellcmd
+        res = shellcmd("samtools stats %s" % self._filename)
+        res = res.decode('utf-8')
+
+        # First, we can extract all data that statrts with SN
+        # The format is
+        #
+        # SN name: value #comment
+        #
+        # separators are \t tabulation
+        #
+        # so we split with the : character, remove the starting SN\t characters
+        # remove comments and ignore other \t characters. We should end up with
+        # only 2 columns; names/values
+
+        # extra all relevnt lines starting with SN
+        data = [x for x in res.split("\n") if x.startswith('SN')]
+
+        # remove comments
+        data = [x.split('#')[0][3:] for x in data]
+        names = [x.split(":")[0] for x in data]
+        values = [x.split(":")[1].strip() for x in data]
+        df = pd.DataFrame({"description": names, "count": values })
+        df = df[['description', 'count']]
+        df.sort_values(by='count', inplace=True)
+        return df
+
+    def _count_item(self, d, item, n=1):
+        if item in d.keys():
+            d[item] += n
+        else:
+            d[item] = n
+
+    def _get_summary(self):
+        """Count flags/mapq/read length in one pass."""
+        if self._summary is not None:
+            return self._summary
+
+        mapq_dict = {}
+        read_length_dict = {}
+        flag_dict = {}
+        mean_qualities = []
+        for read in self:
+            self._count_item(mapq_dict, read.mapq)
+            self._count_item(flag_dict, read.flag)
+            if read.is_unmapped is False:
+                self._count_item(read_length_dict, read.reference_length)
+            try:mean_qualities.append(pylab.mean(read.query_qualities))
+            except:mean_qualities.append(read.query_qualities)
+        self._summary = {"mapq": mapq_dict,
+                         "read_length": read_length_dict,
+                         "flags": flag_dict,
+                         "mean_quality": pylab.mean(mean_qualities)
+                         }
+        return self._summary
+    summary = property(_get_summary)
+
+    def _get_read_length(self):
+        X = sorted(self.summary['read_length'].keys())
+        Y = [self.summary['read_length'][k] for k in X]
+        return X, Y
+
+    def plot_read_length(self):
+        """Plot occurences of aligned read lengths
+
+        .. plot::
+            :include-source:
+
+            from sequana import sequana_data, BAM
+            b = BAM(sequana_data("test.bam"))
+            b.plot_read_length()
+
+        """
+        X, Y = self._get_read_length()
+        pylab.plot(X, Y,
+            label="min length:{}; max length:{}".format(min(X), max(X)))
+        pylab.grid()
+        pylab.xlabel("Read length", fontsize=16)
+        pylab.legend()
 
     def get_stats(self):
         """Return basic stats about the reads
 
         :return: dictionary with basic stats:
 
-            - total_reads : number reads
+            - total_reads : number reads ignoring supplementaty and secondary
+              reads
             - mapped_reads : number of mapped reads
             - unmapped_reads : number of unmapped
             - mapped_proper_pair : R1 and R2 mapped face to face
-            - hard_clipped_reads: number of reads with supplementary alignment
             - reads_duplicated: number of reads duplicated
 
         .. warning:: works only for BAM files. Use :meth:`get_full_stats_as_df`
@@ -324,52 +389,12 @@ class BAM(pysam.AlignmentFile):
         d['unmapped_reads'] = samflags_count[4]
         d['mapped_proper_pair'] = samflags_count[2]
         d['reads_duplicated'] = samflags_count[1024]
+        d['secondary_reads'] = samflags_count[256]
         return d
 
-    def get_full_stats_as_df(self):
-        """Return a dictionary with full stats about the BAM file
-
-        The index of the dataframe contains the flags. The column contains
-        the counts.
-
-        ::
-
-            >>> from sequana import BAM, sequana_data
-            >>> b = BAM(sequana_data("test.bam"))
-            >>> df = b.get_full_stats_as_df()
-            >>> df.query("description=='average quality'")
-            36.9
-
-        .. note:: uses samtools behind the scene
-        """
-        from easydev import shellcmd
-        res = shellcmd("samtools stats %s" % self._filename)
-        res = res.decode('utf-8')
-
-        # First, we can extract all data that statrts with SN
-        # The format is
-        #
-        # SN name: value #comment
-        #
-        # separators are \t tabulation
-        #
-        # so we split with the : character, remove the starting SN\t characters
-        # remove comments and ignore other \t characters. We should end up with
-        # only 2 columns; names/values
-
-        # extra all relevnt lines starting with SN
-        data = [x for x in res.split("\n") if x.startswith('SN')]
-        # remove comments
-        data = [x.split('#')[0][3:] for x in data]
-        names = [x.split(":")[0] for x in data]
-        values = [x.split(":")[1].strip() for x in data]
-        df = pd.DataFrame({"description": names, "count": values })
-        df = df[['description', 'count']]
-        df.sort_values(by='count', inplace=True)
-        return df
-
+    @_reset
     def get_flags_as_df(self):
-        """Returns flags as a dataframe
+        """Returns decomposed flags as a dataframe
 
         .. doctest::
 
@@ -377,6 +402,7 @@ class BAM(pysam.AlignmentFile):
             >>> b = BAM(sequana_data('test.bam'))
             >>> df = b.get_flags_as_df()
             >>> df.sum()
+            0          0
             1       1000
             2        484
             4          2
@@ -393,9 +419,9 @@ class BAM(pysam.AlignmentFile):
 
         .. seealso:: :class:`SAMFlags` for meaning of each flag
         """
-        flags = self.get_flags()
+        flags = [s.flag for s in self]
         data = [(this, [flag&this for flag in flags])
-            for this in [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]]
+            for this in (0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048)]
         df = pd.DataFrame(dict(data))
 
         # special case of flag 0 has to be handled separetely. Indeed 0 & 0 is 0
@@ -431,13 +457,11 @@ class BAM(pysam.AlignmentFile):
             pylab.savefig(filename)
         return barplot
 
-    @seek
+    @_reset
     def to_fastq(self, filename):
         """Export the BAM to FastQ format
 
-        .. warning:: to be tested
-        .. todo:: comments from original reads ?
-
+        .. todo:: comments from original reads are not in the BAM so will be missing
 
         Method 1 (bedtools)::
 
@@ -459,7 +483,7 @@ class BAM(pysam.AlignmentFile):
         """
         with open(filename, "w") as fh:
             for i, this in enumerate(self):
-                # FIXME what about comments
+                # FIXME what about comments. not stored in the BAM 
                 read = this.qname
                 read += this.seq + "\n"
                 read += "+\n"
@@ -468,13 +492,13 @@ class BAM(pysam.AlignmentFile):
                 #    read += "\n"
                 fh.write(read)
 
-    @seek
+    @_reset
     def get_mapq_as_df(self):
         """Return dataframe with mapq for each read"""
         df = pd.DataFrame({'mapq': [this.mapq for this in self]})
         return df
 
-    @seek
+    @_reset
     def get_mapped_read_length(self):
         """Return dataframe with read length for each read
 
@@ -491,73 +515,22 @@ class BAM(pysam.AlignmentFile):
                        if read.is_unmapped is False]
         return read_length
 
-    @seek
-    def get_metrics_count(self):
-        """ Count flags/mapq/read length in one pass."""
-        mapq_dict = {}
-        read_length_dict = {}
-        flag_dict = {}
-        mean_qualities = []
-        for read in self:
-            self._count_item(mapq_dict, read.mapq)
-            self._count_item(flag_dict, read.flag)
-            if read.is_unmapped is False:
-                self._count_item(read_length_dict, read.reference_length)
-            mean_qualities.append(pylab.mean(read.query_qualities))
-        self.metrics_count = {"mapq": mapq_dict,
-                              "read_length": read_length_dict,
-                              "flags": flag_dict,
-                                "mean_quality": pylab.mean(mean_qualities)}
-        return self.metrics_count
-
     def get_samflags_count(self):
-        """ Count how many reads have each flag of sam format after count
-        metrics.
-        """
-        if self.metrics_count is None:
-            self.get_metrics_count()
+        """ Count how many reads have each flag of SAM format.
 
+
+        :return: dictionary with keys as SAM flags
+        """
         samflags = (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048)
         samflags_count = dict.fromkeys(samflags, 0)
-        for flag, count in self.metrics_count["flags"].items():
+        for flag, count in self.summary["flags"].items():
             for samflag in samflags:
                 if flag&samflag != 0:
-                    self._count_item(samflags_count, samflag, count)
+                    samflags_count[samflag] += count
         return samflags_count
 
-    def _count_item(self, d, item, n=1):
-        if item in d.keys():
-            d[item] += n
-        else:
-            d[item] = n
 
-    def _get_read_length(self):
-        if self.metrics_count is None:
-            self.get_metrics_count()
-
-        X = sorted(self.metrics_count['read_length'].keys())
-        Y = [self.metrics_count['read_length'][k] for k in X]
-        return X, Y
-
-    def plot_read_length(self):
-        """Plot occurences of aligned read lengths
-
-        .. plot::
-            :include-source:
-
-            from sequana import sequana_data, BAM
-            b = BAM(sequana_data("test.bam"))
-            b.plot_read_length()
-
-        """
-        X, Y = self._get_read_length()
-        pylab.plot(X, Y,
-            label="min length:{}; max length:{}".format(min(X), max(X)))
-        pylab.grid()
-        pylab.xlabel("Read length", fontsize=16)
-        pylab.legend()
-
-    def plot_bar_mapq(self, fontsize=16, filename=None):
+    def plot_bar_mapq(self, fontsize=16, filename=None, ):
         """Plots bar plots of the MAPQ (quality) of alignments
 
             .. plot::
@@ -573,11 +546,7 @@ class BAM(pysam.AlignmentFile):
             grid=True, logy=True)
         pylab.xlabel("MAPQ", fontsize=fontsize)
         pylab.ylabel("Count", fontsize=fontsize)
-        try:
-            # This may raise issue on MAC platforms
-            pylab.tight_layout()
-        except:
-            pass
+        pylab.tight_layout()
         if filename:
             pylab.savefig(filename)
 
@@ -587,19 +556,16 @@ class BAM(pysam.AlignmentFile):
         This includes some metrics (see :meth:`get_stats`; eg MAPQ),
         combination of flags, SAM flags, counters about the read length.
         """
-        if self.metrics_count is None:
-            self.get_metrics_count()
-
         d = {}
         d["module"] = "bam_analysis"
         d["metrics"] = self.get_stats()
-        d["combo_flag"] = self.metrics_count["flags"]
+        d["combo_flag"] = self.summary["flags"]
         d["samflags"] = self.get_samflags_count()
-        d["read_length"] = self.metrics_count["read_length"]
+        d["read_length"] = self.summary["read_length"]
         with open(filename, "w") as fp:
             json.dump(d, fp, indent=True, sort_keys=True)
 
-    @seek
+    @_reset
     def get_gc_content(self):
         """Return GC content for all reads (mapped or not)
 
@@ -609,7 +575,7 @@ class BAM(pysam.AlignmentFile):
         data = [(f.seq.count("C") + f.seq.count('G')) / len(f.seq)*100. for f in self]
         return data
 
-    @seek
+    @_reset
     def get_length_count(self):
         """Return counter of all fragment lengths"""
         import collections
@@ -657,7 +623,7 @@ class BAM(pysam.AlignmentFile):
                 break
         return qualities
 
-    @seek
+    @_reset
     def boxplot_qualities(self, max_sample=500000):
         """Same as in :class:`sequana.fastq.FastQC`
 
@@ -672,65 +638,12 @@ class BAM(pysam.AlignmentFile):
         except:
             bx.plot()
 
-    @seek
-    def get_actg_content(self, max_sample=500000):
-        try: self.alignments
-        except: self._set_alignments()
-        # what is the longest string ?
-        max_length = max((len(a.seq) for a in self.alignments))
-        import re
-        df = pd.DataFrame(np.zeros((max_length,5)), columns=['A', 'C', 'G', 'T', 'N'])
-        A = np.zeros(max_length)
-        C = np.zeros(max_length)
-        G = np.zeros(max_length)
-        T = np.zeros(max_length)
-        N = np.zeros(max_length)
-
-        for a in self.alignments:
-            pos = [m.start() for m in re.finditer("A", a.seq)]
-            A[pos] += 1
-            C[[m.start() for m in re.finditer("C", a.seq)]] += 1
-            G[[m.start() for m in re.finditer("G", a.seq)]] += 1
-            T[[m.start() for m in re.finditer("T", a.seq)]] += 1
-            N[[m.start() for m in re.finditer("N", a.seq)]] += 1
-
-        df["A"] = A
-        df["C"] = C
-        df["T"] = T
-        df["G"] = G
-        df["N"] = N
-
-        df = df.divide(df.sum(axis=1), axis=0)
-
-        return df
-
-    def plot_acgt_content(self, stacked=False, fontsize=16, include_N=True):
-        """Plot ACGT content
-
-        .. plot::
-            :include-source:
-
-            from sequana import sequana_data, BAM
-            b = BAM(sequana_data("measles.fa.sorted.bam"))
-            b.plot_acgt_content()
-        """
-        df = self.get_actg_content()
-        if include_N is False and "N" in df.columns:
-            df.drop("N", axis=1, inplace=True)
-        if stacked is True:
-            df.plot.bar(stacked=True)
-        else:
-            df.plot()
-        pylab.grid(True)
-        pylab.xlabel("position (bp)", fontsize=fontsize)
-        pylab.ylabel("percent", fontsize=fontsize)
-
     def _set_alignments(self):
         # this scans the alignments once for all
         self.alignments = [this for this in self]
 
-    @seek
-    def set_fast_stats(self):
+    @_reset
+    def _set_coverage(self):
         try: self.alignments
         except: self._set_alignments()
 
@@ -742,6 +655,11 @@ class BAM(pysam.AlignmentFile):
         for x, y in zip(reference_start, reference_end):
             if y and x>=0 and y>=0: self.coverage[x:y] += 1
             else: pass
+
+    @_reset
+    def _set_indels(self):
+        try: self.alignments
+        except: self._set_alignments()
 
         self.insertions = []
         self.deletions = []
@@ -765,7 +683,7 @@ class BAM(pysam.AlignmentFile):
 
         """
         try: self.coverage
-        except: self.set_fast_stats()
+        except: self._set_coverage()
         pylab.plot(self.coverage)
         pylab.xlabel("Coverage")
 
@@ -780,13 +698,13 @@ class BAM(pysam.AlignmentFile):
             b.hist_coverage()
         """
         try: self.coverage
-        except: self.set_fast_stats()
+        except: self._set_coverage()
         pylab.hist(self.coverage, bins=bins)
         pylab.xlabel("Coverage")
         pylab.ylabel("Number of mapped bases")
         pylab.grid()
 
-    @seek
+    @_reset
     def plot_indel_dist(self, fontsize=16):
         """Plot indel count (+ ratio)
 
@@ -808,11 +726,15 @@ class BAM(pysam.AlignmentFile):
         alignment are ignored and only the first one seems to be reported. For
         instance 10M1I10M1I stored only 1 insertion in its report; Same comment
         for deletions.
+
+        .. todo:: speed up and handle long reads cases more effitiently by 
+            storing INDELS as histograms rather than lists
         """
         try:
             self.insertions
         except:
-            self.set_fast_stats()
+            self._set_indels()
+
         if len(self.insertions) ==0 or len(self.deletions) == 0:
             raise ValueError("No deletions or insertions found")
 
@@ -833,6 +755,27 @@ class BAM(pysam.AlignmentFile):
         pylab.xlabel("Indel length", fontsize=fontsize)
         pylab.ylabel("Indel count", fontsize=fontsize)
         return I, D, R
+
+
+
+class SAM(SAMBAMbase):
+    """See :class:`SAMBAMBase` for details"""
+    def __init__(self, filename, *args):
+        super(SAM, self).__init__(filename, mode="r", *args)
+
+class CRAM(SAMBAMbase):
+    """See :class:`SAMBAMBase` for details"""
+    def __init__(self, filename, *args):
+        super(CRAM, self).__init__(filename, mode="r", *args)
+
+
+class BAM(SAMBAMbase):
+    """See :class:`SAMBAMBase` for details"""
+    def __init__(self, filename, *args):
+        super(BAM, self).__init__(filename, mode="rb", *args)
+
+
+
 
 
 class Alignment(object):
@@ -972,7 +915,6 @@ class SAMFlags(object):
             if self.value & this:
                 txt += "%s: %s\n" % (this, self._flags[this])
         return txt
-
 
 
 class CS(dict):
