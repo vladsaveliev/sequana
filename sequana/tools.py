@@ -79,6 +79,7 @@ class StatsBAM2Mapped(DataContainer):
     def to_html(self):
         data = self.data
 
+        # TODO hardcoded word phix here ?
         html = "Reads with Phix: %s %%<br>" % precision(data['contamination'], 3)
 
         # add HTML table
