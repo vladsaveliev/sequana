@@ -1020,13 +1020,11 @@ class SequanaGUI(QMainWindow, Tools):
         # Start process
         # If an argument contains spaces, we should use quotes. However,
         # with PyQt quotes must be escaped
-        #print(snakemake_args)
 
         args = []
         for this in snakemake_args:
             if re.search(r"\s", this) is True:
                 args.append("\"%s\"" % this)
-                #print(this)
             else:
                 args.append(this)
         snakemake_args = args
@@ -1068,7 +1066,6 @@ class SequanaGUI(QMainWindow, Tools):
         # For each section, we create a widget (RuleForm). For isntance, first,
         # one is accessible as follows: gui.form.itemAt(0).widget()
 
-        #print(self.configfile)
         docparser = YamlDocParser(self.configfile)
         import ruamel.yaml.comments
         for count, rule in enumerate(rules_list):
@@ -1077,7 +1074,7 @@ class SequanaGUI(QMainWindow, Tools):
             contains = self.config._yaml_code[rule]
 
             # If this is a section/dictionary, create a section
-            
+
             if isinstance(contains, (ruamel.yaml.comments.CommentedMap, dict)) and (
                     rule not in SequanaGUI._not_a_rule):
                 # Get the docstring from the Yaml section/rule
@@ -1433,7 +1430,7 @@ class SequanaGUI(QMainWindow, Tools):
                 except Exception as err:
                     print(err)
                     error_msg = "<b>CRITICAL: INVALID CONFIGURATION FILE</b>\n"
-                    error_msg += "<pre>" + err.msg + "</pre>"
+                    error_msg += "<pre>" + str(err) + "</pre>"
                     self.critical(error_msg)
                     self.switch_off()
                     msg = WarningMessage(error_msg, self)
@@ -1621,7 +1618,11 @@ class SequanaGUI(QMainWindow, Tools):
             if value in ['None', None, '', '""', "''"]:
                 return None
             else:
-                return value
+                # this tries to convert to a list #issue #515 
+                try:
+                    return eval(value)
+                except:
+                    return value
 
         widgets = (layout.itemAt(i).widget() for i in range(layout.count()))
         form_dict = {w.get_name(): _cleaner(w.get_value()) if w.is_option()
