@@ -20,7 +20,9 @@ Changelog
 
     * cutadapt rules and expdesign can now handle sample names with several
       underscores
-
+    * Issue 515: sequanix should now be able to handle list in YAML files
+    * Issues 520: level info in sequanix was always set to INFO at start time
+    * Issue 519: fix issue due to new ruamel.yaml version
 
 0.7.0
 ------
