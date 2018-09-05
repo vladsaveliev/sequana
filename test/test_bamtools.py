@@ -3,9 +3,13 @@ from sequana.bamtools import is_bam, is_cram, is_sam
 from sequana.modules_report.bamqc import BAMQCModule
 from sequana import sequana_data
 from easydev import TempFile
+import pytest
+import os
+
+skiptravis = pytest.mark.skipif("TRAVIS_PYTHON_VERSION" in os.environ, reason="On travis")
 
 
-def test_is_sam_bam_cram():
+def test_is_sam_bam():
 
     datatest = sequana_data("test_measles.sam", "testing")
     assert is_sam(datatest) is True
@@ -13,6 +17,8 @@ def test_is_sam_bam_cram():
     datatest = sequana_data("test_measles.bam", "testing")
     assert is_bam(datatest) is True
 
+@skiptravis
+def test_is_cram():
     datatest = sequana_data("test_measles.cram", "testing")
     assert is_cram(datatest) is True
 

@@ -1,6 +1,11 @@
 from sequana.scripts import bam_splitter
 from sequana import sequana_data
 from tempfile import TemporaryDirectory
+import os
+import pytest
+
+skiptravis = pytest.mark.skipif("TRAVIS_PYTHON_VERSION" in os.environ, reason="On travis")
+
 
 prog = "sequana_bam_splitter"
 
@@ -49,7 +54,7 @@ def test_output():
         assert F.count(163) == 229
         assert F.count(99) == 220
 
-
+@skiptravis
 def test_sam_cram():
     with TemporaryDirectory() as tmpdir:
         prefix = tmpdir + "/test"
