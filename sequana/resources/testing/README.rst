@@ -9,6 +9,7 @@ quality_control pipelines (summary.json).
 - summary_qc.json
 
 
+test_CS_tiny.bam is a BAM file created with minimap2 using --cs option
 
 adapters_with_duplicates.fa
 test_adapter_removal_output.txt

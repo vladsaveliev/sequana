@@ -113,7 +113,7 @@ class Cigar(object):
         d = defaultdict(int)
         for letter, num in self._decompose():
             d[letter] += num
-        return dict(d)
+        return d
 
     def as_tuple(self):
         """Decompose the cigar string into tuples keeping track of repeated types

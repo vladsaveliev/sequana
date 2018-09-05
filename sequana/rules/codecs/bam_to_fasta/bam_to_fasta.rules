@@ -19,5 +19,5 @@ rule bam_to_fasta:
     threads: config['bam_to_fasta']['thread']
     run:
         from sequana import pacbio
-        p = pacbio.BAMPacbio(input[0])
+        p = pacbio.PacbioSubreads(input[0])
         p.to_fasta(output[0], threads=threads)

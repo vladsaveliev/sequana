@@ -16,15 +16,28 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
-"""Utilities to manipulate FASTQ and Reads
-
-"""
+"""Utilities to manipulate FASTQ and Reads"""
 import os
-
 from pysam import FastxFile
+from easydev import Progress
+
+from sequana import logger
+logger.name = __name__
 
 
 __all__ = ["FastA"]
+
+
+def is_fasta(filename):
+    with open(filename, "r") as fin:
+        try:
+            line = fin.readline()
+            assert line.startswith(">")
+            line = fin.readline()
+            return True
+        except:
+            return False
+
 
 # cannot inherit from FastxFile (no object in the API ?)
 class FastA(object):
@@ -36,6 +49,8 @@ class FastA(object):
         if filename.endswith(".gz"):
             raise ValueError("Must be decompressed.")
         self._fasta = FastxFile(filename)
+        self.filename = filename
+        logger.info("Reading input fasta file...please wait") 
         self._N = len([x for x in FastxFile(filename)])
 
     def __iter__(self):
@@ -79,6 +94,9 @@ class FastA(object):
         return [len(this.sequence) for this in self]
     lengths = property(_get_lengths)
 
+    def get_lengths_as_dict(self):
+        return dict(zip(self.names, self.lengths))
+
     def format_contigs_denovo(self, output_file, len_min=500):
         """Replace NODE with the project name and remove contigs with a length 
         lower than len_min.
@@ -116,3 +134,41 @@ class FastA(object):
                     len(contigs.sequence), 80)]) + "\n"
                 fp.write(name + sequence)
                 n += 1
+
+    def select_random_reads(self, N=None, output_filename="random.fasta"):
+        """Select random reads and save in a file
+
+        :param int N: number of random unique reads to select
+            should provide a number but a list can be used as well.
+        :param str output_filename:
+        """
+        import numpy as np
+        thisN = len(self)
+        if isinstance(N, int):
+            if N > thisN:
+                N = thisN
+            # create random set of reads to pick up
+            cherries = list(range(thisN))
+            np.random.shuffle(cherries)
+            # cast to set for efficient iteration
+            cherries = set(cherries[0:N])
+        elif isinstance(N, set):
+            cherries = N
+        elif isinstance(N, list):
+            cherries = set(N)
+        fasta = FastxFile(self.filename)
+        pb = Progress(thisN) # since we scan the entire file
+        with open(output_filename, "w") as fh:
+            for i, read in enumerate(fasta):
+                if i in cherries:
+                    fh.write(read.__str__() + "\n")
+                else:
+                    pass
+                pb.animate(i+1)
+        return cherries
+
+    def get_stats(self):
+        stats = {}
+        stats["N"] = 2
+        stats["mean_length"] = mean(self.lengths)
+        return stats

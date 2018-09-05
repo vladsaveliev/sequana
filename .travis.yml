@@ -30,18 +30,18 @@ install:
   - echo $TRAVIS_PYTHON_VERSION
   - conda create --yes --name testenv python=$TRAVIS_PYTHON_VERSION
   - source activate testenv
-  
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements.txt
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_dev.txt
+
+  - conda install --yes --file requirements.txt
+  - conda install --yes --file requirements_dev.txt
   # ideally, we should use requirements_pipelines but this lead to stall on
   # travis because of many dependencies. For testing, we only need those ones
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION kraken bwa snpeff shustring krona sambamba
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION picard pigz cutadapt fastqc
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION freebayes --no-deps
-
+  - conda install --yes kraken bwa snpeff shustring krona sambamba
+  - conda install --yes picard pigz cutadapt fastqc
+  - conda install --yes freebayes --no-deps
+  #- conda install --yes pysam samtools --no-deps 
   #- conda install --yes python=$TRAVIS_PYTHON_VERSION --file requirements_pipelines.txt
-  - pip install pytest-xdist # somehow needs to be installed with pip (not registered with conda)
   - pip install .
+  - conda list 
 
 # # command to run tests, e.g. python setup.py test
 script:

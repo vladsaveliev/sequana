@@ -3,7 +3,7 @@ import pkg_resources
 try:
     version = pkg_resources.require("sequana")[0].version
 except:
-    version = ">=0.20.0"
+    version = ">=0.7.1"
 
 
 try:
@@ -24,7 +24,7 @@ from .datatools import sequana_data
 
 from .assembly import *
 from .adapters import AdapterReader, FindAdaptersFromDesign, Adapter
-from .bamtools import BAM, SAMFlags
+from .bamtools import BAM, SAMFlags, SAM, CRAM
 from .bedtools import GenomeCov
 from .cigar import Cigar
 from .coverage import Coverage
@@ -36,7 +36,7 @@ from .freebayes_bcf_filter import BCF_freebayes
 from .kraken_builder import KrakenBuilder
 from .krona import KronaMerger
 from .kraken import KrakenResults, KrakenPipeline, KrakenAnalysis, KrakenDownload
-from .pacbio import BAMPacbio
+from .pacbio import PacbioSubreads
 from .phred import Quality
 from .running_median import RunningMedian
 from .snaketools import *

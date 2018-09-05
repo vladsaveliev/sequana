@@ -497,7 +497,8 @@ class SequanaGUI(QMainWindow, Tools):
             ))
         colorlog.getLogger().addHandler(self.logTextBox)
         # You can control the logging level
-        colorlog.getLogger().setLevel(colorlog.logging.logging.INFO)
+        #colorlog.getLogger().setLevel(colorlog.logging.logging.INFO)
+        self.set_level()
         self.ui.layout_logger.addWidget(self.logTextBox.widget)
 
         # Connectors to actions related to the menu bar
@@ -712,7 +713,7 @@ class SequanaGUI(QMainWindow, Tools):
 
     @QtCore.pyqtSlot(str)
     def _update_sequana(self, index):
-        """ Change options form when user change the pipeline."""
+        """ Change options form when user changes the pipeline."""
         if self.ui.choice_button.findText(index) == 0:
             self.clear_form()
             self.rule_list = []
@@ -751,9 +752,8 @@ class SequanaGUI(QMainWindow, Tools):
         self.ui.cancel_push_button.clicked.connect(
             self.generic_factory._config_browser.set_empty_path)
 
-
     # ---------------------------------------------------------------------
-    # Fotter connectors
+    # Footer connectors
     # ---------------------------------------------------------------------
 
     def connect_footer_buttons(self):
@@ -1020,13 +1020,11 @@ class SequanaGUI(QMainWindow, Tools):
         # Start process
         # If an argument contains spaces, we should use quotes. However,
         # with PyQt quotes must be escaped
-        print(snakemake_args)
 
         args = []
         for this in snakemake_args:
             if re.search(r"\s", this) is True:
                 args.append("\"%s\"" % this)
-                print(this)
             else:
                 args.append(this)
         snakemake_args = args
@@ -1068,16 +1066,16 @@ class SequanaGUI(QMainWindow, Tools):
         # For each section, we create a widget (RuleForm). For isntance, first,
         # one is accessible as follows: gui.form.itemAt(0).widget()
 
-        #print(self.configfile)
         docparser = YamlDocParser(self.configfile)
-
+        import ruamel.yaml.comments
         for count, rule in enumerate(rules_list):
             self.debug("Scanning rule %s" % rule)
             # Check if this is a dictionnary
             contains = self.config._yaml_code[rule]
 
             # If this is a section/dictionary, create a section
-            if isinstance(contains, dict) and (
+
+            if isinstance(contains, (ruamel.yaml.comments.CommentedMap, dict)) and (
                     rule not in SequanaGUI._not_a_rule):
                 # Get the docstring from the Yaml section/rule
                 docstring = docparser._block2docstring(rule)
@@ -1090,6 +1088,7 @@ class SequanaGUI(QMainWindow, Tools):
                 option = dialog.preferences_options_general_addbrowser_value.text()
                 option = option.strip()
                 option = option.replace(";", " ").replace(",", " ")
+
                 if len(option):
                     keywords = option.split()
                 else:
@@ -1103,7 +1102,6 @@ class SequanaGUI(QMainWindow, Tools):
 
                 # Try to interpret it with sphinx
                 from sequana.misc import rest2html
-
                 try:
                     self.debug("parsing docstring of %s" % rule)
                     comments = rest2html(docstring).decode()
@@ -1432,7 +1430,7 @@ class SequanaGUI(QMainWindow, Tools):
                 except Exception as err:
                     print(err)
                     error_msg = "<b>CRITICAL: INVALID CONFIGURATION FILE</b>\n"
-                    error_msg += "<pre>" + err.msg + "</pre>"
+                    error_msg += "<pre>" + str(err) + "</pre>"
                     self.critical(error_msg)
                     self.switch_off()
                     msg = WarningMessage(error_msg, self)
@@ -1620,7 +1618,11 @@ class SequanaGUI(QMainWindow, Tools):
             if value in ['None', None, '', '""', "''"]:
                 return None
             else:
-                return value
+                # this tries to convert to a list #issue #515 
+                try:
+                    return eval(value)
+                except:
+                    return value
 
         widgets = (layout.itemAt(i).widget() for i in range(layout.count()))
         form_dict = {w.get_name(): _cleaner(w.get_value()) if w.is_option()

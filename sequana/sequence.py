@@ -619,7 +619,8 @@ class Repeats(object):
         rr.hist_length_repeats()
 
     .. note:: Works with shustring package from Bioconda (April 2017)
-    .. todo:: use a specific sequence (right now it is the first one)
+    .. todo:: use a specific sequence (first one by default). Others can be
+        selected by name
 
     """
     def __init__(self, filename_fasta, merge=False, name=None):
@@ -651,6 +652,7 @@ class Repeats(object):
         self._filename_fasta                  = filename_fasta
         self._previous_thr                    = None
         self._list_len_repeats                = None
+        self._contig_names                    = None
         if not isinstance(merge, bool):
             raise TypeError("do_merge must be boolean")
         self._do_merge                        = merge
@@ -677,6 +679,12 @@ class Repeats(object):
         self._df_shustring = None
     header = property(_get_header, _set_header)
 
+    def _get_names(self):
+        if self._contig_names is None:
+            self._contig_names = self._fasta.names
+        return self._contig_names
+    names = property(_get_names)
+
     def _get_shustrings_length(self):
         """Return dataframe with shortest unique substring length at each position
         shortest unique substrings are unique in the sequence and its complement
@@ -701,7 +709,7 @@ class Repeats(object):
                 #df=pd.concat([df, line])
             task_shus.wait()
 
-            # convert to dataframe
+            # convert to dataframe 
             df = pd.DataFrame(list_df[2:len(list_df)])
             self._df_shustring = df.astype(int)
             self._df_shustring.columns = ["position","shustring_length"]
@@ -767,7 +775,6 @@ class Repeats(object):
     def _get_be_repeats(self):
         self._find_begin_end_repeats()
         return self._begin_end_repeat_position
-
     begin_end_repeat_position = property(_get_be_repeats)
 
     def _set_threshold(self,value):
@@ -781,14 +788,12 @@ class Repeats(object):
 
     def _get_threshold(self):
         return self._threshold
-
     threshold = property(_get_threshold, _set_threshold)
 
     def _get_list_len_repeats(self):
         if self._list_len_repeats is None:
             raise UserWarning("Please set threshold (minimum length of repeats to output)")
         return self._list_len_repeats
-
     list_len_repeats = property(_get_list_len_repeats)
 
     def _get_merge_repeats(self):
@@ -821,7 +826,6 @@ class Repeats(object):
 
                 self._begin_end_repeat_position = begin_end_repeat_position_merge
 
-
     def _get_do_merge(self):
         return self._do_merge
 
@@ -842,21 +846,19 @@ class Repeats(object):
 
     def hist_length_repeats(self, bins=20, alpha=0.5, hold=False,
             fontsize=12, grid=True, title="Repeat length",
-            xlabel="Repeat length", ylabel="#"):
+            xlabel="Repeat length", ylabel="#", logy=True):
         """Plots histogram of the repeat lengths
-
 
         """
         # check that user has set a threshold
-        if self._list_len_repeats is None:
-            self._get_list_len_repeats()
-
         if hold is False:
             pylab.clf()
-        pylab.hist(self._list_len_repeats, alpha=alpha, bins=bins)
+        pylab.hist(self.list_len_repeats, alpha=alpha, bins=bins)
         pylab.title(title)
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
+        if logy:
+            pylab.semilogy()
 

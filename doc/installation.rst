@@ -241,14 +241,13 @@ yourself.
 .. note:: the denovo_assembly pipelines uses Quast tool, which we ported to
     python 3.5 and was pulled on Quast official github page. This is not
     yet in bioconda but one can get it from the quast github (sept 2016). This is
-
     to be installed manually by users (due to licensing restrictions)
 
 .. note:: For GATK (variant caller), please go to
    https://software.broadinstitute.org/gatk/download/auth?package=GATK and
    download the file GenomeAnalysisTK-3.7.tar.bz2 ; then type::
 
-    gatk-register GenomeAnalysisTK-3.7.tar.bz2
+       gatk-register GenomeAnalysisTK-3.7.tar.bz2
 
 
 
