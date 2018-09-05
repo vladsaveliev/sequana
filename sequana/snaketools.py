@@ -650,6 +650,7 @@ class SequanaConfig(object):
                 target[key] = comments.CommentedMap(
                     self._recursive_update(target[key], data[key]))
             else:
+                #print(target)
                 if key in target.keys():
                     target[key] = value
                 else:
@@ -911,7 +912,7 @@ class PipelineManager(object):
         raise SequanaException(msg)
 
     def getname(self, rulename, suffix=None):
-        """Returns basename % rulename + suffix"""
+        """In the basename, include rulename and suffix"""
         if suffix is None:
             suffix = ""
         return self.basename % rulename + suffix

@@ -24,4 +24,6 @@ On a SLURM system use for example:
     --cluster 'sbatch --qos normal'
 
 """)
-
+    def add_level(self, this):
+        this.add_argument('--level', dest="level",
+            default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])

@@ -1,6 +1,6 @@
 atropos==1.1.16
 bioservices>=1.5.1
-biokit>=0.4.2
+biokit>=0.4.3
 colorlog>=3.1.0
 docutils
 easydev>=0.9.36
@@ -8,11 +8,11 @@ matplotlib
 mock
 multiqc==1.0
 pandas>=0.22
-pygraphviz==1.3.1
+#pygraphviz==1.3.1
 psutil
 pykwalify==1.6
 pyVCF
 pysam
-ruamel.yaml==0.12.13
+ruamel.yaml
 qtconsole
-snakemake==4.5.0
+snakemake

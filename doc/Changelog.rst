@@ -3,9 +3,46 @@ Changelog
 
 .. contents::
 
-2017
+0.7.1
+---------
+
+* NEWS:
+
+    * added metropolis hastings module
+    * added a sniffer module for BAM/SAM/CRAM
+    * added a SMA/CRAM reader
+
+* CHANGES:
+
+    * refactoring of bamtools. added SAM and CRAM classes. remove the
+      plot_acgt_content method. Instead of inheriting from pysam.Alignement, 
+      we store the data as an attribute.
+
+* FIXES:
+
+    * cutadapt rules and expdesign can now handle sample names with several
+      underscores
+    * Issue 515: sequanix should now be able to handle list in YAML files
+    * Issues 520: level info in sequanix was always set to INFO at start time
+    * Issue 519: fix issues in sequanix due to different API in new ruamel.yaml version
+    * Issue #522: fix bam_splitter tool
+
+
+0.7.0
 ------
 
+* BUGS:
+
+    * add /1 and /2 in quality control pipeline https://github.com/sequana/sequana/issues/508
+    * Fix test failure due to freebayes version 1 and 1.2 https://github.com/sequana/sequana/issues/512
+    * Fix reading of SampleSheet for MiSeq: https://github.com/sequana/sequana/issues/511
+    * Add Exp Design checked in quality control pipeline: https://github.com/sequana/sequana/issues/500
+
+* CHANGES:
+
+    * sequana_vcf_filter: finalised version with INDEL removal, filters on DP4
+      and AF1 fields
+    * rename PacbioBAM into PacbioSubreads
 
 
 0.6.5

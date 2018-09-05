@@ -58,6 +58,11 @@ def get_fastq_stats(filename, sample=1e16):
     stats = ff.get_stats()
     return stats
 
+def get_fasta_stats(filename, sample=1e16):
+    from sequana import FastA
+    ff = FastA(filename)
+    stats = ff.get_stats()
+    return stats
 
 def get_bed_stats(filename):
     from sequana import GenomeCov
@@ -121,14 +126,15 @@ def main(args=None):
     if extension in ["fastq", "fastq.gz"]:
         for filename in ff.realpaths:
             mc.add_job(get_fastq_stats, filename, options.sample)
-
     elif extension.endswith("bed"):
         for filename in ff.realpaths:
             mc.add_job(get_bed_stats, filename)
-
     elif extension.endswith("bam"):
         for filename in ff.realpaths:
             mc.add_job(get_bam_stats, filename)
+    elif extension.endswith("fasta"):
+        for filename in ff.realpaths:
+            mc.add_job(get_fasta_stats, filename)
     mc.run()
 
 

@@ -68,7 +68,7 @@ class ExpDesignAdapter(object):
     possible as defined in
 
     - :class:`ExpDesignGeneric`
-    - :class:`ExpDesignMiSeq` 
+    - :class:`ExpDesignMiSeq`
     - :class:`ExpDesignHiSeq` (2500)
 
     The dataframe index is the list of sample identifiers (Sample_ID).
@@ -196,7 +196,7 @@ class ExpDesignHiSeq(ExpDesignBase):
 
     This is a format that may change in the future.
 
-    The SampleID is convert into Sample_ID, "Index Seq". Note that "Index Seq"
+    The SampleID is converted into Sample_ID, "Index Seq". Note that "Index Seq"
     may be empty, or filled with an index sequence, or 2 index sequences
     separated by a "-" sign.
 
@@ -283,7 +283,10 @@ class ExpDesignMiSeq(ExpDesignBase):
         # strip is also applied
         rawdata = shlex.split(open(filename, "r"))
         for line in rawdata:
-            if line.startswith('[') and line.endswith(']'):
+            # sometimes, IEM will store the ;;; at the end
+            # so we can get [HEADER];;;;;;;;;;;
+            if line.startswith('[') and "]" in line:
+                line = line.strip(";").strip(",").strip()
                 currentkey = line.replace("[", "").replace("]", "")
                 data[currentkey] = []
             else:
@@ -298,6 +301,13 @@ class ExpDesignMiSeq(ExpDesignBase):
 
         self.data = data
         self.df = pd.read_csv(io.StringIO(data["Data"]))
+        if self.df.shape[1] not in [8, 10]:
+            self.df = pd.read_csv(io.StringIO(data["Data"]), ";")
+            if self.df.shape[1] not in [8, 10]:
+                logger.warning("Data section must have 8 or 10 columns. Check the samplesheet")
+
+        # Fixes https://github.com/sequana/sequana/issues/507
+        self.df["Sample_ID"] = self.df["Sample_ID"].astype(str)
 
         self.df.rename(columns={"I7_Index_ID":"Index1_ID", "index":"Index1_Seq",
             "I5_Index_ID": "Index2_ID", "index2":"Index2_Seq"},
@@ -333,7 +343,12 @@ class ExpDesignMiSeq(ExpDesignBase):
             header = self.data['Header']
             assay = [x for x in header.split('\n') if x.startswith("Assay")]
             assay = assay[0]
-            self.adapter_type = assay.split(",")[1]
+            items = assay.split(',')
+            if items[0] == "Assay":
+                self.adapter_type = assay.split(",")[1]
+            else:
+                items = assay.split(';')
+                self.adapter_type = assay.split(";")[1]
         except:
             pass
 

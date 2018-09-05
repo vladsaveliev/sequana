@@ -33,8 +33,9 @@ class MultiqcModule(BaseMultiqcModule):
 
             try:
                 parsed_data = self.parse_logs(myfile["f"])
-            except:
-                print("{} could not be parsed".format(name))
+            except Exception as err:
+                print("{} {} could not be parsed".format(name, myfile['f']))
+                print(err)
                 continue
             name = parsed_data["s_name"]
             self.sequana_data[name] = parsed_data
@@ -60,8 +61,46 @@ class MultiqcModule(BaseMultiqcModule):
         self.add_isoforms("hq")
         self.add_isoforms("lq")
         self.add_polyA()
-        #self.add_prime("three")
-        #self.add_prime("five")
+        self.add_primes("three")
+        self.add_primes("five")
+        self.add_flnc()
+        #self.add_ratio_flnc_hq()
+
+    def add_flnc(self):
+        data = {}
+        for name in self.sequana_data.keys():
+            data[name] = {
+                'flnc': self.sequana_data[name]["flnc"]
+            }
+        pconfig = {
+            "title": "flnc",
+            "logswitch": False,
+        }
+        self.add_section(
+            name = 'Number of flnc',
+            anchor = "flnc",
+            description = "flnc",
+            helptext="",
+            plot = bargraph.plot(data, None, pconfig))
+
+    def add_primes(self, label):
+        name2 = "{} primes".format(label)
+        data = {}
+        for name in self.sequana_data.keys():
+            data[name] = {
+                '3 {}'.format(label):
+                    self.sequana_data[name]["{}_primes".format(label)]
+            }
+        pconfig = {
+            "title": name2,
+            "logswitch": True,
+        }
+        self.add_section(
+            name = 'Number of {}'.format(name2),
+            anchor = name2,
+            description = name2,
+            helptext="",
+            plot = bargraph.plot(data, None, pconfig))
 
     def add_polyA(self):
         data = {}
@@ -148,7 +187,12 @@ class MultiqcModule(BaseMultiqcModule):
         data["number_ccs_reads"] = log_dict['data']['CCS']["number_ccs_reads"]
         data["number_hq_isoforms"] = log_dict['data']['hq_isoform']["N"]
         data["number_lq_isoforms"] = log_dict['data']['lq_isoform']["N"]
+        data["flnc"] = log_dict['data']['classification']["full_length_non_chimeric_reads"]
         data["polyA"] = log_dict['data']['classification']["polyA_reads"]
+        data["three_primes"] = log_dict['data']['classification']["three_prime_reads"]
+        data["five_primes"] = log_dict['data']['classification']["five_prime_reads"]
+        #data["ratio_flnc_hq"] = data["flnc"] / data["number_hq_isoforms"]
+
         data["alldata"] = log_dict
         data["s_name"] = log_dict['sample_name']
 
@@ -193,6 +237,30 @@ class MultiqcModule(BaseMultiqcModule):
                     'format': '{:,.0d}'
                 }
 
+        if any(["three_primes" in self.sequana_data[s] for s in self.sequana_data]):
+                headers["three_primes"] = {
+                    'title': "three prime",
+                    'description': "",
+                    'min': 0,
+                    'scale': 'RdYlGn',
+                    'format': '{:,.0d}'
+            } 
+        if any(["five_primes" in self.sequana_data[s] for s in self.sequana_data]):
+                headers["five_primes"] = {
+                    'title': "five prime",
+                    'description': "",
+                    'min': 0,
+                    'scale': 'RdYlGn',
+                    'format': '{:,.0d}'
+            }
+        if any(["flnc" in self.sequana_data[s] for s in self.sequana_data]):
+                headers["flnc"] = {
+                    'title': "flnc",
+                    'description': "",
+                    'min': 0,
+                    'scale': 'RdYlGn',
+                    'format': '{:,.0d}'
+            }
         if len(headers.keys()):
             self.general_stats_addcols(self.sequana_data, headers)
 

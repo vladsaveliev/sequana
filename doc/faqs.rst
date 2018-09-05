@@ -166,6 +166,25 @@ it looks like you need to install libselinux on your environment as reported
 `here <https://github.com/sequana/sequana/issues/438>`_.
 
 
+pytz installation
+~~~~~~~~~~~~~~~~~~~~
+
+
+If you get this error::
+
+    ImportError: C extension: No module named 'pytz.tzinfo' not built. If you
+    want to import pandas from the source directory, you may need to run 'python
+    setup.py build_ext --inplace --force' to build the C extensions first.
+
+try this::
+
+    pip uninstall pytz
+    pip install --pre pytz
+
+reference: https://github.com/sequana/sequana/issues/499
+
+
+
 Expected input format
 ----------------------------
 
@@ -220,8 +239,12 @@ would recommend to use the code here to download the Fasta and genbank:
 http://sequana.readthedocs.io/en/master/tutorial.html#new-in-v0-10
 
 
+Quality Control pipeline
+---------------------------
 
+Please see the tutorial, user guide or pipelines section and look for the quality control.
 
+Then, if you do not find your solution, please open an issue on github: https://github.com/sequana/sequana/issues
 
 
 Singularity

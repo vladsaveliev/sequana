@@ -32,7 +32,21 @@ def grouper(iterable):
     return izip_longest(*args)
 
 
-__all__ = ["Identifier", "FastQ", "FastQC"]
+__all__ = ["Identifier", "FastQ", "FastQC", "is_fastq"]
+
+
+def is_fastq(filename):
+    with open(filename, "r") as fin:
+        try:
+            line = fin.readline()
+            assert line.startswith("@")
+            line = fin.readline()
+            line = fin.readline()
+            assert line.startswith("+") and len(line.strip()) == 1
+            line = fin.readline()
+            return True
+        except:
+            return False
 
 
 class Identifier(object):

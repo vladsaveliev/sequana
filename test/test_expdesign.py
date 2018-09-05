@@ -21,6 +21,13 @@ def test_designMiSeq2():
     tt.df.Index2_Seq[0] == "ACGTCTCG"
 
 
+def test_designMiSeq3():
+    filename = sequana_data("test_expdesign_miseq_illumina_semicommas.csv")
+    tt = ExpDesignMiSeq(filename)
+    tt.df.Index1_ID[0] == 1
+    assert tt.adapter_type == "NEXTFlex-PCRfree"
+
+
 def test_design_constructor():
     filename = sequana_data("test_expdesign_miseq_illumina.csv")
     tt = ExpDesignMiSeq(filename)

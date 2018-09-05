@@ -6,7 +6,7 @@
 #
 #  File author(s):
 #      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
-#      Mélissa Cardon <melissa.cardon@pasteur.fr>, 
+#      Mélissa Cardon <melissa.cardon@pasteur.fr>,
 #
 #  Distributed under the terms of the 3-clause BSD license.
 #  The full license is in the LICENSE file, distributed with this software.
@@ -16,6 +16,7 @@
 #
 ##############################################################################
 """Pacbio QC and stats"""
+import os
 import collections
 import json
 import random
@@ -27,8 +28,13 @@ from sequana.lazy import biokit
 import pysam
 
 from sequana import logger
+logger.name == __name__
 
-__all__ = ["BAMPacbio", "PBSim", "BAMSimul"]
+from sequana.summary import Summary
+
+
+__all__ = ["PacbioMappedBAM", "PacbioSubreads", "PBSim", "BAMSimul"]
+
 
 # from pbcore.io import openAlignmentFile
 # b = openAlignmentFile(filename)
@@ -36,8 +42,46 @@ __all__ = ["BAMPacbio", "PBSim", "BAMSimul"]
 # samtools index -b filename.bam filename.bai
 
 
+class HistCumSum(object):
+
+    def __init__(self, data, grid=True, fontsize=16, xlabel="", ylabel="",
+                 title=""):
+        self.data = data
+        self.fontsize = fontsize
+        self.xlabel = xlabel
+        self.ylabel = ylabel
+        self.title = title
+        self.grid = grid
+
+    def plot(self, bins=80, rwidth=0.8, **kwargs):
+        pylab.clf()
+        Y, X, _ = pylab.hist(self.data, bins=bins, rwidth=rwidth, **kwargs)
+
+        pylab.xlabel(self.xlabel, fontsize=self.fontsize)
+        pylab.ylabel(self.ylabel, fontsize=self.fontsize)
+
+        """self.Y = Y
+        self.X = X
+
+        ax_twin = pylab.gca().twinx()
+
+        shift = (X[1] - X[0]) / 2
+
+        ax_twin.plot(X[0:-1]- shift, len(self.data) - pylab.cumsum(Y), "k")
+        ax_twin.set_ylim(bottom=0)
+        pylab.ylabel("CDF", fontsize=self.fontsize)
+        """
+        pylab.grid(self.grid)
+        pylab.title(self.title)
+        try: pylab.tight_layout()
+        except:pass
+
+
 class PacbioBAMBase(object):
-    """Base class for Pacbio BAM files"""
+    """Base class for Pacbio BAM files
+
+
+    """
     def __init__(self, filename):
         """
 
@@ -46,14 +90,12 @@ class PacbioBAMBase(object):
         """
         self.filename = filename
         self.data = pysam.AlignmentFile(filename, check_sq=False)
-        self._N = None
         self._df = None
         self._nb_pass = None
+        self.sample_name = os.path.basename(self.filename)
 
     def __len__(self):
-        if self._N is None:
-            df = self._get_df()
-        return self._N
+        return len(self.df)
 
     def __str__(self):
         return "Length: {}".format(len(self))
@@ -106,7 +148,7 @@ class PacbioBAMBase(object):
         :param bool hold:
         :param int fontsize: fontsize of the x and y labels and title.
         :param bool grid: add grid or not
-        :param str xlabel: 
+        :param str xlabel:
         :param str ylabel:
         :param str label: label of the histogram (for the legend)
         :param str title:
@@ -114,15 +156,13 @@ class PacbioBAMBase(object):
         .. plot::
             :include-source:
 
-            from sequana.pacbio import BAMPacbio
+            from sequana.pacbio import PacbioSubreads
             from sequana import sequana_data
-            b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
+            b = PacbioSubreads(sequana_data("test_pacbio_subreads.bam"))
             b.hist_GC()
 
         """
-        if self._df is None:
-            self._get_df()
-        mean_GC =  np.mean(self._df.loc[:,'GC_content'])
+        mean_GC =  np.mean(self.df.loc[:,'GC_content'])
 
         # set title if needed
         if title is None:
@@ -131,17 +171,19 @@ class PacbioBAMBase(object):
         # histogram GC percent
         if hold is False:
             pylab.clf()
-        pylab.hist(self._df.loc[:,'GC_content'], bins=bins,
-            alpha=alpha, label=label + ", mean : " + str(round(mean_GC,2))
-            + ", N : " + str(self._N))
+        pylab.hist(self.df.loc[:,'GC_content'], bins=bins,
+            alpha=alpha, label=label + ", mean : " + str(round(mean_GC, 2))
+            + ", N : " + str(len(self)))
         pylab.xlabel(xlabel, fontsize=fontsize)
         pylab.ylabel(ylabel, fontsize=fontsize)
         pylab.title(title, fontsize=fontsize)
         if grid is True:
             pylab.grid(True)
         pylab.xlim([0, 100])
+        try: pylab.tight_layout()
+        except:pass
 
-    def plot_GC_read_len(self, hold=False, fontsize=12, bins=[60, 60],
+    def plot_GC_read_len(self, hold=False, fontsize=12, bins=[200, 60],
                 grid=True, xlabel="GC %", ylabel="#", cmap="BrBG"):
         """Plot GC content versus read length
 
@@ -156,34 +198,32 @@ class PacbioBAMBase(object):
         .. plot::
             :include-source:
 
-            from sequana.pacbio import BAMPacbio
+            from sequana.pacbio import PacbioSubreads
             from sequana import sequana_data
-            b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
+            b = PacbioSubreads(sequana_data("test_pacbio_subreads.bam"))
             b.plot_GC_read_len(bins=[10, 10])
 
         """
-        if self._df is None:
-            self._get_df()
-        mean_len =  np.mean(self._df.loc[:,'read_length'])
-        mean_GC =  np.mean(self._df.loc[:,'GC_content'])
+        mean_len =  np.mean(self.df.loc[:,'read_length'])
+        mean_GC =  np.mean(self.df.loc[:,'GC_content'])
 
         if hold is False:
             pylab.clf()
 
-        data = self._df.loc[:,['read_length','GC_content']].dropna()
+        data = self.df.loc[:,['read_length','GC_content']].dropna()
         h = biokit.viz.hist2d.Hist2D(data)
         res = h.plot(bins=bins, contour=False, norm='log', Nlevels=6, cmap=cmap)
         pylab.xlabel("Read length", fontsize=fontsize)
         pylab.ylabel("GC %", fontsize=fontsize)
-        pylab.title("GC %% vs length \n Mean length : %.2f , Mean GC : %.2f" % 
+        pylab.title("GC %% vs length \n Mean length : %.2f , Mean GC : %.2f" %
             (mean_len, mean_GC), fontsize=fontsize)
         pylab.ylim([0, 100])
         if grid is True:
             pylab.grid(True)
 
-    def hist_len(self, bins=50, alpha=0.5, hold=False, fontsize=12,
-                grid=True,xlabel="Read Length",ylabel="#", label="",
-                title=None):
+    def hist_read_length(self, bins=80, alpha=0.5, hold=False, fontsize=12,
+                grid=True, xlabel="Read Length", ylabel="#", label="",
+                title=None, logy=False,  ec="k", hist_kwargs={}):
         """Plot histogram Read length
 
         :param int bins: binning for the histogram
@@ -199,41 +239,42 @@ class PacbioBAMBase(object):
         .. plot::
             :include-source:
 
-            from sequana.pacbio import BAMPacbio
+            from sequana.pacbio import PacbioSubreads
             from sequana import sequana_data
-            b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
-            b.hist_len()
+            b = PacbioSubreads(sequana_data("test_pacbio_subreads.bam"))
+            b.hist_read_length()
 
         """
-        if self._df is None:
-            self._get_df()
-        mean_len =  np.mean(self._df.loc[:,'read_length'])
+        mean_len =  np.mean(self.df.loc[:,'read_length'])
 
         # set title if not provided
         if title is None:
             title = "Read length  \n Mean length : %.2f" %(mean_len)
 
-        # histogram GC percent
         if hold is False:
             pylab.clf()
-        pylab.hist(self._df.loc[:,'read_length'], bins=bins, alpha=alpha,
-            label=  "%s, mean : %.0f, N : %d" % (label, mean_len, self._N) )
-        pylab.xlabel(xlabel, fontsize=fontsize)
-        pylab.ylabel(ylabel, fontsize=fontsize)
-        pylab.title(title, fontsize=fontsize)
-        if grid is True:
-            pylab.grid(True)
+
+        hist = HistCumSum(self.df.loc[:,'read_length'], fontsize=fontsize,
+                    grid=grid)
+        hist.title = title
+        hist.xlabel = xlabel
+        hist.ylabel = ylabel
+        hist.plot(bins=bins, alpha=alpha, edgecolor=ec,
+            label=  "%s, mean : %.0f, N : %d" % (label, mean_len, len(self)),
+            log=logy, **hist_kwargs)
+        pylab.gca().set_ylim(bottom=0)
+        pylab.gca().set_xlim(left=0)
 
 
-class BAMPacbio(PacbioBAMBase):
+class PacbioSubreads(PacbioBAMBase):
     """BAM reader for Pacbio (reads)
 
     You can read a file as follows::
 
-        from sequana.pacbio import BAMPacbio
+        from sequana.pacbio import Pacbiosubreads
         from sequana import sequana_data
         filename = sequana_data("test_pacbio_subreads.bam")
-        b = BAMPacbio(filename)
+        b = PacbioSubreads(filename)
 
     A summary of the data is stored in the attribute :attr:`df`. It contains
     information such as the length of the reads, the ACGT content, the GC content.
@@ -271,17 +312,17 @@ class BAMPacbio(PacbioBAMBase):
 
 
     """
-    def __init__(self, filename, testing=0):
+    def __init__(self, filename, sample=0):
         """.. rubric:: Constructor
 
         :param str filename: filename of the input pacbio BAM file. The content
             of the BAM file is not the ouput of a mapper. Instead, it is the
             output of a Pacbio (Sequel) sequencing (e.g., subreads).
-        :param int testing: for testing, you can set the number of subreads to
+        :param int sample: for sample, you can set the number of subreads to
             read (0 means read all subreads)
         """
-        super(BAMPacbio, self).__init__(filename)
-        self.testing = testing
+        super(PacbioSubreads, self).__init__(filename)
+        self._sample = sample
 
     def _get_df(self):
         # When scanning the BAM, we can extract the length, SNR of ACGT (still
@@ -309,7 +350,6 @@ class BAMPacbio(PacbioBAMBase):
         # - mq: mergeQV
         # - sq: substituionQV
         # - st: substituion tag
-
         # - RG: ?
 
         # See http://pacbiofileformats.readthedocs.io/en/3.0/BAM.html
@@ -320,39 +360,58 @@ class BAMPacbio(PacbioBAMBase):
 
             all_results = []
             # This takes 60%  of the time...could use cython ?
-            for read in self.data:
+            for i, read in enumerate(self.data):
+                tags = dict(read.tags)
                 res = []
                 # count reads
                 N += 1
                 if (N % 10000) == 0:
                     logger.info("Read %d sequences" %N)
-                #res[0] = read length
-                res.append(read.query_length)
-                # collections.counter is slow, let us do it ourself
-                res.append( 100. / read.qlen * sum(
-                    [read.query_sequence.count(letter) for letter in "CGcgSs"]))
 
-                # res[2] = snr A
-                # res[3] = snr C
-                # res[4] = snr G
-                # res[5] = snr T
+                # res[0] = read length
+                res.append(read.query_length) # also stored in tags["qe"] - tags["qs"]
+                res.append(read.reference_length) # also stored in tags["qe"] - tags["qs"]
+
+                # collections.counter is slow, let us do it ourself
+                if read.query_length and read.query_sequence:
+                    res.append( 100. / read.query_length * sum(
+                        [read.query_sequence.count(letter) for letter in "CGcgSs"]))
+                else:
+                    res.append(None)
+
+                # res[1:4] contains SNR  stored in tags['sn'] in the order A, C, G, T
                 try:
-                    snr = list([x for x in read.tags if x[0]=='sn'][0][1])
+                    snr = list(tags['sn'])
                 except:
                     snr = [None] * 4
                 res = res + snr
-                #res[6] = ZMW name
-                res.append(read.qname.split('/')[1])
+
+                # res[6] = ZMW name, also stored in tags["zm"]
+                try:
+                    res.append(int(read.qname.split('/')[1]))
+                except: # simulated data may not have the ZMW info, in which
+                        #case, we store just a unique ID
+                    res.append(i)
 
                 # aggregate results
                 all_results.append(res)
 
-                if self.testing and N > self.testing:
-                    break 
+                if self._sample and N >= self._sample:
+                    break
 
             self._df = pd.DataFrame(all_results,
-                columns=['read_length','GC_content','snr_A','snr_C','snr_G','snr_T','ZMW'])
-            self._N = N
+                columns=['read_length', "reference_length", 'GC_content',
+                            'snr_A','snr_C','snr_G','snr_T','ZMW'])
+
+            # populate the nb passes from the ZMW
+            grouped = self._df.groupby("ZMW")
+            agg = grouped.agg({"read_length": len})
+
+            ZMW = self._df.ZMW.unique()
+            aa = list(pylab.flatten([[agg.loc[this][0]] * agg.loc[this][0] for this in ZMW]))
+            self._df['nb_passes'] = aa
+            self._df['nb_passes'] -= 1 # nb passes starts at 0
+
             self.reset()
         return self._df
     df = property(_get_df)
@@ -363,19 +422,10 @@ class BAMPacbio(PacbioBAMBase):
         data['nb_bases'] = int(self.df.read_length.sum())
         data['nb_reads'] = len(self.df)
         data['mean_GC'] = float(self.df.GC_content.mean())
+        data['CCS_nb_reads'] = self.get_number_of_ccs()
+        data['CCS_mean_passes'] = self.get_number_of_ccs()
         return data
     stats = property(_get_stats, doc="return basic stats about the read length")
-
-    def _get_ZMW_passes(self):
-        if self._nb_pass is None:
-            if self._df is None:
-                self._get_df()
-
-            zmw_passes = collections.Counter(self._df.loc[:,'ZMW'])
-            distrib_nb_passes = [zmw_passes[z] for z in zmw_passes.keys()]
-            self._nb_pass = collections.Counter(distrib_nb_passes)
-        return self._nb_pass
-    nb_pass = property(_get_ZMW_passes, doc="number of passes (ZMW)")
 
     def stride(self, output_filename, stride=10, shift=0, random=False):
         """Write a subset of reads to BAM output
@@ -399,7 +449,7 @@ class BAMPacbio(PacbioBAMBase):
                         shift = np.random.randint(stride)
 
     def random_selection(self, output_filename, nreads=None,
-            expected_coverage=None, reference_length=None):
+            expected_coverage=None, reference_length=None, read_lengths=None):
         """Select random reads
 
         :param nreads: number of reads to select randomly. Must be less than
@@ -407,22 +457,31 @@ class BAMPacbio(PacbioBAMBase):
         :param expected_coverage:
         :param reference_length:
 
-        of expected_coverage and reference_length provided, nreads is replaced
+        if expected_coverage and reference_length provided, nreads is replaced
         automatically.
+
+        .. note:: to speed up computation (if you need to call random_selection
+            many times), you can provide the mean read length manually
         """
         assert output_filename != self.filename, \
             "output filename should be different from the input filename"
-        self.reset()
+
+        if read_lengths is None:
+            self.reset()
+            read_lengths = [read.query_length for i, read in enumerate(self.data)]
+
+        N = len(read_lengths)
 
         if expected_coverage and reference_length:
-            mu = self.stats['mean']
+            mu = pylab.mean(read_lengths)
             nreads = int(expected_coverage * reference_length / mu)
 
-        assert nreads < len(self), "nreads parameter larger than actual Number of reads"
-        selector = random.sample(range(len(self)), nreads)
+        assert nreads < N, "nreads parameter larger than actual Number of reads"
+        selector = random.sample(range(N), nreads)
         logger.info("Creating a pacbio BAM file with {} reads".format(nreads))
 
         with pysam.AlignmentFile(output_filename,"wb", template=self.data) as fh:
+            self.reset()
             for i, read in enumerate(self.data):
                 if i in selector:
                     fh.write(read)
@@ -460,6 +519,286 @@ class BAMPacbio(PacbioBAMBase):
                 if ((read.query_length > threshold_min) & (read.query_length < threshold_max)):
                     fh.write(read)
 
+    def hist_snr(self, bins=50, alpha=0.5, hold=False, fontsize=12,
+                grid=True, xlabel="SNR", ylabel="#",title="", clip_upper_SNR=30):
+        """Plot histogram of the ACGT SNRs for all reads
+
+        :param int bins: binning for the histogram. Note that the range starts
+            at 0 and ends at clip_upper_SNR
+        :param float alpha: transparency of the histograms
+        :param bool hold:
+        :param int fontsize:
+        :param bool grid:
+        :param str xlabel:
+        :param str ylabel:
+        :param str title:
+
+        .. plot::
+            :include-source:
+
+            from sequana.pacbio import PacbioSubreads
+            from sequana import sequana_data
+            b = PacbioSubreads(sequana_data("test_pacbio_subreads.bam"))
+            b.hist_snr()
+
+        """
+        if self._df is None:
+            self._get_df()
+
+        # old pacbio format has no SNR stored
+        if len(self._df['snr_A'].dropna()) == 0:
+            # nothing to plot
+            from sequana import sequana_data
+            pylab.clf()
+            pylab.imshow(pylab.imread(sequana_data("no_data.jpg")))
+            pylab.gca().axis('off')
+            return
+
+        if hold is False:
+            pylab.clf()
+
+        maxSNR = 0
+        for letter in "ACGT":
+            m = self._df.loc[:,"snr_{}".format(letter)].max()
+            if m > maxSNR:
+                maxSNR = m
+
+        if maxSNR > clip_upper_SNR:
+            maxSNR = clip_upper_SNR
+
+        bins = pylab.linspace(0, maxSNR, bins)
+
+        pylab.hist(self._df.loc[:,'snr_A'].clip_upper(maxSNR), alpha=alpha, label="A", bins=bins)
+        pylab.hist(self._df.loc[:,'snr_C'].clip_upper(maxSNR), alpha=alpha, label="C", bins=bins)
+        pylab.hist(self._df.loc[:,'snr_G'].clip_upper(maxSNR), alpha=alpha, label="G", bins=bins)
+        pylab.hist(self._df.loc[:,'snr_T'].clip_upper(maxSNR), alpha=alpha, label="T", bins=bins)
+        pylab.legend()
+        pylab.xlabel(xlabel, fontsize=fontsize)
+        pylab.ylabel(ylabel, fontsize=fontsize)
+        pylab.title(title,fontsize=fontsize)
+        if grid is True:
+            pylab.grid(True)
+
+    def hist_nb_passes(self, bins=None, alpha=0.5, hold=False, fontsize=12,
+                          grid=True, xlabel="Number of ZMW passes", logy=True,
+                          ylabel="#", label="", title="Number of ZMW passes"):
+        """Plot histogram of number of reads per ZMW (number of passes)
+
+        :param float alpha: transparency of the histograms
+        :param bool hold:
+        :param int fontsize:
+        :param bool grid:
+        :param str xlabel:
+        :param str ylabel:
+        :param bool logy: use log scale on the y axis (default to True)
+        :param str label: label of the histogram (for the legend)
+        :param str title:
+
+        .. plot::
+            :include-source:
+
+            from sequana.pacbio import PacbioSubreads
+            from sequana import sequana_data
+            b = PacbioSubreads(sequana_data("test_pacbio_subreads.bam"))
+            b.hist_nb_passes()
+        """
+        max_nb_pass = self.df.nb_passes.max()
+        if bins is None:
+            k = range(1, max_nb_pass+1)
+
+        # histogram nb passes
+        if hold is False:
+            pylab.clf()
+        pylab.hist(self.df.nb_passes, bins=bins, alpha=alpha,
+                   label=label, log=logy, width=1)
+        if len(k) < 5:
+            pylab.xticks(range(6), range(6))
+
+        pylab.xlabel(xlabel, fontsize=fontsize)
+        pylab.ylabel(ylabel, fontsize=fontsize)
+        pylab.title(title, fontsize=fontsize)
+        if grid is True:
+            pylab.grid(True)
+
+    def get_number_of_ccs(self, min_length=50, max_length=15000):
+        query = "read_length>=@min_length and read_length <=@max_length"
+        dd = self.df.query(query)
+        return len(dd.ZMW.unique())
+
+    def get_mean_nb_passes(self, min_length=50, max_length=15000):
+        query = "read_length>=@min_length and read_length <=@max_length"
+        dd = self.df.query(query).groupby("ZMW").agg(pylab.mean)["nb_passes"]
+        return dd.mean()
+
+    '''def hist_mean_ccs(self, bins=1000, **kwargs):
+        """Group subreads by ZMW and plot mean of read length for each polymerase"""
+        data = self.df[['read_length', 'ZMW']].groupby('ZMW')
+        data.mean().hist(bins=bins, **kwargs)
+        pylab.title("CCS mean read length")
+        return data
+    '''
+
+
+class CCS(PacbioBAMBase):
+    """
+
+    You can get a CCS file from a BAM file as follows::
+
+        singularity run /home/cokelaer/pacbio.simg ccs  --minPasses 80  \
+            m54091_180224_083446.subreads.bam test.bam
+
+    If empty, you may need to set other parameter such as the predicted
+    accuracy::
+
+    singularity run /home/cokelaer/pacbio.simg ccs --minPasses 0 \
+        test_pacbio_subreads.bam out.bam  --minPredictedAccuracy 0.7
+
+    """
+    def __init__(self, filename):
+        super(CCS, self).__init__(filename)
+
+    @property
+    def df(self):
+        # RG: ID read group ??
+        # np: number of passes
+        # rq ?
+        # rs: list 6 numbers ?
+        # za:
+        # zm ID of the ZMW
+        # sn: SNR how is this computed ?
+        # zs
+        # - sn: list of ACGT SNRs. A, C, G, T in that order
+        if self._df is not None:
+            return self._df
+
+        logger.info("Scanning input file. Please wait")
+        self.reset()
+        N = 0
+
+        all_results = []
+        # This takes 60%  of the time...could use cython ?
+        for read in self.data:
+            tags = dict(read.tags) #11% of the time
+            res = []
+            # count reads
+            N += 1
+            if (N % 10000) == 0:
+                logger.info("Read %d sequences" %N)
+
+            # res[0] = read length
+            res.append(read.query_length) # also stored in tags["qe"] - tags["qs"]
+
+            # collections.counter is slow, let us do it ourself
+            res.append( 100. / read.qlen * sum(
+                [read.query_sequence.count(letter) if read.query_sequence
+                    else 0 for letter in "CGcgSs"]))
+
+            # res[1:4] contains SNR  stored in tags['sn'] in the order A, C, G, T
+            try:
+                snr = list(tags['sn'])
+            except:
+                snr = [None] * 4
+            res = res + snr
+
+            # res[6] = ZMW name, also stored in tags["zm"]
+            res.append(int(tags['zm']))
+            res.append(tags['np'])
+
+            # aggregate results
+            all_results.append(res)
+
+        self._df = pd.DataFrame(all_results,
+            columns=['read_length','GC_content','snr_A','snr_C','snr_G','snr_T','ZMW',
+                     "nb_passes"])
+        self._df.ZMW = self._df.ZMW.astype(int)
+
+        if len(self._df.ZMW.unique()) != len(self._df):
+            logger.warning("Found non unique ZMW. This may not be a CCS but "
+                        "a subread file. Consider using PacbioSubreads class")
+
+        self.reset()
+        return self._df
+
+    def stats(self):
+        data = {}
+        data["N"] = len(self.df)
+        data["mean_read_length"] = float(self.df.read_length.mean().round(2))
+        data["total_bases"] = int(self.df.read_length.sum())
+        data["mean_nb_passes"] = float(self.df.nb_passes.mean().round(2))
+        return data
+
+    def to_summary(self, filename="sequana_summary_pacbio_ccs.json"):
+        """Save statistics into a JSON file
+
+        :param filename:
+        :param data: dictionary to save. If not provided, use :meth:`stats`
+
+        """
+        data = self.stats()
+        s = Summary("pacbio_ccs", self.sample_name, data=data)
+        s._data_description = {
+            "N": "CCS reads",
+            "total_bases": "Number of CCS bases",
+            "mean_read_length": "CCS Read Length (mean)",
+            "mean_nb_passes": "Number of Passes (mean)"
+        }
+        s.to_json(filename)
+
+    def hist_passes(self, maxp=50, fontsize=16):
+        passes = self.df.nb_passes.copy()
+        passes.clip_upper(maxp).hist(bins=maxp)
+        pylab.xlim([0, maxp])
+        pylab.ylabel("# count", fontsize=fontsize)
+        pylab.xlabel("Passes (max {})".format(maxp), fontsize=fontsize)
+
+    def boxplot_read_length_vs_passes(self, nmax=20, ax=None, whis=1.5, widths=0.6):
+        dd = self.df.query("nb_passes<=@nmax")[["nb_passes", "read_length"]]
+        axes = dd.boxplot(
+            by="nb_passes",
+            notch=False, widths=widths,
+            meanline=True, showmeans=True, ax=ax, whis=whis,
+            flierprops=dict(markerfacecolor="blue", alpha=0.1, markersize=8),
+            boxprops=dict(linewidth=1.5,  color="y"),
+            medianprops=dict(color="k",linewidth=2.5, linestyle="-"),
+            meanprops=dict(color="red", linestyle="--", linewidth=1.5),
+            capprops=dict(color="black", linewidth=2),
+            patch_artist=False)
+
+
+class PacbioMappedBAM(PacbioBAMBase):
+
+    def __init__(self, filename, method):
+        super(PacbioMappedBAM, self).__init__(filename)
+        assert method in ["bwa", "blasr", "minimap2"]
+        self.method = method
+
+    def _get_data(self):
+        # return list of lists
+        # each list is made of 3 values: mapq, length, concordance
+        from sequana import Cigar
+        data = []
+        self.reset()
+        count = 0
+
+        for align in self.data:
+            mapq = align.mapq
+            length = align.rlen
+            if self.method in ["blasr", "minimap2"]:
+                this = Cigar(align.cigarstring).stats()
+                S, D, I, M = this[4] , this[2] , this[1], this[0]
+                concordance = 1 - (D+I+S)/(D + I + M + S)
+            else:
+                this = align.get_cigar_stats()[0]
+                error = this[-1]  # suppose to be I + D + X
+                total = this[-1] + this[0]
+                if total:concordance = 1- (error)/(total)
+                else:concordance = 0
+            data.append([mapq, length, concordance])
+            if count % 10000 == 0:
+                logger.info("%s" % count)
+            count+=1
+        return data
+
     def filter_mapq(self, output_filename, threshold_min=0,
         threshold_max=255):
         """Select and Write reads within a given range
@@ -478,117 +817,27 @@ class BAMPacbio(PacbioBAMBase):
             for read in self.data:
                 if ((read.mapq < threshold_max) & (read.mapq > threshold_min)):
                     fh.write(read)
-                    print(count, "Keep", read.mapq)
                 else:
-                    print(count, "skip", read.mapq)
+                    pass
                 count += 1
-                if count % 10000: 
-                    print("%s sequence processed" % count)
+                if count % 10000:
+                    logger.info("%s sequence processed" % count)
 
-    def hist_snr(self, bins=50, alpha=0.5, hold=False, fontsize=12,
-                grid=True, xlabel="SNR", ylabel="#",title=""):
-        """Plot histogram of the ACGT SNRs for all reads
-
-        :param int bins: binning for the histogram
-        :param float alpha: transparency of the histograms
-        :param bool hold:
-        :param int fontsize:
-        :param bool grid:
-        :param str xlabel:
-        :param str ylabel:
-        :param str title:
-
-        .. plot::
-            :include-source:
-
-            from sequana.pacbio import BAMPacbio
-            from sequana import sequana_data
-            b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
-            b.hist_snr()
-
-        """
-        if self._df is None:
-            self._get_df()
-
-        # old pacbio format has no SNR stored
-        if len(self._df['snr_A'].dropna()) == 0:
-            # nothing to plot
-            from sequana import sequana_data
-            pylab.clf()
-            pylab.imshow(pylab.imread(sequana_data("no_data.jpg")))
-            pylab.gca().axis('off')
-            return
-
-        if hold is False:
-            pylab.clf()
-        pylab.hist(self._df.loc[:,'snr_A'], alpha=alpha, label="A", bins=bins)
-        pylab.hist(self._df.loc[:,'snr_C'], alpha=alpha, label="C", bins=bins)
-        pylab.hist(self._df.loc[:,'snr_G'], alpha=alpha, label="G", bins=bins)
-        pylab.hist(self._df.loc[:,'snr_T'], alpha=alpha, label="T", bins=bins)
-        pylab.legend()
-        pylab.xlabel(xlabel, fontsize=fontsize)
-        pylab.ylabel(ylabel, fontsize=fontsize)
-        pylab.title(title,fontsize=fontsize)
-        if grid is True:
-            pylab.grid(True)
-
-    def hist_ZMW_subreads(self, alpha=0.5, hold=False, fontsize=12,
-                          grid=True, xlabel="Number of ZMW passes", logy=True,
-                          ylabel="#", label="", title="Number of ZMW passes"):
-        """Plot histogram of number of reads per ZMW (number of passes)
-
-        :param float alpha: transparency of the histograms
-        :param bool hold:
-        :param int fontsize:
-        :param bool grid:
-        :param str xlabel:
-        :param str ylabel:
-        :param bool logy: use log scale on the y axis (default to True)
-        :param str label: label of the histogram (for the legend)
-        :param str title:
-
-        .. plot::
-            :include-source:
-
-            from sequana.pacbio import BAMPacbio
-            from sequana import sequana_data
-            b = BAMPacbio(sequana_data("test_pacbio_subreads.bam"))
-            b.hist_ZMW_subreads()
-        """
-        if self._nb_pass is None:
-            self._get_ZMW_passes()
-
-        max_nb_pass = max(self._nb_pass.keys())
-        k = range(1, max_nb_pass+1)
-        val = [self._nb_pass[i] for i in k]
-
-        # histogram nb passes
-        if hold is False:
-            pylab.clf()
-        pylab.bar(k, val, alpha=alpha, label=label, log=logy)
-        if len(k) < 5:
-            pylab.xticks(range(6), range(6))
-
-        pylab.xlabel(xlabel, fontsize=fontsize)
-        pylab.ylabel(ylabel, fontsize=fontsize)
-        pylab.title(title, fontsize=fontsize)
-        if grid is True:
-            pylab.grid(True)
-
-    def _set_rlen(self):
-        pass
-
-    def _set_concordance(self, method):
+    def _set_concordance(self):
         from sequana import Cigar
         self._concordance = []
         self.reset()
-        if method == "blasr":
+        count = 0
+        if self.method in ["blasr", "minimap2"]:
             for align in self.data:
                 if align.cigarstring:
-                    this = Cigar(align.cigarstring).stats()
-                    S, D, I, M = this[4] , this[2] , this[1], this[0]
+                    this = Cigar(align.cigarstring).as_dict()
+                    S, D, I, M = this["S"] , this["D"] , this["I"], this["M"]
                     self._concordance.append((1- (D+I+S)/(D+I+M+S)))
-        elif method == "bwa":
+                count += 1
+                if count %1000 ==0 : print(count)
+                if count == 10000: break
+        elif self.method == "bwa":
             for align in self.data:
                 if align.cigarstring:
                     this = align.get_cigar_stats()[0]
@@ -597,11 +846,11 @@ class BAMPacbio(PacbioBAMBase):
                     error = this[-1]  # suppose to be I + D + X
                     # can check with alignment.get_cigar_stats() on blasr data
                     # for instance
-                    # 
+                    #
                     total = this[-1] + this[0]
                     self._concordance.append((1- (error)/(total)))
 
-    def hist_concordance(self, method, bins=100, fontsize=16):
+    def hist_concordance(self,  bins=100, fontsize=16):
         """
 
             formula : 1 - (in + del + mismatch / (in + del + mismatch + match) )
@@ -610,7 +859,7 @@ class BAMPacbio(PacbioBAMBase):
         BWA for instance has no X stored while Pacbio forbids the use of the M
         (CMATCH) tag. Instead, it uses X (CDIFF) and = (CEQUAL) characters.
 
-        Subread Accuracy: The post-mapping accuracy of the basecalls. 
+        Subread Accuracy: The post-mapping accuracy of the basecalls.
         Formula: [1 - (errors/subread length)], where errors = number of deletions +
         insertions + substitutions.
 
@@ -618,7 +867,7 @@ class BAMPacbio(PacbioBAMBase):
         try:
             concordance = self._concordance
         except:
-            self._set_concordance(method)
+            self._set_concordance()
             concordance = self._concordance
 
         pylab.hist(concordance, bins=bins)
@@ -629,33 +878,10 @@ class BAMPacbio(PacbioBAMBase):
         pylab.axvline(median, color='r', alpha=0.5, ls="--")
         pylab.xlabel("concordance", fontsize=fontsize)
 
-    def _get_data(self, method="blasr"):
-        from sequana import Cigar
-        data = []
-        self.reset()
-        count = 0
-        for align in self.data:
-            mapq = align.mapq
-            length = align.rlen
-            if method == "blasr":
-                this = Cigar(align.cigarstring).stats()
-                S, D, I, M = this[4] , this[2] , this[1], this[0]
-                concordance = 1 - (D+I+S)/(D + I + M + S)
-            else:
-                this = align.get_cigar_stats()[0]
-                error = this[-1]  # suppose to be I + D + X
-                total = this[-1] + this[0]
-                if total:concordance = 1- (error)/(total)
-                else:concordance = 0
-            data.append([mapq, length, concordance])
-            if count % 10000 == 0: print("%s" % count)
-            count+=1
-        return data
-
-    def boxplot_mapq_concordance(self, method):
+    def boxplot_mapq_concordance(self):
         # method can only be bwa for now
-        assert method == "bwa"
-        data = self._get_data(method)
+        assert self.method == "bwa"
+        data = self._get_data()
         df = pd.DataFrame(data, columns=["mapq", "length", "concordance"])
         pylab.clf()
         pylab.boxplot([df[df.mapq == i]['concordance'] for i in range(1,61)])
@@ -688,13 +914,6 @@ class BAMPacbio(PacbioBAMBase):
         pylab.title("CCS median read length")
         return data
 
-    def hist_mean_ccs(self, bins=1000, **kwargs):
-        """Group subreads by ZMW and plot mean of read length for each polymerase"""
-        data = self.df[['read_length', 'ZMW']].groupby('ZMW')
-        data.mean().hist(bins=bins, **kwargs)
-        pylab.title("CCS mean read length")
-        return data
-
 
 class BAMSimul(PacbioBAMBase):
     """BAM reader for Pacbio simulated reads (PBsim)
@@ -723,7 +942,7 @@ class BAMSimul(PacbioBAMBase):
                 # count reads
                 N += 1
                 if (N % 10000) == 0:
-                    print("Read %d sequences" %N)
+                    logger.info("Read %d sequences" %N)
                 #res[0] = read length
                 res.append(read.query_length)
                 # res[1] = GC content
@@ -737,7 +956,6 @@ class BAMSimul(PacbioBAMBase):
 
             self._df = pd.DataFrame(all_results,
                 columns=['read_length','GC_content'])
-            self._N = N
             self.reset()
         return self._df
     df = property(_get_df)
@@ -769,7 +987,7 @@ class BAMSimul(PacbioBAMBase):
         """
         assert output_filename != self.filename, \
             "output filename should be different from the input filename"
-        assert len(mask) == self._N, \
+        assert len(mask) == len(self), \
             "list of bool must be the same size as BAM file"
         self.reset()
         with pysam.AlignmentFile(output_filename,  "wb", template=self.data) as fh:
@@ -779,7 +997,7 @@ class BAMSimul(PacbioBAMBase):
 
 
 class PBSim(object):
-    """Filter an input BAM (simulated with pbsim) so as so keep 
+    """Filter an input BAM (simulated with pbsim) so as so keep
     reads that fit a target distribution.
 
     This uses a MH algorithm behind the scene.
@@ -787,13 +1005,28 @@ class PBSim(object):
     ::
 
         ss = pacbio.PBSim("test10X.bam")
-        clf(); 
+        clf();
         ss.run(bins=100, step=50)
 
 
+    For example, to simulate data set, use::
+
+        pbsim --data-type CLR --accuracy-min 0.85 --depth 20  \
+            --length-mean 8000 --length-sd 800 reference.fasta --model_qc model_qc_clr
+
+    The file model_qc_clr can be retrieved from the github here below.
+
+    See https://github.com/pfaucon/PBSIM-PacBio-Simulator for details.
+
+    We get a fastq file where simulated read sequences are randomly sampled from
+    the reference sequence ("reference.fasta") and differences (errors) of the
+    sampled reads are introduced.
+
+    The Fastq can be converted to
+
     """
     def __init__(self, input_bam, simul_bam):
-        self.bam = BAMPacbio(input_bam)
+        self.bam = PacbioSubreads(input_bam)
         self.Nreads = len(self.bam)
         self.bam_simul = BAMSimul(simul_bam)
 
@@ -811,7 +1044,7 @@ class PBSim(object):
         # compute histogram of the input reads once for all to be used
         # in the target_distribution method
         self.bins = bins
-        self.Y, self.X = np.histogram(self.bam.df.read_length, bins=bins, normed=True)
+        self.Y, self.X = np.histogram(self.bam.df.read_length, bins=bins, density=True)
 
         lengths = self.bam_simul.df.read_length.values
         self.tokeep = []
@@ -838,7 +1071,7 @@ class PBSim(object):
         pylab.plot(vec)
         pylab.subplot(212)
 
-        pylab.hist(vec[burn:], bins=bins,normed=1)
+        pylab.hist(vec[burn:], bins=bins, density=1)
         pylab.plot(x,y,'r-')
         pylab.ylabel('Frequency')
         pylab.xlabel('x')
@@ -846,13 +1079,4 @@ class PBSim(object):
 
         if output_filename is not None:
             self.bam_simul.filter_bool(output_filename, self.tokeep)
-
-
-
-
-
-
-
-
-
 

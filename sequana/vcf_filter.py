@@ -22,6 +22,7 @@ from sequana.lazy import vcf
 from sequana.lazy import pylab
 from sequana.vcftools import VCFBase
 from sequana import logger
+logger.name = __name__
 
 
 class VCF(object):
@@ -101,133 +102,43 @@ all filters will be recognised"""
 class VCF_mpileup_4dot1(VCFBase):
     """VCF filter dedicated to version 4.1 and mpileup
 
-    The following filter VCF created with mpileup
+    This filter can be used to filter VCF created with mpileup.
+
+    By default, no filters are applied.
+
+    One need to define the filters.
+
+    There are 3 hard-coded filters that can be applied by settings these
+    attributes to True:
+
+    * apply_af1_filter 
+    * apply_dp4_filter: includes minimum_depth, minimu_depth_strand and ratio
+      filters (see later)
+    * apply_indel_filter
 
 
-    The variant quality score was required to be greater than 50 (quality < 50)
-    The mapping quality greater than 30 (map_quality < 30).
+    Terminology:
 
-        quality < 50                          variant.QUAL
-        map_quality < 30                      variant.INFO['MP']
-
-    If not all reads gave the same base call, the allele frequency, as calculated
-    by bcftools, was required to be either 0 for bases called the same as the
-    reference, or 1 for bases called as a SNP (af1 < 0.95).
-
-        af1 < 0.95 (if a variant site)        variant.INFO['AF1']
-        af1 > 0.05 (if a non-variant site)    same as above
-
-    The majority base call was required to be present in at least 75% of
-    reads mapping at the base, (ratio < 0.75),
-
-        ratio < 0.75
-
-    The minimum mapping depth required was 4 reads, at least two of which
-    had to map to each strand (depth < 4, depth_strand < 2).
-
-        depth < 4                             sum(variant.INFO['DP'])
-        depth_strand <2                       v.INFO["DP4"][2] & v.INFO["DP4"][3]
-
-        According to https://github.com/lh3/samtools/blob/master/bcftools/vcfutils.pl
-
-        $dp = $1 + $2 + $3 + $4
-    $dp_alt = $3 + $4
-
-    Finally, strand_bias was required to be less than 0.001,
-    map_bias less than 0.001 and tail_bias less than 0.001:
-
-        strand_bias < 0.001                   variant.INFO['PV4'][0]
-        map_bias < 0.001                      variant.INFO['PV4'][2]
-        tail_bias < 0.001                     variant.INFO['PV4'][3]
-
-    If any of these filters were not met, the base was called as uncertain.
+    * depth        : number of reads matching the position (4)
+    * depth_strand : number of reads matching the position per strand (2)
+    * ratio        : ratio of first to second base call (0.75)
+    * quality      : variant quality (e.g. 50)
+    * map_quality  : mapping quality (e.g. 30)
+    * af1          : allele frequency (you would expect an AF of 1 
+        for haploid SNPs). Here set to 0.95 by default
+    * strand_bias  : p-value for strand bias.
+    * map_bias     : p-value for mapping bias.
+    * tail_bias    : p-value for tail distance bias.
 
 
-    PV4 stands for P-values for 1) strand bias (exact test); 2) baseQ bias (t-test); 3)
-    mapQ bias (t); 4) tail distance bias (t)
-
-    DP4 Number of 1) forward ref alleles; 2) reverse ref; 3) forward non-ref; 4) reverse
-    non-ref alleles, used in variant calling. Sum can be smaller than DP because
-    low-quality bases are not counted. This is the allelic count.
-
-
-Variation detection was performed using samtools mpileup v0.1.19 [12] with parameters “-d 1000 -DSugBf” and bcftools v0.1.19 [13] to produce a BCF file of all variant sites. The option to call genotypes at variant sites was passed to the bcftools call. An unfiltered VCF is produced using the following command::
-
-     samtools mpileup -d 1000 -DSug ref bam | bcftools view -p 0.99 -cgv
-
-All bases were filtered to remove those with uncertainty in the base call.
-
-The bcftools variant quality score was required to be greater than 50 (quality < 50) and mapping quality greater than 30 (map_quality < 30). If not all reads gave the same base call, the allele frequency, as calculated by bcftools, was required to be either 0 for bases called the same as the reference, or 1 for bases called as a SNP (af1 < 0.95). The majority base call was required to be present in at least 75% of reads mapping at the base, (ratio < 0.75), and the minimum mapping depth required was 4 reads, at least two of which had to map to each strand (depth < 4, depth_strand < 2). Finally, strand_bias was required to be less than 0.001, map_bias less than 0.001 and tail_bias less than 0.001. If any of these filters were not met, the base was called as uncertain.
-A pseudo-genome was constructed by substituting the base call at each site (variant and non-variant) in the BCF file into the reference genome and any site called as uncertain was substituted with an N. Insertions with respect to the reference genome were ignored and deletions with respect to the reference genome were filled with N’s in the pseudo-genome to keep it aligned and the same length as the reference genome used for read mapping.
-
-
-SNP Calling
---------------
-
-
-This can then be filtered (outside of the pipeline) further by end-users using bcftools-1.2 annotate that is packaged with bcftools-1.2. A filtering step is applied to the VCF using vcfutils.pl varFilter and default parameters to produce a filtered VCF.
-
-Pseudogenome Construction
-
-This step takes a BAM file as input (as produced by the mapping pipeline) runs
-samtools mpileup to call snps and small indels to produce a VCF containing all
-reference sites (variant and non-variant sites). The VCF is produced using the
-following command::
-
-    samtools mpileup -d 1000 -DSugBf ref bam | bcftools view -cg -
-
-This VCF containing all sites in the reference genome is passed to a filtering step where each site (variant and non-variant) is filtered using the following criteria:
-
- depth        : number of reads matching the position
- depth_strand : number of reads matching the position per strand
- ratio        : ratio of first to second base call
- quality      : variant quality
- map_quality  : mapping quality
- af1          : allele frequency (you would expect an AF of 1 for haploid SNPs)
- strand_bias  : p-value for strand bias.
- map_bias     : p-value for mapping bias.
- tail_bias    : p-value for tail distance bias.
-
-A pseudogenome is constructed by substituting the base call at each site (varaint and non-variant) in the BCF into the reference genome. Other points to note about the pseudo-genome construction:
-
-    If any of reference sites in the BCF fulfil any of the following criteria they are filtered out and replaced with the "N” character in the pseudo-genome sequence.
-
- depth < 4
- depth_strand < 2
- ratio < 0.75
- quality < 50
- map_quality < 30
- af1 < 0.95 (if a variant site)
- af1 > 0.05 (if a non-variant site)
- strand_bias < 0.001
- map_bias < 0.001
- tail_bias < 0.001
-
-    Insertions with respect to the reference genome are ignored and not added to the output pseudo-genome.
-
-    Deletions with respect to the reference genome are filled up with "N” characters in the pseudo-genome in order to keep it aligned and at the same length relative to the reference genome that was used in read mapping.
-
-    Heterozygous sites are turned into homozygous alleles by selecting the first allele in the BCF file. However, if the first allele is an indel, the second allele in the BCF file is taken. If the second allele is also an indel, a single “N” character is chosen.
-
-The VCF containing all sites in the reference genome is then deleted by the pipeline.
-[edit] Results
-The pipeline produces three files
-
-    a VCF file containing unfiltered variant sites
-    a VCF file containing filtered variant sites
-    a pseudogenome fasta file
-
+    :resources: https://github.com/sanger-pathogens/vr-codebase/ (see
+        Variant/Evaluator/Pseudosequence.pm file)
 
     """
     def __init__(self, filename, **kwargs):
         """
         Filter vcf file with a dictionnary.
         It takes a vcf file as entry.
-
-        By default, the filter contains those criteria:
-
-        - the mapping quality (MQ) should be greater than 30
-
 
         You can filter a tag within the INFO list using one of those syntax
         (using the DP tag as an example):
@@ -246,29 +157,48 @@ The pipeline produces three files
         Some tags stores a list of values. For instance DP4 contains 4 values.
         To filter the value at position 1, use e.g.::
 
-            DP4[0]<0.5
+            DP4[2]<4
 
         you can use the same convention for the range as above::
 
-            DP4[0]>0.05&<0.95
+            DP4[2]>4&<1000
 
         you may also need something like:
 
             sum(DP4[2]+DP4[3]) <2
 
+        Usage example::
+
+            from sequana import logger
+            logger.level = "DEBUG"
+            from sequana import vcf_filter
+            v = vcf_filter.VCF(filename)
+            v.vcf.apply_indel_filter = True
+            v.vcf.filter_dict['INFO']['PV4[0]'] = "<0.001"
+            v.vcf.filter_dict['INFO']['PV4[2]'] = "<0.001"
+            v.vcf.filter_dict['INFO']['PV4[3]'] = "<0.001"
+            v.vcf.filter_dict['INFO']['MQ'] = "<30"
+            v.vcf.apply_dp4_filter = True
+            v.vcf.apply_af1_filter = True
+            v.vcf.filter_dict['QUAL'] = 50
+
+            v.vcf.filter_vcf("test.vcf")
+
+
         """
         super().__init__(filename, **kwargs)
-        self.filter_dict = {"QUAL": 50,
+        self.filter_dict = {"QUAL": -1,
                             "INFO": {
-                                "MQ": "<30",
-                                "AF1": ">0.05&<0.95",
-                                "DP": "<4",
-                                "sum(DP4[2],DP4[3])":"<2",
-                                "PV4[0]": "<0.001",
-                                "PV4[2]": "<0.001",
-                                "PV4[3]": "<0.001",
                                 }
                             }
+
+        self.apply_dp4_filter = False
+        self.apply_af1_filter = False
+        self.apply_indel_filter = False
+        self.dp4_minimum_depth = 4
+        self.dp4_minimum_depth_strand = 2
+        self.dp4_minimum_ratio = 0.75
+        self.minimum_af1 = 0.95
 
     def _filter_info_field(self, info_value, threshold):
         # Filter the line if assertion info_value compare to threshold
@@ -304,21 +234,54 @@ The pipeline produces three files
                 return True
         return False
 
-    def _filter_line(self, vcf_line, filter_dict=None):
+    def _get_variant_tag(self, variant):
+        return "{}/{}".format(variant.CHROM, variant.POS)
+
+    def _filter_line(self, vcf_line, filter_dict=None, iline=None):
+        """
+
+        return False if the variant should be filter
+
+        """
+        VT = self._get_variant_tag(vcf_line)
+
         if filter_dict is None:
             # a copy to avoid side effects
             filter_dict = self.filter_dict.copy()
 
-        if (vcf_line.QUAL < filter_dict["QUAL"]):
-            logger.debug("filtered variant with QUAL below {}".format(filter_dict["QUAL"]))
+        if filter_dict["QUAL"] != -1 and vcf_line.QUAL < filter_dict["QUAL"]:
+            logger.debug("{} filtered variant with QUAL below {}".format(VT, filter_dict["QUAL"]))
             return False
 
+        if self.apply_indel_filter:
+            if self.is_indel(vcf_line) is True:
+                logger.debug("{}: filter out line {} (INDEL)".format(VT, iline))
+                return False
+
+        # DP4
+        if self.apply_dp4_filter and "DP4" in vcf_line.INFO:
+            status = self.is_valid_dp4(vcf_line, self.dp4_minimum_depth,
+                        self.dp4_minimum_depth_strand,
+                        self.dp4_minimum_ratio)
+            if status is False:
+                logger.debug("{}: filter out DP4 line {} {}".format(VT, iline, vcf_line.INFO['DP4']))
+                return False
+
+        # AF1
+        if self.apply_af1_filter and "AF1" in vcf_line.INFO:
+            status = self.is_valid_af1(vcf_line, self.minimum_af1)
+            if status is False:
+                logger.debug("{}: filter out AF1 {} on line {}".format(VT, vcf_line.INFO['AF1'], iline))
+                return False
 
         for key, value in filter_dict["INFO"].items():
             # valid expr is e.g. sum(DP4[2],DP4[0])
-            # here, we first extract the variable, then add missing [ ] 
-            # brackets to make a list and use eval function after setting 
+            # here, we first extract the variable, then add missing [ ]
+            # brackets to make a list and use eval function after setting
             # the local variable DP4 in the locals namespace
+            # PV4 skip non morphic cases (no need to filter)
+            if key == "PV4" and self.is_polymorphic(vcf_line) is False:
+                return True
 
             # Filter such as " sum(DP[0], DP4[2])<60 "
             if key.startswith("sum("):
@@ -332,7 +295,7 @@ The pipeline produces three files
                 lcl[mykey] = vcf_line.INFO[mykey]
                 result = eval(expr)
                 if self._filter_info_field(result, value):
-                    logger.debug("filtered variant {},{} with value {}".format(result, expr, value))
+                    logger.debug("{} filtered variant {},{} with value {}".format(VT, result, expr, value))
                     return False
                 else:
                     return True
@@ -340,7 +303,7 @@ The pipeline produces three files
             # key could be with an index e.g. "DP4[0]<4"
             if "[" in key:
                 if "]" not in key:
-                    raise ValueError("Found innvalid filter %s" % key)
+                    raise ValueError("Found invalid filter %s" % key)
                 else:
                     key, index = key.split("[", 1)
                     key = key.strip()
@@ -353,7 +316,7 @@ The pipeline produces three files
                 if(type(vcf_line.INFO[key]) != list):
                     if(self._filter_info_field(vcf_line.INFO[key], value)):
                         val = vcf_line.INFO[key]
-                        logger.debug("filtered variant {},{} with value {}".format(key, value, val))
+                        logger.debug("{}: filtered variant {},{} with value {}".format(VT, key, value, val))
                         return False
                 else:
                     Nlist = len(vcf_line.INFO[key])
@@ -362,7 +325,7 @@ The pipeline produces three files
                     if(self._filter_info_field(vcf_line.INFO[key][index], value)):
                         return False
             except KeyError:
-                logger.warning("The information key doesn't exist in VCF file.")
+                logger.debug("The information key {} doesn't exist in VCF file (line {}).".format(key, iline+1))
         return True
 
     def filter_vcf(self, output, filter_dict=None, output_filtered=None):
@@ -382,8 +345,8 @@ The pipeline produces three files
                 fpf = open(output_filtered, "w")
                 vcf_writer_filtered = vcf.Writer(fpf, self)
             self.rewind()
-            for variant in self:
-                if self._filter_line(variant, filter_dict):
+            for iline, variant in enumerate(self):
+                if self._filter_line(variant, filter_dict, iline=iline):
                     vcf_writer.write_record(variant)
                     unfiltered += 1
                 elif output_filtered:
@@ -394,3 +357,120 @@ The pipeline produces three files
 
         filtered = N - unfiltered
         return {"N":N, "filtered": filtered, "unfiltered": unfiltered}
+
+    def is_polymorphic(self, variant):
+        if variant.ALT[0] is None or str(variant.ALT[0]).strip() == ".":
+            return False
+        else:
+            return True
+
+    #overwrite behaviour of Variant.is_indel
+    def is_indel(self, variant):
+        if variant.ALT[0] is not None and "," in str(variant.ALT[0]):
+            return True
+        if variant.REF[0] is not None and "," in str(variant.REF[0]):
+            return True
+        if "INDEL" in variant.INFO.keys() and variant.INFO['INDEL']:
+            return True
+        return False
+
+    def is_valid_af1(self, variant, minimum_af1=0.95):
+        if "AF1" not in variant.INFO.keys():
+            return True
+
+        if self.is_polymorphic(variant):
+            if variant.INFO['AF1'] < minimum_af1:
+                return False
+            else:
+                return True
+        else:
+            if variant.INFO['AF1'] > 1 - minimum_af1:
+                return False
+            else:
+                return True
+
+    def is_valid_dp4(self, variant, minimum_depth, minimum_depth_strand, minimum_ratio):
+        """return true if valid"""
+
+        if "DP4" not in variant.INFO.keys():
+            return True
+
+        ref_forward = variant.INFO['DP4'][0]
+        ref_reverse = variant.INFO['DP4'][1]
+        alt_forward = variant.INFO['DP4'][2]
+        alt_reverse = variant.INFO['DP4'][3]
+
+        count_reference = ref_forward + ref_reverse
+        count_alt = alt_forward + alt_reverse
+        # set forward ratio
+        forward = float(ref_forward + alt_forward)
+
+        if forward > 0:
+            ratio_forward_reference = ref_forward / forward
+            ratio_forward_alt = alt_forward / forward
+        else:
+            ratio_forward_reference = 0
+            ratio_forward_alt = 0
+
+        # set reverse ratio
+        reverse = float(ref_reverse + alt_reverse)
+
+        if reverse > 0:
+            ratio_reverse_reference = ref_reverse / reverse
+            ratio_reverse_alt = alt_reverse / reverse
+        else:
+            ratio_reverse_reference = 0
+            ratio_reverse_alt = 0
+
+        if self.is_polymorphic(variant) is False: 
+            # dealing with non polymorphic site (i.e; VCF's ALT 
+            # field equals "."
+
+            # reference depth test for the reference allele
+            if count_reference < minimum_depth:
+                return False
+
+            # forward strand depth test for the reference allele
+            if ref_forward < minimum_depth_strand:
+                return False
+
+            # reverse strand depth test for the reference allele
+            if ref_reverse < minimum_depth_strand:
+                return False
+
+            # forward ratio test for the reference allele
+            if ratio_forward_reference < minimum_ratio:
+                return False
+
+            # reverse ratio test for the reference allele
+            if ratio_reverse_reference < minimum_ratio:
+                return False
+        else:
+            # reference depth test for the alternate allele
+            if count_alt < minimum_depth:
+                return False
+
+            # forward strand depth test for the alternate allele
+            if alt_forward < minimum_depth_strand:
+                return False
+
+            # reverse strand depth test for the alternate allele
+            if alt_reverse < minimum_depth_strand:
+                return False
+
+            # forward ratio test for the reference allele
+            if ratio_forward_alt < minimum_ratio:
+                return False
+
+            # reverse ratio test for the alternate allele
+            if ratio_reverse_alt < minimum_ratio:
+                return False
+
+        return True
+
+
+
+
+
+
+
