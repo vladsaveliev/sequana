@@ -28,5 +28,5 @@ def test_standalone_generic_with_config(qtbot, tmpdir):
 
 
     # read back.
-    yaml = SequanaConfig("test/test_generic.yaml").config
+    yaml = SequanaConfig(wkdir.name + "/test_generic.yaml").config
     assert yaml['test']["mylist"] == [1,2,3]
