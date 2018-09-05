@@ -33,7 +33,7 @@ logger.name == __name__
 from sequana.summary import Summary
 
 
-__all__ = ["PacbiobMappedBAM", "PacbioSubreads", "PBSim", "BAMSimul"]
+__all__ = ["PacbioMappedBAM", "PacbioSubreads", "PBSim", "BAMSimul"]
 
 
 # from pbcore.io import openAlignmentFile
