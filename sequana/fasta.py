@@ -28,6 +28,17 @@ logger.name = __name__
 __all__ = ["FastA"]
 
 
+def is_fasta(filename):
+    with open(filename, "r") as fin:
+        try:
+            line = fin.readline()
+            assert line.startswith(">")
+            line = fin.readline()
+            return True
+        except:
+            return False
+
+
 # cannot inherit from FastxFile (no object in the API ?)
 class FastA(object):
     """Class to handle FastA files. Cannot be compressed
