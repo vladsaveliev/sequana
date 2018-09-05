@@ -1,7 +1,20 @@
 from sequana.bamtools import SAM, BAM, CRAM,  Alignment, SAMFlags
+from sequana.bamtools import is_bam, is_cram, is_sam
 from sequana.modules_report.bamqc import BAMQCModule
 from sequana import sequana_data
 from easydev import TempFile
+
+
+def test_is_sam_bam_cram():
+
+    datatest = sequana_data("test_measles.sam", "testing")
+    assert is_sam(datatest) is True
+
+    datatest = sequana_data("test_measles.bam", "testing")
+    assert is_bam(datatest) is True
+
+    datatest = sequana_data("test_measles.cram", "testing")
+    assert is_cram(datatest) is True
 
 
 def test_sam(tmpdir):
@@ -33,7 +46,6 @@ def test_bam(tmpdir):
     s.get_stats()
     s.get_full_stats_as_df()
 
-
     with TempFile() as fh:
         s.to_fastq(fh.name)
         from sequana import FastQ
@@ -60,7 +72,7 @@ def test_bam(tmpdir):
         assert True
 
 # FIXME skip on travis for now
-def _test_cram():
+def test_cram():
     datatest = sequana_data("test_measles.cram", "testing")
     s = CRAM(datatest)
     assert s.summary == {'flags': {77: 6, 83: 14, 99: 10, 141: 6, 147: 10, 163: 14},

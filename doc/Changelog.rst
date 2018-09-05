@@ -9,6 +9,7 @@ Changelog
 * NEWS:
 
     * added metropolis hastings module
+    * added a sniffer module
 
 * CHANGES:
 
@@ -23,6 +24,8 @@ Changelog
     * Issue 515: sequanix should now be able to handle list in YAML files
     * Issues 520: level info in sequanix was always set to INFO at start time
     * Issue 519: fix issue due to new ruamel.yaml version
+    * Issue #522: fix bam_splitter tool
+    
 
 0.7.0
 ------
