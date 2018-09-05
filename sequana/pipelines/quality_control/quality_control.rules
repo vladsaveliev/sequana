@@ -39,6 +39,17 @@ if manager.config.cutadapt.design_file:
         logger.error("Quality control error. Incorrect design file")
         raise ValueError(err)
 
+    try:
+        from sequana import FindAdaptersFromDesign
+        ff = FindAdaptersFromDesign(manager.config.cutadapt.design_file, 
+                manager.config.cutadapt.adapter_choice)
+        ff.check()
+    except Exception as err:
+        from sequana import logger
+        logger.__name__ = "quality control"
+        logger.error("Quality control error. Incorrect design file")
+        raise err
+
 
 
 if manager.config.cutadapt.tool_choice == "atropos":
