@@ -156,9 +156,9 @@ class PacbioBAMBase(object):
         .. plot::
             :include-source:
 
-            from sequana.pacbio import PacbioBAM
+            from sequana.pacbio import PacbioSubreads
             from sequana import sequana_data
-            b = PacbioBAM(sequana_data("test_pacbio_subreads.bam"))
+            b = PacbioSubreads(sequana_data("test_pacbio_subreads.bam"))
             b.hist_GC()
 
         """
@@ -198,9 +198,9 @@ class PacbioBAMBase(object):
         .. plot::
             :include-source:
 
-            from sequana.pacbio import PacbioBAM
+            from sequana.pacbio import PacbioSubreads
             from sequana import sequana_data
-            b = PacbioBAM(sequana_data("test_pacbio_subreads.bam"))
+            b = PacbioSubreads(sequana_data("test_pacbio_subreads.bam"))
             b.plot_GC_read_len(bins=[10, 10])
 
         """
@@ -239,9 +239,9 @@ class PacbioBAMBase(object):
         .. plot::
             :include-source:
 
-            from sequana.pacbio import PacbioBAM
+            from sequana.pacbio import PacbioSubreads
             from sequana import sequana_data
-            b = PacbioBAM(sequana_data("test_pacbio_subreads.bam"))
+            b = PacbioSubreads(sequana_data("test_pacbio_subreads.bam"))
             b.hist_read_length()
 
         """
@@ -536,9 +536,9 @@ class PacbioSubreads(PacbioBAMBase):
         .. plot::
             :include-source:
 
-            from sequana.pacbio import PacbioBAM
+            from sequana.pacbio import PacbioSubreads
             from sequana import sequana_data
-            b = PacbioBAM(sequana_data("test_pacbio_subreads.bam"))
+            b = PacbioSubreads(sequana_data("test_pacbio_subreads.bam"))
             b.hist_snr()
 
         """
@@ -597,9 +597,9 @@ class PacbioSubreads(PacbioBAMBase):
         .. plot::
             :include-source:
 
-            from sequana.pacbio import PacbioBAM
+            from sequana.pacbio import PacbioSubreads
             from sequana import sequana_data
-            b = PacbioBAM(sequana_data("test_pacbio_subreads.bam"))
+            b = PacbioSubreads(sequana_data("test_pacbio_subreads.bam"))
             b.hist_nb_passes()
         """
         max_nb_pass = self.df.nb_passes.max()

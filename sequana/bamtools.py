@@ -22,6 +22,8 @@
 
     Alignment
     BAM
+    CRAM
+    SAM
     SAMFlags
 
 .. note:: BAM being the compressed version of SAM files, we do not
@@ -52,7 +54,7 @@ Interesting commands::
     samtools flagstat contaminant.bam
 """
 
-__all__ = ['BAM','Alignment', 'SAMFlags', "CS"]
+__all__ = ['BAM','Alignment', 'SAMFlags', "CS", "SAM", "CRAM"]
 
 
 # simple decorator to rewind the BAM file
@@ -92,16 +94,19 @@ def _reset(f):
 
 
 def is_bam(filename, *args):
+    """Return True if input file looks like a BAM file"""
     f = pysam.AlignmentFile(filename, mode="r", *args)
     return f.is_bam
 
 
 def is_sam(filename, *args):
+    """Return True if input file looks like a SAM file"""
     f = pysam.AlignmentFile(filename, mode="r", *args)
     return f.is_sam
 
 
 def is_cram(filename, *args):
+    """Return True if input file looks like a CRAM file"""
     f = pysam.AlignmentFile(filename, mode="r", *args)
     return f.is_cram
 
@@ -780,18 +785,18 @@ class SAMBAMbase():
 
 
 class SAM(SAMBAMbase):
-    """See :class:`SAMBAMBase` for details"""
+    """SAM Reader. See :class:`~samtools.bamtools.SAMBAMBase` for details"""
     def __init__(self, filename, *args):
         super(SAM, self).__init__(filename, mode="r", *args)
 
 class CRAM(SAMBAMbase):
-    """See :class:`SAMBAMBase` for details"""
+    """CRAM Reader. See :class:`~sequana.bamtools.SAMBAMBase` for details"""
     def __init__(self, filename, *args):
         super(CRAM, self).__init__(filename, mode="r", *args)
 
 
 class BAM(SAMBAMbase):
-    """See :class:`SAMBAMBase` for details"""
+    """BAM reader. See :class:`~sequana.bamtools.SAMBAMBase` for details"""
     def __init__(self, filename, *args):
         super(BAM, self).__init__(filename, mode="rb", *args)
 
@@ -939,10 +944,11 @@ class SAMFlags(object):
 
 
 class CS(dict):
-    """Interpret CS tag from SAM/BAM file tag 
+    """Interpret CS tag from SAM/BAM file tag
 
+    ::
 
-        from sequana import CS
+        >>> from sequana import CS
         >>> CS('-a:6-g:14+g:2+c:9*ac:10-a:13-a')
         {'D': 3, 'I': 2, 'M': 54, 'S': 1}
 

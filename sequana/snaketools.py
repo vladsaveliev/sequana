@@ -912,7 +912,7 @@ class PipelineManager(object):
         raise SequanaException(msg)
 
     def getname(self, rulename, suffix=None):
-        """Returns basename % rulename + suffix"""
+        """In the basename, include rulename and suffix"""
         if suffix is None:
             suffix = ""
         return self.basename % rulename + suffix
