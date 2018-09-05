@@ -77,13 +77,13 @@ def test_bam(tmpdir):
     except:
         assert True
 
-# FIXME skip on travis for now
+@skiptravis
 def test_cram():
     datatest = sequana_data("test_measles.cram", "testing")
     s = CRAM(datatest)
     assert s.summary == {'flags': {77: 6, 83: 14, 99: 10, 141: 6, 147: 10, 163: 14},
          'mapq': {0: 12, 60: 48},
-         'mean_quality': 33.666171617161723,  # fails on traivis FIXME
+         'mean_quality': 33.666171617161723,  
          'read_length': {79: 2, 81: 1, 93: 1, 101: 44}}
 
 def test_bam_others():
