@@ -779,7 +779,7 @@ class FindAdaptersFromDesign(object):
                 self.get_adapters_from_sample(sample)
                 found += 1
             except:
-                self.error("No index found for sample %s" % sample)
+                logger.error("No index found for sample %s" % sample)
         if found == 0:
             raise ValueError("None of the sample match any of the adapters")
 
