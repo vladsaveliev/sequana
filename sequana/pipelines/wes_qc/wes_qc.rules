@@ -29,7 +29,7 @@ from sequana import snaketools as sm
 from sequana.snaketools import SequanaConfig
 
 
-#sm.init("wes_qc.rules", globals())
+sm.init("wes_qc.rules", globals())
 expected_output = []
 # This must be defined before the include
 configfile: "config.yaml"
@@ -37,8 +37,7 @@ manager = sm.PipelineManager("wes_qc", config)
 
 # Clean template and replace None with empty string
 config = manager.config
-#__snakefile__ = srcdir(__snakefile__)
-__snakefile__ = "test"
+__snakefile__ = srcdir(__snakefile__)
 __rawdata__input = manager.getrawdata()
 __report_dir__ = 'report_vc_{0}'.format(manager.sample)
 
@@ -168,7 +167,7 @@ include: sm.modules["freebayes"]
 include: sm.modules["conda"]
 
 # Create rulegraph
-__rulegraph__input = "wes_qc.rules" #__snakefile__
+__rulegraph__input = __snakefile__
 __rulegraph__output = "rulegraph/rulegraph.svg"
 __rulegraph__mapper = {
     "sequana_coverage": "../sequana_coverage.html",
