@@ -90,6 +90,24 @@ def _reset(f):
 # is_bam to True while 'r' only will set it to False. However, it seems
 # there is not sanity check inside the file.
 
+
+def is_bam(filename, *args):
+    f = pysam.AlignmentFile(filename, mode="r", *args)
+    return f.is_bam
+
+
+def is_sam(filename, *args):
+    f = pysam.AlignmentFile(filename, mode="r", *args)
+    return f.is_sam
+
+
+def is_cram(filename, *args):
+    f = pysam.AlignmentFile(filename, mode="r", *args)
+    return f.is_cram
+
+
+
+
 class SAMBAMbase():
     """Base class for SAM/BAM/CRAM data sets
 
@@ -609,7 +627,10 @@ class SAMBAMbase():
         sigma = pylab.std(data)
 
         X = pylab.linspace(X.min(), X.max(), 100)
-        pylab.plot(X, pylab.normpdf(X, mu, sigma), lw=2, color="r", ls="--")
+
+        from sequana.misc import normpdf
+
+        pylab.plot(X, normpdf(X, mu, sigma), lw=2, color="r", ls="--")
         pylab.xlabel("GC content", fontsize=16)
 
     def _get_qualities(self, max_sample=500000):

@@ -24,7 +24,7 @@ def test_input():
     except:pass
     try: bam_splitter.main([prog, '--version'])
     except:pass
-  
+
 
     #bam_splitter.main([prog, "--version"])
 
@@ -37,8 +37,8 @@ def test_output():
 
         M, U, F = bam_splitter._main(sequana_data("test.bam"), prefix)
         from collections import Counter
-        assert M ==0
-        assert U ==0
+        assert M == 934
+        assert U == 66
         c = Counter(F)
         assert len(F) == 1000
         # ideally we should test all different flags. Here we test only a few of
@@ -48,3 +48,38 @@ def test_output():
         assert F.count(145) == 242
         assert F.count(163) == 229
         assert F.count(99) == 220
+
+
+def test_sam_cram():
+    with TemporaryDirectory() as tmpdir:
+        prefix = tmpdir + "/test"
+        M, U, F = bam_splitter._main(sequana_data("test_measles.bam"), prefix,
+            keep_unmapped=True)
+
+    with TemporaryDirectory() as tmpdir:
+        prefix = tmpdir + "/test"
+        M, U, F = bam_splitter._main(sequana_data("test_measles.sam"), prefix,
+            keep_unmapped=True)
+
+    with TemporaryDirectory() as tmpdir:
+        prefix = tmpdir + "/test"
+        M, U, F = bam_splitter._main(sequana_data("test_measles.cram"), prefix,
+            keep_unmapped=True)
+
+    with TemporaryDirectory() as tmpdir:
+        prefix = tmpdir + "/test"
+        try:
+            M, U, F = bam_splitter._main(sequana_data("test.fasta"), prefix,
+                keep_unmapped=True)
+        except ValueError:
+            pass
+
+
+
+
+
+
+
+
+
+
