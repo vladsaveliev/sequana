@@ -16,11 +16,11 @@
 #
 ##############################################################################
 """
-Author: Dimitri Desvillechabrol
+Author: Quentin Letourneur / Thomas Cokelaer
 Affiliation: Institut Pasteur
-Aim: Variant calling
+Aim: WES AC 
 Data: paired end or single reads
-Run: snakemake -s variant_calling.rules
+Run: snakemake -s wes_qc.rules
 """
 import os
 
