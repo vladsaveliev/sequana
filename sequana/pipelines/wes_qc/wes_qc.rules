@@ -18,7 +18,7 @@
 """
 Author: Quentin Letourneur / Thomas Cokelaer
 Affiliation: Institut Pasteur
-Aim: WES AC 
+Aim: WES QC
 Data: paired end or single reads
 Run: snakemake -s wes_qc.rules
 """
@@ -28,6 +28,7 @@ import sequana
 from sequana import snaketools as sm
 from sequana.snaketools import SequanaConfig
 
+exec(open(sequana.modules["fastqc_dynamic"], "r").read())
 
 sm.init("wes_qc.rules", globals())
 expected_output = []
@@ -45,12 +46,21 @@ __report_dir__ = 'report_vc_{0}'.format(manager.sample)
 #
 # Preprocessing for variant calling
 #
+# - Reads QC : FastQC
 # - Mapping: BWA
 # - Sort: sambamba
 # - MarkDuplicates: sambamba
 # - Quality filter: samtools
 #
 ##############################################################################
+
+if manager.config.fastqc.do_raw:
+    __fastqc_samples__input_fastq = __rawdata__input
+    __fastqc_samples__output_done = manager.getname("fastqc_samples", ".done")
+    __fastqc_samples__wkdir       = manager.getwkdir("fastqc_samples")
+    __fastqc_samples__log = "%s/fastqc_samples/fastqc.log" % manager.sample
+    include: fastqc_dynamic("samples", manager)
+    expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samples))
 
 reference = config["bwa_mem_ref"]["reference"]
 exec(open(sequana.modules["dynamic_copy"], "r").read())
@@ -187,4 +197,3 @@ localrules: conda, rulegraph
 rule pipeline_variant:
     input:
         expected_output
-
