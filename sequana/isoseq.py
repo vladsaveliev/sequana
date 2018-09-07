@@ -386,11 +386,14 @@ class PacbioIsoSeqMappedIsoforms(object):
 class SirvReference():
     """
 
+    See https://www.lexogen.com/sirvs/downloads/ to download one of the XLSX
+    file
+
     """
     def __init__(self):
         pass
 
-    def from_excel(self, filename):
+    def from_excel(self, filename, nrows=100):
         """
         skip 4 empty rows. next two are a header split on two lines
 
@@ -410,9 +413,12 @@ class SirvReference():
         print(df.size)
         print(df.ndim)
         self.df1 = df
-        df.columns = ["sirv_gene", "sirv_id", "annotation", "length", 
+        df.columns = ["sirv_gene", "sirv_id", "annotation", "length",
                       "sequence_with_polya", "sequence"]
         self.df = df
+
+        # drop last rows where there is no data
+        self.df = self.df[self.df.sirv_id.isnull() == False]
 
     def to_fasta(self, filename):
         data = self.df.query("annotation == 1").copy()
