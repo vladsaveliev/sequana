@@ -92,15 +92,15 @@ sp:
         fn: '*Log.final.out'
     trimmomatic:
         contents: 'Trimmomatic'
-    sequana/pacbio_qc:
+    sequana_pacbio_qc:
         fn: "summary_*.json"
-    sequana/quality_control:
+    sequana_quality_control:
         fn: "summary.json"
-    sequana/coverage:
+    sequana_coverage:
         fn: "sequana_summary_coverage.json"
-    sequana/isoseq:
+    sequana_isoseq:
         fn: "sequana_summary_isoseq.json"
-    sequana/isoseq_qc:
+    sequana_isoseq_qc:
         fn: "sequana_summary_isoseq_qc.json"
 
 
