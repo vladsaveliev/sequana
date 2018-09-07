@@ -28,7 +28,7 @@ class MultiqcModule(BaseMultiqcModule):
             info="pipelines multi Summary")
 
         self.sequana_data = {}
-        for myfile in self.find_log_files("sequana/isoseq"):
+        for myfile in self.find_log_files("sequana_isoseq"):
             name = myfile['s_name']
 
             try:

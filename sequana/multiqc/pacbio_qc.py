@@ -29,7 +29,7 @@ class MultiqcModule(BaseMultiqcModule):
             info="pipelines multi Summary")
 
         self.sequana_data = {}
-        for myfile in self.find_log_files("sequana/pacbio_qc"):
+        for myfile in self.find_log_files("sequana_pacbio_qc"):
             #print( myfile['f'] )       # File contents
             #print( myfile['s_name'] )  # Sample name (from cleaned filename)
             #print( myfile['fn'] )      # Filename

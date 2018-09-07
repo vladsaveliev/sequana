@@ -144,7 +144,7 @@ setup(
             "sequana_isoseq_qc=sequana.multiqc.isoseq_qc:MultiqcModule",
         ],
         'multiqc.hooks.v1': [
-            'before_config = sequana.multiqc:multiqc_sequana_config',
+            'before_config = sequana.multiqc.config:load_config',
         ]
     },
 

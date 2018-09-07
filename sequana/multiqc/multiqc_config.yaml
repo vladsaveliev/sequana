@@ -59,7 +59,7 @@ fn_ignore_files:
     - '*.html'
 
 fn_ignore_dirs:
-    - annoying_dirname
+    - .snakemake
 fn_ignore_paths:
     - '*/path/to/*_files/'
 

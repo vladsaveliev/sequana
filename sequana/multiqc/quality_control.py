@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 """ MultiQC module to parse output from sequana"""
-import logging
 import os
 import re
 
-from multiqc import config
-from multiqc.modules.base_module import BaseMultiqcModule
-from multiqc.plots import linegraph, table, heatmap, bargraph
+import logging
 
+logging.captureWarnings(True)
+from multiqc import config
+from multiqc.plots import linegraph, table, heatmap, bargraph
+from multiqc.modules.base_module import BaseMultiqcModule
+logging.captureWarnings(False)
+
+# Initialise the logger
 log = logging.getLogger('multiqc.sequana/quality_control')
 
 
@@ -21,10 +25,10 @@ class MultiqcModule(BaseMultiqcModule):
             anchor='sequana_quality_control',
             target='sequana_quality_control',
             href='http://github.com/sequana/sequana/',
-            info="(sequana pipelines)")
+            info="(sequana quality control multi summary)")
 
         self.data = {}
-        for myfile in self.find_log_files("sequana/quality_control"):
+        for myfile in self.find_log_files("sequana_quality_control"):
             thisdata =  self.parse_logs(myfile["f"])
             name = thisdata["project"]
             self.data[name] = self.parse_logs(myfile["f"])

@@ -7,10 +7,11 @@ from math import log10
 
 # prevent boring warning (version 1.0)
 import logging
+
 logging.captureWarnings(True)
 from multiqc import config
-from multiqc.modules.base_module import BaseMultiqcModule
 from multiqc.plots import linegraph, table, heatmap, bargraph
+from multiqc.modules.base_module import BaseMultiqcModule
 logging.captureWarnings(False)
 
 # Initialise the logger
@@ -24,14 +25,15 @@ class MultiqcModule(BaseMultiqcModule):
         # Initialise the parent object
         super(MultiqcModule, self).__init__(
             name='Sequana/coverage',    # name that appears at the top
-            anchor='sequana',  # ??
+            anchor='sequana_coverage',
             target='sequana',  # Name show that link to the following href
             href='http://github.com/sequana/sequana/',
             info="sequana_coverage multi Summary")
 
-        self.sequana_data = {}
+        self.sequana_data = dict()
         self.sequana_desc = {}
-        for myfile in self.find_log_files("sequana/coverage"):
+
+        for myfile in self.find_log_files("sequana_coverage"):
             name = myfile['s_name']
             if name.startswith("summary_"):
                 name = name.replace("summary_", "")
@@ -40,6 +42,7 @@ class MultiqcModule(BaseMultiqcModule):
             key = data['data']['chrom_name']
             self.sequana_data[key] = data['data']
             self.sequana_desc[key] = data['data_description']
+
 
 
         info = "<ul>"
