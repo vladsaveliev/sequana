@@ -62,6 +62,7 @@ if manager.config.fastqc.do_raw:
     include: fastqc_dynamic("samples", manager)
     expected_output.extend(expand(__fastqc_samples__output_done, sample=manager.samples))
 
+
 reference = config["bwa_mem_ref"]["reference"]
 exec(open(sequana.modules["dynamic_copy"], "r").read())
 __copy_ref__input = reference
@@ -174,14 +175,16 @@ include: sm.modules["freebayes"]
 ##############################################################################
 
 # Create requirements.txt(dependencies)
+__conda__output = "requirements.txt"
 include: sm.modules["conda"]
+expected_output.extend([__conda__output])
+
 
 # Create rulegraph
 __rulegraph__input = __snakefile__
 __rulegraph__output = "rulegraph/rulegraph.svg"
 __rulegraph__mapper = {
     "sequana_coverage": "../sequana_coverage.html",
-    "freebayes_vcf_filter": "../variant_calling.html",
 }
 if len(manager.samples) > 1:
     __rulegraph__mapper['joint_freebayes_vcf_filter'] = '../joint_calling.html'
@@ -194,6 +197,41 @@ expected_output.extend(["requirements.txt", __rulegraph__output])
 # snpeff_download_database needs an internet connection
 localrules: conda, rulegraph
 
-rule pipeline_variant:
+################################################################################
+# multiqc_report
+__multiqc__output = "multiqc_report.html"
+
+from sequana import sequana_data
+rule multiqc:
+     input:
+        expand(__sequana_coverage__csv, sample=manager.samples),
+        expand(__fastqc_samples__output_done, sample=manager.samples),
+     output: __multiqc__output
+     params:
+         config=sequana_data("multiqc_config.yaml", "../multiqc")
+     shell: "multiqc . -m sequana_coverage -m fastqc -f -c {params.config}"
+
+
+
+
+
+rule wes_qc:
     input:
         expected_output
+
+
+onsuccess:
+    from sequana.modules_report.fastqc import FastQCModule
+
+    try:
+        print("Create multi summary file")
+    except:
+        pass
+
+    from sequana.snaketools import OnSuccess
+    sm.OnSuccess()() # create instance and execute to create Makefile and cleanup
+
+
+onerror:
+    print("An error occurred. See message above.")
+
