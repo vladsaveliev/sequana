@@ -52,7 +52,7 @@ Create a Snakefile rule
 A possible code that implements the **count** rule is the following Snakefile:
 
 .. literalinclude:: Snakefile
-    :lines: 3-20
+    :lines: 3-17
     :linenos:
     :language: python
     :emphasize-lines: 4
