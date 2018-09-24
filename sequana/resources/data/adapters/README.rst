@@ -68,3 +68,26 @@ from Illumina TruSeq small RNA Kits
 SMARTer
 -------
 from SMARTer Stranded RNA-Seq Kit
+
+
+NEBNext
+------------
+
+Contains the single and dual-indexing
+
+
+Universal found in manualE7335_index_primers_set1 of illumina.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
