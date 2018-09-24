@@ -50,6 +50,7 @@ a sample. Currently, the following set of adapters/design are available:
     - Rubicon single indexing
     - PCRFree single indexing
     - TruSeq
+    - NEBNext single and double indexing
 
 Note that TruSeq index 17, 24, and 26 are missing. This is normal. Those are
 "reserved" Illumina index. 
