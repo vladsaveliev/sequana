@@ -5,7 +5,7 @@
 #  Copyright (c) 2016 - Sequana Development Team
 #
 #  File author(s):
-#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
+#    Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
 #
 #  Distributed under the terms of the 3-clause BSD license.
 #  The full license is in the LICENSE file, distributed with this software.
@@ -171,8 +171,9 @@ def main(args=None):
 
     # set the level
     logger.level = options.level
-    logger.info("This SAM/BAM/CRAM splitter is used for paired or un-paired reads with perfectly"
-            "mapped or unmapped reads (flags 0, 4 , 16). Others are dropped.")
+    logger.info("This SAM/BAM/CRAM splitter is used for paired or un-paired "
+                "reads with perfectly mapped or unmapped reads (flags 0, 4, "
+                "16). Others are dropped.")
 
     logger.info("Reading {}".format(options.input))
 
