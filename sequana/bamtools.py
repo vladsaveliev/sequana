@@ -980,6 +980,16 @@ class CS(dict):
                 number = ""
             else: # a letter or number
                 number += c
+        # last one
+        if current == ":":
+            d["M"] += int(number)
+        elif current == "+":
+            d["I"] += len(number)
+        elif current == "-":
+            d["D"] += len(number)
+        elif current == "*":
+            d["S"] += len(number)
+
         assert d['S'] % 2 == 0
         d['S'] //= 2
         return d
