@@ -40,7 +40,7 @@ class IsoSeqQC(object):
     Use get_isoseq_files on smrtlink to get the proper files
 
     iso = IsoSeqQC()
-    iso.hist_read_length_consensus_isoform() # histo CCS 
+    iso.hist_read_length_consensus_isoform() # histo CCS
     iso.stats() # "CCS" key is equivalent to summary metrics in CCS report
 
 
@@ -383,11 +383,18 @@ class PacbioIsoSeqMappedIsoforms(object):
         return mapped, self.df
 
 
-class SirvReference():
+class SIRVReference():
     """
 
     See https://www.lexogen.com/sirvs/downloads/ to download one of the XLSX
     file
+
+    ::
+
+        ss = isoseq.SirvReference()
+        ss.from_excel("SIRV_Set2.xls")
+        ss.to_fasta("temp.fasta")
+
 
     """
     def __init__(self):
@@ -398,35 +405,44 @@ class SirvReference():
         skip 4 empty rows. next two are a header split on two lines
 
         """
+        # header is split on two rows, so we need to skip it 
         df = pd.read_excel(filename,  skiprows=4, header=None)
         assert df.iloc[1, 4] == "c" # this column will be used
         assert df.iloc[0, 2] == "SIRV ID"
         assert df.iloc[0, 1] == "SIRV gene"
         assert df.iloc[1, 23] == "length (nt)"
-        assert df.iloc[1, 26] == "Sequence"
-        assert df.iloc[1, 29] == "Sequence"
-        # filter out useless columns and drop header
-        df = df.iloc[2:, [1,2,4,23,26,29]]
+        assert df.iloc[1, 25] == "pA length (nt)"
+        assert df.iloc[1, 26] == "Sequence" # with polyA
+        assert df.iloc[1, 29] == "Sequence" # without polyA !! 
+        # in excel this last column is actually an equation based on the
+        # sequence with polyA and may be empty when using from_excel method.
+
+        # filter out useless columns and first two lines
+        df = df.iloc[2:, [2,4,23,25,26, 29]]
+        # drop useless rows !! keep this statement after the first filtering
+        df = df[df.iloc[:,0].isnull() == False]
+
         # drop header
         df.reset_index(inplace=True, drop=True)
 
-        print(df.size)
-        print(df.ndim)
-        self.df1 = df
-        df.columns = ["sirv_gene", "sirv_id", "annotation", "length",
-                      "sequence_with_polya", "sequence"]
-        self.df = df
 
-        # drop last rows where there is no data
-        self.df = self.df[self.df.sirv_id.isnull() == False]
+        df.columns = ["sirv_id", "annotation", "length",
+                      "length_polyA", "sequence_with_polya", "sequence"]
+
+        # remove and replace sequence column using sequence_with_poly and
+        # removing the polyA
+        #df.drop("sequence", inplace=True)
+        seq = [a[0:-b] for a,b in zip(df.sequence_with_polya, df.length_polyA)]
+        df['sequence'] = seq
+
+
+        self.df = df
 
     def to_fasta(self, filename):
         data = self.df.query("annotation == 1").copy()
         with open(filename, "w") as fout:
             for _, this in data.iterrows():
                 fout.write(">{}\n{}\n".format(this.sirv_id, this.sequence))
-
-
 
 
 class SIRV(object):
@@ -564,7 +580,7 @@ class PacbioIsoSeqMultipleIsoforms(object):
 
         df = pd.DataFrame(index=sirv_names, columns=self.labels)
         for i, data in enumerate(self.rawdata):
-            aa = data.query("reference_name!=-1").copy()
+            aa = data.query("reference_name not in [-1, '-1']").copy()
             sirv_detected = aa.groupby("reference_name").count()['mapq']
             df[self.labels[i]] = sirv_detected
         return df
@@ -586,7 +602,7 @@ def get_stats(pattern, mode):
         b = isoseq.PacbioIsoSeqMappedIsoforms(filename)
         N = Summary(filename.split("/")[0]+"/sequana_summary_isoseq.json").data["hq_isoform"]['N']
         data[0].append(N)
-        data[1].append(len(b.df.query("reference_name!=-1")))
+        data[1].append(len(b.df.query("reference_name not in [-1, '-1']")))
         print("scanned {}".format(filename))
     return data
 
