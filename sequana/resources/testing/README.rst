@@ -11,6 +11,11 @@ quality_control pipelines (summary.json).
 
 test_CS_tiny.bam is a BAM file created with minimap2 using --cs option
 
+
+./test_isoseq_lq_sirv.bam is a BAM file related to isoseq analysis. It is the
+mapping of a set of LQ isoforms on the SIRV reference. This can be used to test
+the isoseq.PacbioIsoSeqMultipleIsoforms class.
+
 adapters_with_duplicates.fa
 test_adapter_removal_output.txt
 test_atropos_paired.txt
