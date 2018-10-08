@@ -798,7 +798,11 @@ class FastQ(object):
     def stats(self):
         self.rewind()
         data = [len(read['sequence']) for read in self]
-        return {"mean_read_length": pylab.mean(data), "N": len(data)}
+        S = sum(data)
+        N = float(len(data))
+        return {"mean_read_length": S/N,
+                "N": int(N),
+                "sum_read_length": S}
 
     def __eq__(self, other):
         if id(other) == id(self):
