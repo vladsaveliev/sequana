@@ -48,12 +48,6 @@ for IP in design["IP_NAME"]:
     if cond not in CONDS:
         CONDS.append(cond)
 
-for mark in MARKS:
-    for file in manager.ff.filenames:
-        if fnmatch(file, mark+"*"):
-            print(file, mark)
-
-
 #for list of input file (get_input methods)
 INPUT = []
 for mark in design['INPUT_NAME']:
@@ -79,7 +73,7 @@ for row in design.itertuples(index=True, name='Pandas'):
     if getattr(row, "NB_INPUT") > 1 and getattr(row, "NB_IP") > 1 and (getattr(row, "INPUT_NAME")) not in INPUT_REP:
         INPUT_REP.append(getattr(row, "INPUT_NAME"))
 
-
+##get rep number and names (if REP or Rep or rep, etc..)
 
 if manager.config.fastqc.do:
     # FASTQC on input data set
@@ -222,53 +216,46 @@ if manager.config.remove_blacklist.do:
     expected_output.extend(expand(__remove_blacklist__output, sample=manager.samples))
 
 
-
+rep = ['Rep1','Rep2']
 # PhantomPeakQualTools rule
-__spp__input = "4-NoBlacklist/{IP}_ref_sort_dedup_NoBlacklist.bam"
-__spp__output_pdf = "5-PhantomPeakQualTools/{IP}_ref_sort_dedup_NoBlacklist_phantom.pdf"
-__spp__metrics = "5-PhantomPeakQualTools/{IP}_ref_sort_dedup_NoBlacklist_phantom.txt"
-__spp__log_std = "5-PhantomPeakQualTools/logs/{IP}_phantom.o"
-__spp__log_err = "5-PhantomPeakQualTools/logs/{IP}_phantom.e"
-#expected_output.extend(expand(__spp__metrics, IP=list(design['IP_NAME'])))
+__spp__input = "4-NoBlacklist/{IP}_{REP}_ref_sort_dedup_NoBlacklist.bam"
+__spp__output_pdf = "5-PhantomPeakQualTools/{IP}_{REP}_ref_sort_dedup_NoBlacklist_phantom.pdf"
+__spp__metrics = "5-PhantomPeakQualTools/{IP}_{REP}_ref_sort_dedup_NoBlacklist_phantom.txt"
+__spp__log_std = "5-PhantomPeakQualTools/logs/{IP}_{REP}_phantom.o"
+__spp__log_err = "5-PhantomPeakQualTools/logs/{IP}_{REP}_phantom.e"
+expected_output.extend(expand(__spp__metrics, IP=list(design['IP_NAME']), REP=rep))
 include: sm.modules["spp"]
 
 
 # preIDR rules
 # run preIDR on INPUT
 if INPUT_REP:
-    __preIDR_INPUT__input_bam = expand("4-NoBlacklist/{INPUT}_{REP}_ref_sort_dedup_NoBlacklist.bam", INPUT=list(INPUT_REP),
-                                       REP=".*")
-    __preIDR_INPUT__case = "Pool"
-    __preIDR_INPUT__log = "4-NoBlacklist/logs/preIDR_input.o"
-    __preIDR_INPUT__output = dynamic("4-NoBlacklist/{INPUT}_{REP}_ref_sort_dedup_NoBlacklist.bam", INPUT=list(INPUT_REP),
-                                       REP=".*")
-    include: preIDR_dynamic("INPUT", manager)
-    expected_output.extend(dynamic(__preIDR_INPUT__output, INPUT=list(INPUT_REP))
+    __preIDR_input__input_bam = expand("4-NoBlacklist/{INPUT}_{REP}_ref_sort_dedup_NoBlacklist.bam", INPUT=list(INPUT_REP),
+                                       REP=rep)
+    __preIDR_input__case = "Pool"
+    __preIDR_input__log = "4-NoBlacklist/logs/preIDR_input.o"
+    __preIDR_input__output_done = "4-NoBlacklist/input_idr.done"
+    include: preIDR_dynamic("input")
+    #expected_output.extend(dynamic(__preIDR_INPUT__output, INPUT=list(INPUT_REP),REP=rep))
 
 if IP_REP:
     # run SPR
     __preIDR_SPR__input_bam = expand("4-NoBlacklist/{IP}_{REP}_ref_sort_dedup_NoBlacklist.bam", IP=list(IP_REP),
-                                       REP=".*")
+                                       REP=rep)
     __preIDR_SPR__case = "SPR"
     __preIDR_SPR__log = "4-NoBlacklist/logs/preIDR_SPR.o"
-    __preIDR_SPR__output = dynamic("4-NoBlacklist/{INPUT}_{REP}_ref_sort_dedup_NoBlacklist.bam", IP=list(IP_REP),
-                                       REP=".*")
-    include: preIDR_dynamic("SPR", manager)
-    expected_output.extend(expand(__preIDR_SPR__output, IP=list(IP_REP)))
+    __preIDR_SPR__output_done = "4-NoBlacklist/ip_spr_idr.done"
+    #include: preIDR_dynamic("SPR")
+    #expected_output.extend(expand(__preIDR_SPR__output, IP=list(IP_REP)))
 
     # run PPR
     __preIDR_PPR__input_bam = expand("4-NoBlacklist/{IP}_{REP}_ref_sort_dedup_NoBlacklist.bam", IP=list(IP_REP),
-                                       REP=".*")
+                                       REP=rep)
     __preIDR_PPR__case = "PPR"
     __preIDR_PPR__log = "4-NoBlacklist/logs/preIDR_PPR.o"
-    __preIDR_PPR__output = dynamic("4-NoBlacklist/{INPUT}_{REP}_ref_sort_dedup_NoBlacklist.bam", IP=list(IP_REP),
-                                       REP=".*")
-    include: preIDR_dynamic("PPR", manager)
-    expected_output.extend(expand(__preIDR_PPR__output, IP=list(IP_REP)))
-
-
-
-rep = ['Rep1','Rep2']
+    __preIDR_PPR__output_done = "4-NoBlacklist/ip_ppr_idr.done"
+    #include: preIDR_dynamic("PPR")
+    #expected_output.extend(expand(__preIDR_PPR__output, IP=list(IP_REP)))
 
 # Peak calling
 model = manager.config.peak_calling.model_choice
