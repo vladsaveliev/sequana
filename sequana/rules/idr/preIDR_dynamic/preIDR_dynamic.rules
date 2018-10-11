@@ -1,4 +1,4 @@
-def preIDR_dynamic(name, manager):
+def preIDR_dynamic(name):
 
     metadata = {"name": name}
 
@@ -25,7 +25,7 @@ rule preIDR_%(name)s:
     log:
         __preIDR_%(name)s__log
     output:
-        dynamic(__preIDR_%(name)s__output)
+        __preIDR_%(name)s__output_done
     shell:
         if [ {params.case}=="SPR" ] ; then
             i = 1
@@ -57,8 +57,9 @@ rule preIDR_%(name)s:
                 rm ${file%.*}00
                 rm ${file%.*}01
                 i++
-            done
 
+            done
+            touch {output}
         elif [ {params.case}=="PPR" ]; then
 
             FILE1={input}[0]
@@ -84,6 +85,7 @@ rule preIDR_%(name)s:
                 rm ${FILE_Pool%.*}_header.sam
                 rm ${FILE_Pool%.*}00
                 rm ${FILE_Pool%.*}01
+            touch {output}
 
             if [ ! {input}[2] == "" ]
                 FILE3={input}[2]
@@ -121,8 +123,9 @@ rule preIDR_%(name)s:
 
                 # Cleaning of useless files
                 rm ${FILE1/Rep1/MaxiPool}
-            fi
 
+            fi
+            touch {output}
         else [ {params.case}=="Pool" ]; then
             #Merge treatment BAMS
             echo "Merging BAM files for Input..."
@@ -150,9 +153,13 @@ rule preIDR_%(name)s:
                 samtools sort -o ${FILE1/Rep1/MaxiPool_sort} ${FILE1/Rep1/MaxiPool}
                 samtools index ${FILE1/Rep1/MaxiPool_sort}
                 rm ${FILE1/Rep1/MaxiPool}
+            touch {output}
         fi
     '''
 
-    from sequana.snaketools import build_dynamic_rule
-    return build_dynamic_rule(preIDR_code % metadata, manager.pipeline_dir)
+    from easydev import TempFile
+    tt = TempFile()
+    with open(tt.name, "w") as fh:
+        fh.write(preIDR_code % metadata)
+    return fh.name
 
