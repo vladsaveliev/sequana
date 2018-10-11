@@ -11,10 +11,12 @@ rule preIDR_%(name)s:
         __preIDR_%(name)s__input: list of bam file (IP or INPUT) at condition level (all replicates)
 
     Required output:
-        __preIDR_%(name)s__output: peak file
+        __preIDR_%(name)s__output_done: peak file
 
     Required params:
         __preIDR_%(name)s__case : use case SPR, PPR, or Pool
+
+    Be careful, this dynamic function use shell, don't forget to double the % characters
 
     """
 
@@ -34,7 +36,7 @@ rule preIDR_%(name)s:
 
                 echo "starting $SPR ..." > {log}
 
-                samtools view -H {file} > ${file%.*}_header.sam
+                samtools view -H {file} > ${file%%.*}_header.sam
 
                 echo "Spliting bam file ${file} ..." > {log}
 
@@ -42,10 +44,10 @@ rule preIDR_%(name)s:
 
                 nlinesSPR=$(( ($nlinesSPR+1)/2 )) # half that number
 
-                samtools view {file} | shuf | split -d -l ${nlinesSPR} - ${file%.*} # This will shuffle the lines in the file and split it into two SAM files
+                samtools view {file} | shuf | split -d -l ${nlinesSPR} - ${file%%.*} # This will shuffle the lines in the file and split it into two SAM files
 
-                cat ${file%.*}_header.sam ${file%.*}00 | samtools view -bS | samtools sort -o ${file/Rep${i}/${SPR}.1}
-                cat ${file%.*}_header.sam ${file%.*}01 | samtools view -bS | samtools sort -o ${file/Rep${i}/${SPR}.2}
+                cat ${file%%.*}_header.sam ${file%%.*}00 | samtools view -bS | samtools sort -o ${file/Rep${i}/${SPR}.1}
+                cat ${file%%.*}_header.sam ${file%%.*}01 | samtools view -bS | samtools sort -o ${file/Rep${i}/${SPR}.2}
 
 
                 echo "Indexing self pseudos-replicates Bamfiles ${file}" > {log}
@@ -53,9 +55,9 @@ rule preIDR_%(name)s:
                 samtools index ${file/Rep${i}/${SPR}.2}
 
                 # Cleaning of useless files
-                rm ${file%.*}_header.sam
-                rm ${file%.*}00
-                rm ${file%.*}01
+                rm ${file%%.*}_header.sam
+                rm ${file%%.*}00
+                rm ${file%%.*}01
                 i++
 
             done
@@ -72,19 +74,19 @@ rule preIDR_%(name)s:
             nlinesPPR=$(samtools view $FILE_Pool | wc -l ) # Number of reads in the BAM file
             nlinesPPR=$(( ($nlinesSPR+1)/2 )) # half that number
 
-            samtools view $FILE_Pool | shuf | split -d -l ${nlinesPPR} - ${FILE_Pool%.*} # This will shuffle the lines in the file and split it into two SAM files
+            samtools view $FILE_Pool | shuf | split -d -l ${nlinesPPR} - ${FILE_Pool%%.*} # This will shuffle the lines in the file and split it into two SAM files
 
-            cat ${FILE_Pool%.*}_header.sam ${FILE_Pool%.*}00 | samtools view -bS | samtools sort -o ${FILE_Pool/Pool/PPR1}
-            cat ${FILE_Pool%.*}_header.sam ${FILE_Pool%.*}01 | samtools view -bS | samtools sort -o ${FILE_Pool/Pool/PPR2}
+            cat ${FILE_Pool%%.*}_header.sam ${FILE_Pool%%.*}00 | samtools view -bS | samtools sort -o ${FILE_Pool/Pool/PPR1}
+            cat ${FILE_Pool%%.*}_header.sam ${FILE_Pool%%.*}01 | samtools view -bS | samtools sort -o ${FILE_Pool/Pool/PPR2}
 
             echo "Indexing self pseudos-replicates Bamfiles ${file}" > {log}
             samtools index ${FILE_Pool/Pool/PPR1}
             samtools index ${FILE_Pool/Pool/PPR2}
 
             # Cleaning of useless files
-                rm ${FILE_Pool%.*}_header.sam
-                rm ${FILE_Pool%.*}00
-                rm ${FILE_Pool%.*}01
+                rm ${FILE_Pool%%.*}_header.sam
+                rm ${FILE_Pool%%.*}00
+                rm ${FILE_Pool%%.*}01
             touch {output}
 
             if [ ! {input}[2] == "" ]
@@ -98,19 +100,19 @@ rule preIDR_%(name)s:
                     nlinesPPR=$(samtools view $FILE_Pool | wc -l ) # Number of reads in the BAM file
                     nlinesPPR=$(( ($nlinesSPR+1)/2 )) # half that number
 
-                    samtools view $FILE_Pool | shuf | split -d -l ${nlinesPPR} - ${FILE_Pool%.*} # This will shuffle the lines in the file and split it into two SAM files
+                    samtools view $FILE_Pool | shuf | split -d -l ${nlinesPPR} - ${FILE_Pool%%.*} # This will shuffle the lines in the file and split it into two SAM files
 
-                    cat ${FILE_Pool%.*}_header.sam ${FILE_Pool%.*}00 | samtools view -bS | samtools sort -o ${FILE_Pool/Pool/PPR1}
-                    cat ${FILE_Pool%.*}_header.sam ${FILE_Pool%.*}01 | samtools view -bS | samtools sort -o ${FILE_Pool/Pool/PPR2}
+                    cat ${FILE_Pool%%.*}_header.sam ${FILE_Pool%%.*}00 | samtools view -bS | samtools sort -o ${FILE_Pool/Pool/PPR1}
+                    cat ${FILE_Pool%%.*}_header.sam ${FILE_Pool%%.*}01 | samtools view -bS | samtools sort -o ${FILE_Pool/Pool/PPR2}
 
                     echo "Indexing self pseudos-replicates Bamfiles ${file}" > {log}
                     samtools index ${FILE_Pool/Pool/PPR1}
                     samtools index ${FILE_Pool/Pool/PPR2}
 
                     # Cleaning of useless files
-                    rm ${FILE_Pool%.*}_header.sam
-                    rm ${FILE_Pool%.*}00
-                    rm ${FILE_Pool%.*}01
+                    rm ${FILE_Pool%%.*}_header.sam
+                    rm ${FILE_Pool%%.*}00
+                    rm ${FILE_Pool%%.*}01
 
                     n++
                 done
