@@ -16,7 +16,7 @@ rule preIDR_%(name)s:
     Required params:
         __preIDR_%(name)s__case : use case SPR, PPR, or Pool
 
-    Be careful, this dynamic function use shell, don't forget to double the % characters
+    Be careful, this dynamic function use shell, don't forget to double the %% characters
 
     """
 
