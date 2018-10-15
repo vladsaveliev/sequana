@@ -43,14 +43,14 @@ rule macs2_%(name)s:
     run:
         import os
         if os.path.exists({params.shift_file}):
-            shift = shell("awk '{print $2}' {params.shift_file} | awk -F ',' 'if ($1=={{params.read_length}}){print $2}
-            else {print $1}' ")
-            shell("macs2 callpeak -t {input.bam} {params.input} -f BAM -g {params.gsize} -n {params.prefix}
-            --outdir {output} {params.options} --extsize %s 2> {log}".format(shift))
-        else
-            shell("macs2 callpeak -t {input.bam} {params.input} -f BAM -g {params.gsize} -n {params.prefix}
-            --outdir {output} {params.options} 2> {log}"
-        """
+            shift = shell("awk \'{{print $2}}\' {params.shift_file} | awk -F \',\' \'if ($1=={params.read_length}){{print $2}} \\
+            else {{print $1}}\' ")
+            shell("macs2 callpeak -t {input.bam} {params.input} -f BAM -g {params.gsize} -n {params.prefix} \\
+            --outdir {output} {params.options} --extsize %%s 2> {log}".format(shift))
+        else :
+            shell("macs2 callpeak -t {input.bam} {params.input} -f BAM -g {params.gsize} -n {params.prefix} \\
+            --outdir {output} {params.options} 2> {log}")
+
     '''
 
     from sequana.snaketools import build_dynamic_rule
