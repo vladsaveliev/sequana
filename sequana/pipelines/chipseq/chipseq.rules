@@ -39,7 +39,8 @@ design = pd.read_csv(__design__, header=0, sep='\t')
 
 MARKS = []
 CONDS = []
-REP = []
+REP_IN = []
+REP_IP = []
 
 for IP in design["IP_NAME"]:
     mark, cond = IP.split("_")
@@ -236,7 +237,7 @@ if INPUT_REP:
     __preIDR_input__log = "4-NoBlacklist/logs/preIDR_input.o"
     __preIDR_input__output_done = "4-NoBlacklist/input_idr.done"
     include: preIDR_dynamic("input")
-    #expected_output.extend(dynamic(__preIDR_INPUT__output, INPUT=list(INPUT_REP),REP=rep))
+    expected_output.extend(dynamic(__preIDR_INPUT__output, INPUT=list(INPUT_REP),REP=rep))
 
 if IP_REP:
     # run SPR
