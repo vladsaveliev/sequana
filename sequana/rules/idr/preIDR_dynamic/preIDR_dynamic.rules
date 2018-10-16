@@ -6,7 +6,7 @@ def preIDR_dynamic(name):
     :return: a dynamic snakemake rule for preIDR
     """
 
-    metadata = {{"name": name}}
+    metadata = {"name": name}
 
     preIDR_code = '''
 rule preIDR_%(name)s:
