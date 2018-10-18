@@ -157,7 +157,7 @@ def main(args=None):
         args = sys.argv[:]
 
     print(purple("Welcome to sequana_bam_splitter"))
-    user_options = Options(prog="sequana_vcf_filter")
+    user_options = Options(prog="sequana_bam_splitter")
     if len(args) ==1:
         args.append("--help")
 
