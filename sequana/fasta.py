@@ -168,6 +168,7 @@ class FastA(object):
         return cherries
 
     def get_stats(self):
+        from pylab import mean
         stats = {}
         stats["N"] = 2
         stats["mean_length"] = mean(self.lengths)
