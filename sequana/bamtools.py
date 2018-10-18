@@ -111,8 +111,6 @@ def is_cram(filename, *args):
     return f.is_cram
 
 
-
-
 class SAMBAMbase():
     """Base class for SAM/BAM/CRAM data sets
 
@@ -548,7 +546,7 @@ class SAMBAMbase():
         samflags_count = dict.fromkeys(samflags, 0)
         for flag, count in self.summary["flags"].items():
             for samflag in samflags:
-                if flag&samflag != 0:
+                if flag & samflag != 0:
                     samflags_count[samflag] += count
         return samflags_count
 
