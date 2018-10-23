@@ -36,8 +36,7 @@ rule macs2_%(name)s:
         shift_file = __macs2_%(name)s__shift_file,
         read_length = config["peak_calling"]["readLength"]
     log:
-        out = __macs2_%(name)s__log_std,
-        err = __macs2_%(name)s__log_err
+        __macs2_%(name)s__log
     output:
         __macs2_%(name)s__output
     run:
