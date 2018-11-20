@@ -10,6 +10,7 @@ from os.path import join
 from sequana import snaketools as sm
 import pandas as pd
 from fnmatch import fnmatch
+from re import sub
 
 sm.init("chipseq.rules", globals())
 
@@ -37,30 +38,40 @@ __design__ = manager.config.design.design_file
 design = pd.read_csv(__design__, header=0, sep='\t')
 
 
-MARKS = []
-CONDS = []
-REP_IN = []
-REP_IP = []
 
-for IP in design["IP_NAME"]:
-    mark, cond = IP.split("_")
-    if mark not in MARKS:
-        MARKS.append(mark)
-    if cond not in CONDS:
-        CONDS.append(cond)
+"""
+REQUIREMENTS IN DESIGN:
+ - all files in one directory
+ - fullname of files must be :
+        MARK_COND_REP_READ-TAD.fastq.gz
+ - name on design must be:
+        MARK_COND
+
+"""
 
 #for list of input file (get_input methods)
 INPUT = []
-for mark in design['INPUT_NAME']:
+for row in design.itertuples(index=True, name='Pandas'):
     for file in manager.ff.filenames:
-        if fnmatch(file, mark+"*1_*") and file not in INPUT:
-            INPUT.append(file)
+        mark = getattr(row, "INPUT_NAME")
+        if fnmatch(file, mark+"*1_*"):
+            i = 1
+            name = sub(manager.ff.read_tag, '', file)
+            INPUT.append(name)
+            if getattr(row, "NB_INPUT") > 1 :
+                while i < getattr(row, "NB_INPUT"):
+                    INPUT.append(name)
+                    i += 1
 
 IP = []
 for mark in design['IP_NAME']:
     for file in manager.ff.filenames:
         if fnmatch(file, mark+"*") and file not in IP:
-            IP.append(file)
+            name = sub(manager.ff.read_tag, '', file)
+            IP.append(name)
+
+# get REP names
+rep = ['Rep1', 'Rep2']
 
 # From the design file, we get only IP with more than one replicate
 IP_REP = []
@@ -74,7 +85,7 @@ for row in design.itertuples(index=True, name='Pandas'):
     if getattr(row, "NB_INPUT") > 1 and getattr(row, "NB_IP") > 1 and (getattr(row, "INPUT_NAME")) not in INPUT_REP:
         INPUT_REP.append(getattr(row, "INPUT_NAME"))
 
-##get rep number and names (if REP or Rep or rep, etc..)
+
 
 if manager.config.fastqc.do:
     # FASTQC on input data set
@@ -206,6 +217,9 @@ if manager.config.mark_duplicates.do:
     __mark_duplicates__log_err = "3-Deduplication/logs/%s_ref_sort_dedup.e" % manager.sample
     include: sm.modules["mark_duplicates"]
     expected_output.extend(expand(__mark_duplicates__output, sample=manager.samples))
+else:
+    # if no mark duplicate, cp bam files in 3-Deduplication ?
+    __mark_duplicates__output = __bowtie2_mapping_ref__sort
 
 # Remove blacklist
 if manager.config.remove_blacklist.do:
@@ -215,16 +229,17 @@ if manager.config.remove_blacklist.do:
     __remove_blacklist__log_err = "4-NoBlacklist/logs/%s_ref_sort_dedup_NoBlacklist.e" % manager.sample
     include: sm.modules["remove_blacklist"]
     expected_output.extend(expand(__remove_blacklist__output, sample=manager.samples))
+else:
+    # if no remove blacklist, cp bam files in 4-NoBlacklist ?
+    __remove_blacklist__output = __mark_duplicates__output
 
-
-rep = ['Rep1','Rep2']
 # PhantomPeakQualTools rule
-__spp__input = "4-NoBlacklist/{IP}_{REP}_ref_sort_dedup_NoBlacklist.bam"
-__spp__output_pdf = "5-PhantomPeakQualTools/{IP}_{REP}_ref_sort_dedup_NoBlacklist_phantom.pdf"
-__spp__metrics = "5-PhantomPeakQualTools/{IP}_{REP}_ref_sort_dedup_NoBlacklist_phantom.txt"
-__spp__log_std = "5-PhantomPeakQualTools/logs/{IP}_{REP}_phantom.o"
-__spp__log_err = "5-PhantomPeakQualTools/logs/{IP}_{REP}_phantom.e"
-expected_output.extend(expand(__spp__metrics, IP=list(design['IP_NAME']), REP=rep))
+__spp__input = "4-NoBlacklist/{IP}_ref_sort_dedup_NoBlacklist.bam"
+__spp__output_pdf = "5-PhantomPeakQualTools/{IP}_ref_sort_dedup_NoBlacklist_phantom.pdf"
+__spp__metrics = "5-PhantomPeakQualTools/{IP}_ref_sort_dedup_NoBlacklist_phantom.txt"
+__spp__log_std = "5-PhantomPeakQualTools/logs/{IP}_phantom.o"
+__spp__log_err = "5-PhantomPeakQualTools/logs/{IP}_phantom.e"
+expected_output.extend(expand(__spp__metrics, IP=IP))
 include: sm.modules["spp"]
 
 
@@ -263,32 +278,29 @@ if IP_REP:
 model = manager.config.peak_calling.model_choice
 if model in ["narrow", "broad"]:
     if model in ["narrow"]:
-        #add corresponding options
+        # add corresponding options
         __macs2_rep__options = "" + config["peak_calling"]['options']
-        __macs2_rep__output = "5-PeakCalling/{}/{{IP}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
     else:
         __macs2_rep__options = "--broad " + config["peak_calling"]['options']
-        __macs2_rep__output = "5-PeakCalling/{}/{{IP}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
+
     if manager.config.peak_calling.no_model:
         __macs2_rep__options += " --nomodel "
         __macs2_rep__shift_file = "5-PhantomPeakQualTools/{IP}_ref_sort_dedup_NoBlacklist_phantom.txt"
-    else :
+    else:
         __macs2_rep__shift_file = ""
     # no matter which model
-    __macs2_rep__input_bam = expand("4-NoBlacklist/{IP}_{REP}_ref_sort_dedup_NoBlacklist.bam",
-                            zip,IP=list(design['IP_NAME']),REP=rep)
+    __macs2_rep__input_bam = "4-NoBlacklist/{IP}_ref_sort_dedup_NoBlacklist.bam"
 
-    __macs2_rep__input = "-c 4-NoBlacklist/{INPUT}_Rep1_R1_ref_sort_dedup_NoBlacklist.bam"
+    __macs2_rep__input = "-c 4-NoBlacklist/{{INPUT}}_{}_ref_sort_dedup_NoBlacklist.bam".format(rep[0])
     __macs2_rep__log = "6-PeakCalling/%s/logs/{IP}_vs_{INPUT}.o" % model
+    __macs2_rep__output = "6-PeakCalling/{}/{{IP}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
     __macs2_rep__output_prefix = "6-PeakCalling/%s/{IP}_vs_{INPUT}" % model
-    __macs2_rep__output = "6-PeakCalling/{IP}_vs_{INPUT}_peaks.narrowPeak"
-    expected_output.extend(expand(__macs2_rep__output, zip, IP=list(design['IP_NAME']), INPUT=list(design['INPUT_NAME'])))
+
+    expected_output.extend(expand(__macs2_rep__output, zip, IP=IP, INPUT=INPUT))
     include: macs2_dynamic("rep", manager)
 
 else:
     raise ValueError("Invalid choice of model for peak calling. Use either narrow or broad, or set no-model to yes")
-
-
 
 # !Reset expected_output variable after multiqc
 # Multiqc rule
