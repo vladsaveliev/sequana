@@ -37,6 +37,5 @@ rule compute_idr:
             --output-file {output.idr} \
             --rank {params.rank} \
             --soft-idr-threshold {params.thresh} \
-            --plot
-        > {log.out} 2> {log.err}
+            --plot > {log.out} 2> {log.err}
         """
