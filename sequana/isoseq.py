@@ -610,6 +610,11 @@ def get_stats(pattern, mode):
 
 
 class GeneCoverage():
+    """
+
+    - column 12 should be the percentage of gene coverage
+    
+    """
     def __init__(self, filename):
         self.filename = filename
         self.df = pd.read_csv(filename, header=None, sep="\t")
@@ -617,23 +622,49 @@ class GeneCoverage():
 
     def __str__(self):
         icol = self.coverage_column
-        L = len(self.df)
+        L = float(len(self.df))
         S0 = sum(self.df[icol]==0)
         S2 = sum(self.df[icol]==1)
         S1 = L - S0 - S2
         S90 = sum(self.df[icol]>0.9)
+        S50 = sum(self.df[icol]>0.5)
+        S99 = sum(self.df[icol]>0.99)
         txt = "Number of genes: {}\n".format(len(self.df))
-        txt += "Fully detected genes: {} ({:.2}%)\n".format(S2, S2/L*100)
+        txt += "Fully detected genes: {} ({:.2f}%)\n".format(S2, S2/L*100)
         txt += "Partially detected genes: {} ({:.2f}%)\n".format(S1, S1/L*100)
+        txt += "Detected genes (99% covered): {} ({:.2f}%)\n".format(S99, S99/L*100)
         txt += "Detected genes (90% covered): {} ({:.2f}%)\n".format(S90, S90/L*100)
+        txt += "Detected genes (50% covered): {} ({:.2f}%)\n".format(S50, S50/L*100)
         txt += "Undetected genes: {} ({:.2f}%)\n".format(S0, S0/L*100)
         return txt
 
+    def plot(self, X=[0,0.1,0.2,0.3,.4,.5,.6,.7,.8,.9,.95,.99,.999,1],
+            fontsize=16, label=None):
+        """plot percentage of genes covered (y axis) as a function of percentage
+        of genes covered at least by X percent (x-axis). 
 
+        """
+        icol = self.coverage_column
+        N = float(len(self.df))
+        X = np.array(X) 
+        Y = np.array([sum(self.df[icol]>x)/N*100 for x in X])
+        if label is None:
+            pylab.plot(X*100, Y, "o-")
+        else:
+            pylab.plot(X*100, Y, "o-", label=label)
+        pylab.xlabel("Gene coverage (%)", fontsize=fontsize)
+        pylab.ylabel("Percentage of genes covered", fontsize=fontsize)
+        for this in [25,50,75]:
+            pylab.axhline(this, color="r", alpha=0.5, ls="--")
+            pylab.axvline(this, color="r", alpha=0.5, ls="--")
 
-
-
-
+    def get_percentage_genes_covered_at_this_fraction(self, this):
+        assert this<=1 and this>=0
+        icol = self.coverage_column
+        X = pylab.linspace(0, 1, 101)
+        N = float(len(self.df))
+        Y = np.array([sum(self.df[icol]>x)/N*100 for x in X])
+        return np.interp(this, X, Y)
 
 
 
