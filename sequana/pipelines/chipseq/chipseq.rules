@@ -46,7 +46,8 @@ REQUIREMENTS IN DESIGN:
         MARK_COND_REP_READ-TAD.fastq.gz
  - name on design must be:
         MARK_COND
-
+ - No IDR if no replicates
+ - TODO : include cases with 3 replicates
 """
 
 #for list of input file (get_input methods)
@@ -70,8 +71,11 @@ for mark in design['IP_NAME']:
             name = sub(manager.ff.read_tag, '', file)
             IP.append(name)
 
+
 # get REP names
+#get list with replicates names for all IP
 rep = ['Rep1', 'Rep2']
+# deduce from rep the list for SPR & PPR
 
 # From the design file, we get only IP with more than one replicate
 IP_REP = []
@@ -84,6 +88,24 @@ INPUT_REP = []
 for row in design.itertuples(index=True, name='Pandas'):
     if getattr(row, "NB_INPUT") > 1 and getattr(row, "NB_IP") > 1 and (getattr(row, "INPUT_NAME")) not in INPUT_REP:
         INPUT_REP.append(getattr(row, "INPUT_NAME"))
+
+#get IP passed IDR step
+IP_IDR = []
+IP_SPR = {}
+#IDR_REP = []
+spr = ['SPR1', 'SPR2']
+for cond in IP_REP:
+    tmp = []
+    tmp2 = []
+    for ip in IP:
+        name = ip.split("_Rep")
+        if ip.startswith(cond):
+            spr_file = sub('Rep', 'SPR', ip)
+            tmp2.append(spr_file)
+            tmp.append(ip)
+            #IDR_REP.append("Rep"+name[1])
+    IP_IDR.append(tmp)
+    IP_SPR[cond] = tmp2
 
 
 
@@ -218,7 +240,6 @@ if manager.config.mark_duplicates.do:
     include: sm.modules["mark_duplicates"]
     expected_output.extend(expand(__mark_duplicates__output, sample=manager.samples))
 else:
-    # if no mark duplicate, cp bam files in 3-Deduplication ?
     __mark_duplicates__output = __bowtie2_mapping_ref__sort
 
 # Remove blacklist
@@ -230,53 +251,78 @@ if manager.config.remove_blacklist.do:
     include: sm.modules["remove_blacklist"]
     expected_output.extend(expand(__remove_blacklist__output, sample=manager.samples))
 else:
-    # if no remove blacklist, cp bam files in 4-NoBlacklist ?
     __remove_blacklist__output = __mark_duplicates__output
 
+
 # PhantomPeakQualTools rule
-__spp__input = "4-NoBlacklist/{IP}_ref_sort_dedup_NoBlacklist.bam"
-__spp__output_pdf = "5-PhantomPeakQualTools/{IP}_ref_sort_dedup_NoBlacklist_phantom.pdf"
-__spp__metrics = "5-PhantomPeakQualTools/{IP}_ref_sort_dedup_NoBlacklist_phantom.txt"
-__spp__log_std = "5-PhantomPeakQualTools/logs/{IP}_phantom.o"
-__spp__log_err = "5-PhantomPeakQualTools/logs/{IP}_phantom.e"
-expected_output.extend(expand(__spp__metrics, IP=IP))
+__spp__input = "4-NoBlacklist/{IP}_{REP}_ref_sort_dedup_NoBlacklist.bam"
+__spp__output_pdf = "5-PhantomPeakQualTools/{IP}_{REP}_ref_sort_dedup_NoBlacklist_phantom.pdf"
+__spp__metrics = "5-PhantomPeakQualTools/{IP}_{REP}_ref_sort_dedup_NoBlacklist_phantom.txt"
+__spp__log_std = "5-PhantomPeakQualTools/logs/{IP}_{REP}_phantom.o"
+__spp__log_err = "5-PhantomPeakQualTools/logs/{IP}_{REP}_phantom.e"
+expected_output.extend(expand(__spp__metrics, IP=list(design['IP_NAME']), REP=rep))
 include: sm.modules["spp"]
 
 
+ppr = ['PPR1', 'PPR2']
+spr = ['SPR1', 'SPR2']
+model = manager.config.peak_calling.model_choice
+
 # preIDR rules
 # run preIDR on INPUT
-if INPUT_REP:
-    __preIDR_input__input_bam = expand("4-NoBlacklist/{INPUT}_{REP}_ref_sort_dedup_NoBlacklist.bam", INPUT=list(INPUT_REP),
-                                       REP=rep)
-    __preIDR_input__case = "Pool"
-    __preIDR_input__log = "4-NoBlacklist/logs/preIDR_input.o"
-    __preIDR_input__output_done = "4-NoBlacklist/input_idr.done"
-    include: preIDR_dynamic("input")
-    expected_output.extend(dynamic(__preIDR_INPUT__output, INPUT=list(INPUT_REP),REP=rep))
+if len(INPUT_REP) > 0:
+    __preIDR_INPUT__input_bam = expand("4-NoBlacklist/{{INPUT}}_{REP}_ref_sort_dedup_NoBlacklist.bam", REP = rep)
+    __preIDR_INPUT__case = "Pool"
+    __preIDR_INPUT__log = "4-NoBlacklist/logs/{INPUT}_preIDR_input.o"
+    __preIDR_INPUT__output = "4-NoBlacklist/{INPUT}_Pool_ref_sort_dedup_NoBlacklist.bam"
+    include: preIDR_dynamic("INPUT")
+    #expected_output.extend(expand(__preIDR_INPUT__output, INPUT=INPUT_REP))
 
-if IP_REP:
+if len(IP_REP) > 0:
     # run SPR
-    __preIDR_SPR__input_bam = expand("4-NoBlacklist/{IP}_{REP}_ref_sort_dedup_NoBlacklist.bam", IP=list(IP_REP),
-                                       REP=rep)
+    __preIDR_SPR__input_bam = expand("4-NoBlacklist/{{IP}}_{REP}_ref_sort_dedup_NoBlacklist.bam", REP = rep)
     __preIDR_SPR__case = "SPR"
-    __preIDR_SPR__log = "4-NoBlacklist/logs/preIDR_SPR.o"
-    __preIDR_SPR__output_done = "4-NoBlacklist/ip_spr_idr.done"
+    __preIDR_SPR__log = "4-NoBlacklist/logs/{IP}_preIDR_SPR.o"
+    __preIDR_SPR__output = expand("4-NoBlacklist/{{IP}}_{SPR}_sort_dedup_NoBlacklist.bam", SPR = spr)
+
     include: preIDR_dynamic("SPR")
-    expected_output.extend(expand(__preIDR_SPR__output_done, IP=list(IP_REP)))
+    expected_output.extend(expand(__preIDR_SPR__output, IP=IP_REP))
 
     # run PPR
-    __preIDR_PPR__input_bam = expand("4-NoBlacklist/{IP}_{REP}_ref_sort_dedup_NoBlacklist.bam", IP=list(IP_REP),
-                                       REP=rep)
+    __preIDR_PPR__input_bam = expand("4-NoBlacklist/{{IP}}_{REP}_ref_sort_dedup_NoBlacklist.bam", REP = rep)
     __preIDR_PPR__case = "PPR"
-    __preIDR_PPR__log = "4-NoBlacklist/logs/preIDR_PPR.o"
-    __preIDR_PPR__output_done = "4-NoBlacklist/ip_ppr_idr.done"
+    __preIDR_PPR__log = "4-NoBlacklist/logs/{IP}_preIDR_PPR.o"
+    __preIDR_PPR__output =  expand("4-NoBlacklist/{{IP}}_{PPR}_sort_dedup_NoBlacklist.bam", PPR = ppr)
     include: preIDR_dynamic("PPR")
-    expected_output.extend(expand(__preIDR_PPR__output_done, IP=list(IP_REP)))
+    expected_output.extend(expand(__preIDR_PPR__output, IP=IP_REP))
 
+	#Peak Calling on SPR
+    if model in ["narrow"]:
+        # add corresponding options
+        __macs2_spr__options = "" + config["peak_calling"]['options']
+    else:
+        __macs2_spr__options = "--broad " + config["peak_calling"]['options']
+
+    if manager.config.peak_calling.no_model:
+        __macs2_spr__options += " --nomodel "
+        __macs2_spr__shift_file = "5-PhantomPeakQualTools/{SPR}_ref_sort_dedup_NoBlacklist_phantom.txt"
+    else:
+        __macs2_spr__shift_file = ""
+    # no matter which model
+    __macs2_spr__input_bam = __preIDR_SPR__output
+    ## ATTENTION : si pas de blacklist, nom different
+    __macs2_spr__input = __preIDR_INPUT__output
+    __macs2_spr__log = "6-PeakCalling/%s/logs/{SPR}_vs_{INPUT}.o" % model
+    __macs2_spr__output = "6-PeakCalling/{}/{{SPR}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
+    __macs2_spr__output_prefix = "6-PeakCalling/%s/{SPR}_vs_{INPUT}" % model
+    #expected_output.extend(expand(__macs2_spr__output, zip, SPR=IP_SPR, INPUT=INPUT))
+    #include: macs2_dynamic("spr", manager)
 
 # Peak calling
-model = manager.config.peak_calling.model_choice
+
 if model in ["narrow", "broad"]:
+
+	#Peak Calling on replicates
     if model in ["narrow"]:
         # add corresponding options
         __macs2_rep__options = "" + config["peak_calling"]['options']
@@ -290,17 +336,23 @@ if model in ["narrow", "broad"]:
         __macs2_rep__shift_file = ""
     # no matter which model
     __macs2_rep__input_bam = "4-NoBlacklist/{IP}_ref_sort_dedup_NoBlacklist.bam"
-
+    ## ATTENTION : si pas de blacklist, nom different
     __macs2_rep__input = "-c 4-NoBlacklist/{{INPUT}}_{}_ref_sort_dedup_NoBlacklist.bam".format(rep[0])
     __macs2_rep__log = "6-PeakCalling/%s/logs/{IP}_vs_{INPUT}.o" % model
     __macs2_rep__output = "6-PeakCalling/{}/{{IP}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
     __macs2_rep__output_prefix = "6-PeakCalling/%s/{IP}_vs_{INPUT}" % model
-
     expected_output.extend(expand(__macs2_rep__output, zip, IP=IP, INPUT=INPUT))
     include: macs2_dynamic("rep", manager)
 
+
 else:
     raise ValueError("Invalid choice of model for peak calling. Use either narrow or broad, or set no-model to yes")
+
+
+
+
+
+
 
 # !Reset expected_output variable after multiqc
 # Multiqc rule
@@ -308,8 +360,8 @@ __multiqc__input = expected_output
 __multiqc__input_dir = "."
 __multiqc__logs = "multiqc/multiqc.log"
 __multiqc__output = config['multiqc']['output-directory'] + "/multiqc_report.html"
-include: sm.modules["multiqc"]
-expected_output = [__multiqc__output]
+#include: sm.modules["multiqc"]
+#expected_output = [__multiqc__output]
 
 # Include rule graph for each sample
 __rulegraph__input = __snakefile__

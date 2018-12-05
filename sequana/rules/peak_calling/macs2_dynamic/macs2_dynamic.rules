@@ -1,4 +1,4 @@
-def macs2_dynamic(name, manager):
+def macs2_dynamic(name):
 
     metadata = {'name':name}
 
