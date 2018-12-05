@@ -29,7 +29,6 @@ exec(open(sequana.modules["preIDR_dynamic"], "r").read())
 
 manager = sm.PipelineManager("chipseq", config)
 
-__data__input = manager.getrawdata()
 
 
 # Check the design file
@@ -46,9 +45,12 @@ REQUIREMENTS IN DESIGN:
         MARK_COND_REP_READ-TAD.fastq.gz
  - name on design must be:
         MARK_COND
- - No IDR if no replicates
- - TODO : include cases with 3 replicates
+
 """
+
+#get all fastq
+__data__input = manager.getrawdata()
+#__data__input = lambda wildcards: self.samples[wildcards.sample]
 
 #for list of input file (get_input methods)
 INPUT = []
@@ -89,9 +91,10 @@ for row in design.itertuples(index=True, name='Pandas'):
     if getattr(row, "NB_INPUT") > 1 and getattr(row, "NB_IP") > 1 and (getattr(row, "INPUT_NAME")) not in INPUT_REP:
         INPUT_REP.append(getattr(row, "INPUT_NAME"))
 
-#get IP passed IDR step
+#get IP passed pre IDR step
 IP_IDR = []
-IP_SPR = {}
+IP_SPR = []
+INPUT_IDR  = []
 #IDR_REP = []
 spr = ['SPR1', 'SPR2']
 for cond in IP_REP:
@@ -101,20 +104,23 @@ for cond in IP_REP:
         name = ip.split("_Rep")
         if ip.startswith(cond):
             spr_file = sub('Rep', 'SPR', ip)
-            tmp2.append(spr_file)
             tmp.append(ip)
             #IDR_REP.append("Rep"+name[1])
+            IP_SPR.append(spr_file)
+            for row in design.itertuples(index=True, name='Pandas'):
+                if  (getattr(row, "IP_NAME")) in name[0]:
+                     INPUT_IDR.append(getattr(row, "INPUT_NAME")+"_"+rep[0])
     IP_IDR.append(tmp)
-    IP_SPR[cond] = tmp2
+
 
 
 
 if manager.config.fastqc.do:
     # FASTQC on input data set
-    __fastqc_raw__input_fastq = __data__input
-    __fastqc_raw__output_done = "0-Fastqc/%s_fastqc_raw.done" % manager.sample
+    __fastqc_raw__input_fastq = os.path.join(manager.ff.pathname,"{sample}_R1.fastq.gz")
+    __fastqc_raw__output_done = "0-Fastqc/{sample}_fastqc_raw.done"
     __fastqc_raw__wkdir = "0-Fastqc"
-    __fastqc_raw__log = "0-Fastqc/logs/%s_fastqc_raw.log" % manager.sample
+    __fastqc_raw__log = "0-Fastqc/logs/{sample}_fastqc_raw.log"
     include: fastqc_dynamic("raw", manager)
     expected_output.extend(expand(__fastqc_raw__output_done, sample=manager.samples))
 
@@ -140,9 +146,9 @@ if manager.config.cutadapt.do:
         __cutadapt__input_fastq = __data__input
         __cutadapt__wkdir = "1-Trimming"
         # __cutadapt__output = [manager.getname("cutadapt", "_R1_.cutadapt.fastq.gz")]
-        __cutadapt__output = ["1-Trimming/%s_R1_trim.fastq.gz" % manager.sample]
+        __cutadapt__output = ["1-Trimming/{sample}_R1_trim.fastq.gz"]
         if manager.paired:
-            __cutadapt__output += ["1-Trimming/%s_R2_trim.fastq.gz" % manager.sample]
+            __cutadapt__output += ["1-Trimming/{sample}_R2_trim.fastq.gz"]
 
         # Set the fwd and rev adapters
         __cutadapt__fwd = manager.config.cutadapt.fwd
@@ -152,8 +158,8 @@ if manager.config.cutadapt.do:
         __cutadapt__design_adapter = manager.config['cutadapt']['adapter_choice']
         __cutadapt__options = manager.config.cutadapt.options
         __cutadapt__mode = manager.config.cutadapt.mode
-        __cutadapt__log = "1-Trimming/logs/%s_trim.txt" % manager.sample
-        __cutadapt__sample = manager.sample
+        __cutadapt__log = "1-Trimming/logs/{sample}_trim.txt"
+        __cutadapt__sample = "{sample}"
         include: sm.modules["cutadapt"]
 
     else:
@@ -164,13 +170,13 @@ else:
 if manager.config.cutadapt.do:
     # FASTQC on trimmed data set
     __fastqc_trim__input_fastq = __cutadapt__output
-    __fastqc_trim__output_done = "0-Fastqc/%s_fastqc_trim.done" % manager.sample
+    __fastqc_trim__output_done = "0-Fastqc/{sample}_fastqc_trim.done"
     __fastqc_trim__wkdir = "0-Fastqc"
-    __fastqc_trim__log = "0-Fastqc/logs/%s_fastqc_trim.log" % manager.sample
+    __fastqc_trim__log = "0-Fastqc/logs/{sample}_fastqc_trim.log"
     include: fastqc_dynamic("trim", manager)
     expected_output.extend(expand(__fastqc_trim__output_done, sample=manager.samples))
 
-__prefix_name__ = join(config["genome"]["genome_directory"], config["genome"]["name"])
+__prefix_name__ = os.path.join(config["genome"]["genome_directory"], config["genome"]["name"])
 
 if manager.config.genome.do:
     # indexing for bowtie2
@@ -182,26 +188,26 @@ if manager.config.genome.do:
     expected_output.extend([__bowtie2_index_ref__output_done])
 
 if manager.config.bowtie2_mapping.do:
-    # Decompress fastq.gz file before to run bowtie2
-    __unpigz_R1__input = "1-Trimming/%s_R1_trim.fastq.gz" % manager.sample
-    __unpigz_R1__output = "1-Trimming/%s_R1_trim.fastq" % manager.sample
+    # Decompress fastq.gz file before to run bowtie2 ### NECESSARY ??
+    __unpigz_R1__input = "1-Trimming/{sample}_R1_trim.fastq.gz"
+    __unpigz_R1__output = "1-Trimming/{sample}_R1_trim.fastq"
     include: dynamic_unpigz("R1", manager)
     __unpigz__output = [__unpigz_R1__output]
     if manager.paired:
-        __unpigz_R2__input = "1-Trimming/%s_R2_trim.fastq.gz" % manager.sample
-        __unpigz_R2__output = "1-Trimming/%s_R2_trim.fastq" % manager.sample
+        __unpigz_R2__input = "1-Trimming/{sample}_R2_trim.fastq.gz"
+        __unpigz_R2__output = "1-Trimming/{sample}_R2_trim.fastq"
         include: dynamic_unpigz("R2", manager)
         __unpigz__output += [__unpigz_R2__output]
 
 
     # mapping on ref
-    __bowtie2_mapping_ref__input = __unpigz__output
+    __bowtie2_mapping_ref__input = __cutadapt__output
     __bowtie2_mapping_ref__index_done = __bowtie2_index_ref__output_done
     # TODO integrer la variable genome dans le nom du bam
-    __bowtie2_mapping_ref__sort = "2-Mapping/%s_ref_sort.bam" % manager.sample
-    __bowtie2_mapping_ref__bam = "2-Mapping/%s_ref.bam" % manager.sample
-    __bowtie2_mapping_ref__logs_err = "2-Mapping/logs/%s_ref_mapping.e" % manager.sample
-    __bowtie2_mapping_ref__logs_out = "2-Mapping/logs/%s_ref_mapping.o" % manager.sample
+    __bowtie2_mapping_ref__sort = "2-Mapping/{sample}_ref_sort.bam"
+    __bowtie2_mapping_ref__bam = "2-Mapping/{sample}_ref.bam"
+    __bowtie2_mapping_ref__logs_err = "2-Mapping/logs/{sample}_ref_mapping.e"
+    __bowtie2_mapping_ref__logs_out = "2-Mapping/logs/{sample}_ref_mapping.o"
     __bowtie2_mapping_ref__prefix_index = __bowtie2_index_ref__output_prefix
     include: bowtie2_mapping_dynamic("ref", manager)
     expected_output.extend(expand(__bowtie2_mapping_ref__sort, sample=manager.samples))
@@ -222,10 +228,10 @@ if manager.config.design.spike:
     # mapping on spike
     __bowtie2_mapping_spike__input = __cutadapt__output
     __bowtie2_mapping_spike__index_done = __bowtie2_index_spike__output_done
-    __bowtie2_mapping_spike__sort = "2-Mapping/%s_spike_sort.bam" % manager.sample
-    __bowtie2_mapping_spike__bam = "2-Mapping/%s_spike.bam" % manager.sample
-    __bowtie2_mapping_spike__logs_err = "2-Mapping/logs/%s_spike_mapping.e" % manager.sample
-    __bowtie2_mapping_spike__logs_out = "2-Mapping/logs/%s_spike_mapping.o" % manager.sample
+    __bowtie2_mapping_spike__sort = "2-Mapping/{sample}_spike_sort.bam"
+    __bowtie2_mapping_spike__bam = "2-Mapping/{sample}_spike.bam"
+    __bowtie2_mapping_spike__logs_err = "2-Mapping/logs/{sample}_spike_mapping.e"
+    __bowtie2_mapping_spike__logs_out = "2-Mapping/logs/v_spike_mapping.o"
     __bowtie2_mapping_spike__prefix_index = __bowtie2_index_spike__output_prefix
     include: bowtie2_mapping_dynamic("spike", manager)
     expected_output.extend(expand(__bowtie2_mapping_spike__sort, sample=manager.samples))
@@ -233,21 +239,22 @@ if manager.config.design.spike:
 # Mark duplicates
 if manager.config.mark_duplicates.do:
     __mark_duplicates__input = __bowtie2_mapping_ref__sort
-    __mark_duplicates__output = "3-Deduplication/%s_ref_sort_dedup.bam" % manager.sample
-    __mark_duplicates__metrics = "3-Deduplication/%s_ref_sort_dedup.txt" % manager.sample
-    __mark_duplicates__log_std = "3-Deduplication/logs/%s_ref_sort_dedup.o" % manager.sample
-    __mark_duplicates__log_err = "3-Deduplication/logs/%s_ref_sort_dedup.e" % manager.sample
+    __mark_duplicates__output = "3-Deduplication/{sample}_ref_sort_dedup.bam"
+    __mark_duplicates__metrics = "3-Deduplication/{sample}_ref_sort_dedup.txt"
+    __mark_duplicates__log_std = "3-Deduplication/logs/{sample}_ref_sort_dedup.o"
+    __mark_duplicates__log_err = "3-Deduplication/logs/{sample}_ref_sort_dedup.e"
     include: sm.modules["mark_duplicates"]
     expected_output.extend(expand(__mark_duplicates__output, sample=manager.samples))
 else:
     __mark_duplicates__output = __bowtie2_mapping_ref__sort
 
 # Remove blacklist
+# if don't, use a .format() with a variable contains "_NoBlacklist" or not.
 if manager.config.remove_blacklist.do:
     __remove_blacklist__input = __mark_duplicates__output
-    __remove_blacklist__output = "4-NoBlacklist/%s_ref_sort_dedup_NoBlacklist.bam" % manager.sample
-    __remove_blacklist__log_std = "4-NoBlacklist/logs/%s_ref_sort_dedup_NoBlacklist.o" % manager.sample
-    __remove_blacklist__log_err = "4-NoBlacklist/logs/%s_ref_sort_dedup_NoBlacklist.e" % manager.sample
+    __remove_blacklist__output = "4-NoBlacklist/{sample}_ref_sort_dedup_NoBlacklist.bam"
+    __remove_blacklist__log_std = "4-NoBlacklist/logs/{sample}_ref_sort_dedup_NoBlacklist.o"
+    __remove_blacklist__log_err = "4-NoBlacklist/logs/{sample}_ref_sort_dedup_NoBlacklist.e"
     include: sm.modules["remove_blacklist"]
     expected_output.extend(expand(__remove_blacklist__output, sample=manager.samples))
 else:
@@ -266,17 +273,19 @@ include: sm.modules["spp"]
 
 ppr = ['PPR1', 'PPR2']
 spr = ['SPR1', 'SPR2']
-model = manager.config.peak_calling.model_choice
+
+
 
 # preIDR rules
 # run preIDR on INPUT
 if len(INPUT_REP) > 0:
-    __preIDR_INPUT__input_bam = expand("4-NoBlacklist/{{INPUT}}_{REP}_ref_sort_dedup_NoBlacklist.bam", REP = rep)
-    __preIDR_INPUT__case = "Pool"
-    __preIDR_INPUT__log = "4-NoBlacklist/logs/{INPUT}_preIDR_input.o"
-    __preIDR_INPUT__output = "4-NoBlacklist/{INPUT}_Pool_ref_sort_dedup_NoBlacklist.bam"
-    include: preIDR_dynamic("INPUT")
-    #expected_output.extend(expand(__preIDR_INPUT__output, INPUT=INPUT_REP))
+    __preIDR_input__input_bam = expand("4-NoBlacklist/{{INPUT}}_{REP}_ref_sort_dedup_NoBlacklist.bam", REP = rep)
+    __preIDR_input__case = "Pool"
+    __preIDR_input__log = "4-NoBlacklist/logs/{INPUT}_preIDR_input.o"
+    __preIDR_input__output = "4-NoBlacklist/{INPUT}_plop_ref_sort_dedup_NoBlacklist.bam"
+    include: preIDR_dynamic("input")
+    #expected_output.extend(expand(__preIDR_input__output, INPUT=INPUT_REP))
+
 
 if len(IP_REP) > 0:
     # run SPR
@@ -284,7 +293,6 @@ if len(IP_REP) > 0:
     __preIDR_SPR__case = "SPR"
     __preIDR_SPR__log = "4-NoBlacklist/logs/{IP}_preIDR_SPR.o"
     __preIDR_SPR__output = expand("4-NoBlacklist/{{IP}}_{SPR}_sort_dedup_NoBlacklist.bam", SPR = spr)
-
     include: preIDR_dynamic("SPR")
     expected_output.extend(expand(__preIDR_SPR__output, IP=IP_REP))
 
@@ -296,30 +304,9 @@ if len(IP_REP) > 0:
     include: preIDR_dynamic("PPR")
     expected_output.extend(expand(__preIDR_PPR__output, IP=IP_REP))
 
-	#Peak Calling on SPR
-    if model in ["narrow"]:
-        # add corresponding options
-        __macs2_spr__options = "" + config["peak_calling"]['options']
-    else:
-        __macs2_spr__options = "--broad " + config["peak_calling"]['options']
-
-    if manager.config.peak_calling.no_model:
-        __macs2_spr__options += " --nomodel "
-        __macs2_spr__shift_file = "5-PhantomPeakQualTools/{SPR}_ref_sort_dedup_NoBlacklist_phantom.txt"
-    else:
-        __macs2_spr__shift_file = ""
-    # no matter which model
-    __macs2_spr__input_bam = __preIDR_SPR__output
-    ## ATTENTION : si pas de blacklist, nom different
-    __macs2_spr__input = __preIDR_INPUT__output
-    __macs2_spr__log = "6-PeakCalling/%s/logs/{SPR}_vs_{INPUT}.o" % model
-    __macs2_spr__output = "6-PeakCalling/{}/{{SPR}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
-    __macs2_spr__output_prefix = "6-PeakCalling/%s/{SPR}_vs_{INPUT}" % model
-    #expected_output.extend(expand(__macs2_spr__output, zip, SPR=IP_SPR, INPUT=INPUT))
-    #include: macs2_dynamic("spr", manager)
 
 # Peak calling
-
+model = manager.config.peak_calling.model_choice
 if model in ["narrow", "broad"]:
 
 	#Peak Calling on replicates
@@ -342,7 +329,31 @@ if model in ["narrow", "broad"]:
     __macs2_rep__output = "6-PeakCalling/{}/{{IP}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
     __macs2_rep__output_prefix = "6-PeakCalling/%s/{IP}_vs_{INPUT}" % model
     expected_output.extend(expand(__macs2_rep__output, zip, IP=IP, INPUT=INPUT))
-    include: macs2_dynamic("rep", manager)
+    include: macs2_dynamic("rep")
+
+
+
+	#Peak Calling on SPR
+    if model in ["narrow"]:
+        # add corresponding options
+        __macs2_spr__options = "" + config["peak_calling"]['options']
+    else:
+        __macs2_spr__options = "--broad " + config["peak_calling"]['options']
+
+    if manager.config.peak_calling.no_model:
+        __macs2_spr__options += " --nomodel "
+        __macs2_spr__shift_file = "5-PhantomPeakQualTools/{SPR}_ref_sort_dedup_NoBlacklist_phantom.txt"
+    else:
+        __macs2_spr__shift_file = ""
+    # no matter which model
+    __macs2_spr__input_bam = "4-NoBlacklist/{SPR}_sort_dedup_NoBlacklist.bam"
+    ## ATTENTION : si pas de blacklist, nom different
+    __macs2_spr__input = "-c 4-NoBlacklist/{INPUT}_ref_sort_dedup_NoBlacklist.bam"
+    __macs2_spr__log = "6-PeakCalling/%s/logs/{SPR}_vs_{INPUT}.o" % model
+    __macs2_spr__output = "6-PeakCalling/{}/{{SPR}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
+    __macs2_spr__output_prefix = "6-PeakCalling/%s/{SPR}_vs_{INPUT}" % model
+    #expected_output.extend(expand(__macs2_spr__output, zip, SPR=IP_SPR, INPUT=INPUT_IDR))
+    #include: macs2_dynamic("spr")
 
 
 else:
