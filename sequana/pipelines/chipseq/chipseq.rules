@@ -114,8 +114,7 @@ for cond in IP_REP:
 
 
 wildcard_constraints:
-    sample="[A-Za-z-_0-9]+_[REPrep0-9]*",
-    REP="[REPrep0-9]*"
+    sample="[A-Za-z-_0-9]+_[REPrep0-9]*"
 
 if manager.config.fastqc.do:
     # FASTQC on input data set
@@ -276,7 +275,7 @@ include: sm.modules["spp"]
 
 
 ppr = ['PPR1', 'PPR2']
-spr = ['SPR1', 'SPR2']
+spr = ['SPR1.1', 'SPR1.2', 'SPR2.1', 'SPR2.2']
 
 
 
@@ -356,8 +355,8 @@ if model in ["narrow", "broad"]:
     __macs2_spr__log = "6-PeakCalling/%s/logs/{SPR}_vs_{INPUT}.o" % model
     __macs2_spr__output = "6-PeakCalling/{}/{{SPR}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
     __macs2_spr__output_prefix = "6-PeakCalling/%s/{{SPR}}_vs_{{INPUT}}" % model
-    expected_output.extend(expand(__macs2_spr__output, zip, SPR=IP_SPR, INPUT=INPUT_IDR))
-    include: macs2_dynamic("spr")
+    #expected_output.extend(expand(__macs2_spr__output, zip, SPR=IP_SPR, INPUT=INPUT_IDR))
+    #include: macs2_dynamic("spr")
 
 
 else:
