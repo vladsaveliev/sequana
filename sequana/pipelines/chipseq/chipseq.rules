@@ -96,7 +96,8 @@ IP_IDR = []
 IP_SPR = []
 INPUT_IDR  = []
 #IDR_REP = []
-spr = ['SPR1', 'SPR2']
+ppr = ['PPR1', 'PPR2']
+spr = ['SPR1.1', 'SPR1.2', 'SPR2.1', 'SPR2.2']
 for cond in IP_REP:
     tmp = []
     tmp2 = []
@@ -106,7 +107,8 @@ for cond in IP_REP:
             spr_file = sub('Rep', 'SPR', ip)
             tmp.append(ip)
             #IDR_REP.append("Rep"+name[1])
-            IP_SPR.append(spr_file)
+            IP_SPR.append(spr_file+".1")
+            IP_SPR.append(spr_file+".2")
             for row in design.itertuples(index=True, name='Pandas'):
                 if  (getattr(row, "IP_NAME")) in name[0]:
                      INPUT_IDR.append(getattr(row, "INPUT_NAME")+"_"+rep[0])
@@ -274,8 +276,7 @@ expected_output.extend(expand(__spp__metrics, IP=list(design['IP_NAME']), REP=re
 include: sm.modules["spp"]
 
 
-ppr = ['PPR1', 'PPR2']
-spr = ['SPR1.1', 'SPR1.2', 'SPR2.1', 'SPR2.2']
+
 
 
 
@@ -355,8 +356,8 @@ if model in ["narrow", "broad"]:
     __macs2_spr__log = "6-PeakCalling/%s/logs/{SPR}_vs_{INPUT}.o" % model
     __macs2_spr__output = "6-PeakCalling/{}/{{SPR}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
     __macs2_spr__output_prefix = "6-PeakCalling/%s/{{SPR}}_vs_{{INPUT}}" % model
-    #expected_output.extend(expand(__macs2_spr__output, zip, SPR=IP_SPR, INPUT=INPUT_IDR))
-    #include: macs2_dynamic("spr")
+    expected_output.extend(expand(__macs2_spr__output, zip, SPR=IP_SPR, INPUT=INPUT_IDR))
+    include: macs2_dynamic("spr")
 
 
 else:
