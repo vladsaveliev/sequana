@@ -25,7 +25,7 @@ rule lima:
     output:
         __lima__output
     params:
-        primers = __lima__barcoded_primers
+        primers = config['lima']['primers']
     threads:
         config['lima']['threads']
     log:

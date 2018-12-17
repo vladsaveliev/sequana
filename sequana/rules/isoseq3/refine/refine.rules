@@ -1,0 +1,33 @@
+rule refine:
+    """
+    Your data now contains full-length reads, but still needs to be refined by:
+
+    Trimming of poly(A) tails
+    Rapid concatmer identification and removal
+
+    Required input:
+        __refine__input: subreads bam file
+
+    Required output:
+        __refine_output: output CCS bam file
+
+    params:
+        config['refine']['options']: any options recognized by CCS
+
+    """
+    input:
+        __refine__input
+    output:
+        __refine__output
+    params:
+        kwargs = config['ccs']['options'],
+        primers = config['lima']['primers']
+    threads:
+        config['ccs']['threads']
+    log:
+        out = __refine__log_std,
+        err = __refine__log_err
+    shell:
+        """
+        isoseq3 refine {input} {params.primers} {output} {params.kwargs} > {log.out} 2> {log.err}
+        """

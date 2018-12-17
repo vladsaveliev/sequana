@@ -1,0 +1,32 @@
+rule ccs:
+    """
+    Each sequencing run is processed by ccs to generate one representative circular consensus sequence (CCS) for each ZMW.
+    Only ZMWs with at least one full pass (at least one subread with SMRT adapter on both ends) are used for the
+    subsequent analysis. Polishing is not necessary in this step and is by default deactivated through.
+
+
+    Required input:
+        __ccs__input: subreads bam file
+
+    Required output:
+        __ccs_output: output CCS bam file
+
+    params:
+        config['ccs']['options']: any options recognized by CCS
+
+    """
+    input:
+        __ccs__input
+    output:
+        __ccs__output
+    params:
+        kwargs = config['ccs']['options']
+    threads:
+        config['ccs']['threads']
+    log:
+        out = __ccs__log_std,
+        err = __ccs__log_err
+    shell:
+        """
+        ccs {input} {params.kwargs} {output} -j {threads} > {log.out} 2> {log.err}
+        """
