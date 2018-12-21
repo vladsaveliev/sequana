@@ -1,0 +1,26 @@
+rule dataset:
+    """
+    If you used more than one SMRT cells, use dataset for merging. Merge all of your <movie>.flnc.bam files
+
+    Required input:
+        __dataset__input_bam: all bam files from refine step
+        __dataset__input_xml:
+
+    Required output:
+        __dataset_output: output merged bam file
+
+
+
+    """
+    input:
+        bam = __dataset__input_bam,
+        xml = __dataset__input_xml
+    output:
+        __dataset__output
+    log:
+        out = __dataset__log_std,
+        err = __dataset__log_err
+    shell:
+        """
+        dataset create --type TranscriptSet {input.xml} {input.bam} {output} > {log.out} 2> {log.err}
+        """
