@@ -1,0 +1,39 @@
+rule bedtools_coverage:
+    """
+    The bedtools coverage tool computes both the depth and breadth of coverage of features in file B on the features
+    in file A. For example, bedtools coverage can compute the coverage of sequence alignments (file B) across 1 kilobase
+     (arbitrary) windows (file A) tiling a genome of interest. One advantage that bedtools coverage offers is that it
+     not only counts the number of features that overlap an interval in file A, it also computes the fraction of bases
+     in the interval in A that were overlapped by one or more features. Thus, bedtools coverage also computes the
+     breadth of coverage observed for each interval in A.
+
+     After each interval in A, bedtools coverage will report:
+        - The number of features in B that overlapped (by at least one base pair) the A interval.
+        - The number of bases in A that had non-zero coverage from features in B.
+        - The length of the entry in A.
+        - The fraction of bases in A that had non-zero coverage from features in B.
+
+    Required input:
+        - __bedtools_coverage__input_bam: Sorted BAM file.
+        - __bedtools_coverage__input_annotation: annotation file in GFF format.
+
+    Required output:
+        - __bedtools_coverage__output: BED file with coverage for feature.
+
+    Required log:
+        - __bedtools_coverage__log: Log file with stderr of bedtools.
+
+    Reference:
+        - https://bedtools.readthedocs.io/en/latest/content/bedtools-suite.html
+    """
+    input:
+        bam = __bedtools_coverage__input_bam,
+        gff = __bedtools_coverage__input_annotation
+    output:
+        __bedtools_coverage__output
+    log:
+        __bedtools_coverage__log
+    shell:
+        """
+        coverageBed -b {input.bam} -a {input.gff} -s > {output} 2> {log}
+        """
