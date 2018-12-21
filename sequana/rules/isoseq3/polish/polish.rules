@@ -19,7 +19,9 @@ rule polish:
         unpolished = __polish__input_bam,
         subreads =  __polish__input_subreads
     output:
-        __polish__output
+        suffixe = __polish__output,
+        hq_reads = __polish__output_hq,
+        lq_reads = __polish__output_lq
     params:
         options = config['polish']['options']
     threads:
@@ -29,5 +31,5 @@ rule polish:
         err = __polish__log_err
     shell:
         """
-        isoseq3 polish {input.bam} {input.subreads} {output} -j {threads} {params.options} --verbose > {log.out} 2> {log.err}
+        isoseq3 polish {input.unpolished} {input.subreads} {output.suffixe} -j {threads} {params.options} --verbose > {log.out} 2> {log.err}
         """

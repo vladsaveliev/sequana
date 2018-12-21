@@ -17,43 +17,67 @@ __snakefile__ = srcdir(__snakefile__)
 
 
 
-manager = sm.PipelineManager("pacbio_isoseq", config)
+manager = sm.PipelineManager("pacbio_isoseq", config, fastq=False)
 
 __data__input = manager.getrawdata()
 
+
+#Generate circular consensus sequence (CCS)
+__ccs__input = __data__input
+__ccs__output =  manager.getname("ccs", ".ccs.bam")
+__ccs__log_std = "%s/logs/ccs/stdout.logs" % manager.sample
+__ccs__log_err = "%s/logs/ccs/stderr.logs" % manager.sample
+include: sm.modules['ccs']
+#expected_output.extend(expand(__ccs__output, sample=manager.samples))
+
+
 #Primer removal and demultiplexing
-__lima__input = __data__input
-__lima__output = manager.getname("lima", "demux.ccs.bam")
+__lima__input = __ccs__output
+__lima__output = manager.getname("lima", ".demux.ccs.bam")
 __lima__barcoded_primers = config["lima"]["primers"]
+__lima__log_std = "%s/logs/lima/stdout.logs" % manager.sample
+__lima__log_err = "%s/logs/lima/stderr.logs" % manager.sample
 include: sm.modules['lima']
-expected_output.extend([__lima__output])
+#expected_output.extend(expand(__lima__output, sample=manager.samples))
+
+
+#PolyA trimming
+__refine__input = __ccs__output
+__refine__output = manager.getname("refine", ".flnc.bam")
+__refine__log_std = "%s/logs/refine/stdout.logs" % manager.sample
+__refine__log_err = "%s/logs/refine/stderr.logs" % manager.sample
+include: sm.modules['refine']
+#expected_output.extend(expand(__refine__output, sample=manager.samples))
 
 
 #Clustering and transcript clean up
-__cluster__input = __lima__output
+__cluster__input = __refine__output
 __cluster__output = manager.getname("cluster", "_unpolished.bam")
 __cluster__log_std = "%s/logs/cluster/stdout.logs" % manager.sample
 __cluster__log_err = "%s/logs/cluster/stderr.logs" % manager.sample
 include: sm.modules['cluster']
-expected_output.extend([__cluster__output])
+#expected_output.extend(expand(__cluster__output, sample=manager.samples))
 
 #Polishing
-__polish__input = __cluster__output
+__polish__input_bam = __cluster__output
+__polish__input_subreads = __data__input
 __polish__output = manager.getname("polish", "_polished.bam")
+__polish__output_hq = manager.getname("polish", ".hq.fastq.gz")
+__polish__output_lq = manager.getname("polish", ".lq.fastq.gz")
 __polish__log_std = "%s/logs/polish/stdout.logs" % manager.sample
 __polish__log_err = "%s/logs/polish/stderr.logs" % manager.sample
 include: sm.modules['polish']
-expected_output.extend([__polish__output])
+expected_output.extend(expand(__polish__output, sample=manager.samples))
 
 #mapping with minimap2
 if manager.config.minimap2_mapping.do:
-    __minimap2_mapping__input = "%s/polish/polished.hq.fasta.gz" % manager.sample
+    __minimap2_mapping__input = __polish__output_hq
     __minimap2_mapping__logs = manager.getname("minimap2", ".logs")
     __minimap2_mapping__sort = manager.getname("minimap2_mapping", "_sort.bam")
     __minimap2_mapping__output_bam = manager.getname("minimap2_mapping", ".bam")
-    __minimap2_mapping__ref = config["genome"]["fasta_file"]
+    __minimap2_mapping__ref = config["general"]["genome_file"]
     include: sm.modules['minimap2_mapping']
-    expected_output.extend([__minimap2_mapping__sort])
+    expected_output.extend(expand(__minimap2_mapping__sort, sample=manager.samples))
 
 
 # Include rule graph for each sample

@@ -1,5 +1,4 @@
 rule minimap2_mapping:
-
     """
     Read mapping for Long Reads data using minimap2.
 
@@ -19,7 +18,6 @@ rule minimap2_mapping:
                 ref_file: "" #path to file of reference genome in fasta
                 options:  "" #options for minimap2 you want use
     """
-
     input:
         __minimap2_mapping__input
     log:
@@ -33,14 +31,13 @@ rule minimap2_mapping:
     threads:
         config['minimap2_mapping']['threads']
     run:
-
-        cmd = "minimap2 -t {threads} {params.kwargs} {params.ref} {input} "
+        cmd = "minimap2 -t {threads} {params.kwargs} {params.ref} {input}"
         # sam to bam
-        cmd = "%%s | samtools view -Sbh - > {output.bam}" %% cmd
+        cmd = "%s | samtools view -Sbh - > {output.bam}" % cmd
 
         # logs
-        cmd = "(%%s) 2> {log.err}" %% cmd
+        cmd = "(%s) 2> {log.err}" % cmd
 
         # sort result
-        cmd = "%%s && samtools sort -o {output.sort} {output.bam}" %% cmd
-        cmd = "%%s && samtools index {output.sort}" %% cmd
+        cmd = "%s && samtools sort -o {output.sort} {output.bam}" % cmd
+        cmd = "%s && samtools index {output.sort}" % cmd

@@ -29,16 +29,21 @@ requirements:
 
 
 #############################################################################
-# Indexing section: if checked, all index for bowtie (1&2), star, etc... will be produced in dir
+# General section
 #
 # :Parameters:
 #
-# - fasta: path to Reference Genome in fasta format
+# - genome_file: path to Reference Genome in fasta format
+# - spikes: if data contain spikes or not. May be yes or no
+# - spikes_file: path to spikes in fasta format
+# - design_file: path to design in XX format
 #
-genome:
-  fasta_file: /path/to/your/directory/Genomes/hg19/hg19.fa
 
-
+general:
+  genome_file: /path/to/your/directory/Genomes/hg19/hg19.fa
+  spikes: no # may be yes
+  spikes_file: /path/to/your/directory/spikes.fa
+  design_file: /path/to/your/directory/design.txt
 
 #############################################################################
 # Isoseq3 PacBio pipeline
@@ -50,8 +55,20 @@ genome:
 # - options: any options recognized by different commands of isoseq3 tool
 # - threads: number of threads to be used
 
+ccs:
+  options: '--noPolish --minPasses 1'
+  threads: 12
+
 lima:
   primers: /path/to/barcoded_primers
+  threads: 12
+
+refine:
+  options: ''
+  threads: 12
+
+merge:
+  options: ''
   threads: 12
 
 cluster:
