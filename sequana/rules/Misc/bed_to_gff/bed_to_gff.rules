@@ -1,0 +1,15 @@
+rule bed_to_gff:
+    """
+    Rule for selecting 100,000 first peaks for IDR rule
+    """
+    input:
+        __bed_to_gff__input
+    log:
+        __bed_to_gff__logs
+    output:
+        __bed_to_gff__output
+    shell:
+        """
+        sort -k1,1 -k2,2n {input} > {output} 2> {log}
+
+        """
