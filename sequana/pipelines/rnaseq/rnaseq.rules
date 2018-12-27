@@ -292,8 +292,9 @@ else :
 if manager.config.feature_counts.do:
 	__feature_counts__output_count = manager.getname("feature_counts", "_feature.out")
 	__feature_counts__gff = config["genome"]["gff_file"]
-	__feature_counts__output_gene_count = manager.getname("feature_counts", "_count.out")
+    __feature_counts__options = config['feature_counts']["options"]
 	__feature_counts__log = manager.getname("feature_counts", ".logs")
+    __feature_counts__threads = config["genome"]["threads"]
 	include: sm.modules["feature_counts"]
 	expected_output.extend(expand(__feature_counts__output_gene_count, sample=manager.samples))
 
