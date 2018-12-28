@@ -8,6 +8,7 @@ rule compute_idr:
 
     Required output:
         idr = __compute_idr__output: idr file
+        peak = __compute_idr__output_peak: peaks passing IDR threshold
 
     Required configuration:
         .. code-block:: yaml
@@ -22,20 +23,24 @@ rule compute_idr:
         input1 = __compute_idr__input1,
         input2 = __compute_idr__input2
     output:
-        idr = __compute_idr__output
+        idr = __compute_idr__output,
+        peak = __compute_idr__output_peak
     log:
-        out = __compute_idr__log_std,
-        err = __compute_idr__log_err
+        __compute_idr__log
     params:
-        mode = config["compute_idr"]["mode"],
+        mode = config["compute_idr"]["mode_choice"],
         rank = config["compute_idr"]["rank"],
-        thresh = config["compute_dr"]["thresh"]
+        thresh = config["compute_idr"]["thresh"]
     shell:
         """
         idr --samples {input.input1} {input.input2} \
-            --input-file-type ${mode}Peak \
+            --input-file-type {params.mode} \
             --output-file {output.idr} \
             --rank {params.rank} \
             --soft-idr-threshold {params.thresh} \
-            --plot > {log.out} 2> {log.err}
+            --plot 2> {log}
+
+        IDR_tr=$(awk -v p={params.thresh} 'BEGIN{{print -log(p)/log(10)}}')
+        awk 'BEGIN{{OFS="\t"}} $12>='"${{IDRrep_tr}}"' {{print $0}}' {output.idr} \
+         | sort | uniq | sort -k7n,7n  > {output.peak}
         """
