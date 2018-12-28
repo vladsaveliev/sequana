@@ -11,6 +11,7 @@ from sequana import snaketools as sm
 import pandas as pd
 from fnmatch import fnmatch
 from re import sub
+from itertools import repeat
 
 sm.init("chipseq.rules", globals())
 
@@ -45,6 +46,7 @@ REQUIREMENTS IN DESIGN:
         MARK_COND_REP_READ-TAD.fastq.gz
  - name on design must be:
         MARK_COND
+
 
 """
 
@@ -85,9 +87,11 @@ spr = ['SPR1.1', 'SPR1.2', 'SPR2.1', 'SPR2.2']
 
 
 # From the design file, we get only IP with more than one replicate
-IP_REP = []
+IP_REP = [] # all IP passing IDR
+IP_REP_DUP = [] # corresponding INPUT
 for row in design.itertuples(index=True, name='Pandas'):
     if getattr(row, "NB_IP") > 1:
+        IP_REP_DUP.append(getattr(row, "INPUT_NAME")+"_"+rep_flag+"1")
         IP_REP.append(getattr(row, "IP_NAME"))
 
 # We get only INPUT with more than one replicate that are linked to an IP with multiple replicates
@@ -121,7 +125,7 @@ for cond in IP_REP:
             SPR_POOL.append(pool_file)
             for row in design.itertuples(index=True, name='Pandas'):
                 if  (getattr(row, "IP_NAME")) in name[0]:
-                     INPUT_PPR.append(getattr(row, "INPUT_NAME")+"_"+rep[1])
+                     INPUT_PPR.append(getattr(row, "INPUT_NAME")+"_"+rep[0])
                      INPUT_SPR.append(getattr(row, "INPUT_NAME")+"_"+rep[0])
                      INPUT_SPR.append(getattr(row, "INPUT_NAME")+"_"+rep[0])
     IP_IDR.append(tmp)
@@ -138,9 +142,13 @@ for row in design.itertuples(index=True, name='Pandas'):
         PPR_POOL.append(getattr(row, "IP_NAME") + "_PPRPool")
         INPUT_POOL.append(getattr(row, "INPUT_NAME")+ "_Rep1")
 
+# all files passing PhantomPeakQualTool if no-model is chosen
 ALL = IP_ALL + IP_SPR + IP_PPR + PPR_POOL
-SELECT_IP = IP_ALL + IP_SPR + IP_PPR + PPR_POOL
-SELECT_INPUT = INPUT + INPUT_SPR + INPUT_PPR + INPUT_POOL
+
+# get files for IDR
+CASE = ["Rep", "PPR", "SPR1.", "SPR2."]*len(IP_REP)
+REP_IDR = list(chain(*zip(*repeat(IP_REP,4))))
+IN_IDR = list(chain(*zip(*repeat(IP_REP_DUP,4))))
 
 # Add wildcard constraints
 wildcard_constraints:
@@ -151,6 +159,9 @@ wildcard_constraints:
     PPR = "[A-Za-z-_0-9]+_PPR[0-9]*",
     POOL = "[A-Za-z-_0-9]+_PPRPool",
     INPUT_POOL = "[A-Za-z-_0-9]+_(Pool|{0}1)".format(rep_flag)
+
+
+
 
 if manager.config.fastqc.do:
     # FASTQC on input data set
@@ -224,6 +235,9 @@ if manager.config.genome.do:
     include: bowtie2_index_dynamic("ref")
     expected_output.extend([__bowtie2_index_ref__output_done])
 
+
+ref = manager.config.genome.name
+
 if manager.config.bowtie2_mapping.do:
     # Decompress fastq.gz file before to run bowtie2 ### NECESSARY ??
     __unpigz_R1__input = "1-Trimming/{sample}_R1_trim.fastq.gz"
@@ -240,11 +254,10 @@ if manager.config.bowtie2_mapping.do:
     # mapping on ref
     __bowtie2_mapping_ref__input = __cutadapt__output
     __bowtie2_mapping_ref__index_done = __bowtie2_index_ref__output_done
-    # TODO integrer la variable genome dans le nom du bam
-    __bowtie2_mapping_ref__sort = "2-Mapping/{sample}_ref_sort.bam"
-    __bowtie2_mapping_ref__bam = "2-Mapping/{sample}_ref.bam"
-    __bowtie2_mapping_ref__logs_err = "2-Mapping/logs/{sample}_ref_mapping.e"
-    __bowtie2_mapping_ref__logs_out = "2-Mapping/logs/{sample}_ref_mapping.o"
+    __bowtie2_mapping_ref__sort = "2-Mapping/{{sample}}_{}_sort.bam".format(ref)
+    __bowtie2_mapping_ref__bam = "2-Mapping/{{sample}}_{}.bam".format(ref)
+    __bowtie2_mapping_ref__logs_err = "2-Mapping/logs/{{sample}}_{}_mapping.e".format(ref)
+    __bowtie2_mapping_ref__logs_out = "2-Mapping/logs/{{sample}}_{}_mapping.o".format(ref)
     __bowtie2_mapping_ref__prefix_index = __bowtie2_index_ref__output_prefix
     include: bowtie2_mapping_dynamic("ref", manager)
     expected_output.extend(expand(__bowtie2_mapping_ref__sort, sample=manager.samples))
@@ -276,10 +289,10 @@ if manager.config.design.spike:
 # Mark duplicates
 if manager.config.mark_duplicates.do:
     __mark_duplicates__input = __bowtie2_mapping_ref__sort
-    __mark_duplicates__output = "3-Deduplication/{sample}_ref_sort_dedup.bam"
-    __mark_duplicates__metrics = "3-Deduplication/{sample}_ref_sort_dedup.txt"
-    __mark_duplicates__log_std = "3-Deduplication/logs/{sample}_ref_sort_dedup.o"
-    __mark_duplicates__log_err = "3-Deduplication/logs/{sample}_ref_sort_dedup.e"
+    __mark_duplicates__output = "3-Deduplication/{{sample}}_{}_sort_dedup.bam".format(ref)
+    __mark_duplicates__metrics = "3-Deduplication/{{sample}}_{}_sort_dedup.txt".format(ref)
+    __mark_duplicates__log_std = "3-Deduplication/logs/{{sample}}_{}_sort_dedup.o".format(ref)
+    __mark_duplicates__log_err = "3-Deduplication/logs/{{sample}}_{}_sort_dedup.e".format(ref)
     include: sm.modules["mark_duplicates"]
     expected_output.extend(expand(__mark_duplicates__output, sample=manager.samples))
 else:
@@ -289,9 +302,9 @@ else:
 # if don't, use a .format() with a variable contains "_NoBlacklist" or not.
 if manager.config.remove_blacklist.do:
     __remove_blacklist__input = __mark_duplicates__output
-    __remove_blacklist__output = "4-NoBlacklist/{sample}_ref_sort_dedup_NoBlacklist.bam"
-    __remove_blacklist__log_std = "4-NoBlacklist/logs/{sample}_ref_sort_dedup_NoBlacklist.o"
-    __remove_blacklist__log_err = "4-NoBlacklist/logs/{sample}_ref_sort_dedup_NoBlacklist.e"
+    __remove_blacklist__output = "4-NoBlacklist/{{sample}}_{}_sort_dedup_NoBlacklist.bam".format(ref)
+    __remove_blacklist__log_std = "4-NoBlacklist/logs/{{sample}}_{}_sort_dedup_NoBlacklist.o".format(ref)
+    __remove_blacklist__log_err = "4-NoBlacklist/logs/{{sample}}_{}_sort_dedup_NoBlacklist.e".format(ref)
     include: sm.modules["remove_blacklist"]
     expected_output.extend(expand(__remove_blacklist__output, sample=manager.samples))
 else:
@@ -302,45 +315,50 @@ else:
 # preIDR rules
 # run preIDR on INPUT
 if len(INPUT_REP) > 0:
-    __preIDR_input__input_bam = expand("4-NoBlacklist/{{INPUT}}_{REP}_ref_sort_dedup_NoBlacklist.bam", REP = rep)
+    __preIDR_input__input_bam = expand("4-NoBlacklist/{{INPUT}}_{REP}_%s_sort_dedup_NoBlacklist.bam" % ref,
+                                       REP = rep)
     __preIDR_input__case = "Pool"
     __preIDR_input__log = "4-NoBlacklist/logs/{INPUT}_preIDR_input.o"
-    __preIDR_input__output = "4-NoBlacklist/{INPUT}_Pool_ref_sort_dedup_NoBlacklist.bam"
+    if len(rep) > 2:
+        __preIDR_input__output = ["4-NoBlacklist/{{INPUT}}_Pool_{}_sort_dedup_NoBlacklist.bam".format(ref),
+                                 "4-NoBlacklist/{{INPUT}}_MaxiPool_{}_sort_dedup_NoBlacklist.bam".format(ref)]
+    else:
+        __preIDR_input__output = "4-NoBlacklist/{{INPUT}}_Pool_{}_sort_dedup_NoBlacklist.bam".format(ref)
     include: preIDR_dynamic("input")
     expected_output.extend(expand(__preIDR_input__output, INPUT=INPUT_REP))
 
 
 if len(IP_REP) > 0:
     # run SPR
-    __preIDR_SPR__input_bam = expand("4-NoBlacklist/{{IP}}_{REP}_ref_sort_dedup_NoBlacklist.bam", REP = rep)
+    __preIDR_SPR__input_bam = expand("4-NoBlacklist/{{IP}}_{REP}_%s_sort_dedup_NoBlacklist.bam" % ref, REP = rep)
     __preIDR_SPR__case = "SPR"
     __preIDR_SPR__log = "4-NoBlacklist/logs/{IP}_preIDR_SPR.o"
-    __preIDR_SPR__output = expand("4-NoBlacklist/{{IP}}_{SPR}_ref_sort_dedup_NoBlacklist.bam", SPR = spr)
+    __preIDR_SPR__output = expand("4-NoBlacklist/{{IP}}_{SPR}_%s_sort_dedup_NoBlacklist.bam" % ref, SPR = spr)
     include: preIDR_dynamic("SPR")
     expected_output.extend(expand(__preIDR_SPR__output, IP=IP_REP))
 
     # run PPR
-    __preIDR_PPR__input_bam = expand("4-NoBlacklist/{{IP}}_{REP}_ref_sort_dedup_NoBlacklist.bam", REP = rep)
+    __preIDR_PPR__input_bam = expand("4-NoBlacklist/{{IP}}_{REP}_%s_sort_dedup_NoBlacklist.bam" % ref, REP = rep)
     __preIDR_PPR__case = "PPR"
     __preIDR_PPR__log = "4-NoBlacklist/logs/{IP}_preIDR_PPR.o"
-    __preIDR_PPR__output =  expand("4-NoBlacklist/{{IP}}_{PPR}_ref_sort_dedup_NoBlacklist.bam", PPR = ppr)
+    __preIDR_PPR__output =  expand("4-NoBlacklist/{{IP}}_{PPR}_%s_sort_dedup_NoBlacklist.bam" % ref, PPR = ppr)
     include: preIDR_dynamic("PPR")
     expected_output.extend(expand(__preIDR_PPR__output, IP=IP_REP))
 
 if manager.config.peak_calling.no_model:
     # PhantomPeakQualTools rule
-    __spp__input = "4-NoBlacklist/{ALL}_ref_sort_dedup_NoBlacklist.bam"
-    __spp__output_pdf = "5-PhantomPeakQualTools/{ALL}_ref_sort_dedup_NoBlacklist_phantom.pdf"
-    __spp__metrics = "5-PhantomPeakQualTools/{ALL}_ref_sort_dedup_NoBlacklist_phantom.txt"
+    __spp__input = "4-NoBlacklist/{{ALL}}_{}_sort_dedup_NoBlacklist.bam".format(ref)
+    __spp__output_pdf = "5-PhantomPeakQualTools/{{ALL}}_{}_sort_dedup_NoBlacklist_phantom.pdf".format(ref)
+    __spp__metrics = "5-PhantomPeakQualTools/{{ALL}}_{}_sort_dedup_NoBlacklist_phantom.txt".format(ref)
     __spp__log_std = "5-PhantomPeakQualTools/logs/{ALL}_phantom.o"
     __spp__log_err = "5-PhantomPeakQualTools/logs/{ALL}_phantom.e"
     expected_output.extend(expand(__spp__metrics, ALL=ALL))
     include: sm.modules["spp"]
 else :
     # PhantomPeakQualTools rule
-    __spp__input = "4-NoBlacklist/{ALL}_ref_sort_dedup_NoBlacklist.bam"
-    __spp__output_pdf = "5-PhantomPeakQualTools/{ALL}_ref_sort_dedup_NoBlacklist_phantom.pdf"
-    __spp__metrics = "5-PhantomPeakQualTools/{ALL}_ref_sort_dedup_NoBlacklist_phantom.txt"
+    __spp__input = "4-NoBlacklist/{{ALL}}_{}_sort_dedup_NoBlacklist.bam".format(ref)
+    __spp__output_pdf = "5-PhantomPeakQualTools/{{ALL}}_{}_sort_dedup_NoBlacklist_phantom.pdf".format(ref)
+    __spp__metrics = "5-PhantomPeakQualTools/{{ALL}}_{}_sort_dedup_NoBlacklist_phantom.txt".format(ref)
     __spp__log_std = "5-PhantomPeakQualTools/logs/{ALL}_phantom.o"
     __spp__log_err = "5-PhantomPeakQualTools/logs/{ALL}_phantom.e"
     expected_output.extend(expand(__spp__metrics, ALL=IP_ALL))
@@ -360,13 +378,13 @@ if model in ["narrow", "broad"]:
 
     if manager.config.peak_calling.no_model:
         __macs2_rep__options += " --nomodel "
-        __macs2_rep__shift_file = "5-PhantomPeakQualTools/{IP_REP}_ref_sort_dedup_NoBlacklist_phantom.txt"
+        __macs2_rep__shift_file = "5-PhantomPeakQualTools/{{IP_REP}}_{}_sort_dedup_NoBlacklist_phantom.txt".format(ref)
     else:
         __macs2_rep__shift_file = ""
     # no matter which model
-    __macs2_rep__input_bam = "4-NoBlacklist/{IP_REP}_ref_sort_dedup_NoBlacklist.bam"
+    __macs2_rep__input_bam = "4-NoBlacklist/{{IP_REP}}_{}_sort_dedup_NoBlacklist.bam".format(ref)
     ## ATTENTION : si pas de blacklist, nom different
-    __macs2_rep__input = "-c 4-NoBlacklist/{{INPUT}}_{}_ref_sort_dedup_NoBlacklist.bam".format(rep[0])
+    __macs2_rep__input = "-c 4-NoBlacklist/{{INPUT}}_{}_sort_dedup_NoBlacklist.bam".format(ref)
     __macs2_rep__log = "6-PeakCalling/%s/logs/{IP_REP}_vs_{INPUT}.o" % model
     __macs2_rep__output = "6-PeakCalling/{}/{{IP_REP}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
     __macs2_rep__output_prefix = "6-PeakCalling/%s/{IP_REP}_vs_{INPUT}" % model
@@ -384,13 +402,13 @@ if model in ["narrow", "broad"]:
 
     if manager.config.peak_calling.no_model:
         __macs2_spr__options += " --nomodel "
-        __macs2_spr__shift_file = "5-PhantomPeakQualTools/{SPR}_ref_sort_dedup_NoBlacklist_phantom.txt"
+        __macs2_spr__shift_file = "5-PhantomPeakQualTools/{{SPR}}_{}_sort_dedup_NoBlacklist_phantom.txt".format(ref)
     else:
         __macs2_spr__shift_file = ""
     # no matter which model
-    __macs2_spr__input_bam = "4-NoBlacklist/{SPR}_ref_sort_dedup_NoBlacklist.bam"
+    __macs2_spr__input_bam = "4-NoBlacklist/{{SPR}}_{}_sort_dedup_NoBlacklist.bam".format(ref)
     ## ATTENTION : si pas de blacklist, nom different
-    __macs2_spr__input = "-c 4-NoBlacklist/{INPUT}_ref_sort_dedup_NoBlacklist.bam"
+    __macs2_spr__input = "-c 4-NoBlacklist/{{INPUT}}_{}_sort_dedup_NoBlacklist.bam".format(ref)
     __macs2_spr__log = "6-PeakCalling/%s/logs/{SPR}_vs_{INPUT}.o" % model
     __macs2_spr__output = "6-PeakCalling/{}/{{SPR}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
     __macs2_spr__output_prefix = "6-PeakCalling/%s/{{SPR}}_vs_{{INPUT}}" % model
@@ -407,13 +425,13 @@ if model in ["narrow", "broad"]:
 
     if manager.config.peak_calling.no_model:
         __macs2_ppr__options += " --nomodel "
-        __macs2_ppr__shift_file = "5-PhantomPeakQualTools/{PPR}_ref_sort_dedup_NoBlacklist_phantom.txt"
+        __macs2_ppr__shift_file = "5-PhantomPeakQualTools/{{PPR}}_{}_sort_dedup_NoBlacklist_phantom.txt".format(ref)
     else:
         __macs2_ppr__shift_file = ""
     # no matter which model
-    __macs2_ppr__input_bam = "4-NoBlacklist/{PPR}_ref_sort_dedup_NoBlacklist.bam"
+    __macs2_ppr__input_bam = "4-NoBlacklist/{{PPR}}_{}_sort_dedup_NoBlacklist.bam".format(ref)
     ## ATTENTION : si pas de blacklist, nom different
-    __macs2_ppr__input = "-c 4-NoBlacklist/{INPUT}_ref_sort_dedup_NoBlacklist.bam"
+    __macs2_ppr__input = "-c 4-NoBlacklist/{{INPUT}}_{}_sort_dedup_NoBlacklist.bam".format(ref)
     __macs2_ppr__log = "6-PeakCalling/%s/logs/{PPR}_vs_{INPUT}.o" % model
     __macs2_ppr__output = "6-PeakCalling/{}/{{PPR}}_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
     __macs2_ppr__output_prefix = "6-PeakCalling/%s/{{PPR}}_vs_{{INPUT}}" % model
@@ -430,13 +448,13 @@ if model in ["narrow", "broad"]:
 
     if manager.config.peak_calling.no_model:
         __macs2_pool__options += " --nomodel "
-        __macs2_pool__shift_file = "5-PhantomPeakQualTools/{POOL}_ref_sort_dedup_NoBlacklist_phantom.txt"
+        __macs2_pool__shift_file = "5-PhantomPeakQualTools/{{POOL}}_{}_sort_dedup_NoBlacklist_phantom.txt".format(ref)
     else:
         __macs2_pool__shift_file = ""
     # no matter which model
-    __macs2_pool__input_bam = "4-NoBlacklist/{POOL}_ref_sort_dedup_NoBlacklist.bam"
+    __macs2_pool__input_bam = "4-NoBlacklist/{{POOL}}_{}_sort_dedup_NoBlacklist.bam".format(ref)
     ## ATTENTION : si pas de blacklist, nom different
-    __macs2_pool__input = "-c 4-NoBlacklist/{INPUT_POOL}_ref_sort_dedup_NoBlacklist.bam"
+    __macs2_pool__input = "-c 4-NoBlacklist/{{INPUT_POOL}}_{}_sort_dedup_NoBlacklist.bam".format(ref)
     __macs2_pool__log = "6-PeakCalling/%s/logs/{POOL}_vs_{INPUT_POOL}.o" % model
     __macs2_pool__output = "6-PeakCalling/{}/{{POOL}}_vs_{{INPUT_POOL}}_peaks.{}Peak".format(model, model)
     __macs2_pool__output_prefix = "6-PeakCalling/%s/{{POOL}}_vs_{{INPUT_POOL}}" % model
@@ -447,20 +465,42 @@ else:
     raise ValueError("Invalid choice of model for peak calling. Use either narrow or broad, or set no-model to yes")
 
 
+# Compute IDR
+__compute_idr__input1 = "6-PeakCalling/{}/{{IP_IDR}}_{{CASE}}1_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
+__compute_idr__input2 = "6-PeakCalling/{}/{{IP_IDR}}_{{CASE}}2_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
+__compute_idr__output = "7-IDR/{{IP_IDR}}_{{CASE}}1vs{{CASE}}2_{{INPUT}}_ref_{}_idr".format(model)
+__compute_idr__output_peak = "7-IDR/{{IP_IDR}}_{{CASE}}1vs{{CASE}}2_{{INPUT}}_ref_{}_idr{}.{}Peak".format(model, config["compute_idr"]["thresh"], model)
+__compute_idr__log = "7-IDR/logs/{IP_IDR}_{CASE}1vs{CASE}2_%s_idr.o" % model
+include: sm.modules["compute_idr"]
+expected_output.extend(expand(__compute_idr__output, zip, IP_IDR=REP_IDR, CASE=CASE, INPUT=IN_IDR))
+
+
+
 # Select IDR peaks
-__all_peaks_files = "6-PeakCalling/{}/{{IP_ALL}}_vs_{{IN_ALL}}_peaks.{}Peak".format(model, model)
-__select_peaks__input = __all_peaks_files
-__select_peaks__logs = "6-PeakCalling/%s/logs/{IP_ALL}_select.o" % model
-__select_peaks__output = "6-PeakCalling/{}/logs/{{IP_ALL}}_vs_{{IN_ALL}}_select.{}Peak".format(model, model)
+__select_peaks__input_rep = "7-IDR/{{IP_IDR}}_{}1vs{}2_{{INPUT}}_ref_{}_idr{}.{}Peak".format(rep_flag, rep_flag, model, config["compute_idr"]["thresh"], model)
+__select_peaks__input_ppr = "7-IDR/{{IP_IDR}}_{}1vs{}2_{{INPUT}}_ref_{}_idr{}.{}Peak".format("PPR", "PPR", model, config["compute_idr"]["thresh"], model)
+__select_peaks__input_pool = "6-PeakCalling/{}/{{IP_IDR}}_PPRPool_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
+__select_peaks__logs = "7-IDR/logs/{IP_IDR}_selected_peaks.o"
+__select_peaks__output = "7-IDR/{{IP_IDR}}_vs_{{INPUT}}_select.{}Peak".format(model)
 include: sm.modules["select_peaks"]
-expected_output.extend(expand(__select_peaks__output, zip, IP_ALL=SELECT_IP, IN_ALL=SELECT_INPUT))
+expected_output.extend(expand(__select_peaks__output, zip, IP_IDR=IP_REP, INPUT=IP_REP_DUP))
+
+
+# get union from all detected peak among all conditions
+__union_peaks__input = expand("7-IDR/{{IP_IDR}}_vs_{{INPUT}}_select.{}Peak".format(model),
+                              IP_IDR=IP_REP, INPUT=IP_REP_DUP)
+__union_peaks__logs = "7-IDR/logs/Optimal_selected_peaks.o"
+__union_peaks__output = "7-IDR/{{MARK}}_{{COND}}_{}.optimal.{}Peak_overlap.bed".format(ref,model)
+#include: sm.modules["union_peaks"]
+#expected_output.extend(expand(__select_peaks__output, zip, MARK=mark, COND=cond))
+
 
 # get GFF from peak files
 __bed_to_gff__input = "6-PeakCalling/{}/logs/{{IP_ALL}}_vs_{{IN_ALL}}_select.{}Peak".format(model, model)
 __bed_to_gff__logs = "6-PeakCalling/%s/logs/{IP_ALL}_bed2gff.o" % model
 __bed_to_gff__output = "6-PeakCalling/{}/{{IP_ALL}}_vs_{{IN_ALL}}_peaks_sort.bed".format(model)
-include: sm.modules["bed_to_gff"]
-expected_output.extend(expand(__bed_to_gff__output, zip, IP_ALL=SELECT_IP, IN_ALL=SELECT_INPUT))
+#include: sm.modules["bed_to_gff"]
+#expected_output.extend(expand(__bed_to_gff__output, zip, IP_ALL=SELECT_IP, IN_ALL=SELECT_INPUT))
 
 
 # feature Count on peaks
@@ -470,8 +510,8 @@ __feature_counts__gff = "6-PeakCalling/{}/{{IP_ALL}}_vs_{{IN_ALL}}_peaks_sort.be
 __feature_counts__log = "6-PeakCalling/%s/logs/{IP_ALL}_counts.o" % model
 __feature_counts__options = ""
 __feature_counts__threads = 4
-include: sm.modules["feature_counts"]
-expected_output.extend(expand(__feature_counts__output_count, zip, IP_ALL=SELECT_IP, IN_ALL=SELECT_INPUT))
+#include: sm.modules["feature_counts"]
+#expected_output.extend(expand(__feature_counts__output_count, zip, IP_ALL=SELECT_IP, IN_ALL=SELECT_INPUT))
 
 
 # !Reset expected_output variable after multiqc
