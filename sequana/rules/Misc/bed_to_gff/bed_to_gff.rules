@@ -1,6 +1,6 @@
 rule bed_to_gff:
     """
-    Rule for selecting 100,000 first peaks for IDR rule
+    Rule for converting output from IDR to GFF passing featureCounts
     """
     input:
         __bed_to_gff__input
@@ -10,6 +10,6 @@ rule bed_to_gff:
         __bed_to_gff__output
     shell:
         """
-        sort -k1,1 -k2,2n {input} > {output} 2> {log}
+        awk '{{print $1"\tSequana\tread\t"$2"\t"$3"\t.\t.\t.\tgene_id \""$1"_"$2"_"$3"\""}}' {input} > {output} 2> {log}
 
         """
