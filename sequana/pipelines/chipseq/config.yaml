@@ -54,9 +54,11 @@ sequencing:
 
 design:
     design_file: /path/to/your/design_file.txt
+    marks: Mark1, Mark2
+    condition: Cond1, Cond2
+    replicates: Rep
     spike: yes
     spike_genome_file: /path/to/your/directory/Genomes/spike_genome/spike_genome.fa
-
 
 
 
@@ -220,6 +222,22 @@ peak_calling:
     genomeSize: mm
     readLength: 50
 
+
+#############################################################################
+# Compute IDR on replicates, pseudo-replicates and pooled replicates
+#
+# :Parameters:
+#
+# - mode:
+# - rank:
+# - thresh:
+#
+# mode_choice__ = ["narrow", "broad"]
+#
+compute_idr:
+    mode_choice: 'narrow'
+    rank: 'p.value'
+    thresh: 0.5
 
 
 #############################################################################
