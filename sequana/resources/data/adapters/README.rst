@@ -5,9 +5,41 @@ They are provided in 3 different versions: standard, reverse and reverse
 complement; these 3 files contain the same information.
 
 
-Nextera
-------------
 
+Summary of what's included
+--------------------------
+
+- Nextera i5 Index 2 including all  S/N indexes
+
+
+
+
+adapters_NEBNext2_fwd.fa
+adapters_Rubicon_fwd.fa
+adapters_SMARTer_fwd.fa
+adapters_NEBNext_fwd.fa   
+adapters_PCRFree_fwd.fa  
+adapters_Small_fwd.fa
+
+Nextera DNA Indexes
+--------------------
+contains only Index 2 (i5) for now.
+
+Transposase
+~~~~~~~~~~~~~~~
+
+The transposase adapters are used for Nextera tagmentation and are removed
+
+Read 1::
+
+    5′ TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG
+
+Read 2::
+
+    5′ GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG
+
+Indexes
+~~~~~~~~~
 The Nextera file contains i5 Bases for Sample Sheet MiSeq, HiSeq 2000/2500
 as quoted in page 13 of http://support.illumina.com/content/dam/illumina-support/documents/documentation/chemistry_documentation/experiment-design/illumina-adapter-sequences_1000000002694-01.pdf
 
@@ -57,9 +89,36 @@ N711         AAGAGGCA
 N712         GTAGAGGA
 ============ ========= ============ =======================
 
-TruSeq
--------
+TruSeq Single Indexes
+----------------------
+
 from TruSeq LT Kits and TruSeq v1/v2 Kits
+
+:machine: hiseq2500, miseq, nextseq
+:bases: 6
+
+Adapter Trimming
+
+The following sequences are used for adapter trimming.
+
+Read 1::
+
+    AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
+
+Read 2::
+
+    AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
+
+TruSeq UniversalAdapter::
+
+    5′ AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT
+
+Index adapter sequences are six bases. The index numbering is not sequential, 
+so indexes 17, 24, and 26 are skipped. Additionally, the bases
+preceding each index adapter sequence are the same, but the two bases following
+the index adapter sequence can vary
+
+
 
 Small
 -------
