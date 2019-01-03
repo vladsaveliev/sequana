@@ -151,8 +151,8 @@ REP_IDR = list(chain(*zip(*repeat(IP_REP,4))))
 IN_IDR = list(chain(*zip(*repeat(IP_REP_DUP,4))))
 
 # get marks and conds for the union of optimal peaks
-marks = (manager.config.design.marks).split(",")
-conds = (manager.config.design.condition).split(",")
+marks = [ x.strip() for x in (manager.config.design.marks).split(",")]
+conds = [ x.strip() for x in (manager.config.design.condition).split(",")]
 
 
 # Add wildcard constraints
@@ -480,7 +480,6 @@ include: sm.modules["compute_idr"]
 expected_output.extend(expand(__compute_idr__output, zip, IP_IDR=REP_IDR, CASE=CASE, INPUT=IN_IDR))
 
 
-
 # Select IDR peaks
 __select_peaks__input_rep = "7-IDR/{{IP_IDR}}_{}1vs{}2_{{INPUT}}_ref_{}_idr{}.{}Peak".format(rep_flag, rep_flag, model, config["compute_idr"]["thresh"], model)
 __select_peaks__input_ppr = "7-IDR/{{IP_IDR}}_{}1vs{}2_{{INPUT}}_ref_{}_idr{}.{}Peak".format("PPR", "PPR", model, config["compute_idr"]["thresh"], model)
@@ -491,39 +490,58 @@ include: sm.modules["select_peaks"]
 expected_output.extend(expand(__select_peaks__output, zip, IP_IDR=IP_REP, INPUT=IP_REP_DUP))
 
 
-#exemple pour K4Me1-MOUSE , cond = U et C
-#input = 7-IDR/K4Me1-MOUSE_U_vs_INPUT-MOUSE_U_Rep1_select.narrowPeak,
-# 7-IDR/K4Me1-MOUSE_C_vs_INPUT-MOUSE_C_Rep1_select.narrowPeak
-#ouput = 7-IDR/K4Me1-MOUSE_UuC_ref.optimal.narrowPeak_overlap.bed
+def getPeakFilesByMark(wildcards):
+    ALL_IP = expand(__select_peaks__output, zip, IP_IDR=IP_REP, INPUT=IP_REP_DUP)
+    IP_dict = {}
+    for mark in marks:
+        IP_dict[mark] = []
+        for file in ALL_IP:
+            if mark in file:
+                IP_dict[mark].append(file)
+
+    return IP_dict[wildcards["MARK"]]
+
+
 
 # get union from all detected peak among all conditions for each mark
-__union_peaks__input = expand("7-IDR/{{MARK}}_{COND}_vs_{INPUT}_select.%sPeak" % model,
-                             INPUT=IP_REP_DUP, COND=conds )
-__union_peaks__logs = "7-IDR/logs/Optimal_selected_peaks.o"
-__union_peaks__output = "7-IDR/{{MARK}}_{}.optimal.{}Peak_overlap.bed".format(ref,model)
-#include: sm.modules["union_peaks"]
-#expected_output.extend(expand(__select_peaks__output, MARK=mark))
-
-
+# TODO how many conditions ? if only two, we can put condition names in the output files for this rule.
+__union_peaks__input = getPeakFilesByMark
+__union_peaks__logs = "7-IDR/logs/{MARK}_Optimal_selected_peaks.o"
+__union_peaks__output = "7-IDR/{{MARK}}_{}u{}_{}.optimal.{}Peak_overlap.bed".format(conds[0], conds[1], ref, model)
+include: sm.modules["union_peaks"]
+expected_output.extend(expand(__union_peaks__output, MARK=marks))
 
 
 # get GFF from peak files
-__bed_to_gff__input = "6-PeakCalling/{}/logs/{{IP_ALL}}_vs_{{IN_ALL}}_select.{}Peak".format(model, model)
-__bed_to_gff__logs = "6-PeakCalling/%s/logs/{IP_ALL}_bed2gff.o" % model
-__bed_to_gff__output = "6-PeakCalling/{}/{{IP_ALL}}_vs_{{IN_ALL}}_peaks_sort.bed".format(model)
-#include: sm.modules["bed_to_gff"]
-#expected_output.extend(expand(__bed_to_gff__output, zip, IP_ALL=SELECT_IP, IN_ALL=SELECT_INPUT))
+__bed_to_gff__input = "7-IDR/{{MARK}}_{}u{}_{}.optimal.{}Peak_overlap.bed".format(conds[0], conds[1], ref, model)
+__bed_to_gff__logs = "7-IDR/logs/{MARK}_Optimal_bed2gff.o"
+__bed_to_gff__output = "7-IDR/{{MARK}}_{}u{}_{}.optimal.{}Peak_overlap.gff".format(conds[0], conds[1], ref, model)
+include: sm.modules["bed_to_gff"]
+expected_output.extend(expand(__bed_to_gff__output,  MARK=marks))
+
+
+def getBAMFilesByMark(wildcards):
+    ALL_BAM = expand(__macs2_rep__input_bam, IP_REP=IP_ALL)
+    BAM_dict = {}
+    for mark in marks:
+        BAM_dict[mark] = []
+        for file in ALL_BAM:
+            if mark in file:
+                BAM_dict[mark].append(file)
+
+    return BAM_dict[wildcards["MARK"]]
 
 
 # feature Count on peaks
-__feature_counts__input = "4-NoBlacklist/{{IP_ALL}}_ref_sort_dedup{}.bam".format(blacklist)
-__feature_counts__output_count = "6-PeakCalling/{}/logs/{{IP_ALL}}_vs_{{IN_ALL}}_select_counts.tab".format(model)
-__feature_counts__gff = "6-PeakCalling/{}/{{IP_ALL}}_vs_{{IN_ALL}}_peaks_sort.bed".format(model)
-__feature_counts__log = "6-PeakCalling/%s/logs/{IP_ALL}_counts.o" % model
+__feature_counts__input = getBAMFilesByMark
+__feature_counts__output_count = "{{MARK}}_Matrix_Optimal_{}Peak.mtx".format(model)
+__feature_counts__gff = "7-IDR/{{MARK}}_{}u{}_{}.optimal.{}Peak_overlap.gff".format(conds[0], conds[1], ref, model)
+__feature_counts__log = "6-PeakCalling/%s/logs/{MARK}_counts.o" % model
 __feature_counts__options = ""
 __feature_counts__threads = 4
-#include: sm.modules["feature_counts"]
-#expected_output.extend(expand(__feature_counts__output_count, zip, IP_ALL=SELECT_IP, IN_ALL=SELECT_INPUT))
+include: sm.modules["feature_counts"]
+expected_output.extend(expand(__feature_counts__output_count,  MARK=marks))
+
 
 
 # !Reset expected_output variable after multiqc
