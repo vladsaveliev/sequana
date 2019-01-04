@@ -210,7 +210,7 @@ remove_blacklist:
 # be sequenced. Because of the repetitive features on the chromsomes, the actual mappable genome size will be smaller
 # than the original size, about 90% or 70% of the genome size. The default hs -- 2.7e9 is recommended for UCSC human
 # hg18 assembly.
-# - readLength:
+# - readLength: in order to compute the best shift with PPQT when force_shift is set
 #
 # tool_choice__ = ["narrow", "broad"]
 #
