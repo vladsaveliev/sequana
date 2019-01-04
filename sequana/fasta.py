@@ -173,3 +173,13 @@ class FastA(object):
         stats["N"] = 2
         stats["mean_length"] = mean(self.lengths)
         return stats
+
+
+    def reverse_and_save(self, filename):
+        with open(filename, "w") as fout:
+            for read in self:
+                fout.write(">{}\t{}\n{}\n".format(read.name, read.comment,
+                    read.sequence[::-1]))
+
+
+
