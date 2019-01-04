@@ -8,7 +8,8 @@ rule macs2_%(name)s:
     macs2 peak caller https://github.com/taoliu/MACS. Main MACS2 Function to Call peaks from alignment results.
 
     Required input:
-        __macs2_%(name)s__input: bam file
+        __macs2_%(name)s__input_bam: bam file
+        __macs2_%(name)s__input_done: any file required by macs2 (ex: INPUT bam file, output of spp rule, etc..)
 
     Required output:
         __macs2_%(name)s__output: peak file
@@ -22,6 +23,7 @@ rule macs2_%(name)s:
                 options:  ""   #options for macs2 you want use
                 no-model: yes or no
                 force_shift: yes or no
+                readLength: 50 # in order to compute the best shift with PPQT when force_shift is set
 
     """
 
