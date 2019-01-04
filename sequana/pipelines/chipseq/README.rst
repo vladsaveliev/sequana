@@ -9,7 +9,7 @@ Usage
 
 Example::
 
-    sequana --pipeline chipseq -i data/ -o analysis --no-adapters
+    sequana --pipeline chipseq -i data/ -o analysis --no-adapter -t "_R[12]"
     cd analysis
     sbatch snakemake -s chipseq.rules --stats stats.txt -p -j 12 --nolock --cluster-config cluster_config.json --cluster "sbatch --mem={cluster.ram} --cpus-per-task={threads}"
 
