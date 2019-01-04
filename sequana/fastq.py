@@ -363,11 +363,12 @@ class FastQ(object):
                 while buf:
                     outstr = d.decompress(buf)
                     this_count = outstr.count(b"\n")
-
                     if count + this_count > N:
                         # there will be too many lines, we need to select a subset
                         missing = N - count
-                        outstr = outstr.strip().split(b"\n")
+                        #outstr = outstr.strip().split(b"\n")
+                        #Fix https://github.com/sequana/sequana/issues/536
+                        outstr = outstr.split(b"\n")
                         outstr = b"\n".join(outstr[0:missing]) + b"\n"
                         fout.write(outstr)
                         break
