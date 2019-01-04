@@ -232,7 +232,7 @@ __prefix_name__ = os.path.join(config["genome"]["genome_directory"], config["gen
 
 if manager.config.genome.do:
     # indexing for bowtie2
-    __bowtie2_index_ref__fasta = config["design"]["spike_genome_file"]
+    __bowtie2_index_ref__fasta = config["genome"]["fasta_file"]
     __bowtie2_index_ref__output_done = __prefix_name__ + ".1.bt2"
     __bowtie2_index_ref__output_prefix = __prefix_name__
     __bowtie2_index_ref__log = "2-Mapping/logs/bowtie2_ref_indexing.log"
