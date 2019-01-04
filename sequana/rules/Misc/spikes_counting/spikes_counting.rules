@@ -1,0 +1,24 @@
+rule spikes_counting:
+    """
+    Use samtools in order to count number of aligned reads again a spike-in genome,
+    produce also a json file readable by multiQC
+
+    Required input:
+        __spikes_counting__input: bam file
+
+    Required output:
+        __spikes_counting__output: bam file
+
+
+    """
+    input:
+        __spikes_counting__input
+    output:
+        tab = __spikes_counting__output,
+        json = __spikes_counting__output_json,
+    log:
+        __spikes_counting__log
+    shell:
+        """
+        samtools flagstat {input} > {output.tab} 2> {log}
+        """
