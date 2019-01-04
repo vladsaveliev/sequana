@@ -9,17 +9,19 @@ complement; these 3 files contain the same information.
 Summary of what's included
 --------------------------
 
-- Nextera i5 Index 2 including all  S/N indexes
-
+- Nextera i5 Index 2 including all S/N indexes in adapters_Nextera
+- Nextera i7 Index 1 including only N indexes in adapters_Nextera
+- TruSeq Single Indexes in adapters_TruSeq
+- TruSeq Small RNA in adapters_Small
 
 
 
 adapters_NEBNext2_fwd.fa
 adapters_Rubicon_fwd.fa
 adapters_SMARTer_fwd.fa
-adapters_NEBNext_fwd.fa   
-adapters_PCRFree_fwd.fa  
-adapters_Small_fwd.fa
+adapters_NEBNext_fwd.fa
+adapters_PCRFree_fwd.fa
+
 
 Nextera DNA Indexes
 --------------------
@@ -89,15 +91,22 @@ N711         AAGAGGCA
 N712         GTAGAGGA
 ============ ========= ============ =======================
 
+
+TruSeq CD Indexes 
+------------------------------------
+:name: TruSeqCD
+
+Combinatorial dual (CD) index adapters (formerly TruSeq HT). Extracted from IEM
+using sequana.iem.IEM class.
+
+
+
 TruSeq Single Indexes
 ----------------------
+**current name is TruSeq**. Not to be confused with double indexing.
 
-from TruSeq LT Kits and TruSeq v1/v2 Kits
 
-:machine: hiseq2500, miseq, nextseq
-:bases: 6
-
-Adapter Trimming
+from TruSeq **LT** Kits and TruSeq v1/v2 Kits for DNA and RNA.
 
 The following sequences are used for adapter trimming.
 
@@ -120,9 +129,18 @@ the index adapter sequence can vary
 
 
 
-Small
--------
-from Illumina TruSeq small RNA Kits
+
+TruSeq Small RNA
+-----------------
+from Illumina TruSeq small RNA Kits.
+
+Based on document 10000002694 v09
+
+!! in the document above, six-bases long index adapters are reverse
+complemented. !!
+
+Reference are eg RPI5 for index 5.
+
 
 SMARTer
 -------
