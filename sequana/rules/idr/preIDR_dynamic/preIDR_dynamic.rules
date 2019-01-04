@@ -39,7 +39,7 @@ rule preIDR_%(name)s:
         __preIDR_%(name)s__output
     shell:
         """
-        if [ {params.case} == SPR ]
+        if [[ {params.case} == SPR ]]
         then
             i=1
             tmp="{output}"
@@ -84,7 +84,7 @@ rule preIDR_%(name)s:
                 i=$((i + 1))
 
             done
-        elif [ {params.case} == PPR ] ; then
+        elif [[ {params.case} == PPR ]] ; then
 
             tmp="{output}"
             outfiles=($tmp)
@@ -98,15 +98,16 @@ rule preIDR_%(name)s:
             samtools merge $FILE_Pool ${{infiles[0]}} ${{infiles[1]}}
 
             echo "Spliting bam file $FILE_Pool ..." > {log}
+            samtools view -H $FILE_Pool > ${{FILE_Pool%%.*}}_header.sam
             nlinesPPR=$(samtools view $FILE_Pool | wc -l ) # Number of reads in the BAM file
-            nlinesPPR=$(( ($nlinesSPR+1)/2 )) # half that number
+            nlinesPPR=$(( ($nlinesPPR+1)/2 )) # half that number
 
             samtools view $FILE_Pool | shuf | split -d -l ${{nlinesPPR}} - ${{FILE_Pool%%.*}} # This will shuffle the lines in the file and split it into two SAM files
 
             cat ${{FILE_Pool%%.*}}_header.sam ${{FILE_Pool%%.*}}00 | samtools view -bS | samtools sort -o ${{FILE1}}
             cat ${{FILE_Pool%%.*}}_header.sam ${{FILE_Pool%%.*}}01 | samtools view -bS | samtools sort -o ${{FILE2}}
 
-            echo "Indexing self pseudos-replicates Bamfiles ${{file}}" > {log}
+            echo "Indexing self pseudos-replicates Bamfiles ${{FILE1}} ${{FILE2}}" > {log}
             samtools index ${{FILE1}}
             samtools index ${{FILE2}}
 
@@ -116,8 +117,8 @@ rule preIDR_%(name)s:
                 rm ${{FILE_Pool%%.*}}01
 
 
-            if [[ ! ${{outfiles[3]}} == '' ]] ; then
-                FILE3=${{outfiles[3]}}
+            if [[ ${{#infiles[@]}} > 3 ]] ; then
+                FILE3=${{infiles[2]}}
                 n=1
                 for $FILEN in ${{infiles[0]}} ${{infiles[1]}} ; do
                     FILE_Pool=${{FILE1/Rep1/Rep${{n}}3-Pool}}
@@ -125,7 +126,7 @@ rule preIDR_%(name)s:
 
                     echo "Spliting bam file $FILE_Pool ..." > {log}
                     nlinesPPR=$(samtools view $FILE_Pool | wc -l ) # Number of reads in the BAM file
-                    nlinesPPR=$(( ($nlinesSPR+1)/2 )) # half that number
+                    nlinesPPR=$(( ($nlinesPPR+1)/2 )) # half that number
 
                     samtools view $FILE_Pool | shuf | split -d -l ${{nlinesPPR}} - ${{FILE_Pool%%.*}} # This will shuffle the lines in the file and split it into two SAM files
 
@@ -156,7 +157,7 @@ rule preIDR_%(name)s:
 
             fi
 
-        elif [ {params.case} == Pool ] ; then
+        elif [[ {params.case} == Pool ]] ; then
             #Merge treatment BAMS
             echo "Merging BAM files for Input..."
 
@@ -181,7 +182,7 @@ rule preIDR_%(name)s:
             rm ${{outfiles[0]}}_tmp
 
             # if more than 2 input, create also a maxi pool
-            if [[ ! ${{infiles[2]}} == '' ]] ; then
+            if [[ ${{#infiles[@]}} > 3 ]] ; then
                 echo "Merging BAM files on maxi pool for Input..." > {log}
                 FILE3=${{infiles[2]}}
                 samtools merge ${{outfiles[1]}}_tmp ${{FILE1}} ${{FILE2}} ${{FILE3}}
