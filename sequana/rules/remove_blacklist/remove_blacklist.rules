@@ -24,10 +24,8 @@ rule remove_blacklist:
         err = __remove_blacklist__log_err
     params:
         blacklist = config["remove_blacklist"]["blacklist_file"]
-    threads:
-        int(config["remove_blacklist"]["threads"])
     shell:
         """
-        intersectBed -v -abam {input} -b {params.blacklist} > {output} \
-        && samtools index {output.bam}) > {log.out} 2> {log.err}
+        (intersectBed -v -abam {input} -b {params.blacklist} > {output}) \
+        && (samtools index {output.bam} > {log.out}) 2> {log.err}
         """
