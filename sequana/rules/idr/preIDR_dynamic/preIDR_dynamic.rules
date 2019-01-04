@@ -39,16 +39,23 @@ rule preIDR_%(name)s:
         __preIDR_%(name)s__output
     shell:
         """
-        if [[ {params.case} == SPR ]]
+        if [ {params.case} == SPR ]
         then
             i=1
             tmp="{output}"
-            outfiles=${{tmp}}
+            outfiles=($tmp)
             for file in {input} ; do
 
-                if [ $i -eq 1 ] ; then SPR="SPR1" ; SPR1=${{outfiles[0]}} ; SPR2=${{outfiles[1]}} ;
-                elif [ $i -eq 2 ] ; then SPR="SPR2" ; SPR1=${{outfiles[2]}} ; SPR2=${{outfiles[3]}} ;
-                else SPR="SPR3"; SPR1=${{outfiles[3]}} ; SPR2=${{outfiles[4]}} ;  fi
+                if [ $i -eq 1 ]
+                then
+                    SPR="SPR1" ; SPR1=${{outfiles[0]}} ; SPR2=${{outfiles[1]}}
+
+                elif [ $i -eq 2 ]
+                then
+                    SPR="SPR2" ; SPR1=${{outfiles[2]}} ; SPR2=${{outfiles[3]}}
+                else
+                    SPR="SPR3"; SPR1=${{outfiles[3]}} ; SPR2=${{outfiles[4]}}
+                fi
 
                 echo "starting $SPR ..." > {log}
 
@@ -77,13 +84,12 @@ rule preIDR_%(name)s:
                 i=$((i + 1))
 
             done
-
-        elif [[ {params.case} == PPR ]] ; then
+        elif [ {params.case} == PPR ] ; then
 
             tmp="{output}"
-            outfiles=${{tmp}}
+            outfiles=($tmp)
             tmp="{input}"
-            infiles=${{tmp}}
+            infiles=($tmp)
 
             FILE1=${{outfiles[0]}}
             FILE2=${{outfiles[1]}}
@@ -110,7 +116,7 @@ rule preIDR_%(name)s:
                 rm ${{FILE_Pool%%.*}}01
 
 
-            if [[ ! ${{outfiles[3]}} == '' ]]
+            if [[ ! ${{outfiles[3]}} == '' ]] ; then
                 FILE3=${{outfiles[3]}}
                 n=1
                 for $FILEN in ${{infiles[0]}} ${{infiles[1]}} ; do
@@ -150,15 +156,14 @@ rule preIDR_%(name)s:
 
             fi
 
-
-        elif [[ {params.case} == Pool ]] ; then
+        elif [ {params.case} == Pool ] ; then
             #Merge treatment BAMS
             echo "Merging BAM files for Input..."
 
             tmp="{output}"
-            outfiles=${{tmp}}
+            outfiles=($tmp)
             tmp="{input}"
-            infiles=${{tmp}}
+            infiles=($tmp)
 
             FILE1=${{infiles[0]}}
             FILE2=${{infiles[1]}}
@@ -176,17 +181,17 @@ rule preIDR_%(name)s:
             rm ${{outfiles[0]}}_tmp
 
             # if more than 2 input, create also a maxi pool
-            if [[ ! ${{infiles[2]}} == '' ]]
+            if [[ ! ${{infiles[2]}} == '' ]] ; then
                 echo "Merging BAM files on maxi pool for Input..." > {log}
                 FILE3=${{infiles[2]}}
                 samtools merge ${{outfiles[1]}}_tmp ${{FILE1}} ${{FILE2}} ${{FILE3}}
                 samtools sort -o ${{outfiles[1]}} ${{outfiles[1]}}_tmp
                 samtools index ${{outfiles[1]}}
                 rm ${{outfiles[1]}}_tmp
-
+            fi
         else
             echo "unrecognized argument"
-fi
+        fi
 
         """
     '''
