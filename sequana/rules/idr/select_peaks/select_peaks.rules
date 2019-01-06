@@ -12,12 +12,12 @@ rule select_peaks:
         __select_peaks__output
     shell:
         """
-        numPeaks_Rep=$(wc -l {input.rep})
-        numPeaks_PPR=$(wc -l {input.ppr})
+        numPeaks_Rep=$(wc -l {input.rep} | cut -d' ' -f1)
+        numPeaks_PPR=$(wc -l {input.ppr} | cut -d' ' -f1)
 
         if [ ${{numPeaks_Rep}} -gt ${{numPeaks_PPR}} ] ; then opTh=${{numPeaks_Rep}} ;
         else opTh=${{numPeaks_PPR}} ; fi
 
-        cat {input.pool}  | sort -k8nr,8nr| head -n ${{opTh}} > {output} 2> {log}
+        sort -k8nr,8nr {input.pool} | head -n ${{opTh}} > {output} 2> {log}
 
         """
