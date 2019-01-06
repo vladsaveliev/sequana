@@ -44,7 +44,8 @@ rule macs2_%(name)s:
         __macs2_%(name)s__output
     run:
         import os
-        if {params.shift_file}:
+        shift = ''.join({params.shift_file})
+        if shift is not "Empty":
             if os.path.exists({params.shift_file}):
                 shift = shell("awk \'{{print $2}}\' {params.shift_file} | awk -F \',\' \'if ($1=={params.read_length}){{print $2}} \\
                 else {{print $1}}\' ")
