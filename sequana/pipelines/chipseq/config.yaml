@@ -232,10 +232,10 @@ peak_calling:
 # - rank:
 # - thresh:
 #
-# mode_choice__ = ["narrow", "broad"]
+# mode_choice__ = ['narrowPeak', 'broadPeak', 'bed', 'gff']
 #
 compute_idr:
-    mode_choice: 'narrow'
+    mode_choice: 'narrowPeak'
     rank: 'p.value'
     thresh: 0.5
 
