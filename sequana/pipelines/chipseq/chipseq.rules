@@ -485,7 +485,7 @@ else:
 # Compute IDR
 __compute_idr__input1 = "6-PeakCalling/{}/{{IP_IDR}}_{{CASE}}1_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
 __compute_idr__input2 = "6-PeakCalling/{}/{{IP_IDR}}_{{CASE}}2_vs_{{INPUT}}_peaks.{}Peak".format(model, model)
-__compute_idr__output = "7-IDR/{{IP_IDR}}_{{CASE}}1vs{{CASE}}2_{{INPUT}}_ref_{}_idr".format(model)
+__compute_idr__output = "7-IDR/{{IP_IDR}}_{{CASE}}1vs{{CASE}}2_{{INPUT}}_ref_{}_idr.txt".format(model)
 __compute_idr__output_peak = "7-IDR/{{IP_IDR}}_{{CASE}}1vs{{CASE}}2_{{INPUT}}_ref_{}_idr{}.{}Peak".format(model, config["compute_idr"]["thresh"], model)
 __compute_idr__log = "7-IDR/logs/{IP_IDR}_{CASE}1vs{CASE}2_%s_idr.o" % model
 include: sm.modules["compute_idr"]
@@ -546,10 +546,10 @@ def getBAMFilesByMark(wildcards):
 
 # feature Count on peaks
 __feature_counts__input = getBAMFilesByMark
-__feature_counts__output_count = "{{MARK}}_Matrix_Optimal_{}Peak.mtx".format(model)
+__feature_counts__output_count = "7-IDR/{{MARK}}_Matrix_Optimal_{}Peak.mtx".format(model)
 __feature_counts__gff = "7-IDR/{{MARK}}_{}u{}_{}.optimal.{}Peak_overlap.gff".format(conds[0], conds[1], ref, model)
 __feature_counts__log = "6-PeakCalling/%s/logs/{MARK}_counts.o" % model
-__feature_counts__options = ""
+__feature_counts__options = "-t peak -g gene_id"
 __feature_counts__threads = 4
 include: sm.modules["feature_counts"]
 expected_output.extend(expand(__feature_counts__output_count,  MARK=marks))
