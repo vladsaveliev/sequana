@@ -41,6 +41,6 @@ rule compute_idr:
             --plot 2> {log}
 
         IDR_tr=$(awk -v p={params.thresh} 'BEGIN{{print -log(p)/log(10)}}')
-        awk 'BEGIN{{OFS="\t"}} $12>='"${{IDRrep_tr}}"' {{print $0}}' {output.idr} \
+        awk 'BEGIN{{OFS="\t"}} $12>=$IDR_tr {{print $0}}' {output.idr} \
          | sort | uniq | sort -k7n,7n  > {output.peak}
         """
