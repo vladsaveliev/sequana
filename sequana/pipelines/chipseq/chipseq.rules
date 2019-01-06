@@ -588,26 +588,12 @@ onsuccess:
     # Create plots about stats
     sm.plot_stats(N=len(manager.samples))
 
-    # Main directory
-    report_dir_format = "%(proj)s/report_rnaseq_%(proj)s"
-    for proj in manager.samples.keys():
-        report_dir = report_dir_format % {"proj": proj}
-        try:os.mkdir(report_dir)
-        except:pass
+    try: os.mkdir("cluster_logs")
+    except:pass
 
-        shell("cp %s %s" % (__snakefile__, report_dir))
-        #shell("cp rulegraph.svg %s/rulegraph.svg" % (report_dir))
-        shell("cp config.yaml %s" % report_dir)
-        shell("cp requirements.txt %s" % report_dir)
-        shell("cp snakemake_stats.png %s" % report_dir)
-        try: os.mkdir("cluster_logs")
-        except:pass
+    try: shell("mv slurm* cluster_logs/")
+    except: pass
 
-        try: shell("mv slurm* cluster_logs/")
-        except: pass
-
-        # Create a cleanup python file to clean a sub-directory
-        sm.create_cleanup(proj)
 
     sm.OnSuccess()() # create instance to create main cleanup
 
