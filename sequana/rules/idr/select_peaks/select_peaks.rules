@@ -12,6 +12,8 @@ rule select_peaks:
         __select_peaks__output
     shell:
         """
+        set +o pipefail
+
         numPeaks_Rep=$(wc -l {input.rep} | cut -d' ' -f1)
         numPeaks_PPR=$(wc -l {input.ppr} | cut -d' ' -f1)
 
