@@ -39,6 +39,7 @@ rule preIDR_%(name)s:
         __preIDR_%(name)s__output
     shell:
         """
+        set +o pipefail
         if [[ {params.case} == SPR ]]
         then
             i=1

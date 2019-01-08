@@ -33,6 +33,7 @@ rule compute_idr:
         thresh = config["compute_idr"]["thresh"]
     shell:
         """
+        set +o pipefail
         idr --samples {input.input1} {input.input2} \
             --input-file-type {params.mode} \
             --output-file {output.idr} \
