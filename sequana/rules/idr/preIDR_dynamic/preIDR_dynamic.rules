@@ -170,7 +170,7 @@ rule preIDR_%(name)s:
             FILE1=${{infiles[0]}}
             FILE2=${{infiles[1]}}
 
-            samtools merge ${{outfiles[0]}}_tmp ${{FILE1}} ${{FILE2}}
+            samtools merge -f ${{outfiles[0]}}_tmp ${{FILE1}} ${{FILE2}}
 
             echo "Sorting pool Bamfile" > {log}
             samtools sort -o ${{outfiles[0]}} ${{outfiles[0]}}_tmp
@@ -186,7 +186,7 @@ rule preIDR_%(name)s:
             if [[ ${{#infiles[@]}} > 3 ]] ; then
                 echo "Merging BAM files on maxi pool for Input..." > {log}
                 FILE3=${{infiles[2]}}
-                samtools merge ${{outfiles[1]}}_tmp ${{FILE1}} ${{FILE2}} ${{FILE3}}
+                samtools merge -f ${{outfiles[1]}}_tmp ${{FILE1}} ${{FILE2}} ${{FILE3}}
                 samtools sort -o ${{outfiles[1]}} ${{outfiles[1]}}_tmp
                 samtools index ${{outfiles[1]}}
                 rm ${{outfiles[1]}}_tmp
