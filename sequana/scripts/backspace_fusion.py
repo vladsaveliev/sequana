@@ -31,8 +31,8 @@ def get_sample_names():
     return names
 
 
-def is_paired(name):
-    filenames = glob.glob("*/{}*fastq.gz".format(name))
+def is_paired(name):    
+    filenames = glob.glob("{}_L*/{}*fastq.gz".format(name, name))    
     R1 = sum([1 for filename in filenames if '_R1_' in filename])
     R2 = sum([1 for filename in filenames if '_R2_' in filename])
 
