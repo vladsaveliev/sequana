@@ -14,6 +14,8 @@
 #  documentation: http://sequana.readthedocs.io
 #
 ##############################################################################
+"""Merge Lanes """
+
 import glob
 import os
 import subprocess
