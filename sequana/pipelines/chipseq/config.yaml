@@ -237,7 +237,7 @@ peak_calling:
 compute_idr:
     mode_choice: 'narrowPeak'
     rank: 'p.value'
-    thresh: 0.5
+    thresh: 0.05
 
 
 #############################################################################

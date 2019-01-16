@@ -52,9 +52,9 @@ REQUIREMENTS IN DESIGN:
 
 #get all fastq
 __data__input = manager.getrawdata()
-#__data__input = lambda wildcards: self.samples[wildcards.sample]
 
-#for list of input file (get_input methods)
+
+#get list of input files
 INPUT = []
 for row in design.itertuples(index=True, name='Pandas'):
     for file in manager.ff.filenames:
@@ -68,7 +68,7 @@ for row in design.itertuples(index=True, name='Pandas'):
                     INPUT.append(name)
                     i += 1
 
-
+#get list of IP files
 IP_ALL = []
 for mark in design['IP_NAME']:
     for file in manager.ff.filenames:
@@ -79,12 +79,36 @@ for mark in design['IP_NAME']:
 
 # get REP names
 #get list with replicates names for all IP
-rep_flag = config["design"]["replicates"]
+rep_flag = manager.config.design.replicates
 rep = ['Rep1', 'Rep2']
 # deduce from rep the list for SPR & PPR
 ppr = ['PPR1', 'PPR2', 'PPRPool']
 spr = ['SPR1.1', 'SPR1.2', 'SPR2.1', 'SPR2.2']
 
+#check design
+# get marks and conds for the union of optimal peaks
+marks = [ x.strip() for x in (manager.config.design.marks).split(",")]
+conds = [ x.strip() for x in (manager.config.design.condition).split(",")]
+
+#built list of MARK_COND_REP from config.yaml and check correspondance between design, config and fastq files
+
+if len(conds) > 1 :
+#built list of MARK_COND_REP from config.yaml
+    conf_cond = ["{mark}_{cond}_{flag}".format(cond=cond, mark=mark, flag=rep_flag) for cond in conds for mark in marks]
+    for row in design.itertuples(index=True, name='Pandas'):
+        for elem in conf_cond:
+            if elem in getattr(row, "IP_NAME"):
+                raise ValueError("Please check correspondance between config and design file: %s is not %s "
+                                 % (elem,getattr(row, "IP_NAME")))
+            elif not any(elem in s for s in manager.ff.tags):
+                raise ValueError("Please check correspondance between config file and fastq filenames: %s not found in %s"
+                                 % (elem, manager.ff.tags))
+            elif sum(getattr(row, "IP_NAME") in s for s in manager.ff.tags) is not int(getattr(row, "NB_IP")):
+                raise ValueError("Please check correspondance between number of replicates and/or prefix names in design "
+                                 "file and fastq filenames: %s not found %s times in %s" % (getattr(row, "IP_NAME"),
+                                                                                             getattr(row, "NB_IP"),manager.ff.tags))
+else :
+    pass
 
 # From the design file, we get only IP with more than one replicate
 IP_REP = [] # all IP passing IDR
@@ -150,10 +174,6 @@ CASE = ["Rep", "PPR", "SPR1.", "SPR2."]*len(IP_REP)
 REP_IDR = list(chain(*zip(*repeat(IP_REP,4))))
 IN_IDR = list(chain(*zip(*repeat(IP_REP_DUP,4))))
 
-# get marks and conds for the union of optimal peaks
-marks = [ x.strip() for x in (manager.config.design.marks).split(",")]
-conds = [ x.strip() for x in (manager.config.design.condition).split(",")]
-
 
 # Add wildcard constraints
 wildcard_constraints:
@@ -169,7 +189,7 @@ wildcard_constraints:
 
 if manager.config.fastqc.do:
     # FASTQC on input data set
-    __fastqc_raw__input_fastq = os.path.join(manager.ff.pathname,"{sample}_R1.fastq.gz")
+    __fastqc_raw__input_fastq = __data__input
     __fastqc_raw__output_done = "0-Fastqc/{sample}_fastqc_raw.done"
     __fastqc_raw__wkdir = "0-Fastqc"
     __fastqc_raw__log = "0-Fastqc/logs/{sample}_fastqc_raw.log"
@@ -238,7 +258,9 @@ if manager.config.genome.do:
     __bowtie2_index_ref__log = "2-Mapping/logs/bowtie2_ref_indexing.log"
     include: bowtie2_index_dynamic("ref")
     expected_output.extend([__bowtie2_index_ref__output_done])
-
+else:
+    __bowtie2_index_ref__output_done = __prefix_name__ + ".1.bt2"
+    __bowtie2_index_ref__output_prefix = __prefix_name__
 
 ref = manager.config.genome.name
 
@@ -325,7 +347,6 @@ if manager.config.remove_blacklist.do:
 else:
     blacklist = ""
     blacklist_dir = "3-Deduplication"
-    #TODO what I do ???? finish full next variables with blacklist_dir
 
 
 # preIDR rules
@@ -520,8 +541,7 @@ def getPeakFilesByMark(wildcards):
 
 
 
-# get union from all detected peak among all conditions for each mark
-# TODO how many conditions ? if only two, we can put condition names in the output files for this rule.
+# get union from all detected peak among all conditions for each marki
 # TODO test with 3 conditions using a different way to call all cond in the output name
 __union_peaks__input = getPeakFilesByMark
 __union_peaks__logs = "7-IDR/logs/{MARK}_Optimal_selected_peaks.o"
@@ -600,7 +620,7 @@ onsuccess:
     try: shell("mv slurm* cluster_logs/")
     except: pass
 
-
+    #create a file which suppress all PPR, SPR, and deduplicates/blacklist and trimmed files
     sm.OnSuccess()() # create instance to create main cleanup
 
 
