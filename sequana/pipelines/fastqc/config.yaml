@@ -1,0 +1,32 @@
+# ============================================================================
+# Config file for Quality Control
+# ==========================================[ Sections for the users ]========
+#
+# One of input_directory, input_pattern and input_samples must be provided
+# If input_directory provided, use it otherwise if input_pattern provided,
+# use it, otherwise use input_samples.
+# If input_extension provided, use it otherwise assume fastq.gz
+# ============================================================================
+
+
+input_directory: /home/cokelaer/Temp/1099/test/fastq_sampling
+input_readtag: _R[12]_
+input_extension: ''
+input_pattern: '*.fastq.gz'
+input_samples:
+    file1: ''
+    file2: ''
+
+
+#################################################################
+# FastQC section
+#
+# :Parameters:
+#
+# - options: string with any valid FastQC options
+fastqc:
+    do_group: true
+    options: ''
+
+multiqc:
+    options: ""
