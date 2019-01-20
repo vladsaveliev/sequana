@@ -1450,6 +1450,34 @@ def add_stats_summary_json(json_list, parser):
             print(j, file=fp)
 
 
+class Makefile(object):
+
+    def __init__(self, sections=["bundle"]):
+        self.makefile_filename = "Makefile"
+        self.text = ""
+        for this in sections:
+            try:
+                getattr(self, "add_"+ this)()
+            except:
+                logger.warning("no {} section found in Makefile class".format(
+                    this))
+
+    def add_remove_done(self):
+        self.text += "\nremove_done:\n\trm -f ./*/*/*.done"
+
+    def add_bundle(self):
+        txt = "bundle:\n"
+        if easydev.cmd_exists("pigz"):
+            txt += "\ttar cvf - * | pigz  -p 4 > results.tar.gz\n"
+        else:
+            txt += "\ttar cvfz results.tar.gz *\n"
+        self.text += txt
+
+    def save(self):
+        with open(self.makefile_filename, "w") as fh:
+            fh.write(self.text)
+
+
 class OnSuccess(object):
     def __init__(self, toclean=["fastq_sampling", "logs", "common_logs",
             "images", "rulegraph"]):
