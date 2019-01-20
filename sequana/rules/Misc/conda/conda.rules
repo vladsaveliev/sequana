@@ -7,8 +7,8 @@ rule conda:
 
 
     """
-    input:
-    output: "requirements.txt"
+    #input:
+    output: __conda__output
     run:
         from easydev import shellcmd
         try:
