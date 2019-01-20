@@ -1080,3 +1080,99 @@ class PBSim(object):
         if output_filename is not None:
             self.bam_simul.filter_bool(output_filename, self.tokeep)
 
+
+
+class BarCode():
+    """
+
+    Read as input a file created by smrtlink that stores statistics about each
+    barcode. This is a simple CSV file with one line per barcode<
+
+
+    """
+    def __init__(self, filename):
+        self.df = pd.read_csv(filename)
+        self.df_not_barcoded = self.df[self.df['Barcode Index'] == 'None']
+        self.df_barcoded = self.df[self.df['Barcode Index'] != 'None']
+
+
+    def plot_reads_per_barcode(self, fontsize=12):
+        """Number Of Reads Per Barcode"""
+        data = self.df_barcoded['Polymerase Reads'].sort_values(ascending=False).values
+        pylab.plot([int(x) for x in range(1, len(data)+1)], data)
+        pylab.axhline(data.mean(), color="r")
+        pylab.xlabel("Barcode Rank Order", fontsize=fontsize)
+        pylab.ylabel("Counts of Reads", fontsize=fontsize)
+        try:pylab.tight_layout()
+        except:pass
+
+    def plot_barcode_histogram(self, bins=10, fontsize=12):
+        self.df_barcoded['Polymerase Reads'].hist(bins=bins, ec="k", rwidth=0.8)
+        pylab.xlabel("Number of Barcoded Samples", fontsize=fontsize)
+        pylab.ylabel("Number of Barcoded Reads", fontsize=fontsize)
+        try:pylab.tight_layout()
+        except:pass
+
+    def plot_mean_read_length_histogram(self, bins=10, fontsize=12):
+        self.df_barcoded['Mean Read Length'].hist(bins=bins, ec="k", rwidth=0.8)
+        pylab.xlabel("Mean Read Length", fontsize=fontsize)
+        pylab.ylabel("Number of Barcoded Samples", fontsize=fontsize)
+        try:pylab.tight_layout()
+        except:pass
+
+    def plot_subreads_histogram(self, bins=10, fontsize=12):
+        self.df_barcoded['Subreads'].hist(bins=bins, ec="k", rwidth=0.8)
+        pylab.xlabel("Subreads Length", fontsize=fontsize)
+        pylab.ylabel("Number of Barcoded Samples", fontsize=fontsize)
+        try:pylab.tight_layout()
+        except:pass
+
+    def plot_barcode_quality_histogram(self, bins=10, fontsize=12):
+        self.df_barcoded['Mean Barcode Quality'].hist(bins=bins, ec="k", rwidth=0.8)
+        pylab.xlabel("Mean Barcode Quality", fontsize=fontsize)
+        pylab.ylabel("Number of Barcoded Samples", fontsize=fontsize)
+        try:pylab.tight_layout()
+        except:pass
+
+    def __str__(self):
+        PR = self.df_barcoded['Polymerase Reads']
+        MRL = self.df_barcoded['Mean Read Length']
+
+        txt = "{} unique barcodes\n".format(len(self.df_barcoded))
+        txt += "{} Barcoded reads\n".format(PR.sum())
+        txt += "{} Mean Polymerase Reads\n".format(int(PR.mean()))
+        txt += "{} Max Reads\n".format(PR.max())
+        txt += "{} Min Reads\n".format(PR.min())
+
+        M = int((PR * MRL).sum()/PR.sum())
+        txt += "{} Mean read length\n".format(M)
+
+        txt += "{} Mean Longest Subread Length\n".format(
+            self.df_barcoded['Longest Subread Length'].mean())
+
+        txt += "{} Unbarcoded Reads\n".format(
+            self.df_not_barcoded['Polymerase Reads'].values[0])
+        return txt
+
+    def plot_and_save_all(self, dpi=100):
+        pylab.clf()
+        self.plot_barcode_histogram()
+        pylab.savefig("barcode_histogram.png", dpi=dpi)
+
+        pylab.clf()
+        self.plot_barcode_quality_histogram()
+        pylab.savefig("barcode_quality_histogram.png", dpi=dpi)
+
+        pylab.clf()
+        self.plot_mean_read_length_histogram()
+        pylab.savefig("mean_read_length_histogram.png", dpi=dpi)
+
+        pylab.clf()
+        self.plot_reads_per_barcode()
+        pylab.savefig("reads_per_barcode.png", dpi=dpi)
+
+        pylab.clf()
+        self.plot_subreads_histogram()
+        pylab.savefig("subreads_histogram.png", dpi=dpi)
+
+        print(self)
