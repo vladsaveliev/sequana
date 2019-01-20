@@ -678,7 +678,7 @@ class FindAdaptersFromDesign(object):
             raise ValueError("%s not valid. Use one of %s" % (sample_name,
                                                               self.sample_names))
 
-        data = self.design.df.ix[sample_name]
+        data = self.design.df.loc[sample_name]
         if data.ndim == 1: # the expected pandas.Series
             return data
         else:
