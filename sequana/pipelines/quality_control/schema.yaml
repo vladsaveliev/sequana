@@ -106,7 +106,9 @@ mapping:
                 required: True
             "adapter_choice":
                 type: str
-                enum: ["", "Nextera", "NEBNext", "PCRFree", "Rubicon", "TruSeq"]
+                # if we set this, the pipeline is not dynamic anymore, we need
+                # to add manually the adapters. We comment this for now.
+                #enum: ["", "Nextera", "NEBNext", "PCRFree", "Rubicon", "TruSeq", "TruSeqCD"]
                 required: False
             "design_file":
                 type: str
