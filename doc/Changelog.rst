@@ -8,8 +8,11 @@ Changelog
 
 * NEWS:
 
+    * added backspace2fusion code to merge lanes in Illumina raw data
+    * added new pipeline called fastqc to simply run fastqc + multiqc in parallel
+    * added laa and barcode module
     * added test file and test for SIRVRerence class (partial fix of issue #504)
-    * added backspace2fusion code
+    * added Makefile class in snaketools to help building pipeline
 
 * BUGS:
 
@@ -28,6 +31,7 @@ Changelog
       adapter files are now identical in the forward/reverse/revcomp versions
       to simplify the code. We also added a script in ./resources/data/adapters
       to create the rev and revcomp version automatically.
+    * add missing xlrd dependencies in requirements
 
 
 0.7.1
