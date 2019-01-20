@@ -15,7 +15,7 @@ Or use :ref:`sequanix_tutorial` interface.
 Requirements
 ~~~~~~~~~~~~~~~~~~
 
-.. include:: ../sequana/pipelines/quality_control/requirements.txt
+.. include:: ../sequana/pipelines/fastqc/requirements.txt
 
 .. image:: https://raw.githubusercontent.com/sequana/sequana/master/sequana/pipelines/fastqc/dag.png
 
@@ -38,7 +38,7 @@ FastQC
 ^^^^^^^^^^^
 .. snakemakerule:: fastqc_dynamic
 
-mutliqc stats
+mutliqc
 ^^^^^^^^^^^^^^^
 .. snakemakerule:: multiqc2
 
