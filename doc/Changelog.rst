@@ -3,6 +3,33 @@ Changelog
 
 .. contents::
 
+0.7.2
+----------
+
+* NEWS:
+
+    * added test file and test for SIRVRerence class (partial fix of issue #504)
+    * added backspace2fusion code
+
+* BUGS:
+
+    * in quality_control when using the design file in cutadapt rule
+
+* CHANGES:
+
+    * adapters added: TruSeqCD, TruSeqUD, etc
+    * adapters removed: rubicon
+    * remove clean_ngs rule and code related to this software, not used in sequana
+
+* CHANGES for developers:
+
+    * adapters are now named NAME_fwd.fa instead of adapters_NAME_fwd. This
+      should not affect the user interface. Also, the index sequence stored in the
+      adapter files are now identical in the forward/reverse/revcomp versions
+      to simplify the code. We also added a script in ./resources/data/adapters
+      to create the rev and revcomp version automatically.
+
+
 0.7.1
 ---------
 
