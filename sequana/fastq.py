@@ -8,7 +8,6 @@ import subprocess
 from functools import wraps
 from collections import Counter, defaultdict
 
-
 from sequana.lazy import numpy as np
 from sequana.lazy import pandas as pd
 from sequana.lazy import pylab
@@ -24,6 +23,11 @@ try:
     from itertools import izip_longest
 except:
     from itertools import zip_longest as izip_longest
+
+
+from sequana import logger
+logger.name == __name__
+
 
 # for filter fastq files. see below in FastQ for the usage
 # we want to take 4 lines at a time (assuming there is no empty lines)
@@ -350,7 +354,7 @@ class FastQ(object):
         # as fast as zcat file.fastq.gz | head -200000 > out.fasta
 
         # this is to supress the header
-        d = zlib.decompressobj(16 + zlib.MAX_WBITS)
+        decoder = zlib.decompressobj(16 + zlib.MAX_WBITS)
 
         # will we gzip the output file ?
         output_filename, tozip = self._istozip(output_filename)
@@ -361,7 +365,12 @@ class FastQ(object):
 
             with open(output_filename, "wb") as fout:
                 while buf:
-                    outstr = d.decompress(buf)
+                    outstr = decoder.decompress(buf)
+                    if len(outstr) == 0:
+                        msg = "Error while decompressing the zip file. may need"+\
+                              "to dezip/rezip the data. known issue in extract_head"
+                        logger.error(msg)
+                        raise ValueError(msg)
                     this_count = outstr.count(b"\n")
                     if count + this_count > N:
                         # there will be too many lines, we need to select a subset
@@ -671,34 +680,10 @@ class FastQ(object):
         """
 
         """
-        raise NotImplementedError
-        """
-        #twice as slow as a tool such as seqtk and final fasta number not correct...
-        # this is to supress the header
-        d = zlib.decompressobj(16 + zlib.MAX_WBITS)
+        cmd = "bioconvert fastq2fasta {} {}".format(self.filename, output_filename)
+        if force is True:
+            cmd += " --force "
 
-        # will we gzip the output file ?
-        output_filename, tozip = self._istozip(output_filename)
-
-        with open(self.filename, 'rb') as fin:
-            buf = fin.read(CHUNKSIZE)
-
-            count = 0
-            with open(output_filename, "wb") as fout:
-                while buf:
-                    outstr = d.decompress(buf)
-                    lines = outstr.strip().split(b"\n")
-                    for line in lines:
-                        if count%4 == 0:
-                            fout.write(b">"+line[1:]+b"\n")
-                        elif count%4==1:
-                            fout.write(line+b"\n")
-                        count += 1
-
-                    buf = fin.read(CHUNKSIZE)
-
-        if tozip is True: self._gzip(output_filename)
-        """
 
     def filter(self, identifiers_list=[], min_bp=None, max_bp=None,
         progressbar=True, output_filename='filtered.fastq', remove=True):
