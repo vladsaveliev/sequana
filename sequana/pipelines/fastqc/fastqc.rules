@@ -5,9 +5,6 @@ Affiliation: Institut Pasteur @ 2019
 
 This pipeline is part of Sequana software (sequana.readthedocs.io)
 """
-import json
-import os
-import glob
 import sequana
 from sequana import snaketools as sm
 from sequana import sequana_data
@@ -58,9 +55,9 @@ expected_output.extend([__multiqc2__output])
 
 
 # Add Conda
-__conda__output = "inputs/requirements.txt"
+__conda__outdir = "inputs"
 include: sm.modules['conda']   # Create requirements.txt(dependencies)
-expected_output.extend([__conda__output])
+expected_output.extend([__conda__outdir + "/requirements.txt"])
 
 
 # Those rules takes a couple of seconds so no need for a cluster

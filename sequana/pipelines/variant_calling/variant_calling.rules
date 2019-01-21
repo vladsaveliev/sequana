@@ -231,7 +231,9 @@ if config['joint_freebayes']['do']:
 ##############################################################################
 
 # Create requirements.txt(dependencies)
+__conda__output = "requirements.txt"
 include: sm.modules["conda"] 
+expected_output.append([__conda__output])
 
 # Create rulegraph
 __rulegraph__input = __snakefile__
