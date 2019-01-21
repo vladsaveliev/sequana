@@ -1,11 +1,29 @@
+# -*- coding: utf-8 -*-
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2018 - Sequana Development Team
+#
+#  File author(s):
+#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  website: https://github.com/sequana/sequana
+#  documentation: http://sequana.readthedocs.io
+#
+##############################################################################
+"IEM class"
 import collections
 import colorlog
 logger = colorlog.getLogger(__name__)
 
 
 class IEM():
+    """!! In progress to replace some of the adapters module classes
 
-    """
+    Simple IEM file parser.
 
     commas are used as delimiter between adajacent fields on the same line
     If a field contains a comma, use double quotes.
@@ -66,6 +84,7 @@ class IEM():
     """
 
     def __init__(self, filename):
+        logger.warning("Not finalised use with care")
         self.filename = filename
 
     def _line_cleaner(self, line):
@@ -93,6 +112,8 @@ class IEM():
         with open(self.filename, "r") as fin:
             for line in fin.readlines():
                 line = self._line_cleaner(line)
+                if len(line) == 0:
+                    continue
                 if line.startswith("[") and line.endswith("]"):
                     name = line.lstrip("[").rstrip("]")
                     current_section = name
@@ -110,7 +131,7 @@ class IEM():
     def _get_settings(self):
         data = {}
         for line in self.data['Settings']:
-            key, value = line.split()
+            key, value = line.split(",")
             data[key] = value
         return data
     settings = property(_get_settings)
@@ -121,8 +142,6 @@ class IEM():
         else:
             return self.data['Name']
     name = property(_get_name)
-
-
 
     def to_fasta(self, adapter_name):
         ar1 = self.settings['Adapter']
