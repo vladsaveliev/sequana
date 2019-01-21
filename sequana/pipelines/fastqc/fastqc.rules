@@ -55,9 +55,9 @@ expected_output.extend([__multiqc2__output])
 
 
 # Add Conda
-__conda__outdir = "inputs"
+__conda__output = "inputs"
 include: sm.modules['conda']   # Create requirements.txt(dependencies)
-expected_output.extend([__conda__outdir + "/requirements.txt"])
+expected_output.extend([__conda__output + "/requirements.txt"])
 
 
 # Those rules takes a couple of seconds so no need for a cluster
