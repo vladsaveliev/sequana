@@ -98,7 +98,7 @@ class KrakenResults(object):
                     # Note that we add the name as well here
                     ranks = ['kingdom', 'phylum', 'class', 'order',
                             'family', 'genus', 'species', 'name']
-                    return [(self.df.ix[x][rank], rank) for rank in ranks]
+                    return [(self.df.iloc[x][rank], rank) for rank in ranks]
             self.tax = Taxonomy()
 
         if filename:
@@ -246,9 +246,9 @@ class KrakenResults(object):
         df['count'] = self.taxons.values
         df.reset_index(inplace=True)
         newrow = len(df)
-        df.ix[newrow] = "Unclassified"
-        df.ix[newrow, 'count'] = self.unclassified
-        df.ix[newrow, 'index'] = -1
+        df.iloc[newrow] = "Unclassified"
+        df.iloc[newrow, 'count'] = self.unclassified
+        df.iloc[newrow, 'index'] = -1
         df.rename(columns={"index":"taxon"}, inplace=True)
         df["percentage"] = df["count"] / df["count"].sum() * 100
 
@@ -258,7 +258,7 @@ class KrakenResults(object):
             annotations = pd.read_csv(filename)
             annotations.set_index("taxon", inplace=True)
 
-            df2 = annotations.ix[df.taxon][['ena', 'gi', 'description']]
+            df2 = annotations.iloc[df.taxon][['ena', 'gi', 'description']]
             # There are duplicates sohow. let us keep the first one for now
             df2 = df2.reset_index().drop_duplicates(subset="taxon",
                 keep="first").set_index("taxon")
@@ -395,18 +395,18 @@ class KrakenResults(object):
             return None
 
         df = self.get_taxonomy_biokit(list(self.taxons.index))
-        df.ix[-1] = ["Unclassified"] * 8
+        df.iloc[-1] = ["Unclassified"] * 8
         data = self.taxons.copy()
-        data.ix[-1] = self.unclassified
+        data.iloc[-1] = self.unclassified
 
         data = data/data.sum()*100
         assert threshold > 0 and threshold < 100
         others = data[data<threshold].sum()
         data = data[data>threshold]
-        names = df.ix[data.index]['name']
+        names = df.iloc[data.index]['name']
 
         data.index = names.values
-        data.ix['others'] = others
+        data.iloc['others'] = others
         try:
             data.sort_values(inplace=True)
         except:
