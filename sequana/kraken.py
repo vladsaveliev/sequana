@@ -98,7 +98,7 @@ class KrakenResults(object):
                     # Note that we add the name as well here
                     ranks = ['kingdom', 'phylum', 'class', 'order',
                             'family', 'genus', 'species', 'name']
-                    return [(self.df.iloc[x][rank], rank) for rank in ranks]
+                    return [(self.df.loc[x][rank], rank) for rank in ranks]
             self.tax = Taxonomy()
 
         if filename:
@@ -258,7 +258,7 @@ class KrakenResults(object):
             annotations = pd.read_csv(filename)
             annotations.set_index("taxon", inplace=True)
 
-            df2 = annotations.iloc[df.taxon][['ena', 'gi', 'description']]
+            df2 = annotations.loc[df.taxon][['ena', 'gi', 'description']]
             # There are duplicates sohow. let us keep the first one for now
             df2 = df2.reset_index().drop_duplicates(subset="taxon",
                 keep="first").set_index("taxon")
@@ -403,10 +403,10 @@ class KrakenResults(object):
         assert threshold > 0 and threshold < 100
         others = data[data<threshold].sum()
         data = data[data>threshold]
-        names = df.iloc[data.index]['name']
+        names = df.loc[data.index]['name']
 
         data.index = names.values
-        data.iloc['others'] = others
+        data.loc['others'] = others
         try:
             data.sort_values(inplace=True)
         except:
