@@ -2,6 +2,7 @@ from sequana.kraken import *
 from sequana import sequana_data, sequana_config_path
 import os
 import tempfile
+import pytest
 
 
 skiptravis = pytest.mark.skipif("TRAVIS_PYTHON_VERSION" in os.environ,
