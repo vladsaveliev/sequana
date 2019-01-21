@@ -307,7 +307,7 @@ class KrakenResults(object):
 
         # classified reads as root  (1)
         """try:
-            logger.warning("Removing taxon 1 (%s values) " % self.taxons.ix[1])
+            logger.warning("Removing taxon 1 (%s values) " % self.taxons.iloc[1])
             logger.info("Found %s taxons " % len(taxon_to_find))
             taxon_to_find.pop(taxon_to_find.index(1))
         except:

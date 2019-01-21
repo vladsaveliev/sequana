@@ -109,8 +109,8 @@ class SnakeMakeStats(object):
         from sequana.lazy import pandas as pd
         pylab.clf()
         df = pd.DataFrame(self._parse_data()['rules'])
-        ts = df.ix['mean-runtime']
-        total_time = df.ix['mean-runtime'].sum()
+        ts = df.iloc['mean-runtime']
+        total_time = df.iloc['mean-runtime'].sum()
         #ts['total'] = self._parse_data()['total_runtime'] / float(self.N)
         ts['total'] = total_time
         ts.sort_values(inplace=True)
