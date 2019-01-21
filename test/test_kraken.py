@@ -42,6 +42,7 @@ output_directory=p.name, force=True)
 
 
 
+@skiptravis
 def test_kraken_results():
     test_file = sequana_data("test_kraken.out", "testing")
     k = KrakenResults(test_file)
