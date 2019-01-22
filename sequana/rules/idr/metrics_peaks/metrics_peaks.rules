@@ -1,0 +1,26 @@
+rule metrics_peaks:
+    """
+    Rule for compute metrics from previous step
+
+    Required input:
+        __metrics_peaks__input: list of all files needed for metrics
+
+    Required output:
+        __metrics_peaks__output: csv file as described here :
+
+    # plot_type: 'table'
+    Cond	Replicats	PPR	SPR1	SPR2	RR	SCR	Score
+    H3K27Ac_C	30,496	3,197	19,775	20,514	1.05	1.04	1
+    H3K27Ac_U	30,043	35,686	21,289	17,724	1.19	1.20	1
+    H3K4Me1_C	44,316	44,867	23,839	4	3.01	5,959.75	0
+    H3K4Me1_U	42,540	46,534	19,941	21,121	1.09	1.06	1
+
+    """
+    input:
+        __metrics_peaks__input
+    log:
+        __metrics_peaks__logs
+    output:
+        __metrics_peaks__output
+    run:
+        import pandas as pd
