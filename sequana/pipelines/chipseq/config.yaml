@@ -239,6 +239,21 @@ compute_idr:
     rank: 'p.value'
     thresh: 0.05
 
+#############################################################################
+# Compute differential analysis
+#
+# :Parameters:
+#
+# - mode:
+# - rank:
+# - thresh:
+#
+# mode_choice__ = ['narrowPeak', 'broadPeak', 'bed', 'gff']
+#
+statistical_analysis:
+    do: no
+
+
 
 #############################################################################
 # bamCoverage write file in bigwig format from BAM files.

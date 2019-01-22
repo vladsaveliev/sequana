@@ -186,6 +186,8 @@ wildcard_constraints:
     INPUT_POOL = "[A-Za-z-_0-9]+_(Pool|{0}1)".format(rep_flag),
     MARK = "[A-Za-z-_0-9]+"
 
+#reorder rules :
+ruleorder: mark_duplicates > remove_blacklist > spp > preIDR_input > preIDR_PPR > preIDR_SPR > macs2_rep > compute_idr
 
 if manager.config.fastqc.do:
     # FASTQC on input data set
@@ -389,7 +391,7 @@ if manager.config.peak_calling.no_model:
     # PhantomPeakQualTools rule
     __spp__input = "{}/{{ALL}}_{}_sort_dedup{}.bam".format(blacklist_dir,ref, blacklist)
     __spp__output_pdf = "5-PhantomPeakQualTools/{{ALL}}_{}_sort_dedup{}_phantom.pdf".format(ref, blacklist)
-    __spp__metrics = "5-PhantomPeakQualTools/{{ALL}}_{}_sort_dedup{}_phantom.txt".format(ref, blacklist)
+    __spp__metrics = "5-PhantomPeakQualTools/{{ALL}}_{}_sort_dedup{}_spp.out".format(ref, blacklist)
     __spp__log_std = "5-PhantomPeakQualTools/logs/{ALL}_phantom.o"
     __spp__log_err = "5-PhantomPeakQualTools/logs/{ALL}_phantom.e"
     expected_output.extend(expand(__spp__metrics, ALL=ALL))
@@ -398,7 +400,7 @@ else :
     # PhantomPeakQualTools rule
     __spp__input = "{}/{{ALL}}_{}_sort_dedup{}.bam".format(blacklist_dir, ref, blacklist)
     __spp__output_pdf = "5-PhantomPeakQualTools/{{ALL}}_{}_sort_dedup{}_phantom.pdf".format(ref, blacklist)
-    __spp__metrics = "5-PhantomPeakQualTools/{{ALL}}_{}_sort_dedup{}_phantom.txt".format(ref, blacklist)
+    __spp__metrics = "5-PhantomPeakQualTools/{{ALL}}_{}_sort_dedup{}_spp.out".format(ref, blacklist)
     __spp__log_std = "5-PhantomPeakQualTools/logs/{ALL}_phantom.o"
     __spp__log_err = "5-PhantomPeakQualTools/logs/{ALL}_phantom.e"
     expected_output.extend(expand(__spp__metrics, ALL=IP_ALL))
@@ -420,8 +422,8 @@ if model in ["narrow", "broad"]:
     if manager.config.peak_calling.no_model:
         __macs2_rep__options += " --nomodel "
         __macs2_rep__input_done = [
-            "5-PhantomPeakQualTools/{{IP_REP}}_{}_sort_dedup{}_phantom.txt".format(ref, blacklist)]
-        __macs2_rep__shift_file = "5-PhantomPeakQualTools/{{IP_REP}}_{}_sort_dedup{}_phantom.txt".format(ref, blacklist)
+            "5-PhantomPeakQualTools/{{IP_REP}}_{}_sort_dedup{}_spp.out".format(ref, blacklist)]
+        __macs2_rep__shift_file = "5-PhantomPeakQualTools/{{IP_REP}}_{}_sort_dedup{}_spp.out".format(ref, blacklist)
     else:
         __macs2_rep__shift_file = "Empty"
 
@@ -443,8 +445,8 @@ if model in ["narrow", "broad"]:
     __macs2_spr__input_done = ["{}/{{INPUT}}_{}_sort_dedup{}.bam".format(blacklist_dir, ref, blacklist)]
     if manager.config.peak_calling.no_model:
         __macs2_spr__options += " --nomodel "
-        __macs2_spr__input_done += ["5-PhantomPeakQualTools/{{SPR}}_{}_sort_dedup{}_phantom.txt".format(ref, blacklist)]
-        __macs2_spr__shift_file = "5-PhantomPeakQualTools/{{SPR}}_{}_sort_dedup{}_phantom.txt".format(ref, blacklist)
+        __macs2_spr__input_done += ["5-PhantomPeakQualTools/{{SPR}}_{}_sort_dedup{}_spp.out".format(ref, blacklist)]
+        __macs2_spr__shift_file = "5-PhantomPeakQualTools/{{SPR}}_{}_sort_dedup{}_spp.out".format(ref, blacklist)
     else:
         __macs2_spr__shift_file = "Empty"
 
@@ -467,8 +469,8 @@ if model in ["narrow", "broad"]:
 
     if manager.config.peak_calling.no_model:
         __macs2_ppr__options += " --nomodel "
-        __macs2_ppr__input_done += ["5-PhantomPeakQualTools/{{PPR}}_{}_sort_dedup{}_phantom.txt".format(ref, blacklist)]
-        __macs2_ppr__shift_file = "5-PhantomPeakQualTools/{{PPR}}_{}_sort_dedup{}_phantom.txt".format(ref, blacklist)
+        __macs2_ppr__input_done += ["5-PhantomPeakQualTools/{{PPR}}_{}_sort_dedup{}_spp.out".format(ref, blacklist)]
+        __macs2_ppr__shift_file = "5-PhantomPeakQualTools/{{PPR}}_{}_sort_dedup{}_spp.out".format(ref, blacklist)
     else:
         __macs2_ppr__shift_file = "Empty"
 
@@ -491,9 +493,8 @@ if model in ["narrow", "broad"]:
 
     if manager.config.peak_calling.no_model:
         __macs2_pool__options += " --nomodel "
-        __macs2_pool__input_done += [
-            "5-PhantomPeakQualTools/{{POOL}}_{}_sort_dedup{}_phantom.txt".format(ref, blacklist)]
-        __macs2_pool__shift_file = "5-PhantomPeakQualTools/{{POOL}}_{}_sort_dedup{}_phantom.txt".format(ref, blacklist)
+        __macs2_pool__input_done += ["5-PhantomPeakQualTools/{{POOL}}_{}_sort_dedup{}_spp.out".format(ref, blacklist)]
+        __macs2_pool__shift_file = "5-PhantomPeakQualTools/{{POOL}}_{}_sort_dedup{}_spp.out".format(ref, blacklist)
     else:
         __macs2_pool__shift_file = "Empty"
 
@@ -528,6 +529,16 @@ include: sm.modules["select_peaks"]
 expected_output.extend(expand(__select_peaks__output, zip, IP_IDR=IP_REP, INPUT=IP_REP_DUP))
 
 
+
+#Compute peak metrics
+# use expand or add another variable and extend after each step ?
+__metrics_peaks__input = expand()
+__metrics_peaks__logs = "7-IDR/logs/peak_metrics.out"
+__metrics_peaks__output = "metrics_peaks_mqc.out"
+include: sm.modules["metrics_peaks"]
+expected_output.extend(__metrics_peaks__output)
+
+
 def getPeakFilesByMark(wildcards):
     ALL_IP = expand(__select_peaks__output, zip, IP_IDR=IP_REP, INPUT=IP_REP_DUP)
     IP_dict = {}
@@ -541,7 +552,7 @@ def getPeakFilesByMark(wildcards):
 
 
 
-# get union from all detected peak among all conditions for each marki
+# get union from all detected peak among all conditions for each mark
 # TODO test with 3 conditions using a different way to call all cond in the output name
 __union_peaks__input = getPeakFilesByMark
 __union_peaks__logs = "7-IDR/logs/{MARK}_Optimal_selected_peaks.o"
