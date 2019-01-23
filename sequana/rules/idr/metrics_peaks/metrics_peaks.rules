@@ -17,10 +17,57 @@ rule metrics_peaks:
 
     """
     input:
-        __metrics_peaks__input
+        inputs = __metrics_peaks__input
     log:
         __metrics_peaks__logs
+    params:
+        marks = __metrics_peaks__marks,
+        conds = __metrics_peaks__conds,
+        rep = __metrics_peaks__rep
     output:
         __metrics_peaks__output
     run:
         import pandas as pd
+        import os.path
+
+        inputs = [os.path.realpath(f) for f in input['inputs']]
+        output = os.path.realpath(output[0])
+        #initialize dict for store all metrics
+        d = {'Cond': [], 'Replicates': [], 'PPR': [], 'SPR1': [], 'SPR2': [], 'RR': [], 'SCR': [], 'Score': []}
+        nb_rep = nb_ppr = nb_spr1 = nb_spr2 = 0
+        for mark in marks:
+            for cond in conds:
+                sample = mark+"_"+cond
+                d['Cond'].append(mark+"_"+cond)
+                for file in inputs:
+                    if sample in file:
+                        if 'vs'+params.rep in file:
+                            nb_rep = sum(1 for line in open(file))
+                            d['Replicates'].append(nb_rep)
+                        if 'vsPPR' in file:
+                            nb_ppr = sum(1 for line in open(file))
+                            d['PPR'].append(nb_ppr)
+                        if 'vsSPR1' in file:
+                            nb_spr1 = sum(1 for line in open(file))
+                            d['SPR1'].append(nb_spr1)
+                        if 'vsSPR2' in file:
+                            nb_spr2 = sum(1 for line in open(file))
+                            d['SPR2'].append(nb_spr2)
+                scr = max(nb_spr1,nb_spr2)/max(nb_spr1,nb_spr2)
+                rr = max(nb_rep,nb_ppr)/max(nb_rep,nb_ppr)
+                d['SCR'].append(scr)
+                d['RR'].append(rr)
+                if scr < 2 and rr < 2 :
+                    d['Score'].append(1)
+                elif scr > 2 or rr > 2 :
+                    d['Score'].append(-1)
+                else:
+                    d['Score'].append(0)
+
+
+
+        # create dataframe from dictionary
+        df = pd.DataFrame(data=d)
+
+        # write dataframe in output file
+        df.to_csv(output, sep="\t", index=False)
