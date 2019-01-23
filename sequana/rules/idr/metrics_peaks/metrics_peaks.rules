@@ -70,4 +70,6 @@ rule metrics_peaks:
         df = pd.DataFrame(data=d)
 
         # write dataframe in output file
-        df.to_csv(output, sep="\t", index=False)
+        with open(output, 'w') as f:
+                f.write("# plot_type: 'table'")
+        df.to_csv(output, mode='a',sep="\t", index=False)
