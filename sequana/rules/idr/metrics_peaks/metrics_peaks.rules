@@ -71,5 +71,5 @@ rule metrics_peaks:
 
         # write dataframe in output file
         with open(output, 'w') as f:
-                f.write("# plot_type: 'table'")
+                f.write("# plot_type: 'table'\n")
         df.to_csv(output, mode='a',sep="\t", index=False)
