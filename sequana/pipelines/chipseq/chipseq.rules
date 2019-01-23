@@ -187,7 +187,7 @@ wildcard_constraints:
     MARK = "[A-Za-z-_0-9]+"
 
 #reorder rules :
-ruleorder: mark_duplicates > remove_blacklist > spp > preIDR_input > preIDR_PPR > preIDR_SPR > macs2_rep > compute_idr
+ruleorder: mark_duplicates > spp > preIDR_input > preIDR_PPR > preIDR_SPR > macs2_rep > compute_idr
 
 if manager.config.fastqc.do:
     # FASTQC on input data set
@@ -530,13 +530,19 @@ expected_output.extend(expand(__select_peaks__output, zip, IP_IDR=IP_REP, INPUT=
 
 
 
+
 #Compute peak metrics
-# use expand or add another variable and extend after each step ?
-__metrics_peaks__input = expand()
+idr_peaks = []
+idr_peaks.extend(expand("7-IDR/{{IP_IDR}}_{{CASE}}1vs{{CASE}}2_{{INPUT}}_ref_{}_idr.txt".format(model),
+                        zip, IP_IDR=REP_IDR, CASE=CASE, INPUT=IN_IDR))
+__metrics_peaks__input = idr_peaks
+__metrics_peaks__marks = marks
+__metrics_peaks__conds = conds
+__metrics_peaks__rep = rep_flag
 __metrics_peaks__logs = "7-IDR/logs/peak_metrics.out"
 __metrics_peaks__output = "metrics_peaks_mqc.out"
 include: sm.modules["metrics_peaks"]
-expected_output.extend(__metrics_peaks__output)
+expected_output.extend([__metrics_peaks__output])
 
 
 def getPeakFilesByMark(wildcards):
