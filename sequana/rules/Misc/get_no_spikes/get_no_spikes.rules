@@ -1,0 +1,31 @@
+rule get_no_spikes:
+    """
+    Extract unaligned reads from bam and produce fastq
+
+
+    Required input:
+        __get_no_spikes__input: input bam file
+
+    Required output:
+        __get_no_spikes__output: output fasta file containing extract sequence
+
+
+
+    """
+    input:
+        __get_no_spikes__input,
+    output:
+         __get_no_spikes__output
+    log:
+        __get_no_spikes__log
+    run:
+        from tempfile import mkstemp
+        bam = mkstemp()
+        bam_sort = mkstemp()
+        fastq =  mkstemp()
+        shell("samtools view -Sbh -@4 {input} > %s" % (bam))
+        shell("bamtools sort -in %s -out %s"  % (bam, bam_sort))
+        shell("bioconvert bam2bed %s %s --force " % (bam_sort, fastq))
+        shgell("unpigz -fk %s --stdout > {output}" % (fastq) )
+
+
