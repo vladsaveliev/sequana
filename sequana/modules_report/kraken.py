@@ -97,7 +97,7 @@ Besides, be aware that closely related species may not be classified precisely.
                 [urlena + this for this in df['ena']])
         datatable.datatable.datatable_options = {
             'scrollX': '300px',
-            'pageLength': 15,
+            'pageLength': 30,
             'scrollCollapse': 'true',
             'dom': 'irtpB',
             "paging": "false",

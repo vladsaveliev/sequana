@@ -146,7 +146,7 @@ class CutadaptModule(SequanaBaseModule):
         datatable = DataTable(self._get_stats(), "cutadapt", index=True)
         datatable.datatable.datatable_options = {
             'scrollX': '300px',
-            'pageLength': 15,
+            'pageLength': 30,
             'scrollCollapse': 'true',
             'dom': 'rtpB',
             "paging": "false",
