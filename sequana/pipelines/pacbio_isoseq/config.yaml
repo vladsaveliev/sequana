@@ -34,15 +34,19 @@ requirements:
 # :Parameters:
 #
 # - genome_file: path to Reference Genome in fasta format
+# - genome_file: path to annotation file in GFF format
 # - spikes: if data contain spikes or not. May be yes or no
 # - spikes_file: path to spikes in fasta format
-# - design_file: path to design in XX format
+# - merge_smrtcell: yes (or not) according to your sequencing design
+# - design_file: path to design in XX format if you want to merge smrtcell
 #
 
 general:
   genome_file: /path/to/your/directory/Genomes/hg19/hg19.fa
-  spikes: no # may be yes
+  annotation_file : /path/to/your/directory/Genomes/hg19/hg19.gff
+  spikes: yes # may be yes
   spikes_file: /path/to/your/directory/spikes.fa
+  merge_smrtcell: no
   design_file: /path/to/your/directory/design.txt
 
 #############################################################################

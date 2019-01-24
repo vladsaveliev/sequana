@@ -15,10 +15,9 @@ sm.init("pacbio_isoseq.rules", globals())
 configfile: "config.yaml"
 __snakefile__ = srcdir(__snakefile__)
 
-
+exec(open(sequana.modules["minimap2_mapping_dynamic"], "r").read())
 
 manager = sm.PipelineManager("pacbio_isoseq", config, fastq=False)
-
 __data__input = manager.getrawdata()
 
 
@@ -69,15 +68,47 @@ __polish__log_err = "%s/logs/polish/stderr.logs" % manager.sample
 include: sm.modules['polish']
 expected_output.extend(expand(__polish__output, sample=manager.samples))
 
+if manager.config.general.spikes:
+    __minimap2_mapping_spikes__input = __polish__output_hq
+    __minimap2_mapping_spikes__logs = manager.getname("minimap2", "_spikes.logs")
+    __minimap2_mapping_spikes__sort = manager.getname("minimap2_mapping", "_spikes_sort.bam")
+    __minimap2_mapping_spikes__output_bam = manager.getname("minimap2_mapping", "_spikes.bam")
+    __minimap2_mapping_spikes__ref = config["general"]["spikes_file"]
+    include: minimap2_mapping_dynamic("spikes", manager)
+    expected_output.extend(expand(__minimap2_mapping_spikes__sort, sample=manager.samples))
+
+    #extract no spike reads
+    __get_no_spikes__input = manager.getname("minimap2_mapping", "_spikes.bam")
+    __get_no_spikes__output = manager.getname("minimap2_mapping", "_no-spikes.fastq.gz")
+    __get_no_spikes__log = manager.getname("minimap2", "no_spike.logs")
+    include: sm.modules['get_no_spikes']
+    expected_output.extend(expand(__get_no_spikes__output, sample=manager.samples))
+
+    #replace all hq by all hq that don't match spikes
+    __polish__output_hq = __get_no_spikes__output
+
+
+
 #mapping with minimap2
 if manager.config.minimap2_mapping.do:
-    __minimap2_mapping__input = __polish__output_hq
-    __minimap2_mapping__logs = manager.getname("minimap2", ".logs")
-    __minimap2_mapping__sort = manager.getname("minimap2_mapping", "_sort.bam")
-    __minimap2_mapping__output_bam = manager.getname("minimap2_mapping", ".bam")
-    __minimap2_mapping__ref = config["general"]["genome_file"]
-    include: sm.modules['minimap2_mapping']
-    expected_output.extend(expand(__minimap2_mapping__sort, sample=manager.samples))
+    __minimap2_mapping_genome__input = __polish__output_hq
+    __minimap2_mapping_genome__logs = manager.getname("minimap2", "_genome.logs")
+    __minimap2_mapping_genome__sort = manager.getname("minimap2_mapping", "_sort.bam")
+    __minimap2_mapping_genome__output_bam = manager.getname("minimap2_mapping", ".bam")
+    __minimap2_mapping_genome__ref = config["general"]["genome_file"]
+    include: minimap2_mapping_dynamic("genome", manager)
+    expected_output.extend(expand(__minimap2_mapping_genome__sort, sample=manager.samples))
+
+    if manager.config.general.annotation_file:
+        __bedtools_coverage__input_bam = __minimap2_mapping_genome__output_bam
+        __bedtools_coverage__input_annotation = config["general"]["annotation_file"]
+        __bedtools_coverage__output = manager.getname("minimap2_mapping", "_coverage.bed")
+        __bedtools_coverage__log = manager.getname("coverage", ".logs")
+        include: sm.modules['bedtools_coverage']
+        expected_output.extend(expand(__bedtools_coverage__output, sample=manager.samples))
+
+
+
 
 
 # Include rule graph for each sample
