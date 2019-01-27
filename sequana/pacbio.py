@@ -1108,8 +1108,8 @@ class BarCode():
 
     def plot_barcode_histogram(self, bins=10, fontsize=12):
         self.df_barcoded['Polymerase Reads'].hist(bins=bins, ec="k", rwidth=0.8)
-        pylab.xlabel("Number of Barcoded Samples", fontsize=fontsize)
-        pylab.ylabel("Number of Barcoded Reads", fontsize=fontsize)
+        pylab.xlabel("Number of Barcoded Polymerase Reads", fontsize=fontsize)
+        pylab.ylabel("Number of Barcoded Samples", fontsize=fontsize)
         try:pylab.tight_layout()
         except:pass
 
@@ -1122,7 +1122,7 @@ class BarCode():
 
     def plot_subreads_histogram(self, bins=10, fontsize=12):
         self.df_barcoded['Subreads'].hist(bins=bins, ec="k", rwidth=0.8)
-        pylab.xlabel("Subreads Length", fontsize=fontsize)
+        pylab.xlabel("Number of subreads", fontsize=fontsize)
         pylab.ylabel("Number of Barcoded Samples", fontsize=fontsize)
         try:pylab.tight_layout()
         except:pass

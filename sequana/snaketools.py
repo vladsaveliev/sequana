@@ -54,7 +54,9 @@ from sequana.misc import wget
 from sequana import sequana_data, logger
 from sequana.errors import SequanaException
 
-from sequana import logger
+
+logger.name = __name__
+
 
 __all__ = ["DOTParser", "FastQFactory", "FileFactory",
            "Module", "PipelineManager", "SnakeMakeStats",
@@ -1233,6 +1235,7 @@ class FileFactory(object):
         return filenames
     all_extensions = property(_get_all_extensions,
                               doc="the extensions (list)")
+
 
     def __len__(self):
         return len(self.filenames)

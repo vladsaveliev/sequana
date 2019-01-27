@@ -27,6 +27,8 @@ from sequana.misc import wget
 from sequana import sequana_config_path
 from sequana import logger
 
+logger.name = __name__
+
 
 __all__ = ['KrakenResults', "KrakenPipeline", "KrakenAnalysis",
             "KrakenDownload", "KrakenHierarchical"]
@@ -246,9 +248,9 @@ class KrakenResults(object):
         df['count'] = self.taxons.values
         df.reset_index(inplace=True)
         newrow = len(df)
-        df.iloc[newrow] = "Unclassified"
-        df.iloc[newrow, 'count'] = self.unclassified
-        df.iloc[newrow, 'index'] = -1
+        df.loc[newrow] = "Unclassified"
+        df.loc[newrow, 'count'] = self.unclassified
+        df.loc[newrow, 'index'] = -1
         df.rename(columns={"index":"taxon"}, inplace=True)
         df["percentage"] = df["count"] / df["count"].sum() * 100
 

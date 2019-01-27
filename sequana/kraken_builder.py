@@ -28,6 +28,9 @@ from sequana.databases import ENADownload
 from easydev import execute, TempFile, Progress, md5, DevTools
 
 from sequana.lazy import pandas as pd
+from sequana import logger
+logger.name = __name__
+
 
 
 __all__ = ["KrakenBuilder"]

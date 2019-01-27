@@ -16,7 +16,7 @@
 ##############################################################################
 "IEM class"
 import collections
-import colorlog
+from sequana import logger
 logger = colorlog.getLogger(__name__)
 
 

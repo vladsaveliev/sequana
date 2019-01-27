@@ -1,19 +1,53 @@
+# -*- coding: utf-8 -*-
+#
+#  This file is part of Sequana software
+#
+#  Copyright (c) 2016 - Sequana Development Team
+#
+#  File author(s):
+#      Thomas Cokelaer <thomas.cokelaer@pasteur.fr>
+#
+#  Distributed under the terms of the 3-clause BSD license.
+#  The full license is in the LICENSE file, distributed with this software.
+#
+#  website: https://github.com/sequana/sequana
+#  documentation: http://sequana.readthedocs.io
+#
+##############################################################################
+
+
+
+
 from sequana import BAM
 import glob
 import pandas as pd
 import pylab
+from sequana import logger
+logger.name = __name__
 
 
 class LAA():
     def __init__(self, where="bc*"):
         self.filenames = glob.glob(where + "/" + "amplicon_*summary.csv")
         self.data = [pd.read_csv(this) for this in self.filenames]
+        self.numbers = [len(x) for x in self.data]
+        self.df = pd.DataFrame(
+            [(x[0:4],y) for x, y in zip(self.filenames, self.numbers)])
 
     def hist_amplicon(self, fontsize=12):
-        data = [len(x) for x in self.data]
-        pylab.hist(data, bins=max(data), ec="k")
+        pylab.hist(self.numbers, bins=max(data), ec="k", align="left")
         pylab.ylabel("#", fontsize=fontsize)
         pylab.ylabel("Number of amplicons per barcode", fontsize=fontsize)
+
+    def __str__(self):
+        return self.df.sort_values(1).to_string()
+
+    def plot_max_length_amplicon_per_barcode(self):
+        data = [max(x.SequenceLength) if len(x.SequenceLength) else 0  for x in self.data]
+        pylab.plot([int(x[2:4]) for x in self.filenames], data, "o")
+        pylab.xlabel("barcode name (filename)")
+        pylab.ylabel("Max length amongst amplicons (0 if no amplicon)")
+        #savefig("max_amplicon_length_per_barcode.png", dpi=200)
 
 
 class LAA_Assembly():

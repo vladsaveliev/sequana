@@ -20,6 +20,8 @@
 
 from sequana.lazy import numpy as np
 from sequana.lazy import pandas as pd
+from sequana import logger
+logger.name = __name__
 
 
 __all__ = ["moving_average", "evenness"]

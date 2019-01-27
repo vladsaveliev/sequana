@@ -780,6 +780,32 @@ class SAMBAMbase():
         pylab.ylabel("Indel count", fontsize=fontsize)
         return I, D, R
 
+    @_reset
+    def hist_soft_clipping(self):
+        """histogram of soft clipping length ignoring supplementary and
+            secondary reads
+
+        """
+        from sequana import Cigar
+        N = 0; M=0; C = []; F=[]
+        for i,a in enumerate(self):
+            c = a.cigarstring
+            if c:
+                C.append(Cigar(c).as_dict()['S'])
+                M += 1
+            else: 
+                N+=1
+                C.append(-1)
+            F.append(a.flag)
+
+        df = pd.DataFrame({"S":C, "F":F})
+        df.query("F<32 and F!=4")['S'].hist(bins=100, log=True)
+        pylab.xlabel("Soft clip length", fontsize=16)
+        pylab.ylabel("#", fontsize=16)
+
+
+
+
 
 
 class SAM(SAMBAMbase):

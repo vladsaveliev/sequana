@@ -36,6 +36,7 @@ from sequana.summary import Summary
 
 from easydev import do_profile, TempFile, Progress
 
+logger.name = __name__
 
 __all__ = ["GenomeCov", "ChromosomeCov", "DoubleThresholds"]
 
