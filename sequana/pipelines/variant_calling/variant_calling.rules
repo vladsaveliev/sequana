@@ -54,7 +54,6 @@ __report_dir__ = 'report_vc_{0}'.format(manager.sample)
 reference = config["bwa_mem_ref"]["reference"]
 # Add locus in FASTA file for snpEff
 if config["snpeff"]["do"]:
-    from sequana.snpeff import SnpEff
     __snpeff_add_locus_in_fasta__log = "common_logs/snpeff_add_locus_in_fasta.log"
     __snpeff_add_locus_in_fasta__input = reference
     __snpeff_add_locus_in_fasta__output = "reference/{0}".format(
@@ -173,6 +172,7 @@ if config["snpeff"]["do"]:
     __snpeff__output = manager.getname("snpeff", ".ann.vcf")
     __snpeff__html = manager.getname("snpeff", ".snpeff.html")
     __snpeff__log = manager.getlogdir("snpeff")
+    __snpeff__csv = manager.getlogdir("snpeff", "snpeff.csv")
     include: sm.modules["snpeff"]
     __freebayes_vcf_filter__input = __snpeff__output
 else:
