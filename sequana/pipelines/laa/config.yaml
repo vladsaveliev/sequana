@@ -1,0 +1,33 @@
+
+
+reference : "AB038249.fa"
+input:
+    type: "lima.ccs.fastq"   # could be lima.ccs.fastq, lima.ccs.bam or subreads.bam
+    pattern: "bc*/lima*fastq"
+
+freebayes:
+    ploidy: 1
+    options: ""
+
+
+snpeff:
+    do: yes
+    reference: "AB038249.gbk"
+    options: "-no-downstream -no-upstream"
+
+kraken:
+    do: yes
+    databases:
+        - /home/cokelaer/.config/sequana/kraken_human_only/
+        - /home/cokelaer/.config/sequana/viruses_only/
+        - /home/cokelaer/.config/sequana/kraken_bacteria_only/
+
+
+freebayes_vcf_filter:
+    freebayes_score: 20
+    frequency: 0.7
+    min_depth: 10
+    forward_depth: 3
+    reverse_depth: 3
+    strand_ratio: 0.2
+
