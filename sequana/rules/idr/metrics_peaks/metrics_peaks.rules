@@ -53,8 +53,15 @@ rule metrics_peaks:
                         if 'vsSPR2' in file:
                             nb_spr2 = sum(1 for line in open(file))
                             d['SPR2'].append(nb_spr2)
-                scr = max(nb_spr1,nb_spr2)/max(nb_spr1,nb_spr2)
-                rr = max(nb_rep,nb_ppr)/max(nb_rep,nb_ppr)
+                #catch illegal division by zero
+                try:
+                    scr = round(max(nb_spr1,nb_spr2)/min(nb_spr1,nb_spr2))
+                except ZeroDivisionError:
+                    scr = 0
+                try:
+                    rr = round(max(nb_rep,nb_ppr)/min(nb_rep,nb_ppr))
+                except ZeroDivisionError:
+                    rr = 0
                 d['SCR'].append(scr)
                 d['RR'].append(rr)
                 if scr < 2 and rr < 2 :
