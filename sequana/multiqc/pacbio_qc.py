@@ -30,6 +30,7 @@ class MultiqcModule(BaseMultiqcModule):
 
         self.sequana_data = {}
         for myfile in self.find_log_files("sequana_pacbio_qc"):
+            logging.info("Parsing {}".format(myfile))
             #print( myfile['f'] )       # File contents
             #print( myfile['s_name'] )  # Sample name (from cleaned filename)
             #print( myfile['fn'] )      # Filename
