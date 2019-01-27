@@ -53,7 +53,7 @@ a sample. Currently, the following set of adapters/design are available:
     - NEBNext single and double indexing
 
 Note that TruSeq index 17, 24, and 26 are missing. This is normal. Those are
-"reserved" Illumina index. 
+"reserved" Illumina index.
 
 For instance given a design file that gives the mapping between samples and a
 set of Nextera adapters, one would use:
@@ -75,11 +75,9 @@ import os
 
 from sequana.fasta import FastA
 from sequana.datatools import sequana_data
-#from sequana import logger
 
 import colorlog
 logger = colorlog.getLogger(__name__)
-
 
 import pysam
 
@@ -569,7 +567,7 @@ class AdapterReader(object):
         for this in self._data:
             this.sequence = this.sequence[::-1]
             fields = this.identifier.split("|")
-            # change API version 0.7.2 
+            # change API version 0.7.2
             # we now store the original sequence instead of reverse
             # identifier = "|".join([self._reverse(field) for field in fields])
             identifier = "|".join([field for field in fields])
@@ -594,7 +592,7 @@ class AdapterReader(object):
         for this in self._data:
             this.sequence = DNA(this.sequence[:]).get_reverse_complement()
             fields = this.identifier.split("|")
-            # change API version 0.7.2 
+            # change API version 0.7.2
             # we now store the original sequence instead of reverse
             # identifier = "|".join([self._reverse_comp(field) for field in fields])
             identifier = "|".join([field for field in fields])
@@ -626,7 +624,7 @@ class FindAdaptersFromDesign(object):
 
         :param str design_filename: a CSV file that is compatible
             with our :class:`sequana.expdesign.ExpDesignAdapter`
-        :param adapters: the type of adapters (PCRFree, Nextera, 
+        :param adapters: the type of adapters (PCRFree, Nextera,
             Rubicon, TruSeq, SMARTer, Small)
 
         The files of adapters are stored in Sequana and accessible with the
@@ -710,12 +708,12 @@ class FindAdaptersFromDesign(object):
             >Nextera_transposase_seq_2|name:transposase_seq_2
             GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG
             >Nextera_index_N501|name:N501|seq:TAGATCGC
- 
+
         If sample name is given, it will figure out that for instance the index
         N501 is required. In addition, all sequences with identifier without the
-        |seq: tag in their name will be added; So, here we will also have the 
+        |seq: tag in their name will be added; So, here we will also have the
         universal and the two transposases
-        
+
 
         """
         data = self.get_sample(sample_name)
@@ -773,7 +771,8 @@ class FindAdaptersFromDesign(object):
                 res['index2']['fwd'] = self._adapters_fwd.get_adapter_by_index_name(index2)
                 res['index2']['revc'] = self._adapters_revc.get_adapter_by_index_name(index2)
 
-        # to be found 
+        # adapters to be found but not a barcode, whih have the "|seq:" string
+        # in it
         for name, identifier in zip(self._adapters_fwd.index_names,
                                     self._adapters_fwd.identifiers):
             if "|seq:" in identifier:
