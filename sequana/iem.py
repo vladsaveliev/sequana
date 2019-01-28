@@ -17,7 +17,10 @@
 "IEM class"
 import collections
 from sequana import logger
-logger = colorlog.getLogger(__name__)
+logger.name = __name__
+
+
+__all__ = ["IEM"]
 
 
 class IEM():
