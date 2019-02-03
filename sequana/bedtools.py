@@ -386,17 +386,17 @@ class GenomeCov(object):
             contigs = chunk[0].unique()
             for contig in contigs:
                 if contig not in self.chrom_names:
-                    self.chrom_names.append(contig)
+                    self.chrom_names.append(str(contig))
 
             # group by names (unordered)
             chunk = chunk.groupby(0)
             for contig in contigs:
-                if contig not in positions:
-                    positions[contig] = {
+                if str(contig) not in positions:
+                    positions[str(contig)] = {
                         "start": chunk.groups[contig].min(),
                         "end": chunk.groups[contig].max()}
                 else:
-                    positions[contig]["end"] = chunk.groups[contig].max()
+                    positions[str(contig)]["end"] = chunk.groups[contig].max()
             i += 1
             i = min(i, Nchunk)
             if self.quiet_progress is False and Nchunk > 1:
